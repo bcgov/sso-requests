@@ -1,0 +1,26 @@
+{
+  "name": "lambda",
+  "version": "1.0.0",
+  "description": "lambda functions for backend",
+  "main": "index.js",
+  "scripts": {
+    "compile": "tsc"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.51",
+    "@types/jsonwebtoken": "^8.5.2",
+    "@types/jwk-to-pem": "^2.0.0",
+    "@types/jws": "^3.2.3",
+    "@types/node": "^13.13.5",
+    "aws-sdk": "^2.655.0",
+    "typescript": "^3.8.3"
+  },
+  "author": "Jonathan Langlois",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.5",
+    "jws": "^4.0.0"
+  }
+}
