@@ -7,7 +7,7 @@ on:
       - completed
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout 🛎️
@@ -16,7 +16,9 @@ jobs:
       - name: Install and Build
         run: |
           yarn
-          yarn build && yarn export && touch ./out/.nojekyll
+          yarn build
+          yarn export
+          touch ./out/.nojekyll
         working-directory: ./app
 
       - name: Deploy 🚀
