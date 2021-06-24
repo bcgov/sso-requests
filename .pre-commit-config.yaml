@@ -20,3 +20,7 @@ repos:
     rev: v7.29.0
     hooks:
       - id: eslint
+  - repo: https://github.com/jorisroovers/gitlint
+    rev: v0.12.0
+    hooks:
+      - id: gitlint

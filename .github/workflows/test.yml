@@ -34,6 +34,7 @@ jobs:
         run: |
           yarn
           yarn jest
+        working-directory: ./app
   pre-commit:
     runs-on: ubuntu-18.04
     steps:
@@ -54,6 +55,7 @@ jobs:
       - name: Install Yarn Dependencies
         run: |
           yarn
+        working-directory: ./app
       - name: Rerun Pre-Commit Hooks on CI
         run: |
           pip install -r requirements.txt
