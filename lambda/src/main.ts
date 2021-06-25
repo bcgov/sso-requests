@@ -9,7 +9,6 @@ const ISSUER = 'https://dev.oidc.gov.bc.ca/auth/realms/onestopauth';
 const AUD = 'tmp-sso-requests';
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
-  const jwk = await getJWK();
   const { headers } = event;
 
   const authenticated = await authenticate(headers);
@@ -18,6 +17,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     statusCode: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Origin': 'https://bcgov.github.io',
+      'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+      'Access-Control-Allow-Credentials': 'true',
     },
     body: `${authenticated ? 'Valid credentials' : 'Not valid'}`,
   };
@@ -26,24 +29,24 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
 
 const getJWK = async () => {
   const jwk = await axios.get(JWK_URL).then(
-    res => res.data,
+    (res) => res.data,
     () => null
   );
 
   return jwk;
 };
 
-const authenticate = async headers => {
-  const { authorization } = headers || {};
-  if (!authorization) return false;
+const authenticate = async (headers) => {
+  const { Authorization } = headers || {};
+  if (!Authorization) return false;
 
-  const bearerToken = authorization.split('Bearer ')[1];
+  const bearerToken = Authorization.split('Bearer ')[1];
   const isValid = await validateJWTSignature(bearerToken);
 
   return isValid;
 };
 
-export const validateJWTSignature = async token => {
+export const validateJWTSignature = async (token) => {
   try {
     // 1. Decode the ID token.
     const { header, payload, signature } = jws.decode(token);
@@ -51,7 +54,7 @@ export const validateJWTSignature = async token => {
     // 2. Compare the local key ID (kid) to the public kid.
     const jwk = await getJWK();
 
-    const key = jwk.keys.find(key => key.kid === header.kid);
+    const key = jwk.keys.find((key) => key.kid === header.kid);
     const isValidKid = !!key;
 
     if (!isValidKid) {

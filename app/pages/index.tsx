@@ -86,15 +86,15 @@ export default function Home() {
             <button type="button" onClick={handleLogout}>
               Logout
             </button>
-            <button type="button" onClick={handleInfo}>
-              Info
-            </button>
           </>
         ) : (
           <button type="button" onClick={handleLogin}>
             Login
           </button>
         )}
+        <button type="button" onClick={handleInfo}>
+          Check Server Auth
+        </button>
       </main>
 
       <footer></footer>
