@@ -18,7 +18,7 @@ resource "aws_iam_role" "iam_for_lambda" {
 EOF
 }
 
-resource "aws_lambda_function" "test_lambda" {
+resource "aws_lambda_function" "auth" {
   filename      = "bundle.zip"
   function_name = "handler"
   role          = aws_iam_role.iam_for_lambda.arn

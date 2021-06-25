@@ -37,7 +37,7 @@ const authenticate = async headers => {
   const { authorization } = headers || {};
   if (!authorization) return false;
 
-  const bearerToken = authorization.split('Basic ')[1];
+  const bearerToken = authorization.split('Bearer ')[1];
   const isValid = await validateJWTSignature(bearerToken);
 
   return isValid;
