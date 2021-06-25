@@ -20,6 +20,7 @@ jobs:
 
       - name: Install and Build
         env:
+          APP_URL: ${{ secrets.APP_URL }}
           API_URL: ${{ secrets.API_URL }}
           SSO_URL: ${{ secrets.SSO_URL }}
           SSO_CLIENT_ID: ${{ secrets.SSO_CLIENT_ID }}
