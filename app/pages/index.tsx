@@ -34,7 +34,7 @@ export default function Home() {
           if (verifiedIdToken) {
             sessionStorage.setItem(TOKEN_SESSION, JSON.stringify(tokens));
             setCurrentUser(verifiedIdToken);
-            router.push(`${app_url}/`);
+            router.push('/');
           }
         }
         // main entrypoint
