@@ -2,7 +2,7 @@ import axios from 'axios';
 import rs from 'jsrsasign';
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig } = getConfig();
+const { publicRuntimeConfig = {} } = getConfig() || {};
 const { sso_client_id } = publicRuntimeConfig;
 
 import { meta } from './provider';

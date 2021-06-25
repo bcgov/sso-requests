@@ -3,7 +3,7 @@ import qs from 'qs';
 
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig } = getConfig();
+const { publicRuntimeConfig = {} } = getConfig() || {};
 const {
   sso_client_id,
   sso_authorization_scope,

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig } = getConfig();
+const { publicRuntimeConfig = {} } = getConfig() || {};
 const { sso_url } = publicRuntimeConfig;
 
 const ISSUER_URL = `${sso_url}/.well-known/openid-configuration`;

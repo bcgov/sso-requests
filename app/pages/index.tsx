@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { fetchIssuerConfiguration } from '../utils/provider';
 import { getAuthorizationUrl, getAccessToken } from '../utils/openid';
@@ -8,6 +9,7 @@ import { fetchInfo } from '../services/auth';
 const TOKEN_SESSION = 'tokens';
 
 export default function Home() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
   const [error, setError] = useState(null);
 
@@ -27,7 +29,8 @@ export default function Home() {
 
           if (verifiedIdToken) {
             sessionStorage.setItem(TOKEN_SESSION, JSON.stringify(tokens));
-            window.location.href = '/';
+            setCurrentUser(verifiedIdToken);
+            router.push('/');
           }
         }
         // main entrypoint
@@ -52,12 +55,12 @@ export default function Home() {
 
   const handleLogin = async () => {
     const authUrl = await getAuthorizationUrl();
-    window.location.href = authUrl;
+    router.push(authUrl);
   };
 
   const handleLogout = async () => {
     sessionStorage.removeItem(TOKEN_SESSION);
-    window.location.reload();
+    router.reload();
   };
 
   const handleInfo = async () => {
