@@ -1,7 +1,10 @@
+const APP_URL = process.env.APP_URL || '';
+
 module.exports = {
   reactStrictMode: true,
   serverRuntimeConfig: {},
   publicRuntimeConfig: {
+    app_url: APP_URL,
     api_url: process.env.API_URL || '',
     sso_url: process.env.SSO_URL || 'http://localhost:8080',
     sso_client_id: process.env.SSO_CLIENT_ID || '',
@@ -11,5 +14,6 @@ module.exports = {
     sso_token_grant_type: process.env.SSO_TOKEN_GRANT_TYPE || 'authorization_code',
   },
   env: {},
-  assetPrefix: process.env.APP_URL || '',
+  assetPrefix: APP_URL,
+  basePath: APP_URL,
 };
