@@ -4,15 +4,19 @@
   "description": "lambda functions for backend",
   "main": "index.js",
   "scripts": {
-    "compile": "tsc"
+    "compile": "tsc",
+    "test": "jest"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.51",
+    "@types/jest": "^26.0.23",
     "@types/jsonwebtoken": "^8.5.2",
     "@types/jwk-to-pem": "^2.0.0",
     "@types/jws": "^3.2.3",
     "@types/node": "^13.13.5",
     "aws-sdk": "^2.655.0",
+    "jest": "^27.0.5",
+    "ts-jest": "^27.0.3",
     "typescript": "^3.8.3"
   },
   "author": "Jonathan Langlois",
