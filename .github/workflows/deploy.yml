@@ -3,6 +3,7 @@ on:
   push:
     branches: [dev]
 
+# it will use workflow_run event once it got merged into the main branch
 # on:
 #   workflow_run:
 #     workflows: ['Run Tests and Lints']
@@ -12,7 +13,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-18.04
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v2.3.1
