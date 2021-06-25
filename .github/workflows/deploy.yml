@@ -1,10 +1,14 @@
 name: Build and Deploy
 on:
-  workflow_run:
-    workflows: ['Run Tests and Lints']
+  push:
     branches: [dev]
-    types:
-      - completed
+
+# on:
+#   workflow_run:
+#     workflows: ['Run Tests and Lints']
+#     branches: [dev]
+#     types:
+#       - completed
 jobs:
   build-and-deploy:
     runs-on: ubuntu-18.04
