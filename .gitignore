@@ -16,6 +16,7 @@ build
 # misc
 .DS_Store
 *.pem
+*.zip
 
 # debug
 npm-debug.log*
@@ -30,6 +31,9 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# typescript build
+**/built
 
 # Local .terraform directories
 **/.terraform/*
