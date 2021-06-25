@@ -11,4 +11,5 @@ module.exports = {
     sso_token_grant_type: process.env.SSO_TOKEN_GRANT_TYPE || 'authorization_code',
   },
   env: {},
+  assetPrefix: process.env.APP_URL || '',
 };
