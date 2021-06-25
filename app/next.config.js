@@ -15,5 +15,7 @@ module.exports = {
   },
   env: {},
   assetPrefix: APP_URL,
-  basePath: process.env.APP_BASE_PATH || '/',
+  // basePath has to start with a /
+  // basePath has to be either an empty string or a path prefix
+  basePath: process.env.APP_BASE_PATH || '',
 };
