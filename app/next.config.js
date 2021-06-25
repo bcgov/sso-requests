@@ -1,3 +1,5 @@
+const isProd = process.env.NODE_ENV === 'production';
+
 module.exports = {
   reactStrictMode: true,
   serverRuntimeConfig: {},
@@ -11,5 +13,5 @@ module.exports = {
     sso_token_grant_type: process.env.SSO_TOKEN_GRANT_TYPE || 'authorization_code',
   },
   env: {},
-  assetPrefix: process.env.APP_URL || '',
+  assetPrefix: isProd ? 'https://bcgov.github.io/sso-requests/' : '',
 };
