@@ -9,7 +9,7 @@ resource "aws_db_subnet_group" "rds_subnet" {
   }
 }
 
-resource "aws_db_instance" "PostgresqlForLambda" {
+resource "aws_db_instance" "pg_for_lambda" {
   allocated_storage    = 10
   storage_type         = "gp2"
   engine               = "postgres"

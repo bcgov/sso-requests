@@ -42,16 +42,10 @@ variable "db_name" {
   default = "ExampleDB"
 }
 
-variable "jwk_url" {
-  description = "The jwk url for the realm you want users to authenticate to"
+variable "configuration_endpoint" {
+  description = "The openid configuration endpoint url"
   type = string
-  default = "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/protocol/openid-connect/certs"
-}
-
-variable "issuer" {
-  description = "The required issuer for authentication"
-  type = string
-  default = "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth"
+  default = "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration"
 }
 
 variable "aud" {

@@ -39,18 +39,17 @@ resource "aws_lambda_function" "auth" {
 
   environment {
     variables = {
-      rds_endpoint = aws_db_instance.PostgresqlForLambda.endpoint
-      db_username = var.db_username
-      db_password = var.db_password
-      db_name = var.db_name
-      aud = var.aud
-      issuer = var.issuer
-      jwk_url = var.jwk_url
+      RDS_ENDPOINT = aws_db_instance.pg_for_lambda.endpoint
+      DB_USERNAME = var.db_username
+      DB_PASSWORD = var.db_password
+      DB_NAME = var.db_name
+      AUD = var.aud
+      CONFIGURATION_ENDPOINT = var.configuration_endpoint
     }
   }
 }
 
-resource "aws_iam_role_policy_attachment" "test-attach" {
+resource "aws_iam_role_policy_attachment" "this" {
     role       = aws_iam_role.iam_for_lambda.name
     policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }

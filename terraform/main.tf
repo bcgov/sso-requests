@@ -1,10 +1,14 @@
 resource "aws_vpc" "rds_lambda_vpc" {
   cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "RDS Lambda VPC"
+  }
 }
 
 resource "aws_security_group" "rds_sg" {
   name        = "rds_sg"
-  description = "Demo security group for AWS lambda and AWS RDS connection"
+  description = "Security group for AWS lambda and AWS RDS connection"
   vpc_id      = aws_vpc.rds_lambda_vpc.id
   ingress {
     from_port       = 0
