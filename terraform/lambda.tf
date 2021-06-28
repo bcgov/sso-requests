@@ -31,4 +31,25 @@ resource "aws_lambda_function" "auth" {
   source_code_hash = filebase64sha256("bundle.zip")
 
   runtime = "nodejs12.x"
+
+  vpc_config {
+      subnet_ids = values(aws_subnet.rds_lambda_subnets)[*].id
+      security_group_ids = [aws_security_group.rds_sg.id]
+  }
+
+  environment {
+    variables = {
+      RDS_ENDPOINT = aws_db_instance.pg_for_lambda.endpoint
+      DB_USERNAME = var.db_username
+      DB_PASSWORD = var.db_password
+      DB_NAME = var.db_name
+      AUD = var.aud
+      CONFIGURATION_ENDPOINT = var.configuration_endpoint
+    }
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "this" {
+    role       = aws_iam_role.iam_for_lambda.name
+    policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
