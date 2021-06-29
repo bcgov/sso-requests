@@ -24,10 +24,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: zip lambda functions
-        run: make lambda
+        run: |
+          yarn
+          make lambda
         working-directory: ./lambda
   terraform:
     runs-on: ubuntu-18.04
+    needs: lambda
     steps:
       - name: Checkout
         uses: actions/checkout@v2
