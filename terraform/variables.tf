@@ -38,18 +38,18 @@ variable "db_password" {
 
 variable "db_name" {
   description = "The name of the database"
-  type = string
-  default = "ExampleDB"
+  type        = string
+  default     = "ExampleDB"
 }
 
 variable "configuration_endpoint" {
   description = "The openid configuration endpoint url"
-  type = string
-  default = "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration"
+  type        = string
+  default     = "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration"
 }
 
 variable "aud" {
   description = "The required audience for authentication"
-  type = string
-  default = "tmp-sso-requests"
+  type        = string
+  default     = "tmp-sso-requests"
 }

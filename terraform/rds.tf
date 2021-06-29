@@ -1,27 +1,41 @@
-# See https://github.com/chromium58/terraform-aws-example
+# this modules documented outputs all need a prefix of this_
+module "db" {
+  source  = "terraform-aws-modules/rds-aurora/aws"
+  version = "~> 3.0"
 
-resource "aws_db_subnet_group" "rds_subnet" {
-  name       = "main"
-  subnet_ids = values(aws_subnet.rds_lambda_subnets)[*].id
+  name           = "aurora-db-postgres"
+  engine         = "aurora-postgresql"
+  engine_version = "11.9"
+  engine_mode    = "serverless"
 
-  tags = {
-    Name = "rds subnet group"
-  }
-}
-
-resource "aws_db_instance" "pg_for_lambda" {
-  allocated_storage    = 10
-  storage_type         = "gp2"
-  engine               = "postgres"
-  instance_class       = "db.t3.micro"
-  name                 = var.db_name
-  username             = var.db_username
-  password             = var.db_password
-  db_subnet_group_name = aws_db_subnet_group.rds_subnet.id
+  vpc_id                 = aws_vpc.rds_lambda_vpc.id
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  storage_encrypted = true
+  subnets                = values(aws_subnet.rds_lambda_subnets)[*].id
 
-  # Adding a final snapshot will save a final snapshot before DB is deleted
-  # final_snapshot_identifier = "someid"
-  skip_final_snapshot  = true
+  allowed_security_groups = [aws_security_group.rds_sg.id]
+
+  replica_scale_enabled = false
+  replica_count         = 0
+
+  storage_encrypted   = true
+  apply_immediately   = true
+  monitoring_interval = 60
+  # Remove this to save a final snapshot before database is destroyed
+  skip_final_snapshot = true
+
+  scaling_configuration = {
+    auto_pause               = true
+    min_capacity             = 2
+    max_capacity             = 4
+    seconds_until_auto_pause = 300
+    timeout_action           = "ForceApplyCapacityChange"
+  }
+
+  create_random_password = false
+  username               = var.db_username
+  password               = var.db_password
+  database_name          = var.db_name
+  tags = {
+    Terraform = "true"
+  }
 }
