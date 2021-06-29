@@ -17,15 +17,16 @@ module "db" {
   replica_scale_enabled = false
   replica_count         = 0
 
-  storage_encrypted   = true
-  apply_immediately   = true
-  monitoring_interval = 60
+  storage_encrypted = true
+  apply_immediately = true
+  # 0 is used to disable enhanced monitoring
+  monitoring_interval = 0
   # Remove this to save a final snapshot before database is destroyed
   skip_final_snapshot = true
 
   scaling_configuration = {
     auto_pause               = true
-    min_capacity             = 2
+    min_capacity             = 1
     max_capacity             = 4
     seconds_until_auto_pause = 300
     timeout_action           = "ForceApplyCapacityChange"
