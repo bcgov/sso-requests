@@ -8,7 +8,7 @@ module "db" {
   engine_version = "11.9"
   engine_mode    = "serverless"
 
-  vpc_id                 = aws_vpc.rds_lambda_vpc.id
+  vpc_id                 = data.aws_vpc.selected.id
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   subnets                = values(aws_subnet.rds_lambda_subnets)[*].id
 
