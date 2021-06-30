@@ -1,6 +1,7 @@
 import type { AppProps } from 'next/app';
 import Navigation from '@button-inc/bcgov-theme/Navigation';
 import BCSans from '../components/BCSans';
+import 'bootstrap3/dist/css/bootstrap.min.css';
 import '../styles/globals.css';
 
 const Menu = () => (
@@ -13,6 +14,9 @@ const Menu = () => (
     </li>
     <li>
       <a href=".">Login</a>
+    </li>
+    <li>
+      <a href="./request">Request</a>
     </li>
   </ul>
 );
