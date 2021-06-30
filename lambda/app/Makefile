@@ -10,5 +10,5 @@ lambda:
 	cp built/db.js bundle
 	cd bundle; yarn --production
 	rm bundle/yarn.lock bundle/package.json
-	cd bundle; zip -r ../../../terraform/router.zip main.js node_modules authenticate.js db.js
+	cd bundle; zip -r ../../../terraform/app.zip main.js node_modules authenticate.js db.js
 	rm -rf bundle
