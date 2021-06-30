@@ -3,7 +3,7 @@
     "module": "CommonJS",
     "target": "ES2017",
     "preserveConstEnums": true,
-    "outDir": "./built",
+    "outDir": "built",
     "sourceMap": true
   },
   "include": ["src/**/*"],

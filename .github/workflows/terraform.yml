@@ -28,7 +28,7 @@ jobs:
         run: |
           yarn
           make lambda
-        working-directory: ./lambda
+        working-directory: ./lambda/app
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
