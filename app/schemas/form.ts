@@ -14,53 +14,73 @@ export default {
         idir: { type: 'boolean', title: 'IDIR', default: true },
       },
     },
-    dev: { type: 'boolean', title: 'Dev' },
-    test: { type: 'boolean', title: 'Test' },
-    prod: { type: 'boolean', title: 'Prod' },
-  },
-
-  dependencies: {
-    dev: {
-      oneOf: [
-        {
-          properties: {
-            dev: { enum: [true] },
-            devRedirectUrls: {
-              type: 'array',
-              items: { type: 'object', properties: { url: { type: 'string', format: 'uri' } } },
+    environments: {
+      type: 'object',
+      title: 'Environments',
+      properties: {
+        dev: { type: 'boolean', title: 'Dev', default: false },
+        test: { type: 'boolean', title: 'Test', default: false },
+        prod: { type: 'boolean', title: 'Prod', default: false },
+      },
+      dependencies: {
+        dev: {
+          oneOf: [
+            {
+              properties: {
+                dev: { enum: [true] },
+                devRedirectUrls: {
+                  type: 'array',
+                  items: { type: 'object', properties: { url: { type: 'string', format: 'uri' } } },
+                },
+              },
+              required: ['devRedirectUrls'],
             },
-          },
-          required: ['devRedirectUrls'],
-        },
-      ],
-    },
-    test: {
-      oneOf: [
-        {
-          properties: {
-            test: { enum: [true] },
-            testRedirectUrls: {
-              type: 'array',
-              items: { type: 'object', properties: { url: { type: 'string', format: 'uri' } } },
+            {
+              properties: {
+                dev: { enum: [false] },
+              },
             },
-          },
-          required: ['testRedirectUrls'],
+          ],
         },
-      ],
-    },
-    prod: {
-      oneOf: [
-        {
-          properties: {
-            prod: { enum: [true] },
-            prodRedirectUrls: {
-              type: 'array',
-              items: { type: 'object', properties: { url: { type: 'string', format: 'uri' } } },
+        test: {
+          oneOf: [
+            {
+              properties: {
+                test: { enum: [true] },
+                testRedirectUrls: {
+                  type: 'array',
+                  items: { type: 'object', properties: { url: { type: 'string', format: 'uri' } } },
+                },
+              },
+              required: ['testRedirectUrls'],
             },
-          },
-          required: ['prodRedirectUrls'],
+            {
+              properties: {
+                test: { enum: [false] },
+              },
+            },
+          ],
         },
-      ],
+        prod: {
+          oneOf: [
+            {
+              properties: {
+                prod: { enum: [true] },
+                prodRedirectUrls: {
+                  type: 'array',
+                  items: { type: 'object', properties: { url: { type: 'string', format: 'uri' } } },
+                },
+              },
+              required: ['prodRedirectUrls'],
+            },
+            {
+              properties: {
+                prod: { enum: [false] },
+              },
+            },
+          ],
+        },
+      },
     },
   },
 } as JSONSchema7;
