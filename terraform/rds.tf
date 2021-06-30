@@ -10,7 +10,7 @@ module "db" {
 
   vpc_id                 = data.aws_vpc.selected.id
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  subnets                = values(aws_subnet.rds_lambda_subnets)[*].id
+  subnets                = [data.aws_subnet.a.id, data.aws_subnet.b.id]
 
   allowed_security_groups = [aws_security_group.rds_sg.id]
 
@@ -26,7 +26,7 @@ module "db" {
 
   scaling_configuration = {
     auto_pause               = true
-    min_capacity             = 0
+    min_capacity             = 2
     max_capacity             = 2
     seconds_until_auto_pause = 300
     timeout_action           = "ForceApplyCapacityChange"

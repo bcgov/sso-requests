@@ -33,7 +33,7 @@ resource "aws_lambda_function" "auth" {
   runtime = "nodejs12.x"
 
   vpc_config {
-    subnet_ids         = values(aws_subnet.rds_lambda_subnets)[*].id
+    subnet_ids         = [data.aws_subnet.a.id, data.aws_subnet.b.id]
     security_group_ids = [aws_security_group.rds_sg.id]
   }
 
