@@ -2,6 +2,20 @@ data "aws_vpc" "selected" {
   state = "available"
 }
 
+data "aws_subnet" "a" {
+  filter {
+    name   = "tag:Name"
+    values = [var.subnet_a]
+  }
+}
+
+data "aws_subnet" "b" {
+  filter {
+    name   = "tag:Name"
+    values = [var.subnet_b]
+  }
+}
+
 resource "aws_security_group" "rds_sg" {
   name        = "rds_sg"
   description = "Security group for AWS lambda and AWS RDS connection"
@@ -20,11 +34,4 @@ resource "aws_security_group" "rds_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
-
-resource "aws_subnet" "rds_lambda_subnets" {
-  for_each          = var.networks
-  vpc_id            = data.aws_vpc.selected.id
-  cidr_block        = each.value.cidr_block
-  availability_zone = "${var.region}${each.value.availability_zone}"
 }

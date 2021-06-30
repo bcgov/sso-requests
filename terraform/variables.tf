@@ -60,3 +60,13 @@ variable "target_aws_account_id" {
 variable "target_env" {
   default = ""
 }
+
+variable "subnet_a" {
+  description = "Value of the name tag for the subnet in AZ a"
+  default     = "Web_Dev_aza_net"
+}
+
+variable "subnet_b" {
+  description = "Value of the name tag for the subnet in AZ b"
+  default     = "Web_Dev_azb_net"
+}
