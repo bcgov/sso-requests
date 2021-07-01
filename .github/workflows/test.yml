@@ -38,7 +38,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           asdf reshim
-          pre-commit run --color=always --show-diff-on-failure --all-files.
+          pre-commit run --color=always --show-diff-on-failure --all-files
 
   commitlint:
     runs-on: ubuntu-18.04
