@@ -31,7 +31,7 @@ resource "aws_lambda_function" "db" {
 data "aws_lambda_invocation" "db" {
   function_name = aws_lambda_function.db.function_name
 
-    input = <<JSON
+  input = <<JSON
 {
 }
 JSON

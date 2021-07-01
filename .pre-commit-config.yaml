@@ -20,6 +20,14 @@ repos:
   #   rev: v7.29.0
   #   hooks:
   #     - id: eslint
+  - repo: git://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.50.0
+    hooks:
+      - id: terraform_fmt
+      # let's comment this out to avoid errors of zip files not exists
+      # - id: terraform_validate
+      - id: terraform_docs
+      - id: terraform_tflint
   - repo: https://github.com/jorisroovers/gitlint
     rev: v0.12.0
     hooks:
