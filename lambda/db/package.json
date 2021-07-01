@@ -1,0 +1,24 @@
+{
+  "name": "lambda-db",
+  "version": "1.0.0",
+  "description": "lambda functions for db setup",
+  "scripts": {
+    "dev": "tsc --watch",
+    "compile": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^15.12.5",
+    "@types/validator": "^13.1.4",
+    "sqlite3": "^5.0.2",
+    "typescript": "^3.8.3"
+  },
+  "author": "Button Inc.",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.77",
+    "aws-lambda": "^1.0.6",
+    "pg": "^8.6.0",
+    "sequelize": "^6.6.4",
+    "umzug": "^3.0.0-beta.16"
+  }
+}
