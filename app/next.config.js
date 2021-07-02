@@ -1,5 +1,7 @@
 const APP_URL = process.env.APP_URL || '';
 
+console.log(process.env);
+
 module.exports = {
   reactStrictMode: true,
   serverRuntimeConfig: {},
