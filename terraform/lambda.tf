@@ -39,7 +39,8 @@ resource "aws_lambda_function" "auth" {
 
   environment {
     variables = {
-      RDS_ENDPOINT           = module.db.this_rds_cluster_endpoint
+      NODE_ENV               = "production"
+      DB_HOSTNAME            = module.db.this_rds_cluster_endpoint
       DB_USERNAME            = var.db_username
       DB_PASSWORD            = var.db_password
       DB_NAME                = var.db_name
