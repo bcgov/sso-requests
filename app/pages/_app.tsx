@@ -2,21 +2,30 @@ import type { AppProps } from 'next/app';
 import Navigation from '@button-inc/bcgov-theme/Navigation';
 import BCSans from '../components/BCSans';
 import 'bootstrap3/dist/css/bootstrap.min.css';
-import '../styles/globals.css';
+import Link from 'next/link';
+import 'styles/globals.css';
 
 const Menu = () => (
   <ul>
     <li>
-      <a href=".">My Requests</a>
+      <Link href="/">
+        <a>My Requests</a>
+      </Link>
     </li>
     <li>
-      <a href=".">Pending Approvals</a>
+      <Link href="/">
+        <a>Pending Approval</a>
+      </Link>
     </li>
     <li>
-      <a href=".">Login</a>
+      <Link href=".">
+        <a>Login</a>
+      </Link>
     </li>
     <li>
-      <a href="./request">Request</a>
+      <Link href="/request">
+        <a>Make Request</a>
+      </Link>
     </li>
   </ul>
 );

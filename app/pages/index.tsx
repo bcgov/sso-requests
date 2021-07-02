@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import getConfig from 'next/config';
-import { fetchIssuerConfiguration } from '../utils/provider';
-import { getAuthorizationUrl, getAccessToken } from '../utils/openid';
-import { verifyToken } from '../utils/jwt';
-import { fetchInfo } from '../services/auth';
+import { fetchIssuerConfiguration } from 'utils/provider';
+import { getAuthorizationUrl, getAccessToken } from 'utils/openid';
+import { verifyToken } from 'utils/jwt';
+import { fetchInfo } from 'services/auth';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_url } = publicRuntimeConfig;
