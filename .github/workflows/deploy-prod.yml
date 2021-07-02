@@ -1,19 +1,12 @@
-name: Build and Deploy
+name: Build and Deploy in Prod
+
 on:
   push:
-    branches: [dev]
+    branches: [main]
 
-# it will use workflow_run event once it got merged into the main branch
-# on:
-#   workflow_run:
-#     workflows: ['Run Tests and Lints']
-#     branches: [dev]
-#     types:
-#       - completed
 jobs:
   build-and-deploy:
     runs-on: ubuntu-18.04
-    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v2.3.1
