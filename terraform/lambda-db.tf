@@ -26,6 +26,12 @@ resource "aws_lambda_function" "db" {
       DB_NAME     = var.db_name
     }
   }
+
+  timeout = 30
+
+  tags = {
+    "managed-by" = "terraform"
+  }
 }
 
 data "aws_lambda_invocation" "db" {
