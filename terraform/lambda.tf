@@ -23,7 +23,7 @@ resource "aws_lambda_function" "auth" {
   function_name = "handler"
   role          = aws_iam_role.iam_for_lambda.arn
   # has to have the form filename.functionname where filename is the file containing the export
-  handler = "main.handler"
+  handler = "app/src/main.handler"
 
   # The filebase64sha256() function is available in Terraform 0.11.12 and later
   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
@@ -47,6 +47,12 @@ resource "aws_lambda_function" "auth" {
       AUD                    = var.aud
       CONFIGURATION_ENDPOINT = var.configuration_endpoint
     }
+  }
+
+  timeout = 30
+
+  tags = {
+    "managed-by" = "terraform"
   }
 }
 
