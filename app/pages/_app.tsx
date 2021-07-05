@@ -8,7 +8,7 @@ import 'styles/globals.css';
 const Menu = () => (
   <ul>
     <li>
-      <Link href="/">
+      <Link href="/my-requests">
         <a>My Requests</a>
       </Link>
     </li>

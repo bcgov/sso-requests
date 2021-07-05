@@ -1,14 +1,16 @@
 SHELL := /usr/bin/env bash
 
+TARGET := ../../../terraform/app.zip
+
 .PHONY: lambda
 lambda:
-	yarn tsc
-	mkdir bundle
-	cp package.json bundle
-	cp built/main.js bundle
-	cp built/authenticate.js bundle
-	cp built/db.js bundle
-	cd bundle; yarn --production
-	rm bundle/yarn.lock bundle/package.json
-	cd bundle; zip -r ../../../terraform/app.zip main.js node_modules authenticate.js db.js
-	rm -rf bundle
+	@rm -rf build
+	@yarn tsc
+	@mkdir -p bundle
+	@cp package.json bundle
+	@cp -r build/* bundle
+	@cd bundle; yarn --production > /dev/null 2>&1
+	@rm bundle/yarn.lock bundle/package.json
+	@rm -f $(TARGET)
+	@cd bundle; zip -rq $(TARGET) *
+	@rm -rf bundle
