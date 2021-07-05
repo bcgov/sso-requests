@@ -1,5 +1,5 @@
 import { models } from '../../shared/sequelize/models/models';
-import { Data } from '../../../shared/interfaces';
+import { Data } from '../shared/interfaces';
 import { formatFormData } from './helpers';
 
 export const createRequest = async (data: Data) => {

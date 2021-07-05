@@ -1,4 +1,4 @@
-import { FormattedData, Data } from '../../../shared/interfaces';
+import { FormattedData, Data } from '../shared/interfaces';
 
 const IdentityProviders = ['github', 'idir'];
 const validEnvironments = ['dev', 'test', 'prod'];

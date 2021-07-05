@@ -3,9 +3,11 @@
     "module": "CommonJS",
     "target": "ES2017",
     "preserveConstEnums": true,
-    "outDir": "build",
-    "sourceMap": true
+    "outDir": "./build",
+    "sourceMap": true,
+    "sourceRoot": "./src/",
+    "rootDir": "../"
   },
-  "include": ["src/**/*", "../shared/**/*"],
+  "include": ["src/**/*", "../shared/**/*", "shared/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }
