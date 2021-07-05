@@ -1,5 +1,5 @@
 import { instance } from './axios';
-import { Data } from '../../lambda/app/shared/interfaces';
+import { Data } from 'interfaces/form';
 
 export const submitRequest = async (data: Data) => {
   try {
