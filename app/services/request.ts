@@ -1,9 +1,19 @@
 import { instance } from './axios';
+import { Data } from '../../shared/interfaces';
 
-// TODO: Add interface for formdata once form fields are more solid
-export const submitRequest = async (formData: any) => {
+export const submitRequest = async (data: Data) => {
   try {
-    await instance.post('/api/info', formData).then((res) => res.data);
+    await instance.post('requests', data).then((res) => res.data);
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};
+
+export const getRequests = async () => {
+  try {
+    const results = await instance.get('requests').then((res) => res.data);
+    return results;
   } catch (err) {
     console.error(err);
     return null;
