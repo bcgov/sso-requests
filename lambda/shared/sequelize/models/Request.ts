@@ -8,9 +8,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.JSONB,
       field: 'identity_providers',
     },
-    validRedirectUris: {
+    validRedirectUrls: {
       type: DataTypes.JSONB,
-      field: 'valid_redirect_uris',
+      field: 'valid_redirect_urls',
     },
     environments: DataTypes.JSONB,
   });

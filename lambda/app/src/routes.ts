@@ -1,17 +1,35 @@
 import { models } from '../../shared/sequelize/models/models';
-import { Data } from '../shared/interfaces';
+import { Data } from '../../shared/interfaces';
 import { formatFormData } from './helpers';
+const AWS = require('aws-sdk');
 
 export const createRequest = async (data: Data) => {
   const formattedFormData = formatFormData(data);
   try {
-    const { projectName, identityProviders, validRedirectUris, environments } = formattedFormData;
+    const { projectName, identityProviders, validRedirectUrls, environments } = formattedFormData;
     const result = await models.request.create({
       projectName,
       identityProviders,
-      validRedirectUris,
+      validRedirectUrls,
       environments,
     });
+
+    var lambda = new AWS.Lambda({
+      region: 'ca-central-1',
+    });
+
+    await lambda.invoke(
+      {
+        FunctionName: 'lambda-github',
+        Payload: formattedFormData,
+      },
+      function (err) {
+        if (err) {
+          console.error(err);
+        }
+      }
+    );
+
     return {
       statusCode: 200,
       body: JSON.stringify(result),

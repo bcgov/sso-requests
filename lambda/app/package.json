@@ -8,6 +8,7 @@
     "test": "jest"
   },
   "devDependencies": {
+    "@octokit/types": "^6.18.1",
     "@types/aws-lambda": "^8.10.51",
     "@types/jest": "^26.0.23",
     "@types/jsonwebtoken": "^8.5.2",
@@ -25,8 +26,9 @@
     "axios": "^0.21.1",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
-    "sequelize": "^6.6.4",
     "jws": "^4.0.0",
-    "pg": "^8.6.0"
+    "octokit": "^1.1.0",
+    "pg": "^8.6.0",
+    "sequelize": "^6.6.4"
   }
 }

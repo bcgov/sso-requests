@@ -1,4 +1,4 @@
-import { FormattedData, Data } from '../shared/interfaces';
+import { FormattedData, Data } from '../../shared/interfaces';
 
 const IdentityProviders = ['github', 'idir'];
 const validEnvironments = ['dev', 'test', 'prod'];
@@ -24,7 +24,7 @@ export const formatFormData = (data: Data): FormattedData => {
   const newData: FormattedData = {
     identityProviders: formattedIdentityProviders,
     environments: formattedEnvironments,
-    validRedirectUris: formattedValidRedirectUris,
+    validRedirectUrls: formattedValidRedirectUris,
     projectName,
   };
   return newData;
