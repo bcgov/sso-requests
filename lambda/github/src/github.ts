@@ -5,7 +5,6 @@ import { stringifyGithubInputs } from './helpers';
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
 export const dispatchPullRequest = async (formData: FormattedData) => {
-  console.log(formData);
   try {
     await octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
       owner: process.env.GH_OWNER,
