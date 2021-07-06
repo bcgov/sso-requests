@@ -61,6 +61,10 @@ jobs:
           }
           EOF
 
+          cat >"ci.auto.tfvars" <<EOF
+          gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
+          EOF
+
         working-directory: ./terraform
 
       - name: Terraform Init
