@@ -36,6 +36,12 @@ jobs:
           make lambda
         working-directory: ./lambda/db
 
+      - name: zip lambda functions - db
+        run: |
+          yarn
+          make lambda
+        working-directory: ./lambda/github
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
