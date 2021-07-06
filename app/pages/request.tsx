@@ -3,7 +3,7 @@ import styles from 'styles/request.module.css';
 import schema from 'schemas/form';
 import uiSchema from 'schemas/ui';
 import { submitRequest } from 'services/request';
-import { Data } from '../../shared/interfaces';
+import { Data } from 'interfaces/form';
 
 function Request() {
   return (
