@@ -22,7 +22,7 @@ export interface FormattedData {
   identityProviders: string[];
   environments: string[];
   projectName: string;
-  validRedirectUris: {
+  validRedirectUrls: {
     dev: string[];
     test: string[];
     prod: string[];

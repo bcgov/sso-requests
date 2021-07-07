@@ -63,10 +63,35 @@ variable "target_env" {
 
 variable "subnet_a" {
   description = "Value of the name tag for the subnet in AZ a"
-  default     = "Web_Dev_aza_net"
+  default     = "App_Dev_aza_net"
 }
 
 variable "subnet_b" {
   description = "Value of the name tag for the subnet in AZ b"
-  default     = "Web_Dev_azb_net"
+  default     = "App_Dev_azb_net"
+}
+
+variable "gh_access_token" {
+  description = "access token for github workflows"
+  default     = ""
+}
+
+variable "gh_owner" {
+  description = "organization owning the github repository to create keycloak client pull requests"
+  default     = "bcgov"
+}
+
+variable "gh_repo" {
+  description = "repository to create keycloak client pull requests"
+  default     = "sso-terraform-dev"
+}
+
+variable "gh_workflow_id" {
+  description = "workflow id or filename to trigger when saving requests"
+  default     = "request.yml"
+}
+
+variable "gh_branch" {
+  description = "default branch in the gh_repo"
+  default     = "main"
 }
