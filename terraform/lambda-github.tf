@@ -23,6 +23,7 @@ resource "aws_lambda_function" "github" {
       GH_REPO         = var.gh_repo
       GH_WORKFLOW_ID  = var.gh_workflow_id
       GH_BRANCH       = var.gh_branch
+      GH_OWNER        = var.gh_owner
     }
   }
 
