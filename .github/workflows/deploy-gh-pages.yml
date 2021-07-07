@@ -1,0 +1,61 @@
+name: Build and Deploy GH Pages
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - '.github/**'
+      - 'app/**'
+
+env:
+  SSO_CLIENT_ID: sso-requests
+  DEPLOY_REPO_BRANCH: gh-pages
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Set env to development
+        if: endsWith(github.ref, '/dev')
+        run: |
+          echo "APP_URL=https://bcgov.github.io/sso-terraform-dev" >> $GITHUB_ENV
+          echo "APP_BASE_PATH=/sso-terraform-dev" >> $GITHUB_ENV
+          echo "API_URL=https://pxcg8ggd86.execute-api.ca-central-1.amazonaws.com/test/" >> $GITHUB_ENV
+          echo "SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth" >> $GITHUB_ENV
+          echo "DEPLOY_REPO_NAME=bcgov/sso-terraform-dev" >> $GITHUB_ENV
+
+      - name: Set env to production
+        if: endsWith(github.ref, '/main')
+        run: |
+          echo "APP_URL=https://bcgov.github.io/sso-requests" >> $GITHUB_ENV
+          echo "APP_BASE_PATH=/sso-requests" >> $GITHUB_ENV
+          echo "API_URL=" >> $GITHUB_ENV
+          echo "SSO_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth" >> $GITHUB_ENV
+          echo "DEPLOY_REPO_NAME=bcgov/sso-requests" >> $GITHUB_ENV
+
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2.3.1
+
+      - name: Install and Build
+        env:
+          APP_URL: ${{ env.APP_URL }}
+          APP_BASE_PATH: ${{ env.APP_BASE_PATH }}
+          API_URL: ${{ env.API_URL }}
+          SSO_URL: ${{ env.SSO_URL }}
+          SSO_CLIENT_ID: ${{ env.SSO_CLIENT_ID }}
+        run: |
+          yarn
+          yarn build
+          yarn export
+          touch ./out/.nojekyll
+        working-directory: ./app
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          repository-name: ${{ env.DEPLOY_REPO_NAME }}
+          branch: ${{ env.DEPLOY_REPO_BRANCH }}
+          folder: ./app/out

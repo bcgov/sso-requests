@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - main
     paths:
       - 'terraform/**'
       - '.github/**'
@@ -21,6 +22,16 @@ jobs:
   terraform:
     runs-on: ubuntu-18.04
     steps:
+      - name: Set env to development
+        if: endsWith(github.ref, '/dev')
+        run: |
+          echo "TFC_WORKSPACE=xgr00q-dev-sso-requests" >> $GITHUB_ENV
+
+      - name: Set env to production
+        if: endsWith(github.ref, '/main')
+        run: |
+          echo "TFC_WORKSPACE=xgr00q-prod-sso-requests" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -61,7 +72,7 @@ jobs:
               hostname     = "app.terraform.io"
               organization = "bcgov"
               workspaces {
-                name = "${{ secrets.TFC_WORKSPACE }}"
+                name = "${{ env.TFC_WORKSPACE }}"
               }
             }
           }
@@ -115,6 +126,6 @@ jobs:
         run: exit 1
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+        if: github.event_name == 'push'
         run: terraform apply -auto-approve
         working-directory: ./terraform
