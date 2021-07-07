@@ -23,12 +23,12 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: Set env to development
-        if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'refs/heads/dev' && github.event_name == 'pull_request')
+        if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
           echo "TFC_WORKSPACE=xgr00q-dev-sso-requests" >> $GITHUB_ENV
 
       - name: Set env to production
-        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'refs/heads/main' && github.event_name == 'pull_request')
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
           echo "TFC_WORKSPACE=xgr00q-prod-sso-requests" >> $GITHUB_ENV
 
