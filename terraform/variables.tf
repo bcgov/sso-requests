@@ -51,7 +51,7 @@ variable "configuration_endpoint" {
 variable "aud" {
   description = "The required audience for authentication"
   type        = string
-  default     = "tmp-sso-requests"
+  default     = "sso-requests"
 }
 
 variable "target_aws_account_id" {
