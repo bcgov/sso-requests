@@ -26,11 +26,19 @@ jobs:
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
           echo "TFC_WORKSPACE=xgr00q-dev-sso-requests" >> $GITHUB_ENV
+          echo "SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
+          echo "SUBNET_A=App_Dev_aza_net" >> $GITHUB_ENV
+          echo "SUBNET_B=App_Dev_azb_net" >> $GITHUB_ENV
+          echo "GITHUB_REPO=sso-terraform-dev" >> $GITHUB_ENV
 
       - name: Set env to production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
           echo "TFC_WORKSPACE=xgr00q-prod-sso-requests" >> $GITHUB_ENV
+          echo "SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
+          echo "SUBNET_A=" >> $GITHUB_ENV
+          echo "SUBNET_B=" >> $GITHUB_ENV
+          echo "GITHUB_REPO=sso_terraform" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -47,7 +55,7 @@ jobs:
           make lambda
         working-directory: ./lambda/db
 
-      - name: zip lambda functions - db
+      - name: zip lambda functions - github
         run: |
           yarn
           make lambda
@@ -80,6 +88,10 @@ jobs:
 
           cat >"ci.auto.tfvars" <<EOF
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
+          configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
+          subnet_a="${{ env.SUBNET_A }}"
+          subnet_b="${{ env.SUBNET_B }}"
+          gh_repo="${{ env.GITHUB_REPO }}"
           EOF
 
         working-directory: ./terraform
