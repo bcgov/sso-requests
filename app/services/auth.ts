@@ -3,7 +3,7 @@ import { instance } from './axios';
 const TOKEN_SESSION = 'tokens';
 
 export const getAuthConfig = () => {
-  const tokens = JSON.parse(sessionStorage.getItem(TOKEN_SESSION) || '') || {};
+  const tokens = JSON.parse(sessionStorage.getItem(TOKEN_SESSION) || '{}') || {};
   const config = { headers: { Authorization: `Bearer ${tokens.id_token}` } };
   return config;
 };
