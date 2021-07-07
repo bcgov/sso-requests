@@ -10,7 +10,7 @@ const getConfiguration = async () => {
     (res) => res.data,
     () => null
   );
-  const { jwk } = await axios.get(jwks_uri).then(
+  const jwk = await axios.get(jwks_uri).then(
     (res) => res.data,
     () => null
   );

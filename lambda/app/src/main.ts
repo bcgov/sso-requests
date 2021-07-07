@@ -3,13 +3,11 @@ import { authenticate } from './authenticate';
 import { createRequest, getRequests } from './routes';
 
 const responseHeaders = {
-  headers: {
-    'Content-Type': 'text/html; charset=utf-8',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Origin': 'https://bcgov.github.io',
-    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-    'Access-Control-Allow-Credentials': 'true',
-  },
+  'Content-Type': 'text/html; charset=utf-8',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Origin': 'https://bcgov.github.io',
+  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+  'Access-Control-Allow-Credentials': 'true',
 };
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
