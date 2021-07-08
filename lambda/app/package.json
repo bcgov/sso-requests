@@ -2,7 +2,6 @@
   "name": "lambda",
   "version": "1.0.0",
   "description": "lambda functions for backend",
-  "main": "index.js",
   "scripts": {
     "compile": "tsc",
     "test": "jest"
@@ -27,6 +26,7 @@
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
     "jws": "^4.0.0",
+    "keycloak-admin": "^1.14.18",
     "octokit": "^1.1.0",
     "pg": "^8.6.0",
     "sequelize": "^6.6.4"

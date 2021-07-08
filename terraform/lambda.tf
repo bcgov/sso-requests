@@ -37,13 +37,22 @@ resource "aws_lambda_function" "auth" {
 
   environment {
     variables = {
-      NODE_ENV               = "production"
-      DB_HOSTNAME            = module.db.this_rds_cluster_endpoint
-      DB_USERNAME            = var.db_username
-      DB_PASSWORD            = var.db_password
-      DB_NAME                = var.db_name
-      AUD                    = var.aud
-      CONFIGURATION_ENDPOINT = var.configuration_endpoint
+      NODE_ENV                    = "production"
+      DB_HOSTNAME                 = module.db.this_rds_cluster_endpoint
+      DB_USERNAME                 = var.db_username
+      DB_PASSWORD                 = var.db_password
+      DB_NAME                     = var.db_name
+      AUD                         = var.aud
+      CONFIGURATION_ENDPOINT      = var.configuration_endpoint
+      KEYCLOAK_DEV_URL            = var.keycloak_dev_url
+      KEYCLOAK_DEV_CLIENT_ID      = var.keycloak_dev_client_id
+      KEYCLOAK_DEV_CLIENT_SECRET  = var.keycloak_dev_client_secret
+      KEYCLOAK_TEST_URL           = var.keycloak_test_url
+      KEYCLOAK_TEST_CLIENT_ID     = var.keycloak_test_client_id
+      KEYCLOAK_TEST_CLIENT_SECRET = var.keycloak_test_client_secret
+      KEYCLOAK_PROD_URL           = var.keycloak_prod_url
+      KEYCLOAK_PROD_CLIENT_ID     = var.keycloak_prod_client_id
+      KEYCLOAK_PROD_CLIENT_SECRET = var.keycloak_prod_client_secret
     }
   }
 
