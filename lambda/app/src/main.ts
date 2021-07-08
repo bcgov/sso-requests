@@ -36,7 +36,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     if (httpMethod === 'GET') {
       response = await getRequests();
     }
-  } else if (path === '/installation') {
+  } else if (path === `${BASE_PATH}/installation`) {
     if (httpMethod === 'POST') {
       response = await generateInstallation(JSON.parse(body));
     }
