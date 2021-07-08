@@ -35,6 +35,7 @@ export const getAuthorizationUrl = async () => {
     response_type: sso_authorization_response_type,
     redirect_uri: sso_redirect_uri,
     scope: sso_authorization_scope,
+    kc_idp_hint: 'idir',
     // PKCE workflow
     state,
     code_challenge_method: 'S256',
