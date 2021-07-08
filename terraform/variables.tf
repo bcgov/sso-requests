@@ -3,25 +3,6 @@ variable "region" {
   default = "ca-central-1"
 }
 
-variable "networks" {
-  description = "AWS subnets"
-  type        = map(any)
-  default = {
-    first = {
-      "cidr_block"        = "10.0.1.0/24",
-      "availability_zone" = "a"
-    },
-    second = {
-      "cidr_block"        = "10.0.2.0/24",
-      "availability_zone" = "b"
-    },
-    third = {
-      "cidr_block"        = "10.0.3.0/24",
-      "availability_zone" = "d"
-    }
-  }
-}
-
 variable "db_username" {
   description = "The username for the DB master user"
   type        = string
@@ -94,4 +75,9 @@ variable "gh_workflow_id" {
 variable "gh_branch" {
   description = "default branch in the gh_repo"
   default     = "main"
+}
+
+variable "gh_secret" {
+  description = "secret for comms with gh actions"
+  default     = "secret"
 }

@@ -14,6 +14,8 @@ export const createRequest = async (data: Data) => {
       environments,
     });
 
+    const payload = JSON.stringify({ ...formattedFormData, id: result.id });
+
     var lambda = new AWS.Lambda({
       region: 'ca-central-1',
     });
@@ -21,7 +23,7 @@ export const createRequest = async (data: Data) => {
     await lambda.invoke(
       {
         FunctionName: 'lambda-github',
-        Payload: JSON.stringify(formattedFormData),
+        Payload: payload,
       },
       function (err) {
         if (err) {
