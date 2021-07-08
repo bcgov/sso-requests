@@ -21,7 +21,7 @@ export const createRequest = async (data: Data) => {
     await lambda.invoke(
       {
         FunctionName: 'lambda-github',
-        Payload: formattedFormData,
+        Payload: JSON.stringify(formattedFormData),
       },
       function (err) {
         if (err) {
