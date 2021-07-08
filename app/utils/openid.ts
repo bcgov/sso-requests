@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import qs from 'qs';
+import { AuthUrlParams } from 'interfaces/utils';
 
 import getConfig from 'next/config';
 
@@ -16,7 +17,7 @@ import { meta } from './provider';
 
 import { getRandomString, encryptStringWithSHA256, hashToBase64url } from './helpers';
 
-export const getAuthorizationUrl = async () => {
+export const getAuthorizationUrl = async (otherParams: AuthUrlParams) => {
   // Create random "state"
   const state = getRandomString();
   sessionStorage.setItem('pkce_state', state);
@@ -39,6 +40,7 @@ export const getAuthorizationUrl = async () => {
     state,
     code_challenge_method: 'S256',
     code_challenge,
+    ...otherParams,
   };
 
   return `${meta.authorization_endpoint}?${qs.stringify(params, { encode: false })}`;
