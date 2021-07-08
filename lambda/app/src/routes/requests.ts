@@ -1,6 +1,6 @@
-import { models } from '../../shared/sequelize/models/models';
-import { Data } from '../../shared/interfaces';
-import { formatFormData } from './helpers';
+import { models } from '../../../shared/sequelize/models/models';
+import { Data } from '../../../shared/interfaces';
+import { formatFormData } from '../helpers';
 const AWS = require('aws-sdk');
 
 export const createRequest = async (data: Data) => {

@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { authenticate } from './authenticate';
-import { createRequest, getRequests } from './routes';
+import { createRequest, getRequests } from './routes/requests';
+import { generateInstallation } from './routes/installation';
 
 const responseHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
@@ -34,6 +35,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     }
     if (httpMethod === 'GET') {
       response = await getRequests();
+    }
+  } else if (path === '/installation') {
+    if (httpMethod === 'POST') {
+      response = await generateInstallation(JSON.parse(body));
     }
   }
 

@@ -30,6 +30,12 @@ jobs:
           echo "SUBNET_A=App_Dev_aza_net" >> $GITHUB_ENV
           echo "SUBNET_B=App_Dev_azb_net" >> $GITHUB_ENV
           echo "GITHUB_REPO=sso-terraform-dev" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_URL=https://sso-dev-3d5c3f-dev.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_URL=https://sso-test-3d5c3f-test.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_URL=https://sso-prod-3d5c3f-prod.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
 
       - name: Set env to production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
@@ -39,6 +45,12 @@ jobs:
           echo "SUBNET_A=" >> $GITHUB_ENV
           echo "SUBNET_B=" >> $GITHUB_ENV
           echo "GITHUB_REPO=sso_terraform" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_URL=https://dev.oidc.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_URL=https://test.oidc.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_URL=https://oidc.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -99,6 +111,12 @@ jobs:
           subnet_a="${{ env.SUBNET_A }}"
           subnet_b="${{ env.SUBNET_B }}"
           gh_repo="${{ env.GITHUB_REPO }}"
+          keycloak_dev_url="${{ env.KEYCLOAK_DEV_URL }}"
+          keycloak_test_url="${{ env.KEYCLOAK_TEST_URL }}"
+          keycloak_prod_url="${{ env.KEYCLOAK_PROD_URL }}"
+          keycloak_dev_client_secret="${{ env.KEYCLOAK_DEV_CLIENT_SECRET }}"
+          keycloak_test_client_secret="${{ env.KEYCLOAK_TEST_CLIENT_SECRET }}"
+          keycloak_prod_client_secret="${{ env.KEYCLOAK_PROD_CLIENT_SECRET }}"
           EOF
 
         working-directory: ./terraform
