@@ -58,7 +58,7 @@ export default function Home() {
   }, []);
 
   const handleLogin = async () => {
-    const authUrl = await getAuthorizationUrl();
+    const authUrl = await getAuthorizationUrl({ kc_idp_hint: 'idir' });
     window.location.href = authUrl;
   };
 
