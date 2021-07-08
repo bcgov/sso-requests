@@ -22,7 +22,7 @@ jobs:
         run: |
           echo "APP_URL=https://bcgov.github.io/sso-terraform-dev" >> $GITHUB_ENV
           echo "APP_BASE_PATH=/sso-terraform-dev" >> $GITHUB_ENV
-          echo "API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/" >> $GITHUB_ENV
+          echo "API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/" >> $GITHUB_ENV
           echo "SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth" >> $GITHUB_ENV
           echo "DEPLOY_REPO_NAME=bcgov/sso-terraform-dev" >> $GITHUB_ENV
 

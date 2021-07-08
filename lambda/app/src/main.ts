@@ -11,6 +11,8 @@ const responseHeaders = {
   'Access-Control-Allow-Credentials': 'true',
 };
 
+const BASE_PATH = '/app';
+
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
   const { headers, requestContext, body, path } = event;
   const { httpMethod } = requestContext;
@@ -27,14 +29,14 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
 
   let response = {};
 
-  if (path === '/requests') {
+  if (path === `${BASE_PATH}/requests`) {
     if (httpMethod === 'POST') {
       response = await createRequest(JSON.parse(body));
     }
     if (httpMethod === 'GET') {
       response = await getRequests();
     }
-  } else if (path === '/installation') {
+  } else if (path === `${BASE_PATH}/installation`) {
     if (httpMethod === 'POST') {
       response = await generateInstallation(JSON.parse(body));
     }

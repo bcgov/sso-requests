@@ -16,7 +16,7 @@ resource "aws_iam_role" "iam_for_lambda" {
   })
 }
 
-resource "aws_lambda_function" "auth" {
+resource "aws_lambda_function" "app" {
   filename      = "app.zip"
   function_name = "handler"
   role          = aws_iam_role.iam_for_lambda.arn

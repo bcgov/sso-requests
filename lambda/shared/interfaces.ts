@@ -27,4 +27,5 @@ export interface FormattedData {
     test: string[];
     prod: string[];
   };
+  id?: number;
 }

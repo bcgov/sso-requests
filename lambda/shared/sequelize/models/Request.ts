@@ -12,7 +12,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.JSONB,
       field: 'valid_redirect_urls',
     },
+    prNumber: {
+      type: DataTypes.INTEGER,
+      field: 'pr_number',
+    },
     environments: DataTypes.JSONB,
+    success: DataTypes.BOOLEAN,
   });
 
   return Request;

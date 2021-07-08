@@ -28,6 +28,15 @@ export const up = async ({ context: sequelize }) => {
       type: DataTypes.JSONB,
       allowNull: false,
     },
+    prNumber: {
+      type: DataTypes.INTEGER,
+      field: 'pr_number',
+      allowNull: true,
+    },
+    success: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
