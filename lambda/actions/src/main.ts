@@ -17,14 +17,14 @@ const unauthorizedResponse = {
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
   const { headers, body } = event;
-  const { prNumber, success, id } = JSON.parse(body);
+  const { prNumber, prSuccess, id } = JSON.parse(body);
   const { Authorization } = headers;
   // const { httpMethod } = requestContext;
   if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
 
   try {
     const result = await models.request.update(
-      { prNumber, success, prCreatedAt: sequelize.fn('NOW') },
+      { prNumber, prSuccess, prCreatedAt: sequelize.fn('NOW') },
       { where: { id } }
     );
   } catch (err) {
