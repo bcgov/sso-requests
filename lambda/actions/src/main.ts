@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, Context, Callback, TResult } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { models, sequelize } from '../../shared/sequelize/models/models';
 import { Response } from './interfaces';
 
