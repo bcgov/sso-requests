@@ -30,17 +30,20 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
 
   const { status } = queryStringParameters || {};
-
-  if (status === 'create') handleUpdate({ prNumber, prSuccess, prCreatedAt: sequelize.fn('NOW') }, { id });
-  else if (status === 'plan') handleUpdate({ planSuccess, planRuntime: sequelize.fn('NOW') }, { prNumber });
-  else if (status === 'apply') handleUpdate({ applySuccess, applyRuntime: sequelize.fn('NOW') }, { prNumber });
-
-  const response = {
+  let response = {
     isBase64Encoded: false,
     headers: responseHeaders,
-    statusCode: 200,
+    statusCode: 422,
     body: 'authorized',
   };
 
-  callback(null, response);
+  try {
+    if (status === 'create') await handleUpdate({ prNumber, prSuccess, prCreatedAt: sequelize.fn('NOW') }, { id });
+    else if (status === 'plan') await handleUpdate({ planSuccess, planRuntime: sequelize.fn('NOW') }, { prNumber });
+    else if (status === 'apply') await handleUpdate({ applySuccess, applyRuntime: sequelize.fn('NOW') }, { prNumber });
+    response.statusCode = 200;
+    callback(null, response);
+  } catch (err) {
+    callback(null, response);
+  }
 };
