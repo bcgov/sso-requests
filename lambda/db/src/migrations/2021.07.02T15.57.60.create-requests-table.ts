@@ -47,6 +47,21 @@ export const up = async ({ context: sequelize }) => {
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
+    prCreatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'pr_created_at',
+    },
+    tfPlanRuntime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'tf_plan_runtime',
+    },
+    tfApplyRuntime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'tf_apply_runtime',
+    },
   });
 };
 

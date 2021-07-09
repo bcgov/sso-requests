@@ -18,6 +18,18 @@ module.exports = (sequelize, DataTypes) => {
     },
     environments: DataTypes.JSONB,
     success: DataTypes.BOOLEAN,
+    prCreatedAt: {
+      type: DataTypes.DATE,
+      field: 'pr_created_at',
+    },
+    tfPlanRuntime: {
+      type: DataTypes.DATE,
+      field: 'tf_plan_runtime',
+    },
+    tfApplyRuntime: {
+      type: DataTypes.DATE,
+      field: 'tf_apply_runtime',
+    },
   });
 
   return Request;
