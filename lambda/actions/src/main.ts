@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
-import { models } from '../../shared/sequelize/models/models';
+import { models, sequelize } from '../../shared/sequelize/models/models';
 
 const responseHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
@@ -23,7 +23,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
 
   try {
-    const result = await models.request.update({ prNumber, success }, { where: { id } });
+    const result = await models.request.update(
+      { prNumber, success, prCreatedAt: sequelize.fn('NOW') },
+      { where: { id } }
+    );
   } catch (err) {
     console.error(err);
   }
