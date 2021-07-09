@@ -33,8 +33,19 @@ export const up = async ({ context: sequelize }) => {
       field: 'pr_number',
       allowNull: true,
     },
-    success: {
+    prSuccess: {
       type: DataTypes.BOOLEAN,
+      field: 'pr_success',
+      allowNull: true,
+    },
+    planSuccess: {
+      type: DataTypes.BOOLEAN,
+      field: 'plan_success',
+      allowNull: true,
+    },
+    applySuccess: {
+      type: DataTypes.BOOLEAN,
+      field: 'apply_success',
       allowNull: true,
     },
     createdAt: {
