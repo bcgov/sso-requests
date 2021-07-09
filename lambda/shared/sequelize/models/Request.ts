@@ -33,13 +33,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       field: 'pr_created_at',
     },
-    tfPlanRuntime: {
+    planRuntime: {
       type: DataTypes.DATE,
-      field: 'tf_plan_runtime',
+      field: 'plan_runtime',
     },
-    tfApplyRuntime: {
+    applyRuntime: {
       type: DataTypes.DATE,
-      field: 'tf_apply_runtime',
+      field: 'apply_runtime',
     },
   });
 
