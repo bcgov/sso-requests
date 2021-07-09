@@ -15,21 +15,25 @@ const unauthorizedResponse = {
   body: 'not authorized',
 };
 
-export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
-  const { headers, body } = event;
-  const { prNumber, prSuccess, id } = JSON.parse(body);
-  const { Authorization } = headers;
-  // const { httpMethod } = requestContext;
-  if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
-
+const handleUpdate = async (updates, where) => {
   try {
-    const result = await models.request.update(
-      { prNumber, prSuccess, prCreatedAt: sequelize.fn('NOW') },
-      { where: { id } }
-    );
+    const result = await models.request.update(updates, { where });
   } catch (err) {
     console.error(err);
   }
+};
+
+export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
+  const { headers, body, queryStringParameters } = event;
+  const { prNumber, prSuccess, planSuccess, applySuccess, id } = JSON.parse(body);
+  const { Authorization } = headers;
+  if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
+
+  const { status } = queryStringParameters || {};
+
+  if (status === 'create') handleUpdate({ prNumber, prSuccess, prCreatedAt: sequelize.fn('NOW') }, { id });
+  else if (status === 'plan') handleUpdate({ planSuccess, planRuntime: sequelize.fn('NOW') }, { prNumber });
+  else if (status === 'apply') handleUpdate({ applySuccess, applyRuntime: sequelize.fn('NOW') }, { prNumber });
 
   const response = {
     isBase64Encoded: false,
