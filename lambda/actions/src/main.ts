@@ -1,5 +1,6 @@
-import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context, Callback, TResult } from 'aws-lambda';
 import { models, sequelize } from '../../shared/sequelize/models/models';
+import { Response } from './interfaces';
 
 const responseHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
@@ -30,11 +31,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
 
   const { status } = queryStringParameters || {};
-  let response = {
+
+  let response: Response = {
     isBase64Encoded: false,
     headers: responseHeaders,
-    statusCode: 422,
-    body: 'authorized',
   };
 
   try {
@@ -42,8 +42,11 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     else if (status === 'plan') await handleUpdate({ planSuccess, planRuntime: sequelize.fn('NOW') }, { prNumber });
     else if (status === 'apply') await handleUpdate({ applySuccess, applyRuntime: sequelize.fn('NOW') }, { prNumber });
     response.statusCode = 200;
+    response.body = '{"success": true}';
     callback(null, response);
   } catch (err) {
+    response.statusCode = 422;
+    response.body = '{"success": false}';
     callback(null, response);
   }
 };
