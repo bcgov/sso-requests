@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Button from '@button-inc/bcgov-theme/Button';
 import styles from 'styles/request.module.css';
-import { getRequests, getInstallation } from 'services/request';
+import { getRequests } from 'services/request';
+import { getInstallation } from 'services/keycloak';
 import { Request } from 'interfaces/Request';
 
 function RequestsPage() {

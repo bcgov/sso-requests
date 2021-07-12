@@ -1,9 +1,9 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { Session } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
-import { generateInstallation } from '../keycloak/installation';
+import { fetchClient } from '../keycloak/client';
 
-export const getInstallation = async (session: Session, data: { requestId: number }) => {
+export const getClient = async (session: Session, data: { requestId: number }) => {
   try {
     const request = await models.request.findOne({
       where: {
@@ -16,16 +16,14 @@ export const getInstallation = async (session: Session, data: { requestId: numbe
 
     const proms = [];
     request.environments.forEach((env) => {
-      proms.push(
-        generateInstallation({ environment: env, realmName: 'onestopauth', clientId: kebabCase(request.projectName) })
-      );
+      proms.push(fetchClient({ environment: env, realmName: 'onestopauth', clientId: kebabCase(request.projectName) }));
     });
 
-    const installations = await Promise.all(proms);
+    const clients = await Promise.all(proms);
 
     return {
       statusCode: 200,
-      body: JSON.stringify(installations),
+      body: JSON.stringify(clients),
     };
   } catch (err) {
     console.error(err);

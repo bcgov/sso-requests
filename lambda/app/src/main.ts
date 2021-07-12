@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { authenticate } from './authenticate';
 import { createRequest, getRequests } from './routes/requests';
+import { getClient } from './routes/client';
 import { getInstallation } from './routes/installation';
 
 const responseHeaders = {
@@ -40,6 +41,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   } else if (path === `${BASE_PATH}/installation`) {
     if (httpMethod === 'POST') {
       response = await getInstallation(session, JSON.parse(body));
+    }
+  } else if (path === `${BASE_PATH}/client`) {
+    if (httpMethod === 'POST') {
+      response = await getClient(session, JSON.parse(body));
     }
   }
 
