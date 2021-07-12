@@ -1,13 +1,14 @@
 import { models } from '../../../shared/sequelize/models/models';
-import { Data } from '../../../shared/interfaces';
+import { Session, Data } from '../../../shared/interfaces';
 import { formatFormData } from '../helpers';
 const AWS = require('aws-sdk');
 
-export const createRequest = async (data: Data) => {
+export const createRequest = async (session: Session, data: Data) => {
   const formattedFormData = formatFormData(data);
   try {
     const { projectName, identityProviders, validRedirectUrls, environments } = formattedFormData;
     const result = await models.request.create({
+      idirUserid: session.idir_userid,
       projectName,
       identityProviders,
       validRedirectUrls,
@@ -44,10 +45,14 @@ export const createRequest = async (data: Data) => {
   }
 };
 
-// TODO: Get by IDIR. Currently getting all records for development
-export const getRequests = async () => {
+export const getRequests = async (session: Session) => {
   try {
-    const requests = await models.request.findAll();
+    const requests = await models.request.findAll({
+      where: {
+        idirUserid: session.idir_userid,
+      },
+    });
+
     return {
       statusCode: 200,
       body: JSON.stringify(requests),
