@@ -55,7 +55,7 @@ export default function Home() {
     }
 
     fetchUser();
-  }, []);
+  }, [router]);
 
   const handleLogin = async () => {
     const authUrl = await getAuthorizationUrl({ kc_idp_hint: 'idir' });

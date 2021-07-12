@@ -33,6 +33,7 @@ jobs:
         run: |
           yarn
           yarn test
+          yarn build
         working-directory: ./app
       - name: Rerun Pre-Commit Hooks on CI
         run: |

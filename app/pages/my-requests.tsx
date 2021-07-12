@@ -41,7 +41,7 @@ function RequestsPage() {
         <tbody>
           {requests.map((request) => {
             return (
-              <tr>
+              <tr key={request.id}>
                 <td>{request.projectName}</td>
                 <td>{request.identityProviders.join(', ')}</td>
                 <td>{request.environments.join(', ')}</td>
