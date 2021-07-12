@@ -1,12 +1,13 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { authenticate } from './authenticate';
 import { createRequest, getRequests } from './routes/requests';
-import { generateInstallation } from './routes/installation';
+import { getInstallation } from './routes/installation';
 
 const responseHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Origin': 'https://bcgov.github.io',
+  // 'Access-Control-Allow-Origin': 'http://localhost:3000',
   'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
   'Access-Control-Allow-Credentials': 'true',
 };
@@ -18,8 +19,8 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   const { httpMethod } = requestContext;
   if (httpMethod === 'OPTIONS') return callback(null, { headers: responseHeaders });
 
-  const authenticated = await authenticate(headers);
-  if (!authenticated) {
+  const session = await authenticate(headers);
+  if (!session) {
     const response = {
       statusCode: 401,
       headers: responseHeaders,
@@ -31,14 +32,14 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
 
   if (path === `${BASE_PATH}/requests`) {
     if (httpMethod === 'POST') {
-      response = await createRequest(JSON.parse(body));
+      response = await createRequest(session, JSON.parse(body));
     }
     if (httpMethod === 'GET') {
-      response = await getRequests();
+      response = await getRequests(session);
     }
   } else if (path === `${BASE_PATH}/installation`) {
     if (httpMethod === 'POST') {
-      response = await generateInstallation(JSON.parse(body));
+      response = await getInstallation(session, JSON.parse(body));
     }
   }
 

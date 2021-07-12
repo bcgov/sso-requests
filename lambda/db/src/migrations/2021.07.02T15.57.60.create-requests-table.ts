@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 
+// see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().createTable('requests', {
     id: {
@@ -8,6 +9,11 @@ export const up = async ({ context: sequelize }) => {
       primaryKey: true,
       defaultValue: sequelize.UUIDV4,
       autoIncrement: true,
+    },
+    idirUserid: {
+      type: DataTypes.STRING,
+      field: 'idir_userid',
+      allowNull: false,
     },
     projectName: {
       type: DataTypes.STRING,
@@ -50,28 +56,30 @@ export const up = async ({ context: sequelize }) => {
     },
     createdAt: {
       type: DataTypes.DATE,
+      field: 'created_at',
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
     updatedAt: {
       type: DataTypes.DATE,
+      field: 'updated_at',
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
     prCreatedAt: {
       type: DataTypes.DATE,
-      allowNull: true,
       field: 'pr_created_at',
+      allowNull: true,
     },
     planRuntime: {
       type: DataTypes.DATE,
-      allowNull: true,
       field: 'plan_runtime',
+      allowNull: true,
     },
     applyRuntime: {
       type: DataTypes.DATE,
-      allowNull: true,
       field: 'apply_runtime',
+      allowNull: true,
     },
   });
 };

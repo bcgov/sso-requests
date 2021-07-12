@@ -2,6 +2,10 @@ interface Urls {
   url: string;
 }
 
+export interface Session {
+  idir_userid: string;
+}
+
 export interface Data {
   identityProviders: {
     github: boolean;
