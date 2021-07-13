@@ -4,8 +4,6 @@ interface User {
 
 export interface IndexPageProps {
   currentUser: User;
-  setCurrentUser: Function;
-  setFormData: Function;
 }
 
 export interface RequestPageProps {

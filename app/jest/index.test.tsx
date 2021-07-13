@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react';
 import HomePage from 'pages/index';
 
 describe('HomePage', () => {
-  it('should render the heading', () => {
-    render(<HomePage />);
-    const login = screen.getByText('Login');
+  it('should render the card heading', () => {
+    render(<HomePage currentUser={null} />);
+    const login = screen.getByText('Click Me!');
     expect(login).toBeInTheDocument();
   });
 });
