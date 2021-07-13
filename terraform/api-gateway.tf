@@ -68,6 +68,13 @@ resource "aws_api_gateway_deployment" "this" {
     aws_api_gateway_integration.actions,
   ]
 
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_integration.actions.id,
+      aws_api_gateway_integration.lambda.id,
+    ]))
+  }
+
   rest_api_id = aws_api_gateway_rest_api.sso_backend.id
   stage_name  = "test"
 }
