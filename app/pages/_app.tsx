@@ -39,9 +39,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Navigation title="Hello British Columbia" onBannerClick={console.log}>
         <Menu />
       </Navigation>
-      <Component {...pageProps} currentUser={currentUser} setCurrentUser={setCurrentUser}>
-        <button onClick={() => console.log(currentUser)}>Click</button>
-      </Component>
+      <Component {...pageProps} currentUser={currentUser} setCurrentUser={setCurrentUser} />
     </>
   );
 }
