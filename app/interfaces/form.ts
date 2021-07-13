@@ -16,4 +16,5 @@ export interface Data {
     prodRedirectUrls: Urls[];
   };
   projectName: string;
+  preferredEmail: string;
 }

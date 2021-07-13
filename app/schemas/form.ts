@@ -3,9 +3,10 @@ import { JSONSchema7 } from 'json-schema';
 export default {
   title: 'Make a Request',
   type: 'object',
-  required: ['projectName'],
+  required: ['projectName', 'preferredEmail'],
   properties: {
     projectName: { type: 'string', title: 'Project Name' },
+    preferredEmail: { type: 'string', title: 'What email would you like to be contacted at?', format: 'email' },
     identityProviders: {
       type: 'object',
       title: 'Identity Providers',
