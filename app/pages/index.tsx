@@ -1,77 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
-import getConfig from 'next/config';
-import { fetchIssuerConfiguration } from 'utils/provider';
-import { getAuthorizationUrl, getAccessToken } from 'utils/openid';
-import { verifyToken } from 'utils/jwt';
-import { fetchInfo } from 'services/auth';
+import styled from 'styled-components';
+import Grid from '@button-inc/bcgov-theme/Grid';
+import Card from '@button-inc/bcgov-theme/Card';
+import Link from '@button-inc/bcgov-theme/Link';
+import Button from '@button-inc/bcgov-theme/Button';
 import { IndexPageProps } from 'interfaces/props';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { app_url } = publicRuntimeConfig;
+const Container = styled.div`
+  padding: 1rem 5rem;
+`;
 
-const TOKEN_SESSION = 'tokens';
-
-export default function Home({ currentUser, setCurrentUser }: IndexPageProps) {
-  const router = useRouter();
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        await fetchIssuerConfiguration();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state: string = urlParams.get('state') || '';
-
-        // Oauth callback endpoint
-        if (code) {
-          const tokens = await getAccessToken({ code, state });
-          const verifiedIdToken = await verifyToken(tokens.id_token);
-
-          if (verifiedIdToken) {
-            sessionStorage.setItem(TOKEN_SESSION, JSON.stringify(tokens));
-            setCurrentUser(verifiedIdToken);
-            router.push('/');
-          }
-        }
-        // main entrypoint
-        else {
-          const saveTokens = JSON.parse(sessionStorage.getItem(TOKEN_SESSION) || '');
-          const verifiedIdToken = await verifyToken(saveTokens.id_token);
-
-          if (verifiedIdToken) {
-            return setCurrentUser(verifiedIdToken);
-          } else {
-            sessionStorage.removeItem(TOKEN_SESSION);
-            handleLogin();
-          }
-        }
-      } catch (err) {
-        setError(err);
-      }
-    }
-
-    fetchUser();
-  }, [router]);
-
-  const handleLogin = async () => {
-    const authUrl = await getAuthorizationUrl({ kc_idp_hint: 'idir' });
-    window.location.href = authUrl;
-  };
-
-  const handleLogout = async () => {
-    sessionStorage.removeItem(TOKEN_SESSION);
-    router.reload();
-  };
-
-  const handleInfo = async () => {
-    const info = await fetchInfo();
-    console.log(info);
-  };
-
+export default function Home({ currentUser }: IndexPageProps) {
   return (
     <>
       <Head>
@@ -79,25 +19,43 @@ export default function Home({ currentUser, setCurrentUser }: IndexPageProps) {
         <meta name="description" content="The request process workflow tool for the RedHat SSO Dev Exchange service" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <main>
-        {currentUser ? (
-          <>
-            <button type="button" onClick={handleLogout}>
-              Logout
-            </button>
-          </>
-        ) : (
-          <button type="button" onClick={handleLogin}>
-            Login
-          </button>
-        )}
-        <button type="button" onClick={handleInfo}>
-          Check Server Auth
-        </button>
-      </main>
-
-      <footer></footer>
+      <Container>
+        <Grid cols={3} gutter={[5, 2]}>
+          <Grid.Row collapse="800">
+            <Grid.Col span={2}>
+              <Card title="SSO Request Form">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+                ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+                fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+                deserunt mollit anim id est laborum.
+                <br /> <br />
+                <Button size="small">Click Me!</Button>
+                <br /> <br />
+                <Link href="#link1">
+                  Do you have any questions? Click here to <strong>ask</strong>
+                </Link>
+              </Card>
+            </Grid.Col>
+            <Grid.Col>
+              <Card title="SSO Request Form">
+                aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
+                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+                officia deserunt mollit anim id est laborum.
+                <br /> <br />
+                <ul>
+                  <li>
+                    <Link href="#link1" content="link1" />
+                  </li>
+                  <li>
+                    <Link href="#link1" content="link2" />
+                  </li>
+                </ul>
+              </Card>
+            </Grid.Col>
+          </Grid.Row>
+        </Grid>
+      </Container>
     </>
   );
 }
