@@ -17,4 +17,5 @@ export interface Data {
   };
   projectName: string;
   preferredEmail: string;
+  projectLead?: boolean;
 }
