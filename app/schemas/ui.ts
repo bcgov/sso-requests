@@ -7,4 +7,7 @@ export default {
   environments: {
     'ui:widget': 'checkboxes',
   },
+  projectLead: {
+    'ui:widget': 'radio',
+  },
 };
