@@ -1,7 +1,9 @@
 import FormStageBox from 'components/FormStageBox';
 import styled from 'styled-components';
-import { useRouter } from 'next/router';
-import react, { useEffect } from 'react';
+
+interface Props {
+  currentStage: number;
+}
 
 const Container = styled.div`
   display: flex;
@@ -19,7 +21,7 @@ const stages = [
   { title: 'Review & Submit', number: 4 },
 ];
 
-export default function Formstage({ currentStage }: any) {
+export default function Formstage({ currentStage }: Props) {
   return (
     <Container>
       {stages.map((stage) => (

@@ -8,16 +8,4 @@ export interface IndexPageProps {
 
 export interface RequestPageProps {
   currentUser: User;
-  formData: any;
-  setFormData: Function;
-}
-
-export interface ContainerProps {
-  children: any;
-}
-
-export interface FormStageBox {
-  title: string;
-  stageNumber: number;
-  active?: boolean;
 }

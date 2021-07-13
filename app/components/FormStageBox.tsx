@@ -1,8 +1,13 @@
-import { FormStageBox } from 'interfaces/props';
 import styled from 'styled-components';
 
 interface BoxProps {
   active: boolean | undefined;
+}
+
+export interface FormStageBox {
+  title: string;
+  stageNumber: number;
+  active?: boolean;
 }
 
 const Box = styled.div<BoxProps>`

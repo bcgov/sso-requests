@@ -1,6 +1,10 @@
 import Button from '@button-inc/bcgov-theme/Button';
 
-export default function CreateRequestButtons({ show }: any) {
+interface Props {
+  show: boolean | undefined;
+}
+
+export default function CreateRequestButtons({ show }: Props) {
   return (
     <>
       {show && (

@@ -44,12 +44,12 @@ variable "target_env" {
 
 variable "subnet_a" {
   description = "Value of the name tag for the subnet in AZ a"
-  default     = "App_Sandbox_aza_net"
+  default     = "App_Dev_aza_net"
 }
 
 variable "subnet_b" {
   description = "Value of the name tag for the subnet in AZ b"
-  default     = "App_Sandbox_azb_net"
+  default     = "App_Dev_azb_net"
 }
 
 variable "gh_access_token" {
