@@ -25,7 +25,12 @@ export default function Formstage({ currentStage }: Props) {
   return (
     <Container>
       {stages.map((stage) => (
-        <FormStageBox title={stage.title} stageNumber={stage.number} active={stage.number === currentStage} />
+        <FormStageBox
+          title={stage.title}
+          stageNumber={stage.number}
+          active={stage.number === currentStage}
+          key={stage.number}
+        />
       ))}
     </Container>
   );
