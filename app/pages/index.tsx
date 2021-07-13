@@ -6,15 +6,15 @@ import { fetchIssuerConfiguration } from 'utils/provider';
 import { getAuthorizationUrl, getAccessToken } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { fetchInfo } from 'services/auth';
+import { IndexPageProps } from 'interfaces/props';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_url } = publicRuntimeConfig;
 
 const TOKEN_SESSION = 'tokens';
 
-export default function Home() {
+export default function Home({ currentUser, setCurrentUser }: IndexPageProps) {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {

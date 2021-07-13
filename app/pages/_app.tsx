@@ -4,6 +4,7 @@ import BCSans from '../components/BCSans';
 import 'bootstrap3/dist/css/bootstrap.min.css';
 import Link from 'next/link';
 import 'styles/globals.css';
+import { useState } from 'react';
 
 const Menu = () => (
   <ul>
@@ -31,13 +32,16 @@ const Menu = () => (
 );
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const [currentUser, setCurrentUser] = useState(null);
   return (
     <>
       <BCSans />
       <Navigation title="Hello British Columbia" onBannerClick={console.log}>
         <Menu />
       </Navigation>
-      <Component {...pageProps} />
+      <Component {...pageProps} currentUser={currentUser} setCurrentUser={setCurrentUser}>
+        <button onClick={() => console.log(currentUser)}>Click</button>
+      </Component>
     </>
   );
 }
