@@ -9,6 +9,7 @@ import FormButtons from 'components/FormButtons';
 import { Data } from 'interfaces/form';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import { createRequest } from 'services/request';
+import ArrayFieldTemplate from 'components/ArrayFieldTemplate';
 
 const getSchema = (formStage: number) => {
   switch (formStage) {
@@ -65,6 +66,8 @@ export default function FormTemplate({ currentUser = {} }: Props) {
         onSubmit={handleSubmit}
         onChange={handleChange}
         formData={formData}
+        ArrayFieldTemplate={ArrayFieldTemplate}
+        ErrorList={() => null}
       >
         <FormButtons
           text={{ continue: formStage === 1 ? 'Create File' : 'Next', back: 'Cancel' }}

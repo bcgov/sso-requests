@@ -22,7 +22,9 @@ export default function FormButtons({ show, loading, text }: Props) {
     <>
       {show && (
         <>
-          <Button variant="secondary">{text.back}</Button>
+          <Button variant="secondary" type="button">
+            {text.back}
+          </Button>
           <PaddedButton variant="primary">
             {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
           </PaddedButton>
