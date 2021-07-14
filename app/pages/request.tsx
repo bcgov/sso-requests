@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import FormTemplate from 'components/FormTemplate';
 import Container from 'components/Container';
 
@@ -8,6 +9,8 @@ interface Props {
 }
 
 function Request({ currentUser }: Props) {
+  const router = useRouter();
+
   return (
     <Container>
       <FormTemplate currentUser={currentUser || {}} />

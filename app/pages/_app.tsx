@@ -6,7 +6,7 @@ import { fetchIssuerConfiguration } from 'utils/provider';
 import { getAuthorizationUrl, getAccessToken } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { fetchInfo } from 'services/auth';
-import Layout from '../components/Layout';
+import Layout from 'layout/Layout';
 import 'bootstrap3/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
@@ -18,10 +18,13 @@ const TOKEN_SESSION = 'tokens';
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchUser() {
+      setLoading(true);
+
       try {
         await fetchIssuerConfiguration();
 
@@ -37,7 +40,8 @@ function MyApp({ Component, pageProps }: AppProps) {
           if (verifiedIdToken) {
             sessionStorage.setItem(TOKEN_SESSION, JSON.stringify(tokens));
             setCurrentUser(verifiedIdToken);
-            router.push('/');
+            setLoading(false);
+            router.push('/my-requests');
           }
         }
         // main entrypoint
@@ -46,7 +50,9 @@ function MyApp({ Component, pageProps }: AppProps) {
           const verifiedIdToken = await verifyToken(saveTokens.id_token);
 
           if (verifiedIdToken) {
-            return setCurrentUser(verifiedIdToken);
+            setCurrentUser(verifiedIdToken);
+            setLoading(false);
+            return null;
           } else {
             sessionStorage.removeItem(TOKEN_SESSION);
             handleLogin();
@@ -54,6 +60,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         }
       } catch (err) {
         setError(err);
+        setLoading(false);
       }
     }
 
@@ -67,13 +74,20 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   const handleLogout = async () => {
     sessionStorage.removeItem(TOKEN_SESSION);
-    router.reload();
+    window.location.href = '/';
   };
 
   const handleInfo = async () => {
     const info = await fetchInfo();
     console.log(info);
   };
+
+  if (loading) return <div>Loading...</div>;
+
+  if (['/my-requests', '/request'].includes(window.location.pathname) && !currentUser) {
+    router.push('/');
+    return null;
+  }
 
   return (
     <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>

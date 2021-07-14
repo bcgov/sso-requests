@@ -2,13 +2,14 @@ export interface Request {
   id: number;
   idirUserid: string;
   projectName: string;
-  identityProviders: string[];
+  realm: string;
+  identityProviders?: string[];
   validRedirectUrls: string[];
   prNumber: number;
   environments: string[];
-  prSuccess: string;
-  planSuccess: string;
-  applySuccess: string;
+  prSuccess: boolean;
+  planSuccess: boolean;
+  applySuccess: boolean;
   prCreatedAt: string;
   planRuntime: string;
   applyRuntime: string;
