@@ -6,20 +6,25 @@ export interface Session {
   idir_userid: string;
 }
 
+export interface Environments {
+  dev?: boolean;
+  test?: boolean;
+  prod?: boolean;
+  devRedirectUrls?: Urls[];
+  testRedirectUrls?: Urls[];
+  prodRedirectUrls?: Urls[];
+}
+
 export interface Data {
-  identityProviders: {
+  identityProviders?: {
     github: boolean;
     idir: boolean;
   };
-  environments: {
-    dev: boolean;
-    test: boolean;
-    prod: boolean;
-    devRedirectUrls: Urls[];
-    testRedirectUrls: Urls[];
-    prodRedirectUrls: Urls[];
-  };
+  environments?: Environments;
   projectName: string;
+  preferredEmail: string;
+  newToSSO: boolean;
+  projectLead: boolean;
 }
 
 export interface FormattedData {
@@ -32,4 +37,7 @@ export interface FormattedData {
     prod: string[];
   };
   id?: number;
+  projectLead: boolean;
+  preferredEmail: string;
+  newToSSO: boolean;
 }

@@ -18,21 +18,21 @@ export const up = async ({ context: sequelize }) => {
     projectName: {
       type: DataTypes.STRING,
       field: 'project_name',
-      allowNull: false,
+      allowNull: true,
     },
     identityProviders: {
       type: DataTypes.JSONB,
       field: 'identity_providers',
-      allowNull: false,
+      allowNull: true,
     },
     validRedirectUrls: {
       type: DataTypes.JSONB,
       field: 'valid_redirect_urls',
-      allowNull: false,
+      allowNull: true,
     },
     environments: {
       type: DataTypes.JSONB,
-      allowNull: false,
+      allowNull: true,
     },
     prNumber: {
       type: DataTypes.INTEGER,
@@ -79,6 +79,16 @@ export const up = async ({ context: sequelize }) => {
     applyRuntime: {
       type: DataTypes.DATE,
       field: 'apply_runtime',
+      allowNull: true,
+    },
+    projectLead: {
+      type: DataTypes.BOOLEAN,
+      field: 'project_lead',
+      allowNull: true,
+    },
+    preferredEmail: {
+      type: DataTypes.STRING,
+      field: 'preferred_email',
       allowNull: true,
     },
   });
