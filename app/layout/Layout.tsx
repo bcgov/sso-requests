@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import Button from '@button-inc/bcgov-theme/Button';
+import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
+import ResponsiveContainer from 'components/ResponsiveContainer';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
 
@@ -11,7 +13,22 @@ const LoggedUser = styled.span`
   font-size: 1.3em;
 `;
 
-const Menu = () => (
+const MainContent = styled.div`
+  padding: 1rem 0;
+  min-height: calc(100vh - 70px);
+`;
+
+const MenuForGuest = () => (
+  <ul>
+    <li>
+      <Link href="/">
+        <a>About Keycloak</a>
+      </Link>
+    </li>
+  </ul>
+);
+
+const MenuForUser = () => (
   <ul>
     <li>
       <Link href="/my-requests">
@@ -20,7 +37,7 @@ const Menu = () => (
     </li>
     <li>
       <Link href="/request">
-        <a>Make Request</a>
+        <a>Support</a>
       </Link>
     </li>
   </ul>
@@ -46,9 +63,24 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
     <>
       <BCSans />
       <Navigation title="" rightSide={rightSide} onBannerClick={console.log}>
-        <Menu />
+        {currentUser ? <MenuForUser /> : <MenuForGuest />}
       </Navigation>
-      {children}
+      <MainContent>
+        <ResponsiveContainer>{children}</ResponsiveContainer>
+      </MainContent>
+      <Footer>
+        <ul>
+          <li>
+            <a href=".">Home</a>
+          </li>
+          <li>
+            <a href=".">Copyright</a>
+          </li>
+          <li>
+            <a href=".">Contact us</a>
+          </li>
+        </ul>
+      </Footer>
     </>
   );
 }
