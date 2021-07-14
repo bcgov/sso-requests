@@ -11,11 +11,6 @@ interface Props {
 function Request({ currentUser }: Props) {
   const router = useRouter();
 
-  if (!currentUser) {
-    router.push('/');
-    return null;
-  }
-
   return (
     <Container>
       <FormTemplate currentUser={currentUser || {}} />

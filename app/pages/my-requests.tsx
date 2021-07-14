@@ -32,11 +32,6 @@ function RequestsPage({ currentUser }: Props) {
   const [loading, setLoading] = useState<boolean>(false);
   const [requests, setRequests] = useState<Request[]>([]);
 
-  if (!currentUser) {
-    router.push('/');
-    return null;
-  }
-
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
