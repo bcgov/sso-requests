@@ -42,7 +42,7 @@ export default function FormTemplate({ currentUser = {} }: Props) {
     if (!formData.preferredEmail) {
       setFormData({ ...formData, preferredEmail: currentUser.email || '' });
     }
-  }, [currentUser, formData]);
+  }, [currentUser]);
 
   const handleSubmit = async (e: any) => {
     try {
