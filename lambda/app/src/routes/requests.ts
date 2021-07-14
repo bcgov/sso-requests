@@ -3,45 +3,56 @@ import { Session, Data } from '../../../shared/interfaces';
 import { formatFormData } from '../helpers';
 const AWS = require('aws-sdk');
 
+const handleError = (err: string) => {
+  console.error(err);
+  return {
+    statusCode: 422,
+  };
+};
+
 export const createRequest = async (session: Session, data: Data) => {
   const formattedFormData = formatFormData(data);
   try {
-    const { projectName, identityProviders, validRedirectUrls, environments } = formattedFormData;
+    const { projectName, projectLead, preferredEmail, newToSSO } = formattedFormData;
     const result = await models.request.create({
       idirUserid: session.idir_userid,
       projectName,
-      identityProviders,
-      validRedirectUrls,
-      environments,
+      projectLead,
+      preferredEmail,
+      newToSSO,
     });
+    return {
+      statusCode: 200,
+      body: JSON.stringify(result),
+    };
+  } catch (err) {
+    handleError(err);
+  }
+};
 
-    const payload = JSON.stringify({ ...formattedFormData, id: result.id });
-
-    var lambda = new AWS.Lambda({
-      region: 'ca-central-1',
-    });
-
-    await lambda.invoke(
+export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
+  const formattedFormData = formatFormData(data);
+  try {
+    const { id, ...rest } = formattedFormData;
+    const result = await models.request.update(
       {
-        FunctionName: 'lambda-github',
-        Payload: payload,
+        ...rest,
       },
-      function (err) {
-        if (err) {
-          console.error(err);
-        }
+      {
+        where: { id },
       }
     );
+    if (submit) {
+      const payload = JSON.stringify(formattedFormData);
+      await invokeGithubLambda(payload);
+    }
 
     return {
       statusCode: 200,
       body: JSON.stringify(result),
     };
   } catch (err) {
-    console.error(err);
-    return {
-      statusCode: 422,
-    };
+    handleError(err);
   }
 };
 
@@ -58,9 +69,24 @@ export const getRequests = async (session: Session) => {
       body: JSON.stringify(requests),
     };
   } catch (err) {
-    console.error(err);
-    return {
-      statusCode: 422,
-    };
+    handleError(err);
   }
+};
+
+const invokeGithubLambda = async (payload: string) => {
+  const lambda = new AWS.Lambda({
+    region: 'ca-central-1',
+  });
+
+  await lambda.invoke(
+    {
+      FunctionName: 'lambda-github',
+      Payload: payload,
+    },
+    function (err) {
+      if (err) {
+        console.error(err);
+      }
+    }
+  );
 };

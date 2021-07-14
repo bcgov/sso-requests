@@ -1,4 +1,4 @@
-import { FormattedData, Data } from '../../shared/interfaces';
+import { FormattedData, Data, Environments } from '../../shared/interfaces';
 
 const IdentityProviders = ['github', 'idir'];
 const validEnvironments = ['dev', 'test', 'prod'];
@@ -7,8 +7,8 @@ const validEnvironments = ['dev', 'test', 'prod'];
 // this function reformats returned data to an easier to handle shape
 // TODO: backend data validation
 export const formatFormData = (data: Data): FormattedData => {
-  const { identityProviders, environments, projectName } = data;
-  const { devRedirectUrls = [], testRedirectUrls = [], prodRedirectUrls = [] } = environments;
+  const { identityProviders = {}, environments = {}, projectName, ...rest } = data;
+  const { devRedirectUrls = [], testRedirectUrls = [], prodRedirectUrls = [] } = environments as Environments;
 
   const formattedIdentityProviders = IdentityProviders.filter((key) => identityProviders[key]);
   const formattedEnvironments = validEnvironments
@@ -26,6 +26,7 @@ export const formatFormData = (data: Data): FormattedData => {
     environments: formattedEnvironments,
     validRedirectUrls: formattedValidRedirectUris,
     projectName,
+    ...rest,
   };
   return newData;
 };

@@ -44,8 +44,8 @@ function RequestsPage() {
             return (
               <tr key={request.id}>
                 <td>{request.projectName}</td>
-                <td>{request.identityProviders.join(', ')}</td>
-                <td>{request.environments.join(', ')}</td>
+                <td>{request.identityProviders?.join(', ')}</td>
+                <td>{request.environments?.join(', ')}</td>
                 <td>{request.createdAt}</td>
                 <td>
                   <Button size="small" onClick={() => handleClick(request)}>

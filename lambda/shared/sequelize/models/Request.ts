@@ -36,6 +36,12 @@ module.exports = (sequelize, DataTypes) => {
       applyRuntime: {
         type: DataTypes.DATE,
       },
+      projectLead: {
+        type: DataTypes.BOOLEAN,
+      },
+      preferredEmail: {
+        type: DataTypes.STRING,
+      },
     },
     {
       underscored: true,

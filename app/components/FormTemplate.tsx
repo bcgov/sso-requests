@@ -1,18 +1,34 @@
-import React, { useState } from 'react';
-import HeaderLight from 'components/HeaderLight';
+import React, { useState, useEffect } from 'react';
+import FormHeader from 'components/FormHeader';
 import FormStage from 'components/FormStage';
 import Form from 'components/GovForm';
-import schema from 'schemas/requester-info';
+import requesterInfoSchema from 'schemas/requester-info';
+import providersSchema from 'schemas/providers';
 import uiSchema from 'schemas/ui';
-import CreateRequestButtons from 'components/CreateRequestButtons';
 import FormButtons from 'components/FormButtons';
 import { Data } from 'interfaces/form';
 import Modal from '@button-inc/bcgov-theme/Modal';
-import { submitRequest } from 'services/request';
+import { createRequest } from 'services/request';
 
-export default function FormTemplate() {
+const getSchema = (formStage: number) => {
+  switch (formStage) {
+    case 1:
+      return requesterInfoSchema;
+    case 2:
+      return providersSchema;
+  }
+};
+
+interface Props {
+  currentUser: {
+    email?: string;
+  };
+}
+
+export default function FormTemplate({ currentUser = {} }: Props) {
   const [formData, setFormData] = useState({} as Data);
-  const [formStage, setFormStage] = useState(1);
+  const [formStage, setFormStage] = useState(2);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: any) => {
     setFormData(e.formData);
@@ -21,21 +37,40 @@ export default function FormTemplate() {
     }
   };
 
+  useEffect(() => {
+    if (!formData.preferredEmail) {
+      setFormData({ ...formData, preferredEmail: currentUser.email || '' });
+    }
+  }, [currentUser]);
+
   const handleSubmit = async (e: any) => {
     try {
-      await submitRequest(e.formData);
+      setLoading(true);
+      const { id } = await createRequest(e.formData);
       setFormStage(formStage + 1);
+      setFormData({ ...formData, id });
     } catch (err) {
       console.error(err);
     }
+    setLoading(false);
   };
 
   return (
     <>
-      <HeaderLight>Enter requester information</HeaderLight>
+      <FormHeader formStage={formStage} id={formData.id} />
       <FormStage currentStage={formStage} />
-      <Form schema={schema} uiSchema={uiSchema} onSubmit={handleSubmit} onChange={handleChange} formData={formData}>
-        <>{formStage === 1 ? <CreateRequestButtons show={formData.projectLead} /> : <FormButtons />}</>
+      <Form
+        schema={getSchema(formStage)}
+        uiSchema={uiSchema}
+        onSubmit={handleSubmit}
+        onChange={handleChange}
+        formData={formData}
+      >
+        <FormButtons
+          text={{ continue: formStage === 1 ? 'Create File' : 'Next', back: 'Cancel' }}
+          show={formStage !== 1 || formData.projectLead}
+          loading={loading}
+        />
       </Form>
       {formStage === 1 && (
         <Modal id="modal">
