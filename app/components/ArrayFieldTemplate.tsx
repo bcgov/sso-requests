@@ -29,7 +29,7 @@ export default function ArrayFieldTemplate(props: any) {
       {props.items.map((element: any, i: number) => {
         if (i === props.items.length - 1) {
           return (
-            <FieldContainer>
+            <FieldContainer key={i}>
               {element.children}
               {props.canAdd && (
                 <AddContainer>
@@ -45,7 +45,7 @@ export default function ArrayFieldTemplate(props: any) {
             </FieldContainer>
           );
         }
-        return <FieldContainer>{element.children}</FieldContainer>;
+        return <FieldContainer key={i}>{element.children}</FieldContainer>;
       })}
     </div>
   );
