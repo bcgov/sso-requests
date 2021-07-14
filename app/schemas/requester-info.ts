@@ -16,11 +16,9 @@ export default {
         {
           properties: {
             projectLead: { enum: [true] },
-            lastName: { type: 'string', title: 'Last Name' },
-            firstName: { type: 'string', title: 'First Name' },
-            middleName: { type: 'string', title: 'Middle Name' },
             preferredEmail: { type: 'string', title: 'Business Email Address' },
             projectName: { type: 'string', title: 'Project Name' },
+            newToSSO: { type: 'boolean', title: 'Are you new to Single Sign-On (Keycloak)?' },
           },
         },
       ],

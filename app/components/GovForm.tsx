@@ -4,8 +4,9 @@ import Input from '@button-inc/bcgov-theme/Input';
 import wrapper from 'utils/widgetWrapper';
 import CustomFieldTemplate from './CustomFieldTemplate';
 
-const customWidgets = { RadioWidget: wrapper(RadioButton, 'radio'), TextWidget: wrapper(Input, 'input') };
+const customWidgets = { TextWidget: wrapper(Input, 'input') };
+// const customWidgets = { RadioWidget: wrapper(RadioButton, 'radio'), TextWidget: wrapper(Input, 'input') };
 
 export default function MyForm(props: any) {
-  return <Form {...props} widgets={customWidgets} FieldTemplate={CustomFieldTemplate} />;
+  return <Form {...props} widgets={customWidgets} />;
 }

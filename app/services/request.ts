@@ -2,10 +2,11 @@ import { instance } from './axios';
 import { Data } from 'interfaces/form';
 import { getAuthConfig } from './auth';
 
-export const submitRequest = async (data: Data) => {
+export const createRequest = async (data: Data) => {
   const config = getAuthConfig();
   try {
-    await instance.post('requests', data, config).then((res) => res.data);
+    const result = await instance.post('requests', data, config).then((res) => res.data);
+    return result;
   } catch (err) {
     console.error(err);
     return null;

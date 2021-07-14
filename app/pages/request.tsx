@@ -1,10 +1,16 @@
 import FormTemplate from 'components/FormTemplate';
 import Container from 'components/Container';
 
-function Request() {
+interface Props {
+  currentUser: {
+    email?: string;
+  };
+}
+
+function Request({ currentUser }: Props) {
   return (
     <Container>
-      <FormTemplate />
+      <FormTemplate currentUser={currentUser || {}} />
     </Container>
   );
 }
