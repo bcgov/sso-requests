@@ -1,34 +1,21 @@
-interface Urls {
-  url: string;
-}
-
 export interface Session {
   idir_userid: string;
 }
 
-export interface Environments {
-  dev?: boolean;
-  test?: boolean;
-  prod?: boolean;
-  devRedirectUrls?: Urls[];
-  testRedirectUrls?: Urls[];
-  prodRedirectUrls?: Urls[];
-}
-
 export interface Data {
-  identityProviders?: {
-    github: boolean;
-    idir: boolean;
-  };
-  environments?: Environments;
+  realm?: string;
   projectName: string;
   preferredEmail: string;
-  newToSSO: boolean;
+  newToSso: boolean;
   projectLead: boolean;
+  devRedirectUrls?: string[];
+  testRedirectUrls?: string[];
+  prodRedirectUrls?: string[];
+  agreeWithTC?: boolean;
 }
 
 export interface FormattedData {
-  identityProviders: string[];
+  realm?: string;
   environments: string[];
   projectName: string;
   validRedirectUrls: {
@@ -39,5 +26,6 @@ export interface FormattedData {
   id?: number;
   projectLead: boolean;
   preferredEmail: string;
-  newToSSO: boolean;
+  newToSso: boolean;
+  agreeWithTC?: boolean;
 }

@@ -8,8 +8,8 @@ module.exports = (sequelize, DataTypes) => {
       projectName: {
         type: DataTypes.STRING,
       },
-      identityProviders: {
-        type: DataTypes.JSONB,
+      realm: {
+        type: DataTypes.STRING,
       },
       validRedirectUrls: {
         type: DataTypes.JSONB,
@@ -40,6 +40,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
       },
       preferredEmail: {
+        type: DataTypes.STRING,
+      },
+      newToSso: {
+        type: DataTypes.BOOLEAN,
+      },
+      agreeWithTerms: {
+        type: DataTypes.BOOLEAN,
+      },
+      status: {
         type: DataTypes.STRING,
       },
     },

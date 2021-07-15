@@ -1,19 +1,19 @@
 import { formatFormData } from '../helpers';
 
+const url = 'http://example.com';
 const firstPageData = {
   projectName: 'test',
   projectLead: true,
   preferredEmail: 'jon@test.com',
-  newToSSO: true,
+  newToSso: true,
 };
 
 const expectedFirstPageData = {
+  environments: [],
   projectName: 'test',
   projectLead: true,
   preferredEmail: 'jon@test.com',
-  newToSSO: true,
-  environments: [],
-  identityProviders: [],
+  newToSso: true,
   validRedirectUrls: {
     dev: [],
     test: [],
@@ -23,24 +23,21 @@ const expectedFirstPageData = {
 
 const expectedFullData = {
   ...expectedFirstPageData,
-  environments: ['dev'],
+  environments: ['dev', 'test', 'prod'],
+  realm: 'onestopauth',
   validRedirectUrls: {
-    dev: ['http://example.com'],
-    prod: [],
-    test: [],
+    dev: [url],
+    test: [url],
+    prod: [url],
   },
 };
 
 const fullTestData = {
   ...firstPageData,
-  environments: {
-    dev: true,
-    devRedirectUrls: [
-      {
-        url: 'http://example.com',
-      },
-    ],
-  },
+  realm: 'onestopauth',
+  devRedirectUrls: [url],
+  testRedirectUrls: [url],
+  prodRedirectUrls: [url],
 };
 
 describe('format form data', () => {

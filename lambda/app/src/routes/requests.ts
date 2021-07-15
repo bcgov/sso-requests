@@ -13,13 +13,13 @@ const handleError = (err: string) => {
 export const createRequest = async (session: Session, data: Data) => {
   const formattedFormData = formatFormData(data);
   try {
-    const { projectName, projectLead, preferredEmail, newToSSO } = formattedFormData;
+    const { projectName, projectLead, preferredEmail, newToSso } = formattedFormData;
     const result = await models.request.create({
       idirUserid: session.idir_userid,
       projectName,
       projectLead,
       preferredEmail,
-      newToSSO,
+      newToSso,
     });
     return {
       statusCode: 200,

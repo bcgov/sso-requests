@@ -20,9 +20,8 @@ export const up = async ({ context: sequelize }) => {
       field: 'project_name',
       allowNull: true,
     },
-    identityProviders: {
-      type: DataTypes.JSONB,
-      field: 'identity_providers',
+    realm: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
     validRedirectUrls: {
@@ -90,6 +89,21 @@ export const up = async ({ context: sequelize }) => {
       type: DataTypes.STRING,
       field: 'preferred_email',
       allowNull: true,
+    },
+    newToSso: {
+      type: DataTypes.BOOLEAN,
+      field: 'new_to_sso',
+      allowNull: true,
+    },
+    agreeWithTerms: {
+      type: DataTypes.BOOLEAN,
+      field: 'agree_with_terms',
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'pending',
     },
   });
 };
