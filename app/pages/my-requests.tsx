@@ -75,21 +75,27 @@ function RequestsPage({ currentUser }: Props) {
           </tr>
         </thead>
         <tbody>
-          {requests.map((request) => {
-            return (
-              <tr key={request.id}>
-                <td>{request.projectName}</td>
-                <td>{getProviders(request.realm)}</td>
-                <td>{request.environments?.join(', ')}</td>
-                <td>{request.createdAt}</td>
-                <td>
-                  <Button size="small" onClick={() => handleInstallationClick(request)}>
-                    Download Installation
-                  </Button>
-                </td>
-              </tr>
-            );
-          })}
+          {requests.length > 0 ? (
+            requests.map((request) => {
+              return (
+                <tr key={request.id}>
+                  <td>{request.projectName}</td>
+                  <td>{getProviders(request.realm)}</td>
+                  <td>{request.environments?.join(', ')}</td>
+                  <td>{request.createdAt}</td>
+                  <td>
+                    <Button size="small" onClick={() => handleInstallationClick(request)}>
+                      Download Installation
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan={10}>No requests found</td>
+            </tr>
+          )}
         </tbody>
       </Table>
     </main>

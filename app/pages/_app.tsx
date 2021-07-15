@@ -11,7 +11,7 @@ import 'bootstrap3/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { app_url } = publicRuntimeConfig;
+const { base_path } = publicRuntimeConfig;
 
 const TOKEN_SESSION = 'tokens';
 
@@ -85,7 +85,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   if (loading) return <div>Loading...</div>;
 
   if (['/my-requests', '/request'].includes(window.location.pathname) && !currentUser) {
-    router.push('/');
+    router.push(base_path || '/');
     return null;
   }
 
