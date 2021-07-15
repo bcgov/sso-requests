@@ -7,7 +7,7 @@ import { getAuthorizationUrl, getAccessToken } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { fetchInfo } from 'services/auth';
 import Layout from 'layout/Layout';
-import 'bootstrap3/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
