@@ -53,7 +53,7 @@ export default function FormReview({ formData, setFormStage }: Props) {
         {formFields.map((formField) => {
           const displayName = getFormFieldDisplayName(formField, formData);
           return (
-            <tr>
+            <tr key={formField.title}>
               <td>{formField.title}</td>
               <td>{displayName}</td>
             </tr>
