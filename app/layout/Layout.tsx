@@ -4,7 +4,6 @@ import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
-import ResponsiveContainer from 'components/ResponsiveContainer';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
 
@@ -65,9 +64,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
       <Navigation title="" rightSide={rightSide} onBannerClick={console.log}>
         {currentUser ? <MenuForUser /> : <MenuForGuest />}
       </Navigation>
-      <MainContent>
-        <ResponsiveContainer>{children}</ResponsiveContainer>
-      </MainContent>
+      <MainContent>{children}</MainContent>
       <Footer>
         <ul>
           <li>
