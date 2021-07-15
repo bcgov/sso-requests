@@ -10,6 +10,8 @@ interface Props {
     continue: string;
     back: string;
   };
+  handleSubmit?: Function;
+  handleBackClick?: Function;
 }
 
 const PaddedButton = styled(Button)`
@@ -17,15 +19,15 @@ const PaddedButton = styled(Button)`
   min-width: 150px;
 `;
 
-export default function FormButtons({ show, loading, text }: Props) {
+export default function FormButtons({ show, loading, text, handleSubmit, handleBackClick }: Props) {
   return (
     <>
       {show && (
         <>
-          <Button variant="secondary" type="button">
+          <Button variant="secondary" type="button" onClick={handleBackClick}>
             {text.back}
           </Button>
-          <PaddedButton variant="primary">
+          <PaddedButton variant="primary" onClick={handleSubmit}>
             {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
           </PaddedButton>
         </>

@@ -1,9 +1,4 @@
-import styled from 'styled-components';
-
-const Header = styled.h1`
-  font-weight: lighter;
-  color: #003366;
-`;
+import SHeader from 'components/SHeader';
 
 interface Props {
   formStage: number;
@@ -11,7 +6,12 @@ interface Props {
 }
 
 export default function Formheader({ formStage, id }: Props) {
-  const titles = ['Enter requester information', `Req ID: ${id} - Choose providers and provide URLs`];
+  const titles = [
+    'Enter requester information',
+    `Req ID: ${id} - Choose providers and provide URLs`,
+    `Req ID: ${id} - Terms and Conditions`,
+    `Req ID: ${id} - Review and Submit`,
+  ];
 
-  return <Header>{titles[formStage - 1]}</Header>;
+  return <SHeader>{titles[formStage - 1]}</SHeader>;
 }

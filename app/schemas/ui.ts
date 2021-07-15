@@ -11,7 +11,7 @@ export default {
   projectLead: {
     'ui:widget': 'radio',
   },
-  newToSSO: {
+  newToSso: {
     'ui:widget': 'radio',
   },
   preferredEmail: {
