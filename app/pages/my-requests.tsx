@@ -8,6 +8,24 @@ import { getInstallation } from 'services/keycloak';
 import { Request } from 'interfaces/Request';
 import providerSchema from 'schemas/providers';
 import Table from 'components/Table';
+import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
+
+const mediaRules: MediaRule[] = [
+  {
+    maxWidth: 767,
+  },
+  {
+    maxWidth: 991,
+    width: 980,
+  },
+  {
+    maxWidth: 1199,
+    width: 1100,
+  },
+  {
+    width: 1400,
+  },
+];
 
 const Title = styled.div`
   font-size: 1.2em;
@@ -55,7 +73,7 @@ function RequestsPage({ currentUser }: Props) {
   if (loading) return 'loading...';
 
   return (
-    <main>
+    <ResponsiveContainer rules={mediaRules}>
       <Button variant="primary-inverse" size="small" onClick={handleNewClick}>
         + Create New...
       </Button>
@@ -98,7 +116,7 @@ function RequestsPage({ currentUser }: Props) {
           )}
         </tbody>
       </Table>
-    </main>
+    </ResponsiveContainer>
   );
 }
 
