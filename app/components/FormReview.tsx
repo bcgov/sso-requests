@@ -3,6 +3,7 @@ import { Data } from 'interfaces/form';
 import FormButtons from 'components/FormButtons';
 import { realmToIDP } from 'utils/helpers';
 import { updateRequest } from 'services/request';
+import { useRouter } from 'next/router';
 
 const formFields = [
   { index: 'projectLead', title: 'Are you the product owner or project admin/team lead?' },
@@ -36,12 +37,14 @@ const getFormFieldDisplayName = (formField: any, formData: any) => {
 
 export default function FormReview({ formData, setFormStage }: Props) {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = async (data: Data) => {
+  const handleSubmit = async () => {
     try {
       setLoading(true);
-      await updateRequest({ ...data, status: 'submitted' }, true);
+      await updateRequest({ ...formData, status: 'submitted' }, true);
       setLoading(false);
+      router.push('/my-requests');
     } catch (err) {
       console.error(err);
     }

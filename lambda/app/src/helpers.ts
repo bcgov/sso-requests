@@ -1,31 +1,25 @@
-import { FormattedData, Data, Environments } from '../../shared/interfaces';
-
-const IdentityProviders = ['github', 'idir'];
-const validEnvironments = ['dev', 'test', 'prod'];
+import { FormattedData, Data } from '../../shared/interfaces';
 
 // react-jsonschema-form is opinionated about schema shape defining data shape.
 // this function reformats returned data to an easier to handle shape
 // TODO: backend data validation
 export const formatFormData = (data: Data): FormattedData => {
-  const { identityProviders = {}, environments = {}, projectName, ...rest } = data;
-  const { devRedirectUrls = [], testRedirectUrls = [], prodRedirectUrls = [] } = environments as Environments;
+  const { devRedirectUrls = [], testRedirectUrls = [], prodRedirectUrls = [], ...rest } = data;
 
-  const formattedIdentityProviders = IdentityProviders.filter((key) => identityProviders[key]);
-  const formattedEnvironments = validEnvironments
-    .filter((key) => ['dev', 'test', 'prod'].includes(key))
-    .filter((key) => environments[key]);
+  const formattedEnvironments: string[] = [];
+  if (devRedirectUrls.length > 0) formattedEnvironments.push('dev');
+  if (testRedirectUrls.length > 0) formattedEnvironments.push('test');
+  if (prodRedirectUrls.length > 0) formattedEnvironments.push('prod');
 
   const formattedValidRedirectUris = {
-    dev: devRedirectUrls.map((data) => data.url),
-    test: testRedirectUrls.map((data) => data.url),
-    prod: prodRedirectUrls.map((data) => data.url),
+    dev: devRedirectUrls,
+    test: testRedirectUrls,
+    prod: prodRedirectUrls,
   };
 
   const newData: FormattedData = {
-    identityProviders: formattedIdentityProviders,
     environments: formattedEnvironments,
     validRedirectUrls: formattedValidRedirectUris,
-    projectName,
     ...rest,
   };
   return newData;
