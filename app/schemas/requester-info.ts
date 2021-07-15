@@ -18,7 +18,7 @@ export default {
             projectLead: { enum: [true] },
             preferredEmail: { type: 'string', title: 'Business Email Address' },
             projectName: { type: 'string', title: 'Project Name' },
-            newToSSO: { type: 'boolean', title: 'Are you new to Single Sign-On (Keycloak)?' },
+            newToSso: { type: 'boolean', title: 'Are you new to Single Sign-On (Keycloak)?' },
           },
         },
       ],

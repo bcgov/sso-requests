@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 
 const FieldContainer = styled.div`
@@ -10,6 +10,12 @@ const FieldContainer = styled.div`
 const AddContainer = styled.div`
   display: flex;
   align-items: start;
+  &:hover {
+    cursor: pointer;
+  }
+`;
+
+const RemoveContainer = styled(AddContainer)`
   padding: 10px 0 0 10px;
 `;
 
@@ -26,27 +32,29 @@ export default function ArrayFieldTemplate(props: any) {
   return (
     <div>
       <TitleField title={title}>{title}</TitleField>
-      {props.items.map((element: any, i: number) => {
-        if (i === props.items.length - 1) {
-          return (
-            <FieldContainer key={i}>
-              {element.children}
-              {props.canAdd && (
-                <AddContainer>
-                  <FontAwesomeIcon
-                    style={{ color: '#006fc4' }}
-                    icon={faPlusCircle}
-                    onClick={props.onAddClick}
-                    size="2x"
-                  />
-                  <StyledP>Add another URL</StyledP>
-                </AddContainer>
-              )}
-            </FieldContainer>
-          );
-        }
-        return <FieldContainer key={i}>{element.children}</FieldContainer>;
+      {props.items.map((element: any) => {
+        return (
+          <>
+            {element.hasRemove && (
+              <FieldContainer>
+                {element.children}
+                {element.index > 0 && (
+                  <RemoveContainer onClick={element.onDropIndexClick(element.index)}>
+                    <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} size="2x" />
+                    <StyledP>Remove URL</StyledP>
+                  </RemoveContainer>
+                )}
+              </FieldContainer>
+            )}
+          </>
+        );
       })}
+      {props.canAdd && (
+        <AddContainer onClick={props.onAddClick}>
+          <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} onClick={props.onAddClick} size="2x" />
+          <StyledP>Add another URL</StyledP>
+        </AddContainer>
+      )}
     </div>
   );
 }

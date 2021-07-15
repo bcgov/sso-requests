@@ -1,6 +1,9 @@
 //
 // Helper functions
 //
+
+import { isEqual } from 'lodash';
+
 // Convert Payload from Base64-URL to JSON
 export const decodePayload = (payload: string) => {
   if (!payload) return null;
@@ -62,4 +65,22 @@ export const hashToBase64url = (arrayBuffer: Iterable<number>) => {
 
   const base64URL = decodedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   return base64URL;
+};
+
+export const idpToRealm = (idp: string[]) => {
+  let sorted = [...idp].sort();
+  if (isEqual(['github', 'idir'], sorted)) return 'onestopauth';
+  if (isEqual(['bceid-basic', 'github', 'idir'], sorted)) return 'onestopauth-basic';
+  if (isEqual(['bceid-basic', 'bceid-business', 'github', 'idir'], sorted)) return 'onestopauth-both';
+  if (isEqual(['bceid-business', 'github', 'idir'], sorted)) return 'onestopauth-business';
+  return null;
+};
+
+export const realmToIDP = (realm: string) => {
+  let idps: string[] = [];
+  if (realm === 'onestopauth') idps = ['github', 'idir'];
+  if (realm === 'onestopauth-basic') idps = ['github', 'idir', 'bceid-basic'];
+  if (realm === 'onestopauth-business') idps = ['github', 'idir', 'bceid-business'];
+  if (realm === 'onestopauth-both') idps = ['github', 'idir', 'bceid-business', 'bceid-basic'];
+  return JSON.stringify(idps);
 };

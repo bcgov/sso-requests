@@ -1,22 +1,12 @@
-interface Urls {
-  url: string;
-}
-
 export interface Data {
-  identityProviders: {
-    github: boolean;
-    idir: boolean;
-  };
-  environments: {
-    dev: boolean;
-    test: boolean;
-    prod: boolean;
-    devRedirectUrls: Urls[];
-    testRedirectUrls: Urls[];
-    prodRedirectUrls: Urls[];
-  };
+  realm: string;
+  devRedirectUrls: string[];
+  testRedirectUrls: string[];
+  prodRedirectUrls: string[];
   projectName: string;
   preferredEmail: string;
   projectLead?: boolean;
   id?: number;
+  newToSso?: boolean;
+  status?: string;
 }

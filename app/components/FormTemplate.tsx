@@ -3,13 +3,15 @@ import FormHeader from 'components/FormHeader';
 import FormStage from 'components/FormStage';
 import Form from 'components/GovForm';
 import requesterInfoSchema from 'schemas/requester-info';
+import termsAndConditionsSchema from 'schemas/terms-and-conditions';
 import providersSchema from 'schemas/providers';
 import uiSchema from 'schemas/ui';
 import FormButtons from 'components/FormButtons';
 import { Data } from 'interfaces/form';
 import Modal from '@button-inc/bcgov-theme/Modal';
-import { createRequest } from 'services/request';
+import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'components/ArrayFieldTemplate';
+import FormReview from 'components/FormReview';
 
 const getSchema = (formStage: number) => {
   switch (formStage) {
@@ -17,6 +19,8 @@ const getSchema = (formStage: number) => {
       return requesterInfoSchema;
     case 2:
       return providersSchema;
+    case 3:
+      return termsAndConditionsSchema;
   }
 };
 
@@ -28,7 +32,7 @@ interface Props {
 
 export default function FormTemplate({ currentUser = {} }: Props) {
   const [formData, setFormData] = useState({} as Data);
-  const [formStage, setFormStage] = useState(2);
+  const [formStage, setFormStage] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: any) => {
@@ -44,12 +48,20 @@ export default function FormTemplate({ currentUser = {} }: Props) {
     }
   }, [currentUser]);
 
+  const handleBackClick = () => {
+    if (formStage > 1) setFormStage(formStage - 1);
+  };
+
   const handleSubmit = async (e: any) => {
     try {
       setLoading(true);
-      const { id } = await createRequest(e.formData);
+      if (formStage === 1) {
+        const { id } = await createRequest(e.formData);
+        setFormData({ ...formData, id });
+      } else {
+        await updateRequest(e.formData);
+      }
       setFormStage(formStage + 1);
-      setFormData({ ...formData, id });
     } catch (err) {
       console.error(err);
     }
@@ -60,21 +72,26 @@ export default function FormTemplate({ currentUser = {} }: Props) {
     <>
       <FormHeader formStage={formStage} id={formData.id} />
       <FormStage currentStage={formStage} />
-      <Form
-        schema={getSchema(formStage)}
-        uiSchema={uiSchema}
-        onSubmit={handleSubmit}
-        onChange={handleChange}
-        formData={formData}
-        ArrayFieldTemplate={ArrayFieldTemplate}
-        ErrorList={() => null}
-      >
-        <FormButtons
-          text={{ continue: formStage === 1 ? 'Create File' : 'Next', back: 'Cancel' }}
-          show={formStage !== 1 || formData.projectLead}
-          loading={loading}
-        />
-      </Form>
+      {[1, 2, 3].includes(formStage) ? (
+        <Form
+          schema={getSchema(formStage)}
+          uiSchema={uiSchema}
+          onSubmit={handleSubmit}
+          onChange={handleChange}
+          formData={formData}
+          ArrayFieldTemplate={ArrayFieldTemplate}
+          ErrorList={() => null}
+        >
+          <FormButtons
+            text={{ continue: formStage === 1 ? 'Create File' : 'Next', back: 'Cancel' }}
+            show={formStage !== 1 || formData.projectLead}
+            loading={loading}
+            handleBackClick={handleBackClick}
+          />
+        </Form>
+      ) : (
+        <FormReview formData={formData} setFormStage={setFormStage} />
+      )}
       {formStage === 1 && (
         <Modal id="modal">
           <Modal.Header>

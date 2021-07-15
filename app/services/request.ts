@@ -24,3 +24,15 @@ export const getRequests = async () => {
     return null;
   }
 };
+
+export const updateRequest = async (data: Data, submit = false) => {
+  const config = getAuthConfig();
+  try {
+    const url = submit ? `requests?submit=true` : 'requests';
+    const results = await instance.put(url, data, config).then((res) => res.data);
+    return results;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};

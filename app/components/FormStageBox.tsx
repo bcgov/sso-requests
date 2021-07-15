@@ -21,7 +21,7 @@ const Box = styled.div<BoxProps>`
   border-radius: 5px;
   padding: 20px;
 
-  border: ${(props: BoxProps) => (props.active ? 'none' : '1px solid #b2d4ed')};
+  border: 1px solid #006fc4;
   opacity: ${(props: BoxProps) => (props.active ? '1' : '0.5')};
   color: ${(props: BoxProps) => !props.active && '#003366'};
 `;
