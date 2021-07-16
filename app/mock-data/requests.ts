@@ -6,7 +6,9 @@ const requests: Request[] = [
     idirUserid: 'ABCDEFG',
     projectName: 'My First Project',
     realm: 'test-client',
-    validRedirectUrls: ['http://localhost:3000'],
+    validRedirectUrls: {
+      dev: ['http://localhost:3000'],
+    },
     prNumber: 12345,
     environments: ['dev'],
     prSuccess: false,

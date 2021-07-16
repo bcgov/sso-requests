@@ -5,9 +5,9 @@ export interface Request {
   realm: string;
   identityProviders?: string[];
   validRedirectUrls: {
-    dev: string[];
-    test: string[];
-    prod: string[];
+    dev?: string[];
+    test?: string[];
+    prod?: string[];
   };
   prNumber: number;
   environments: string[];
