@@ -1,4 +1,4 @@
-import fieldTemplate from 'components/CustomFieldTemplate';
+import fieldTemplate from 'form-components/CustomFieldTemplate';
 export default {
   identityProviders: {
     'ui:widget': 'checkboxes',

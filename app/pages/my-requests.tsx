@@ -12,7 +12,7 @@ import Table from 'components/Table';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
-import Tabs from 'components/Tabs';
+import RequestInfoTabs from 'components/RequestInfoTabs';
 
 const mediaRules: MediaRule[] = [
   {
@@ -155,7 +155,7 @@ function RequestsPage({ currentUser }: Props) {
                 </tbody>
               </Table>
             </Grid.Col>
-            <Grid.Col>{requestId && <Tabs />}</Grid.Col>
+            <Grid.Col>{requestId && <RequestInfoTabs />}</Grid.Col>
           </Grid.Row>
         </RequestsContext.Provider>
       </Grid>

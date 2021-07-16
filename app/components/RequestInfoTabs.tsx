@@ -13,7 +13,7 @@ const environments = [
   { title: 'Prod Configuration', env: 'prod' },
 ];
 
-function MyTabs() {
+function RequestInfoTabs() {
   const { state, dispatch } = useContext(RequestsContext);
   const { requestId } = state;
   const { editingRequest } = state as RequestReducerState;
@@ -38,4 +38,4 @@ function MyTabs() {
   );
 }
 
-export default MyTabs;
+export default RequestInfoTabs;

@@ -1,15 +1,15 @@
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
-import Form from 'components/GovForm';
+import Form from 'form-components/GovForm';
 import getSchema from 'schemas/urls';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import { RequestsContext } from 'pages/my-requests';
 import { useContext, useEffect, useState } from 'react';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { getRequestUrls, getPropertyName } from 'utils/helpers';
-import ArrayFieldTemplate from 'components/SmallArrayFieldTemplate';
+import ArrayFieldTemplate from 'form-components/SmallArrayFieldTemplate';
 import { updateRequest } from 'services/request';
-import FormButtons from 'components/FormButtons';
+import FormButtons from 'form-components/FormButtons';
 
 const StyledList = styled.ul`
   list-style-type: none;

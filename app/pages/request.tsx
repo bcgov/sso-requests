@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import FormTemplate from 'components/FormTemplate';
+import FormTemplate from 'form-components/FormTemplate';
 import Container from 'components/Container';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 
