@@ -19,3 +19,13 @@ a {
 fieldset {
   border: none !important;
 }
+
+/* RJSF overrides */
+
+.radio > label > span > input {
+  margin: 10px 5px 0 0;
+}
+
+.form-group.field {
+  margin-top: 10px;
+}

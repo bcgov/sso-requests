@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import FormHeader from 'components/FormHeader';
-import FormStage from 'components/FormStage';
-import Form from 'components/GovForm';
+import FormHeader from 'form-components/FormHeader';
+import FormStage from 'form-components/FormStage';
+import Form from 'form-components/GovForm';
 import requesterInfoSchema from 'schemas/requester-info';
 import termsAndConditionsSchema from 'schemas/terms-and-conditions';
 import providersSchema from 'schemas/providers';
 import uiSchema from 'schemas/ui';
-import FormButtons from 'components/FormButtons';
+import FormButtons from 'form-components/FormButtons';
 import { Data } from 'interfaces/form';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import { createRequest, updateRequest } from 'services/request';
-import ArrayFieldTemplate from 'components/ArrayFieldTemplate';
-import FormReview from 'components/FormReview';
+import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
+import FormReview from 'form-components/FormReview';
 
 const getSchema = (formStage: number) => {
   switch (formStage) {

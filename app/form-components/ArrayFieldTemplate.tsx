@@ -13,6 +13,7 @@ const AddContainer = styled.div`
   &:hover {
     cursor: pointer;
   }
+  margin-top: 10px;
 `;
 
 const RemoveContainer = styled(AddContainer)`
@@ -21,6 +22,7 @@ const RemoveContainer = styled(AddContainer)`
 
 const StyledP = styled.p`
   margin: 0;
+  margin-top: 5px;
   font-size: 16px;
   font-weight: lighter;
   padding-left: 10px;

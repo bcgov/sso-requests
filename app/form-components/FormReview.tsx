@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Data } from 'interfaces/form';
-import FormButtons from 'components/FormButtons';
+import FormButtons from 'form-components/FormButtons';
 import { realmToIDP } from 'utils/helpers';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';

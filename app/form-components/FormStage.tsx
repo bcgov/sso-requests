@@ -1,4 +1,4 @@
-import FormStageBox from 'components/FormStageBox';
+import FormStageBox from 'form-components/FormStageBox';
 import styled from 'styled-components';
 
 interface Props {

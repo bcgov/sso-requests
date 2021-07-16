@@ -3,6 +3,7 @@
 //
 
 import { isEqual } from 'lodash';
+import { Request } from 'interfaces/Request';
 
 // Convert Payload from Base64-URL to JSON
 export const decodePayload = (payload: string) => {
@@ -83,4 +84,25 @@ export const realmToIDP = (realm: string) => {
   if (realm === 'onestopauth-business') idps = ['github', 'idir', 'bceid-business'];
   if (realm === 'onestopauth-both') idps = ['github', 'idir', 'bceid-business', 'bceid-basic'];
   return JSON.stringify(idps);
+};
+
+export const getRequestUrls = (
+  requestId: number | undefined,
+  requests: Request[] | undefined,
+  env: string | undefined
+) => {
+  const request = requests && requests.find((request) => request.id === requestId);
+  if (request && request.validRedirectUrls) {
+    // @ts-ignore
+    return request.validRedirectUrls[env];
+  } else {
+    return [];
+  }
+};
+
+export const getPropertyName = (env: string | undefined) => {
+  if (env === 'dev') return 'devRedirectUrls';
+  if (env === 'test') return 'testRedirectUrls';
+  if (env === 'prod') return 'prodRedirectUrls';
+  return '';
 };

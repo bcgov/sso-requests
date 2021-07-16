@@ -4,7 +4,11 @@ export interface Request {
   projectName: string;
   realm: string;
   identityProviders?: string[];
-  validRedirectUrls: string[];
+  validRedirectUrls: {
+    dev?: string[];
+    test?: string[];
+    prod?: string[];
+  };
   prNumber: number;
   environments: string[];
   prSuccess: boolean;
@@ -15,4 +19,5 @@ export interface Request {
   applyRuntime: string;
   createdAt: string;
   updatedAt: string;
+  status?: string;
 }
