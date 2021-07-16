@@ -1,8 +1,7 @@
 import Form from '@rjsf/core';
-import RadioButton from '@button-inc/bcgov-theme/RadioButton';
 import Input from '@button-inc/bcgov-theme/Input';
 import wrapper from 'utils/widgetWrapper';
-import CustomFieldTemplate from './CustomFieldTemplate';
+import React from 'react';
 
 const customWidgets = { TextWidget: wrapper(Input, 'input') };
 // const customWidgets = { RadioWidget: wrapper(RadioButton, 'radio'), TextWidget: wrapper(Input, 'input') };

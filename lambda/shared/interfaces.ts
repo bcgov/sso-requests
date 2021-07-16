@@ -12,6 +12,7 @@ export interface Data {
   testRedirectUrls?: string[];
   prodRedirectUrls?: string[];
   agreeWithTC?: boolean;
+  id?: number;
 }
 
 export interface FormattedData {
