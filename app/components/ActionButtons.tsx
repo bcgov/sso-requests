@@ -1,10 +1,11 @@
+import { useContext, MouseEvent } from 'react';
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
-import { useContext } from 'react';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { MouseEvent } from 'react';
+import { Request } from 'interfaces/Request';
 
 const Container = styled.div`
   height: 100%;
@@ -27,26 +28,35 @@ const EditButton = styled(FontAwesomeIcon)`
 `;
 
 interface Props {
-  currentId: number;
+  request: Request;
 }
 
-export default function Actionbuttons({ currentId }: Props) {
+export default function Actionbuttons({ request }: Props) {
   const { state, dispatch } = useContext(RequestsContext);
-  const { editingRequest, requestId } = state as RequestReducerState;
+  const router = useRouter();
+
+  const { editingRequest, selectedRequest } = state as RequestReducerState;
 
   const handleEdit = (event: MouseEvent) => {
-    if (currentId === requestId) {
-      event.stopPropagation();
+    event.stopPropagation();
+
+    if (request.status === 'draft') {
+      router.push(`/request/${request.id}`);
+      return;
+    }
+
+    if (selectedRequest?.id === request.id) {
       dispatch({ type: 'setEditingRequest', payload: !editingRequest });
     } else {
       dispatch({ type: 'setEditingRequest', payload: true });
+      dispatch({ type: 'setRequest', payload: request });
     }
   };
 
   return (
     <Container>
       {/* TODO: Decide on delete functionality */}
-      <DeleteButton icon={faTrash} size="2x" role="button" aria-label="delete" />
+      {/* <DeleteButton icon={faTrash} size="2x" role="button" aria-label="delete" /> */}
       <EditButton icon={faEdit} size="2x" role="button" aria-label="edit" onClick={handleEdit} />
     </Container>
   );

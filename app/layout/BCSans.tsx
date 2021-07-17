@@ -3,6 +3,6 @@ import typography from '@button-inc/bcgov-theme/typography';
 import '@bcgov/bc-sans/css/BCSans.css';
 
 export default function BCSans() {
-  typography.options.baseFontSize = '14px';
+  typography.options.baseFontSize = '16px';
   return <TypographyStyle typography={typography} />;
 }

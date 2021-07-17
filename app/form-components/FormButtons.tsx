@@ -24,10 +24,10 @@ export default function FormButtons({ show, loading, text, handleSubmit, handleB
     <>
       {show && (
         <>
-          <Button variant="secondary" type="button" onClick={handleBackClick}>
+          <Button variant="secondary" size="small" type="button" onClick={handleBackClick}>
             {text.back}
           </Button>
-          <PaddedButton variant="primary" onClick={handleSubmit}>
+          <PaddedButton variant="primary" size="small" onClick={handleSubmit}>
             {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
           </PaddedButton>
         </>

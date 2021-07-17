@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { authenticate } from './authenticate';
-import { createRequest, getRequests, updateRequest } from './routes/requests';
+import { createRequest, getRequests, getRequest, updateRequest } from './routes/requests';
 import { getClient } from './routes/client';
 import { getInstallation } from './routes/installation';
 
@@ -32,6 +32,8 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
 
   let response = {};
 
+  console.log('REQUEST PATH', path);
+
   if (path === `${BASE_PATH}/requests`) {
     if (httpMethod === 'POST') {
       response = await createRequest(session, JSON.parse(body));
@@ -41,6 +43,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     }
     if (httpMethod === 'PUT') {
       response = await updateRequest(session, JSON.parse(body), submit);
+    }
+  } else if (path === `${BASE_PATH}/request`) {
+    if (httpMethod === 'POST') {
+      response = await getRequest(session, JSON.parse(body));
     }
   } else if (path === `${BASE_PATH}/installation`) {
     if (httpMethod === 'POST') {

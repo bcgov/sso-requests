@@ -56,6 +56,24 @@ export const updateRequest = async (session: Session, data: Data, submit: string
   }
 };
 
+export const getRequest = async (session: Session, data: { requestId: number }) => {
+  try {
+    const request = await models.request.findOne({
+      where: {
+        idirUserid: session.idir_userid,
+        id: data.requestId,
+      },
+    });
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(request),
+    };
+  } catch (err) {
+    handleError(err);
+  }
+};
+
 export const getRequests = async (session: Session) => {
   try {
     const requests = await models.request.findAll({
