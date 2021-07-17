@@ -10,6 +10,7 @@ import { getRequestUrls, getPropertyName } from 'utils/helpers';
 import ArrayFieldTemplate from 'form-components/SmallArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
+import { Request } from 'interfaces/Request';
 
 const StyledList = styled.ul`
   list-style-type: none;
@@ -34,10 +35,17 @@ const JsonContainer = styled.div`
 
 const Panel = () => {
   const { state, dispatch } = useContext(RequestsContext);
-  const { editingRequest, requests, selectedRequest, loadingInstallation, installation, env, updatingUrls } =
-    state as RequestReducerState;
+  const {
+    editingRequest,
+    requests,
+    selectedRequest: sRequest,
+    loadingInstallation,
+    installation,
+    env,
+    updatingUrls,
+  } = state as RequestReducerState;
 
-  if (!selectedRequest) return;
+  const selectedRequest = (sRequest || {}) as Request;
 
   const redirectUrls = getRequestUrls(selectedRequest, env);
 
@@ -70,6 +78,8 @@ const Panel = () => {
     const validRedirectUrls = getRequestUrls(selectedRequest, env);
     setSchema(getSchema(env, validRedirectUrls));
   }, [env, requests, selectedRequest, updatingUrls]);
+
+  if (!selectedRequest) return null;
 
   return (
     <>
