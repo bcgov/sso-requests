@@ -100,7 +100,7 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
               <span>No Urls</span>
             )}
 
-            {selectedRequest.status === 'completed' && (
+            {selectedRequest.id && selectedRequest.status === 'completed' && (
               <InstallationModal
                 requestId={selectedRequest.id}
                 panelEnv={panelEnv}
