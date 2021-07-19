@@ -9,9 +9,7 @@ export const createRequest = async (data: ClientRequest) => {
   const preparedData = prepareRequest(data);
 
   try {
-    const result = await instance
-      .post('requests', { publicAccess: false, ...preparedData }, config)
-      .then((res) => res.data);
+    const result = await instance.post('requests', { ...preparedData }, config).then((res) => res.data);
     return processRequest(result);
   } catch (err) {
     console.error(err);

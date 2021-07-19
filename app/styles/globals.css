@@ -26,6 +26,11 @@ fieldset {
   margin: 10px 5px 0 0;
 }
 
+.checkbox > label > span {
+  margin-left: 5px;
+  font-weight: bold;
+}
+
 .form-group.field {
   margin-top: 10px;
 }
