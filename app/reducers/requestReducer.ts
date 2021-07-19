@@ -5,7 +5,6 @@ export interface RequestReducerState {
   requests?: ClientRequest[];
   selectedRequest?: ClientRequest;
   loadingInstallation?: boolean;
-  env?: Environment;
   installation?: object;
   editingRequest?: boolean;
   updatingUrls?: boolean;

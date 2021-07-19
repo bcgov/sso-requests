@@ -5,7 +5,6 @@ import RequestInfoPanel from 'components/RequestInfoPanel';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import type { Environment } from 'interfaces/Environment';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 const environments: { title: string; name: Environment }[] = [
   { title: 'Dev Configuration', name: 'dev' },
