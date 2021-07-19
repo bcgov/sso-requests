@@ -15,13 +15,13 @@ const environments = [
 
 function RequestInfoTabs() {
   const { state, dispatch } = useContext(RequestsContext);
-  const { requestId } = state;
-  const { editingRequest } = state as RequestReducerState;
+  const { selectedRequest, requests } = state as RequestReducerState;
+  if (!selectedRequest) return null;
 
   const handleSelection = async (env: string) => {
     dispatch({ type: 'setEnvironment', payload: env });
     dispatch({ type: 'loadInstallation' });
-    const installation = await getInstallation(requestId);
+    const installation = await getInstallation(selectedRequest.id);
     dispatch({ type: 'setInstallation', payload: installation });
   };
 

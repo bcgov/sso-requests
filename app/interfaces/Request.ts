@@ -19,5 +19,5 @@ export interface Request {
   applyRuntime: string;
   createdAt: string;
   updatedAt: string;
-  status?: string;
+  status?: 'draft' | 'pending' | 'submitted' | 'approved' | 'completed';
 }

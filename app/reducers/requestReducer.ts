@@ -2,17 +2,17 @@ import { Request } from 'interfaces/Request';
 
 export interface RequestReducerState {
   requests?: Request[];
+  selectedRequest?: Request;
   loadingInstallation?: boolean;
   env?: 'dev' | 'test' | 'prod';
   installation?: object;
-  requestId?: number;
   editingRequest?: boolean;
   updatingUrls?: boolean;
 }
 
 type ActionTypes =
   | 'setRequests'
-  | 'setRequestId'
+  | 'setRequest'
   | 'loadInstallation'
   | 'setInstallation'
   | 'setEditingRequest'
@@ -28,8 +28,9 @@ const reducer = (state: RequestReducerState, action: Action) => {
   if (action.type === 'setRequests') {
     return { ...state, requests: action.payload };
   }
-  if (action.type === 'setRequestId') {
-    return { ...state, requestId: action.payload };
+  if (action.type === 'setRequest') {
+    console.log(action.payload);
+    return { ...state, selectedRequest: action.payload };
   }
   if (action.type === 'loadInstallation') {
     return { ...state, loadingInstallation: true, installation: null };
