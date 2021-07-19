@@ -17,6 +17,12 @@ export default {
           properties: {
             projectLead: { enum: [true] },
             preferredEmail: { type: 'string', title: 'Business Email Address' },
+            publicAccess: {
+              type: 'string',
+              title: 'Choose client type',
+              enum: ['true', 'false'],
+              enumNames: ['Public', 'Confidential'],
+            },
             projectName: { type: 'string', title: 'Project Name' },
             newToSso: { type: 'boolean', title: 'Are you new to Single Sign-On (Keycloak)?' },
           },

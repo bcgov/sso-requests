@@ -17,6 +17,9 @@ export default {
   preferredEmail: {
     'ui:FieldTemplate': fieldTemplate,
   },
+  publicAccess: {
+    'ui:widget': 'radio',
+  },
   projectName: {
     'ui:FieldTemplate': fieldTemplate,
   },
