@@ -58,7 +58,7 @@ const Panel = () => {
   };
 
   const handleSubmit = async (e: any, schema: any) => {
-    const { validRedirectUrls } = selectedRequest;
+    const { validRedirectUrls = {} } = selectedRequest;
     const { dev: devRedirectUrls, test: testRedirectUrls, prod: prodRedirectUrls } = validRedirectUrls;
     dispatch({ type: 'setUpdatingUrls', payload: true });
     dispatch({ type: 'updateRequest', payload: { id: selectedRequest.id, urls: e.formData[getPropertyName(env)] } });
