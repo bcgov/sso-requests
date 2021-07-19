@@ -7,7 +7,7 @@ import { processRequest, prepareRequest } from 'utils/helpers';
 export const createRequest = async (data: ClientRequest) => {
   const config = getAuthConfig();
   const preparedData = prepareRequest(data);
-  console.log(preparedData);
+
   try {
     const result = await instance
       .post('requests', { publicAccess: false, ...preparedData }, config)

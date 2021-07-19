@@ -8,8 +8,6 @@ import Link from '@button-inc/bcgov-theme/Link';
 import Button from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import { IndexPageProps } from 'interfaces/props';
-import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 const mediaRules: MediaRule[] = [
   {

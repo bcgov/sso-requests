@@ -24,18 +24,9 @@ const StyledList = styled.ul`
 
 const Container = styled.div`
   padding: 10px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
 `;
 
-const JsonContainer = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const RequestInfoPanel = ({ environment }: { environment: Environment }) => {
+const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; environment: Environment }) => {
   const { state, dispatch } = useContext(RequestsContext);
   const { editingRequest, requests, selectedRequest: sRequest, updatingUrls } = state as RequestReducerState;
 
@@ -99,11 +90,24 @@ const RequestInfoPanel = ({ environment }: { environment: Environment }) => {
         ) : (
           <div>
             <p>Urls</p>
-            <StyledList>{redirectUris && redirectUris.map((url: any) => <li key={url}>{url}</li>)}</StyledList>
+            {redirectUris?.length > 0 ? (
+              <StyledList>
+                {redirectUris.map((url: any) => (
+                  <li key={url}>{url}</li>
+                ))}
+              </StyledList>
+            ) : (
+              <span>No Urls</span>
+            )}
+
+            {selectedRequest.status === 'completed' && (
+              <InstallationModal
+                requestId={selectedRequest.id}
+                panelEnv={panelEnv}
+                environment={environment}
+              ></InstallationModal>
+            )}
           </div>
-        )}
-        {!editingRequest && selectedRequest.status === 'completed' && (
-          <InstallationModal requestId={selectedRequest.id} environment={environment}></InstallationModal>
         )}
       </Container>
     </>
