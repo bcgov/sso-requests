@@ -7,8 +7,7 @@ import termsAndConditionsSchema from 'schemas/terms-and-conditions';
 import providersSchema from 'schemas/providers';
 import uiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
-import { Data } from 'interfaces/form';
-import { Request } from 'interfaces/Request';
+import { ClientRequest } from 'interfaces/Request';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
@@ -33,7 +32,7 @@ interface Props {
 }
 
 export default function FormTemplate({ currentUser = {}, request }: Props) {
-  const [formData, setFormData] = useState((request || {}) as Data);
+  const [formData, setFormData] = useState((request || {}) as ClientRequest);
   const [formStage, setFormStage] = useState(request ? 2 : 1);
   const [loading, setLoading] = useState(false);
 
@@ -58,7 +57,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
     try {
       setLoading(true);
       if (formStage === 1) {
-        const { id } = await createRequest(e.formData);
+        const { id } = (await createRequest(e.formData)) || {};
         setFormData({ ...formData, id });
       } else {
         await updateRequest(e.formData);

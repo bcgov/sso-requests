@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { Request } from 'interfaces/Request';
+import { ClientRequest } from 'interfaces/Request';
 
 const Container = styled.div`
   height: 100%;
@@ -28,7 +28,7 @@ const EditButton = styled(FontAwesomeIcon)`
 `;
 
 interface Props {
-  request: Request;
+  request: ClientRequest;
 }
 
 export default function Actionbuttons({ request }: Props) {

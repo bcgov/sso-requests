@@ -1,23 +1,35 @@
-export interface Request {
-  id: number;
-  idirUserid: string;
-  projectName: string;
-  realm: string;
-  identityProviders?: string[];
-  validRedirectUris: {
+export interface ServerRequest {
+  agreeWithTerms?: boolean;
+  id?: number;
+  idirUserid?: string;
+  projectName?: string;
+  realm?: string;
+  validRedirectUris?: {
     dev?: string[];
     test?: string[];
     prod?: string[];
   };
-  prNumber: number;
-  environments: string[];
-  prSuccess: boolean;
-  planSuccess: boolean;
-  applySuccess: boolean;
-  prCreatedAt: string;
-  planRuntime: string;
-  applyRuntime: string;
-  createdAt: string;
-  updatedAt: string;
+  prNumber?: number;
+  environments?: string[];
+  newToSso?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   status?: 'draft' | 'pending' | 'submitted' | 'approved' | 'completed';
+}
+
+export interface ClientRequest {
+  realm?: string;
+  devRedirectUrls?: string[];
+  testRedirectUrls?: string[];
+  prodRedirectUrls?: string[];
+  projectName?: string;
+  preferredEmail?: string;
+  projectLead?: boolean;
+  id?: number;
+  newToSso?: boolean;
+  status?: 'draft' | 'pending' | 'submitted' | 'approved' | 'completed';
+  agreeWithTerms?: boolean;
+  prNumber?: number;
+  environments?: string[];
+  createdAt?: string;
 }

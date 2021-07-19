@@ -1,11 +1,10 @@
-import { Request } from 'interfaces/Request';
+import { ClientRequest } from 'interfaces/Request';
 import type { Environment } from 'interfaces/Environment';
 
 export interface RequestReducerState {
-  requests?: Request[];
-  selectedRequest?: Request;
+  requests?: ClientRequest[];
+  selectedRequest?: ClientRequest;
   loadingInstallation?: boolean;
-  env?: Environment;
   installation?: object;
   editingRequest?: boolean;
   updatingUrls?: boolean;
@@ -29,17 +28,14 @@ const reducer = (state: RequestReducerState, action: Action) => {
     case 'setUpdatingUrls':
       return { ...state, updatingUrls: action.payload };
     case 'updateRequest':
-      const { id, urls } = action.payload;
-      const { env, requests } = state;
-      const request = state.requests?.find((request) => request.id === id);
-      let newRequest = request ? { ...request } : ({} as Request);
-      if (!newRequest.validRedirectUris) newRequest.validRedirectUris = { dev: [], test: [], prod: [] };
-      // @ts-ignore
-      newRequest.validRedirectUris[env] = urls;
-      if (env && !newRequest.environments.includes(env)) newRequest.environments.push(env);
-      const newRequests = requests?.map((request) => (request.id === id ? newRequest : request));
-
-      return { ...state, requests: newRequests };
+      const { id, ...rest } = action.payload;
+      const { requests, selectedRequest: request } = state;
+      let newRequest = { ...request, ...rest };
+      const newRequests = requests?.map((request) => {
+        if (request.id === id) return newRequest;
+        return request;
+      });
+      return { ...state, requests: newRequests, selectedRequest: newRequest };
     default:
       return state;
   }

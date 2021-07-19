@@ -1,21 +1,17 @@
 import { instance } from './axios';
-import { Data } from 'interfaces/form';
 import { getAuthConfig } from './auth';
-import { Request } from 'interfaces/Request';
+import { ServerRequest, ClientRequest } from 'interfaces/Request';
 import requestsMockup from 'mock-data/requests';
+import { processRequest, prepareRequest } from 'utils/helpers';
 
-const processRequest = (v: any) => {
-  return v;
-};
-
-const prepareRequest = (v: any) => {
-  return v;
-};
-
-export const createRequest = async (data: Data) => {
+export const createRequest = async (data: ClientRequest) => {
   const config = getAuthConfig();
+  const preparedData = prepareRequest(data);
+  console.log(preparedData);
   try {
-    const result = await instance.post('requests', { publicAccess: false, ...data }, config).then((res) => res.data);
+    const result = await instance
+      .post('requests', { publicAccess: false, ...preparedData }, config)
+      .then((res) => res.data);
     return processRequest(result);
   } catch (err) {
     console.error(err);
@@ -23,10 +19,10 @@ export const createRequest = async (data: Data) => {
   }
 };
 
-export const getRequest = async (requestId: number): Promise<Request | null> => {
+export const getRequest = async (requestId: number): Promise<ClientRequest | null> => {
   const config = getAuthConfig();
   try {
-    const result = await instance.post('request', { requestId }, config).then((res) => res.data);
+    const result: ServerRequest = await instance.post('request', { requestId }, config).then((res) => res.data);
     return processRequest(result);
   } catch (err) {
     console.error(err);
@@ -37,7 +33,7 @@ export const getRequest = async (requestId: number): Promise<Request | null> => 
 export const getRequests = async () => {
   const config = getAuthConfig();
   try {
-    const results = await instance.get('requests', config).then((res) => res.data);
+    const results: ServerRequest[] = await instance.get('requests', config).then((res) => res.data);
     return results.map(processRequest);
   } catch (err) {
     console.error(err);
@@ -45,13 +41,14 @@ export const getRequests = async () => {
   }
 };
 
-export const updateRequest = async (data: Data, submit = false) => {
-  data = prepareRequest(data);
+export const updateRequest = async (data: ClientRequest, previousData?: ClientRequest, submit = false) => {
+  const preparedData = prepareRequest(data, previousData);
+  console.log('processed data is', data);
   const config = getAuthConfig();
 
   try {
     const url = submit ? `requests?submit=true` : 'requests';
-    const result = await instance.put(url, data, config).then((res) => res.data);
+    const result = await instance.put(url, preparedData, config).then((res) => res.data);
     return processRequest(result);
   } catch (err) {
     console.error(err);

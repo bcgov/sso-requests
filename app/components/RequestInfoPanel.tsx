@@ -6,12 +6,12 @@ import Form from 'form-components/GovForm';
 import getSchema from 'schemas/urls';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { getRequestUrls, getPropertyName } from 'utils/helpers';
+import { getPropertyName } from 'utils/helpers';
 import ArrayFieldTemplate from 'form-components/SmallArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
 import InstallationModal from './InstallationModal';
-import { Request } from 'interfaces/Request';
+import { ClientRequest } from 'interfaces/Request';
 import type { Environment } from 'interfaces/Environment';
 
 const StyledList = styled.ul`
@@ -39,12 +39,10 @@ const RequestInfoPanel = ({ environment }: { environment: Environment }) => {
   const { state, dispatch } = useContext(RequestsContext);
   const { editingRequest, requests, selectedRequest: sRequest, updatingUrls } = state as RequestReducerState;
 
-  const selectedRequest = (sRequest || {}) as Request;
+  const selectedRequest = (sRequest || {}) as ClientRequest;
 
-  const redirectUris = getRequestUrls(selectedRequest, environment);
-
-  console.log(selectedRequest, redirectUris);
-
+  // @ts-ignore
+  const redirectUris = selectedRequest[getPropertyName(environment)];
   const [schema, setSchema] = useState({});
 
   const handleCancel = () => {
@@ -52,28 +50,28 @@ const RequestInfoPanel = ({ environment }: { environment: Environment }) => {
   };
 
   const handleSubmit = async (e: any, schema: any) => {
-    const { validRedirectUris } = selectedRequest;
-    const { dev: devRedirectUrls, test: testRedirectUrls, prod: prodRedirectUrls } = validRedirectUris;
     dispatch({ type: 'setUpdatingUrls', payload: true });
     dispatch({
       type: 'updateRequest',
-      payload: { id: selectedRequest.id, urls: e.formData[getPropertyName(environment)] },
+      payload: { ...e.formData, id: selectedRequest.id },
     });
 
-    const result = await updateRequest({
-      testRedirectUrls,
-      devRedirectUrls,
-      prodRedirectUrls,
-      ...e.formData,
-      id: selectedRequest.id,
-    });
+    const result = await updateRequest(
+      {
+        ...e.formData,
+        id: selectedRequest.id,
+      },
+      selectedRequest
+    );
     dispatch({ type: 'setUpdatingUrls', payload: false });
     dispatch({ type: 'setEditingRequest', payload: false });
   };
 
   // TODO: slight ui glitch where panel re-renders with old schema before useEffect runs on submission
   useEffect(() => {
-    const validRedirectUris = getRequestUrls(selectedRequest, environment);
+    // @ts-ignore
+    const validRedirectUris = selectedRequest[getPropertyName(environment)];
+    const schema = getSchema(environment, validRedirectUris);
     setSchema(getSchema(environment, validRedirectUris));
   }, [environment, requests, selectedRequest, updatingUrls]);
 

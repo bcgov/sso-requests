@@ -35,10 +35,10 @@ export const createRequest = async (session: Session, data: Data) => {
 };
 
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
-  const formattedFormData = formatFormData(data);
   try {
-    const { id, ...rest } = formattedFormData;
-    const allowedFields = omit(rest, ['idirUserid', 'projectName', 'clientName', 'status']);
+    const { id, ...rest } = data;
+    // TODO: check all required fields exists if updating status
+    const allowedFields = omit(rest, ['idirUserid', 'projectName', 'clientName']);
 
     const result = await models.request.update(allowedFields, {
       where: { id },
