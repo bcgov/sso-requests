@@ -88,17 +88,7 @@ function RequestsPage({ currentUser }: Props) {
   const handleSelection = async (request: Request) => {
     if (selectedRequest?.id === request.id) return;
 
-    try {
-      dispatch({ type: 'setRequest', payload: request });
-      dispatch({ type: 'setEnvironment', payload: env || 'dev' });
-
-      if (request.status === 'completed') {
-        const installation = await getInstallation(selectedRequest.id);
-        dispatch({ type: 'setInstallation', payload: installation });
-      }
-    } catch (err) {
-      dispatch({ type: 'setInstallation', payload: {} });
-    }
+    dispatch({ type: 'setRequest', payload: request });
   };
 
   const handleNewClick = async () => {

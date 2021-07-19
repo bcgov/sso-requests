@@ -14,7 +14,7 @@ const expectedFirstPageData = {
   projectLead: true,
   preferredEmail: 'jon@test.com',
   newToSso: true,
-  validRedirectUrls: {
+  validRedirectUris: {
     dev: [],
     test: [],
     prod: [],
@@ -25,7 +25,7 @@ const expectedFullData = {
   ...expectedFirstPageData,
   environments: ['dev', 'test', 'prod'],
   realm: 'onestopauth',
-  validRedirectUrls: {
+  validRedirectUris: {
     dev: [url],
     test: [url],
     prod: [url],

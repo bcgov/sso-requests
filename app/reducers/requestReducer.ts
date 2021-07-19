@@ -1,23 +1,17 @@
-import { Request } from 'interfaces/Request';
+import { ClientRequest } from 'interfaces/Request';
+import type { Environment } from 'interfaces/Environment';
 
 export interface RequestReducerState {
-  requests?: Request[];
-  selectedRequest?: Request;
+  requests?: ClientRequest[];
+  selectedRequest?: ClientRequest;
   loadingInstallation?: boolean;
-  env?: 'dev' | 'test' | 'prod';
+  env?: Environment;
   installation?: object;
   editingRequest?: boolean;
   updatingUrls?: boolean;
 }
 
-type ActionTypes =
-  | 'setRequests'
-  | 'setRequest'
-  | 'loadInstallation'
-  | 'setInstallation'
-  | 'setEditingRequest'
-  | 'setEnvironment'
-  | 'setUpdatingUrls';
+type ActionTypes = 'setRequests' | 'setRequest' | 'setEditingRequest' | 'setUpdatingUrls' | 'updateRequest';
 
 interface Action {
   type: ActionTypes;
@@ -25,53 +19,28 @@ interface Action {
 }
 
 const reducer = (state: RequestReducerState, action: Action) => {
-  if (action.type === 'setRequests') {
-    return { ...state, requests: action.payload };
+  switch (action.type) {
+    case 'setRequests':
+      return { ...state, requests: action.payload };
+    case 'setRequest':
+      return { ...state, selectedRequest: action.payload };
+    case 'setEditingRequest':
+      return { ...state, editingRequest: action.payload };
+    case 'setUpdatingUrls':
+      return { ...state, updatingUrls: action.payload };
+    case 'updateRequest':
+      const { id, ...rest } = action.payload;
+      const { env, requests, selectedRequest: request } = state;
+      console.log(rest, 'is rest');
+      let newRequest = { ...request, ...rest };
+      const newRequests = requests?.map((request) => {
+        if (request.id === id) return newRequest;
+        return request;
+      });
+      return { ...state, requests: newRequests, selectedRequest: newRequest };
+    default:
+      return state;
   }
-  if (action.type === 'setRequest') {
-    console.log(action.payload);
-    return { ...state, selectedRequest: action.payload };
-  }
-  if (action.type === 'loadInstallation') {
-    return { ...state, loadingInstallation: true, installation: null };
-  }
-  if (action.type === 'setInstallation') {
-    return { ...state, loadingInstallation: false, installation: action.payload };
-  }
-  if (action.type === 'setEditingRequest') {
-    return { ...state, editingRequest: action.payload };
-  }
-  if (action.type === 'setEnvironment') {
-    return { ...state, env: action.payload };
-  }
-  if (action.type === 'setUpdatingUrls') {
-    return { ...state, updatingUrls: action.payload };
-  }
-  if (action.type === 'updateRequest') {
-    const { id, urls } = action.payload;
-    const { env, requests, selectedRequest: request } = state;
-    let newRequest = { ...request };
-    if (env === 'dev') newRequest['devRedirectUrls'] = urls;
-    if (env === 'test') newRequest['testRedirectUrls'] = urls;
-    if (env === 'prod') newRequest['prodRedirectUrls'] = urls;
-    const newRequests = requests?.map((request) => {
-      if (request.id === id) return newRequest;
-      return request;
-    });
-    return { ...state, selectedRequest: newRequest, requests: newRequests };
-
-    // const { id, urls } = action.payload;
-    // const { env, requests } = state;
-    // const request = state.requests?.find((request) => request.id === id);
-    // let newRequest = request ? { ...request } : ({} as Request);
-    // if (!newRequest.validRedirectUrls) newRequest.validRedirectUrls = { dev: [], test: [], prod: [] };
-    // // @ts-ignore
-    // newRequest.validRedirectUrls[env] = urls;
-    // if (env && !newRequest.environments.includes(env)) newRequest.environments.push(env);
-    // const newRequests = requests?.map((request) => (request.id === id ? newRequest : request));
-    // return { ...state, requests: newRequests };
-  }
-  return state;
 };
 
 export default reducer;

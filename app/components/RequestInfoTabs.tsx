@@ -1,40 +1,37 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { useContext, useState } from 'react';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
-import Panel from 'components/Panel';
+import RequestInfoPanel from 'components/RequestInfoPanel';
 import { RequestsContext } from 'pages/my-requests';
-import { useContext } from 'react';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { getInstallation } from 'services/keycloak';
+import type { Environment } from 'interfaces/Environment';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-const environments = [
-  { title: 'Dev Configuration', env: 'dev' },
-  { title: 'Test Configuration', env: 'test' },
-  { title: 'Prod Configuration', env: 'prod' },
+const environments: { title: string; name: Environment }[] = [
+  { title: 'Dev Configuration', name: 'dev' },
+  { title: 'Test Configuration', name: 'test' },
+  { title: 'Prod Configuration', name: 'prod' },
 ];
 
 function RequestInfoTabs() {
-  const { state, dispatch } = useContext(RequestsContext);
+  const { state } = useContext(RequestsContext);
+  const [environment, setEnvironment] = useState<Environment>(environments[0].name);
+
   const { selectedRequest, requests } = state as RequestReducerState;
   if (!selectedRequest) return null;
 
-  const handleSelection = async (env: string) => {
-    dispatch({ type: 'setEnvironment', payload: env });
-    dispatch({ type: 'loadInstallation' });
-    const installation = await getInstallation(selectedRequest.id);
-    dispatch({ type: 'setInstallation', payload: installation });
+  const handleSelection = (env: Environment) => {
+    setEnvironment(env);
   };
 
   return (
-    <>
-      <Tabs>
-        {environments.map((env) => (
-          <Tab eventKey={env.title} key={env.title} title={env.title} onEnter={() => handleSelection(env.env)}>
-            <Panel />
-          </Tab>
-        ))}
-      </Tabs>
-    </>
+    <Tabs>
+      {environments.map((env) => (
+        <Tab eventKey={env.title} key={env.title} title={env.title} onEnter={() => handleSelection(env.name)}>
+          <RequestInfoPanel environment={environment} />
+        </Tab>
+      ))}
+    </Tabs>
   );
 }
 

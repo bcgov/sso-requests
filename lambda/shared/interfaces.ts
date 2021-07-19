@@ -12,6 +12,7 @@ export interface Data {
   testRedirectUrls?: string[];
   prodRedirectUrls?: string[];
   agreeWithTC?: boolean;
+  publicAccess?: boolean;
   id?: number;
 }
 
@@ -19,7 +20,7 @@ export interface FormattedData {
   realm?: string;
   environments: string[];
   projectName: string;
-  validRedirectUrls: {
+  validRedirectUris: {
     dev: string[];
     test: string[];
     prod: string[];
@@ -29,4 +30,5 @@ export interface FormattedData {
   preferredEmail: string;
   newToSso: boolean;
   agreeWithTC?: boolean;
+  publicAccess?: boolean;
 }

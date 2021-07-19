@@ -13,4 +13,5 @@ export interface ClientRequest {
   prNumber?: number;
   environments?: string[];
   createdAt?: string;
+  publicAccess?: boolean;
 }
