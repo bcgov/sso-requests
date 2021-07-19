@@ -18,24 +18,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
       },
       environments: DataTypes.JSONB,
-      prSuccess: {
-        type: DataTypes.STRING,
-      },
-      planSuccess: {
-        type: DataTypes.STRING,
-      },
-      applySuccess: {
-        type: DataTypes.STRING,
-      },
-      prCreatedAt: {
-        type: DataTypes.DATE,
-      },
-      planRuntime: {
-        type: DataTypes.DATE,
-      },
-      applyRuntime: {
-        type: DataTypes.DATE,
-      },
       projectLead: {
         type: DataTypes.BOOLEAN,
       },

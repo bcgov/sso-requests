@@ -16,9 +16,9 @@ const unauthorizedResponse = {
   body: 'not authorized',
 };
 
-const handleUpdate = async (updates, where) => {
+const createEvent = async (data) => {
   try {
-    const result = await models.request.update(updates, { where });
+    const result = await models.event.create(data);
   } catch (err) {
     console.error(err);
   }
@@ -38,9 +38,17 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   };
 
   try {
-    if (status === 'create') await handleUpdate({ prNumber, prSuccess, prCreatedAt: sequelize.fn('NOW') }, { id });
-    else if (status === 'plan') await handleUpdate({ planSuccess, planRuntime: sequelize.fn('NOW') }, { prNumber });
-    else if (status === 'apply') await handleUpdate({ applySuccess, applyRuntime: sequelize.fn('NOW') }, { prNumber });
+    if (status === 'create') {
+      await Promise.all([
+        models.request.update({ prNumber }, { where: { id } }),
+        createEvent({ eventCode: `request-pr-${prSuccess}`, requestId: id }),
+      ]);
+    } else {
+      // After creation, gh action only has prNumber to reference request. Using this to grab the requestId first
+      const { id: requestId } = await models.request.findOne({ where: { prNumber } });
+      if (status === 'plan') await createEvent({ eventCode: `request-plan-${planSuccess}`, requestId });
+      else if (status === 'apply') await createEvent({ eventCode: `request-apply-${applySuccess}`, requestId });
+    }
     response.statusCode = 200;
     response.body = '{"success": true}';
     callback(null, response);
