@@ -49,21 +49,6 @@ export const up = async ({ context: sequelize }) => {
       field: 'pr_number',
       allowNull: true,
     },
-    prSuccess: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
-    },
-    planSuccess: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
-    },
-    applySuccess: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
-    },
     createdAt: {
       type: DataTypes.DATE,
       field: 'created_at',
@@ -75,21 +60,6 @@ export const up = async ({ context: sequelize }) => {
       field: 'updated_at',
       allowNull: false,
       defaultValue: DataTypes.NOW,
-    },
-    prCreatedAt: {
-      type: DataTypes.DATE,
-      field: 'pr_created_at',
-      allowNull: true,
-    },
-    planRuntime: {
-      type: DataTypes.DATE,
-      field: 'plan_runtime',
-      allowNull: true,
-    },
-    applyRuntime: {
-      type: DataTypes.DATE,
-      field: 'apply_runtime',
-      allowNull: true,
     },
     projectLead: {
       type: DataTypes.BOOLEAN,

@@ -35,33 +35,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: true,
       },
-      prSuccess: {
-        type: DataTypes.BOOLEAN,
-        allowNull: true,
-        defaultValue: false,
-      },
-      planSuccess: {
-        type: DataTypes.BOOLEAN,
-        allowNull: true,
-        defaultValue: false,
-      },
-      applySuccess: {
-        type: DataTypes.BOOLEAN,
-        allowNull: true,
-        defaultValue: false,
-      },
-      prCreatedAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
-      planRuntime: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
-      applyRuntime: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
       projectLead: {
         type: DataTypes.BOOLEAN,
         allowNull: true,

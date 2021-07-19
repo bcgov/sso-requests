@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { authenticate } from './authenticate';
+import { getEvents } from './routes/events';
 import { createRequest, getRequests, getRequest, updateRequest } from './routes/requests';
 import { getClient } from './routes/client';
 import { getInstallation } from './routes/installation';
@@ -55,6 +56,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   } else if (path === `${BASE_PATH}/client`) {
     if (httpMethod === 'POST') {
       response = await getClient(session, JSON.parse(body));
+    }
+  } else if (path === `${BASE_PATH}/events`) {
+    if (httpMethod === 'GET') {
+      response = await getEvents();
     }
   }
 
