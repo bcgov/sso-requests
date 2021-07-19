@@ -12,6 +12,7 @@ import Modal from '@button-inc/bcgov-theme/Modal';
 import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
+import TermsAndConditions from 'components/TermsAndConditions';
 
 const getSchema = (formStage: number) => {
   switch (formStage) {
@@ -73,6 +74,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
     <>
       <FormHeader formStage={formStage} id={formData.id} />
       <FormStage currentStage={formStage} />
+      {formStage === 3 && <TermsAndConditions />}
       {[1, 2, 3].includes(formStage) ? (
         <Form
           schema={getSchema(formStage)}
