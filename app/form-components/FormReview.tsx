@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Data } from 'interfaces/form';
+import { ClientRequest } from 'interfaces/Request';
 import FormButtons from 'form-components/FormButtons';
 import { realmToIDP } from 'utils/helpers';
 import { updateRequest } from 'services/request';
@@ -17,7 +17,7 @@ const formFields = [
 ];
 
 interface Props {
-  formData: Data;
+  formData: ClientRequest;
   setFormStage: Function;
 }
 

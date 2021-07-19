@@ -6,7 +6,7 @@ import { get, findIndex } from 'lodash';
 import styled from 'styled-components';
 import { getRequests } from 'services/request';
 import { getInstallation } from 'services/keycloak';
-import { Request } from 'interfaces/Request';
+import { ClientRequest } from 'interfaces/Request';
 import providerSchema from 'schemas/providers';
 import Table from 'components/Table';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
@@ -85,7 +85,7 @@ function RequestsPage({ currentUser }: Props) {
     getData();
   }, []);
 
-  const handleSelection = async (request: Request) => {
+  const handleSelection = async (request: ClientRequest) => {
     if (selectedRequest?.id === request.id) return;
 
     dispatch({ type: 'setRequest', payload: request });
