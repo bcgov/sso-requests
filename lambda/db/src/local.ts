@@ -11,7 +11,7 @@ async function main() {
     idirUserid: '1',
     projectName: 'testproject',
     realm: 'onestopauth',
-    validRedirectUrls: [],
+    validRedirectUris: [],
     environments: [],
   });
 

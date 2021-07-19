@@ -15,7 +15,7 @@ const prepareRequest = (v: any) => {
 export const createRequest = async (data: Data) => {
   const config = getAuthConfig();
   try {
-    const result = await instance.post('requests', data, config).then((res) => res.data);
+    const result = await instance.post('requests', { publicAccess: false, ...data }, config).then((res) => res.data);
     return processRequest(result);
   } catch (err) {
     console.error(err);
@@ -48,6 +48,7 @@ export const getRequests = async () => {
 export const updateRequest = async (data: Data, submit = false) => {
   data = prepareRequest(data);
   const config = getAuthConfig();
+
   try {
     const url = submit ? `requests?submit=true` : 'requests';
     const result = await instance.put(url, data, config).then((res) => res.data);

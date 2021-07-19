@@ -1,7 +1,6 @@
 import Button from '@button-inc/bcgov-theme/Button';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
-import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 
 interface Props {
   show: boolean | undefined;

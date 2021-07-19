@@ -19,7 +19,7 @@ export const formatFormData = (data: Data): FormattedData => {
 
   const newData: FormattedData = {
     environments: formattedEnvironments,
-    validRedirectUrls: formattedValidRedirectUris,
+    validRedirectUris: formattedValidRedirectUris,
     ...rest,
   };
   return newData;

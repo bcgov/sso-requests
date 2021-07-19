@@ -3,7 +3,7 @@ import { Session } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
 import { generateInstallation } from '../keycloak/installation';
 
-export const getInstallation = async (session: Session, data: { requestId: number }) => {
+export const getInstallation = async (session: Session, data: { requestId: number; environment: string }) => {
   try {
     const request = await models.request.findOne({
       where: {
@@ -12,20 +12,17 @@ export const getInstallation = async (session: Session, data: { requestId: numbe
       },
     });
 
-    console.log(request.environments, request.projectName);
+    console.log(request);
 
-    const proms = [];
-    request.environments.forEach((env) => {
-      proms.push(
-        generateInstallation({ environment: env, realmName: request.realm, clientId: kebabCase(request.projectName) })
-      );
+    const installation = await generateInstallation({
+      environment: data.environment,
+      realmName: request.realm,
+      clientId: request.clientName,
     });
-
-    const installations = await Promise.all(proms);
 
     return {
       statusCode: 200,
-      body: JSON.stringify(installations),
+      body: JSON.stringify(installation),
     };
   } catch (err) {
     console.error(err);

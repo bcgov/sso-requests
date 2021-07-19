@@ -18,13 +18,24 @@ export const up = async ({ context: sequelize }) => {
     projectName: {
       type: DataTypes.STRING,
       field: 'project_name',
-      allowNull: true,
+      allowNull: false,
+    },
+    clientName: {
+      type: DataTypes.STRING,
+      field: 'client_name',
+      allowNull: false,
     },
     realm: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    validRedirectUrls: {
+    publicAccess: {
+      type: DataTypes.BOOLEAN,
+      field: 'public_access',
+      allowNull: false,
+      defaultValue: false,
+    },
+    validRedirectUris: {
       type: DataTypes.JSONB,
       field: 'valid_redirect_urls',
       allowNull: true,
@@ -40,18 +51,18 @@ export const up = async ({ context: sequelize }) => {
     },
     prSuccess: {
       type: DataTypes.BOOLEAN,
-      field: 'pr_success',
       allowNull: true,
+      defaultValue: false,
     },
     planSuccess: {
       type: DataTypes.BOOLEAN,
-      field: 'plan_success',
       allowNull: true,
+      defaultValue: false,
     },
     applySuccess: {
       type: DataTypes.BOOLEAN,
-      field: 'apply_success',
       allowNull: true,
+      defaultValue: false,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -84,6 +95,7 @@ export const up = async ({ context: sequelize }) => {
       type: DataTypes.BOOLEAN,
       field: 'project_lead',
       allowNull: true,
+      defaultValue: false,
     },
     preferredEmail: {
       type: DataTypes.STRING,
@@ -94,17 +106,19 @@ export const up = async ({ context: sequelize }) => {
       type: DataTypes.BOOLEAN,
       field: 'new_to_sso',
       allowNull: true,
+      defaultValue: false,
     },
     agreeWithTerms: {
       type: DataTypes.BOOLEAN,
       field: 'agree_with_terms',
       allowNull: true,
+      defaultValue: false,
     },
     status: {
-      allowNull: false,
       type: DataTypes.ENUM,
       values: ['draft', 'pending', 'submitted', 'approved', 'completed'],
       defaultValue: 'draft',
+      allowNull: false,
     },
   });
 };

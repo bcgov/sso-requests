@@ -1,16 +1,18 @@
+import { useContext, useEffect, useState } from 'react';
+import Modal from '@button-inc/bcgov-theme/Modal';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
 import Form from 'form-components/GovForm';
 import getSchema from 'schemas/urls';
-import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import { RequestsContext } from 'pages/my-requests';
-import { useContext, useEffect, useState } from 'react';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { getRequestUrls, getPropertyName } from 'utils/helpers';
 import ArrayFieldTemplate from 'form-components/SmallArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
+import InstallationModal from './InstallationModal';
 import { Request } from 'interfaces/Request';
+import type { Environment } from 'interfaces/Environment';
 
 const StyledList = styled.ul`
   list-style-type: none;
@@ -33,23 +35,15 @@ const JsonContainer = styled.div`
   align-items: center;
 `;
 
-const Panel = () => {
+const RequestInfoPanel = ({ environment }: { environment: Environment }) => {
   const { state, dispatch } = useContext(RequestsContext);
-  const {
-    editingRequest,
-    requests,
-    selectedRequest: sRequest,
-    loadingInstallation,
-    installation,
-    env,
-    updatingUrls,
-  } = state as RequestReducerState;
+  const { editingRequest, requests, selectedRequest: sRequest, updatingUrls } = state as RequestReducerState;
 
   const selectedRequest = (sRequest || {}) as Request;
 
-  const redirectUrls = getRequestUrls(selectedRequest, env);
+  const redirectUris = getRequestUrls(selectedRequest, environment);
 
-  console.log(selectedRequest, redirectUrls);
+  console.log(selectedRequest, redirectUris);
 
   const [schema, setSchema] = useState({});
 
@@ -58,10 +52,14 @@ const Panel = () => {
   };
 
   const handleSubmit = async (e: any, schema: any) => {
-    const { validRedirectUrls } = selectedRequest;
-    const { dev: devRedirectUrls, test: testRedirectUrls, prod: prodRedirectUrls } = validRedirectUrls;
+    const { validRedirectUris } = selectedRequest;
+    const { dev: devRedirectUrls, test: testRedirectUrls, prod: prodRedirectUrls } = validRedirectUris;
     dispatch({ type: 'setUpdatingUrls', payload: true });
-    dispatch({ type: 'updateRequest', payload: { id: selectedRequest.id, urls: e.formData[getPropertyName(env)] } });
+    dispatch({
+      type: 'updateRequest',
+      payload: { id: selectedRequest.id, urls: e.formData[getPropertyName(environment)] },
+    });
+
     const result = await updateRequest({
       testRedirectUrls,
       devRedirectUrls,
@@ -75,9 +73,9 @@ const Panel = () => {
 
   // TODO: slight ui glitch where panel re-renders with old schema before useEffect runs on submission
   useEffect(() => {
-    const validRedirectUrls = getRequestUrls(selectedRequest, env);
-    setSchema(getSchema(env, validRedirectUrls));
-  }, [env, requests, selectedRequest, updatingUrls]);
+    const validRedirectUris = getRequestUrls(selectedRequest, environment);
+    setSchema(getSchema(environment, validRedirectUris));
+  }, [environment, requests, selectedRequest, updatingUrls]);
 
   if (!selectedRequest) return null;
 
@@ -103,19 +101,15 @@ const Panel = () => {
         ) : (
           <div>
             <p>Urls</p>
-            <StyledList>{redirectUrls && redirectUrls.map((url: any) => <li key={url}>{url}</li>)}</StyledList>
+            <StyledList>{redirectUris && redirectUris.map((url: any) => <li key={url}>{url}</li>)}</StyledList>
           </div>
         )}
-        {(loadingInstallation || installation) && (
-          <JsonContainer>
-            <p>JSON Client</p>
-            {loadingInstallation && <Loader type="Grid" color="#000" height={50} width={50} visible />}
-            {installation && JSON.stringify(installation)}
-          </JsonContainer>
+        {!editingRequest && selectedRequest.status === 'completed' && (
+          <InstallationModal requestId={selectedRequest.id} environment={environment}></InstallationModal>
         )}
       </Container>
     </>
   );
 };
 
-export default Panel;
+export default RequestInfoPanel;
