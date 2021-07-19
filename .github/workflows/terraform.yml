@@ -55,29 +55,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: zip lambda functions - app
+      - name: zip lambda functions
         run: |
           yarn
-          make lambda
-        working-directory: ./lambda/app
-
-      - name: zip lambda functions - db
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/db
-
-      - name: zip lambda functions - github
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/github
-
-      - name: zip lambda functions - actions
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/actions
+          make lambda-all
+        working-directory: ./lambda
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -100,6 +82,15 @@ jobs:
               workspaces {
                 name = "${{ env.TFC_WORKSPACE }}"
               }
+            }
+          }
+          EOF
+
+          cat >"provider.tf" <<EOF
+          provider "aws" {
+            region = "ca-central-1"
+            assume_role {
+              role_arn = "arn:aws:iam::${var.target_aws_account_id}:role/BCGOV_${var.target_env}_Automation_Admin_Role"
             }
           }
           EOF

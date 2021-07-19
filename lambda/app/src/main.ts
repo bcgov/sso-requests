@@ -5,11 +5,12 @@ import { createRequest, getRequests, getRequest, updateRequest } from './routes/
 import { getClient } from './routes/client';
 import { getInstallation } from './routes/installation';
 
+const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
+
 const responseHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Origin': 'https://bcgov.github.io',
-  // 'Access-Control-Allow-Origin': 'http://localhost:3000',
+  'Access-Control-Allow-Origin': allowedOrigin,
   'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT',
   'Access-Control-Allow-Credentials': 'true',
 };
