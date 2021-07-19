@@ -6,7 +6,7 @@ import Form from 'form-components/GovForm';
 import getSchema from 'schemas/urls';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { getRequestUrls, getPropertyName } from 'utils/helpers';
+import { getPropertyName } from 'utils/helpers';
 import ArrayFieldTemplate from 'form-components/SmallArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
@@ -37,12 +37,12 @@ const JsonContainer = styled.div`
 
 const RequestInfoPanel = ({ environment }: { environment: Environment }) => {
   const { state, dispatch } = useContext(RequestsContext);
-  const { editingRequest, requests, selectedRequest: sRequest, updatingUrls, env } = state as RequestReducerState;
+  const { editingRequest, requests, selectedRequest: sRequest, updatingUrls } = state as RequestReducerState;
 
   const selectedRequest = (sRequest || {}) as ClientRequest;
 
-  const redirectUris = getRequestUrls(selectedRequest, environment);
-
+  // @ts-ignore
+  const redirectUris = selectedRequest[getPropertyName(environment)];
   const [schema, setSchema] = useState({});
 
   const handleCancel = () => {
@@ -56,10 +56,13 @@ const RequestInfoPanel = ({ environment }: { environment: Environment }) => {
       payload: { ...e.formData, id: selectedRequest.id },
     });
 
-    const result = await updateRequest({
-      ...e.formData,
-      id: selectedRequest.id,
-    });
+    const result = await updateRequest(
+      {
+        ...e.formData,
+        id: selectedRequest.id,
+      },
+      selectedRequest
+    );
     dispatch({ type: 'setUpdatingUrls', payload: false });
     dispatch({ type: 'setEditingRequest', payload: false });
   };
@@ -67,7 +70,8 @@ const RequestInfoPanel = ({ environment }: { environment: Environment }) => {
   // TODO: slight ui glitch where panel re-renders with old schema before useEffect runs on submission
   useEffect(() => {
     // @ts-ignore
-    const validRedirectUris = selectedRequest[getPropertyName(env)];
+    const validRedirectUris = selectedRequest[getPropertyName(environment)];
+    const schema = getSchema(environment, validRedirectUris);
     setSchema(getSchema(environment, validRedirectUris));
   }, [environment, requests, selectedRequest, updatingUrls]);
 

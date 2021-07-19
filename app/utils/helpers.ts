@@ -3,7 +3,7 @@
 //
 
 import { isEqual } from 'lodash';
-import { Request } from 'interfaces/Request';
+import { ClientRequest, ServerRequest } from 'interfaces/Request';
 
 // Convert Payload from Base64-URL to JSON
 export const decodePayload = (payload: string) => {
@@ -86,14 +86,69 @@ export const realmToIDP = (realm: string) => {
   return JSON.stringify(idps);
 };
 
-export const getRequestUrls = (request: Request, env?: 'dev' | 'test' | 'prod') => {
-  if (!request.validRedirectUris) return [];
-  return request.validRedirectUris[env || 'dev'] || [];
-};
-
 export const getPropertyName = (env: string | undefined) => {
   if (env === 'dev') return 'devRedirectUrls';
   if (env === 'test') return 'testRedirectUrls';
   if (env === 'prod') return 'prodRedirectUrls';
   return '';
+};
+
+export const processRequest = (request: ServerRequest): ClientRequest => {
+  const { agreeWithTerms, id, projectName, realm, validRedirectUris, prNumber, environments, createdAt, status } =
+    request;
+
+  let devRedirectUrls: string[] = [],
+    testRedirectUrls: string[] = [],
+    prodRedirectUrls: string[] = [];
+
+  if (validRedirectUris) {
+    devRedirectUrls = validRedirectUris?.dev || [];
+    testRedirectUrls = validRedirectUris?.test || [];
+    prodRedirectUrls = validRedirectUris?.prod || [];
+  }
+  const processedRequest = {
+    agreeWithTerms,
+    id,
+    projectName,
+    realm,
+    devRedirectUrls,
+    testRedirectUrls,
+    prodRedirectUrls,
+    prNumber,
+    environments,
+    createdAt,
+    status,
+  };
+  return processedRequest;
+};
+
+export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest): ServerRequest => {
+  const { devRedirectUrls = [], testRedirectUrls = [], prodRedirectUrls = [], ...rest } = data;
+  let formattedValidRedirectUris = {
+    dev: previousData?.devRedirectUrls,
+    test: previousData?.testRedirectUrls,
+    prod: previousData?.prodRedirectUrls,
+  };
+
+  const formattedEnvironments: string[] = previousData?.environments ? previousData.environments : [];
+
+  if (devRedirectUrls.length > 0) {
+    formattedEnvironments.push('dev');
+    formattedValidRedirectUris.dev = devRedirectUrls;
+  }
+  if (testRedirectUrls.length > 0) {
+    formattedEnvironments.push('test');
+    formattedValidRedirectUris.test = testRedirectUrls;
+  }
+  if (prodRedirectUrls.length > 0) {
+    formattedEnvironments.push('prod');
+    formattedValidRedirectUris.prod = prodRedirectUrls;
+  }
+
+  const newData: ServerRequest = {
+    environments: formattedEnvironments,
+    validRedirectUris: formattedValidRedirectUris,
+    ...rest,
+  };
+  return newData;
 };

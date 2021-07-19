@@ -4,7 +4,7 @@ export interface ServerRequest {
   idirUserid?: string;
   projectName?: string;
   realm?: string;
-  validRedirectUrls?: {
+  validRedirectUris?: {
     dev?: string[];
     test?: string[];
     prod?: string[];

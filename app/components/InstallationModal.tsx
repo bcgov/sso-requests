@@ -2,17 +2,16 @@ import { useContext, useEffect, useState } from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
-import { getRequestUrls, getPropertyName } from 'utils/helpers';
 import { getInstallation } from 'services/keycloak';
 
-const InstallationModal = ({ requestId, environment }: { requestId: number; environment: string }) => {
+const InstallationModal = ({ requestId, environment }: { requestId: number | undefined; environment: string }) => {
   const [installation, setInstallation] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
-      const data = await getInstallation(requestId, environment);
+      const data = await getInstallation(requestId as number, environment);
       setLoading(false);
     };
     getData();
