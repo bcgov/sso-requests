@@ -42,7 +42,7 @@ export default function FormReview({ formData, setFormStage }: Props) {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await updateRequest({ ...formData, status: 'submitted' }, true);
+      await updateRequest({ ...formData, status: 'submitted' }, undefined, true);
       setLoading(false);
       router.push('/my-requests');
     } catch (err) {
