@@ -42,16 +42,26 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
     const result = await models.request.update(allowedFields, {
       where: { id },
+      returning: true,
+      plain: true,
     });
+
+    if (result.length < 2) {
+      throw Error('update failed');
+    }
+
+    console.log(JSON.stringify(result));
+
+    const updatedRequest = result[1].dataValues;
 
     if (submit) {
       const payload = JSON.stringify({
-        requestId: result.id,
-        clientName: result.clientName,
-        realmName: result.realm,
-        validRedirectUris: result.validRedirectUris,
-        environments: result.environments,
-        publicAccess: result.publicAccess,
+        requestId: updatedRequest.id,
+        clientName: updatedRequest.clientName,
+        realmName: updatedRequest.realm,
+        validRedirectUris: updatedRequest.validRedirectUris,
+        environments: updatedRequest.environments,
+        publicAccess: updatedRequest.publicAccess,
       });
 
       await invokeGithubLambda(payload);
@@ -59,7 +69,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
     return {
       statusCode: 200,
-      body: JSON.stringify(result),
+      body: JSON.stringify(updatedRequest),
     };
   } catch (err) {
     handleError(err);
