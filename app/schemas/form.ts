@@ -69,6 +69,7 @@ export default {
                 prod: { enum: [true] },
                 prodRedirectUrls: {
                   type: 'array',
+                  // TODO: allow http://localhost
                   items: { type: 'object', properties: { url: { type: 'string', format: 'uri' } } },
                 },
               },

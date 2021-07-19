@@ -101,9 +101,10 @@ export const up = async ({ context: sequelize }) => {
       allowNull: true,
     },
     status: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: 'pending',
+      allowNull: false,
+      type: DataTypes.ENUM,
+      values: ['draft', 'pending', 'submitted', 'approved', 'completed'],
+      defaultValue: 'draft',
     },
   });
 };

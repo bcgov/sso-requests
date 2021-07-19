@@ -50,12 +50,11 @@ const getProviders = (realm: string) => {
 };
 
 interface RowProps {
-  currentId: number;
-  selectedId: number | null;
+  active: boolean;
 }
 
 const SelectableRow = styled.tr`
-  background-color: ${(props: RowProps) => (props.currentId === props.selectedId ? '#ffed9f' : '#f8f8f8')};
+  background-color: ${(props: RowProps) => (props.active ? '#ffed9f' : '#f8f8f8')};
 `;
 
 interface Props {
@@ -70,7 +69,7 @@ function RequestsPage({ currentUser }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [state, dispatch] = useReducer(reducer, {});
-  const { requests = {}, requestId, env } = state;
+  const { requests = {}, selectedRequest, env } = state;
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
@@ -86,14 +85,17 @@ function RequestsPage({ currentUser }: Props) {
     getData();
   }, []);
 
-  const handleSelection = async (id: number) => {
-    if (requestId === id) return;
+  const handleSelection = async (request: Request) => {
+    if (selectedRequest?.id === request.id) return;
+
     try {
-      dispatch({ type: 'setRequestId', payload: id });
-      dispatch({ type: 'loadInstallation' });
+      dispatch({ type: 'setRequest', payload: request });
       dispatch({ type: 'setEnvironment', payload: env || 'dev' });
-      const installation = await getInstallation(id);
-      dispatch({ type: 'setInstallation', payload: installation });
+
+      if (request.status === 'completed') {
+        const installation = await getInstallation(selectedRequest.id);
+        dispatch({ type: 'setInstallation', payload: installation });
+      }
     } catch (err) {
       dispatch({ type: 'setInstallation', payload: {} });
     }
@@ -105,6 +107,8 @@ function RequestsPage({ currentUser }: Props) {
 
   if (loading) return 'loading...';
 
+  const showRightPanel = selectedRequest && selectedRequest.status !== 'draft';
+
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Button variant="primary-inverse" size="small" onClick={handleNewClick}>
@@ -113,9 +117,8 @@ function RequestsPage({ currentUser }: Props) {
 
       <br />
       <br />
-
-      <Grid cols={2} gutter={[5, 2]}>
-        <RequestsContext.Provider value={contextValue}>
+      <RequestsContext.Provider value={contextValue}>
+        <Grid cols={showRightPanel ? 2 : 1} gutter={[5, 2]}>
           <Grid.Row collapse="800">
             <Grid.Col>
               <Title>My Request List</Title>
@@ -133,16 +136,15 @@ function RequestsPage({ currentUser }: Props) {
                     requests.map((request: Request) => {
                       return (
                         <SelectableRow
-                          currentId={request.id}
-                          selectedId={requestId}
+                          active={selectedRequest?.id === request.id}
                           key={request.id}
-                          onClick={() => handleSelection(request.id)}
+                          onClick={() => handleSelection(request)}
                         >
                           <td>{request.id}</td>
                           <td>{request.projectName}</td>
                           <td>{request.status}</td>
                           <td>
-                            <ActionButtons currentId={request.id} />
+                            <ActionButtons request={request} />
                           </td>
                         </SelectableRow>
                       );
@@ -155,10 +157,14 @@ function RequestsPage({ currentUser }: Props) {
                 </tbody>
               </Table>
             </Grid.Col>
-            <Grid.Col>{requestId && <RequestInfoTabs />}</Grid.Col>
+            {showRightPanel && (
+              <Grid.Col>
+                <RequestInfoTabs />
+              </Grid.Col>
+            )}
           </Grid.Row>
-        </RequestsContext.Provider>
-      </Grid>
+        </Grid>
+      </RequestsContext.Provider>
     </ResponsiveContainer>
   );
 }

@@ -17,7 +17,7 @@ export const getInstallation = async (session: Session, data: { requestId: numbe
     const proms = [];
     request.environments.forEach((env) => {
       proms.push(
-        generateInstallation({ environment: env, realmName: 'onestopauth', clientId: kebabCase(request.projectName) })
+        generateInstallation({ environment: env, realmName: request.realm, clientId: kebabCase(request.projectName) })
       );
     });
 

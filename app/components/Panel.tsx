@@ -10,6 +10,7 @@ import { getRequestUrls, getPropertyName } from 'utils/helpers';
 import ArrayFieldTemplate from 'form-components/SmallArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
+import { Request } from 'interfaces/Request';
 
 const StyledList = styled.ul`
   list-style-type: none;
@@ -34,9 +35,22 @@ const JsonContainer = styled.div`
 
 const Panel = () => {
   const { state, dispatch } = useContext(RequestsContext);
-  const { editingRequest, requests, loadingInstallation, installation, requestId, env, updatingUrls } =
-    state as RequestReducerState;
-  const redirectUrls = getRequestUrls(requestId, requests, env);
+  const {
+    editingRequest,
+    requests,
+    selectedRequest: sRequest,
+    loadingInstallation,
+    installation,
+    env,
+    updatingUrls,
+  } = state as RequestReducerState;
+
+  const selectedRequest = (sRequest || {}) as Request;
+
+  const redirectUrls = getRequestUrls(selectedRequest, env);
+
+  console.log(selectedRequest, redirectUrls);
+
   const [schema, setSchema] = useState({});
 
   const handleCancel = () => {
@@ -44,18 +58,16 @@ const Panel = () => {
   };
 
   const handleSubmit = async (e: any, schema: any) => {
-    const request = requests?.find((request) => request.id === requestId);
-    if (!request) return;
-    const { validRedirectUrls } = request;
+    const { validRedirectUrls } = selectedRequest;
     const { dev: devRedirectUrls, test: testRedirectUrls, prod: prodRedirectUrls } = validRedirectUrls;
     dispatch({ type: 'setUpdatingUrls', payload: true });
-    dispatch({ type: 'updateRequest', payload: { id: requestId, urls: e.formData[getPropertyName(env)] } });
+    dispatch({ type: 'updateRequest', payload: { id: selectedRequest.id, urls: e.formData[getPropertyName(env)] } });
     const result = await updateRequest({
       testRedirectUrls,
       devRedirectUrls,
       prodRedirectUrls,
       ...e.formData,
-      id: requestId,
+      id: selectedRequest.id,
     });
     dispatch({ type: 'setUpdatingUrls', payload: false });
     dispatch({ type: 'setEditingRequest', payload: false });
@@ -63,9 +75,11 @@ const Panel = () => {
 
   // TODO: slight ui glitch where panel re-renders with old schema before useEffect runs on submission
   useEffect(() => {
-    const validRedirectUrls = getRequestUrls(requestId, requests, env);
+    const validRedirectUrls = getRequestUrls(selectedRequest, env);
     setSchema(getSchema(env, validRedirectUrls));
-  }, [env, requests, requestId, updatingUrls]);
+  }, [env, requests, selectedRequest, updatingUrls]);
+
+  if (!selectedRequest) return null;
 
   return (
     <>
@@ -92,11 +106,13 @@ const Panel = () => {
             <StyledList>{redirectUrls && redirectUrls.map((url: any) => <li key={url}>{url}</li>)}</StyledList>
           </div>
         )}
-        <JsonContainer>
-          <p>JSON Client</p>
-          {loadingInstallation && <Loader type="Grid" color="#000" height={50} width={50} visible />}
-          {installation && JSON.stringify(installation)}
-        </JsonContainer>
+        {(loadingInstallation || installation) && (
+          <JsonContainer>
+            <p>JSON Client</p>
+            {loadingInstallation && <Loader type="Grid" color="#000" height={50} width={50} visible />}
+            {installation && JSON.stringify(installation)}
+          </JsonContainer>
+        )}
       </Container>
     </>
   );

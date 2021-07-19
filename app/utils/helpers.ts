@@ -86,18 +86,9 @@ export const realmToIDP = (realm: string) => {
   return JSON.stringify(idps);
 };
 
-export const getRequestUrls = (
-  requestId: number | undefined,
-  requests: Request[] | undefined,
-  env: string | undefined
-) => {
-  const request = requests && requests.find((request) => request.id === requestId);
-  if (request && request.validRedirectUrls) {
-    // @ts-ignore
-    return request.validRedirectUrls[env];
-  } else {
-    return [];
-  }
+export const getRequestUrls = (request: Request, env?: 'dev' | 'test' | 'prod') => {
+  if (!request.validRedirectUrls) return [];
+  return request.validRedirectUrls[env || 'dev'] || [];
 };
 
 export const getPropertyName = (env: string | undefined) => {
