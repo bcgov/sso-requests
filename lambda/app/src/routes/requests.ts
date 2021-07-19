@@ -1,7 +1,6 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit, pick } from 'lodash';
-import { formatFormData } from '../helpers';
 
 const AWS = require('aws-sdk');
 
@@ -13,9 +12,8 @@ const handleError = (err: string) => {
 };
 
 export const createRequest = async (session: Session, data: Data) => {
-  const formattedFormData = formatFormData(data);
   try {
-    const { projectName, projectLead, preferredEmail, newToSso, publicAccess } = formattedFormData;
+    const { projectName, projectLead, preferredEmail, newToSso, publicAccess } = data;
     const result = await models.request.create({
       idirUserid: session.idir_userid,
       projectName,
