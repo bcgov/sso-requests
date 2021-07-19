@@ -1,6 +1,8 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
+import { kebabCase, omit, pick } from 'lodash';
 import { formatFormData } from '../helpers';
+
 const AWS = require('aws-sdk');
 
 const handleError = (err: string) => {
@@ -13,13 +15,15 @@ const handleError = (err: string) => {
 export const createRequest = async (session: Session, data: Data) => {
   const formattedFormData = formatFormData(data);
   try {
-    const { projectName, projectLead, preferredEmail, newToSso } = formattedFormData;
+    const { projectName, projectLead, preferredEmail, newToSso, publicAccess } = formattedFormData;
     const result = await models.request.create({
       idirUserid: session.idir_userid,
       projectName,
+      clientName: kebabCase(projectName),
       projectLead,
       preferredEmail,
       newToSso,
+      publicAccess,
     });
     return {
       statusCode: 200,
@@ -34,16 +38,22 @@ export const updateRequest = async (session: Session, data: Data, submit: string
   const formattedFormData = formatFormData(data);
   try {
     const { id, ...rest } = formattedFormData;
-    const result = await models.request.update(
-      {
-        ...rest,
-      },
-      {
-        where: { id },
-      }
-    );
+    const allowedFields = omit(rest, ['idirUserid', 'projectName', 'clientName', 'status']);
+
+    const result = await models.request.update(allowedFields, {
+      where: { id },
+    });
+
     if (submit) {
-      const payload = JSON.stringify(formattedFormData);
+      const payload = JSON.stringify({
+        requestId: result.id,
+        clientName: result.clientName,
+        realm: result.realm,
+        validRedirectUris: result.validRedirectUris,
+        environments: result.environments,
+        publicAccess: result.publicAccess,
+      });
+
       await invokeGithubLambda(payload);
     }
 

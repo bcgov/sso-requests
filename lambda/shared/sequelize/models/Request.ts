@@ -8,13 +8,22 @@ module.exports = (sequelize, DataTypes) => {
       },
       projectName: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
+      },
+      clientName: {
+        type: DataTypes.STRING,
+        allowNull: false,
       },
       realm: {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      validRedirectUrls: {
+      publicAccess: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      validRedirectUris: {
         type: DataTypes.JSONB,
         allowNull: true,
       },
@@ -27,16 +36,19 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       prSuccess: {
-        type: DataTypes.STRING,
+        type: DataTypes.BOOLEAN,
         allowNull: true,
+        defaultValue: false,
       },
       planSuccess: {
-        type: DataTypes.STRING,
+        type: DataTypes.BOOLEAN,
         allowNull: true,
+        defaultValue: false,
       },
       applySuccess: {
-        type: DataTypes.STRING,
+        type: DataTypes.BOOLEAN,
         allowNull: true,
+        defaultValue: false,
       },
       prCreatedAt: {
         type: DataTypes.DATE,
@@ -53,6 +65,7 @@ module.exports = (sequelize, DataTypes) => {
       projectLead: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
+        defaultValue: false,
       },
       preferredEmail: {
         type: DataTypes.STRING,
@@ -61,10 +74,12 @@ module.exports = (sequelize, DataTypes) => {
       newToSso: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
+        defaultValue: false,
       },
       agreeWithTerms: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
+        defaultValue: false,
       },
       status: {
         type: DataTypes.ENUM,

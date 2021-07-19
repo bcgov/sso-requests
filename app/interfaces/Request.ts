@@ -4,7 +4,7 @@ export interface Request {
   projectName: string;
   realm: string;
   identityProviders?: string[];
-  validRedirectUrls: {
+  validRedirectUris: {
     dev?: string[];
     test?: string[];
     prod?: string[];

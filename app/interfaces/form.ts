@@ -9,4 +9,5 @@ export interface Data {
   id?: number;
   newToSso?: boolean;
   status?: string;
+  publicAccess?: boolean;
 }
