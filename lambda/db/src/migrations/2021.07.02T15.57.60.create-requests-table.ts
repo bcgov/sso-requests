@@ -37,7 +37,7 @@ export const up = async ({ context: sequelize }) => {
     },
     validRedirectUris: {
       type: DataTypes.JSONB,
-      field: 'valid_redirect_urls',
+      field: 'valid_redirect_uris',
       allowNull: true,
     },
     environments: {
