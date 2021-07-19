@@ -46,6 +46,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       plain: true,
     });
 
+    if (result.length < 2) {
+      throw Error('update failed');
+    }
+
     console.log(JSON.stringify(result));
 
     const updatedRequest = result[1].dataValues;
