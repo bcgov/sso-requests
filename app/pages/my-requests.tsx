@@ -69,7 +69,7 @@ function RequestsPage({ currentUser }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [state, dispatch] = useReducer(reducer, {});
-  const { requests = {}, selectedRequest, env } = state;
+  const { requests = {}, selectedRequest } = state;
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
@@ -123,7 +123,7 @@ function RequestsPage({ currentUser }: Props) {
                 </thead>
                 <tbody>
                   {requests.length > 0 ? (
-                    requests.map((request: Request) => {
+                    requests.map((request: ClientRequest) => {
                       return (
                         <SelectableRow
                           active={selectedRequest?.id === request.id}

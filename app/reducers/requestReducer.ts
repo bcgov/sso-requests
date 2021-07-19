@@ -29,8 +29,7 @@ const reducer = (state: RequestReducerState, action: Action) => {
       return { ...state, updatingUrls: action.payload };
     case 'updateRequest':
       const { id, ...rest } = action.payload;
-      const { env, requests, selectedRequest: request } = state;
-      console.log(rest, 'is rest');
+      const { requests, selectedRequest: request } = state;
       let newRequest = { ...request, ...rest };
       const newRequests = requests?.map((request) => {
         if (request.id === id) return newRequest;

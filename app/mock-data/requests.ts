@@ -1,6 +1,6 @@
-import { Request } from 'interfaces/Request';
+import { ServerRequest } from 'interfaces/Request';
 
-const requests: Request[] = [
+const requests: ServerRequest[] = [
   {
     id: 1,
     idirUserid: 'ABCDEFG',
@@ -11,12 +11,6 @@ const requests: Request[] = [
     },
     prNumber: 12345,
     environments: ['dev'],
-    prSuccess: false,
-    planSuccess: false,
-    applySuccess: false,
-    prCreatedAt: '2021-07-14T17:54:16.292Z',
-    planRuntime: '2021-07-14T17:54:16.292Z',
-    applyRuntime: '2021-07-14T17:54:16.292Z',
     createdAt: '2021-07-14T17:54:16.292Z',
     updatedAt: '2021-07-14T17:54:16.292Z',
   },
