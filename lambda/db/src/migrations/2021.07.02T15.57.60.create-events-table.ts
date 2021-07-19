@@ -10,15 +10,6 @@ export const up = async ({ context: sequelize }) => {
       defaultValue: sequelize.UUIDV4,
       autoIncrement: true,
     },
-    requestId: {
-      type: DataTypes.INTEGER,
-      references: { model: 'requests', key: 'id' },
-      field: 'request_id',
-    },
-    eventCode: {
-      type: DataTypes.STRING,
-      field: 'event_code',
-    },
     createdAt: {
       type: DataTypes.DATE,
       field: 'created_at',
@@ -30,6 +21,17 @@ export const up = async ({ context: sequelize }) => {
       field: 'updated_at',
       allowNull: false,
       defaultValue: DataTypes.NOW,
+    },
+    requestId: {
+      type: DataTypes.INTEGER,
+      references: { model: 'requests', key: 'id' },
+      field: 'request_id',
+      allowNull: true,
+    },
+    eventCode: {
+      type: DataTypes.STRING,
+      field: 'event_code',
+      allowNull: false,
     },
     idirUserid: {
       type: DataTypes.STRING,
