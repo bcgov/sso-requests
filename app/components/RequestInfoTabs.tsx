@@ -27,7 +27,7 @@ function RequestInfoTabs() {
     <Tabs>
       {environments.map((env) => (
         <Tab eventKey={env.title} key={env.title} title={env.title} onEnter={() => handleSelection(env.name)}>
-          <RequestInfoPanel environment={environment} />
+          <RequestInfoPanel panelEnv={env.name} environment={environment} />
         </Tab>
       ))}
     </Tabs>

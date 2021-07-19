@@ -7,6 +7,8 @@ import { getAuthorizationUrl, getAccessToken } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { fetchInfo } from 'services/auth';
 import Layout from 'layout/Layout';
+import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
