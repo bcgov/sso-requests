@@ -20,7 +20,7 @@ variable "db_password" {
 variable "db_name" {
   description = "The name of the database"
   type        = string
-  default     = "ExampleDB2"
+  default     = "ExampleDB7"
 }
 
 variable "configuration_endpoint" {

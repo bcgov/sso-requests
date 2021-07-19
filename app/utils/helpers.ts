@@ -87,8 +87,8 @@ export const realmToIDP = (realm: string) => {
 };
 
 export const getRequestUrls = (request: Request, env?: 'dev' | 'test' | 'prod') => {
-  if (!request.validRedirectUrls) return [];
-  return request.validRedirectUrls[env || 'dev'] || [];
+  if (!request.validRedirectUris) return [];
+  return request.validRedirectUris[env || 'dev'] || [];
 };
 
 export const getPropertyName = (env: string | undefined) => {
