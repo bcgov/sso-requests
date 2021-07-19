@@ -48,7 +48,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       const payload = JSON.stringify({
         requestId: result.id,
         clientName: result.clientName,
-        realm: result.realm,
+        realmName: result.realm,
         validRedirectUris: result.validRedirectUris,
         environments: result.environments,
         publicAccess: result.publicAccess,
@@ -105,6 +105,8 @@ const invokeGithubLambda = async (payload: string) => {
   const lambda = new AWS.Lambda({
     region: 'ca-central-1',
   });
+
+  console.log('invoking lambda-github', payload);
 
   await lambda.invoke(
     {
