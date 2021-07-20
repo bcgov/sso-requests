@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Button from '@button-inc/bcgov-theme/Button';
-import { get, findIndex } from 'lodash';
+import { get, padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests } from 'services/request';
 import { getInstallation } from 'services/keycloak';
@@ -121,7 +121,7 @@ function RequestsPage({ currentUser }: PageProps) {
                           key={request.id}
                           onClick={() => handleSelection(request)}
                         >
-                          <td>{request.id}</td>
+                          <td>{padStart(String(request.id), 8, '0')}</td>
                           <td>{request.projectName}</td>
                           <td>{getStatusDisplayName(request.status || 'draft')}</td>
                           <td>
