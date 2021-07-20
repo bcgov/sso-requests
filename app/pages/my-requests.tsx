@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Button from '@button-inc/bcgov-theme/Button';
-import { get, findIndex } from 'lodash';
+import { get, padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests } from 'services/request';
 import { getInstallation } from 'services/keycloak';
@@ -13,8 +13,8 @@ import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
 import RequestInfoTabs from 'components/RequestInfoTabs';
+import { getStatusDisplayName } from 'utils/status';
 import { PageProps } from 'interfaces/props';
-import type { Status } from 'interfaces/types';
 
 const mediaRules: MediaRule[] = [
   {
@@ -47,22 +47,6 @@ const NavTabs = styled.ul`
     margin-bottom: 0 !important;
   }
 `;
-
-const getStatusDisplayName = (status: Status) => {
-  switch (status) {
-    case 'draft':
-      return 'In Draft';
-    case 'applied':
-      return 'Active Project';
-    case 'submitted':
-    case 'pr':
-    case 'planned':
-    case 'approved':
-      return 'Request Submitted';
-    default:
-      return 'Technical Issues';
-  }
-};
 
 interface RowProps {
   active: boolean;
@@ -137,7 +121,7 @@ function RequestsPage({ currentUser }: PageProps) {
                           key={request.id}
                           onClick={() => handleSelection(request)}
                         >
-                          <td>{request.id}</td>
+                          <td>{padStart(String(request.id), 8, '0')}</td>
                           <td>{request.projectName}</td>
                           <td>{getStatusDisplayName(request.status || 'draft')}</td>
                           <td>

@@ -9,4 +9,6 @@ export type Status =
   | 'applied'
   | 'applyFailed';
 
+export type DisplayStatus = 'In Draft' | 'Active Project' | 'Request Submitted' | 'Technical Issues';
+
 export type Environment = 'dev' | 'test' | 'prod';

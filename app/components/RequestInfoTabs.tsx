@@ -5,6 +5,7 @@ import Alert from '@button-inc/bcgov-theme/Alert';
 import RequestInfoPanel from 'components/RequestInfoPanel';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
+import { getStatusDisplayName } from 'utils/status';
 import type { Environment } from 'interfaces/types';
 
 const environments: { title: string; name: Environment }[] = [
@@ -24,8 +25,18 @@ function RequestInfoTabs() {
     setEnvironment(env);
   };
 
+  const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
+
   let panel = null;
-  if (selectedRequest.status === 'draft') {
+  if (displayStatus === 'In Draft') {
+    panel = (
+      <>
+        <br />
+        <br />
+        <Alert variant="info" content="Your request is in draft. Click the 'edit' button to finish the request." />
+      </>
+    );
+  } else if (displayStatus === 'Request Submitted') {
     panel = (
       <>
         <br />
@@ -36,7 +47,15 @@ function RequestInfoTabs() {
         />
       </>
     );
-  } else if (selectedRequest.status === 'applied') {
+  } else if (displayStatus === 'Technical Issues') {
+    panel = (
+      <>
+        <br />
+        <br />
+        <Alert variant="warning" content="Your request has technical issues. Please contact to the SSO team." />
+      </>
+    );
+  } else if (displayStatus === 'Active Project') {
     panel = (
       <Tabs>
         {environments.map((env) => (
