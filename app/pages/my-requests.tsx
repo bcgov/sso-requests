@@ -13,6 +13,7 @@ import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
 import RequestInfoTabs from 'components/RequestInfoTabs';
+import { PageProps } from 'interfaces/props';
 
 const mediaRules: MediaRule[] = [
   {
@@ -57,15 +58,9 @@ const SelectableRow = styled.tr`
   background-color: ${(props: RowProps) => (props.active ? '#ffed9f' : '#f8f8f8')};
 `;
 
-interface Props {
-  currentUser: {
-    email?: string;
-  };
-}
-
 export const RequestsContext = React.createContext({} as any);
 
-function RequestsPage({ currentUser }: Props) {
+function RequestsPage({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [state, dispatch] = useReducer(reducer, {});

@@ -92,7 +92,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
-      <Component {...pageProps} currentUser={currentUser} />
+      <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
     </Layout>
   );
 }

@@ -3,7 +3,8 @@ import styled from 'styled-components';
 const Title = styled.h2`
   text-transform: uppercase;
 `;
-function Termsandconditions() {
+
+function TermsAndConditions() {
   return (
     <>
       <Title>We&apos;re a Community</Title>
@@ -43,4 +44,4 @@ function Termsandconditions() {
   );
 }
 
-export default Termsandconditions;
+export default TermsAndConditions;
