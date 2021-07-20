@@ -37,6 +37,7 @@ yarn-error.log*
 
 # Local .terraform directories
 **/.terraform/*
+**/local.tfvars
 
 # secret variable files
 **/secrets.tfvars

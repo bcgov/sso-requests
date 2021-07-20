@@ -15,8 +15,6 @@ import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 
-const arrayNames = [];
-
 const getSchema = (formStage: number) => {
   switch (formStage) {
     case 1:
@@ -42,8 +40,6 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
-
-  console.log(request, getSchema(formStage));
 
   const handleChange = (e: any) => {
     setFormData(e.formData);
