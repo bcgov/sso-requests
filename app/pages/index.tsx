@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import styled from 'styled-components';
@@ -6,27 +7,31 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import Card from '@button-inc/bcgov-theme/Card';
 import Link from '@button-inc/bcgov-theme/Link';
 import Button from '@button-inc/bcgov-theme/Button';
-import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
-import { IndexPageProps } from 'interfaces/props';
+import ResponsiveContainer, { MediaRule, defaultRules } from 'components/ResponsiveContainer';
+import { PageProps } from 'interfaces/props';
+import main from 'svg/main';
 
-const mediaRules: MediaRule[] = [
-  {
-    maxWidth: 767,
-  },
-  {
-    maxWidth: 991,
-    width: 723,
-  },
-  {
-    maxWidth: 1199,
-    width: 933,
-  },
-  {
-    width: 1127,
-  },
-];
+const Panel = styled.div`
+  max-width: 450px;
+  margin-bottom: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+`;
 
-export default function Home({ currentUser }: IndexPageProps) {
+const JumbotronH1 = styled.h1`
+  font-size: 3rem;
+`;
+
+const JumbotronP = styled.p`
+  font-size: 2rem;
+`;
+
+const Paragraph = styled.p`
+  font-size: 1.2rem;
+  padding-left: 3.5rem;
+`;
+
+export default function Home({ currentUser, onLoginClick }: PageProps) {
   const router = useRouter();
 
   if (currentUser) {
@@ -41,39 +46,43 @@ export default function Home({ currentUser }: IndexPageProps) {
         <meta name="description" content="The request process workflow tool for the RedHat SSO Dev Exchange service" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <ResponsiveContainer rules={mediaRules}>
-        <Grid cols={3} gutter={[5, 2]}>
+      <ResponsiveContainer rules={defaultRules}>
+        <Grid cols={2} gutter={[5, 2]}>
           <Grid.Row collapse="800">
-            <Grid.Col span={2}>
-              <Card title="SSO Request Form">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-                deserunt mollit anim id est laborum.
+            <Grid.Col>
+              <Panel>
+                <JumbotronH1>Keycloak Vision</JumbotronH1>
+                <JumbotronP>
+                  Provide fast, simple
+                  <br />
+                  and secure access to all BC
+                  <br />
+                  Gov IDPs.
+                </JumbotronP>
+                <NextLink href="/terms-conditions">
+                  <Link size="large">Request SSO project:</Link>
+                </NextLink>
                 <br /> <br />
-                <Button size="small">Click Me!</Button>
+                <Button size="medium" onClick={onLoginClick}>
+                  IDIR/GitHub
+                </Button>
                 <br /> <br />
-                <Link href="#link1">
-                  Do you have any questions? Click here to <strong>ask</strong>
-                </Link>
-              </Card>
+                <NextLink href="/terms-conditions">
+                  <Link size="large">or IDIR/GitHub/BCeID</Link>
+                </NextLink>
+              </Panel>
             </Grid.Col>
             <Grid.Col>
-              <Card title="SSO Request Form">
-                aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-                dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
-                officia deserunt mollit anim id est laborum.
-                <br /> <br />
-                <ul>
-                  <li>
-                    <Link href="#link1" content="link1" />
-                  </li>
-                  <li>
-                    <Link href="#link1" content="link2" />
-                  </li>
-                </ul>
-              </Card>
+              <Panel>
+                {main}
+                <Paragraph>
+                  To learn more about Keycloak <br />
+                  visit the{' '}
+                  <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki" external>
+                    bcgov/ocp-sso
+                  </Link>
+                </Paragraph>
+              </Panel>
             </Grid.Col>
           </Grid.Row>
         </Grid>

@@ -2,10 +2,8 @@ interface User {
   email: string;
 }
 
-export interface IndexPageProps {
+export interface PageProps {
   currentUser: User;
-}
-
-export interface RequestPageProps {
-  currentUser: User;
+  onLoginClick: Function;
+  onLogoutClick: Function;
 }

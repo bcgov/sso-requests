@@ -2,25 +2,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import FormTemplate from 'form-components/FormTemplate';
 import Container from 'components/Container';
-import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
+import ResponsiveContainer, { MediaRule, defaultRules } from 'components/ResponsiveContainer';
 import { getRequest } from 'services/request';
-
-const mediaRules: MediaRule[] = [
-  {
-    maxWidth: 767,
-  },
-  {
-    maxWidth: 991,
-    width: 723,
-  },
-  {
-    maxWidth: 1199,
-    width: 933,
-  },
-  {
-    width: 1127,
-  },
-];
 
 interface Props {
   currentUser: {
@@ -48,7 +31,7 @@ function Request({ currentUser }: Props) {
   if (loading) return null;
 
   return (
-    <ResponsiveContainer rules={mediaRules}>
+    <ResponsiveContainer rules={defaultRules}>
       <Container>
         <FormTemplate currentUser={currentUser || {}} request={request} />
       </Container>

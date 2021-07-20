@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import Button from '@button-inc/bcgov-theme/Button';
@@ -17,14 +18,36 @@ const MainContent = styled.div`
   min-height: calc(100vh - 70px);
 `;
 
-const MenuForGuest = () => (
-  <ul>
-    <li>
-      <Link href="/">
-        <a>About Keycloak</a>
-      </Link>
-    </li>
-  </ul>
+const SubMenu = styled.ul`
+  & a.current {
+    font-weight: bold;
+  }
+
+  & li.current {
+    padding-bottom: 6px;
+    border-bottom: none;
+    background: linear-gradient(orange, orange) bottom /* left or right or else */ no-repeat;
+    background-size: 70% 4px;
+  }
+`;
+
+const GuestRoutes = [
+  { path: '/', label: 'About Keycloak' },
+  { path: '/terms-conditions', label: 'Terms and Conditions' },
+];
+
+const MenuForGuest = ({ currentPath }: { currentPath: string }) => (
+  <SubMenu>
+    {GuestRoutes.map((route) => {
+      return (
+        <li className={currentPath === route.path ? 'current' : ''}>
+          <Link href={route.path}>
+            <a className={currentPath === route.path ? 'current' : ''}>{route.label}</a>
+          </Link>
+        </li>
+      );
+    })}
+  </SubMenu>
 );
 
 const MenuForUser = () => (
@@ -43,6 +66,9 @@ const MenuForUser = () => (
 );
 
 function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
+  const router = useRouter();
+  const pathname = router.pathname;
+
   const rightSide = currentUser ? (
     <LoggedUser>
       Welcome {`${currentUser.given_name} ${currentUser.family_name}`}
@@ -62,7 +88,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
     <>
       <BCSans />
       <Navigation title="" rightSide={rightSide} onBannerClick={console.log}>
-        {currentUser ? <MenuForUser /> : <MenuForGuest />}
+        {currentUser ? <MenuForUser /> : <MenuForGuest currentPath={pathname} />}
       </Navigation>
       <MainContent>{children}</MainContent>
       <Footer>
