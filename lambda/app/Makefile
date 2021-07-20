@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-TARGET := ../../../terraform/app.zip
+TARGET := ../../../terraform/lambda-app.zip
 
 .PHONY: lambda
 lambda:

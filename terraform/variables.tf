@@ -35,13 +35,6 @@ variable "aud" {
   default     = "sso-requests"
 }
 
-variable "target_aws_account_id" {
-  default = ""
-}
-variable "target_env" {
-  default = ""
-}
-
 variable "subnet_a" {
   description = "Value of the name tag for the subnet in AZ a"
   default     = "App_Dev_aza_net"
@@ -80,4 +73,9 @@ variable "gh_branch" {
 variable "gh_secret" {
   description = "secret for comms with gh actions"
   default     = "secret"
+}
+
+variable "local_dev" {
+  description = "whether to run lambda functions in local dev environment"
+  default     = "false"
 }
