@@ -49,6 +49,11 @@ export const up = async ({ context: sequelize }) => {
       field: 'pr_number',
       allowNull: true,
     },
+    actionNumber: {
+      type: DataTypes.INTEGER,
+      field: 'action_number',
+      allowNull: true,
+    },
     createdAt: {
       type: DataTypes.DATE,
       field: 'created_at',
@@ -86,7 +91,7 @@ export const up = async ({ context: sequelize }) => {
     },
     status: {
       type: DataTypes.ENUM,
-      values: ['draft', 'pending', 'submitted', 'approved', 'completed'],
+      values: ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'planFailed', 'approved', 'applied', 'applyFailed'],
       defaultValue: 'draft',
       allowNull: false,
     },

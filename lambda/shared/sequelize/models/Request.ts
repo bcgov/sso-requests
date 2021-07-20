@@ -31,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
+      actionNumber: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
       environments: {
         type: DataTypes.JSONB,
         allowNull: true,
@@ -56,7 +60,15 @@ module.exports = (sequelize, DataTypes) => {
       },
       status: {
         type: DataTypes.ENUM,
-        values: ['draft', 'pending', 'submitted', 'approved', 'completed'],
+        values: ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'planFailed', 'approved', 'applied', 'applyFailed'],
+        // End-user's perspective
+        // values: [
+        //   'draft',
+        //   'submitted',
+        //   'in review',
+        //   'technical issue',
+        //   'completed',
+        // ],
         defaultValue: 'draft',
         allowNull: false,
       },
