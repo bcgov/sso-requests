@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCommentDots, faEnvelope, faFileAlt } from '@fortawesome/free-solid-svg-icons';
 import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
@@ -18,7 +18,15 @@ const MainContent = styled.div`
   min-height: calc(100vh - 70px);
 `;
 
-const SubMenu = styled.ul`
+const SubMenu = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding-left: 2rem;
+  padding-right: 2rem;
+`;
+
+const SubLeftMenu = styled.ul`
   & a.current {
     font-weight: bold;
   }
@@ -31,39 +39,73 @@ const SubMenu = styled.ul`
   }
 `;
 
-const GuestRoutes = [
+const SubRightMenu = styled.ul`
+  padding-right: 2rem;
+`;
+
+const FooterMenu = styled.div`
+  padding-left: 2rem;
+  padding-right: 2rem;
+`;
+
+interface Route {
+  path: string;
+  label: string;
+  user?: boolean;
+  hide?: boolean;
+}
+
+const routes: Route[] = [
   { path: '/', label: 'About Keycloak' },
   { path: '/terms-conditions', label: 'Terms and Conditions' },
+  { path: '/my-requests', label: 'My Projects', user: true },
+  { path: '/request', label: 'New Request', user: true, hide: true },
 ];
 
-const MenuForGuest = ({ currentPath }: { currentPath: string }) => (
-  <SubMenu>
-    {GuestRoutes.map((route) => {
-      return (
-        <li className={currentPath === route.path ? 'current' : ''}>
-          <Link href={route.path}>
-            <a className={currentPath === route.path ? 'current' : ''}>{route.label}</a>
-          </Link>
-        </li>
-      );
-    })}
-  </SubMenu>
+const support = (
+  <SubRightMenu>
+    <li>Need help?</li>
+    <li>
+      <a href="https://chat.developer.gov.bc.ca/" target="_blank">
+        <FontAwesomeIcon size="2x" icon={faCommentDots} />
+      </a>
+    </li>
+    <li>
+      <a href="mailto:Vardhman.Shankar@gov.bc.ca">
+        <FontAwesomeIcon size="2x" icon={faEnvelope} />
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank">
+        <FontAwesomeIcon size="2x" icon={faFileAlt} />
+      </a>
+    </li>
+  </SubRightMenu>
 );
 
-const MenuForUser = () => (
-  <ul>
-    <li>
-      <Link href="/my-requests">
-        <a>My Requests</a>
-      </Link>
-    </li>
-    <li>
-      <Link href="/request">
-        <a>Support</a>
-      </Link>
-    </li>
-  </ul>
-);
+const Menus = ({ currentUser, currentPath }: { currentUser: any; currentPath: string }) => {
+  const isLoggedIn = !!currentUser;
+  const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
+
+  return (
+    <SubMenu>
+      <SubLeftMenu>
+        {routes
+          .filter((route) => !!route.user === isLoggedIn && (!route.hide || isCurrent(route.path)))
+          .map((route) => {
+            return (
+              <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
+                <Link href={route.path}>
+                  <a className={isCurrent(route.path) ? 'current' : ''}>{route.label}</a>
+                </Link>
+              </li>
+            );
+          })}
+      </SubLeftMenu>
+      {support}
+    </SubMenu>
+  );
+};
 
 function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
   const router = useRouter();
@@ -88,21 +130,23 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
     <>
       <BCSans />
       <Navigation title="" rightSide={rightSide} onBannerClick={console.log}>
-        {currentUser ? <MenuForUser /> : <MenuForGuest currentPath={pathname} />}
+        <Menus currentUser={currentUser} currentPath={pathname} />
       </Navigation>
       <MainContent>{children}</MainContent>
       <Footer>
-        <ul>
-          <li>
-            <a href=".">Home</a>
-          </li>
-          <li>
+        <FooterMenu>
+          <ul>
+            <li>
+              <Link href="/">Home</Link>
+            </li>
+            {/* <li>
             <a href=".">Copyright</a>
           </li>
           <li>
             <a href=".">Contact us</a>
-          </li>
-        </ul>
+          </li> */}
+          </ul>
+        </FooterMenu>
       </Footer>
     </>
   );

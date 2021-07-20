@@ -1,5 +1,5 @@
 import { ClientRequest } from 'interfaces/Request';
-import type { Environment } from 'interfaces/Environment';
+import type { Environment } from 'interfaces/types';
 
 export interface RequestReducerState {
   requests?: ClientRequest[];

@@ -12,7 +12,7 @@ import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
 import InstallationModal from './InstallationModal';
 import { ClientRequest } from 'interfaces/Request';
-import type { Environment } from 'interfaces/Environment';
+import type { Environment } from 'interfaces/types';
 
 const StyledList = styled.ul`
   list-style-type: none;

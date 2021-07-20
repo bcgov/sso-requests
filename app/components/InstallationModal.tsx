@@ -6,7 +6,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
 import { getInstallation } from 'services/keycloak';
-import type { Environment } from 'interfaces/Environment';
+import type { Environment } from 'interfaces/types';
 
 const InstallationModal = ({
   requestId,
