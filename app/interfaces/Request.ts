@@ -1,3 +1,4 @@
+import type { Status } from './types';
 export interface ServerRequest {
   agreeWithTerms?: boolean;
   id?: number;
@@ -14,7 +15,7 @@ export interface ServerRequest {
   newToSso?: boolean;
   createdAt?: string;
   updatedAt?: string;
-  status?: 'draft' | 'pending' | 'submitted' | 'approved' | 'completed';
+  status?: Status;
 }
 
 export interface ClientRequest {
@@ -27,7 +28,7 @@ export interface ClientRequest {
   projectLead?: boolean;
   id?: number;
   newToSso?: boolean;
-  status?: 'draft' | 'pending' | 'submitted' | 'approved' | 'completed';
+  status?: Status;
   agreeWithTerms?: boolean;
   prNumber?: number;
   environments?: string[];

@@ -14,21 +14,26 @@ import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
 import RequestInfoTabs from 'components/RequestInfoTabs';
 import { PageProps } from 'interfaces/props';
+import type { Status } from 'interfaces/types';
 
 const mediaRules: MediaRule[] = [
   {
-    maxWidth: 767,
-  },
-  {
-    maxWidth: 991,
-    width: 980,
+    maxWidth: 1000,
+    marginTop: 10,
   },
   {
     maxWidth: 1199,
-    width: 1100,
+    width: 933,
+    marginTop: 20,
+  },
+  {
+    maxWidth: 1440,
+    width: 1127,
+    marginTop: 20,
   },
   {
     width: 1400,
+    marginTop: 20,
   },
 ];
 
@@ -43,11 +48,20 @@ const NavTabs = styled.ul`
   }
 `;
 
-const getProviders = (realm: string) => {
-  const enums: string[] = get(providerSchema, 'properties?.realm.enumNames', []);
-  const enumNames: string[] = get(providerSchema, 'properties?.realm.enumNames', []);
-  const ind = findIndex(enums, (v) => v === realm);
-  return enumNames[ind];
+const getStatusDisplayName = (status: Status) => {
+  switch (status) {
+    case 'draft':
+      return 'In Draft';
+    case 'applied':
+      return 'Active Project';
+    case 'submitted':
+    case 'pr':
+    case 'planned':
+    case 'approved':
+      return 'Request Submitted';
+    default:
+      return 'Technical Issues';
+  }
 };
 
 interface RowProps {
@@ -90,9 +104,7 @@ function RequestsPage({ currentUser }: PageProps) {
     router.push('/request');
   };
 
-  if (loading) return 'loading...';
-
-  const showRightPanel = selectedRequest && selectedRequest.status !== 'draft';
+  if (loading) return 'Loading...';
 
   return (
     <ResponsiveContainer rules={mediaRules}>
@@ -103,7 +115,7 @@ function RequestsPage({ currentUser }: PageProps) {
       <br />
       <br />
       <RequestsContext.Provider value={contextValue}>
-        <Grid cols={showRightPanel ? 2 : 1} gutter={[5, 2]}>
+        <Grid cols={selectedRequest ? 2 : 1} gutter={[5, 2]}>
           <Grid.Row collapse="800">
             <Grid.Col>
               <Title>My Request List</Title>
@@ -127,7 +139,7 @@ function RequestsPage({ currentUser }: PageProps) {
                         >
                           <td>{request.id}</td>
                           <td>{request.projectName}</td>
-                          <td>{request.status}</td>
+                          <td>{getStatusDisplayName(request.status || 'draft')}</td>
                           <td>
                             <ActionButtons request={request} />
                           </td>
@@ -142,7 +154,7 @@ function RequestsPage({ currentUser }: PageProps) {
                 </tbody>
               </Table>
             </Grid.Col>
-            {showRightPanel && (
+            {selectedRequest && (
               <Grid.Col>
                 <RequestInfoTabs />
               </Grid.Col>
