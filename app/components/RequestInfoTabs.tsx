@@ -25,7 +25,7 @@ function RequestInfoTabs() {
     setEnvironment(env);
   };
 
-  const displayStatus = getStatusDisplayName(selectedRequest.status);
+  const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
 
   let panel = null;
   if (displayStatus === 'In Draft') {
