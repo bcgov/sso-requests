@@ -13,6 +13,7 @@ import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
+import { useRouter } from 'next/router';
 
 const getSchema = (formStage: number) => {
   switch (formStage) {
@@ -36,6 +37,9 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   const [formData, setFormData] = useState((request || {}) as ClientRequest);
   const [formStage, setFormStage] = useState(request ? 2 : 1);
   const [loading, setLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   const handleChange = (e: any) => {
     setFormData(e.formData);
@@ -59,6 +63,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
       setLoading(true);
       if (formStage === 1) {
         const { id } = (await createRequest(e.formData)) || {};
+        await router.push(`/request/${id}`);
         setFormData({ ...formData, id });
       } else {
         await updateRequest(e.formData);
@@ -70,9 +75,19 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
     setLoading(false);
   };
 
+  const handleBlur = async (id: string, value: any) => {
+    if (formStage === 1) return;
+    if (request) {
+      setSaving(true);
+      await updateRequest({ ...formData, id: request.id });
+      setSaveMessage(`Last saved at ${new Date().toLocaleString()}`);
+      setSaving(false);
+    }
+  };
+
   return (
     <>
-      <FormHeader formStage={formStage} id={formData.id} />
+      <FormHeader formStage={formStage} id={formData.id} saveMessage={saveMessage} saving={saving} />
       <FormStage currentStage={formStage} />
       {formStage === 3 && <TermsAndConditions />}
       {[1, 2, 3].includes(formStage) ? (
@@ -84,6 +99,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
           ErrorList={() => null}
+          onBlur={handleBlur}
         >
           <FormButtons
             text={{ continue: formStage === 1 ? 'Create File' : 'Next', back: 'Cancel' }}
