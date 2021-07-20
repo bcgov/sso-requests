@@ -26,7 +26,7 @@ const createEvent = async (data) => {
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
   const { headers, body, queryStringParameters } = event;
-  const { prNumber, prSuccess, planSuccess, applySuccess, id } = JSON.parse(body);
+  const { prNumber, prSuccess, planSuccess, applySuccess, id, actionNumber } = JSON.parse(body);
   const { Authorization } = headers;
   // if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
 
@@ -39,15 +39,28 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
 
   try {
     if (status === 'create') {
+      const status = String(prSuccess) === 'true' ? 'pr' : 'prFailed';
       await Promise.all([
-        models.request.update({ prNumber }, { where: { id } }),
+        models.request.update({ prNumber, status, actionNumber }, { where: { id } }),
         createEvent({ eventCode: `request-pr-${prSuccess}`, requestId: id }),
       ]);
     } else {
       // After creation, gh action only has prNumber to reference request. Using this to grab the requestId first
       const { id: requestId } = await models.request.findOne({ where: { prNumber } });
-      if (status === 'plan') await createEvent({ eventCode: `request-plan-${planSuccess}`, requestId });
-      else if (status === 'apply') await createEvent({ eventCode: `request-apply-${applySuccess}`, requestId });
+      if (status === 'plan') {
+        const status = String(planSuccess) === 'true' ? 'plan' : 'planFailed';
+        await Promise.all([
+          models.request.update({ status }, { where: { id: requestId } }),
+          createEvent({ eventCode: `request-plan-${planSuccess}`, requestId }),
+        ]);
+      }
+      if (status === 'apply') {
+        const status = String(applySuccess) === 'true' ? 'applied' : 'applyFailed';
+        await Promise.all([
+          models.request.update({ status }, { where: { id: requestId } }),
+          createEvent({ eventCode: `request-apply-${planSuccess}`, requestId }),
+        ]);
+      }
     }
     response.statusCode = 200;
     response.body = '{"success": true}';
