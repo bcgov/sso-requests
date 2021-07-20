@@ -41,7 +41,6 @@ export const getRequests = async () => {
 
 export const updateRequest = async (data: ClientRequest, previousData?: ClientRequest, submit = false) => {
   const preparedData = prepareRequest(data, previousData);
-  console.log('processed data is', data);
   const config = getAuthConfig();
 
   try {
