@@ -24,7 +24,7 @@ function RequestInfoTabs() {
     setEnvironment(env);
   };
 
-  let panel;
+  let panel = null;
   if (selectedRequest.status === 'draft') {
     panel = (
       <>
