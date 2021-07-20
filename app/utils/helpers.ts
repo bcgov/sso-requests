@@ -97,28 +97,31 @@ export const processRequest = (request: ServerRequest): ClientRequest => {
   const { agreeWithTerms, id, projectName, realm, validRedirectUris, prNumber, environments, createdAt, status } =
     request;
 
-  let devRedirectUrls: string[] = [],
-    testRedirectUrls: string[] = [],
-    prodRedirectUrls: string[] = [];
+  let devRedirectUrls: string[] | undefined,
+    testRedirectUrls: string[] | undefined,
+    prodRedirectUrls: string[] | undefined;
 
   if (validRedirectUris) {
-    devRedirectUrls = validRedirectUris?.dev || [];
-    testRedirectUrls = validRedirectUris?.test || [];
-    prodRedirectUrls = validRedirectUris?.prod || [];
+    devRedirectUrls = validRedirectUris?.dev;
+    testRedirectUrls = validRedirectUris?.test;
+    prodRedirectUrls = validRedirectUris?.prod;
   }
-  const processedRequest = {
+
+  const processedRequest: ClientRequest = {
     agreeWithTerms,
     id,
     projectName,
-    realm,
-    devRedirectUrls,
-    testRedirectUrls,
-    prodRedirectUrls,
     prNumber,
     environments,
     createdAt,
     status,
   };
+
+  if (devRedirectUrls) processedRequest.devRedirectUrls = devRedirectUrls;
+  if (testRedirectUrls) processedRequest.testRedirectUrls = testRedirectUrls;
+  if (prodRedirectUrls) processedRequest.prodRedirectUrls = prodRedirectUrls;
+  if (realm) processedRequest.realm = realm;
+
   return processedRequest;
 };
 
