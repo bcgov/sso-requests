@@ -149,9 +149,9 @@ export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest
   }
 
   const newData: ServerRequest = {
+    ...rest,
     environments: formattedEnvironments,
     validRedirectUris: formattedValidRedirectUris,
-    ...rest,
   };
   return newData;
 };
