@@ -59,8 +59,17 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: false,
       },
       status: {
-        type: DataTypes.ENUM,
-        values: ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'planFailed', 'approved', 'applied', 'applyFailed'],
+        type: DataTypes.ENUM(
+          'draft',
+          'submitted',
+          'pr',
+          'prFailed',
+          'planned',
+          'planFailed',
+          'approved',
+          'applied',
+          'applyFailed'
+        ),
         // End-user's perspective
         // values: [
         //   'draft',

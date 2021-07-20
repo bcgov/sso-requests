@@ -10,6 +10,7 @@ async function main() {
   const result = await models.request.create({
     idirUserid: '1',
     projectName: 'testproject',
+    clientName: 'test-project',
     realm: 'onestopauth',
     validRedirectUris: [],
     environments: [],

@@ -90,8 +90,17 @@ export const up = async ({ context: sequelize }) => {
       defaultValue: false,
     },
     status: {
-      type: DataTypes.ENUM,
-      values: ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'planFailed', 'approved', 'applied', 'applyFailed'],
+      type: DataTypes.ENUM(
+        'draft',
+        'submitted',
+        'pr',
+        'prFailed',
+        'planned',
+        'planFailed',
+        'approved',
+        'applied',
+        'applyFailed'
+      ),
       defaultValue: 'draft',
       allowNull: false,
     },
