@@ -53,7 +53,7 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
         id: selectedRequest.id,
       },
       selectedRequest,
-      true
+      true,
     );
     dispatch({ type: 'setUpdatingUrls', payload: false });
     dispatch({ type: 'setEditingRequest', payload: false });

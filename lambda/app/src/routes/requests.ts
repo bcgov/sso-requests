@@ -123,6 +123,6 @@ const invokeGithubLambda = async (payload: string) => {
       if (err) {
         console.error(err);
       }
-    }
+    },
   );
 };

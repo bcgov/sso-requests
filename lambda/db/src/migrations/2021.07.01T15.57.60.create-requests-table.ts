@@ -99,7 +99,7 @@ export const up = async ({ context: sequelize }) => {
         'planFailed',
         'approved',
         'applied',
-        'applyFailed'
+        'applyFailed',
       ),
       defaultValue: 'draft',
       allowNull: false,

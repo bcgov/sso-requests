@@ -8,11 +8,11 @@ const jwkToPem = require('jwk-to-pem');
 const getConfiguration = async () => {
   const { issuer, jwks_uri } = await axios.get(configurationEndpoint).then(
     (res) => res.data,
-    () => null
+    () => null,
   );
   const jwk = await axios.get(jwks_uri).then(
     (res) => res.data,
-    () => null
+    () => null,
   );
   return { jwk, issuer };
 };
