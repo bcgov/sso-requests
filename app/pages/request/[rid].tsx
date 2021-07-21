@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import FormTemplate from 'form-components/FormTemplate';
-import ResponsiveContainer, { MediaRule, requestPageRules } from 'components/ResponsiveContainer';
+import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { getRequest } from 'services/request';
 import Loader from 'react-loader-spinner';
 import styled from 'styled-components';
+
+const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 const LoaderContainer = styled.div`
   display: flex;

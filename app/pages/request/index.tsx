@@ -1,6 +1,7 @@
-import { useRouter } from 'next/router';
 import FormTemplate from 'form-components/FormTemplate';
-import ResponsiveContainer, { MediaRule, requestPageRules } from 'components/ResponsiveContainer';
+import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
+
+const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 interface Props {
   currentUser: {
@@ -9,8 +10,6 @@ interface Props {
 }
 
 function Request({ currentUser }: Props) {
-  const router = useRouter();
-
   return (
     <ResponsiveContainer rules={requestPageRules}>
       <FormTemplate currentUser={currentUser || {}} />
