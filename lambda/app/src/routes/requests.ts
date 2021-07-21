@@ -39,18 +39,6 @@ export const createRequest = async (session: Session, data: Data) => {
   }
 };
 
-// 'draft',
-// 'applied',
-
-// 'submitted',
-// 'pr',
-// 'prFailed',
-// 'planned',
-// 'planFailed',
-// 'approved',
-
-// 'applyFailed',
-
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
   try {
     const { id, ...rest } = data;
