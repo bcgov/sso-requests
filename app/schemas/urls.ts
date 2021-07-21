@@ -1,4 +1,5 @@
 import { getPropertyName } from 'utils/helpers';
+import { urlPattern as pattern } from './providers';
 
 export default function getSchema(env: string | undefined, defaultUrls: string[]) {
   const name = getPropertyName(env);
@@ -7,8 +8,8 @@ export default function getSchema(env: string | undefined, defaultUrls: string[]
     properties: {
       [name]: {
         type: 'array',
-        items: { type: 'string', format: 'url' },
-        additionalItems: { type: 'string' },
+        items: { type: 'string', pattern },
+        additionalItems: { type: 'string', pattern },
         default: defaultUrls,
       },
     },

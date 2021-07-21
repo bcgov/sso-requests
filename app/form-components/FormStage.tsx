@@ -1,18 +1,9 @@
 import FormStageBox from 'form-components/FormStageBox';
-import styled from 'styled-components';
+import Grid from '@button-inc/bcgov-theme/Grid';
 
 interface Props {
   currentStage: number;
 }
-
-const Container = styled.div`
-  display: flex;
-  margin: 0 0 20px 0;
-
-  & > * {
-    margin-right: 10px;
-  }
-`;
 
 const stages = [
   { title: 'Requester Info', number: 1 },
@@ -23,15 +14,19 @@ const stages = [
 
 export default function Formstage({ currentStage }: Props) {
   return (
-    <Container>
-      {stages.map((stage) => (
-        <FormStageBox
-          title={stage.title}
-          stageNumber={stage.number}
-          active={stage.number === currentStage}
-          key={stage.number}
-        />
-      ))}
-    </Container>
+    <Grid cols={4}>
+      <Grid.Row collapse="1000">
+        {stages.map((stage) => (
+          <Grid.Col>
+            <FormStageBox
+              title={stage.title}
+              stageNumber={stage.number}
+              active={stage.number === currentStage}
+              key={stage.number}
+            />
+          </Grid.Col>
+        ))}
+      </Grid.Row>
+    </Grid>
   );
 }

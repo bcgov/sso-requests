@@ -125,7 +125,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
           onBlur={handleBlur}
         >
           <FormButtons
-            text={{ continue: formStage === 1 ? 'Create File' : 'Next', back: 'Cancel' }}
+            text={{ continue: 'Next', back: 'Cancel' }}
             show={formStage !== 1 || formData.projectLead}
             loading={loading}
             handleBackClick={handleBackClick}
