@@ -9,11 +9,30 @@ import uiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
 import { ClientRequest } from 'interfaces/Request';
 import Modal from '@button-inc/bcgov-theme/Modal';
+import Button from '@button-inc/bcgov-theme/Button';
 import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
+import styled from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
+
+const CenteredModal = styled(Modal)`
+  display: flex;
+  align-items: center;
+
+  & .pg-modal-main {
+    margin: auto;
+  }
+`;
+
+const ModalButton = styled(Button)`
+  display: block;
+  margin: 10px;
+  margin-left: auto;
+`;
 
 const getSchema = (formStage: number) => {
   switch (formStage) {
@@ -55,7 +74,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   }, [currentUser]);
 
   const handleBackClick = () => {
-    if (formStage > 1) setFormStage(formStage - 1);
+    router.push('/my-requests');
   };
 
   const handleSubmit = async (e: any) => {
@@ -85,6 +104,10 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
     }
   };
 
+  const handleModalClose = () => {
+    window.location.hash = '#';
+  };
+
   return (
     <>
       <FormHeader formStage={formStage} id={formData.id} saveMessage={saveMessage} saving={saving} />
@@ -112,16 +135,20 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
         <FormReview formData={formData} setFormStage={setFormStage} />
       )}
       {formStage === 1 && (
-        <Modal id="modal">
+        <CenteredModal id="modal">
           <Modal.Header>
-            Information <Modal.Close>Close</Modal.Close>
+            Information{' '}
+            <Modal.Close>
+              <FontAwesomeIcon icon={faWindowClose} size="2x" role="button" aria-label="close" />
+            </Modal.Close>
           </Modal.Header>
           <Modal.Content>
-            We cannot process realm requests except for individuals with the product owner, project admin or team lead
-            role. Please get in touch with individuals with these roles in your organization to make this request for
-            you.
+            We can only process access requests submittted by{' '}
+            <strong>product owners, project admin or team leads</strong>. If you are not acting in one of these roles,
+            please get in touch with these individuals in your organization to make the request for you.
+            <ModalButton onClick={handleModalClose}>Okay</ModalButton>
           </Modal.Content>
-        </Modal>
+        </CenteredModal>
       )}
     </>
   );

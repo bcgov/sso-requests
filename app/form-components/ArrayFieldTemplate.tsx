@@ -3,8 +3,11 @@ import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 
 const FieldContainer = styled.div`
-  display: grid;
-  grid-template-columns: 4fr 1fr;
+  display: flex;
+`;
+
+const Description = styled.p`
+  margin: 0;
 `;
 
 const AddContainer = styled.div`
@@ -31,9 +34,11 @@ const StyledP = styled.p`
 
 export default function ArrayFieldTemplate(props: any) {
   const { TitleField, title } = props;
+  const { description } = props.schema;
   return (
     <div>
       <TitleField title={title}>{title}</TitleField>
+      {description && <Description>{description}</Description>}
       {props.items.map((element: any) => {
         return (
           <>
@@ -43,7 +48,7 @@ export default function ArrayFieldTemplate(props: any) {
                 {element.index > 0 && (
                   <RemoveContainer onClick={element.onDropIndexClick(element.index)}>
                     <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} size="2x" />
-                    <StyledP>Remove URL</StyledP>
+                    <StyledP>Remove URI</StyledP>
                   </RemoveContainer>
                 )}
               </FieldContainer>
@@ -54,7 +59,7 @@ export default function ArrayFieldTemplate(props: any) {
       {props.canAdd && (
         <AddContainer onClick={props.onAddClick}>
           <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} onClick={props.onAddClick} size="2x" />
-          <StyledP>Add another URL</StyledP>
+          <StyledP>Add another URI</StyledP>
         </AddContainer>
       )}
     </div>

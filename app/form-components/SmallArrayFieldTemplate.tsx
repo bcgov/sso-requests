@@ -51,7 +51,7 @@ export default function ArrayFieldTemplate(props: any) {
       {props.canAdd && (
         <AddContainer onClick={props.onAddClick}>
           <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} onClick={props.onAddClick} />
-          <StyledP>Add another URL</StyledP>
+          <StyledP>Add another URI</StyledP>
         </AddContainer>
       )}
     </div>
