@@ -52,7 +52,8 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
         ...e.formData,
         id: selectedRequest.id,
       },
-      selectedRequest
+      selectedRequest,
+      true
     );
     dispatch({ type: 'setUpdatingUrls', payload: false });
     dispatch({ type: 'setEditingRequest', payload: false });
