@@ -7,7 +7,7 @@ import getSchema from 'schemas/urls';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { getRedirectUrlPropertyNameByEnv } from 'utils/helpers';
-import ArrayFieldTemplate from 'form-components/SmallArrayFieldTemplate';
+import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
 import InstallationModal from './InstallationModal';
