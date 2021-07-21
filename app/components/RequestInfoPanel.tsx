@@ -12,6 +12,8 @@ import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
 import InstallationModal from './InstallationModal';
 import { ClientRequest } from 'interfaces/Request';
+import { $setEditingRequest, $setUpdatingUrls, $updateRequest } from 'dispatchers/requestDispatcher';
+
 import type { Environment } from 'interfaces/types';
 
 const StyledList = styled.ul`
@@ -37,15 +39,12 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
   const [schema, setSchema] = useState({});
 
   const handleCancel = () => {
-    dispatch({ type: 'setEditingRequest', payload: false });
+    dispatch($setEditingRequest(false));
   };
 
   const handleSubmit = async (e: any, schema: any) => {
-    dispatch({ type: 'setUpdatingUrls', payload: true });
-    dispatch({
-      type: 'updateRequest',
-      payload: { ...e.formData, id: selectedRequest.id },
-    });
+    dispatch($setUpdatingUrls(true));
+    dispatch($updateRequest({ ...e.formData, id: selectedRequest.id }));
 
     const result = await updateRequest(
       {
@@ -55,8 +54,9 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
       selectedRequest,
       true,
     );
-    dispatch({ type: 'setUpdatingUrls', payload: false });
-    dispatch({ type: 'setEditingRequest', payload: false });
+
+    dispatch($setUpdatingUrls(false));
+    dispatch($setEditingRequest(false));
   };
 
   // TODO: slight ui glitch where panel re-renders with old schema before useEffect runs on submission

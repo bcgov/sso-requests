@@ -14,6 +14,7 @@ import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
 import RequestInfoTabs from 'components/RequestInfoTabs';
 import { getStatusDisplayName } from 'utils/status';
+import { $setRequests, $setRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 
 const mediaRules: MediaRule[] = [
@@ -72,7 +73,7 @@ function RequestsPage({ currentUser }: PageProps) {
     const getData = async () => {
       setLoading(true);
       const data = (await getRequests()) || {};
-      dispatch({ type: 'setRequests', payload: data });
+      dispatch($setRequests(data));
       setLoading(false);
     };
     getData();
@@ -80,8 +81,7 @@ function RequestsPage({ currentUser }: PageProps) {
 
   const handleSelection = async (request: ClientRequest) => {
     if (selectedRequest?.id === request.id) return;
-
-    dispatch({ type: 'setRequest', payload: request });
+    dispatch($setRequest(request));
   };
 
   const handleNewClick = async () => {

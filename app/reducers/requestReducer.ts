@@ -10,9 +10,9 @@ export interface RequestReducerState {
   updatingUrls?: boolean;
 }
 
-type ActionTypes = 'setRequests' | 'setRequest' | 'setEditingRequest' | 'setUpdatingUrls' | 'updateRequest';
+export type ActionTypes = 'setRequests' | 'setRequest' | 'setEditingRequest' | 'setUpdatingUrls' | 'updateRequest';
 
-interface Action {
+export interface Action {
   type: ActionTypes;
   payload?: any;
 }
