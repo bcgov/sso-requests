@@ -4,6 +4,24 @@
 
 import { isEqual } from 'lodash';
 import { ClientRequest, ServerRequest } from 'interfaces/Request';
+// @ts-ignore
+import validate from 'react-jsonschema-form/lib/validate';
+import requesterSchema from 'schemas/requester-info';
+import providerSchema from 'schemas/providers';
+import termsAndConditionsSchema from 'schemas/terms-and-conditions';
+
+export const validateForm = (formData: any) => {
+  const { errors: firstPageErrors } = validate(formData, requesterSchema);
+  const { errors: secondPageErrors } = validate(formData, providerSchema);
+  const { errors: thirdPageErrors } = validate(formData, termsAndConditionsSchema);
+  const allValid = firstPageErrors.length === 0 && secondPageErrors.length === 0 && thirdPageErrors.length === 0;
+  if (allValid) return true;
+  return {
+    firstPageErrors,
+    secondPageErrors,
+    thirdPageErrors,
+  };
+};
 
 // Convert Payload from Base64-URL to JSON
 export const decodePayload = (payload: string) => {

@@ -5,6 +5,7 @@ import { realmToIDP } from 'utils/helpers';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
+import { validateForm } from 'utils/helpers';
 
 const Table = styled.table`
   & > tr {
@@ -29,15 +30,19 @@ const formatBoolean = (value?: boolean) => {
 
 interface Props {
   formData: ClientRequest;
-  setFormStage: Function;
+  setErrors: Function;
 }
 
-export default function FormReview({ formData, setFormStage }: Props) {
+export default function FormReview({ formData, setErrors }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async () => {
     try {
+      const valid = validateForm(formData);
+      if (valid !== true) {
+        return setErrors(valid);
+      }
       setLoading(true);
       await updateRequest({ ...formData, status: 'submitted' }, undefined, true);
       setLoading(false);
