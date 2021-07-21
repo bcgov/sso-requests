@@ -11,8 +11,7 @@ const Description = styled.p`
 `;
 
 const AddContainer = styled.div`
-  display: flex;
-  align-items: start;
+  display: inline-block;
   &:hover {
     cursor: pointer;
   }
@@ -24,6 +23,7 @@ const RemoveContainer = styled(AddContainer)`
 `;
 
 const StyledP = styled.p`
+  display: inline-block;
   margin: 0;
   margin-top: 5px;
   font-size: 16px;
@@ -35,9 +35,10 @@ const StyledP = styled.p`
 export default function ArrayFieldTemplate(props: any) {
   const { TitleField, title } = props;
   const { description } = props.schema;
+
   return (
     <div>
-      <TitleField title={title}>{title}</TitleField>
+      {title && <TitleField title={title}>{title}</TitleField>}
       {description && <Description>{description}</Description>}
       {props.items.map((element: any) => {
         return (
@@ -47,8 +48,8 @@ export default function ArrayFieldTemplate(props: any) {
                 {element.children}
                 {element.index > 0 && (
                   <RemoveContainer onClick={element.onDropIndexClick(element.index)}>
-                    <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} size="2x" />
-                    <StyledP>Remove URI</StyledP>
+                    <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} />
+                    {title && <StyledP>Remove URI</StyledP>}
                   </RemoveContainer>
                 )}
               </FieldContainer>
@@ -58,7 +59,7 @@ export default function ArrayFieldTemplate(props: any) {
       })}
       {props.canAdd && (
         <AddContainer onClick={props.onAddClick}>
-          <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} onClick={props.onAddClick} size="2x" />
+          <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} onClick={props.onAddClick} />
           <StyledP>Add another URI</StyledP>
         </AddContainer>
       )}
