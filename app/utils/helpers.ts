@@ -187,7 +187,6 @@ export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest
 
 export const transformErrors = (errors: any) => {
   return errors.map((error: any) => {
-    console.log(error);
     if (error.property === '.agreeWithTerms') error.message = 'You must agree to the terms to submit a request.';
     else if (error.property.includes('RedirectUrls'))
       error.message = 'Please enter a valid url, including an http:// or https:// prefix.';
