@@ -11,6 +11,13 @@ const handleError = (err: string) => {
   };
 };
 
+const unauthorized = () => {
+  return {
+    statusCode: 401,
+    body: JSON.stringify('unauthorized request'),
+  };
+};
+
 export const createRequest = async (session: Session, data: Data) => {
   try {
     const { projectName, projectLead, preferredEmail, newToSso, publicAccess } = data;
@@ -35,10 +42,29 @@ export const createRequest = async (session: Session, data: Data) => {
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
   try {
     const { id, ...rest } = data;
-    // TODO: check all required fields exists if updating status
-    const allowedFields = omit(rest, ['idirUserid', 'projectName', 'clientName']);
+    const original = await models.request.findOne({
+      attributes: ['status'],
+      where: {
+        idirUserid: session.idir_userid,
+        id,
+      },
+    });
 
-    const result = await models.request.update(allowedFields, {
+    if (!original) {
+      return unauthorized();
+    }
+
+    if (!['draft', 'applied'].includes(original.status)) {
+      return unauthorized();
+    }
+
+    const allowedData = omit(rest, ['idirUserid', 'projectName', 'clientName', 'status']);
+
+    if (submit) {
+      allowedData.status = 'submitted';
+    }
+
+    const result = await models.request.update(allowedData, {
       where: { id },
       returning: true,
       plain: true,

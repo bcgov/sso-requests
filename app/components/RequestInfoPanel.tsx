@@ -6,7 +6,7 @@ import Form from 'form-components/GovForm';
 import getSchema from 'schemas/urls';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { getPropertyName } from 'utils/helpers';
+import { getRedirectUrlPropertyNameByEnv } from 'utils/helpers';
 import ArrayFieldTemplate from 'form-components/SmallArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
@@ -35,7 +35,7 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
   const selectedRequest = (sRequest || {}) as ClientRequest;
 
   // @ts-ignore
-  const redirectUris = selectedRequest[getPropertyName(environment)];
+  const redirectUris = selectedRequest[getRedirectUrlPropertyNameByEnv(environment)];
   const [schema, setSchema] = useState({});
 
   const handleCancel = () => {
@@ -62,7 +62,7 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
   // TODO: slight ui glitch where panel re-renders with old schema before useEffect runs on submission
   useEffect(() => {
     // @ts-ignore
-    const validRedirectUris = selectedRequest[getPropertyName(environment)];
+    const validRedirectUris = selectedRequest[getRedirectUrlPropertyNameByEnv(environment)];
     const schema = getSchema(environment, validRedirectUris);
     setSchema(getSchema(environment, validRedirectUris));
   }, [environment, requests, selectedRequest, updatingUrls]);
