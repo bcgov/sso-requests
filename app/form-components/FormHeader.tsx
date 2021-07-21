@@ -25,7 +25,7 @@ interface Props {
 export default function Formheader({ formStage, id, saveMessage, saving }: Props) {
   const titles = [
     'Enter requester information',
-    `Req ID: ${id} - Choose providers and provide URLs`,
+    `Req ID: ${id} - Choose providers and provide URIs`,
     `Req ID: ${id} - Terms and Conditions`,
     `Req ID: ${id} - Review and Submit`,
   ];

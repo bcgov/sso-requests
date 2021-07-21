@@ -27,6 +27,7 @@ export const defaultRules: MediaRule[] = [
     marginTop: 80,
   },
 ];
+export const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 const Container = styled.div<{ rules: MediaRule[] }>`
   display: block;

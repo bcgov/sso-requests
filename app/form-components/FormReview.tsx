@@ -4,36 +4,33 @@ import FormButtons from 'form-components/FormButtons';
 import { realmToIDP } from 'utils/helpers';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
+import styled from 'styled-components';
 
-const formFields = [
-  { index: 'projectLead', title: 'Are you the product owner or project admin/team lead?' },
-  { index: 'preferredEmail', title: 'Business Email Address' },
-  { index: 'projectName', title: 'Project Name' },
-  { index: 'newToSso', title: 'Are you new to Single Sign-On (Keycloak)?' },
-  { index: 'realm', title: 'Identity Providers' },
-  { index: 'devRedirectUrls', title: 'Dev Redirect URLs' },
-  { index: 'testRedirectUrls', title: 'Test Redirect URLs' },
-  { index: 'prodRedirectUrls', title: 'Prod Redirect URLs' },
-];
+const Table = styled.table`
+  & > tr {
+    display: flex;
+    & > td {
+      border: none;
+    }
+  }
+`;
+
+const Divider = styled.hr`
+  margin: 20px 0;
+  max-width: 500px;
+  background-color: #e3e3e3;
+  height: 2px !important;
+`;
+
+const formatBoolean = (value?: boolean) => {
+  if (value === undefined) return '';
+  return value ? 'Yes' : 'No';
+};
 
 interface Props {
   formData: ClientRequest;
   setFormStage: Function;
 }
-
-const getFormFieldDisplayName = (formField: any, formData: any) => {
-  let formInput = formData[formField.index];
-  if (Array.isArray(formInput)) {
-    formInput = JSON.stringify(formInput);
-  }
-  if (typeof formInput === 'boolean') {
-    formInput = String(formInput);
-  }
-  if (formField.index === 'realm') {
-    formInput = realmToIDP(formInput);
-  }
-  return formInput;
-};
 
 export default function FormReview({ formData, setFormStage }: Props) {
   const [loading, setLoading] = useState(false);
@@ -50,25 +47,71 @@ export default function FormReview({ formData, setFormStage }: Props) {
     }
   };
 
+  const handleBackClick = () => {
+    router.push('/my-requests');
+  };
+
   return (
     <>
-      <table>
-        {formFields.map((formField) => {
-          const displayName = getFormFieldDisplayName(formField, formData);
-          return (
-            <tr key={formField.title}>
-              <td>{formField.title}</td>
-              <td>{displayName}</td>
-            </tr>
-          );
-        })}
-      </table>
+      <Table>
+        <tr>
+          <td>Are you the product owner or project admin/team lead?</td>
+          <td>
+            <strong>{formatBoolean(formData?.projectLead)}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Project Name:</td>
+          <td>
+            <strong>{formData?.projectName}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Have you requested an SSO project before?</td>
+          <td>
+            <strong>{formatBoolean(formData?.newToSso)}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Preferred email address:</td>
+          <td>
+            <strong>{formData?.preferredEmail}</strong>
+          </td>
+        </tr>
+
+        <Divider />
+
+        <tr>
+          <td>Identity providers required:</td>
+          <td>
+            <strong>{realmToIDP(formData?.realm)}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Dev redirect URIs:</td>
+          <td>
+            <strong>{JSON.stringify(formData?.devRedirectUrls)}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Test redirect URIs:</td>
+          <td>
+            <strong>{JSON.stringify(formData?.testRedirectUrls)}</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Prod redirect URIs:</td>
+          <td>
+            <strong>{JSON.stringify(formData?.prodRedirectUrls)}</strong>
+          </td>
+        </tr>
+      </Table>
       <FormButtons
         text={{ continue: 'Submit', back: 'Cancel' }}
         show={true}
         loading={loading}
         handleSubmit={handleSubmit}
-        handleBackClick={() => setFormStage(3)}
+        handleBackClick={handleBackClick}
       />
     </>
   );

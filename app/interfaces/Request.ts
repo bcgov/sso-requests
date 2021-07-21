@@ -11,6 +11,7 @@ export interface ServerRequest {
     prod?: string[];
   };
   prNumber?: number;
+  projectLead?: boolean;
   environments?: string[];
   newToSso?: boolean;
   createdAt?: string;

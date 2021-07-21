@@ -18,14 +18,26 @@ const PaddedButton = styled(Button)`
   min-width: 150px;
 `;
 
+const CancelButton = styled(Button)`
+  min-width: 150px;
+  background-color: #b2b2b2;
+  color: white;
+  box-shadow: none !important;
+
+  &:hover {
+    box-shadow: 0px 0px 0px 2px #006fc4 inset !important;
+    background-color: #b2b2b2;
+  }
+`;
+
 export default function FormButtons({ show, loading, text, handleSubmit, handleBackClick }: Props) {
   return (
     <>
       {show && (
         <>
-          <Button variant="secondary" size="small" type="button" onClick={handleBackClick}>
+          <CancelButton variant="secondary" size="small" type="button" onClick={handleBackClick}>
             {text.back}
-          </Button>
+          </CancelButton>
           <PaddedButton variant="primary" size="small" onClick={handleSubmit}>
             {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
           </PaddedButton>

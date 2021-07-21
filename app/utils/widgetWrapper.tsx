@@ -67,7 +67,7 @@ const Wrapper = (Component, inputType: string = '') => {
       );
     }
     return (
-      <Component {...formProps} fullWidth onBlur={onBlur && ((event) => onBlur(id, event.target.value))}>
+      <Component {...formProps} onBlur={onBlur && ((event) => onBlur(id, event.target.value))}>
         {enumOptions &&
           enumOptions.map(({ value, label }) => {
             return (

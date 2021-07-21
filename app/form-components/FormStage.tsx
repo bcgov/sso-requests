@@ -16,7 +16,7 @@ const Container = styled.div`
 
 const stages = [
   { title: 'Requester Info', number: 1 },
-  { title: "Providers and URL's", number: 2 },
+  { title: "Providers and URI's", number: 2 },
   { title: 'Terms and conditions', number: 3 },
   { title: 'Review & Submit', number: 4 },
 ];

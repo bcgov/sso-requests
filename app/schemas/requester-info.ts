@@ -5,6 +5,7 @@ export default {
   properties: {
     projectLead: { type: 'boolean', title: 'Are you the product owner or project admin/team lead?' },
   },
+  required: ['projectLead', 'publicAccess', 'projectName', 'preferredEmail'],
   dependencies: {
     projectLead: {
       oneOf: [
@@ -16,7 +17,7 @@ export default {
         {
           properties: {
             projectLead: { enum: [true] },
-            preferredEmail: { type: 'string', title: 'Business Email Address' },
+            newToSso: { type: 'boolean', title: 'Have you requested an SSO project before?' },
             publicAccess: {
               type: 'string',
               title: 'Choose client type',
@@ -24,7 +25,7 @@ export default {
               enumNames: ['Public', 'Confidential'],
             },
             projectName: { type: 'string', title: 'Project Name' },
-            newToSso: { type: 'boolean', title: 'Are you new to Single Sign-On (Keycloak)?' },
+            preferredEmail: { type: 'string', title: 'Preferred Email Address' },
           },
         },
       ],

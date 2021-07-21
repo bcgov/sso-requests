@@ -1,9 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import FormTemplate from 'form-components/FormTemplate';
-import Container from 'components/Container';
-import ResponsiveContainer, { MediaRule, defaultRules } from 'components/ResponsiveContainer';
+import ResponsiveContainer, { MediaRule, requestPageRules } from 'components/ResponsiveContainer';
 import { getRequest } from 'services/request';
+import Loader from 'react-loader-spinner';
+import styled from 'styled-components';
+
+const LoaderContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  & p {
+    margin-top: 10px;
+  }
+`;
 
 interface Props {
   currentUser: {
@@ -28,13 +40,16 @@ function Request({ currentUser }: Props) {
     getData();
   }, [rid]);
 
-  if (loading) return null;
-
   return (
-    <ResponsiveContainer rules={defaultRules}>
-      <Container>
+    <ResponsiveContainer rules={requestPageRules}>
+      {loading ? (
+        <LoaderContainer>
+          <Loader type="Grid" color="#000" height={45} width={45} visible />
+          <p>Loading information...</p>
+        </LoaderContainer>
+      ) : (
         <FormTemplate currentUser={currentUser || {}} request={request} />
-      </Container>
+      )}
     </ResponsiveContainer>
   );
 }

@@ -77,7 +77,7 @@ export const idpToRealm = (idp: string[]) => {
   return null;
 };
 
-export const realmToIDP = (realm: string) => {
+export const realmToIDP = (realm?: string) => {
   let idps: string[] = [];
   if (realm === 'onestopauth') idps = ['github', 'idir'];
   if (realm === 'onestopauth-basic') idps = ['github', 'idir', 'bceid-basic'];
@@ -94,8 +94,19 @@ export const getPropertyName = (env: string | undefined) => {
 };
 
 export const processRequest = (request: ServerRequest): ClientRequest => {
-  const { agreeWithTerms, id, projectName, realm, validRedirectUris, prNumber, environments, createdAt, status } =
-    request;
+  const {
+    agreeWithTerms,
+    id,
+    projectName,
+    realm,
+    validRedirectUris,
+    prNumber,
+    environments,
+    createdAt,
+    status,
+    newToSso,
+    projectLead,
+  } = request;
 
   let devRedirectUrls: string[] | undefined,
     testRedirectUrls: string[] | undefined,
@@ -115,6 +126,8 @@ export const processRequest = (request: ServerRequest): ClientRequest => {
     environments,
     createdAt,
     status,
+    newToSso,
+    projectLead,
   };
 
   if (devRedirectUrls) processedRequest.devRedirectUrls = devRedirectUrls;
