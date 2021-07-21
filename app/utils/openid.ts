@@ -74,3 +74,22 @@ export const getAccessToken = async ({ code, state }: { code: string; state: str
 
   return axios(config).then((res) => res.data, console.error);
 };
+
+// see https://access.redhat.com/solutions/3793991
+export const refreshSession = async ({ refreshToken }: { refreshToken: string }) => {
+  const params = {
+    grant_type: 'refresh_token',
+    client_id: sso_client_id,
+    refresh_token: refreshToken,
+  };
+
+  const url = `${meta.token_endpoint}`;
+
+  const config: AxiosRequestConfig = {
+    url,
+    method: 'post',
+    data: qs.stringify(params),
+  };
+
+  return axios(config).then((res) => res.data, console.error);
+};

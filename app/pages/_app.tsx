@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import getConfig from 'next/config';
 import type { AppProps } from 'next/app';
 import { fetchIssuerConfiguration } from 'utils/provider';
-import { getAuthorizationUrl, getAccessToken } from 'utils/openid';
+import { getAuthorizationUrl, getAccessToken, refreshSession } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
 import Layout from 'layout/Layout';
@@ -47,8 +47,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         }
         // main entrypoint
         else {
-          const saveTokens = JSON.parse(sessionStorage.getItem(TOKEN_SESSION) || '');
-          const verifiedIdToken = await verifyToken(saveTokens.id_token);
+          const tokens = JSON.parse(sessionStorage.getItem(TOKEN_SESSION) || '');
+          const verifiedIdToken = await verifyToken(tokens.id_token);
 
           if (verifiedIdToken) {
             setCurrentUser(verifiedIdToken);
