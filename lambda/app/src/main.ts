@@ -21,7 +21,12 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   const { headers, requestContext, body, path, queryStringParameters } = event;
   const { submit } = queryStringParameters || {};
   const { httpMethod } = requestContext;
+
   if (httpMethod === 'OPTIONS') return callback(null, { headers: responseHeaders });
+
+  if (path === `${BASE_PATH}/heartbeat`) {
+    return callback(null, { headers: responseHeaders, statusCode: 200, body: true });
+  }
 
   const session = await authenticate(headers);
   if (!session) {

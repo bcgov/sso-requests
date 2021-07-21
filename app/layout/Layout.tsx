@@ -104,7 +104,7 @@ const RightMenuItems = () => (
       </a>
     </li>
     <li>
-      <a href="mailto:Vardhman.Shankar@gov.bc.ca" title="SSO Team">
+      <a href="mailto:BCGov.SSO@gov.bc.ca" title="SSO Team">
         <FontAwesomeIcon size="2x" icon={faEnvelope} />
       </a>
     </li>
