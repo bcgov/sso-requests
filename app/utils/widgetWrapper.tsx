@@ -15,7 +15,7 @@ function getValue(inputType) {
 const Wrapper = (Component, inputType: string = '') => {
   const valueKey = getValue(inputType);
   return (props) => {
-    const { value, onChange, label, schema, options, required, disabled, onBlur, id = '' } = props;
+    const { value, onChange, label, schema, options, required, disabled, onBlur, id = '', readonly } = props;
     const { pattern, minLength, maxLength } = schema;
     const { enumOptions = [] } = options;
     const formProps = {
@@ -36,6 +36,7 @@ const Wrapper = (Component, inputType: string = '') => {
       type: inputType,
       pattern,
       onBlur,
+      readOnly: readonly,
       value: value || undefined,
       checked: typeof value === 'undefined' ? false : value,
     };
@@ -60,6 +61,7 @@ const Wrapper = (Component, inputType: string = '') => {
               checked={option.value === value}
               style={{ padding: '2px 0' }}
               size="small"
+              readOnly={readonly}
               onBlur={onBlur}
             />
           ))}

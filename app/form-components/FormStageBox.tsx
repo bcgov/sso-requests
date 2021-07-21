@@ -1,13 +1,18 @@
 import styled from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 interface BoxProps {
   active: boolean | undefined;
+  onClick: any;
 }
 
 export interface FormStageBox {
   title: string;
   stageNumber: number;
   active?: boolean;
+  handleClick: Function;
+  hasError: boolean;
 }
 
 const Box = styled.div<BoxProps>`
@@ -20,6 +25,7 @@ const Box = styled.div<BoxProps>`
   font-weight: bold;
   border-radius: 5px;
   padding: 20px;
+  cursor: pointer;
 
   border: 1px solid #006fc4;
   opacity: ${(props: BoxProps) => (props.active ? '1' : '0.5')};
@@ -40,10 +46,10 @@ const Text = styled.p`
   margin: 0;
 `;
 
-export default function FormStagebox({ stageNumber, title, active }: FormStageBox) {
+export default function FormStagebox({ stageNumber, title, active, handleClick, hasError }: FormStageBox) {
   return (
-    <Box active={active}>
-      <Circle>{stageNumber}</Circle>
+    <Box active={active} onClick={handleClick}>
+      <Circle>{hasError ? <FontAwesomeIcon icon={faExclamationTriangle} color="red" /> : stageNumber}</Circle>
       <Text>{title}</Text>
     </Box>
   );

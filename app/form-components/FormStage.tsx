@@ -3,16 +3,22 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 
 interface Props {
   currentStage: number;
+  setFormStage: Function;
+  errors: any;
 }
 
 const stages = [
-  { title: 'Requester Info', number: 1 },
-  { title: "Providers and URI's", number: 2 },
-  { title: 'Terms and conditions', number: 3 },
-  { title: 'Review & Submit', number: 4 },
+  { title: 'Requester Info', number: 1, errorKey: 'firstPageErrors' },
+  { title: "Providers and URI's", number: 2, errorKey: 'secondPageErrors' },
+  { title: 'Terms and conditions', number: 3, errorKey: 'thirdPageErrors' },
+  { title: 'Review & Submit', number: 4, errorKey: 'fourthPageErrors' },
 ];
 
-export default function Formstage({ currentStage }: Props) {
+export default function Formstage({ currentStage, setFormStage, errors = {} }: Props) {
+  const handleClick = (stage: number) => {
+    setFormStage(stage);
+  };
+
   return (
     <Grid cols={4}>
       <Grid.Row collapse="1000">
@@ -23,6 +29,8 @@ export default function Formstage({ currentStage }: Props) {
               stageNumber={stage.number}
               active={stage.number === currentStage}
               key={stage.number}
+              hasError={errors[stage.errorKey]?.length > 0}
+              handleClick={() => handleClick(stage.number)}
             />
           </Grid.Col>
         ))}

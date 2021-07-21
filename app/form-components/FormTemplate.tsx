@@ -5,7 +5,7 @@ import Form from 'form-components/GovForm';
 import requesterInfoSchema from 'schemas/requester-info';
 import termsAndConditionsSchema from 'schemas/terms-and-conditions';
 import providersSchema from 'schemas/providers';
-import uiSchema from 'schemas/ui';
+import getUiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
 import { ClientRequest } from 'interfaces/Request';
 import Modal from '@button-inc/bcgov-theme/Modal';
@@ -58,10 +58,12 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
   const router = useRouter();
 
   const handleChange = (e: any) => {
     setFormData(e.formData);
+    setErrors({});
     if (e.formData.projectLead === false) {
       window.location.hash = 'modal';
     }
@@ -77,10 +79,14 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
     router.push('/my-requests');
   };
 
+  const creatingNewForm = () => router.route.endsWith('/request');
+
+  const uiSchema = getUiSchema(!creatingNewForm());
+
   const handleSubmit = async (e: any) => {
     try {
       setLoading(true);
-      if (formStage === 1) {
+      if (creatingNewForm()) {
         const { id } = (await createRequest(e.formData)) || {};
         await router.push(`/request/${id}`);
         setFormData({ ...formData, id });
@@ -95,7 +101,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   };
 
   const handleBlur = async (id: string, value: any) => {
-    if (formStage === 1) return;
+    if (creatingNewForm()) return;
     if (request) {
       setSaving(true);
       await updateRequest({ ...formData, id: request.id });
@@ -111,7 +117,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   return (
     <>
       <FormHeader formStage={formStage} id={formData.id} saveMessage={saveMessage} saving={saving} />
-      <FormStage currentStage={formStage} />
+      <FormStage currentStage={formStage} setFormStage={setFormStage} errors={errors} />
       {formStage === 3 && <TermsAndConditions />}
       {[1, 2, 3].includes(formStage) ? (
         <Form
@@ -132,7 +138,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
           />
         </Form>
       ) : (
-        <FormReview formData={formData} setFormStage={setFormStage} />
+        <FormReview formData={formData} setErrors={setErrors} />
       )}
       {formStage === 1 && (
         <CenteredModal id="modal">
