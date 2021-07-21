@@ -8,6 +8,10 @@ import Loader from 'react-loader-spinner';
 import { getInstallation } from 'services/keycloak';
 import type { Environment } from 'interfaces/types';
 
+const AlignCenter = styled.div`
+  text-align: center;
+`;
+
 const InstallationModal = ({
   requestId,
   environment,
@@ -62,7 +66,10 @@ const InstallationModal = ({
           Installation JSON <Modal.Close onClick={handleCloseClick}>Close</Modal.Close>
         </Modal.Header>
         <Modal.Content>
-          <Loader type="Grid" color="#000" height={45} width={45} visible={loading} />
+          <AlignCenter>
+            <Loader type="Grid" color="#000" height={45} width={45} visible={loading} />
+          </AlignCenter>
+
           {!loading && installationDisplay}
         </Modal.Content>
       </Modal>

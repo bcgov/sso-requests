@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react';
+import styled from 'styled-components';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import Alert from '@button-inc/bcgov-theme/Alert';
@@ -7,6 +8,18 @@ import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { getStatusDisplayName } from 'utils/status';
 import type { Environment } from 'interfaces/types';
+
+const RequestTabs = styled(Tabs)`
+  .nav-link {
+    border-top: unset !important;
+    border-left: unset !important;
+    border-right: unset !important;
+  }
+  .nav-link.active {
+    background-color: unset !important;
+    border-bottom: 3px solid orange;
+  }
+`;
 
 const environments: { title: string; name: Environment }[] = [
   { title: 'Dev Configuration', name: 'dev' },
@@ -49,13 +62,13 @@ function RequestInfoTabs() {
     );
   } else if (displayStatus === 'Active Project') {
     panel = (
-      <Tabs>
+      <RequestTabs>
         {environments.map((env) => (
           <Tab eventKey={env.title} key={env.title} title={env.title} onEnter={() => handleSelection(env.name)}>
             <RequestInfoPanel panelEnv={env.name} environment={environment} />
           </Tab>
         ))}
-      </Tabs>
+      </RequestTabs>
     );
   }
 

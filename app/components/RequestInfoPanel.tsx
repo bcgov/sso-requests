@@ -97,10 +97,11 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
                   environment={environment}
                 ></InstallationModal>
                 <br />
+                <br />
               </>
             )}
 
-            <p>Valid Redirect Uris</p>
+            <h4>Valid Redirect URIs</h4>
             {redirectUris?.length > 0 ? (
               <StyledList>
                 {redirectUris.map((url: any) => (
