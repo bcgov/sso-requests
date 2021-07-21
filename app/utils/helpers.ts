@@ -104,7 +104,7 @@ export const realmToIDP = (realm?: string) => {
   return JSON.stringify(idps);
 };
 
-export const getPropertyName = (env: string | undefined) => {
+export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
   if (env === 'dev') return 'devRedirectUrls';
   if (env === 'test') return 'testRedirectUrls';
   if (env === 'prod') return 'prodRedirectUrls';
@@ -157,32 +157,30 @@ export const processRequest = (request: ServerRequest): ClientRequest => {
 };
 
 export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest): ServerRequest => {
-  const { devRedirectUrls = [], testRedirectUrls = [], prodRedirectUrls = [], ...rest } = data;
-  let formattedValidRedirectUris = {
-    dev: previousData?.devRedirectUrls,
-    test: previousData?.testRedirectUrls,
-    prod: previousData?.prodRedirectUrls,
-  };
+  const mergedData = { ...previousData, ...data };
+  const { devRedirectUrls = [], testRedirectUrls = [], prodRedirectUrls = [], ...rest } = mergedData;
 
-  const formattedEnvironments: string[] = previousData?.environments ? previousData.environments : [];
+  const environments = [];
 
   if (devRedirectUrls.length > 0) {
-    formattedEnvironments.push('dev');
-    formattedValidRedirectUris.dev = devRedirectUrls;
+    environments.push('dev');
   }
   if (testRedirectUrls.length > 0) {
-    formattedEnvironments.push('test');
-    formattedValidRedirectUris.test = testRedirectUrls;
+    environments.push('test');
   }
   if (prodRedirectUrls.length > 0) {
-    formattedEnvironments.push('prod');
-    formattedValidRedirectUris.prod = prodRedirectUrls;
+    environments.push('prod');
   }
 
   const newData: ServerRequest = {
     ...rest,
-    environments: formattedEnvironments,
-    validRedirectUris: formattedValidRedirectUris,
+    environments,
+    validRedirectUris: {
+      dev: devRedirectUrls,
+      test: testRedirectUrls,
+      prod: prodRedirectUrls,
+    },
   };
+
   return newData;
 };
