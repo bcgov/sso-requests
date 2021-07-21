@@ -47,14 +47,6 @@ function RequestInfoTabs() {
         />
       </>
     );
-  } else if (displayStatus === 'Technical Issues') {
-    panel = (
-      <>
-        <br />
-        <br />
-        <Alert variant="warning" content="Your request has technical issues. Please contact to the SSO team." />
-      </>
-    );
   } else if (displayStatus === 'Active Project') {
     panel = (
       <Tabs>

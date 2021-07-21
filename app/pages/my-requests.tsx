@@ -102,7 +102,7 @@ function RequestsPage({ currentUser }: PageProps) {
         <Grid cols={selectedRequest ? 2 : 1} gutter={[5, 2]}>
           <Grid.Row collapse="800">
             <Grid.Col>
-              <Title>My Request List</Title>
+              <Title>My Project List</Title>
               <Table>
                 <thead>
                   <tr>

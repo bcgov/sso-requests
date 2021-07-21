@@ -66,11 +66,9 @@ const InstallationModal = ({
           {!loading && installationDisplay}
         </Modal.Content>
       </Modal>
-      <br />
-      <br />
       <Link
         href={`#installation-json-${panelEnv}`}
-        content="Click for Installation"
+        content="Click for Installation JSON"
         size="medium"
         onClick={handleInstallationClick}
       />

@@ -66,17 +66,17 @@ const support = (
   <SubRightMenu>
     <li>Need help?</li>
     <li>
-      <a href="https://chat.developer.gov.bc.ca/" target="_blank">
+      <a href="https://chat.developer.gov.bc.ca/" target="_blank" title="Rocket Chat">
         <FontAwesomeIcon size="2x" icon={faCommentDots} />
       </a>
     </li>
     <li>
-      <a href="mailto:Vardhman.Shankar@gov.bc.ca">
+      <a href="mailto:Vardhman.Shankar@gov.bc.ca" title="SSO Team">
         <FontAwesomeIcon size="2x" icon={faEnvelope} />
       </a>
     </li>
     <li>
-      <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank">
+      <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Wiki">
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </li>
