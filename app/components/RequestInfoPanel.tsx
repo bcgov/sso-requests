@@ -36,7 +36,7 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
 
   // @ts-ignore
   const redirectUris = selectedRequest[getRedirectUrlPropertyNameByEnv(environment)];
-  const [scByEnvhema, setSchema] = useState({});
+  const [schema, setSchema] = useState({});
 
   const handleCancel = () => {
     dispatch($setEditingRequest(false));

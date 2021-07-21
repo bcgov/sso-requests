@@ -1,8 +1,8 @@
-import { getPropertyName } from 'utils/helpers';
+import { getRedirectUrlPropertyNameByEnv } from 'utils/helpers';
 import { urlPattern as pattern } from './providers';
 
 export default function getSchema(env: string | undefined, defaultUrls: string[]) {
-  const name = getPropertyName(env);
+  const name = getRedirectUrlPropertyNameByEnv(env);
   return {
     type: 'object',
     properties: {
