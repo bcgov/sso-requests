@@ -5,7 +5,7 @@ import type { AppProps } from 'next/app';
 import { fetchIssuerConfiguration } from 'utils/provider';
 import { getAuthorizationUrl, getAccessToken } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
-import { fetchInfo } from 'services/auth';
+import { wakeItUp } from 'services/auth';
 import Layout from 'layout/Layout';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -65,6 +65,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       }
     }
 
+    wakeItUp();
     fetchUser();
   }, [router]);
 
@@ -76,11 +77,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   const handleLogout = async () => {
     sessionStorage.removeItem(TOKEN_SESSION);
     window.location.href = '/';
-  };
-
-  const handleInfo = async () => {
-    const info = await fetchInfo();
-    console.log(info);
   };
 
   if (loading) return <div>Loading...</div>;

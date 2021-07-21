@@ -44,14 +44,14 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
       <Head>
         <title>SSO Requests</title>
         <meta name="description" content="The request process workflow tool for the RedHat SSO Dev Exchange service" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/bcid-favicon-32x32.png" />
       </Head>
       <ResponsiveContainer rules={defaultRules}>
         <Grid cols={2} gutter={[5, 2]}>
           <Grid.Row collapse="800">
             <Grid.Col>
               <Panel>
-                <JumbotronH1>Keycloak Vision</JumbotronH1>
+                <JumbotronH1>Pathfinder SSO Vision</JumbotronH1>
                 <JumbotronP>
                   Provide fast, simple
                   <br />
@@ -59,27 +59,29 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                   <br />
                   Gov IDPs.
                 </JumbotronP>
-                <NextLink href="/terms-conditions">
-                  <Link size="large">Request SSO project:</Link>
-                </NextLink>
-                <br /> <br />
+                <h3>Request SSO project:</h3>
                 <Button size="medium" onClick={onLoginClick}>
                   IDIR/GitHub
                 </Button>
                 <br /> <br />
-                <NextLink href="/terms-conditions">
-                  <Link size="large">or IDIR/GitHub/BCeID</Link>
-                </NextLink>
+                <Link
+                  size="large"
+                  href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
+                  external
+                >
+                  or IDIR/GitHub/BCeID
+                </Link>
               </Panel>
             </Grid.Col>
             <Grid.Col>
               <Panel>
                 {main}
                 <Paragraph>
-                  To learn more about Keycloak <br />
+                  To learn more about Pathfinder SSO
+                  <br />
                   visit the{' '}
                   <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki" external>
-                    bcgov/ocp-sso
+                    User Guide
                   </Link>
                 </Paragraph>
               </Panel>

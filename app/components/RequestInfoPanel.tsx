@@ -89,7 +89,18 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
           </div>
         ) : (
           <div>
-            <p>Urls</p>
+            {selectedRequest.id && selectedRequest.status === 'applied' && (
+              <>
+                <InstallationModal
+                  requestId={selectedRequest.id}
+                  panelEnv={panelEnv}
+                  environment={environment}
+                ></InstallationModal>
+                <br />
+              </>
+            )}
+
+            <p>Valid Redirect Uris</p>
             {redirectUris?.length > 0 ? (
               <StyledList>
                 {redirectUris.map((url: any) => (
@@ -98,14 +109,6 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
               </StyledList>
             ) : (
               <span>No Urls</span>
-            )}
-
-            {selectedRequest.id && selectedRequest.status === 'applied' && (
-              <InstallationModal
-                requestId={selectedRequest.id}
-                panelEnv={panelEnv}
-                environment={environment}
-              ></InstallationModal>
             )}
           </div>
         )}

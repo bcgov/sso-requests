@@ -8,10 +8,10 @@ export const getAuthConfig = () => {
   return config;
 };
 
-export async function fetchInfo() {
+export async function wakeItUp() {
   try {
     const config = getAuthConfig();
-    const data = await instance.get('/api/info', config).then((res) => res.data);
+    const data = await instance.get('heartbeat', config).then((res) => res.data);
 
     return data;
   } catch (err) {
