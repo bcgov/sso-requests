@@ -68,7 +68,7 @@ module.exports = (sequelize, DataTypes) => {
           'planFailed',
           'approved',
           'applied',
-          'applyFailed'
+          'applyFailed',
         ),
         // End-user's perspective
         // values: [
@@ -84,7 +84,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       underscored: true,
-    }
+    },
   );
 
   return Request;
