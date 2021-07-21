@@ -5,6 +5,7 @@ interface Props {
   currentStage: number;
   setFormStage: Function;
   errors: any;
+  creatingNewForm: Function;
 }
 
 const stages = [
@@ -14,8 +15,10 @@ const stages = [
   { title: 'Review & Submit', number: 4, errorKey: 'fourthPageErrors' },
 ];
 
-export default function Formstage({ currentStage, setFormStage, errors = {} }: Props) {
+export default function Formstage({ currentStage, setFormStage, errors = {}, creatingNewForm }: Props) {
   const handleClick = (stage: number) => {
+    // Disable navigation if record is not yet created
+    if (creatingNewForm()) return;
     setFormStage(stage);
   };
 

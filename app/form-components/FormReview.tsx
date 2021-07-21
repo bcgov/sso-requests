@@ -31,14 +31,16 @@ const formatBoolean = (value?: boolean) => {
 interface Props {
   formData: ClientRequest;
   setErrors: Function;
+  setSubmitted: Function;
 }
 
-export default function FormReview({ formData, setErrors }: Props) {
+export default function FormReview({ formData, setErrors, setSubmitted }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async () => {
     try {
+      setSubmitted(true);
       const valid = validateForm(formData);
       if (valid !== true) {
         return setErrors(valid);
