@@ -6,6 +6,7 @@ import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { ClientRequest } from 'interfaces/Request';
+import { $setRequest, $setEditingRequest } from 'dispatchers/requestDispatcher';
 
 const Container = styled.div`
   height: 100%;
@@ -46,10 +47,10 @@ export default function Actionbuttons({ request }: Props) {
     }
 
     if (selectedRequest?.id === request.id) {
-      dispatch({ type: 'setEditingRequest', payload: !editingRequest });
+      dispatch($setEditingRequest(!editingRequest));
     } else {
-      dispatch({ type: 'setEditingRequest', payload: true });
-      dispatch({ type: 'setRequest', payload: request });
+      dispatch($setEditingRequest(true));
+      dispatch($setRequest(request));
     }
   };
 
