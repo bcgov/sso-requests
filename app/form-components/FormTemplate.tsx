@@ -18,6 +18,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
+import { transformErrors, validateForm } from 'utils/helpers';
 
 const CenteredModal = styled(Modal)`
   display: flex;
@@ -59,11 +60,11 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
   const router = useRouter();
 
   const handleChange = (e: any) => {
     setFormData(e.formData);
-    setErrors({});
     if (e.formData.projectLead === false) {
       window.location.hash = 'modal';
     }
@@ -74,6 +75,12 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
       setFormData({ ...formData, preferredEmail: currentUser.email || '' });
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    if (!submitted) return;
+    const valid = validateForm(formData);
+    setErrors(valid === true ? {} : valid);
+  }, [submitted, formStage]);
 
   const handleBackClick = () => {
     router.push('/my-requests');
@@ -117,7 +124,12 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   return (
     <>
       <FormHeader formStage={formStage} id={formData.id} saveMessage={saveMessage} saving={saving} />
-      <FormStage currentStage={formStage} setFormStage={setFormStage} errors={errors} />
+      <FormStage
+        currentStage={formStage}
+        setFormStage={setFormStage}
+        errors={errors}
+        creatingNewForm={creatingNewForm}
+      />
       {formStage === 3 && <TermsAndConditions />}
       {[1, 2, 3].includes(formStage) ? (
         <Form
@@ -129,6 +141,8 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
           ArrayFieldTemplate={ArrayFieldTemplate}
           ErrorList={() => null}
           onBlur={handleBlur}
+          liveValidate={submitted}
+          transformErrors={transformErrors}
         >
           <FormButtons
             text={{ continue: 'Next', back: 'Cancel' }}
@@ -138,7 +152,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
           />
         </Form>
       ) : (
-        <FormReview formData={formData} setErrors={setErrors} />
+        <FormReview formData={formData} setErrors={setErrors} setSubmitted={setSubmitted} />
       )}
       {formStage === 1 && (
         <CenteredModal id="modal">

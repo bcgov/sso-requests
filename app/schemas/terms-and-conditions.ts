@@ -4,6 +4,11 @@ export default {
   type: 'object',
   required: ['agreeWithTerms'],
   properties: {
-    agreeWithTerms: { type: 'boolean', title: 'I agree to the Terms and Conditions' },
+    agreeWithTerms: {
+      type: 'boolean',
+      title: 'I agree to the Terms and Conditions',
+      default: null,
+      enum: [null, true],
+    },
   },
 } as JSONSchema7;
