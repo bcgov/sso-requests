@@ -18,6 +18,18 @@ const MainContent = styled.div`
   min-height: calc(100vh - 70px);
 `;
 
+const MobileSubMenu = styled.ul`
+  padding-left: 2rem;
+  padding-right: 2rem;
+
+  li a {
+    display: inline-block !important;
+    font-size: unset !important;
+    padding: 0 !important;
+    border-right: none !important;
+  }
+`;
+
 const SubMenu = styled.div`
   display: flex;
   justify-content: space-between;
@@ -62,8 +74,29 @@ const routes: Route[] = [
   { path: '/request', label: 'New Request', user: true, hide: true },
 ];
 
-const support = (
-  <SubRightMenu>
+const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; currentPath: string }) => {
+  const isLoggedIn = !!currentUser;
+  const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
+
+  return (
+    <>
+      {routes
+        .filter((route) => !!route.user === isLoggedIn && (!route.hide || isCurrent(route.path)))
+        .map((route) => {
+          return (
+            <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
+              <Link href={route.path}>
+                <a className={isCurrent(route.path) ? 'current' : ''}>{route.label}</a>
+              </Link>
+            </li>
+          );
+        })}
+    </>
+  );
+};
+
+const RightMenuItems = () => (
+  <>
     <li>Need help?</li>
     <li>
       <a href="https://chat.developer.gov.bc.ca/" target="_blank" title="Rocket Chat">
@@ -80,32 +113,8 @@ const support = (
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </li>
-  </SubRightMenu>
+  </>
 );
-
-const Menus = ({ currentUser, currentPath }: { currentUser: any; currentPath: string }) => {
-  const isLoggedIn = !!currentUser;
-  const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
-
-  return (
-    <SubMenu>
-      <SubLeftMenu>
-        {routes
-          .filter((route) => !!route.user === isLoggedIn && (!route.hide || isCurrent(route.path)))
-          .map((route) => {
-            return (
-              <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
-                <Link href={route.path}>
-                  <a className={isCurrent(route.path) ? 'current' : ''}>{route.label}</a>
-                </Link>
-              </li>
-            );
-          })}
-      </SubLeftMenu>
-      {support}
-    </SubMenu>
-  );
-};
 
 function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
   const router = useRouter();
@@ -126,11 +135,50 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
     </Button>
   );
 
+  const MobileMenu = () => (
+    <MobileSubMenu>
+      <LeftMenuItems currentUser={currentUser} currentPath={pathname} />
+
+      <li>
+        Need help?&nbsp;&nbsp;
+        <a href="https://chat.developer.gov.bc.ca/" target="_blank" title="Rocket Chat">
+          <FontAwesomeIcon size="2x" icon={faCommentDots} />
+        </a>
+        &nbsp;&nbsp;
+        <a href="mailto:Vardhman.Shankar@gov.bc.ca" title="SSO Team">
+          <FontAwesomeIcon size="2x" icon={faEnvelope} />
+        </a>
+        &nbsp;&nbsp;
+        <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Wiki">
+          <FontAwesomeIcon size="2x" icon={faFileAlt} />
+        </a>
+      </li>
+      <li>
+        {currentUser ? (
+          <Button variant="secondary-inverse" size="small" onClick={onLogoutClick}>
+            Logout
+          </Button>
+        ) : (
+          <Button variant="secondary-inverse" size="small" onClick={onLoginClick}>
+            Login with IDIR
+          </Button>
+        )}
+      </li>
+    </MobileSubMenu>
+  );
+
   return (
     <>
       <BCSans />
-      <Navigation title="" rightSide={rightSide} onBannerClick={console.log}>
-        <Menus currentUser={currentUser} currentPath={pathname} />
+      <Navigation title="" rightSide={rightSide} mobileMenu={MobileMenu} onBannerClick={console.log}>
+        <SubMenu>
+          <SubLeftMenu>
+            <LeftMenuItems currentUser={currentUser} currentPath={pathname} />
+          </SubLeftMenu>
+          <SubRightMenu>
+            <RightMenuItems />
+          </SubRightMenu>
+        </SubMenu>
       </Navigation>
       <MainContent>{children}</MainContent>
       <Footer>

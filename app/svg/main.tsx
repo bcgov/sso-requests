@@ -10,7 +10,7 @@ export default (
         transform="translate(-16.91 -47.46)"
         fill="#fdbd21"
         stroke="#38598a"
-        stroke-width="2"
+        strokeWidth="2"
         opacity="0.34"
       />
       <path
