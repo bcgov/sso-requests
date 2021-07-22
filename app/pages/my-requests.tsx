@@ -92,7 +92,7 @@ function RequestsPage({ currentUser }: PageProps) {
 
   return (
     <ResponsiveContainer rules={mediaRules}>
-      <Button variant="primary-inverse" size="small" onClick={handleNewClick}>
+      <Button variant="secondary" size="small" onClick={handleNewClick}>
         + Create New...
       </Button>
 

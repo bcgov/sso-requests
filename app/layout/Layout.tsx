@@ -11,6 +11,11 @@ import Navigation from './Navigation';
 const LoggedUser = styled.span`
   font-weight: 600;
   font-size: 1.3em;
+  display: flex;
+
+  & .welcome {
+    padding: 2px;
+  }
 `;
 
 const MainContent = styled.div`
@@ -39,6 +44,10 @@ const SubMenu = styled.div`
 `;
 
 const SubLeftMenu = styled.ul`
+  & a {
+    font-size: 1rem !important;
+  }
+
   & a.current {
     font-weight: bold;
   }
@@ -122,8 +131,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
 
   const rightSide = currentUser ? (
     <LoggedUser>
-      Welcome {`${currentUser.given_name} ${currentUser.family_name}`}
-      &nbsp;&nbsp;
+      <div className="welcome">Welcome {`${currentUser.given_name} ${currentUser.family_name}`}</div>&nbsp;&nbsp;
       {/* <FontAwesomeIcon style={{ paddingLeft: '5px', height: '25px' }} icon={faUserCircle} /> */}
       <Button variant="secondary-inverse" size="small" onClick={onLogoutClick}>
         Logout
