@@ -24,7 +24,6 @@ export const createRequest = async (session: Session, data: Data) => {
     const result = await models.request.create({
       idirUserid: session.idir_userid,
       projectName,
-      clientName: kebabCase(projectName),
       projectLead,
       preferredEmail,
       newToSso,
@@ -58,9 +57,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       return unauthorized();
     }
 
-    const allowedData = omit(rest, ['idirUserid', 'projectName', 'clientName', 'status']);
+    const allowedData = omit(rest, ['idirUserid', 'projectLead', 'clientName', 'status']);
 
     if (submit) {
+      allowedData.clientName = `${kebabCase(allowedData.projectName)}-${id}`;
       allowedData.status = 'submitted';
     }
 
