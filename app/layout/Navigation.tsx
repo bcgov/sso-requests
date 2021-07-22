@@ -5,9 +5,28 @@ import { BaseNavigation } from '@button-inc/bcgov-theme/Navigation';
 import { BaseHeader } from '@button-inc/bcgov-theme/Header';
 import { Bars, FaSVG } from '@button-inc/bcgov-theme/fontawesome';
 import bcgovLogoSVG from '@button-inc/bcgov-theme/esm/svg/bcgov_logo';
+import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 
-const BannerLogo = styled.a`
+const mediaRules: MediaRule[] = [
+  {
+    maxWidth: 900,
+    marginTop: 0,
+    marginLeft: 10,
+    marginUnit: 'px',
+    horizontalAlign: 'none',
+  },
+  {
+    width: 480,
+    marginTop: 0,
+    marginLeft: 2.5,
+    marginUnit: 'rem',
+    horizontalAlign: 'none',
+  },
+];
+
+const BannerLogo = styled.div`
   height: 90%;
+  max-width: 180px;
 `;
 
 const Title = styled.h1`
@@ -32,7 +51,9 @@ function Navigation(props: any) {
     <BaseNavigation>
       <BaseHeader>
         <BaseHeader.Group className="banner">
-          <BannerLogo onClick={onBannerClick}>{bcgovLogoSVG}</BannerLogo>
+          <ResponsiveContainer rules={mediaRules}>
+            <BannerLogo onClick={onBannerClick}>{bcgovLogoSVG}</BannerLogo>
+          </ResponsiveContainer>
         </BaseHeader.Group>
         <BaseHeader.Item collapse={mobileBreakPoint}>
           <Title>{isFunction(title) ? title(context) : title}</Title>
