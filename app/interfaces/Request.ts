@@ -17,6 +17,7 @@ export interface ServerRequest {
   createdAt?: string;
   updatedAt?: string;
   status?: Status;
+  publicAccess?: boolean;
 }
 
 export interface ClientRequest {
@@ -34,4 +35,5 @@ export interface ClientRequest {
   prNumber?: number;
   environments?: string[];
   createdAt?: string;
+  publicAccess?: boolean;
 }
