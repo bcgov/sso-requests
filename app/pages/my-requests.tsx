@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import Button from '@button-inc/bcgov-theme/Button';
 import { get, padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests } from 'services/request';
 import { getInstallation } from 'services/keycloak';
 import { ClientRequest } from 'interfaces/Request';
 import providerSchema from 'schemas/providers';
-import Table from 'components/Table';
+import Table from 'html-components/Table';
+import Button from 'html-components/Button';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
@@ -40,22 +42,22 @@ const mediaRules: MediaRule[] = [
 ];
 
 const Title = styled.div`
-  font-size: 1.2em;
+  color: #777777;
+  font-size: 16px;
   font-weight: 600;
+  height: 30px;
+  border-bottom: 1px solid #707070;
+  margin-bottom: 5px;
 `;
 
-const NavTabs = styled.ul`
-  & > li {
-    margin-bottom: 0 !important;
-  }
-`;
-
-interface RowProps {
-  active: boolean;
-}
-
-const SelectableRow = styled.tr`
-  background-color: ${(props: RowProps) => (props.active ? '#ffed9f' : '#f8f8f8')};
+const NoProjects = styled.div`
+  color: #006fc4;
+  height: 60px;
+  padding-left: 20px;
+  padding-top: 16px;
+  padding-bottom: 22px;
+  weight: 700;
+  background-color: #f8f8f8;
 `;
 
 export const RequestsContext = React.createContext({} as any);
@@ -97,32 +99,32 @@ function RequestsPage({ currentUser }: PageProps) {
 
   return (
     <ResponsiveContainer rules={mediaRules}>
-      <Button variant="secondary" size="small" onClick={handleNewClick}>
-        + Create New...
+      <Button size="small" onClick={handleNewClick}>
+        + Request Project
       </Button>
 
       <br />
       <br />
       <RequestsContext.Provider value={contextValue}>
-        <Grid cols={selectedRequest ? 2 : 1} gutter={[5, 2]}>
+        <Grid cols={2} gutter={[5, 2]}>
           <Grid.Row collapse="800">
             <Grid.Col>
-              <Title>My Project List</Title>
-              <Table>
-                <thead>
-                  <tr>
-                    <th>Request ID</th>
-                    <th>Project Name</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {requests.length > 0 ? (
-                    requests.map((request: ClientRequest) => {
+              <Title>My Project Dashboard</Title>
+              {requests.length > 0 ? (
+                <Table>
+                  <thead>
+                    <tr>
+                      <th>Request ID</th>
+                      <th>Project Name</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {requests.map((request: ClientRequest) => {
                       return (
-                        <SelectableRow
-                          active={selectedRequest?.id === request.id}
+                        <tr
+                          className={selectedRequest?.id === request.id ? 'active' : ''}
                           key={request.id}
                           onClick={() => handleSelection(request)}
                         >
@@ -132,16 +134,17 @@ function RequestsPage({ currentUser }: PageProps) {
                           <td>
                             <ActionButtons request={request} />
                           </td>
-                        </SelectableRow>
+                        </tr>
                       );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={10}>No requests found</td>
-                    </tr>
-                  )}
-                </tbody>
-              </Table>
+                    })}
+                  </tbody>
+                </Table>
+              ) : (
+                <NoProjects>
+                  <FontAwesomeIcon icon={faInfoCircle} />
+                  &nbsp; No SSO project requests submitted
+                </NoProjects>
+              )}
             </Grid.Col>
             {selectedRequest && (
               <Grid.Col>

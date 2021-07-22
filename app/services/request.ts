@@ -32,7 +32,12 @@ export const getRequests = async () => {
   const config = getAuthConfig();
   try {
     const results: ServerRequest[] = await instance.get('requests', config).then((res) => res.data);
-    return results.map(processRequest);
+    return results
+      .map((v) => {
+        v.status = 'applied';
+        return v;
+      })
+      .map(processRequest);
   } catch (err) {
     console.error(err);
     return null;
