@@ -19,10 +19,11 @@ export default {
             projectLead: { enum: [true] },
             newToSso: { type: 'boolean', title: 'Have you requested an SSO project before?' },
             publicAccess: {
-              type: 'string',
+              type: 'boolean',
               title: 'Choose client type',
-              enum: ['true', 'false'],
+              enum: [true, false],
               enumNames: ['Public', 'Confidential'],
+              default: false,
             },
             projectName: { type: 'string', title: 'Project Name' },
             preferredEmail: { type: 'string', title: 'Preferred Email Address' },

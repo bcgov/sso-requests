@@ -112,47 +112,16 @@ export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
 };
 
 export const processRequest = (request: ServerRequest): ClientRequest => {
-  const {
-    agreeWithTerms,
-    id,
-    projectName,
-    realm,
-    validRedirectUris,
-    prNumber,
-    environments,
-    createdAt,
-    status,
-    newToSso,
-    projectLead,
-  } = request;
-
-  let devRedirectUrls: string[] | undefined,
-    testRedirectUrls: string[] | undefined,
-    prodRedirectUrls: string[] | undefined;
-
-  if (validRedirectUris) {
-    devRedirectUrls = validRedirectUris?.dev;
-    testRedirectUrls = validRedirectUris?.test;
-    prodRedirectUrls = validRedirectUris?.prod;
-  }
+  const { validRedirectUris, ...rest } = request;
 
   const processedRequest: ClientRequest = {
-    agreeWithTerms,
-    id,
-    projectName,
-    prNumber,
-    environments,
-    createdAt,
-    status,
-    newToSso,
-    projectLead,
+    ...rest,
   };
 
-  if (devRedirectUrls) processedRequest.devRedirectUrls = devRedirectUrls;
-  if (testRedirectUrls) processedRequest.testRedirectUrls = testRedirectUrls;
-  if (prodRedirectUrls) processedRequest.prodRedirectUrls = prodRedirectUrls;
-  if (realm) processedRequest.realm = realm;
-
+  const { dev, test, prod } = validRedirectUris || {};
+  if (dev) processedRequest.devRedirectUrls = dev;
+  if (test) processedRequest.devRedirectUrls = test;
+  if (prod) processedRequest.devRedirectUrls = prod;
   return processedRequest;
 };
 
