@@ -16,7 +16,7 @@ export interface ClientRequest {
   publicAccess?: boolean;
 }
 
-export interface Errors {
+export interface FormErrors {
   firstPageErrors?: object[];
   secondPageErrors?: object[];
   thirdPageErrors?: object[];

@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
 import { Alert } from '@button-inc/bcgov-theme';
-import { Errors } from 'interfaces/form';
+import { FormErrors } from 'interfaces/form';
 
 const Table = styled.table`
   & tr {
@@ -39,7 +39,7 @@ interface Props {
   setErrors: Function;
   setSubmitted: Function;
   submitted: boolean;
-  errors: null | Errors;
+  errors: null | FormErrors;
 }
 
 export default function FormReview({ formData, setErrors, setSubmitted, errors, submitted = false }: Props) {

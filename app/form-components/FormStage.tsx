@@ -1,11 +1,11 @@
 import FormStageBox from 'form-components/FormStageBox';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { isObject } from 'lodash';
-import { Errors } from 'interfaces/form';
+import { FormErrors } from 'interfaces/form';
 interface Props {
   currentStage: number;
   setFormStage: Function;
-  errors: Errors | null;
+  errors: FormErrors | null;
   creatingNewForm: Function;
 }
 

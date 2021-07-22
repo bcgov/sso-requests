@@ -19,7 +19,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
 import { transformErrors, validateForm } from 'utils/helpers';
-import { Errors } from 'interfaces/form';
+import { FormErrors } from 'interfaces/form';
 
 const CenteredModal = styled(Modal)`
   display: flex;
@@ -60,7 +60,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<null | Errors>(null);
+  const [errors, setErrors] = useState<null | FormErrors>(null);
   const [submitted, setSubmitted] = useState(false);
   const router = useRouter();
 
