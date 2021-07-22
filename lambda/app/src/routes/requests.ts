@@ -57,7 +57,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       return unauthorized();
     }
 
-    const allowedData = omit(rest, ['idirUserid', 'projectLead', 'status']);
+    const allowedData = omit(rest, ['idirUserid', 'projectLead', 'clientName', 'status']);
 
     if (submit) {
       allowedData.clientName = `${kebabCase(allowedData.projectName)}-${id}`;
