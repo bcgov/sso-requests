@@ -75,7 +75,7 @@ const InstallationModal = ({
       </Modal>
       <Link
         href={`#installation-json-${panelEnv}`}
-        content="Click for Installation JSON"
+        content="View Installation JSON"
         size="medium"
         onClick={handleInstallationClick}
       />

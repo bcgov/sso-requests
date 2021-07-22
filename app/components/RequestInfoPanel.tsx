@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import styled from 'styled-components';
+import Link from '@button-inc/bcgov-theme/Link';
+import Alert from '@button-inc/bcgov-theme/Alert';
 import Loader from 'react-loader-spinner';
 import Form from 'form-components/GovForm';
 import getSchema from 'schemas/urls';
@@ -26,6 +28,16 @@ const StyledList = styled.ul`
 
 const Container = styled.div`
   padding: 10px;
+`;
+
+const Separator = styled.span`
+  margin-left: 5px;
+  margin-right: 5px;
+`;
+
+const PanelTitle = styled.span`
+  font-size: 1rem;
+  color: #3e3e3e;
 `;
 
 const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; environment: Environment }) => {
@@ -72,9 +84,11 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
   return (
     <>
       <Container>
+        <br />
+        <br />
         {editingRequest ? (
           <div>
-            <p>Urls</p>
+            <PanelTitle>Valid Redirect URIs</PanelTitle>
             <Form
               schema={schema}
               ArrayFieldTemplate={ArrayFieldTemplate}
@@ -90,19 +104,17 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
           </div>
         ) : (
           <div>
+            <PanelTitle>Valid Redirect URIs</PanelTitle>
             {selectedRequest.id && selectedRequest.status === 'applied' && (
               <>
+                <Separator>|</Separator>
                 <InstallationModal
                   requestId={selectedRequest.id}
                   panelEnv={panelEnv}
                   environment={environment}
                 ></InstallationModal>
-                <br />
-                <br />
               </>
             )}
-
-            <h4>Valid Redirect URIs</h4>
             {redirectUris?.length > 0 ? (
               <StyledList>
                 {redirectUris.map((url: any) => (
@@ -110,7 +122,7 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
                 ))}
               </StyledList>
             ) : (
-              <span>No Urls</span>
+              <Alert variant="info" content="No valid redirect URIs" />
             )}
           </div>
         )}

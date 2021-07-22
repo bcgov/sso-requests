@@ -3,16 +3,28 @@ import styled from 'styled-components';
 
 const Table = styled.table`
   width: 100%;
-  background: #ffffff;
-  margin: 1em 0em;
-  border: 1px solid rgba(34, 36, 38, 0.15);
   -webkit-box-shadow: none;
   box-shadow: none;
-  border-radius: 0.28571429rem;
   text-align: left;
-  color: rgba(0, 0, 0, 0.87);
   border-collapse: separate;
-  border-spacing: 0px;
+  border-spacing: 0 5px;
+
+  & thead {
+    font-size: 12px;
+    color: #777777;
+  }
+
+  & tbody {
+    font-size: 16px;
+
+    tr {
+      height: 60px;
+      background-color: #f8f8f8;
+      &.active {
+        background-color: #ffed9f;
+      }
+    }
+  }
 
   th:first-child,
   td:first-child {
@@ -21,8 +33,7 @@ const Table = styled.table`
 
   & th,
   & td {
-    -webkit-transition: background 0.1s ease, color 0.1s ease;
-    transition: background 0.1s ease, color 0.1s ease;
+    border: none;
   }
 `;
 
