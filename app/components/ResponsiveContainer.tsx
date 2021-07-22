@@ -1,10 +1,16 @@
 import React from 'react';
 import styled from 'styled-components';
 
+type HorizontalAlign = 'left' | 'right' | 'center' | 'none';
+type MarginUnit = 'px' | 'em' | 'rem';
 export interface MediaRule {
   maxWidth?: number;
   width?: number;
   marginTop?: number;
+  marginLeft?: number;
+  marginRight?: number;
+  marginUnit?: MarginUnit;
+  horizontalAlign?: HorizontalAlign;
 }
 
 export const defaultRules: MediaRule[] = [
@@ -28,6 +34,33 @@ export const defaultRules: MediaRule[] = [
   },
 ];
 
+const getHorizontalMarginStyle = (
+  horizontalAlign: HorizontalAlign,
+  marginLeft?: number,
+  marginRight?: number,
+  marginUnit?: MarginUnit,
+) => {
+  if (horizontalAlign === 'left') {
+    return `
+      margin-right: auto !important;
+  `;
+  } else if (horizontalAlign === 'right') {
+    return `
+      margin-left: auto !important;
+  `;
+  } else if (horizontalAlign === 'center') {
+    return `
+      margin-left: auto !important;
+      margin-right: auto !important;
+  `;
+  } else {
+    let margin = '';
+    if (marginLeft) margin += `margin-left: ${marginLeft}${marginUnit} !important;`;
+    else if (marginRight) margin += `margin-right: ${marginRight}${marginUnit} !important;`;
+    return margin;
+  }
+};
+
 const Container = styled.div<{ rules: MediaRule[] }>`
   display: block;
   max-width: 100% !important;
@@ -39,8 +72,7 @@ const Container = styled.div<{ rules: MediaRule[] }>`
           & {
             ${rule.marginTop && `margin-top: ${rule.marginTop}px;`}
             width: auto !important;
-            margin-left: 1em !important;
-            margin-right: 1em !important;
+            ${getHorizontalMarginStyle(rule.horizontalAlign || 'none', 1, 1, 'em')}
           }
         }`;
       } else if (index === props.rules.length - 1) {
@@ -48,8 +80,12 @@ const Container = styled.div<{ rules: MediaRule[] }>`
           & {
             ${rule.marginTop && `margin-top: ${rule.marginTop}px;`}
             width: ${rule.width}px;
-            margin-left: auto !important;
-            margin-right: auto !important;
+            ${getHorizontalMarginStyle(
+              rule.horizontalAlign || 'center',
+              rule.marginLeft,
+              rule.marginRight,
+              rule.marginUnit,
+            )}
           }
         }`;
       } else {
@@ -59,8 +95,12 @@ const Container = styled.div<{ rules: MediaRule[] }>`
           & {
             ${rule.marginTop && `margin-top: ${rule.marginTop}px;`}
             width: ${rule.width}px;
-            margin-left: auto !important;
-            margin-right: auto !important;
+            ${getHorizontalMarginStyle(
+              rule.horizontalAlign || 'center',
+              rule.marginLeft,
+              rule.marginRight,
+              rule.marginUnit,
+            )}
           }
         }`;
       }
