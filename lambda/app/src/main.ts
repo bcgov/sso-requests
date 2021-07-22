@@ -18,6 +18,7 @@ const responseHeaders = {
 const BASE_PATH = '/app';
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
+  context.callbackWaitsForEmptyEventLoop = false;
   const { headers, requestContext, body, path, queryStringParameters } = event;
   const { submit } = queryStringParameters || {};
   const { httpMethod } = requestContext;
