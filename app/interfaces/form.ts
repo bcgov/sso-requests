@@ -15,3 +15,10 @@ export interface ClientRequest {
   createdAt?: string;
   publicAccess?: boolean;
 }
+
+export interface Errors {
+  firstPageErrors?: object[];
+  secondPageErrors?: object[];
+  thirdPageErrors?: object[];
+  fourthPageErrors?: object[];
+}

@@ -42,6 +42,14 @@ fieldset {
   margin-top: 30px;
 }
 
+span.required {
+  display: none;
+}
+
+li.text-danger {
+  max-width: 380px;
+}
+
 @media screen and (min-width: 1200px) {
   .pg-input-input {
     width: 400px;

@@ -6,6 +6,8 @@ import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
+import { Alert } from '@button-inc/bcgov-theme';
+import { Errors } from 'interfaces/form';
 
 const Table = styled.table`
   & tr {
@@ -23,6 +25,10 @@ const Divider = styled.hr`
   height: 2px !important;
 `;
 
+const SpacedAlert = styled(Alert)`
+  margin-top: 30px;
+`;
+
 const formatBoolean = (value?: boolean) => {
   if (value === undefined) return '';
   return value ? 'Yes' : 'No';
@@ -32,11 +38,14 @@ interface Props {
   formData: ClientRequest;
   setErrors: Function;
   setSubmitted: Function;
+  submitted: boolean;
+  errors: null | Errors;
 }
 
-export default function FormReview({ formData, setErrors, setSubmitted }: Props) {
+export default function FormReview({ formData, setErrors, setSubmitted, errors, submitted = false }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const hasErrors = errors && !(Object.keys(errors).length === 0);
 
   const handleSubmit = async () => {
     try {
@@ -122,6 +131,11 @@ export default function FormReview({ formData, setErrors, setSubmitted }: Props)
         handleSubmit={handleSubmit}
         handleBackClick={handleBackClick}
       />
+      {submitted && hasErrors && (
+        <SpacedAlert variant="danger">
+          There were errors with your submission. Please see the navigation tabs above for the form pages with errors.
+        </SpacedAlert>
+      )}
     </>
   );
 }

@@ -10,7 +10,7 @@ import requesterSchema from 'schemas/requester-info';
 import providerSchema from 'schemas/providers';
 import termsAndConditionsSchema from 'schemas/terms-and-conditions';
 
-export const validateForm = (formData: any) => {
+export const validateForm = (formData: ClientRequest) => {
   const { errors: firstPageErrors } = validate(formData, requesterSchema);
   const { errors: secondPageErrors } = validate(formData, providerSchema);
   const { errors: thirdPageErrors } = validate(formData, termsAndConditionsSchema);
@@ -113,15 +113,14 @@ export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
 
 export const processRequest = (request: ServerRequest): ClientRequest => {
   const { validRedirectUris, ...rest } = request;
-
   const processedRequest: ClientRequest = {
     ...rest,
   };
 
   const { dev, test, prod } = validRedirectUris || {};
   if (dev) processedRequest.devRedirectUrls = dev;
-  if (test) processedRequest.devRedirectUrls = test;
-  if (prod) processedRequest.devRedirectUrls = prod;
+  if (test) processedRequest.testRedirectUrls = test;
+  if (prod) processedRequest.prodRedirectUrls = prod;
   return processedRequest;
 };
 

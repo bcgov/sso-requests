@@ -12,7 +12,7 @@ export interface FormStageBox {
   stageNumber: number;
   active?: boolean;
   handleClick: Function;
-  hasError: boolean;
+  hasError?: boolean;
 }
 
 const Box = styled.div<BoxProps>`
