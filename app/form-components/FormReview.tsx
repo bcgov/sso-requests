@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
 
 const Table = styled.table`
-  & > tr {
+  & tr {
     display: flex;
     & > td {
       border: none;
@@ -61,57 +61,59 @@ export default function FormReview({ formData, setErrors, setSubmitted }: Props)
   return (
     <>
       <Table>
-        <tr>
-          <td>Are you the product owner or project admin/team lead?</td>
-          <td>
-            <strong>{formatBoolean(formData?.projectLead)}</strong>
-          </td>
-        </tr>
-        <tr>
-          <td>Project Name:</td>
-          <td>
-            <strong>{formData?.projectName}</strong>
-          </td>
-        </tr>
-        <tr>
-          <td>Have you requested an SSO project before?</td>
-          <td>
-            <strong>{formatBoolean(formData?.newToSso)}</strong>
-          </td>
-        </tr>
-        <tr>
-          <td>Preferred email address:</td>
-          <td>
-            <strong>{formData?.preferredEmail}</strong>
-          </td>
-        </tr>
+        <tbody>
+          <tr>
+            <td>Are you the product owner or project admin/team lead?</td>
+            <td>
+              <strong>{formatBoolean(formData?.projectLead)}</strong>
+            </td>
+          </tr>
+          <tr>
+            <td>Project Name:</td>
+            <td>
+              <strong>{formData?.projectName}</strong>
+            </td>
+          </tr>
+          <tr>
+            <td>Have you requested an SSO project before?</td>
+            <td>
+              <strong>{formatBoolean(formData?.newToSso)}</strong>
+            </td>
+          </tr>
+          <tr>
+            <td>Preferred email address:</td>
+            <td>
+              <strong>{formData?.preferredEmail}</strong>
+            </td>
+          </tr>
 
-        <Divider />
+          <Divider />
 
-        <tr>
-          <td>Identity providers required:</td>
-          <td>
-            <strong>{realmToIDP(formData?.realm)}</strong>
-          </td>
-        </tr>
-        <tr>
-          <td>Dev redirect URIs:</td>
-          <td>
-            <strong>{JSON.stringify(formData?.devRedirectUrls)}</strong>
-          </td>
-        </tr>
-        <tr>
-          <td>Test redirect URIs:</td>
-          <td>
-            <strong>{JSON.stringify(formData?.testRedirectUrls)}</strong>
-          </td>
-        </tr>
-        <tr>
-          <td>Prod redirect URIs:</td>
-          <td>
-            <strong>{JSON.stringify(formData?.prodRedirectUrls)}</strong>
-          </td>
-        </tr>
+          <tr>
+            <td>Identity providers required:</td>
+            <td>
+              <strong>{realmToIDP(formData?.realm)}</strong>
+            </td>
+          </tr>
+          <tr>
+            <td>Dev redirect URIs:</td>
+            <td>
+              <strong>{JSON.stringify(formData?.devRedirectUrls)}</strong>
+            </td>
+          </tr>
+          <tr>
+            <td>Test redirect URIs:</td>
+            <td>
+              <strong>{JSON.stringify(formData?.testRedirectUrls)}</strong>
+            </td>
+          </tr>
+          <tr>
+            <td>Prod redirect URIs:</td>
+            <td>
+              <strong>{JSON.stringify(formData?.prodRedirectUrls)}</strong>
+            </td>
+          </tr>
+        </tbody>
       </Table>
       <FormButtons
         text={{ continue: 'Submit', back: 'Cancel' }}
