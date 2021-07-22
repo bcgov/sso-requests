@@ -67,7 +67,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
     wakeItUp();
     fetchUser();
-  }, [router]);
+  }, []);
 
   const handleLogin = async () => {
     const authUrl = await getAuthorizationUrl({ kc_idp_hint: 'idir' });

@@ -57,7 +57,10 @@ export default function FormReview({ formData, setErrors, setSubmitted, errors, 
       setLoading(true);
       await updateRequest({ ...formData, status: 'submitted' }, undefined, true);
       setLoading(false);
-      router.push('/my-requests');
+      router.push({
+        pathname: '/my-requests',
+        query: { id: formData.id },
+      });
     } catch (err) {
       console.error(err);
     }
