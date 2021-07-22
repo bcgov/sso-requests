@@ -38,7 +38,7 @@ fieldset {
   font-weight: bold;
 }
 
-.form-group.field {
+.form-group.field:not(.field-object) {
   margin-top: 30px;
 }
 
@@ -48,6 +48,16 @@ span.required {
 
 li.text-danger {
   max-width: 380px;
+}
+
+label.control-label,
+label.pg-input-label {
+  font-weight: bold;
+}
+
+/* override spacing for first array field element */
+.field-array > div > div:nth-of-type(1) > .field {
+  margin-top: 0 !important;
 }
 
 @media screen and (min-width: 1200px) {
