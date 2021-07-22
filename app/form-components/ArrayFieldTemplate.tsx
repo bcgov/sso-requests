@@ -19,7 +19,7 @@ const AddContainer = styled.div`
 `;
 
 const RemoveContainer = styled(AddContainer)`
-  padding: 10px 0 0 10px;
+  margin: 35px 0 0 10px;
 `;
 
 const StyledP = styled.p`
@@ -32,13 +32,18 @@ const StyledP = styled.p`
   color: #bbbbbb;
 `;
 
+const Title = styled.legend`
+  font-weight: bold;
+  font-size: 1rem;
+`;
+
 export default function ArrayFieldTemplate(props: any) {
-  const { TitleField, title } = props;
+  const { title } = props;
   const { description } = props.schema;
 
   return (
     <div>
-      {title && <TitleField title={title}>{title}</TitleField>}
+      {title && <Title>{title}</Title>}
       {description && <Description>{description}</Description>}
       {props.items.map((element: any) => {
         return (

@@ -2,6 +2,7 @@ import FormStageBox from 'form-components/FormStageBox';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { isObject } from 'lodash';
 import { FormErrors } from 'interfaces/form';
+import styled from 'styled-components';
 interface Props {
   currentStage: number;
   setFormStage: Function;
@@ -22,6 +23,10 @@ const stages: Stage[] = [
   { title: 'Review & Submit', number: 4, errorKey: 'fourthPageErrors' },
 ];
 
+const Container = styled.div`
+  width: 824px;
+`;
+
 export default function Formstage({ currentStage, setFormStage, errors, creatingNewForm }: Props) {
   const handleClick = (stage: number) => {
     // Disable navigation if record is not yet created
@@ -30,21 +35,23 @@ export default function Formstage({ currentStage, setFormStage, errors, creating
   };
 
   return (
-    <Grid cols={4}>
-      <Grid.Row collapse="1000">
-        {stages.map((stage) => (
-          <Grid.Col>
-            <FormStageBox
-              title={stage.title}
-              stageNumber={stage.number}
-              active={stage.number === currentStage}
-              key={stage.number}
-              hasError={isObject(errors) && (errors[stage.errorKey]?.length || 0) > 0}
-              handleClick={() => handleClick(stage.number)}
-            />
-          </Grid.Col>
-        ))}
-      </Grid.Row>
-    </Grid>
+    <Container>
+      <Grid cols={4}>
+        <Grid.Row collapse="992" gutter={[]}>
+          {stages.map((stage) => (
+            <Grid.Col>
+              <FormStageBox
+                title={stage.title}
+                stageNumber={stage.number}
+                active={stage.number === currentStage}
+                key={stage.number}
+                hasError={isObject(errors) && (errors[stage.errorKey]?.length || 0) > 0}
+                handleClick={() => handleClick(stage.number)}
+              />
+            </Grid.Col>
+          ))}
+        </Grid.Row>
+      </Grid>
+    </Container>
   );
 }

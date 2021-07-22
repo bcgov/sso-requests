@@ -26,6 +26,7 @@ const Box = styled.div<BoxProps>`
   border-radius: 5px;
   padding: 20px;
   cursor: pointer;
+  margin: 3px 0;
 
   border: 1px solid #006fc4;
   opacity: ${(props: BoxProps) => (props.active ? '1' : '0.5')};
