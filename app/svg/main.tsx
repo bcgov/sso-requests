@@ -1,7 +1,13 @@
 import React from 'react';
 
 export default (
-  <svg xmlns="http://www.w3.org/2000/svg" width="461.237" height="330.046" viewBox="0 0 461.237 330.046">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="461.237"
+    height="330.046"
+    viewBox="0 0 461.237 330.046"
+    style={{ maxWidth: '100%' }}
+  >
     <g id="Group_1264" data-name="Group 1264" transform="translate(1.097 1.052)">
       <path
         id="Path_5946"

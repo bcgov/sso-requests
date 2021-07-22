@@ -76,7 +76,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   const handleLogout = async () => {
     sessionStorage.removeItem(TOKEN_SESSION);
-    window.location.href = '/';
+    window.location.href = base_path || '/';
   };
 
   if (loading) return <div>Loading...</div>;
