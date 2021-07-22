@@ -1,21 +1,28 @@
 import FormStageBox from 'form-components/FormStageBox';
 import Grid from '@button-inc/bcgov-theme/Grid';
-
+import { isObject } from 'lodash';
+import { FormErrors } from 'interfaces/form';
 interface Props {
   currentStage: number;
   setFormStage: Function;
-  errors: any;
+  errors: FormErrors | null;
   creatingNewForm: Function;
 }
 
-const stages = [
+interface Stage {
+  title: string;
+  number: number;
+  errorKey: 'firstPageErrors' | 'secondPageErrors' | 'thirdPageErrors' | 'fourthPageErrors';
+}
+
+const stages: Stage[] = [
   { title: 'Requester Info', number: 1, errorKey: 'firstPageErrors' },
   { title: "Providers and URI's", number: 2, errorKey: 'secondPageErrors' },
   { title: 'Terms and conditions', number: 3, errorKey: 'thirdPageErrors' },
   { title: 'Review & Submit', number: 4, errorKey: 'fourthPageErrors' },
 ];
 
-export default function Formstage({ currentStage, setFormStage, errors = {}, creatingNewForm }: Props) {
+export default function Formstage({ currentStage, setFormStage, errors, creatingNewForm }: Props) {
   const handleClick = (stage: number) => {
     // Disable navigation if record is not yet created
     if (creatingNewForm()) return;
@@ -32,7 +39,7 @@ export default function Formstage({ currentStage, setFormStage, errors = {}, cre
               stageNumber={stage.number}
               active={stage.number === currentStage}
               key={stage.number}
-              hasError={errors[stage.errorKey]?.length > 0}
+              hasError={isObject(errors) && (errors[stage.errorKey]?.length || 0) > 0}
               handleClick={() => handleClick(stage.number)}
             />
           </Grid.Col>

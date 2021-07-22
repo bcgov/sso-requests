@@ -25,7 +25,6 @@ const getUISchema = (created: boolean) => {
     },
     projectName: {
       'ui:FieldTemplate': fieldTemplate,
-      'ui:disabled': created,
     },
     realm: {
       'ui:widget': 'radio',
