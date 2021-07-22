@@ -16,6 +16,7 @@ import RequestInfoTabs from 'components/RequestInfoTabs';
 import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
+import Alert from '@button-inc/bcgov-theme/Alert';
 
 const mediaRules: MediaRule[] = [
   {
@@ -63,7 +64,7 @@ function RequestsPage({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [state, dispatch] = useReducer(reducer, {});
-  const { requests = {}, selectedRequest } = state;
+  const { requests = [], selectedRequest } = state;
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
@@ -72,9 +73,13 @@ function RequestsPage({ currentUser }: PageProps) {
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
-      const data = (await getRequests()) || {};
+      const data = (await getRequests()) || [];
       dispatch($setRequests(data));
       setLoading(false);
+      const { id } = router.query;
+      if (id) {
+        dispatch($setRequest(data.find((request) => request.id === Number(id))));
+      }
     };
     getData();
   }, []);
@@ -146,6 +151,13 @@ function RequestsPage({ currentUser }: PageProps) {
           </Grid.Row>
         </Grid>
       </RequestsContext.Provider>
+      {router.query.id && (
+        <Alert variant="success">{`Request ID:${padStart(
+          String(router.query.id),
+          8,
+          '0',
+        )} is successfully submitted!`}</Alert>
+      )}
     </ResponsiveContainer>
   );
 }
