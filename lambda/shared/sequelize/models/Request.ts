@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       clientName: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       realm: {
         type: DataTypes.STRING,

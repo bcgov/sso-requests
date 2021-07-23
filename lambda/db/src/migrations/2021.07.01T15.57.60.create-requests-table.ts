@@ -23,7 +23,7 @@ export const up = async ({ context: sequelize }) => {
     clientName: {
       type: DataTypes.STRING,
       field: 'client_name',
-      allowNull: false,
+      allowNull: true,
     },
     realm: {
       type: DataTypes.STRING,
