@@ -24,15 +24,9 @@ describe('Fetching data', () => {
     jest.clearAllMocks();
   });
 
-  it('Skips fetching data for newly created forms', () => {
-    setUpRouter('/request/1', sandbox, { rid: 1, newForm: true });
-    render(<RequestPage currentUser={{}} request={{}} setRequest={jest.fn()} />);
-    expect(getRequest).not.toHaveBeenCalled();
-  });
-
-  it('Fetches data otherwise', async () => {
+  it('Fetches data when loading', async () => {
     setUpRouter('/request/1', sandbox, { rid: 1 });
-    render(<RequestPage currentUser={{}} request={{}} setRequest={jest.fn()} />);
+    render(<RequestPage currentUser={{}} />);
     expect(getRequest).toHaveBeenCalled();
     screen.getByText('Loading information...');
     await waitFor(() => screen.getByText('Requester Info'));

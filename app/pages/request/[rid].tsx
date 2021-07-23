@@ -5,7 +5,6 @@ import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContaine
 import { getRequest } from 'services/request';
 import Loader from 'react-loader-spinner';
 import styled from 'styled-components';
-import { ClientRequest } from 'interfaces/Request';
 
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
@@ -24,17 +23,15 @@ interface Props {
   currentUser: {
     email?: string;
   };
-  request: ClientRequest;
-  setRequest: Function;
 }
 
-function Request({ currentUser, request, setRequest }: Props) {
+function Request({ currentUser }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
+  const [request, setRequest] = useState<Request | null>(null);
   const { rid } = router.query;
 
   useEffect(() => {
-    if (router.query.newForm) return;
     const getData = async () => {
       setLoading(true);
       const data = await getRequest(parseInt(rid as string));
@@ -52,7 +49,7 @@ function Request({ currentUser, request, setRequest }: Props) {
           <p>Loading information...</p>
         </LoaderContainer>
       ) : (
-        <FormTemplate currentUser={currentUser || {}} request={request} setRequest={setRequest} />
+        <FormTemplate currentUser={currentUser || {}} request={request} />
       )}
     </ResponsiveContainer>
   );

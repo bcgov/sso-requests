@@ -7,7 +7,7 @@ import { getAuthorizationUrl, getAccessToken, refreshSession } from 'utils/openi
 import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
-import Layout from 'layout/Layout';
+import Layout from 'out/layout/Layout';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
@@ -55,7 +55,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [request, setRequest] = useState();
 
   useEffect(() => {
     console.log('app started...');
@@ -130,14 +129,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   }
   return (
     <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
-      <Component
-        {...pageProps}
-        currentUser={currentUser}
-        onLoginClick={handleLogin}
-        onLogoutClick={handleLogout}
-        request={request}
-        setRequest={setRequest}
-      />
+      <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
     </Layout>
   );
 }

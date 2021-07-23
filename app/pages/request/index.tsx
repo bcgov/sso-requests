@@ -8,13 +8,12 @@ interface Props {
   currentUser: {
     email?: string;
   };
-  setRequest: Function;
 }
 
-function Request({ currentUser, setRequest }: Props) {
+function Request({ currentUser }: Props) {
   return (
     <ResponsiveContainer rules={requestPageRules}>
-      <FormTemplate currentUser={currentUser || {}} setRequest={setRequest} />
+      <FormTemplate currentUser={currentUser || {}} />
     </ResponsiveContainer>
   );
 }
