@@ -98,9 +98,11 @@ export default function FormReview({ formData, setErrors, setSubmitted, errors, 
               <strong>{formData?.preferredEmail}</strong>
             </td>
           </tr>
-
-          <Divider />
-
+        </tbody>
+      </Table>
+      <Divider />
+      <Table>
+        <tbody>
           <tr>
             <td>Identity providers required:</td>
             <td>
