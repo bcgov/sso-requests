@@ -52,9 +52,10 @@ interface Props {
     email?: string;
   };
   request?: any;
+  setRequest: Function;
 }
 
-export default function FormTemplate({ currentUser = {}, request }: Props) {
+export default function FormTemplate({ currentUser = {}, request, setRequest }: Props) {
   const [formData, setFormData] = useState((request || {}) as ClientRequest);
   const [formStage, setFormStage] = useState(request ? 2 : 1);
   const [loading, setLoading] = useState(false);
@@ -95,14 +96,15 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
     try {
       setLoading(true);
       if (creatingNewForm()) {
-        const { id } = (await createRequest(e.formData)) || {};
+        const request = (await createRequest(e.formData)) || {};
+        setRequest(request);
         await router.push({
-          pathname: `/request/${id}`,
+          pathname: `/request/${request.id}`,
           query: {
             newForm: true,
           },
         });
-        setFormData({ ...formData, id });
+        setFormData({ ...formData, id: request.id });
       } else {
         await updateRequest(e.formData);
       }
