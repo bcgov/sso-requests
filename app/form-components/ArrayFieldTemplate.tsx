@@ -47,7 +47,7 @@ export default function ArrayFieldTemplate(props: any) {
       {description && <Description>{description}</Description>}
       {props.items.map((element: any) => {
         return (
-          <>
+          <div key={element.index}>
             {element.hasRemove && (
               <FieldContainer>
                 {element.children}
@@ -59,7 +59,7 @@ export default function ArrayFieldTemplate(props: any) {
                 )}
               </FieldContainer>
             )}
-          </>
+          </div>
         );
       })}
       {props.canAdd && (

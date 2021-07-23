@@ -37,7 +37,7 @@ const Wrapper = (Component, inputType: string = '') => {
       pattern,
       onBlur,
       readOnly: readonly,
-      value: value || undefined,
+      value: value || '',
       checked: typeof value === 'undefined' ? false : value,
     };
     if (inputType === 'file') {

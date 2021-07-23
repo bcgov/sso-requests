@@ -50,7 +50,9 @@ const Text = styled.p`
 export default function FormStagebox({ stageNumber, title, active, handleClick, hasError }: FormStageBox) {
   return (
     <Box active={active} onClick={handleClick}>
-      <Circle>{hasError ? <FontAwesomeIcon icon={faExclamationTriangle} color="red" /> : stageNumber}</Circle>
+      <Circle>
+        {hasError ? <FontAwesomeIcon icon={faExclamationTriangle} color="red" title="error" /> : stageNumber}
+      </Circle>
       <Text>{title}</Text>
     </Box>
   );

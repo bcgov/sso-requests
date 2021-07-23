@@ -33,13 +33,14 @@ export default function Formheader({ formStage, id, saveMessage, saving }: Props
   return (
     <>
       <SHeader>{titles[formStage - 1]}</SHeader>
-      {saveMessage && (
+      {(saving || saveMessage) && (
         <Container>
           <Icon>
             {saving ? (
-              <Loader type="TailSpin" color="#000" height={18} width={50} visible />
+              // @ts-ignore
+              <Loader type="TailSpin" color="#000" height={18} width={50} visible label="request-saving" />
             ) : (
-              <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faCheck} />
+              <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faCheck} title="request-saved" />
             )}
           </Icon>
 

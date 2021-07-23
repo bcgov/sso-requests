@@ -6,7 +6,7 @@ import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
-import { Alert } from '@button-inc/bcgov-theme';
+import Alert from '@button-inc/bcgov-theme/Alert';
 import { FormErrors } from 'interfaces/form';
 
 const Table = styled.table`
