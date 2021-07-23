@@ -10,6 +10,8 @@ import { meta } from './provider';
 import { parseJWTPayload, parseJWTHeader } from './helpers';
 
 export const verifyToken = async (token: string) => {
+  if (!token) return false;
+
   const url = `${meta.jwks_uri}`;
 
   const data = await axios.get(url).then((res) => res.data, console.error);

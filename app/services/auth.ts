@@ -1,9 +1,8 @@
 import { instance } from './axios';
-
-const TOKEN_SESSION = 'tokens';
+import { setTokens, getTokens, removeTokens } from 'utils/store';
 
 export const getAuthConfig = () => {
-  const tokens = JSON.parse(sessionStorage.getItem(TOKEN_SESSION) || '{}') || {};
+  const tokens = getTokens();
   const config = { headers: { Authorization: `Bearer ${tokens.id_token}` } };
   return config;
 };
