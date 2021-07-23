@@ -7,7 +7,7 @@ const handleError = (err: string) => {
   };
 };
 
-export const waitUpAll = async () => {
+export const wakeUpAll = async () => {
   try {
     const result = await sequelize.query('SELECT NOW()');
     return { statusCode: 200, body: JSON.stringify(result && result[0]) };
