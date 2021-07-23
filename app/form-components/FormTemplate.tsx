@@ -98,9 +98,6 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
         const { id } = (await createRequest(e.formData)) || {};
         await router.push({
           pathname: `/request/${id}`,
-          query: {
-            newForm: true,
-          },
         });
         setFormData({ ...formData, id });
       } else {

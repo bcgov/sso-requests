@@ -120,11 +120,13 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   if (loading) return <div>Loading...</div>;
 
-  if ([`${base_path}/my-requests`, `${base_path}/request`].includes(window.location.pathname) && !currentUser) {
+  if (
+    [`${base_path}/my-requests`, `${base_path}/request`].some((url) => window.location.pathname.startsWith(url)) &&
+    !currentUser
+  ) {
     router.push('/');
     return null;
   }
-
   return (
     <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
       <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />

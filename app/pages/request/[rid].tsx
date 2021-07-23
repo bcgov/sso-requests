@@ -32,7 +32,6 @@ function Request({ currentUser }: Props) {
   const { rid } = router.query;
 
   useEffect(() => {
-    if (router.query.newForm) return;
     const getData = async () => {
       setLoading(true);
       const data = await getRequest(parseInt(rid as string));
