@@ -4,6 +4,7 @@ import { getEvents } from './routes/events';
 import { createRequest, getRequests, getRequest, updateRequest } from './routes/requests';
 import { getClient } from './routes/client';
 import { getInstallation } from './routes/installation';
+import { waitUpAll } from './routes/heartbeat';
 
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
 
@@ -26,7 +27,8 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   if (httpMethod === 'OPTIONS') return callback(null, { headers: responseHeaders });
 
   if (path === `${BASE_PATH}/heartbeat`) {
-    return callback(null, { headers: responseHeaders, statusCode: 200, body: true });
+    const result = await waitUpAll();
+    return callback(null, { ...result, headers: responseHeaders });
   }
 
   const session = await authenticate(headers);
