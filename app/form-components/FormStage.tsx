@@ -18,7 +18,7 @@ interface Stage {
 
 const stages: Stage[] = [
   { title: 'Requester Info', number: 1, errorKey: 'firstPageErrors' },
-  { title: "Providers and URI's", number: 2, errorKey: 'secondPageErrors' },
+  { title: 'Providers and URIs', number: 2, errorKey: 'secondPageErrors' },
   { title: 'Terms and conditions', number: 3, errorKey: 'thirdPageErrors' },
   { title: 'Review & Submit', number: 4, errorKey: 'fourthPageErrors' },
 ];
@@ -39,7 +39,7 @@ export default function Formstage({ currentStage, setFormStage, errors, creating
       <Grid cols={4}>
         <Grid.Row collapse="992" gutter={[]}>
           {stages.map((stage) => (
-            <Grid.Col>
+            <Grid.Col key={stage.title}>
               <FormStageBox
                 title={stage.title}
                 stageNumber={stage.number}
