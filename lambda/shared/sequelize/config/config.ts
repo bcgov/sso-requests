@@ -4,6 +4,10 @@ module.exports = {
     storage: './db.sqlite',
     use_env_variable: 'DATABASE_URL',
   },
+  test: {
+    dialect: 'postgres',
+    use_env_variable: 'DATABASE_URL',
+  },
   production: {
     host: process.env.DB_HOSTNAME,
     username: process.env.DB_USERNAME,
