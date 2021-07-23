@@ -6,6 +6,7 @@ import { fetchIssuerConfiguration } from 'utils/provider';
 import { getAuthorizationUrl, getAccessToken, refreshSession } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
+import { setTokens, getTokens, removeTokens } from 'utils/store';
 import Layout from 'layout/Layout';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -14,7 +15,40 @@ import 'styles/globals.css';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path } = publicRuntimeConfig;
 
-const TOKEN_SESSION = 'tokens';
+const ONE_MIN = 60 * 1000;
+const TWO_MIN = 2 * ONE_MIN;
+
+const refreshTokenIfExpiriesSoon = async () => {
+  const tokens = getTokens();
+  const verifiedIdToken = await verifyToken(tokens.id_token);
+  if (verifiedIdToken) {
+    const expiesIn = verifiedIdToken.exp * 1000 - Date.now();
+    console.log(`Token expiries in ${expiesIn}ms`);
+
+    if (expiesIn < TWO_MIN) {
+      console.log(`refreshing Token...`);
+      const newTokens = await refreshSession({ refreshToken: tokens.refresh_token });
+      const newVerifiedIdToken = await verifyToken(newTokens.id_token);
+      if (newVerifiedIdToken) {
+        console.log(`Token refreshed successfully.`);
+        setTokens(newTokens);
+        return newVerifiedIdToken;
+      } else {
+        console.log(`failed to refresh Token.`);
+      }
+
+      return null;
+    }
+    return verifiedIdToken;
+  } else {
+    return null;
+  }
+};
+
+const setTokenInterval = () => {
+  // periodically using refresh_token grant flow to get new access token here
+  setInterval(refreshTokenIfExpiriesSoon, ONE_MIN);
+};
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -23,6 +57,24 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('app started...');
+    async function handleTokens(tokens: any, loginWorkflow: boolean) {
+      const verifiedIdToken = await verifyToken(tokens.id_token);
+      if (verifiedIdToken) {
+        if (loginWorkflow) setTokens(tokens);
+        const newVerifiedIdToken = await refreshTokenIfExpiriesSoon();
+        setTokenInterval();
+        setCurrentUser(newVerifiedIdToken);
+        setLoading(false);
+        if (loginWorkflow) router.push('/my-requests');
+        return null;
+      } else {
+        removeTokens();
+        setCurrentUser(null);
+        setLoading(false);
+      }
+    }
+
     async function fetchUser() {
       setLoading(true);
 
@@ -36,32 +88,19 @@ function MyApp({ Component, pageProps }: AppProps) {
         // Oauth callback endpoint
         if (code) {
           const tokens = await getAccessToken({ code, state });
-          const verifiedIdToken = await verifyToken(tokens.id_token);
-
-          if (verifiedIdToken) {
-            sessionStorage.setItem(TOKEN_SESSION, JSON.stringify(tokens));
-            setCurrentUser(verifiedIdToken);
-            setLoading(false);
-            router.push('/my-requests');
-          }
+          await handleTokens(tokens, true);
         }
         // main entrypoint
         else {
-          const tokens = JSON.parse(sessionStorage.getItem(TOKEN_SESSION) || '');
-          const verifiedIdToken = await verifyToken(tokens.id_token);
-
-          if (verifiedIdToken) {
-            setCurrentUser(verifiedIdToken);
-            setLoading(false);
-            return null;
-          } else {
-            sessionStorage.removeItem(TOKEN_SESSION);
-            handleLogin();
-          }
+          const tokens = getTokens();
+          await handleTokens(tokens, false);
         }
       } catch (err) {
-        setError(err);
+        console.log(err);
+        removeTokens();
+        setCurrentUser(null);
         setLoading(false);
+        setError(err);
       }
     }
 
@@ -75,14 +114,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   };
 
   const handleLogout = async () => {
-    sessionStorage.removeItem(TOKEN_SESSION);
+    removeTokens();
     window.location.href = base_path || '/';
   };
 
   if (loading) return <div>Loading...</div>;
 
-  if (['/my-requests', '/request'].includes(window.location.pathname) && !currentUser) {
-    router.push(base_path || '/');
+  if ([`${base_path}/my-requests`, `${base_path}/request`].includes(window.location.pathname) && !currentUser) {
+    router.push('/');
     return null;
   }
 

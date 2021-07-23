@@ -115,6 +115,8 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
                 ></InstallationModal>
               </>
             )}
+            <br />
+            <br />
             {redirectUris?.length > 0 ? (
               <StyledList>
                 {redirectUris.map((url: any) => (
