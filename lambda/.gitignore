@@ -1,3 +1,4 @@
 db.sqlite
 app/src/schemas
 app/src/interfaces
+.env
