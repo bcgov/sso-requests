@@ -66,8 +66,8 @@ describe('requests endpoints', () => {
 
     await new Promise((resolve, reject) => {
       handler(event, context, (error, response) => {
-        console.log('response.body', response.body);
-        expect(JSON.parse(response.body).projectName).toEqual(sampleRequestPayload.projectName);
+        const request = JSON.parse(response.body);
+        expect(request.projectName).toEqual(sampleRequestPayload.projectName);
         expect(response.statusCode).toEqual(200);
         resolve(true);
       });
