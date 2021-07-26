@@ -23,6 +23,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
+    "json-schema": "^0.3.0",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
     "jws": "^4.0.0",
@@ -30,6 +31,8 @@
     "lodash": "^4.17.21",
     "octokit": "^1.1.0",
     "pg": "^8.6.0",
+    "react": "^17.0.2",
+    "react-jsonschema-form": "^1.8.1",
     "sequelize": "^6.6.4"
   }
 }

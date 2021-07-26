@@ -5,6 +5,14 @@ TARGET := ../../../terraform/lambda-app.zip
 .PHONY: lambda
 lambda:
 	@rm -rf build
+	@rm -rf ./src/schemas
+	@rm -rf ./src/interfaces
+	@mkdir ./src/schemas
+	@mkdir ./src/interfaces
+	@cp ../../app/schemas/providers.ts ./src/schemas/providers.ts
+	@cp ../../app/schemas/requester-info.ts ./src/schemas/requester-info.ts
+	@cp ../../app/schemas/terms-and-conditions.ts ./src/schemas/terms-and-conditions.ts
+	@cp -r ../../app/interfaces ./src/
 	@yarn tsc
 	@mkdir -p bundle
 	@cp package.json bundle
