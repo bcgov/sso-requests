@@ -19,6 +19,7 @@ import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 import Alert from '@button-inc/bcgov-theme/Alert';
+import FadingAlert from 'html-components/FadingAlert';
 
 const mediaRules: MediaRule[] = [
   {
@@ -58,6 +59,17 @@ const NoProjects = styled.div`
   padding-bottom: 22px;
   weight: 700;
   background-color: #f8f8f8;
+`;
+
+const BottomAlertWrapper = styled.div`
+  position: fixed !important;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+
+  & .pg-notification-close {
+    padding: 0 1rem;
+  }
 `;
 
 export const RequestsContext = React.createContext({} as any);
@@ -155,11 +167,14 @@ function RequestsPage({ currentUser }: PageProps) {
         </Grid>
       </RequestsContext.Provider>
       {router.query.id && (
-        <Alert variant="success">{`Request ID:${padStart(
-          String(router.query.id),
-          8,
-          '0',
-        )} is successfully submitted!`}</Alert>
+        <BottomAlertWrapper>
+          <FadingAlert
+            variant="success"
+            fadeOut={3000}
+            closable
+            content={`Request ID:${padStart(String(router.query.id), 8, '0')} is successfully submitted!`}
+          />
+        </BottomAlertWrapper>
       )}
     </ResponsiveContainer>
   );
