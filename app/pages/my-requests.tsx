@@ -167,21 +167,15 @@ function RequestsPage({ currentUser }: PageProps) {
         </Grid>
       </RequestsContext.Provider>
       {router.query.id && (
-        <Alert variant="success">{`Request ID:${padStart(
-          String(router.query.id),
-          8,
-          '0',
-        )} is successfully submitted!`}</Alert>
+        <BottomAlertWrapper>
+          <FadingAlert
+            variant="success"
+            fadeOut={3000}
+            closable
+            content={`Request ID:${padStart(String(router.query.id), 8, '0')} is successfully submitted!`}
+          />
+        </BottomAlertWrapper>
       )}
-
-      <BottomAlertWrapper>
-        <FadingAlert
-          variant="success"
-          fadeOut={3000}
-          closable
-          content={`Request ID:${padStart(String('1111111111111'), 8, '0')} is successfully submitted!`}
-        />
-      </BottomAlertWrapper>
     </ResponsiveContainer>
   );
 }

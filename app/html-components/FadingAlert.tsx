@@ -24,7 +24,7 @@ const FadingAlert = ({ children, variant, size, closable, content, fadeOut }: pr
     return () => {
       timeout && clearTimeout(timeout);
     };
-  });
+  }, []);
 
   if (faded) return null;
 
