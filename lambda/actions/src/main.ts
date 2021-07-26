@@ -33,7 +33,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   const { Authorization } = headers;
   if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
 
-  const { status } = queryStringParameters || {};
+  const { status: githubActionsStage } = queryStringParameters || {};
 
   let response: Response = {
     isBase64Encoded: false,
@@ -41,7 +41,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   };
 
   try {
-    if (status === 'create') {
+    if (githubActionsStage === 'create') {
       const status = String(prSuccess) === 'true' ? 'pr' : 'prFailed';
       await Promise.all([
         models.request.update({ prNumber, status, actionNumber }, { where: { id } }),
@@ -50,14 +50,14 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     } else {
       // After creation, gh action only has prNumber to reference request. Using this to grab the requestId first
       const { id: requestId } = await models.request.findOne({ where: { prNumber } });
-      if (status === 'plan') {
-        const status = String(planSuccess) === 'true' ? 'plan' : 'planFailed';
+      if (githubActionsStage === 'plan') {
+        const status = String(planSuccess) === 'true' ? 'planned' : 'planFailed';
         await Promise.all([
           models.request.update({ status }, { where: { id: requestId } }),
           createEvent({ eventCode: `request-plan-${planSuccess}`, requestId }),
         ]);
       }
-      if (status === 'apply') {
+      if (githubActionsStage === 'apply') {
         const status = String(applySuccess) === 'true' ? 'applied' : 'applyFailed';
         await Promise.all([
           models.request.update({ status }, { where: { id: requestId } }),
