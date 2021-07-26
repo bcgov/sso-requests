@@ -77,7 +77,7 @@ interface Route {
 }
 
 const routes: Route[] = [
-  { path: '/', label: 'About Keycloak' },
+  { path: '/', label: 'About Pathfinder SSO' },
   { path: '/terms-conditions', label: 'Terms and Conditions' },
   { path: '/my-requests', label: 'My Projects', user: true },
   { path: '/request', label: 'New Request', user: true, hide: true },

@@ -41,6 +41,8 @@ export const styles = {
 
         &:hover {
           text-decoration: underline;
+          background-color: #FFF7D5;
+          box-shadow: 0px 0px 0px 2px #FFF7D5 inset !important;
           opacity: 0.80;
         }
 
