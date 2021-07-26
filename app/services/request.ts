@@ -6,10 +6,9 @@ import { processRequest, prepareRequest } from 'utils/helpers';
 
 export const createRequest = async (data: ClientRequest) => {
   const config = getAuthConfig();
-  const preparedData = prepareRequest(data);
 
   try {
-    const result = await instance.post('requests', { ...preparedData }, config).then((res) => res.data);
+    const result = await instance.post('requests', data, config).then((res) => res.data);
     return processRequest(result);
   } catch (err) {
     console.error(err);
@@ -39,13 +38,11 @@ export const getRequests = async () => {
   }
 };
 
-export const updateRequest = async (data: ClientRequest, previousData?: ClientRequest, submit = false) => {
-  const preparedData = prepareRequest(data, previousData);
+export const updateRequest = async (data: ClientRequest, submit = false) => {
   const config = getAuthConfig();
-
   try {
     const url = submit ? `requests?submit=true` : 'requests';
-    const result = await instance.put(url, preparedData, config).then((res) => res.data);
+    const result = await instance.put(url, data, config).then((res) => res.data);
     return processRequest(result);
   } catch (err) {
     console.error(err);

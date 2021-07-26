@@ -1,6 +1,7 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
-import { kebabCase, omit, pick } from 'lodash';
+import { kebabCase, omit } from 'lodash';
+import { prepareRequest, validateRequest, processRequest } from '../helpers';
 
 const AWS = require('aws-sdk');
 
@@ -8,6 +9,7 @@ const handleError = (err: string) => {
   console.error(err);
   return {
     statusCode: 422,
+    body: JSON.stringify(err),
   };
 };
 
@@ -42,7 +44,6 @@ export const updateRequest = async (session: Session, data: Data, submit: string
   try {
     const { id, ...rest } = data;
     const original = await models.request.findOne({
-      attributes: ['status'],
       where: {
         idirUserid: session.idir_userid,
         id,
@@ -53,13 +54,17 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       return unauthorized();
     }
 
-    if (!['draft', 'applied'].includes(original.status)) {
+    const preparedRequest = prepareRequest(rest, processRequest(original.dataValues));
+    if (!['draft', 'applied'].includes(preparedRequest.status)) {
       return unauthorized();
     }
 
-    const allowedData = omit(rest, ['idirUserid', 'projectLead', 'clientName', 'status']);
+    const allowedData = omit(preparedRequest, ['idirUserid', 'projectLead', 'clientName', 'status']);
 
     if (submit) {
+      const formData = processRequest(preparedRequest);
+      const isValid = validateRequest({ ...formData, projectLead: preparedRequest.projectLead });
+      if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: preparedRequest }));
       allowedData.clientName = `${kebabCase(allowedData.projectName)}-${id}`;
       allowedData.status = 'submitted';
     }

@@ -1,9 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
-import Modal from '@button-inc/bcgov-theme/Modal';
 import styled from 'styled-components';
-import Link from '@button-inc/bcgov-theme/Link';
 import Alert from '@button-inc/bcgov-theme/Alert';
-import Loader from 'react-loader-spinner';
 import Form from 'form-components/GovForm';
 import getSchema from 'schemas/urls';
 import { RequestsContext } from 'pages/my-requests';
@@ -63,7 +60,6 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
         ...e.formData,
         id: selectedRequest.id,
       },
-      selectedRequest,
       true,
     );
 
