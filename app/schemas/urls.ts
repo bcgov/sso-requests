@@ -8,7 +8,7 @@ export default function getSchema(env: string | undefined, defaultUrls: string[]
     properties: {
       [name]: {
         type: 'array',
-        title: null,
+        title: '',
         items: { type: 'string', pattern },
         additionalItems: { type: 'string', pattern },
         default: defaultUrls,
