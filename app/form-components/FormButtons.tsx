@@ -1,6 +1,7 @@
 import Button from '@button-inc/bcgov-theme/Button';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
+import { FORM_BUTTON_TOP_SPACING } from 'styles/theme';
 
 interface Props {
   show: boolean | undefined;
@@ -30,18 +31,22 @@ const CancelButton = styled(Button)`
   }
 `;
 
+const Container = styled.div`
+  margin-top: ${FORM_BUTTON_TOP_SPACING};
+`;
+
 export default function FormButtons({ show, loading, text, handleSubmit, handleBackClick }: Props) {
   return (
     <>
       {show && (
-        <>
+        <Container>
           <CancelButton variant="secondary" size="small" type="button" onClick={handleBackClick}>
             {text.back}
           </CancelButton>
           <PaddedButton variant="primary" size="small" onClick={handleSubmit} type="submit">
             {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
           </PaddedButton>
-        </>
+        </Container>
       )}
     </>
   );
