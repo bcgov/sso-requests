@@ -20,6 +20,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
 import { transformErrors, validateForm } from 'utils/helpers';
 import { FormErrors } from 'interfaces/form';
+import { get, padStart } from 'lodash';
 
 const CenteredModal = styled(Modal)`
   display: flex;
@@ -121,7 +122,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   };
 
   const handleModalClose = () => {
-    window.location.hash = '#';
+    router.push('my-requests');
   };
 
   return (
@@ -168,7 +169,13 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
           <Modal.Header>
             Information{' '}
             <Modal.Close>
-              <FontAwesomeIcon icon={faWindowClose} size="2x" role="button" aria-label="close" />
+              <FontAwesomeIcon
+                icon={faWindowClose}
+                size="2x"
+                role="button"
+                aria-label="close"
+                onClick={handleModalClose}
+              />
             </Modal.Close>
           </Modal.Header>
           <Modal.Content>

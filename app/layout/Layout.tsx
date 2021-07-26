@@ -20,7 +20,7 @@ const LoggedUser = styled.span`
 
 const MainContent = styled.div`
   padding: 1rem 0;
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 160px);
 `;
 
 const MobileSubMenu = styled.ul`

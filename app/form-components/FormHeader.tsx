@@ -3,6 +3,7 @@ import Loader from 'react-loader-spinner';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { padStart } from 'lodash';
 
 const Container = styled.div`
   display: flex;
@@ -23,11 +24,12 @@ interface Props {
 }
 
 export default function Formheader({ formStage, id, saveMessage, saving }: Props) {
+  const paddedId = padStart(String(id), 8, '0');
   const titles = [
     'Enter requester information',
-    `Req ID: ${id} - Choose providers and provide URIs`,
-    `Req ID: ${id} - Terms and Conditions`,
-    `Req ID: ${id} - Review and Submit`,
+    `Req ID: ${paddedId} - Choose providers and provide URIs`,
+    `Req ID: ${paddedId} - Terms and Conditions`,
+    `Req ID: ${paddedId} - Review and Submit`,
   ];
 
   return (

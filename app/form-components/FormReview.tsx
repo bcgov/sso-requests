@@ -8,6 +8,7 @@ import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
 import Alert from '@button-inc/bcgov-theme/Alert';
 import { FormErrors } from 'interfaces/form';
+import { FORM_TOP_SPACING } from 'styles/theme';
 
 const Table = styled.table`
   & tr {
@@ -26,7 +27,7 @@ const Divider = styled.hr`
 `;
 
 const SpacedAlert = styled(Alert)`
-  margin-top: 30px;
+  margin-top: ${FORM_TOP_SPACING};
 `;
 
 const formatBoolean = (value?: boolean) => {

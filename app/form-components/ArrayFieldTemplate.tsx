@@ -15,7 +15,7 @@ const AddContainer = styled.div`
   &:hover {
     cursor: pointer;
   }
-  margin-top: 10px;
+  margin-top: 0;
 `;
 
 const RemoveContainer = styled(AddContainer)`
@@ -35,6 +35,7 @@ const StyledP = styled.p`
 const Title = styled.legend`
   font-weight: bold;
   font-size: 1rem;
+  margin: 0;
 `;
 
 export default function ArrayFieldTemplate(props: any) {
