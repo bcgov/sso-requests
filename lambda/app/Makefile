@@ -2,9 +2,8 @@ SHELL := /usr/bin/env bash
 
 TARGET := ../../../terraform/lambda-app.zip
 
-.PHONY: lambda
-lambda:
-	@rm -rf build
+.PHONY: copy-schema
+copy-schema:
 	@rm -rf ./src/schemas
 	@rm -rf ./src/interfaces
 	@mkdir ./src/schemas
@@ -13,6 +12,11 @@ lambda:
 	@cp ../../app/schemas/requester-info.ts ./src/schemas/requester-info.ts
 	@cp ../../app/schemas/terms-and-conditions.ts ./src/schemas/terms-and-conditions.ts
 	@cp -r ../../app/interfaces ./src/
+
+.PHONY: lambda
+lambda: copy-schema
+lambda:
+	@rm -rf build
 	@yarn tsc
 	@mkdir -p bundle
 	@cp package.json bundle
