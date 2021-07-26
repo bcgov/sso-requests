@@ -70,7 +70,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     callback(null, response);
   } catch (err) {
     response.statusCode = 422;
-    response.body = '{"success": false}';
+    response.body = JSON.stringify({ success: false, error: err });
     callback(null, response);
   }
 };
