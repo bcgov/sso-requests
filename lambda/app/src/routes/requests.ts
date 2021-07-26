@@ -1,4 +1,4 @@
-import { sequelize, models } from '../../../shared/sequelize/models/models';
+import { models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
 import { prepareRequest, validateRequest, processRequest } from '../helpers';
