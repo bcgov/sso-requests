@@ -58,7 +58,9 @@ export default function Actionbuttons({ request }: Props) {
     <Container>
       {/* TODO: Decide on delete functionality */}
       {/* <DeleteButton icon={faTrash} size="2x" role="button" aria-label="delete" /> */}
-      <EditButton icon={faEdit} size="2x" role="button" aria-label="edit" onClick={handleEdit} />
+      {request.status === 'applied' && (
+        <EditButton icon={faEdit} size="2x" role="button" aria-label="edit" onClick={handleEdit} />
+      )}
     </Container>
   );
 }
