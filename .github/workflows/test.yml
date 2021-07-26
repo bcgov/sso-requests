@@ -51,7 +51,7 @@ jobs:
           pg_ctl start
           createdb runner || true
           chmod +x ./setup.sh
-          ./setup.sh sso-db
+          ./setup.sh ssodb
         working-directory: ./db
 
       - name: Install dependencies - lambda app
@@ -76,7 +76,7 @@ jobs:
 
       - name: Run backend integration tests
         env:
-          DATABASE_URL: postgresql://localhost:5432/sso-db
+          DATABASE_URL: postgresql://localhost:5432/ssodb
         run: |
           yarn
           yarn test
