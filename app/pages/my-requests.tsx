@@ -16,6 +16,7 @@ import RequestInfoTabs from 'components/RequestInfoTabs';
 import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
+import PageLoader from 'components/PageLoader';
 import FadingAlert from 'html-components/FadingAlert';
 import BottomAlertWrapper from 'components/BottomAlertWrapper';
 
@@ -113,7 +114,7 @@ function RequestsPage({ currentUser }: PageProps) {
     router.push('/request');
   };
 
-  if (loading) return 'Loading...';
+  if (loading) return <PageLoader />;
 
   let content = null;
   if (hasError) {
