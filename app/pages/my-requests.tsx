@@ -7,7 +7,6 @@ import { get, padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests } from 'services/request';
 import { ClientRequest } from 'interfaces/Request';
-import providerSchema from 'schemas/providers';
 import Table from 'html-components/Table';
 import Button from 'html-components/Button';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
@@ -17,8 +16,9 @@ import RequestInfoTabs from 'components/RequestInfoTabs';
 import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
-import Alert from '@button-inc/bcgov-theme/Alert';
+import PageLoader from 'components/PageLoader';
 import FadingAlert from 'html-components/FadingAlert';
+import BottomAlertWrapper from 'components/BottomAlertWrapper';
 
 const mediaRules: MediaRule[] = [
   {
@@ -70,17 +70,6 @@ const NoProjects = styled.div`
   background-color: #f8f8f8;
 `;
 
-const BottomAlertWrapper = styled.div`
-  position: fixed !important;
-  bottom: 0;
-  left: 0;
-  width: 100vw;
-
-  & .pg-notification-close {
-    padding: 0 1rem;
-  }
-`;
-
 export const RequestsContext = React.createContext({} as any);
 
 function RequestsPage({ currentUser }: PageProps) {
@@ -125,7 +114,7 @@ function RequestsPage({ currentUser }: PageProps) {
     router.push('/request');
   };
 
-  if (loading) return 'Loading...';
+  if (loading) return <PageLoader />;
 
   let content = null;
   if (hasError) {

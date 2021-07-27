@@ -8,6 +8,7 @@ import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
 import Layout from 'layout/Layout';
+import PageLoader from 'components/PageLoader';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
@@ -118,7 +119,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     window.location.href = base_path || '/';
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <PageLoader />;
 
   if (
     [`${base_path}/my-requests`, `${base_path}/request`].some((url) => window.location.pathname.startsWith(url)) &&

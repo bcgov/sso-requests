@@ -101,7 +101,7 @@ export const realmToIDP = (realm?: string) => {
   if (realm === 'onestopauth-basic') idps = ['github', 'idir', 'bceid-basic'];
   if (realm === 'onestopauth-business') idps = ['github', 'idir', 'bceid-business'];
   if (realm === 'onestopauth-both') idps = ['github', 'idir', 'bceid-business', 'bceid-basic'];
-  return JSON.stringify(idps);
+  return idps;
 };
 
 export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
@@ -109,6 +109,13 @@ export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
   if (env === 'test') return 'testRedirectUrls';
   if (env === 'prod') return 'prodRedirectUrls';
   return '';
+};
+
+const changeNullToUndefined = (data: any) => {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === null) data[key] = undefined;
+  });
+  return data;
 };
 
 export const processRequest = (request: ServerRequest): ClientRequest => {
@@ -121,7 +128,8 @@ export const processRequest = (request: ServerRequest): ClientRequest => {
   if (dev) processedRequest.devRedirectUrls = dev;
   if (test) processedRequest.testRedirectUrls = test;
   if (prod) processedRequest.prodRedirectUrls = prod;
-  return processedRequest;
+  // RJSF default values only applied to undefined values, not nulls from DB
+  return changeNullToUndefined(processedRequest);
 };
 
 export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest): ServerRequest => {
@@ -156,7 +164,10 @@ export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest
 export const transformErrors = (errors: any) => {
   return errors.map((error: any) => {
     if (error.property === '.agreeWithTerms') error.message = 'You must agree to the terms to submit a request.';
-    else if (error.property.includes('RedirectUrls'))
+    else if (error.property === '.preferredEmail') error.message = 'Please enter a valid email address';
+    else if (error.property === '.realm') {
+      error.message = 'Please select your IDPs';
+    } else if (error.property.includes('RedirectUrls'))
       error.message = 'Please enter a valid url, including an http:// or https:// prefix.';
     return error;
   });

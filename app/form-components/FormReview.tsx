@@ -9,12 +9,17 @@ import { validateForm } from 'utils/helpers';
 import Alert from '@button-inc/bcgov-theme/Alert';
 import { FormErrors } from 'interfaces/form';
 import { FORM_TOP_SPACING } from 'styles/theme';
+import FadingAlert from 'html-components/FadingAlert';
+import BottomAlertWrapper from 'components/BottomAlertWrapper';
 
 const Table = styled.table`
+  margin-top: ${FORM_TOP_SPACING};
+  font-size: unset;
   & tr {
     display: flex;
     & > td {
       border: none;
+      padding: 0 5px 0 0;
     }
   }
 `;
@@ -33,6 +38,16 @@ const SpacedAlert = styled(Alert)`
 const formatBoolean = (value?: boolean) => {
   if (value === undefined) return '';
   return value ? 'Yes' : 'No';
+};
+
+const formatList = (list?: string[]) => {
+  if (!list) return '';
+  let formattedString = '';
+  list.forEach((entry) => {
+    if (!entry) return;
+    formattedString += `${entry}, `;
+  });
+  return formattedString.slice(0, -2);
 };
 
 interface Props {
@@ -107,25 +122,25 @@ export default function FormReview({ formData, setErrors, setSubmitted, errors, 
           <tr>
             <td>Identity providers required:</td>
             <td>
-              <strong>{realmToIDP(formData?.realm)}</strong>
+              <strong>{formatList(realmToIDP(formData?.realm))}</strong>
             </td>
           </tr>
           <tr>
             <td>Dev redirect URIs:</td>
             <td>
-              <strong>{JSON.stringify(formData?.devRedirectUrls)}</strong>
+              <strong>{formatList(formData?.devRedirectUrls)}</strong>
             </td>
           </tr>
           <tr>
             <td>Test redirect URIs:</td>
             <td>
-              <strong>{JSON.stringify(formData?.testRedirectUrls)}</strong>
+              <strong>{formatList(formData?.testRedirectUrls)}</strong>
             </td>
           </tr>
           <tr>
             <td>Prod redirect URIs:</td>
             <td>
-              <strong>{JSON.stringify(formData?.prodRedirectUrls)}</strong>
+              <strong>{formatList(formData?.prodRedirectUrls)}</strong>
             </td>
           </tr>
         </tbody>
@@ -138,9 +153,14 @@ export default function FormReview({ formData, setErrors, setSubmitted, errors, 
         handleBackClick={handleBackClick}
       />
       {submitted && hasErrors && (
-        <SpacedAlert variant="danger">
-          There were errors with your submission. Please see the navigation tabs above for the form pages with errors.
-        </SpacedAlert>
+        <BottomAlertWrapper>
+          <FadingAlert
+            variant="danger"
+            fadeOut={10000}
+            closable
+            content="There were errors with your submission. Please see the navigation tabs above for the form pages with errors."
+          />
+        </BottomAlertWrapper>
       )}
     </>
   );

@@ -4,7 +4,7 @@ export const urlPattern = `^https?:\\/\\/\\w+(\\.\\w+)*(:[0-9]+)?\\/?$`;
 
 export default {
   type: 'object',
-  required: ['devRedirectUrls', 'testRedirectUrls', 'prodRedirectUrls'],
+  required: ['devRedirectUrls', 'testRedirectUrls', 'prodRedirectUrls', 'realm'],
   properties: {
     realm: {
       type: 'string',
@@ -12,9 +12,9 @@ export default {
       enum: ['onestopauth', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
       enumNames: [
         'IDIR/GitHub',
-        'IDIR/GitHub + BCeID Basic',
-        'IDIR/GitHub + BCeID Business',
-        'IDIR/GitHub + BCeID Both',
+        'IDIR/GitHub + BCeID Basic (coming soon)',
+        'IDIR/GitHub + BCeID Business (coming soon)',
+        'IDIR/GitHub + BCeID Both (coming soon)',
       ],
       default: 'onestopauth',
     },

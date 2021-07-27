@@ -17,7 +17,7 @@ export default {
         {
           properties: {
             projectLead: { enum: [true] },
-            newToSso: { type: 'boolean', title: 'Have you requested an SSO project before?' },
+            newToSso: { type: 'boolean', title: 'Have you requested an SSO project before?', default: false },
             publicAccess: {
               type: 'boolean',
               title: 'Choose client type',
@@ -26,7 +26,7 @@ export default {
               default: false,
             },
             projectName: { type: 'string', title: 'Project Name' },
-            preferredEmail: { type: 'string', title: 'Preferred Email Address' },
+            preferredEmail: { type: 'string', title: 'Preferred Email Address', format: 'email' },
           },
         },
       ],
