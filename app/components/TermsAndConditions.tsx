@@ -1,9 +1,10 @@
 import styled from 'styled-components';
-import { FORM_TOP_SPACING } from 'styles/theme';
+import { FORM_TOP_SPACING, DEFAULT_FONT_SIZE } from 'styles/theme';
 
 const Title = styled.h2`
   text-transform: uppercase;
   margin-bottom: 0;
+  font-size: ${DEFAULT_FONT_SIZE};
 `;
 
 const StyledList = styled.ul`

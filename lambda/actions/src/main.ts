@@ -49,11 +49,12 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
       ]);
     } else {
       // After creation, gh action only has prNumber to reference request. Using this to grab the requestId first
-      const { id: requestId } = await models.request.findOne({ where: { prNumber } });
+      const { id: requestId, status: currentStatus } = await models.request.findOne({ where: { prNumber } });
+      const isAlreadyApplied = currentStatus === 'applied';
       if (githubActionsStage === 'plan') {
         const status = String(planSuccess) === 'true' ? 'planned' : 'planFailed';
         await Promise.all([
-          models.request.update({ status }, { where: { id: requestId } }),
+          !isAlreadyApplied && models.request.update({ status }, { where: { id: requestId } }),
           createEvent({ eventCode: `request-plan-${planSuccess}`, requestId }),
         ]);
       }

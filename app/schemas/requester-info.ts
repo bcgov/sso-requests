@@ -26,7 +26,7 @@ export default {
               default: false,
             },
             projectName: { type: 'string', title: 'Project Name' },
-            preferredEmail: { type: 'string', title: 'Preferred Email Address' },
+            preferredEmail: { type: 'string', title: 'Preferred Email Address', format: 'email' },
           },
         },
       ],

@@ -101,7 +101,7 @@ export const realmToIDP = (realm?: string) => {
   if (realm === 'onestopauth-basic') idps = ['github', 'idir', 'bceid-basic'];
   if (realm === 'onestopauth-business') idps = ['github', 'idir', 'bceid-business'];
   if (realm === 'onestopauth-both') idps = ['github', 'idir', 'bceid-business', 'bceid-basic'];
-  return JSON.stringify(idps);
+  return idps;
 };
 
 export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
@@ -156,7 +156,11 @@ export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest
 export const transformErrors = (errors: any) => {
   return errors.map((error: any) => {
     if (error.property === '.agreeWithTerms') error.message = 'You must agree to the terms to submit a request.';
-    else if (error.property.includes('RedirectUrls'))
+    else if (error.property === '.preferredEmail') error.message = 'Please enter a valid email address';
+    else if (error.property === '.realm') {
+      if (error.message === 'should be string') error.message = '';
+      else error.message = 'Please select your IDPs';
+    } else if (error.property.includes('RedirectUrls'))
       error.message = 'Please enter a valid url, including an http:// or https:// prefix.';
     return error;
   });
