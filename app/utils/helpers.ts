@@ -166,8 +166,7 @@ export const transformErrors = (errors: any) => {
     if (error.property === '.agreeWithTerms') error.message = 'You must agree to the terms to submit a request.';
     else if (error.property === '.preferredEmail') error.message = 'Please enter a valid email address';
     else if (error.property === '.realm') {
-      if (error.message === 'should be string') error.message = '';
-      else error.message = 'Please select your IDPs';
+      error.message = 'Please select your IDPs';
     } else if (error.property.includes('RedirectUrls'))
       error.message = 'Please enter a valid url, including an http:// or https:// prefix.';
     return error;

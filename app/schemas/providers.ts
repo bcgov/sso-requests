@@ -4,7 +4,7 @@ export const urlPattern = `^https?:\\/\\/\\w+(\\.\\w+)*(:[0-9]+)?\\/?$`;
 
 export default {
   type: 'object',
-  required: ['devRedirectUrls', 'testRedirectUrls', 'prodRedirectUrls'],
+  required: ['devRedirectUrls', 'testRedirectUrls', 'prodRedirectUrls', 'realm'],
   properties: {
     realm: {
       type: 'string',
