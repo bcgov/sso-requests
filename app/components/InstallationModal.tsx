@@ -27,7 +27,7 @@ const InstallationModal = ({
   const handleInstallationClick = async () => {
     setLoading(true);
     setInstallation(null);
-    const data = await getInstallation(requestId, environment);
+    const [data, err] = await getInstallation(requestId, environment);
     setInstallation(data);
     setLoading(false);
   };

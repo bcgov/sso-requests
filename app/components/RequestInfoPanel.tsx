@@ -55,7 +55,7 @@ const RequestInfoPanel = ({ panelEnv, environment }: { panelEnv: Environment; en
     dispatch($setUpdatingUrls(true));
     dispatch($updateRequest({ ...e.formData, id: selectedRequest.id }));
 
-    const result = await updateRequest(
+    const [data, err] = await updateRequest(
       {
         ...e.formData,
         id: selectedRequest.id,

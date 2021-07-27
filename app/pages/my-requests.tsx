@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { get, padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests } from 'services/request';
-import { getInstallation } from 'services/keycloak';
 import { ClientRequest } from 'interfaces/Request';
 import providerSchema from 'schemas/providers';
 import Table from 'html-components/Table';
@@ -51,6 +50,16 @@ const Title = styled.div`
   margin-bottom: 5px;
 `;
 
+const NotAvailable = styled.div`
+  color: #a12622;
+  height: 60px;
+  padding-left: 20px;
+  padding-top: 16px;
+  padding-bottom: 22px;
+  weight: 700;
+  background-color: #f2dede;
+`;
+
 const NoProjects = styled.div`
   color: #006fc4;
   height: 60px;
@@ -77,6 +86,7 @@ export const RequestsContext = React.createContext({} as any);
 function RequestsPage({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
   const [state, dispatch] = useReducer(reducer, {});
   const { requests = [], selectedRequest } = state;
 
@@ -87,13 +97,21 @@ function RequestsPage({ currentUser }: PageProps) {
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
-      const data = (await getRequests()) || [];
-      dispatch($setRequests(data));
-      setLoading(false);
-      const { id } = router.query;
-      if (id) {
-        dispatch($setRequest(data.find((request) => request.id === Number(id))));
+
+      const [data, err] = await getRequests();
+      if (err) {
+        setHasError(true);
+      } else {
+        const requests = data || [];
+        dispatch($setRequests(requests));
+
+        const { id } = router.query;
+        if (id) {
+          dispatch($setRequest(requests.find((request) => request.id === Number(id))));
+        }
       }
+
+      setLoading(false);
     };
     getData();
   }, []);
@@ -109,6 +127,54 @@ function RequestsPage({ currentUser }: PageProps) {
 
   if (loading) return 'Loading...';
 
+  let content = null;
+  if (hasError) {
+    content = (
+      <NotAvailable>
+        <FontAwesomeIcon icon={faExclamationCircle} />
+        &nbsp; The system is unavailable at this moment. please refresh the page.
+      </NotAvailable>
+    );
+  } else if (requests.length === 0) {
+    content = (
+      <NoProjects>
+        <FontAwesomeIcon icon={faInfoCircle} />
+        &nbsp; No SSO project requests submitted
+      </NoProjects>
+    );
+  } else {
+    content = (
+      <Table>
+        <thead>
+          <tr>
+            <th>Request ID</th>
+            <th>Project Name</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {requests.map((request: ClientRequest) => {
+            return (
+              <tr
+                className={selectedRequest?.id === request.id ? 'active' : ''}
+                key={request.id}
+                onClick={() => handleSelection(request)}
+              >
+                <td>{padStart(String(request.id), 8, '0')}</td>
+                <td>{request.projectName}</td>
+                <td>{getStatusDisplayName(request.status || 'draft')}</td>
+                <td>
+                  <ActionButtons request={request} />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </Table>
+    );
+  }
+
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Button size="small" onClick={handleNewClick}>
@@ -122,41 +188,7 @@ function RequestsPage({ currentUser }: PageProps) {
           <Grid.Row collapse="800">
             <Grid.Col>
               <Title>My Project Dashboard</Title>
-              {requests.length > 0 ? (
-                <Table>
-                  <thead>
-                    <tr>
-                      <th>Request ID</th>
-                      <th>Project Name</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {requests.map((request: ClientRequest) => {
-                      return (
-                        <tr
-                          className={selectedRequest?.id === request.id ? 'active' : ''}
-                          key={request.id}
-                          onClick={() => handleSelection(request)}
-                        >
-                          <td>{padStart(String(request.id), 8, '0')}</td>
-                          <td>{request.projectName}</td>
-                          <td>{getStatusDisplayName(request.status || 'draft')}</td>
-                          <td>
-                            <ActionButtons request={request} />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              ) : (
-                <NoProjects>
-                  <FontAwesomeIcon icon={faInfoCircle} />
-                  &nbsp; No SSO project requests submitted
-                </NoProjects>
-              )}
+              {content}
             </Grid.Col>
             {selectedRequest && (
               <Grid.Col>
@@ -170,7 +202,7 @@ function RequestsPage({ currentUser }: PageProps) {
         <BottomAlertWrapper>
           <FadingAlert
             variant="success"
-            fadeOut={3000}
+            fadeOut={10000}
             closable
             content={`Request ID:${padStart(String(router.query.id), 8, '0')} is successfully submitted!`}
           />
