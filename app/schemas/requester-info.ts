@@ -17,7 +17,7 @@ export default {
         {
           properties: {
             projectLead: { enum: [true] },
-            newToSso: { type: 'boolean', title: 'Have you requested an SSO project before?' },
+            newToSso: { type: 'boolean', title: 'Have you requested an SSO project before?', default: false },
             publicAccess: {
               type: 'boolean',
               title: 'Choose client type',

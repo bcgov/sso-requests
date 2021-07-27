@@ -111,6 +111,13 @@ export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
   return '';
 };
 
+const changeNullToUndefined = (data: any) => {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === null) data[key] = undefined;
+  });
+  return data;
+};
+
 export const processRequest = (request: ServerRequest): ClientRequest => {
   const { validRedirectUris, ...rest } = request;
   const processedRequest: ClientRequest = {
@@ -121,7 +128,8 @@ export const processRequest = (request: ServerRequest): ClientRequest => {
   if (dev) processedRequest.devRedirectUrls = dev;
   if (test) processedRequest.testRedirectUrls = test;
   if (prod) processedRequest.prodRedirectUrls = prod;
-  return processedRequest;
+  // RJSF default values only applied to undefined values, not nulls from DB
+  return changeNullToUndefined(processedRequest);
 };
 
 export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest): ServerRequest => {
