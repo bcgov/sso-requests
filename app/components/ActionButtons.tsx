@@ -19,13 +19,10 @@ const DeleteButton = styled(FontAwesomeIcon)`
   color: #777777;
   cursor: not-allowed;
 `;
-const EditButton = styled(FontAwesomeIcon)`
+const EditButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
   padding-left: 10px;
-  color: #777777;
   cursor: pointer;
-  &:hover {
-    color: #137ac8;
-  }
+  ${(props) => (props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: #137ac8; }`)}
 `;
 
 interface Props {
@@ -54,13 +51,13 @@ export default function Actionbuttons({ request }: Props) {
     }
   };
 
+  const canEdit = ['draft', 'applied'].includes(request.status || '');
+
   return (
     <Container>
       {/* TODO: Decide on delete functionality */}
       {/* <DeleteButton icon={faTrash} size="2x" role="button" aria-label="delete" /> */}
-      {['draft', 'applied'].includes(request.status || '') && (
-        <EditButton icon={faEdit} size="2x" role="button" aria-label="edit" onClick={handleEdit} />
-      )}
+      <EditButton disabled={!canEdit} icon={faEdit} size="2x" role="button" aria-label="edit" onClick={handleEdit} />
     </Container>
   );
 }

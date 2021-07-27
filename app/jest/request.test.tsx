@@ -9,11 +9,11 @@ jest.mock('next/router', () => ({
 }));
 
 jest.mock('services/request', () => {
-  const promise = Promise.resolve;
+  const successResponse = Promise.resolve([{}, null]);
   return {
-    createRequest: jest.fn(),
-    updateRequest: jest.fn(() => promise),
-    getRequest: jest.fn(),
+    createRequest: jest.fn(() => successResponse),
+    updateRequest: jest.fn(() => successResponse),
+    getRequest: jest.fn(() => successResponse),
   };
 });
 
