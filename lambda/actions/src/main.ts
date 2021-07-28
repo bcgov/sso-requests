@@ -29,7 +29,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   // Use this to prevent, see https://forum.serverless.com/t/lambda-with-rds-using-vpc-works-slow/1261/7 for more
   context.callbackWaitsForEmptyEventLoop = false;
   const { headers, body, queryStringParameters } = event;
-  const { prNumber, prSuccess, planSuccess, applySuccess, id, actionNumber } = JSON.parse(body);
+  const { prNumber, prSuccess, planSuccess, applySuccess, id, actionNumber, planDetails } = JSON.parse(body);
   const { Authorization } = headers;
   if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
 
@@ -55,7 +55,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
         const status = String(planSuccess) === 'true' ? 'planned' : 'planFailed';
         await Promise.all([
           !isAlreadyApplied && models.request.update({ status }, { where: { id: requestId } }),
-          createEvent({ eventCode: `request-plan-${planSuccess}`, requestId }),
+          createEvent({ eventCode: `request-plan-${planSuccess}`, requestId, planDetails }),
         ]);
       }
       if (githubActionsStage === 'apply') {
