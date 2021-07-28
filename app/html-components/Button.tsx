@@ -5,7 +5,7 @@ export const styles = {
     button: `
       border-radius: 0.222em;
       border-width: 0;
-      padding: 0.66em 1.77em;
+      padding: 0.6em 1.1em;
       text-align: center;
       text-decoration: none;
       font-weight: 700;
@@ -16,6 +16,11 @@ export const styles = {
     `,
   },
   size: {
+    xsmall: {
+      button: `
+        font-size: 0.7rem;
+      `,
+    },
     small: {
       button: `
         font-size: 0.8rem;
@@ -37,7 +42,7 @@ export const styles = {
       button: `
         background-color: #D5EDFF;
         box-shadow: 0px 0px 0px 2px #D5EDFF inset !important;
-        color: ##3E3E3E;
+        color: #3E3E3E;
 
         &:hover {
           text-decoration: underline;
@@ -48,6 +53,19 @@ export const styles = {
 
         &:active {
           opacity: 1;
+        }
+      `,
+    },
+    grey: {
+      button: `
+        background-color: #B2B2B2;
+        box-shadow: 0px 0px 0px 1px #707070 inset !important;
+        color: #F8F8F8;
+        width: 110px;
+
+        &:hover {
+          background-color: #006FC4;
+          box-shadow: 0px 0px 0px 1px #707070 inset !important;
         }
       `,
     },

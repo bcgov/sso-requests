@@ -5,7 +5,7 @@ import { prepareRequest, validateRequest, processRequest } from '../helpers';
 
 const AWS = require('aws-sdk');
 
-const handleError = (err: string) => {
+const errorResponse = (err: any) => {
   console.error(err);
   return {
     statusCode: 422,
@@ -36,7 +36,7 @@ export const createRequest = async (session: Session, data: Data) => {
       body: JSON.stringify(result),
     };
   } catch (err) {
-    handleError(err);
+    return errorResponse(err);
   }
 };
 
@@ -64,7 +64,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     if (submit) {
       const formData = processRequest(preparedRequest);
       const isValid = validateRequest({ ...formData, projectLead: preparedRequest.projectLead });
-      if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: preparedRequest }));
+      if (isValid !== true) return errorResponse({ ...isValid, prepared: preparedRequest });
       allowedData.clientName = `${kebabCase(allowedData.projectName)}-${id}`;
       allowedData.status = 'submitted';
     }
@@ -76,7 +76,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     });
 
     if (result.length < 2) {
-      throw Error('update failed');
+      return errorResponse('update failed');
     }
 
     const updatedRequest = result[1].dataValues;
@@ -99,7 +99,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       body: JSON.stringify(updatedRequest),
     };
   } catch (err) {
-    handleError(err);
+    return errorResponse(err);
   }
 };
 
@@ -117,7 +117,7 @@ export const getRequest = async (session: Session, data: { requestId: number }) 
       body: JSON.stringify(request),
     };
   } catch (err) {
-    handleError(err);
+    return errorResponse(err);
   }
 };
 
@@ -134,7 +134,7 @@ export const getRequests = async (session: Session) => {
       body: JSON.stringify(requests),
     };
   } catch (err) {
-    handleError(err);
+    return errorResponse(err);
   }
 };
 

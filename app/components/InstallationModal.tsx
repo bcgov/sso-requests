@@ -6,6 +6,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
 import { getInstallation } from 'services/keycloak';
+import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import type { Environment } from 'interfaces/types';
 
 const AlignCenter = styled.div`
@@ -84,35 +85,3 @@ const InstallationModal = ({
 };
 
 export default InstallationModal;
-
-function prettyJSON(json: any) {
-  return JSON.stringify(json, undefined, 2);
-}
-
-function copyTextToClipboard(text: string) {
-  const textArea = document.createElement('textarea');
-  textArea.value = text;
-
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-
-  try {
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    return true;
-  } catch (err) {
-    document.body.removeChild(textArea);
-    return false;
-  }
-}
-
-function downloadText(text: string, filename: string) {
-  const url = window.URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}

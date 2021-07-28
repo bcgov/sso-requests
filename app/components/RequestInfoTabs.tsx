@@ -3,7 +3,8 @@ import styled from 'styled-components';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import Alert from '@button-inc/bcgov-theme/Alert';
-import RequestInfoPanel from 'components/RequestInfoPanel';
+import InstallationPanel from 'components/InstallationPanel';
+import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { getStatusDisplayName } from 'utils/status';
@@ -66,11 +67,15 @@ function RequestInfoTabs() {
   } else if (displayStatus === 'Active Project') {
     panel = (
       <RequestTabs>
-        {environments.map((env) => (
-          <Tab eventKey={env.title} key={env.title} title={env.title} onEnter={() => handleSelection(env.name)}>
-            <RequestInfoPanel panelEnv={env.name} environment={environment} />
-          </Tab>
-        ))}
+        <Tab eventKey="configuration-url" title="Configuration Urls">
+          <ConfigurationUrlPanel />
+        </Tab>
+
+        <Tab eventKey="installation-json" title="Installation JSON">
+          <br />
+          <br />
+          <InstallationPanel request={selectedRequest} />
+        </Tab>
       </RequestTabs>
     );
   }
