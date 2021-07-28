@@ -108,7 +108,7 @@ export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
   if (env === 'dev') return 'devRedirectUrls';
   if (env === 'test') return 'testRedirectUrls';
   if (env === 'prod') return 'prodRedirectUrls';
-  return '';
+  return 'devRedirectUrls';
 };
 
 const changeNullToUndefined = (data: any) => {
