@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      planDetails: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
     },
     {
       underscored: true,
