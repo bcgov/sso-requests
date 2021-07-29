@@ -47,7 +47,7 @@ resource "aws_api_gateway_resource" "actions" {
 resource "aws_api_gateway_method" "actions" {
   rest_api_id   = aws_api_gateway_rest_api.sso_backend.id
   resource_id   = aws_api_gateway_resource.actions.id
-  http_method   = "PUT"
+  http_method   = "ANY"
   authorization = "NONE"
 }
 
