@@ -9,11 +9,22 @@ const responseHeaders = {
   'Access-Control-Allow-Methods': 'OPTIONS,PUT',
 };
 
-const unauthorizedResponse = {
-  isBase64Encoded: false,
-  headers: responseHeaders,
-  statusCode: 401,
-  body: 'not authorized',
+const response = (data?: Response) => {
+  return {
+    isBase64Encoded: false,
+    headers: responseHeaders,
+    statusCode: 200,
+    body: JSON.stringify({ success: true }),
+    ...data,
+  };
+};
+
+const unauthorizedError = (body = 'not authorized') => {
+  return response({ statusCode: 401, body: JSON.stringify(body) });
+};
+
+const UnprocessableEntityError = (body = 'unable to process the request') => {
+  return response({ statusCode: 422, body: JSON.stringify(body) });
 };
 
 const createEvent = async (data) => {
@@ -29,16 +40,12 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   // Use this to prevent, see https://forum.serverless.com/t/lambda-with-rds-using-vpc-works-slow/1261/7 for more
   context.callbackWaitsForEmptyEventLoop = false;
   const { headers, body, queryStringParameters } = event;
+  console.log('event.body', body);
   const { prNumber, prSuccess, planSuccess, applySuccess, id, actionNumber, planDetails } = JSON.parse(body);
   const { Authorization } = headers;
-  if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedResponse);
+  if (Authorization !== process.env.GH_SECRET) return callback(null, unauthorizedError());
 
   const { status: githubActionsStage } = queryStringParameters || {};
-
-  let response: Response = {
-    isBase64Encoded: false,
-    headers: responseHeaders,
-  };
 
   try {
     if (githubActionsStage === 'create') {
@@ -66,12 +73,9 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
         ]);
       }
     }
-    response.statusCode = 200;
-    response.body = '{"success": true}';
-    callback(null, response);
+    callback(null, response());
   } catch (err) {
-    response.statusCode = 422;
-    response.body = JSON.stringify({ success: false, error: err });
-    callback(null, response);
+    console.error(err);
+    callback(null, UnprocessableEntityError(err.message || err));
   }
 };
