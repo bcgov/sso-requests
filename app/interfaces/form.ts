@@ -1,4 +1,4 @@
-import type { Environment } from 'interfaces/types';
+import type { Environment } from './types';
 
 export interface Request {
   realm: string;
