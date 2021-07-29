@@ -26,7 +26,7 @@ interface Props {
 export default function Formheader({ formStage, id, saveMessage, saving }: Props) {
   const paddedId = padStart(String(id), 8, '0');
   const titles = [
-    'Enter requester information',
+    `${id ? `Req ID: ${paddedId} - ` : ''}Enter requester information`,
     `Req ID: ${paddedId} - Choose providers and provide URIs`,
     `Req ID: ${paddedId} - Terms and Conditions`,
     `Req ID: ${paddedId} - Review and Submit`,
