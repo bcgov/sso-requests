@@ -72,6 +72,7 @@ const InstallationPanel = ({ request }: { request: ClientRequest }) => {
   if (loading)
     return (
       <AlignCenter>
+        <TopMargin />
         <Loader type="Grid" color="#000" height={45} width={45} visible={true} />
       </AlignCenter>
     );

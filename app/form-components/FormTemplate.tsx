@@ -80,7 +80,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   useEffect(() => {
     if (!submitted) return;
     const valid = validateForm(formData);
-    if (valid !== true) setErrors(valid);
+    setErrors(valid === true ? null : valid);
   }, [submitted, formStage]);
 
   const handleBackClick = () => {
