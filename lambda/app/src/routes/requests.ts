@@ -2,8 +2,7 @@ import { models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
 import { prepareRequest, validateRequest, processRequest } from '../helpers';
-
-const AWS = require('aws-sdk');
+import { dispatchRequestWorkflow } from '../github';
 
 const errorResponse = (err: any) => {
   console.error(err);
@@ -82,16 +81,16 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     const updatedRequest = result[1].dataValues;
 
     if (submit) {
-      const payload = JSON.stringify({
+      const payload = {
         requestId: updatedRequest.id,
         clientName: updatedRequest.clientName,
         realmName: updatedRequest.realm,
         validRedirectUris: updatedRequest.validRedirectUris,
         environments: updatedRequest.environments,
         publicAccess: updatedRequest.publicAccess,
-      });
+      };
 
-      await invokeGithubLambda(payload);
+      await dispatchRequestWorkflow(payload);
     }
 
     return {
@@ -136,24 +135,4 @@ export const getRequests = async (session: Session) => {
   } catch (err) {
     return errorResponse(err);
   }
-};
-
-const invokeGithubLambda = async (payload: string) => {
-  const lambda = new AWS.Lambda({
-    region: 'ca-central-1',
-  });
-
-  console.log('invoking lambda-github', payload);
-
-  await lambda.invoke(
-    {
-      FunctionName: 'lambda-github',
-      Payload: payload,
-    },
-    function (err) {
-      if (err) {
-        console.error(err);
-      }
-    },
-  );
 };
