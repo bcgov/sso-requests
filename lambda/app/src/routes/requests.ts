@@ -1,7 +1,7 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
-import { prepareRequest, validateRequest, processRequest } from '../helpers';
+import { validateRequest } from '../helpers';
 import { dispatchRequestWorkflow } from '../github';
 
 const errorResponse = (err: any) => {
@@ -57,18 +57,18 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       return unauthorized();
     }
 
-    const preparedRequest = prepareRequest(rest, processRequest(original.dataValues));
-    const allowedData = omit(preparedRequest, ['idirUserid', 'projectLead', 'clientName', 'status']);
+    const immutableFields = ['idirUserid', 'projectLead', 'clientName', 'status'];
+    const allowedRequest = omit(rest, immutableFields);
+    const mergedRequest = { ...original.dataValues, ...allowedRequest };
 
     if (submit) {
-      const formData = processRequest(preparedRequest);
-      const isValid = validateRequest({ ...formData, projectLead: preparedRequest.projectLead });
-      if (isValid !== true) return errorResponse({ ...isValid, prepared: preparedRequest });
-      allowedData.clientName = `${kebabCase(allowedData.projectName)}-${id}`;
-      allowedData.status = 'submitted';
+      const isValid = validateRequest(mergedRequest);
+      if (isValid !== true) return errorResponse({ ...isValid, prepared: mergedRequest });
+      allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
+      allowedRequest.status = 'submitted';
     }
 
-    const result = await models.request.update(allowedData, {
+    const result = await models.request.update(allowedRequest, {
       where: { id },
       returning: true,
       plain: true,
@@ -85,7 +85,11 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         requestId: updatedRequest.id,
         clientName: updatedRequest.clientName,
         realmName: updatedRequest.realm,
-        validRedirectUris: updatedRequest.validRedirectUris,
+        validRedirectUris: {
+          dev: updatedRequest.devValidRedirectUris,
+          test: updatedRequest.testValidRedirectUris,
+          prod: updatedRequest.prodValidRedirectUris,
+        },
         environments: updatedRequest.environments,
         publicAccess: updatedRequest.publicAccess,
       };

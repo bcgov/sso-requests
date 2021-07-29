@@ -4,7 +4,7 @@ export const urlPattern = `^https?:\\/\\/\\w+(\\.\\w+)*(:[0-9]+)?\\/?$`;
 
 export default {
   type: 'object',
-  required: ['devRedirectUrls', 'testRedirectUrls', 'prodRedirectUrls', 'realm'],
+  required: ['devValidRedirectUris', 'testValidRedirectUris', 'prodValidRedirectUris', 'realm'],
   properties: {
     realm: {
       type: 'string',
@@ -18,7 +18,7 @@ export default {
       ],
       default: 'onestopauth',
     },
-    devRedirectUrls: {
+    devValidRedirectUris: {
       type: 'array',
       description: 'You can use any valid URI for your redirect URIs.',
       title: 'Dev Redirect URIs',
@@ -26,14 +26,14 @@ export default {
       additionalItems: { type: 'string', pattern: urlPattern },
       default: [''],
     },
-    testRedirectUrls: {
+    testValidRedirectUris: {
       type: 'array',
       title: 'Test Redirect URIs',
       items: { type: 'string', pattern: urlPattern },
       additionalItems: { type: 'string', pattern: urlPattern },
       default: [''],
     },
-    prodRedirectUrls: {
+    prodValidRedirectUris: {
       type: 'array',
       title: 'Prod Redirect URIs',
       items: { type: 'string', pattern: urlPattern },

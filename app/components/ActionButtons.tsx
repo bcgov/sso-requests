@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { ClientRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
 import { $setRequest, $setEditingRequest } from 'dispatchers/requestDispatcher';
 
 const Container = styled.div`
@@ -26,7 +26,7 @@ const EditButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
 `;
 
 interface Props {
-  request: ClientRequest;
+  request: Request;
 }
 
 export default function Actionbuttons({ request }: Props) {

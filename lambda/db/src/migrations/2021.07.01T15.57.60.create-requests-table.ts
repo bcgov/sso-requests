@@ -35,14 +35,28 @@ export const up = async ({ context: sequelize }) => {
       allowNull: false,
       defaultValue: false,
     },
-    validRedirectUris: {
-      type: DataTypes.JSONB,
-      field: 'valid_redirect_uris',
-      allowNull: true,
+    devValidRedirectUris: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      field: 'dev_valid_redirect_uris',
+      allowNull: false,
+      defaultValue: [],
+    },
+    testValidRedirectUris: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      field: 'test_valid_redirect_uris',
+      allowNull: false,
+      defaultValue: [],
+    },
+    prodValidRedirectUris: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      field: 'prod_valid_redirect_uris',
+      allowNull: false,
+      defaultValue: [],
     },
     environments: {
-      type: DataTypes.JSONB,
-      allowNull: true,
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false,
+      defaultValue: [],
     },
     prNumber: {
       type: DataTypes.INTEGER,

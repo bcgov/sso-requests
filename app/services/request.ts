@@ -1,10 +1,9 @@
 import { instance } from './axios';
 import { getAuthConfig } from './auth';
-import { ServerRequest, ClientRequest } from 'interfaces/Request';
-import requestsMockup from 'mock-data/requests';
-import { processRequest, prepareRequest } from 'utils/helpers';
+import { Request } from 'interfaces/Request';
+import { processRequest } from 'utils/helpers';
 
-export const createRequest = async (data: ClientRequest): Promise<[ClientRequest, null] | [null, Error]> => {
+export const createRequest = async (data: Request): Promise<[Request, null] | [null, Error]> => {
   const config = getAuthConfig();
 
   try {
@@ -16,10 +15,10 @@ export const createRequest = async (data: ClientRequest): Promise<[ClientRequest
   }
 };
 
-export const getRequest = async (requestId: number): Promise<[ClientRequest, null] | [null, Error]> => {
+export const getRequest = async (requestId: number): Promise<[Request, null] | [null, Error]> => {
   const config = getAuthConfig();
   try {
-    const result: ServerRequest = await instance.post('request', { requestId }, config).then((res) => res.data);
+    const result: Request = await instance.post('request', { requestId }, config).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
     console.error(err);
@@ -27,10 +26,10 @@ export const getRequest = async (requestId: number): Promise<[ClientRequest, nul
   }
 };
 
-export const getRequests = async (): Promise<[ClientRequest[], null] | [null, Error]> => {
+export const getRequests = async (): Promise<[Request[], null] | [null, Error]> => {
   const config = getAuthConfig();
   try {
-    const results: ServerRequest[] = await instance.get('requests', config).then((res) => res.data);
+    const results: Request[] = await instance.get('requests', config).then((res) => res.data);
     return [results.map(processRequest), null];
   } catch (err) {
     console.error(err);
@@ -38,14 +37,17 @@ export const getRequests = async (): Promise<[ClientRequest[], null] | [null, Er
   }
 };
 
-export const updateRequest = async (
-  data: ClientRequest,
-  submit = false,
-): Promise<[ClientRequest, null] | [null, Error]> => {
+export const updateRequest = async (data: Request, submit = false): Promise<[Request, null] | [null, Error]> => {
   const config = getAuthConfig();
 
   try {
-    const url = submit ? `requests?submit=true` : 'requests';
+    let url = 'requests';
+
+    if (submit) {
+      url = `${url}?submit=true`;
+      data.environments = ['dev', 'test', 'prod'];
+    }
+
     const result = await instance.put(url, data, config).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
