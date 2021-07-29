@@ -65,11 +65,6 @@ jobs:
           yarn
         working-directory: ./lambda/db
 
-      - name: Install dependencies - lambda github
-        run: |
-          yarn
-        working-directory: ./lambda/github
-
       - name: Install dependencies - lambda actions
         run: |
           yarn
