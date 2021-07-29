@@ -24,7 +24,7 @@ const AddContainer = styled.div`
 const RemoveContainer = styled(AddContainer)`
   position: absolute;
   right: 10px;
-  top: 30px;
+  top: 10px;
 `;
 
 const StyledP = styled.p`
