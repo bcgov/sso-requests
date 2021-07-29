@@ -4,7 +4,6 @@
 
 import { isEqual } from 'lodash';
 import { ClientRequest, ServerRequest } from 'interfaces/Request';
-// @ts-ignore
 import validate from 'react-jsonschema-form/lib/validate';
 import requesterSchema from 'schemas/requester-info';
 import providerSchema from 'schemas/providers';

@@ -1269,6 +1269,11 @@
     jest-diff "^26.0.0"
     pretty-format "^26.0.0"
 
+"@types/json-schema@*":
+  version "7.0.8"
+  resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.8.tgz#edf1bf1dbf4e04413ca8e5b17b3b7d7d54b59818"
+  integrity sha512-YSBPTLTVm2e2OoQIDYx8HaeWJ5tTToLH67kXR7zYNGupXMEHa2++G8k+DczX2cFVgalypqtyZIcU19AFcmOpmg==
+
 "@types/json-schema@^7.0.7":
   version "7.0.7"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.7.tgz#98a993516c859eb0d5c4c8f098317a9ea68db9ad"
@@ -1329,6 +1334,14 @@
   resolved "https://registry.yarnpkg.com/@types/reach__router/-/reach__router-1.3.8.tgz#7b8607abf13704f918a9543257bcb7ec63028bfa"
   integrity sha512-cjjT0FPdwuvhLWpCDt2WCh4sdBqNzJe3XhxXmRQGsY3IvT58M8sE4E7A0QaFYuJs3ar+McSJTiJxdYKWAXbBhw==
   dependencies:
+    "@types/react" "*"
+
+"@types/react-jsonschema-form@^1.7.6":
+  version "1.7.6"
+  resolved "https://registry.yarnpkg.com/@types/react-jsonschema-form/-/react-jsonschema-form-1.7.6.tgz#538b69e6219430c9f90af25b773bbfad35effad9"
+  integrity sha512-gkMH2ZEHH8+7EoZRhA4F2NSqO8zlcXrepMYExHRZ8nGynzBQdmp6vHryEiOSEysowVHTHCP7wLPOWhIHx3tMPg==
+  dependencies:
+    "@types/json-schema" "*"
     "@types/react" "*"
 
 "@types/react-syntax-highlighter@11.0.5":
