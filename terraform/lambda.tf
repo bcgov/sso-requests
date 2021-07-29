@@ -25,15 +25,3 @@ resource "aws_iam_role_policy" "lambda_invoke" {
   role   = aws_iam_role.iam_for_lambda.id
   policy = data.aws_iam_policy_document.invoke_github.json
 }
-
-data "aws_iam_policy_document" "invoke_github" {
-  statement {
-    sid    = ""
-    effect = "Allow"
-    actions = [
-      "lambda:InvokeFunction",
-      "lambda:InvokeAsync"
-    ]
-    resources = [aws_lambda_function.github.arn]
-  }
-}
