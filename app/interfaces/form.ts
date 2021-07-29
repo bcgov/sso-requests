@@ -1,3 +1,5 @@
+import type { Environment } from 'interfaces/types';
+
 export interface ClientRequest {
   realm: string;
   devRedirectUrls: string[];
@@ -21,4 +23,9 @@ export interface FormErrors {
   secondPageErrors?: object[];
   thirdPageErrors?: object[];
   fourthPageErrors?: object[];
+}
+
+export interface EnvironmentOption {
+  name: Environment;
+  display: string;
 }

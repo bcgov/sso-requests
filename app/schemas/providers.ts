@@ -1,4 +1,4 @@
-import { JSONSchema7 } from 'json-schema';
+import { JSONSchema6 } from 'json-schema';
 
 export const urlPattern = `^https?:\\/\\/\\w+(\\.\\w+)*(:[0-9]+)?\\/?$`;
 
@@ -41,4 +41,4 @@ export default {
       default: [''],
     },
   },
-} as JSONSchema7;
+} as JSONSchema6;

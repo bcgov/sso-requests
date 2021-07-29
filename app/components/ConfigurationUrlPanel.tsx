@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import Form from 'form-components/GovForm';
@@ -11,7 +11,7 @@ import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
 import { ClientRequest } from 'interfaces/Request';
 import { $setEditingRequest, $setUpdatingUrls, $updateRequest } from 'dispatchers/requestDispatcher';
-import type { Environment } from 'interfaces/types';
+import { environments } from 'utils/constants';
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
@@ -21,26 +21,6 @@ const LeftTitle = styled.span`
   color: #000;
   font-size: 1.1rem;
 `;
-
-interface EnvironmentOption {
-  name: Environment;
-  display: string;
-}
-
-const environments: EnvironmentOption[] = [
-  {
-    name: 'dev',
-    display: 'Development',
-  },
-  {
-    name: 'test',
-    display: 'Test',
-  },
-  {
-    name: 'prod',
-    display: 'Production',
-  },
-];
 
 const ConfigurationUrlPanel = () => {
   const router = useRouter();

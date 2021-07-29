@@ -9,6 +9,7 @@ import Button from 'html-components/Button';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import { ClientRequest } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
+import { environments } from 'utils/constants';
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -28,26 +29,6 @@ const StatusLabel = styled.span`
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
 `;
-
-interface EnvironmentOption {
-  name: Environment;
-  display: string;
-}
-
-const environments: EnvironmentOption[] = [
-  {
-    name: 'dev',
-    display: 'Development',
-  },
-  {
-    name: 'test',
-    display: 'Test',
-  },
-  {
-    name: 'prod',
-    display: 'Production',
-  },
-];
 
 const InstallationPanel = ({ request }: { request: ClientRequest }) => {
   const [loading, setLoading] = useState(false);

@@ -1,4 +1,4 @@
-import { JSONSchema7 } from 'json-schema';
+import { JSONSchema6 } from 'json-schema';
 
 export default {
   type: 'object',
@@ -32,4 +32,4 @@ export default {
       ],
     },
   },
-} as JSONSchema7;
+} as JSONSchema6;
