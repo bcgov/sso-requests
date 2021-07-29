@@ -7,7 +7,7 @@ import termsAndConditionsSchema from 'schemas/terms-and-conditions';
 import providersSchema from 'schemas/providers';
 import getUiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
-import { ClientRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import Button from '@button-inc/bcgov-theme/Button';
 import { createRequest, updateRequest } from 'services/request';
@@ -55,7 +55,7 @@ interface Props {
 }
 
 export default function FormTemplate({ currentUser = {}, request }: Props) {
-  const [formData, setFormData] = useState((request || {}) as ClientRequest);
+  const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 2 : 1);
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);

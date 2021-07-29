@@ -4,23 +4,23 @@ export const urlPattern = `^https?:\\/\\/\\w+(\\.\\w+)*(:[0-9]+)?\\/?$`;
 
 export default {
   type: 'object',
-  required: ['devRedirectUrls', 'testRedirectUrls', 'prodRedirectUrls'],
+  required: ['devValidRedirectUris', 'testValidRedirectUris', 'prodValidRedirectUris'],
   properties: {
-    devRedirectUrls: {
+    devValidRedirectUris: {
       type: 'array',
       title: 'Development',
       items: { type: 'string', pattern: urlPattern },
       additionalItems: { type: 'string', pattern: urlPattern },
       default: [''],
     },
-    testRedirectUrls: {
+    testValidRedirectUris: {
       type: 'array',
       title: 'Test',
       items: { type: 'string', pattern: urlPattern },
       additionalItems: { type: 'string', pattern: urlPattern },
       default: [''],
     },
-    prodRedirectUrls: {
+    prodValidRedirectUris: {
       type: 'array',
       title: 'Production',
       items: { type: 'string', pattern: urlPattern },

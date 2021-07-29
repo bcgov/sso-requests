@@ -9,7 +9,7 @@ import { getRedirectUrlPropertyNameByEnv } from 'utils/helpers';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
-import { ClientRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
 import { $setEditingRequest, $setUpdatingUrls, $updateRequest } from 'dispatchers/requestDispatcher';
 import { environments } from 'utils/constants';
 
@@ -27,7 +27,7 @@ const ConfigurationUrlPanel = () => {
   const { state, dispatch } = useContext(RequestsContext);
   const { editingRequest, selectedRequest: sRequest, updatingUrls } = state as RequestReducerState;
 
-  const selectedRequest = (sRequest || {}) as ClientRequest;
+  const selectedRequest = (sRequest || {}) as Request;
 
   const handleCancel = () => {
     dispatch($setEditingRequest(false));

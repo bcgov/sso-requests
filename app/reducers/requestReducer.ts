@@ -1,9 +1,9 @@
-import { ClientRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
 
 export interface RequestReducerState {
-  requests?: ClientRequest[];
-  selectedRequest?: ClientRequest;
+  requests?: Request[];
+  selectedRequest?: Request;
   loadingInstallation?: boolean;
   installation?: object;
   editingRequest?: boolean;

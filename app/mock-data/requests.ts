@@ -1,6 +1,6 @@
-import { ServerRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
 
-const requests: ServerRequest[] = [
+const requests: Request[] = [
   {
     id: 1,
     idirUserid: 'ABCDEFG',

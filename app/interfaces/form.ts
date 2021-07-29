@@ -1,10 +1,10 @@
 import type { Environment } from 'interfaces/types';
 
-export interface ClientRequest {
+export interface Request {
   realm: string;
-  devRedirectUrls: string[];
-  testRedirectUrls: string[];
-  prodRedirectUrls: string[];
+  devValidRedirectUris: string[];
+  testValidRedirectUris: string[];
+  prodValidRedirectUris: string[];
   projectName: string;
   preferredEmail?: string;
   projectLead?: boolean;
