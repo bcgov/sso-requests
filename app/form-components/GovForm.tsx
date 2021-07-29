@@ -7,5 +7,5 @@ const customWidgets = { TextWidget: wrapper(Input, 'input'), EmailWidget: wrappe
 // const customWidgets = { RadioWidget: wrapper(RadioButton, 'radio'), TextWidget: wrapper(Input, 'input') };
 
 export default function MyForm(props: any) {
-  return <Form {...props} widgets={customWidgets} />;
+  return <Form {...props} widgets={customWidgets} noHtml5Validate />;
 }

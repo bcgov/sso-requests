@@ -66,7 +66,7 @@ label.pg-input-label {
 
 /* override default input width */
 .field-string {
-  display: inline-block;
+  display: block;
   width: 100%;
   max-width: 400px;
 }
