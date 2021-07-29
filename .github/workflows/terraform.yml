@@ -78,12 +78,6 @@ jobs:
           make lambda
         working-directory: ./lambda/db
 
-      - name: zip lambda functions - github
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/github
-
       - name: zip lambda functions - actions
         run: |
           yarn
