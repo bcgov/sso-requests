@@ -15,9 +15,10 @@ export default async function status(event) {
 
   if (githubActionsStage === 'create') {
     const status = String(prSuccess) === 'true' ? 'pr' : 'prFailed';
+    const eventResult = String(prSuccess) === 'true' ? 'success' : 'failure';
     await Promise.all([
       models.request.update({ prNumber, status, actionNumber }, { where: { id } }),
-      createEvent({ eventCode: `request-pr-${status}`, requestId: id }),
+      createEvent({ eventCode: `request-pr-${eventResult}`, requestId: id }),
     ]);
   } else {
     // After creation, gh action only has prNumber to reference request. Using this to grab the requestId first
@@ -28,16 +29,18 @@ export default async function status(event) {
     const isAlreadyApplied = currentStatus === 'applied';
     if (githubActionsStage === 'plan') {
       const status = String(planSuccess) === 'true' ? 'planned' : 'planFailed';
+      const eventResult = String(planSuccess) === 'true' ? 'success' : 'failure';
       await Promise.all([
         !isAlreadyApplied && models.request.update({ status }, { where: { id: requestId } }),
-        createEvent({ eventCode: `request-plan-${status}`, requestId, planDetails }),
+        createEvent({ eventCode: `request-plan-${eventResult}`, requestId, planDetails }),
       ]);
     }
     if (githubActionsStage === 'apply') {
       const status = String(applySuccess) === 'true' ? 'applied' : 'applyFailed';
+      const eventResult = String(applySuccess) === 'true' ? 'success' : 'failure';
       await Promise.all([
         models.request.update({ status }, { where: { id: requestId } }),
-        createEvent({ eventCode: `request-apply-${status}`, requestId }),
+        createEvent({ eventCode: `request-apply-${eventResult}`, requestId }),
       ]);
     }
   }
