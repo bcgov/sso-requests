@@ -80,7 +80,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   useEffect(() => {
     if (!submitted) return;
     const valid = validateForm(formData);
-    setErrors(valid === true ? null : valid);
+    if (valid !== true) setErrors(valid);
   }, [submitted, formStage]);
 
   const handleBackClick = () => {
@@ -94,6 +94,7 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
   const handleSubmit = async (e: any) => {
     try {
       setLoading(true);
+
       if (creatingNewForm()) {
         const [data, err] = await createRequest(e.formData);
         const { id } = data || {};

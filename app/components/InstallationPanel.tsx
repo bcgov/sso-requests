@@ -15,14 +15,18 @@ const AlignCenter = styled.div`
 `;
 
 const LeftTitle = styled.span`
-  color: #777777;
-  font-size: 20px;
+  color: #000;
+  font-size: 1.1rem;
 `;
 
 const StatusLabel = styled.span`
   color: #3e3e3e;
   font-size: 14px;
   font-weight: 700;
+`;
+
+const TopMargin = styled.div`
+  height: var(--field-top-spacing);
 `;
 
 interface EnvironmentOption {
@@ -73,34 +77,36 @@ const InstallationPanel = ({ request }: { request: ClientRequest }) => {
     );
 
   return (
-    <Grid cols={4}>
-      {environments.map((env) => {
-        return (
-          <React.Fragment key={env.name}>
-            <Grid.Row collapse="992" gutter={[]}>
-              <Grid.Col span={1}>
-                <LeftTitle>{env.display}</LeftTitle>
-              </Grid.Col>
-              <Grid.Col span={2}>
-                <Button size="xsmall" variant="grey" onClick={() => handleCopyClick(env.name)}>
-                  Copy
-                </Button>
-                &nbsp;
-                <Button size="xsmall" variant="grey" onClick={() => handleDownloadClick(env.name)}>
-                  Download
-                </Button>
-              </Grid.Col>
-              <Grid.Col span={1}>
-                <FontAwesomeIcon color="green" icon={faCheckCircle} />
-                &nbsp;
-                <StatusLabel>Ready</StatusLabel>
-              </Grid.Col>
-            </Grid.Row>
-            <br />
-          </React.Fragment>
-        );
-      })}
-    </Grid>
+    <>
+      <TopMargin />
+      <Grid cols={4}>
+        {environments.map((env) => {
+          return (
+            <React.Fragment key={env.name}>
+              <Grid.Row collapse="992" gutter={[]}>
+                <Grid.Col span={1}>
+                  <LeftTitle>{env.display}</LeftTitle>
+                </Grid.Col>
+                <Grid.Col span={3}>
+                  <Button size="xsmall" variant="grey" onClick={() => handleCopyClick(env.name)}>
+                    Copy
+                  </Button>
+                  &nbsp;
+                  <Button size="xsmall" variant="grey" onClick={() => handleDownloadClick(env.name)}>
+                    Download
+                  </Button>
+                  &nbsp;&nbsp;
+                  <FontAwesomeIcon color="green" icon={faCheckCircle} />
+                  &nbsp;
+                  <StatusLabel>Ready</StatusLabel>
+                </Grid.Col>
+              </Grid.Row>
+              <br />
+            </React.Fragment>
+          );
+        })}
+      </Grid>
+    </>
   );
 };
 

@@ -54,11 +54,11 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       return unauthorized();
     }
 
-    const preparedRequest = prepareRequest(rest, processRequest(original.dataValues));
-    if (!['draft', 'applied'].includes(preparedRequest.status)) {
+    if (!['draft', 'applied'].includes(original.dataValues.status)) {
       return unauthorized();
     }
 
+    const preparedRequest = prepareRequest(rest, processRequest(original.dataValues));
     const allowedData = omit(preparedRequest, ['idirUserid', 'projectLead', 'clientName', 'status']);
 
     if (submit) {

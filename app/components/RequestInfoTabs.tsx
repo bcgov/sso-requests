@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import styled from 'styled-components';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
-import Alert from '@button-inc/bcgov-theme/Alert';
+import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
 import { RequestsContext } from 'pages/my-requests';
@@ -27,6 +27,11 @@ const RequestTabs = styled(Tabs)`
   }
 `;
 
+const TabWrapper = styled.div`
+  padding-left: 1rem;
+  padding-right: 1rem;
+`;
+
 const environments: { title: string; name: Environment }[] = [
   { title: 'Dev Configuration', name: 'dev' },
   { title: 'Test Configuration', name: 'test' },
@@ -40,10 +45,6 @@ function RequestInfoTabs() {
   const { selectedRequest } = state as RequestReducerState;
   if (!selectedRequest) return null;
 
-  const handleSelection = (env: Environment) => {
-    setEnvironment(env);
-  };
-
   const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
 
   let panel = null;
@@ -55,26 +56,40 @@ function RequestInfoTabs() {
       </>
     );
   } else if (displayStatus === 'Request Submitted') {
-    panel = (
-      <>
-        <br />
-        <Alert
-          variant="info"
-          content="Your request is successfully submitted. Return periodically to the dashboard for request status update."
-        />
-      </>
-    );
+    if (selectedRequest.prNumber) {
+      panel = (
+        <>
+          <br />
+          <Alert
+            variant="info"
+            content="Your URI change request is successfully submitted. Return periodically to the dashboard for request status update. The estimated time will be 24 hours."
+          />
+        </>
+      );
+    } else {
+      panel = (
+        <>
+          <br />
+          <Alert
+            variant="info"
+            content="Your request is successfully submitted. Return periodically to the dashboard for request status update. The estimated time will be 24 hours."
+          />
+        </>
+      );
+    }
   } else if (displayStatus === 'Active Project') {
     panel = (
       <RequestTabs>
-        <Tab eventKey="configuration-url" title="Configuration Urls">
-          <ConfigurationUrlPanel />
+        <Tab eventKey="configuration-url" title="Configuration URIs">
+          <TabWrapper>
+            <ConfigurationUrlPanel />
+          </TabWrapper>
         </Tab>
 
         <Tab eventKey="installation-json" title="Installation JSON">
-          <br />
-          <br />
-          <InstallationPanel request={selectedRequest} />
+          <TabWrapper>
+            <InstallationPanel request={selectedRequest} />
+          </TabWrapper>
         </Tab>
       </RequestTabs>
     );

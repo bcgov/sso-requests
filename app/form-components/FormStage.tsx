@@ -25,6 +25,7 @@ const stages: Stage[] = [
 
 const Container = styled.div`
   width: 824px;
+  max-width: 100%;
 `;
 
 export default function Formstage({ currentStage, setFormStage, errors, creatingNewForm }: Props) {

@@ -20,6 +20,9 @@ const Table = styled.table`
     tr {
       height: 60px;
       background-color: #f8f8f8;
+      &:hover {
+        background-color: #fff7d5;
+      }
       &.active {
         background-color: #ffed9f;
       }

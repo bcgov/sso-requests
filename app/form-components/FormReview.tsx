@@ -6,7 +6,7 @@ import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
-import Alert from '@button-inc/bcgov-theme/Alert';
+import Alert from 'html-components/Alert';
 import { FormErrors } from 'interfaces/form';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import FadingAlert from 'html-components/FadingAlert';
@@ -17,6 +17,8 @@ const Table = styled.table`
   font-size: unset;
   & tr {
     display: flex;
+    margin-top: 5px;
+    margin-bottom: 5px;
     & > td {
       border: none;
       padding: 0 5px 0 0;
@@ -33,6 +35,10 @@ const Divider = styled.hr`
 
 const SpacedAlert = styled(Alert)`
   margin-top: ${FORM_TOP_SPACING};
+`;
+
+const SemiBold = styled.span`
+  font-weight: 600;
 `;
 
 const formatBoolean = (value?: boolean) => {
@@ -61,6 +67,7 @@ interface Props {
 export default function FormReview({ formData, setErrors, setSubmitted, errors, submitted = false }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  console.log(errors);
   const hasErrors = errors && !(Object.keys(errors).length === 0);
 
   const handleSubmit = async () => {
@@ -93,25 +100,31 @@ export default function FormReview({ formData, setErrors, setSubmitted, errors, 
           <tr>
             <td>Are you the product owner or project admin/team lead?</td>
             <td>
-              <strong>{formatBoolean(formData?.projectLead)}</strong>
-            </td>
-          </tr>
-          <tr>
-            <td>Project Name:</td>
-            <td>
-              <strong>{formData?.projectName}</strong>
+              <SemiBold>{formatBoolean(formData?.projectLead)}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Have you requested an SSO project before?</td>
             <td>
-              <strong>{formatBoolean(formData?.newToSso)}</strong>
+              <SemiBold>{formatBoolean(formData?.newToSso)}</SemiBold>
+            </td>
+          </tr>
+          <tr>
+            <td>Client Type:</td>
+            <td>
+              <SemiBold>{formData?.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
+            </td>
+          </tr>
+          <tr>
+            <td>Project Name:</td>
+            <td>
+              <SemiBold>{formData?.projectName}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Preferred email address:</td>
             <td>
-              <strong>{formData?.preferredEmail}</strong>
+              <SemiBold>{formData?.preferredEmail}</SemiBold>
             </td>
           </tr>
         </tbody>
@@ -122,25 +135,25 @@ export default function FormReview({ formData, setErrors, setSubmitted, errors, 
           <tr>
             <td>Identity providers required:</td>
             <td>
-              <strong>{formatList(realmToIDP(formData?.realm))}</strong>
+              <SemiBold>{formatList(realmToIDP(formData?.realm))}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Dev redirect URIs:</td>
             <td>
-              <strong>{formatList(formData?.devRedirectUrls)}</strong>
+              <SemiBold>{formatList(formData?.devRedirectUrls)}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Test redirect URIs:</td>
             <td>
-              <strong>{formatList(formData?.testRedirectUrls)}</strong>
+              <SemiBold>{formatList(formData?.testRedirectUrls)}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Prod redirect URIs:</td>
             <td>
-              <strong>{formatList(formData?.prodRedirectUrls)}</strong>
+              <SemiBold>{formatList(formData?.prodRedirectUrls)}</SemiBold>
             </td>
           </tr>
         </tbody>
@@ -153,7 +166,7 @@ export default function FormReview({ formData, setErrors, setSubmitted, errors, 
         handleBackClick={handleBackClick}
       />
       {submitted && hasErrors && (
-        <BottomAlertWrapper>
+        <BottomAlertWrapper key={new Date().getTime()}>
           <FadingAlert
             variant="danger"
             fadeOut={10000}
