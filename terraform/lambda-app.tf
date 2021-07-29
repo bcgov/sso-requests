@@ -36,6 +36,11 @@ resource "aws_lambda_function" "app" {
       KEYCLOAK_PROD_URL           = var.keycloak_prod_url
       KEYCLOAK_PROD_CLIENT_ID     = var.keycloak_prod_client_id
       KEYCLOAK_PROD_CLIENT_SECRET = var.keycloak_prod_client_secret
+      GH_ACCESS_TOKEN             = var.gh_access_token
+      GH_REPO                     = var.gh_repo
+      GH_WORKFLOW_ID              = var.gh_workflow_id
+      GH_BRANCH                   = var.gh_branch
+      GH_OWNER                    = var.gh_owner
     }
   }
 

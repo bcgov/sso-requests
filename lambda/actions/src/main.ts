@@ -23,7 +23,7 @@ const unauthorizedError = (body = 'not authorized') => {
   return response({ statusCode: 401, body: JSON.stringify(body) });
 };
 
-const UnprocessableEntityError = (body = 'unable to process the request') => {
+const unprocessableEntityError = (body = 'unable to process the request') => {
   return response({ statusCode: 422, body: JSON.stringify(body) });
 };
 
@@ -56,7 +56,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
       ]);
     } else {
       // After creation, gh action only has prNumber to reference request. Using this to grab the requestId first
-      const { id: requestId, status: currentStatus } = await models.request.findOne({ where: { prNumber } });
+      const request = await models.request.findOne({ where: { prNumber } });
+      if (!request) throw Error(`request associated with pr number ${prNumber} not found`);
+
+      const { id: requestId, status: currentStatus } = request;
       const isAlreadyApplied = currentStatus === 'applied';
       if (githubActionsStage === 'plan') {
         const status = String(planSuccess) === 'true' ? 'planned' : 'planFailed';
@@ -76,6 +79,6 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     callback(null, response());
   } catch (err) {
     console.error(err);
-    callback(null, UnprocessableEntityError(err.message || err));
+    callback(null, unprocessableEntityError(err.message || err));
   }
 };
