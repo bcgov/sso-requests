@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import Alert from '@button-inc/bcgov-theme/Alert';
+import Alert from 'html-components/Alert';
 
 interface props {
   variant?: string;

@@ -164,11 +164,15 @@ export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest
 export const transformErrors = (errors: any) => {
   return errors.map((error: any) => {
     if (error.property === '.agreeWithTerms') error.message = 'You must agree to the terms to submit a request.';
-    else if (error.property === '.preferredEmail') error.message = 'Please enter a valid email address';
+    else if (error.property === '.preferredEmail') error.message = 'Please enter a valid email address.';
     else if (error.property === '.realm') {
-      error.message = 'Please select your IDPs';
-    } else if (error.property.includes('RedirectUrls'))
+      error.message = 'Please select your IDPs.';
+    } else if (error.property.includes('RedirectUrls')) {
       error.message = 'Please enter a valid url, including an http:// or https:// prefix.';
+    } else if (error.property === '.projectName') {
+      error.message = 'Please enter a project name.';
+    }
+
     return error;
   });
 };

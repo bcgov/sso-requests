@@ -64,8 +64,12 @@ label.pg-input-label {
   margin-top: 0 !important;
 }
 
-@media screen and (min-width: 1200px) {
-  .pg-input-input {
-    width: 400px;
-  }
+/* override default input width */
+.field-string {
+  width: 100%;
+}
+
+.field-string .pg-input-input {
+  width: 100%;
+  max-width: 400px;
 }

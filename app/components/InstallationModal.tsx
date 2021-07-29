@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import Button from '@button-inc/bcgov-theme/Button';
-import Alert from '@button-inc/bcgov-theme/Alert';
+import Alert from 'html-components/Alert';
 import Link from '@button-inc/bcgov-theme/Link';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';

@@ -41,6 +41,11 @@ const mediaRules: MediaRule[] = [
   },
 ];
 
+// TODO: move this logic to component Grid default style
+const OverflowAuto = styled.div`
+  overflow: auto;
+`;
+
 const Title = styled.div`
   color: #777777;
   font-size: 16px;
@@ -173,11 +178,13 @@ function RequestsPage({ currentUser }: PageProps) {
       <br />
       <br />
       <RequestsContext.Provider value={contextValue}>
-        <Grid cols={2} gutter={[5, 2]}>
-          <Grid.Row collapse="800">
+        <Grid cols={2}>
+          <Grid.Row collapse="800" gutter={[15, 2]}>
             <Grid.Col>
-              <Title>My Project Dashboard</Title>
-              {content}
+              <OverflowAuto>
+                <Title>My Project Dashboard</Title>
+                {content}
+              </OverflowAuto>
             </Grid.Col>
             {selectedRequest && (
               <Grid.Col>
