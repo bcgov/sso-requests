@@ -142,10 +142,8 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
           onChange={handleChange}
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
-          ErrorList={() => null}
           onBlur={handleBlur}
           liveValidate={submitted}
-          transformErrors={transformErrors}
         >
           <FormButtons
             text={{ continue: 'Next', back: 'Cancel' }}
