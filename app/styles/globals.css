@@ -68,6 +68,7 @@ label.pg-input-label {
 .field-string {
   display: inline-block;
   width: 100%;
+  max-width: 400px;
 }
 
 .field-string .pg-input .pg-input-input {
