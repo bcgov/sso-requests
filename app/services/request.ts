@@ -31,15 +31,7 @@ export const getRequests = async (): Promise<[ClientRequest[], null] | [null, Er
   const config = getAuthConfig();
   try {
     const results: ServerRequest[] = await instance.get('requests', config).then((res) => res.data);
-    return [
-      results
-        .map((v) => {
-          v.status = 'applied';
-          return v;
-        })
-        .map(processRequest),
-      null,
-    ];
+    return [results.map(processRequest), null];
   } catch (err) {
     console.error(err);
     return [null, err];
