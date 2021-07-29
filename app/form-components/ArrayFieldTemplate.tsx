@@ -1,9 +1,12 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
+import React from 'react';
 
 const FieldContainer = styled.div`
-  display: flex;
+  position: relative;
+  width: 100%;
+  max-width: 400px;
 `;
 
 const Description = styled.p`
@@ -19,7 +22,9 @@ const AddContainer = styled.div`
 `;
 
 const RemoveContainer = styled(AddContainer)`
-  margin: 35px 0 0 10px;
+  position: absolute;
+  right: 10px;
+  top: 30px;
 `;
 
 const StyledP = styled.p`
@@ -48,19 +53,18 @@ export default function ArrayFieldTemplate(props: any) {
       {description && <Description>{description}</Description>}
       {props.items.map((element: any) => {
         return (
-          <div key={element.index}>
+          <React.Fragment key={element.index}>
             {element.hasRemove && (
               <FieldContainer>
                 {element.children}
                 {element.index > 0 && (
                   <RemoveContainer onClick={element.onDropIndexClick(element.index)}>
                     <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} />
-                    {title && <StyledP>Remove URI</StyledP>}
                   </RemoveContainer>
                 )}
               </FieldContainer>
             )}
-          </div>
+          </React.Fragment>
         );
       })}
       {props.canAdd && (
