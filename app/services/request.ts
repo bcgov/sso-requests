@@ -41,7 +41,13 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
   const config = getAuthConfig();
 
   try {
-    const url = submit ? `requests?submit=true` : 'requests';
+    let url = 'requests';
+
+    if (submit) {
+      url = `${url}?submit=true`;
+      data.environments = ['dev', 'test', 'prod'];
+    }
+
     const result = await instance.put(url, data, config).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
