@@ -63,7 +63,7 @@ function RequestInfoTabs() {
           <div>
             <strong>Your request has been submitted.</strong>
           </div>
-          <div>To complete your request, click "Edit" button.</div>
+          <div>To complete your request, click &quot;Edit&quot; button.</div>
         </Alert>
       </>
     );
