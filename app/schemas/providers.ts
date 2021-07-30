@@ -11,10 +11,10 @@ export default {
       title: 'Identity Providers Required',
       enum: ['onestopauth', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
       enumNames: [
-        'IDIR/GitHub',
-        'IDIR/GitHub + BCeID Basic (coming soon)',
-        'IDIR/GitHub + BCeID Business (coming soon)',
-        'IDIR/GitHub + BCeID Both (coming soon)',
+        'IDIR',
+        'IDIR + BCeID Basic (coming soon)',
+        'IDIR + BCeID Business (coming soon)',
+        'IDIR + BCeID Both (coming soon)',
       ],
     },
     devValidRedirectUris: {
