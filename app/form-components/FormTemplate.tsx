@@ -20,6 +20,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
 import { transformErrors, validateForm } from 'utils/helpers';
 import { FormErrors } from 'interfaces/form';
+import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 
 const CenteredModal = styled(Modal)`
   display: flex;
@@ -52,9 +53,10 @@ interface Props {
     email?: string;
   };
   request?: any;
+  alert: BottomAlert;
 }
 
-export default function FormTemplate({ currentUser = {}, request }: Props) {
+function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 2 : 1);
   const [loading, setLoading] = useState(false);
@@ -98,6 +100,19 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
       if (creatingNewForm()) {
         const [data, err] = await createRequest(e.formData);
         const { id } = data || {};
+
+        if (err || !id) {
+          alert.show({
+            variant: 'danger',
+            fadeOut: 10000,
+            closable: true,
+            content: `Failed to create a new request`,
+          });
+
+          setLoading(false);
+          return;
+        }
+
         await router.push({ pathname: `/request/${id}` });
         setFormData({ ...formData, id });
       } else {
@@ -186,3 +201,5 @@ export default function FormTemplate({ currentUser = {}, request }: Props) {
     </>
   );
 }
+
+export default withBottomAlert(FormTemplate);
