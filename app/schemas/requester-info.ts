@@ -5,7 +5,7 @@ export default {
   properties: {
     projectLead: { type: 'boolean', title: 'Are you the product owner or project admin/team lead?' },
   },
-  required: ['projectLead', 'publicAccess', 'projectName', 'preferredEmail'],
+  required: ['projectLead', 'publicAccess', 'projectName', 'preferredEmail', 'newToSso'],
   dependencies: {
     projectLead: {
       oneOf: [

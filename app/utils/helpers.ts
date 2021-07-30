@@ -4,11 +4,11 @@
 
 import { isEqual } from 'lodash';
 import { Request } from 'interfaces/Request';
-// @ts-ignore
 import validate from 'react-jsonschema-form/lib/validate';
 import requesterSchema from 'schemas/requester-info';
 import providerSchema from 'schemas/providers';
 import termsAndConditionsSchema from 'schemas/terms-and-conditions';
+import { errorMessages } from './constants';
 
 export const validateForm = (formData: Request) => {
   const { errors: firstPageErrors } = validate(formData, requesterSchema);
@@ -131,21 +131,18 @@ export const processRequest = (request: Request) => {
     request.prodValidRedirectUris = [''];
   }
 
-  return request;
+  return changeNullToUndefined(request);
 };
 
 export const transformErrors = (errors: any) => {
   return errors.map((error: any) => {
-    if (error.property === '.agreeWithTerms') error.message = 'You must agree to the terms to submit a request.';
-    else if (error.property === '.preferredEmail') error.message = 'Please enter a valid email address.';
-    else if (error.property === '.realm') {
-      error.message = 'Please select your IDPs.';
-    } else if (error.property.includes('RedirectUrls')) {
-      error.message = 'Please enter a valid url, including an http:// or https:// prefix.';
-    } else if (error.property === '.projectName') {
-      error.message = 'Please enter a project name.';
+    const propertiesToTransform = Object.keys(errorMessages).map((key) => `.${key}`);
+    if (propertiesToTransform.includes(error.property)) {
+      const errorMessageKey = error.property.slice(1);
+      error.message = errorMessages[errorMessageKey] || error.message;
+    } else if (error.property.includes('ValidRedirectUris')) {
+      error.message = errorMessages.redirectUris;
     }
-
     return error;
   });
 };

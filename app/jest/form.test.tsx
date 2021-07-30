@@ -4,6 +4,7 @@ import FormTemplate from 'form-components/FormTemplate';
 import { createRequest, updateRequest, getRequest } from 'services/request';
 import { Request } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
+import { errorMessages } from '../utils/constants';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -21,7 +22,7 @@ jest.mock('services/request', () => {
 // Container to expose variables from beforeeach to test functions
 let sandbox: any = {};
 
-const setUpRender = (request: Request | null) => {
+const setUpRender = (request: Request | object | null) => {
   const { debug } = render(<FormTemplate currentUser={{}} request={request} />);
   sandbox.firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
   sandbox.secondStageBox = screen.getByText('Providers and URIs').closest('div') as HTMLElement;
@@ -41,6 +42,14 @@ const sampleRequest: Request = {
   projectLead: true,
   newToSso: true,
   agreeWithTerms: true,
+  environments: ['dev', 'test', 'prod'],
+};
+
+const samplePage3Request = {
+  devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
+  testValidRedirectUris: ['http://test.com'],
+  prodValidRedirectUris: ['http://prod.com'],
+  realm: 'onestopauth',
 };
 
 describe('Form Template Saving and Navigation', () => {
@@ -65,12 +74,14 @@ describe('Form Template Saving and Navigation', () => {
 
   it('Saves and advances the form when clicking next', async () => {
     const nextButton = screen.getByText('Next') as HTMLElement;
+    const idirRealm = document.querySelector("input[value='onestopauth']") as HTMLElement;
     const devValidRedirectUris = document.getElementById('root_devValidRedirectUris_0') as HTMLElement;
     const testValidRedirectUris = document.getElementById('root_testValidRedirectUris_0') as HTMLElement;
     const prodValidRedirectUris = document.getElementById('root_prodValidRedirectUris_0') as HTMLElement;
     fireEvent.change(devValidRedirectUris, { target: { value: 'http://localhost' } });
     fireEvent.change(testValidRedirectUris, { target: { value: 'http://localhost' } });
     fireEvent.change(prodValidRedirectUris, { target: { value: 'http://localhost' } });
+    fireEvent.click(idirRealm);
     fireEvent.click(nextButton);
     expect(updateRequest).toHaveBeenCalled();
     // Expect next page to load
@@ -141,5 +152,41 @@ describe('Form Template Loading Data', () => {
     // Third Page Data
     fireEvent.click(thirdStageBox);
     expect(document.querySelector('#root_agreeWithTerms')).toHaveAttribute('checked', '');
+  });
+});
+
+describe('Error messages', () => {
+  it('Displays the expected error messages on page 1', () => {
+    setUpRouter('/', sandbox);
+    setUpRender(null);
+    const projectLead = document.getElementById('root_projectLead') as HTMLElement;
+    const isProjectLeadInput = within(projectLead).getByLabelText('Yes');
+    fireEvent.click(isProjectLeadInput);
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+
+    screen.getAllByText(errorMessages.newToSso);
+    screen.getAllByText(errorMessages.publicAccess);
+    screen.getByText(errorMessages.preferredEmail);
+    screen.getByText(errorMessages.projectName);
+  });
+  it('Displays the expected page 2 errors', () => {
+    setUpRouter('/', sandbox);
+    setUpRender({});
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+
+    screen.getAllByText(errorMessages.redirectUris);
+    screen.getByText(errorMessages.realm);
+  });
+  it('Displays the expected page 3 errors', async () => {
+    setUpRouter('/', sandbox);
+    const debug = setUpRender(samplePage3Request);
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    await waitFor(() => screen.getByText("We're a Community"));
+    fireEvent.click(nextButton);
+
+    screen.getByText(errorMessages.agreeWithTerms);
   });
 });

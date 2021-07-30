@@ -29,3 +29,14 @@ export interface EnvironmentOption {
   name: Environment;
   display: string;
 }
+
+export interface ErrorMessages {
+  agreeWithTerms: string;
+  preferredEmail: string;
+  realm: string;
+  redirectUris: string;
+  publicAccess: string;
+  newToSso: string;
+  projectName: string;
+  [any: string]: string;
+}
