@@ -7,6 +7,7 @@ import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
+import BottomAlertProvider from './BottomAlert';
 
 const LoggedUser = styled.span`
   font-weight: 600;
@@ -188,7 +189,9 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
           </SubRightMenu>
         </SubMenu>
       </Navigation>
-      <MainContent>{children}</MainContent>
+      <MainContent>
+        <BottomAlertProvider>{children}</BottomAlertProvider>
+      </MainContent>
       <Footer>
         <FooterMenu>
           <ul>
