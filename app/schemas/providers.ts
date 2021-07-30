@@ -16,7 +16,6 @@ export default {
         'IDIR/GitHub + BCeID Business (coming soon)',
         'IDIR/GitHub + BCeID Both (coming soon)',
       ],
-      default: 'onestopauth',
     },
     devValidRedirectUris: {
       type: 'array',
