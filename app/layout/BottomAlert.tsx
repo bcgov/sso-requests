@@ -1,4 +1,5 @@
 import React, { createContext, useReducer, useMemo } from 'react';
+import { isBoolean } from 'lodash';
 import FadingAlert from 'html-components/FadingAlert';
 import BottomAlertWrapper from 'components/BottomAlertWrapper';
 
@@ -36,7 +37,7 @@ export default function BottomAlertProvider({ children }: Props) {
           <FadingAlert
             variant={state.variant || 'success'}
             fadeOut={state.fadeOut || 10000}
-            closable={state.closable || true}
+            closable={isBoolean(state.closable) ? state.closable : true}
             content={state.content || ``}
           />
         </BottomAlertWrapper>
