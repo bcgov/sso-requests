@@ -17,8 +17,6 @@ import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
-import FadingAlert from 'html-components/FadingAlert';
-import BottomAlertWrapper from 'components/BottomAlertWrapper';
 
 const mediaRules: MediaRule[] = [
   {
@@ -194,16 +192,6 @@ function RequestsPage({ currentUser }: PageProps) {
           </Grid.Row>
         </Grid>
       </RequestsContext.Provider>
-      {router.query.id && (
-        <BottomAlertWrapper>
-          <FadingAlert
-            variant="success"
-            fadeOut={10000}
-            closable
-            content={`Request ID:${padStart(String(router.query.id), 8, '0')} is successfully submitted!`}
-          />
-        </BottomAlertWrapper>
-      )}
     </ResponsiveContainer>
   );
 }
