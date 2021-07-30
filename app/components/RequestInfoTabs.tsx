@@ -38,6 +38,13 @@ const environments: { title: string; name: Environment }[] = [
   { title: 'Prod Configuration', name: 'prod' },
 ];
 
+const timePassed = (time: string) => {
+  return new Date().getTime() - new Date(time).getTime();
+};
+
+const ONE_MIN = 60 * 1000;
+const FIVE_MIN = 5 * ONE_MIN;
+
 function RequestInfoTabs() {
   const { state } = useContext(RequestsContext);
   const [environment, setEnvironment] = useState<Environment>(environments[0].name);
@@ -52,30 +59,65 @@ function RequestInfoTabs() {
     panel = (
       <>
         <br />
-        <Alert variant="info" content="Your request is in draft. Click the 'edit' button to finish the request." />
+        <Alert variant="info">
+          <div>
+            <strong>Your request has been submitted.</strong>
+          </div>
+          <div>To complete your request, click &quot;Edit&quot; button.</div>
+        </Alert>
       </>
     );
   } else if (displayStatus === 'Request Submitted') {
     if (selectedRequest.prNumber) {
-      panel = (
-        <>
-          <br />
-          <Alert
-            variant="info"
-            content="Your URI change request is successfully submitted. Return periodically to the dashboard for request status update. The estimated time will be 24 hours."
-          />
-        </>
-      );
+      if (timePassed(selectedRequest.createdAt || '') > FIVE_MIN) {
+        panel = (
+          <>
+            <br />
+            <Alert variant="info">
+              <div>
+                <strong>Your URI request has been received and is under review.</strong>
+              </div>
+            </Alert>
+          </>
+        );
+      } else {
+        panel = (
+          <>
+            <br />
+            <Alert variant="info">
+              <div>
+                <strong>Your request is successfully submitted.</strong>
+              </div>
+              <div>The estimated time for processing the request is 24 hours.</div>
+            </Alert>
+          </>
+        );
+      }
     } else {
-      panel = (
-        <>
-          <br />
-          <Alert
-            variant="info"
-            content="Your request is successfully submitted. Return periodically to the dashboard for request status update. The estimated time will be 24 hours."
-          />
-        </>
-      );
+      if (timePassed(selectedRequest.createdAt || '') > FIVE_MIN) {
+        panel = (
+          <>
+            <br />
+            <Alert variant="info">
+              <div>
+                <strong>Your request has been received and is under review.</strong>
+              </div>
+            </Alert>
+          </>
+        );
+      } else {
+        panel = (
+          <>
+            <br />
+            <Alert variant="info">
+              <div>
+                <strong>Your request is successfully submitted.</strong>
+              </div>
+              <div>The estimated time for processing the request is 24 hours.</div>
+            </Alert>
+          </>
+        );
+      }
     }
   } else if (displayStatus === 'Active Project') {
     panel = (

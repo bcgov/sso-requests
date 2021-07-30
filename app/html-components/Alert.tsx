@@ -14,7 +14,6 @@ export const styles = {
       line-height: 1.5em;
       border: 1px solid transparent;
       border-radius: 0.2222em;
-      font-weight: 700;
       padding: 1em 0.5em;
 
       & a {
@@ -206,7 +205,7 @@ const getIconPath = (variant: string) => {
 export default function Alert(props: any) {
   return (
     <BaseAlert {...props}>
-      <BaseAlert.Group>
+      <BaseAlert.Group style={{ marginTop: '1px' }}>
         <FaSVG>
           <path fill="currentColor" d={getIconPath(props.variant)} />
         </FaSVG>
