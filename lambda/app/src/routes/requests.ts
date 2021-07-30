@@ -30,6 +30,7 @@ export const createRequest = async (session: Session, data: Data) => {
 
     const numOfRequestsForToday = await models.request.count({
       where: {
+        idirUserid: session.idir_userid,
         createdAt: {
           [Op.gt]: oneDayAgo,
           [Op.lt]: now,
