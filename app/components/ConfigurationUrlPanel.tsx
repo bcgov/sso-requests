@@ -84,7 +84,7 @@ const ConfigurationUrlPanel = () => {
                 <LeftTitle>{env.display}</LeftTitle>
                 <ul>
                   {redirectUris.length > 0 ? (
-                    redirectUris.map((url: any) => (
+                    redirectUris.map((url) => (
                       <li key={url} className="url">
                         {url}
                       </li>
