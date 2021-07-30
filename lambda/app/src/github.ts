@@ -5,11 +5,16 @@ import { stringifyGithubInputs } from './helpers';
 
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
+interface ValidRedirectUris {
+  dev: string[];
+  test: string[];
+  prod: string[];
+}
 interface GitHubRequestDispatchInput {
   requestId: number;
   clientName: string;
   realmName: string;
-  validRedirectUris: any;
+  validRedirectUris: ValidRedirectUris;
   environments: string[];
   publicAccess: boolean;
 }

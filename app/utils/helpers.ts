@@ -3,13 +3,14 @@
 //
 
 import { isEqual } from 'lodash';
-import { ClientRequest, ServerRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
+// @ts-ignore
 import validate from 'react-jsonschema-form/lib/validate';
 import requesterSchema from 'schemas/requester-info';
 import providerSchema from 'schemas/providers';
 import termsAndConditionsSchema from 'schemas/terms-and-conditions';
 
-export const validateForm = (formData: ClientRequest) => {
+export const validateForm = (formData: Request) => {
   const { errors: firstPageErrors } = validate(formData, requesterSchema);
   const { errors: secondPageErrors } = validate(formData, providerSchema);
   const { errors: thirdPageErrors } = validate(formData, termsAndConditionsSchema);
@@ -104,10 +105,10 @@ export const realmToIDP = (realm?: string) => {
 };
 
 export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
-  if (env === 'dev') return 'devRedirectUrls';
-  if (env === 'test') return 'testRedirectUrls';
-  if (env === 'prod') return 'prodRedirectUrls';
-  return 'devRedirectUrls';
+  if (env === 'dev') return 'devValidRedirectUris';
+  if (env === 'test') return 'testValidRedirectUris';
+  if (env === 'prod') return 'prodValidRedirectUris';
+  return 'devValidRedirectUris';
 };
 
 const changeNullToUndefined = (data: any) => {
@@ -117,47 +118,20 @@ const changeNullToUndefined = (data: any) => {
   return data;
 };
 
-export const processRequest = (request: ServerRequest): ClientRequest => {
-  const { validRedirectUris, ...rest } = request;
-  const processedRequest: ClientRequest = {
-    ...rest,
-  };
-
-  const { dev, test, prod } = validRedirectUris || {};
-  if (dev) processedRequest.devRedirectUrls = dev;
-  if (test) processedRequest.testRedirectUrls = test;
-  if (prod) processedRequest.prodRedirectUrls = prod;
-  // RJSF default values only applied to undefined values, not nulls from DB
-  return changeNullToUndefined(processedRequest);
-};
-
-export const prepareRequest = (data: ClientRequest, previousData?: ClientRequest): ServerRequest => {
-  const mergedData = { ...previousData, ...data };
-  const { devRedirectUrls = [], testRedirectUrls = [], prodRedirectUrls = [], ...rest } = mergedData;
-
-  const environments = [];
-
-  if (devRedirectUrls.length > 0) {
-    environments.push('dev');
-  }
-  if (testRedirectUrls.length > 0) {
-    environments.push('test');
-  }
-  if (prodRedirectUrls.length > 0) {
-    environments.push('prod');
+export const processRequest = (request: Request) => {
+  if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
+    request.devValidRedirectUris = [''];
   }
 
-  const newData: ServerRequest = {
-    ...rest,
-    environments,
-    validRedirectUris: {
-      dev: devRedirectUrls,
-      test: testRedirectUrls,
-      prod: prodRedirectUrls,
-    },
-  };
+  if (!request.testValidRedirectUris || request.testValidRedirectUris.length === 0) {
+    request.testValidRedirectUris = [''];
+  }
 
-  return newData;
+  if (!request.prodValidRedirectUris || request.prodValidRedirectUris.length === 0) {
+    request.prodValidRedirectUris = [''];
+  }
+
+  return request;
 };
 
 export const transformErrors = (errors: any) => {

@@ -1,39 +1,22 @@
 import type { Status } from './types';
-export interface ServerRequest {
-  agreeWithTerms?: boolean;
+export interface Request {
   id?: number;
   idirUserid?: string;
   projectName?: string;
+  clientName?: string;
   realm?: string;
-  validRedirectUris?: {
-    dev?: string[];
-    test?: string[];
-    prod?: string[];
-  };
+  publicAccess?: boolean;
+  devValidRedirectUris: string[];
+  testValidRedirectUris: string[];
+  prodValidRedirectUris: string[];
+  environments: string[];
   prNumber?: number;
-  projectLead?: boolean;
-  environments?: string[];
-  newToSso?: boolean;
+  actionNumber?: number;
   createdAt?: string;
   updatedAt?: string;
-  status?: Status;
-  publicAccess?: boolean;
-}
-
-export interface ClientRequest {
-  realm?: string;
-  devRedirectUrls?: string[];
-  testRedirectUrls?: string[];
-  prodRedirectUrls?: string[];
-  projectName?: string;
-  preferredEmail?: string;
   projectLead?: boolean;
-  id?: number;
+  preferredEmail?: string;
   newToSso?: boolean;
-  status?: Status;
   agreeWithTerms?: boolean;
-  prNumber?: number;
-  environments?: string[];
-  createdAt?: string;
-  publicAccess?: boolean;
+  status?: Status;
 }

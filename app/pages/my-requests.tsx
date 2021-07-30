@@ -6,7 +6,7 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import { get, padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests } from 'services/request';
-import { ClientRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
 import Table from 'html-components/Table';
 import Button from 'html-components/Button';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
@@ -110,7 +110,7 @@ function RequestsPage({ currentUser }: PageProps) {
     getData();
   }, []);
 
-  const handleSelection = async (request: ClientRequest) => {
+  const handleSelection = async (request: Request) => {
     if (selectedRequest?.id === request.id) return;
     dispatch($setRequest(request));
   };
@@ -148,7 +148,7 @@ function RequestsPage({ currentUser }: PageProps) {
           </tr>
         </thead>
         <tbody>
-          {requests.map((request: ClientRequest) => {
+          {requests.map((request: Request) => {
             return (
               <tr
                 className={selectedRequest?.id === request.id ? 'active' : ''}

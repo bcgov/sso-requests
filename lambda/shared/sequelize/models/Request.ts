@@ -23,9 +23,20 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
-      validRedirectUris: {
-        type: DataTypes.JSONB,
-        allowNull: true,
+      devValidRedirectUris: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false,
+        defaultValue: [],
+      },
+      testValidRedirectUris: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false,
+        defaultValue: [],
+      },
+      prodValidRedirectUris: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false,
+        defaultValue: [],
       },
       prNumber: {
         type: DataTypes.INTEGER,
@@ -36,8 +47,9 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       environments: {
-        type: DataTypes.JSONB,
-        allowNull: true,
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false,
+        defaultValue: [],
       },
       projectLead: {
         type: DataTypes.BOOLEAN,

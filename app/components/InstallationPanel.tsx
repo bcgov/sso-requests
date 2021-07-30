@@ -7,7 +7,7 @@ import Loader from 'react-loader-spinner';
 import { getInstallation } from 'services/keycloak';
 import Button from 'html-components/Button';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
-import { ClientRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
 import { environments } from 'utils/constants';
 
@@ -30,7 +30,7 @@ const TopMargin = styled.div`
   height: var(--field-top-spacing);
 `;
 
-const InstallationPanel = ({ request }: { request: ClientRequest }) => {
+const InstallationPanel = ({ request }: { request: Request }) => {
   const [loading, setLoading] = useState(false);
 
   const handleInstallationClick = async (environment: Environment) => {

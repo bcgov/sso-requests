@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClientRequest } from 'interfaces/Request';
+import { Request } from 'interfaces/Request';
 import FormButtons from 'form-components/FormButtons';
 import { realmToIDP } from 'utils/helpers';
 import { updateRequest } from 'services/request';
@@ -57,7 +57,7 @@ const formatList = (list?: string[]) => {
 };
 
 interface Props {
-  formData: ClientRequest;
+  formData: Request;
   setErrors: Function;
   setSubmitted: Function;
   submitted: boolean;
@@ -141,19 +141,19 @@ export default function FormReview({ formData, setErrors, setSubmitted, errors, 
           <tr>
             <td>Dev redirect URIs:</td>
             <td>
-              <SemiBold>{formatList(formData?.devRedirectUrls)}</SemiBold>
+              <SemiBold>{formatList(formData?.devValidRedirectUris)}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Test redirect URIs:</td>
             <td>
-              <SemiBold>{formatList(formData?.testRedirectUrls)}</SemiBold>
+              <SemiBold>{formatList(formData?.testValidRedirectUris)}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Prod redirect URIs:</td>
             <td>
-              <SemiBold>{formatList(formData?.prodRedirectUrls)}</SemiBold>
+              <SemiBold>{formatList(formData?.prodValidRedirectUris)}</SemiBold>
             </td>
           </tr>
         </tbody>
