@@ -1,8 +1,11 @@
+import { Op } from 'sequelize';
 import { models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
 import { validateRequest } from '../helpers';
 import { dispatchRequestWorkflow } from '../github';
+
+const NEW_REQUEST_DAY_LIMIT = 10;
 
 const errorResponse = (err: any) => {
   console.error(err);
@@ -21,6 +24,23 @@ const unauthorized = () => {
 
 export const createRequest = async (session: Session, data: Data) => {
   try {
+    const now = new Date();
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+    const numOfRequestsForToday = await models.request.count({
+      where: {
+        createdAt: {
+          [Op.gt]: oneDayAgo,
+          [Op.lt]: now,
+        },
+      },
+    });
+
+    if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
+      throw Error('reached the day limit');
+    }
+
     const { projectName, projectLead, preferredEmail, newToSso, publicAccess } = data;
     const result = await models.request.create({
       idirUserid: session.idir_userid,
@@ -30,9 +50,10 @@ export const createRequest = async (session: Session, data: Data) => {
       newToSso,
       publicAccess,
     });
+
     return {
       statusCode: 200,
-      body: JSON.stringify(result),
+      body: JSON.stringify({ ...result.dataValues, numOfRequestsForToday }),
     };
   } catch (err) {
     return errorResponse(err);
