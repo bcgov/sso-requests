@@ -1,7 +1,6 @@
 resource "random_password" "db_password" {
-  length           = 16
-  special          = true
-  override_special = "_%@"
+  length  = 16
+  special = false
 }
 
 variable "region" {
@@ -19,7 +18,7 @@ variable "db_username" {
 variable "db_name" {
   description = "The name of the database"
   type        = string
-  default     = "sso-requests"
+  default     = "ssorequests1"
 }
 
 variable "configuration_endpoint" {
