@@ -1,4 +1,5 @@
 import { models } from '../../../shared/sequelize/models/models';
+import { mergePR } from '../github';
 
 const createEvent = async (data) => {
   try {
@@ -10,7 +11,18 @@ const createEvent = async (data) => {
 
 export default async function status(event) {
   const { body, queryStringParameters } = event;
-  const { prNumber, prSuccess, planSuccess, applySuccess, id, actionNumber, planDetails } = JSON.parse(body);
+  const {
+    prNumber,
+    prSuccess,
+    planSuccess,
+    applySuccess,
+    id,
+    actionNumber,
+    planDetails,
+    repoOwner,
+    repoName,
+    isAllowedToMerge,
+  } = JSON.parse(body);
   const { status: githubActionsStage } = queryStringParameters || {};
 
   if (githubActionsStage === 'create') {
@@ -44,5 +56,8 @@ export default async function status(event) {
       ]);
     }
   }
+
+  if (isAllowedToMerge) await mergePR({ owner: repoOwner, repo: repoName, prNumber });
+
   return {};
 }

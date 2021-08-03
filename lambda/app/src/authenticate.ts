@@ -1,5 +1,5 @@
 const configurationEndpoint = process.env.CONFIGURATION_ENDPOINT;
-const audience = process.env.AUD;
+const audience = process.env.SSO_CLIENT_ID;
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const jws = require('jws');

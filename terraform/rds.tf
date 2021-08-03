@@ -34,9 +34,9 @@ module "db" {
 
   create_random_password = false
   username               = var.db_username
-  password               = var.db_password
+  password               = random_password.db_password.result
   database_name          = var.db_name
   tags = {
-    Terraform = "true"
+    "managed-by" = "terraform"
   }
 }

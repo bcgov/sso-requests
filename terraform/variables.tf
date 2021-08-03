@@ -1,3 +1,8 @@
+resource "random_password" "db_password" {
+  length  = 16
+  special = false
+}
+
 variable "region" {
   type    = string
   default = "ca-central-1"
@@ -6,21 +11,14 @@ variable "region" {
 variable "db_username" {
   description = "The username for the DB master user"
   type        = string
-  default     = "test_admin"
-  sensitive   = true
-}
-
-variable "db_password" {
-  description = "The password for the DB master user"
-  type        = string
-  default     = "test_admin"
+  default     = "sysadmin"
   sensitive   = true
 }
 
 variable "db_name" {
   description = "The name of the database"
   type        = string
-  default     = "ExampleDB2"
+  default     = "ssorequests1"
 }
 
 variable "configuration_endpoint" {
@@ -29,7 +27,7 @@ variable "configuration_endpoint" {
   default     = "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration"
 }
 
-variable "aud" {
+variable "sso_client_id" {
   description = "The required audience for authentication"
   type        = string
   default     = "sso-requests"
