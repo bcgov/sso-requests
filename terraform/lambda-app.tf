@@ -23,9 +23,9 @@ resource "aws_lambda_function" "app" {
       LOCAL_DEV                   = var.local_dev
       DB_HOSTNAME                 = module.db.this_rds_cluster_endpoint
       DB_USERNAME                 = var.db_username
-      DB_PASSWORD                 = var.db_password
+      DB_PASSWORD                 = random_password.db_password.result
       DB_NAME                     = var.db_name
-      AUD                         = var.aud
+      SSO_CLIENT_ID               = var.sso_client_id
       CONFIGURATION_ENDPOINT      = var.configuration_endpoint
       KEYCLOAK_DEV_URL            = var.keycloak_dev_url
       KEYCLOAK_DEV_CLIENT_ID      = var.keycloak_dev_client_id
