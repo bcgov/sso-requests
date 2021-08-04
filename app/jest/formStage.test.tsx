@@ -10,6 +10,8 @@ const errors: FormErrors = {
   secondPageErrors: [],
 };
 
+const STEPPER_ERROR = 'Some additional fields require your attention.';
+
 describe('Form Stage', () => {
   it('Only allows navigation once a request is created', () => {
     render(<FormStage creatingNewForm={creatingNewForm} currentStage={1} setFormStage={setFormStage} errors={null} />);
@@ -23,7 +25,7 @@ describe('Form Stage', () => {
       <FormStage creatingNewForm={creatingNewForm} currentStage={1} setFormStage={setFormStage} errors={errors} />,
     );
     const firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
-    expect(within(firstStageBox).getByTitle('error'));
+    expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
     const secondStageBox = screen.getByText('Providers and URIs').closest('div') as HTMLElement;
     expect(within(secondStageBox).queryByTitle('error')).toBeNull();
   });
