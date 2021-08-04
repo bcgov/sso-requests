@@ -51,7 +51,15 @@ export default function FormStagebox({ stageNumber, title, active, handleClick, 
   return (
     <Box active={active} onClick={handleClick}>
       <Circle>
-        {hasError ? <FontAwesomeIcon icon={faExclamationTriangle} color="red" title="error" /> : stageNumber}
+        {hasError ? (
+          <FontAwesomeIcon
+            icon={faExclamationTriangle}
+            color="red"
+            title="Some additional fields require your attention."
+          />
+        ) : (
+          stageNumber
+        )}
       </Circle>
       <Text>{title}</Text>
     </Box>

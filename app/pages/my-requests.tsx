@@ -170,7 +170,7 @@ function RequestsPage({ currentUser }: PageProps) {
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Button size="small" onClick={handleNewClick}>
-        + Request Project
+        + Request Access
       </Button>
 
       <br />
@@ -180,7 +180,7 @@ function RequestsPage({ currentUser }: PageProps) {
           <Grid.Row collapse="800" gutter={[15, 2]}>
             <Grid.Col>
               <OverflowAuto>
-                <Title>My Project Dashboard</Title>
+                <Title>My Dashboard</Title>
                 {content}
               </OverflowAuto>
             </Grid.Col>

@@ -80,7 +80,7 @@ interface Route {
 const routes: Route[] = [
   { path: '/', label: 'About Pathfinder SSO' },
   { path: '/terms-conditions', label: 'Terms and Conditions' },
-  { path: '/my-requests', label: 'My Projects', user: true },
+  { path: '/my-requests', label: 'My Dashboard', user: true },
   { path: '/request', label: 'New Request', user: true, hide: true },
 ];
 
@@ -114,7 +114,7 @@ const RightMenuItems = () => (
       </a>
     </li>
     <li>
-      <a href="mailto:BCGov.SSO@gov.bc.ca" title="SSO Team">
+      <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO">
         <FontAwesomeIcon size="2x" icon={faEnvelope} />
       </a>
     </li>

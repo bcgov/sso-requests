@@ -59,9 +59,9 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                   <br />
                   Gov IDPs.
                 </JumbotronP>
-                <h3>Request SSO project:</h3>
+                <h3>Request SSO access:</h3>
                 <Button size="medium" onClick={onLoginClick}>
-                  IDIR/GitHub
+                  IDIR
                 </Button>
                 <br /> <br />
                 <Link
@@ -69,7 +69,7 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                   href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
                   external
                 >
-                  or IDIR/GitHub/BCeID
+                  or IDIR/BCeID
                 </Link>
               </Panel>
             </Grid.Col>
@@ -80,7 +80,7 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                   To learn more about Pathfinder SSO
                   <br />
                   visit the{' '}
-                  <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki" external>
+                  <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki/SSO-Onboarding" external>
                     User Guide
                   </Link>
                 </Paragraph>

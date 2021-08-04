@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { models } from '../../../shared/sequelize/models/models';
+import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
 import { validateRequest } from '../helpers';
@@ -89,6 +89,8 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
     }
+
+    allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
 
     const result = await models.request.update(allowedRequest, {
       where: { id },

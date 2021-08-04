@@ -26,10 +26,16 @@ function TermsAndConditions() {
           As part of a community, we can solve things together and quickly. Please join the #SSO channel on Rocket.Chat
         </li>
         <li>Coordinate load testing with the Pathfinder SSO Team, and please only use the Test environment</li>
-        <li>The SSO Service is multitenancy, please keep request load levels within &quot;x&quot; requests/second</li>
+        <li>
+          The SSO Service is multitenancy; please coordinate with the Pathfinder SSO Team if you predict moderate or
+          high loads. Contact options are available on the toolbar.
+        </li>
         <li>
           Please follow the BC Government digital standards (
-          <a href="https://digital.gov.bc.ca/resources/digital-principles">link</a>)
+          <a href="https://digital.gov.bc.ca/resources/digital-principles" target="_blank">
+            link
+          </a>
+          )
         </li>
       </StyledList>
       <Title>Understanding the service level</Title>
