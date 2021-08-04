@@ -21,10 +21,13 @@ export default {
             publicAccess: {
               type: 'boolean',
               title: 'Choose client type',
+              tooltipTitle: 'Client Types',
+              tooltipContent:
+                'A public client with PKCE is slightly less secure because there is no secret, but this configuration is required by some architectures and is supported as well.</br></br>With a confidential client, the back-end component securely stores an application secret that allows it to communicate with the KeyCloak server to facilitate the OIDC authentication process.',
               enum: [true, false],
               enumNames: ['Public', 'Confidential'],
             },
-            projectName: { type: 'string', title: 'Project Name' },
+            projectName: { type: 'string', title: 'Project Name (e.g. Mines Digitial Services)' },
             preferredEmail: { type: 'string', title: 'Preferred Email Address', format: 'email' },
           },
         },

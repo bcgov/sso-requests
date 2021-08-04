@@ -69,7 +69,7 @@ function RequestInfoTabs() {
     );
   } else if (displayStatus === 'Request Submitted') {
     if (selectedRequest.prNumber) {
-      if (timePassed(selectedRequest.createdAt || '') > FIVE_MIN) {
+      if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
         panel = (
           <>
             <br />
@@ -88,13 +88,16 @@ function RequestInfoTabs() {
               <div>
                 <strong>Your request is successfully submitted.</strong>
               </div>
-              <div>The estimated time for processing the request is 24 hours.</div>
+              <div>
+                {`Your updates will be ready in just a moment… However, if you experience a delay, don't hesitate to
+                contact us via the toolbar.`}
+              </div>
             </Alert>
           </>
         );
       }
     } else {
-      if (timePassed(selectedRequest.createdAt || '') > FIVE_MIN) {
+      if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
         panel = (
           <>
             <br />
@@ -113,7 +116,10 @@ function RequestInfoTabs() {
               <div>
                 <strong>Your request is successfully submitted.</strong>
               </div>
-              <div>The estimated time for processing the request is 24 hours.</div>
+              <div>
+                {`Your project will be ready in just a moment… However, if you experience a delay, don't hesitate to
+                contact us via the toolbar.`}
+              </div>
             </Alert>
           </>
         );

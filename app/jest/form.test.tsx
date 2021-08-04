@@ -19,6 +19,8 @@ jest.mock('services/request', () => {
   };
 });
 
+const STEPPER_ERROR = 'Some additional fields require your attention.';
+
 // Container to expose variables from beforeeach to test functions
 let sandbox: any = {};
 
@@ -99,21 +101,21 @@ describe('Form Template Saving and Navigation', () => {
     const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
     fireEvent.click(fourthStageBox);
     fireEvent.click(document.querySelector("button[type='submit']") as HTMLElement);
-    expect(within(firstStageBox).getByTitle('error'));
-    expect(within(secondStageBox).getByTitle('error'));
-    expect(within(thirdStageBox).getByTitle('error'));
-    expect(within(fourthStageBox).queryByTitle('error')).toBeNull();
+    expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
+    expect(within(secondStageBox).getByTitle(STEPPER_ERROR));
+    expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
+    expect(within(fourthStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
 
     // Navigate to and from third page without fixing errors
     fireEvent.click(thirdStageBox);
     fireEvent.click(fourthStageBox);
-    expect(within(thirdStageBox).getByTitle('error'));
+    expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
 
     // Navigate to and from third stage with fixing errors
     fireEvent.click(thirdStageBox);
     fireEvent.click(document.querySelector('#root_agreeWithTerms') as HTMLElement);
     fireEvent.click(fourthStageBox);
-    expect(within(thirdStageBox).queryByTitle('error')).toBeNull();
+    expect(within(thirdStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
   });
 });
 

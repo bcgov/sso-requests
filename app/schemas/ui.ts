@@ -1,4 +1,5 @@
-import fieldTemplate from 'form-components/CustomFieldTemplate';
+import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
+import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
 
 const getUISchema = (created: boolean) => {
   return {
@@ -18,16 +19,18 @@ const getUISchema = (created: boolean) => {
       'ui:widget': 'radio',
     },
     preferredEmail: {
-      'ui:FieldTemplate': fieldTemplate,
+      'ui:FieldTemplate': FieldTemplateNoTitle,
     },
     publicAccess: {
       'ui:widget': 'radio',
+      'ui:FieldTemplate': FieldTemplateWithTitle,
     },
     projectName: {
-      'ui:FieldTemplate': fieldTemplate,
+      'ui:FieldTemplate': FieldTemplateNoTitle,
     },
     realm: {
       'ui:widget': 'radio',
+      'ui:FieldTemplate': FieldTemplateWithTitle,
       'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
     },
   };

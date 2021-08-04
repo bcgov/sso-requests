@@ -9,6 +9,8 @@ export default {
     realm: {
       type: 'string',
       title: 'Identity Providers Required',
+      tooltipTitle: 'Identity Providers',
+      tooltipContent: 'The identity providers you add will let your users authenticate with those services.',
       enum: ['onestopauth', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
       enumNames: [
         'IDIR',
