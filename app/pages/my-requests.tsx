@@ -75,6 +75,22 @@ const NoProjects = styled.div`
 
 export const RequestsContext = React.createContext({} as any);
 
+const hasAnyPendingStatus = (requests: Request[]) => {
+  return requests.some((request) => {
+    return [
+      // 'draft',
+      'submitted',
+      'pr',
+      'prFailed',
+      'planned',
+      'planFailed',
+      'approved',
+      // 'applied',
+      'applyFailed',
+    ].includes(request.status || '');
+  });
+};
+
 function RequestsPage({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
@@ -85,6 +101,8 @@ function RequestsPage({ currentUser }: PageProps) {
   const contextValue = useMemo(() => {
     return { state, dispatch };
   }, [state, dispatch]);
+
+  let interval: any;
 
   useEffect(() => {
     const getData = async () => {
@@ -101,11 +119,32 @@ function RequestsPage({ currentUser }: PageProps) {
         if (id) {
           dispatch($setRequest(requests.find((request) => request.id === Number(id))));
         }
+
+        if (hasAnyPendingStatus(requests)) {
+          interval = setInterval(async () => {
+            const [data, err] = await getRequests();
+            if (err) {
+              clearInterval(interval);
+            } else {
+              const requests = data || [];
+              dispatch($setRequests(requests));
+
+              if (!hasAnyPendingStatus(requests)) {
+                clearInterval(interval);
+              }
+            }
+          }, 1000 * 5);
+        }
       }
 
       setLoading(false);
     };
+
     getData();
+
+    return () => {
+      interval && clearInterval(interval);
+    };
   }, []);
 
   const handleSelection = async (request: Request) => {
