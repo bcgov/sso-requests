@@ -89,8 +89,8 @@ function RequestInfoTabs() {
                 <strong>Your request is successfully submitted.</strong>
               </div>
               <div>
-                Your updates will be ready in just a moment… However, if you experience a delay, don't hesitate to
-                contact us via the toolbar.
+                {`Your updates will be ready in just a moment… However, if you experience a delay, don't hesitate to
+                contact us via the toolbar.`}
               </div>
             </Alert>
           </>
@@ -117,8 +117,8 @@ function RequestInfoTabs() {
                 <strong>Your request is successfully submitted.</strong>
               </div>
               <div>
-                Your project will be ready in just a moment… However, if you experience a delay, don't hesitate to
-                contact us via the toolbar.
+                {`Your project will be ready in just a moment… However, if you experience a delay, don't hesitate to
+                contact us via the toolbar.`}
               </div>
             </Alert>
           </>

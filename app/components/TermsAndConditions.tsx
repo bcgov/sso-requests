@@ -32,7 +32,7 @@ function TermsAndConditions() {
         </li>
         <li>
           Please follow the BC Government digital standards (
-          <a href="https://digital.gov.bc.ca/resources/digital-principles" target="_blank">
+          <a href="https://digital.gov.bc.ca/resources/digital-principles" target="_blank" rel="noreferrer">
             link
           </a>
           )
