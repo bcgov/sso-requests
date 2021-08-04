@@ -70,6 +70,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: false,
       },
+      bceidApproved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+      },
       status: {
         type: DataTypes.ENUM(
           'draft',
@@ -82,14 +87,6 @@ module.exports = (sequelize, DataTypes) => {
           'applied',
           'applyFailed',
         ),
-        // End-user's perspective
-        // values: [
-        //   'draft',
-        //   'submitted',
-        //   'in review',
-        //   'technical issue',
-        //   'completed',
-        // ],
         defaultValue: 'draft',
         allowNull: false,
       },
