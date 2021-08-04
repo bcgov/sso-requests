@@ -122,7 +122,7 @@ function FormReview({ formData, setErrors, setSubmitted, errors, submitted = fal
             </td>
           </tr>
           <tr>
-            <td>Have you requested an SSO project before?</td>
+            <td>Have you requested an SSO access before?</td>
             <td>
               <SemiBold>{formatBoolean(formData?.newToSso)}</SemiBold>
             </td>
