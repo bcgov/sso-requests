@@ -18,6 +18,7 @@ export const verifyToken = async (token: string) => {
   const keys = data?.keys;
 
   const tokenHeader = parseJWTHeader(token);
+  console.log('JWT key id: ', tokenHeader.kid);
 
   // search for the kid key id in the JWK Keys
   const key = keys.find((key: { kid: string }) => key.kid === tokenHeader.kid);
@@ -25,6 +26,8 @@ export const verifyToken = async (token: string) => {
     console.error('public key not found in JWK jwks.json');
     return false;
   }
+
+  console.log('JWK key: ', key);
 
   // verify JWT Signature
   const keyObj: any = rs.KEYUTIL.getKey(key);
