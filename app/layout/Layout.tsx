@@ -198,12 +198,26 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
             <li>
               <Link href="/">Home</Link>
             </li>
-            {/* <li>
-            <a href=".">Copyright</a>
-          </li>
-          <li>
-            <a href=".">Contact us</a>
-          </li> */}
+            <li>
+              <a href="https://www2.gov.bc.ca/gov/content/home/disclaimer" target="_blank" rel="noreferrer">
+                Disclaimer
+              </a>
+            </li>
+            <li>
+              <a href="https://www2.gov.bc.ca/gov/content/home/privacy" target="_blank" rel="noreferrer">
+                Privacy
+              </a>
+            </li>
+            <li>
+              <a href="https://www2.gov.bc.ca/gov/content/home/accessible-government" target="_blank" rel="noreferrer">
+                Accessibility
+              </a>
+            </li>
+            <li>
+              <a href="https://www2.gov.bc.ca/gov/content/home/copyright" target="_blank" rel="noreferrer">
+                Copyright
+              </a>
+            </li>
           </ul>
         </FooterMenu>
       </Footer>
