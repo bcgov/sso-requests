@@ -14,7 +14,7 @@ import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
 import RequestInfoTabs from 'components/RequestInfoTabs';
 import { getStatusDisplayName } from 'utils/status';
-import { $setRequests, $setRequest } from 'dispatchers/requestDispatcher';
+import { $setRequests, $setRequest, $setEditingRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 
@@ -150,6 +150,7 @@ function RequestsPage({ currentUser }: PageProps) {
   const handleSelection = async (request: Request) => {
     if (selectedRequest?.id === request.id) return;
     dispatch($setRequest(request));
+    dispatch($setEditingRequest(false));
   };
 
   const handleNewClick = async () => {
@@ -225,7 +226,7 @@ function RequestsPage({ currentUser }: PageProps) {
             </Grid.Col>
             {selectedRequest && (
               <Grid.Col>
-                <RequestInfoTabs />
+                <RequestInfoTabs key={selectedRequest.id + selectedRequest.status} />
               </Grid.Col>
             )}
           </Grid.Row>

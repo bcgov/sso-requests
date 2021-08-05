@@ -67,7 +67,7 @@ const ConfigurationUrlPanel = () => {
           onSubmit={handleSubmit}
         >
           <FormButtons
-            formSubmittion={true}
+            formSubmission={true}
             show={true}
             loading={updatingUrls || false}
             text={{ continue: 'Submit', back: 'Cancel' }}
