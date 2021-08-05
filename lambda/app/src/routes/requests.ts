@@ -11,7 +11,7 @@ const errorResponse = (err: any) => {
   console.error(err);
   return {
     statusCode: 422,
-    body: JSON.stringify(err),
+    body: JSON.stringify(err.message || err),
   };
 };
 

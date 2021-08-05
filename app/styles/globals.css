@@ -75,3 +75,7 @@ label.pg-input-label {
   width: 100%;
   padding-right: 30px;
 }
+
+.pg-footer-footer {
+  height: unset !important;
+}

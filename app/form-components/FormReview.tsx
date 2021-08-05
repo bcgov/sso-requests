@@ -55,19 +55,17 @@ const formatList = (list?: string[]) => {
 interface Props {
   formData: Request;
   setErrors: Function;
-  setSubmitted: Function;
   errors: any;
   visited: any;
   alert: BottomAlert;
 }
 
-function FormReview({ formData, setErrors, setSubmitted, errors, visited, alert }: Props) {
+function FormReview({ formData, setErrors, errors, visited, alert }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async () => {
     try {
-      setSubmitted(true);
       const errors = validateForm(formData, visited);
       if (Object.keys(errors).length > 0) {
         alert.show({
