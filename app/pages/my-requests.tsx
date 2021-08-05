@@ -132,6 +132,10 @@ function RequestsPage({ currentUser }: PageProps) {
         if (hasAnyPendingStatus(requests)) {
           interval = setInterval(async () => {
             let [data, err] = await getRequests();
+            // data = (data || []).map(v => {
+            //   v.status = 'applied';
+            //   return v;
+            // })
             if (err) {
               clearInterval(interval);
             } else {
@@ -217,6 +221,7 @@ function RequestsPage({ currentUser }: PageProps) {
   }
 
   const activeRequest = requests.find((request: Request) => request.id === Number(selectedRequest?.id));
+  console.log(activeRequest);
 
   return (
     <ResponsiveContainer rules={mediaRules}>
