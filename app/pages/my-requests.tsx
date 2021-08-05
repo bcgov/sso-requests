@@ -131,11 +131,8 @@ function RequestsPage({ currentUser }: PageProps) {
 
         if (hasAnyPendingStatus(requests)) {
           interval = setInterval(async () => {
-            let [data, err] = await getRequests();
-            // data = (data || []).map(v => {
-            //   v.status = 'applied';
-            //   return v;
-            // })
+            const [data, err] = await getRequests();
+
             if (err) {
               clearInterval(interval);
             } else {
@@ -158,7 +155,7 @@ function RequestsPage({ currentUser }: PageProps) {
     return () => {
       interval && clearInterval(interval);
     };
-  }, []);
+  }, [router.query.id, router.query.updated]);
 
   const handleSelection = async (request: Request) => {
     if (selectedRequest?.id === request.id) return;
