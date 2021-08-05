@@ -66,11 +66,17 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
     }
   }, [currentUser]);
 
-  const handleStepChange = (newStage: number) => {
-    visited[formStage] = true;
+  const changeStep = (newStage: number) => {
+    if (newStage === 3) {
+      setVisited({ '0': true, '1': true, '2': true, '3': true });
+    } else {
+      visited[formStage] = true;
+      setVisited(visited);
+    }
+
     const errors = validateForm(formData, visited);
     setErrors(errors);
-    setVisited(visited);
+
     setFormStage(newStage);
     alert.hide();
   };
@@ -83,35 +89,40 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
 
   const uiSchema = getUiSchema(!creatingNewForm());
 
-  const handleSubmit = async (e: any) => {
-    try {
-      setLoading(true);
+  const handleSubmit = async () => {
+    if (formStage === 0) {
+      try {
+        setLoading(true);
 
-      if (creatingNewForm()) {
-        const [data, err] = await createRequest(e.formData);
-        const { id } = data || {};
+        if (creatingNewForm()) {
+          const [data, err] = await createRequest(formData);
+          const { id } = data || {};
 
-        if (err || !id) {
-          alert.show({
-            variant: 'danger',
-            fadeOut: 10000,
-            closable: true,
-            content: `Failed to create a new request`,
-          });
+          if (err || !id) {
+            alert.show({
+              variant: 'danger',
+              fadeOut: 10000,
+              closable: true,
+              content: `Failed to create a new request`,
+            });
 
-          setLoading(false);
-          return;
+            setLoading(false);
+            return;
+          }
+
+          await router.push({ pathname: `/request/${id}` });
+          setFormData({ ...formData, id });
+        } else {
+          await updateRequest(formData);
         }
-
-        await router.push({ pathname: `/request/${id}` });
-        setFormData({ ...formData, id });
-      } else {
-        await updateRequest(e.formData);
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
+      setLoading(false);
+    } else {
+      const newStage = formStage + 1;
+      changeStep(newStage);
     }
-    setLoading(false);
   };
 
   const handleBlur = async (id: string, value: any) => {
@@ -131,18 +142,12 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   return (
     <>
       <FormHeader formStage={formStage} id={formData.id} saveMessage={saveMessage} saving={saving} />
-      <FormStage
-        currentStage={formStage}
-        setFormStage={handleStepChange}
-        errors={errors}
-        creatingNewForm={creatingNewForm}
-      />
+      <FormStage currentStage={formStage} setFormStage={changeStep} errors={errors} creatingNewForm={creatingNewForm} />
       {formStage === 2 && <TermsAndConditions />}
       {[0, 1, 2].includes(formStage) ? (
         <Form
           schema={nonBceidSchemas[formStage]}
           uiSchema={uiSchema}
-          onSubmit={handleSubmit}
           onChange={handleChange}
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
@@ -153,7 +158,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
             text={{ continue: 'Next', back: 'Cancel' }}
             show={formStage !== 0 || formData.projectLead}
             loading={loading}
-            handleSubmit={() => handleStepChange(formStage + 1)}
+            handleSubmit={handleSubmit}
             handleBackClick={handleBackClick}
           />
         </Form>

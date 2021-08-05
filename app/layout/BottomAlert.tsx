@@ -29,7 +29,7 @@ export default function BottomAlertProvider({ children }: Props) {
   const contextValue = useMemo(() => {
     return { state, dispatch };
   }, [state, dispatch]);
-  console.log('state.show', state.show);
+
   return (
     <BottomAlertContext.Provider value={contextValue}>
       {children}

@@ -57,6 +57,7 @@ interface Props {
   setErrors: Function;
   setSubmitted: Function;
   errors: any;
+  visited: any;
   alert: BottomAlert;
 }
 
