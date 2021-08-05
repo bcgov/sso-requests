@@ -28,7 +28,7 @@ export default function FieldTemplateWithTitle(props: any) {
     <div className={classNames}>
       <Title>
         {label}&nbsp;
-        <OverlayTrigger trigger="click" placement="right" overlay={popover}>
+        <OverlayTrigger trigger="hover" placement="right" overlay={popover}>
           <FontAwesomeIcon color="#777777" icon={faInfoCircle} />
         </OverlayTrigger>
       </Title>

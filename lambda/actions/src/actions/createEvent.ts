@@ -44,7 +44,7 @@ export default async function status(event) {
       const eventResult = String(planSuccess) === 'true' ? 'success' : 'failure';
       await Promise.all([
         !isAlreadyApplied && models.request.update({ status }, { where: { id: requestId } }),
-        createEvent({ eventCode: `request-plan-${eventResult}`, requestId, planDetails }),
+        createEvent({ eventCode: `request-plan-${eventResult}`, requestId, details: { planDetails } }),
       ]);
     }
     if (githubActionsStage === 'apply') {

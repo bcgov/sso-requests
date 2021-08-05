@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import FormHeader from 'form-components/FormHeader';
 import FormStage from 'form-components/FormStage';
 import Form from 'form-components/GovForm';
-import requesterInfoSchema from 'schemas/requester-info';
-import termsAndConditionsSchema from 'schemas/terms-and-conditions';
-import providersSchema from 'schemas/providers';
 import getUiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
@@ -18,8 +15,8 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
+import nonBceidSchemas from 'schemas/non-bceid-schemas';
 import { transformErrors, validateForm } from 'utils/helpers';
-import { FormErrors } from 'interfaces/form';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 
 const CenteredModal = styled(Modal)`
@@ -37,17 +34,6 @@ const ModalButton = styled(Button)`
   margin-left: auto;
 `;
 
-const getSchema = (formStage: number) => {
-  switch (formStage) {
-    case 1:
-      return requesterInfoSchema;
-    case 2:
-      return providersSchema;
-    case 3:
-      return termsAndConditionsSchema;
-  }
-};
-
 interface Props {
   currentUser: {
     email?: string;
@@ -58,12 +44,13 @@ interface Props {
 
 function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
-  const [formStage, setFormStage] = useState(request ? 2 : 1);
+  const [formStage, setFormStage] = useState(request ? 1 : 0);
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<null | FormErrors>(null);
+  const [errors, setErrors] = useState<any>({});
   const [submitted, setSubmitted] = useState(false);
+  const [visited, setVisited] = useState<any>({});
   const router = useRouter();
 
   const handleChange = (e: any) => {
@@ -79,11 +66,20 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
     }
   }, [currentUser]);
 
-  useEffect(() => {
-    if (!submitted) return;
-    const valid = validateForm(formData);
-    setErrors(valid === true ? null : valid);
-  }, [submitted, formStage]);
+  const changeStep = (newStage: number) => {
+    if (newStage === 3) {
+      setVisited({ '0': true, '1': true, '2': true, '3': true });
+    } else {
+      visited[formStage] = true;
+      setVisited(visited);
+    }
+
+    const errors = validateForm(formData, visited);
+    setErrors(errors);
+
+    setFormStage(newStage);
+    alert.hide();
+  };
 
   const handleBackClick = () => {
     router.push('/my-requests');
@@ -93,36 +89,40 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
 
   const uiSchema = getUiSchema(!creatingNewForm());
 
-  const handleSubmit = async (e: any) => {
-    try {
-      setLoading(true);
+  const handleSubmit = async () => {
+    if (formStage === 0) {
+      try {
+        setLoading(true);
 
-      if (creatingNewForm()) {
-        const [data, err] = await createRequest(e.formData);
-        const { id } = data || {};
+        if (creatingNewForm()) {
+          const [data, err] = await createRequest(formData);
+          const { id } = data || {};
 
-        if (err || !id) {
-          alert.show({
-            variant: 'danger',
-            fadeOut: 10000,
-            closable: true,
-            content: `Failed to create a new request`,
-          });
+          if (err || !id) {
+            alert.show({
+              variant: 'danger',
+              fadeOut: 10000,
+              closable: true,
+              content: `Failed to create a new request`,
+            });
 
-          setLoading(false);
-          return;
+            setLoading(false);
+            return;
+          }
+
+          await router.push({ pathname: `/request/${id}` });
+          setFormData({ ...formData, id });
+        } else {
+          await updateRequest(formData);
         }
-
-        await router.push({ pathname: `/request/${id}` });
-        setFormData({ ...formData, id });
-      } else {
-        await updateRequest(e.formData);
+      } catch (err) {
+        console.error(err);
       }
-      setFormStage(formStage + 1);
-    } catch (err) {
-      console.error(err);
+      setLoading(false);
+    } else {
+      const newStage = formStage + 1;
+      changeStep(newStage);
     }
-    setLoading(false);
   };
 
   const handleBlur = async (id: string, value: any) => {
@@ -142,28 +142,23 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   return (
     <>
       <FormHeader formStage={formStage} id={formData.id} saveMessage={saveMessage} saving={saving} />
-      <FormStage
-        currentStage={formStage}
-        setFormStage={setFormStage}
-        errors={errors}
-        creatingNewForm={creatingNewForm}
-      />
-      {formStage === 3 && <TermsAndConditions />}
-      {[1, 2, 3].includes(formStage) ? (
+      <FormStage currentStage={formStage} setFormStage={changeStep} errors={errors} creatingNewForm={creatingNewForm} />
+      {formStage === 2 && <TermsAndConditions />}
+      {[0, 1, 2].includes(formStage) ? (
         <Form
-          schema={getSchema(formStage)}
+          schema={nonBceidSchemas[formStage]}
           uiSchema={uiSchema}
-          onSubmit={handleSubmit}
           onChange={handleChange}
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
           onBlur={handleBlur}
-          liveValidate={submitted}
+          liveValidate={visited[formStage]}
         >
           <FormButtons
             text={{ continue: 'Next', back: 'Cancel' }}
-            show={formStage !== 1 || formData.projectLead}
+            show={formStage !== 0 || formData.projectLead}
             loading={loading}
+            handleSubmit={handleSubmit}
             handleBackClick={handleBackClick}
           />
         </Form>
@@ -174,9 +169,10 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
           setSubmitted={setSubmitted}
           submitted={submitted}
           errors={errors}
+          visited={visited}
         />
       )}
-      {formStage === 1 && (
+      {formStage === 0 && (
         <CenteredModal id="modal">
           <Modal.Header>
             Information{' '}

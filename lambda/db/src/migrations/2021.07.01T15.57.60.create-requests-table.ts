@@ -103,6 +103,12 @@ export const up = async ({ context: sequelize }) => {
       allowNull: true,
       defaultValue: false,
     },
+    bceidApproved: {
+      type: DataTypes.BOOLEAN,
+      field: 'bceid_approved',
+      allowNull: true,
+      defaultValue: false,
+    },
     status: {
       type: DataTypes.ENUM(
         'draft',

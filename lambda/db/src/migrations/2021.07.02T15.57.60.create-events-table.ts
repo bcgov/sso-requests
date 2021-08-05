@@ -38,9 +38,9 @@ export const up = async ({ context: sequelize }) => {
       field: 'idir_userid',
       allowNull: true,
     },
-    planDetails: {
+    details: {
       type: DataTypes.JSONB,
-      field: 'plan_details',
+      field: 'details',
       allowNull: true,
     },
   });

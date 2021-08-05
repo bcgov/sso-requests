@@ -43,7 +43,7 @@ export default function FormButtons({ show, loading, text, handleSubmit, handleB
           <CancelButton variant="secondary" size="small" type="button" onClick={handleBackClick}>
             {text.back}
           </CancelButton>
-          <PaddedButton variant="primary" size="small" onClick={handleSubmit} type="submit">
+          <PaddedButton variant="primary" size="small" onClick={handleSubmit} type="button">
             {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
           </PaddedButton>
         </Container>
