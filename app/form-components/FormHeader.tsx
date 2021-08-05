@@ -34,7 +34,7 @@ export default function Formheader({ formStage, id, saveMessage, saving }: Props
 
   return (
     <>
-      <SHeader>{titles[formStage - 1]}</SHeader>
+      <SHeader>{titles[formStage]}</SHeader>
       {(saving || saveMessage) && (
         <Container>
           <Icon>

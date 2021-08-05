@@ -8,7 +8,6 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
 import Alert from 'html-components/Alert';
-import { FormErrors } from 'interfaces/form';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import { useEffect } from 'react';
@@ -57,23 +56,28 @@ interface Props {
   formData: Request;
   setErrors: Function;
   setSubmitted: Function;
-  submitted: boolean;
-  errors: null | FormErrors;
+  errors: any;
   alert: BottomAlert;
 }
 
-function FormReview({ formData, setErrors, setSubmitted, errors, submitted = false, alert }: Props) {
+function FormReview({ formData, setErrors, setSubmitted, errors, visited, alert }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  console.log(errors);
-  const hasErrors = errors && !(Object.keys(errors).length === 0);
 
   const handleSubmit = async () => {
     try {
       setSubmitted(true);
-      const valid = validateForm(formData);
-      if (valid !== true) {
-        return setErrors(valid);
+      const errors = validateForm(formData, visited);
+      if (Object.keys(errors).length > 0) {
+        alert.show({
+          variant: 'danger',
+          fadeOut: 10000,
+          closable: true,
+          content:
+            'There were errors with your submission. Please see the navigation tabs above for the form pages with errors.',
+        });
+
+        return setErrors(errors);
       }
       setLoading(true);
       await updateRequest(formData, true);
@@ -94,18 +98,6 @@ function FormReview({ formData, setErrors, setSubmitted, errors, submitted = fal
       console.error(err);
     }
   };
-
-  useEffect(() => {
-    if (submitted && hasErrors) {
-      alert.show({
-        variant: 'danger',
-        fadeOut: 10000,
-        closable: true,
-        content:
-          'There were errors with your submission. Please see the navigation tabs above for the form pages with errors.',
-      });
-    }
-  }, [submitted, hasErrors]);
 
   const handleBackClick = () => {
     router.push('/my-requests');

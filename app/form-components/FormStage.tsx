@@ -1,26 +1,24 @@
 import FormStageBox from 'form-components/FormStageBox';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { isObject } from 'lodash';
-import { FormErrors } from 'interfaces/form';
 import styled from 'styled-components';
 interface Props {
   currentStage: number;
   setFormStage: Function;
-  errors: FormErrors | null;
+  errors: any;
   creatingNewForm: Function;
 }
 
 interface Stage {
   title: string;
   number: number;
-  errorKey: 'firstPageErrors' | 'secondPageErrors' | 'thirdPageErrors' | 'fourthPageErrors';
 }
 
 const stages: Stage[] = [
-  { title: 'Requester Info', number: 1, errorKey: 'firstPageErrors' },
-  { title: 'Providers and URIs', number: 2, errorKey: 'secondPageErrors' },
-  { title: 'Terms and conditions', number: 3, errorKey: 'thirdPageErrors' },
-  { title: 'Review & Submit', number: 4, errorKey: 'fourthPageErrors' },
+  { title: 'Requester Info', number: 0 },
+  { title: 'Providers and URIs', number: 1 },
+  { title: 'Terms and conditions', number: 2 },
+  { title: 'Review & Submit', number: 3 },
 ];
 
 const Container = styled.div`
@@ -43,10 +41,10 @@ export default function Formstage({ currentStage, setFormStage, errors, creating
             <Grid.Col key={stage.title}>
               <FormStageBox
                 title={stage.title}
-                stageNumber={stage.number}
+                stageNumber={stage.number + 1}
                 active={stage.number === currentStage}
                 key={stage.number}
-                hasError={isObject(errors) && (errors[stage.errorKey]?.length || 0) > 0}
+                hasError={!!errors[stage.number]}
                 handleClick={() => handleClick(stage.number)}
               />
             </Grid.Col>

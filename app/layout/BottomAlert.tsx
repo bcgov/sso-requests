@@ -8,6 +8,7 @@ const BottomAlertContext = createContext(defaultContextValue);
 
 interface ReducerState {
   show?: boolean;
+  key?: string;
   variant?: string;
   faceOut?: boolean;
   closable?: boolean;
@@ -28,12 +29,12 @@ export default function BottomAlertProvider({ children }: Props) {
   const contextValue = useMemo(() => {
     return { state, dispatch };
   }, [state, dispatch]);
-
+  console.log('state.show', state.show);
   return (
     <BottomAlertContext.Provider value={contextValue}>
       {children}
       {state.show && (
-        <BottomAlertWrapper key={new Date().getTime()}>
+        <BottomAlertWrapper key={state.key}>
           <FadingAlert
             variant={state.variant || 'success'}
             fadeOut={state.fadeOut || 10000}
@@ -50,7 +51,13 @@ export const withBottomAlert = (Component: any) => (props: any) =>
   (
     <BottomAlertContext.Consumer>
       {({ state, dispatch }) => (
-        <Component {...props} alert={{ show: (payload: any) => dispatch({ ...payload, show: true }) }}>
+        <Component
+          {...props}
+          alert={{
+            show: (payload: any) => dispatch({ ...payload, show: true, key: String(new Date().getTime()) }),
+            hide: () => dispatch({ show: false }),
+          }}
+        >
           {props.children}
         </Component>
       )}
@@ -59,4 +66,5 @@ export const withBottomAlert = (Component: any) => (props: any) =>
 
 export interface BottomAlert {
   show: Function;
+  hide: Function;
 }

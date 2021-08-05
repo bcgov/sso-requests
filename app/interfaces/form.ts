@@ -18,13 +18,6 @@ export interface Request {
   publicAccess?: boolean;
 }
 
-export interface FormErrors {
-  firstPageErrors?: object[];
-  secondPageErrors?: object[];
-  thirdPageErrors?: object[];
-  fourthPageErrors?: object[];
-}
-
 export interface EnvironmentOption {
   name: Environment;
   display: string;
