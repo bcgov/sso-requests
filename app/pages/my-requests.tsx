@@ -226,7 +226,7 @@ function RequestsPage({ currentUser }: PageProps) {
             </Grid.Col>
             {selectedRequest && (
               <Grid.Col>
-                <RequestInfoTabs key={selectedRequest.id} />
+                <RequestInfoTabs key={selectedRequest.id + selectedRequest.status} />
               </Grid.Col>
             )}
           </Grid.Row>
