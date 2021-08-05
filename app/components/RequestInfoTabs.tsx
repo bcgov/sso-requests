@@ -8,7 +8,7 @@ import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { getStatusDisplayName } from 'utils/status';
-import type { Environment } from 'interfaces/types';
+import { Request } from 'interfaces/Request';
 
 const RequestTabs = styled(Tabs)`
   .nav-link {
@@ -32,12 +32,6 @@ const TabWrapper = styled.div`
   padding-right: 1rem;
 `;
 
-const environments: { title: string; name: Environment }[] = [
-  { title: 'Dev Configuration', name: 'dev' },
-  { title: 'Test Configuration', name: 'test' },
-  { title: 'Prod Configuration', name: 'prod' },
-];
-
 const timePassed = (time: string) => {
   return new Date().getTime() - new Date(time).getTime();
 };
@@ -45,14 +39,15 @@ const timePassed = (time: string) => {
 const ONE_MIN = 60 * 1000;
 const FIVE_MIN = 5 * ONE_MIN;
 
-function RequestInfoTabs() {
+interface Props {
+  activeRequest: Request;
+}
+
+function RequestInfoTabs({ activeRequest }: Props) {
   const { state } = useContext(RequestsContext);
-  const [environment, setEnvironment] = useState<Environment>(environments[0].name);
+  if (!activeRequest) return null;
 
-  const { selectedRequest } = state as RequestReducerState;
-  if (!selectedRequest) return null;
-
-  const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
+  const displayStatus = getStatusDisplayName(activeRequest.status || 'draft');
 
   let panel = null;
   if (displayStatus === 'In Draft') {
@@ -68,8 +63,8 @@ function RequestInfoTabs() {
       </>
     );
   } else if (displayStatus === 'Request Submitted') {
-    if (selectedRequest.prNumber) {
-      if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
+    if (activeRequest.prNumber) {
+      if (timePassed(activeRequest.updatedAt || '') > FIVE_MIN) {
         panel = (
           <>
             <br />
@@ -97,7 +92,7 @@ function RequestInfoTabs() {
         );
       }
     } else {
-      if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
+      if (timePassed(activeRequest.updatedAt || '') > FIVE_MIN) {
         panel = (
           <>
             <br />
@@ -136,7 +131,7 @@ function RequestInfoTabs() {
 
         <Tab eventKey="installation-json" title="Installation JSON">
           <TabWrapper>
-            <InstallationPanel request={selectedRequest} />
+            <InstallationPanel request={activeRequest} />
           </TabWrapper>
         </Tab>
       </RequestTabs>
