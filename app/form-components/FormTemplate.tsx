@@ -7,6 +7,7 @@ import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import Button from '@button-inc/bcgov-theme/Button';
+import { noop } from 'lodash';
 import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
@@ -66,17 +67,18 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   }, [currentUser]);
 
   const changeStep = (newStage: number) => {
+    visited[formStage] = true;
+
     if (newStage === 3) {
-      setVisited({ '0': true, '1': true, '2': true, '3': true });
-    } else {
-      visited[formStage] = true;
-      setVisited(visited);
+      visited['0'] = true;
+      visited['1'] = true;
+      visited['2'] = true;
     }
 
     const errors = validateForm(formData, visited);
     setErrors(errors);
-
     setFormStage(newStage);
+    setVisited(visited);
     alert.hide();
   };
 
@@ -88,40 +90,42 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
 
   const uiSchema = getUiSchema(!creatingNewForm());
 
-  const handleSubmit = async () => {
-    if (formStage === 0) {
-      try {
-        setLoading(true);
+  const handleFormSubmit = async () => {
+    try {
+      setLoading(true);
 
-        if (creatingNewForm()) {
-          const [data, err] = await createRequest(formData);
-          const { id } = data || {};
+      if (creatingNewForm()) {
+        const [data, err] = await createRequest(formData);
+        const { id } = data || {};
 
-          if (err || !id) {
-            alert.show({
-              variant: 'danger',
-              fadeOut: 10000,
-              closable: true,
-              content: `Failed to create a new request`,
-            });
+        if (err || !id) {
+          alert.show({
+            variant: 'danger',
+            fadeOut: 10000,
+            closable: true,
+            content: `Failed to create a new request`,
+          });
 
-            setLoading(false);
-            return;
-          }
-
-          await router.push({ pathname: `/request/${id}` });
-          setFormData({ ...formData, id });
-        } else {
-          await updateRequest(formData);
+          setLoading(false);
+          return;
         }
-      } catch (err) {
-        console.error(err);
+
+        await router.push({ pathname: `/request/${id}` });
+        setFormData({ ...formData, id });
+      } else {
+        await updateRequest(formData);
       }
-      setLoading(false);
-    } else {
-      const newStage = formStage + 1;
-      changeStep(newStage);
+
+      handleButtonSubmit();
+    } catch (err) {
+      console.error(err);
     }
+    setLoading(false);
+  };
+
+  const handleButtonSubmit = async () => {
+    const newStage = formStage + 1;
+    changeStep(newStage);
   };
 
   const handleBlur = async (id: string, value: any) => {
@@ -148,16 +152,18 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
           schema={nonBceidSchemas[formStage]}
           uiSchema={uiSchema}
           onChange={handleChange}
+          onSubmit={handleFormSubmit}
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
           onBlur={handleBlur}
           liveValidate={visited[formStage]}
         >
           <FormButtons
+            formSubmission={formStage === 0}
             text={{ continue: 'Next', back: 'Cancel' }}
             show={formStage !== 0 || formData.projectLead}
             loading={loading}
-            handleSubmit={handleSubmit}
+            handleSubmit={formStage === 0 ? noop : handleButtonSubmit}
             handleBackClick={handleBackClick}
           />
         </Form>

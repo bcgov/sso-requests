@@ -12,7 +12,7 @@ interface Props {
   };
   handleSubmit?: Function;
   handleBackClick?: Function;
-  formSubmittion?: boolean;
+  formSubmission?: boolean;
 }
 
 const PaddedButton = styled(Button)`
@@ -36,7 +36,7 @@ const Container = styled.div`
   margin-top: ${FORM_BUTTON_TOP_SPACING};
 `;
 
-export default function FormButtons({ show, loading, text, handleSubmit, handleBackClick, formSubmittion }: Props) {
+export default function FormButtons({ show, loading, text, handleSubmit, handleBackClick, formSubmission }: Props) {
   return (
     <>
       {show && (
@@ -48,7 +48,7 @@ export default function FormButtons({ show, loading, text, handleSubmit, handleB
             variant="primary"
             size="small"
             onClick={handleSubmit}
-            type={formSubmittion ? 'submit' : 'button'}
+            type={formSubmission ? 'submit' : 'button'}
           >
             {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
           </PaddedButton>
