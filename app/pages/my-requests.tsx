@@ -129,22 +129,22 @@ function RequestsPage({ currentUser }: PageProps) {
           dispatch($setRequest(requests.find((request) => request.id === Number(id))));
         }
 
-        if (hasAnyPendingStatus(requests)) {
-          interval = setInterval(async () => {
-            const [data, err] = await getRequests();
+        // if (hasAnyPendingStatus(requests)) {
+        //   interval = setInterval(async () => {
+        //     const [data, err] = await getRequests();
 
-            if (err) {
-              clearInterval(interval);
-            } else {
-              const requests = data || [];
-              refreshRequests(requests);
+        //     if (err) {
+        //       clearInterval(interval);
+        //     } else {
+        //       const requests = data || [];
+        //       refreshRequests(requests);
 
-              if (!hasAnyPendingStatus(requests)) {
-                clearInterval(interval);
-              }
-            }
-          }, 1000 * 5);
-        }
+        //       if (!hasAnyPendingStatus(requests)) {
+        //         clearInterval(interval);
+        //       }
+        //     }
+        //   }, 1000 * 5);
+        // }
       }
 
       setLoading(false);
@@ -155,7 +155,7 @@ function RequestsPage({ currentUser }: PageProps) {
     return () => {
       interval && clearInterval(interval);
     };
-  }, [router.query.id, router.query.updated]);
+  }, []);
 
   const handleSelection = async (request: Request) => {
     if (selectedRequest?.id === request.id) return;
