@@ -48,7 +48,7 @@ const ConfigurationUrlPanel = () => {
       dispatch($updateRequest(data));
       router.push({
         pathname: '/my-requests',
-        query: { id: selectedRequest.id, mode: 'edit' },
+        query: { id: selectedRequest.id, mode: 'edit', updated: data?.updatedAt },
       });
     }
 
