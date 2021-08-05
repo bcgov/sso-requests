@@ -61,7 +61,7 @@ function RequestInfoTabs() {
         <br />
         <Alert variant="info">
           <div>
-            <strong>Your request has been submitted.</strong>
+            <strong>Your request has not been submitted.</strong>
           </div>
           <div>To complete your request, click &quot;Edit&quot; button.</div>
         </Alert>

@@ -49,7 +49,6 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
-  const [submitted, setSubmitted] = useState(false);
   const [visited, setVisited] = useState<any>({});
   const router = useRouter();
 
@@ -163,14 +162,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
           />
         </Form>
       ) : (
-        <FormReview
-          formData={formData}
-          setErrors={setErrors}
-          setSubmitted={setSubmitted}
-          submitted={submitted}
-          errors={errors}
-          visited={visited}
-        />
+        <FormReview formData={formData} setErrors={setErrors} errors={errors} visited={visited} />
       )}
       {formStage === 0 && (
         <CenteredModal id="modal">
