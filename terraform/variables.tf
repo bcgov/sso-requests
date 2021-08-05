@@ -18,7 +18,7 @@ variable "db_username" {
 variable "db_name" {
   description = "The name of the database"
   type        = string
-  default     = "ssorequests1"
+  default     = "ssorequests"
 }
 
 variable "configuration_endpoint" {
