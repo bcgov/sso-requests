@@ -102,6 +102,13 @@ function RequestsPage({ currentUser }: PageProps) {
     return { state, dispatch };
   }, [state, dispatch]);
 
+  const refreshRequests = (requests: Request[]) => {
+    dispatch($setRequests(requests));
+    if (selectedRequest) {
+      $setRequest(requests.find((request) => request.id === Number(selectedRequest.id)));
+    }
+  };
+
   let interval: any;
 
   useEffect(() => {
@@ -113,7 +120,7 @@ function RequestsPage({ currentUser }: PageProps) {
         setHasError(true);
       } else {
         const requests = data || [];
-        dispatch($setRequests(requests));
+        refreshRequests(requests);
 
         const { id } = router.query;
         if (id) {
@@ -127,7 +134,7 @@ function RequestsPage({ currentUser }: PageProps) {
               clearInterval(interval);
             } else {
               const requests = data || [];
-              dispatch($setRequests(requests));
+              refreshRequests(requests);
 
               if (!hasAnyPendingStatus(requests)) {
                 clearInterval(interval);
@@ -145,7 +152,7 @@ function RequestsPage({ currentUser }: PageProps) {
     return () => {
       interval && clearInterval(interval);
     };
-  }, []);
+  }, [router.query.id, router.query.mode]);
 
   const handleSelection = async (request: Request) => {
     if (selectedRequest?.id === request.id) return;
