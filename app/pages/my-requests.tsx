@@ -152,7 +152,7 @@ function RequestsPage({ currentUser }: PageProps) {
     return () => {
       interval && clearInterval(interval);
     };
-  }, []);
+  }, [router.query.id, router.query.mode]);
 
   const handleSelection = async (request: Request) => {
     if (selectedRequest?.id === request.id) return;
