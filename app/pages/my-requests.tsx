@@ -95,6 +95,7 @@ function RequestsPage({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
+  const [selectedId, setSelectedId] = useState<number>(0);
   const [state, dispatch] = useReducer(reducer, {});
   const { requests = [], selectedRequest } = state;
 
@@ -102,10 +103,11 @@ function RequestsPage({ currentUser }: PageProps) {
     return { state, dispatch };
   }, [state, dispatch]);
 
-  const refreshRequests = (requests: Request[]) => {
-    dispatch($setRequests(requests));
-    if (selectedRequest) {
-      $setRequest(requests.find((request) => request.id === Number(selectedRequest.id)));
+  const refreshRequests = (newRequests: Request[]) => {
+    dispatch($setRequests(newRequests));
+
+    if (selectedRequest?.id) {
+      $setRequest(newRequests.find((request) => request?.id === Number(selectedRequest?.id)));
     }
   };
 
@@ -129,7 +131,11 @@ function RequestsPage({ currentUser }: PageProps) {
 
         if (hasAnyPendingStatus(requests)) {
           interval = setInterval(async () => {
-            const [data, err] = await getRequests();
+            let [data, err] = await getRequests();
+            // data = (data || []).map(v => {
+            //   v.status = 'applied';
+            //   return v;
+            // })
             if (err) {
               clearInterval(interval);
             } else {
@@ -152,7 +158,7 @@ function RequestsPage({ currentUser }: PageProps) {
     return () => {
       interval && clearInterval(interval);
     };
-  }, [router.query.id, router.query.mode]);
+  }, []);
 
   const handleSelection = async (request: Request) => {
     if (selectedRequest?.id === request.id) return;
@@ -214,6 +220,9 @@ function RequestsPage({ currentUser }: PageProps) {
     );
   }
 
+  const activeRequest = requests.find((request: Request) => request.id === Number(selectedRequest?.id));
+  console.log(activeRequest);
+
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Button size="small" onClick={handleNewClick}>
@@ -231,9 +240,9 @@ function RequestsPage({ currentUser }: PageProps) {
                 {content}
               </OverflowAuto>
             </Grid.Col>
-            {selectedRequest && (
+            {activeRequest && (
               <Grid.Col>
-                <RequestInfoTabs key={selectedRequest.id + selectedRequest.status} />
+                <RequestInfoTabs key={activeRequest.id + activeRequest.status} activeRequest={activeRequest} />
               </Grid.Col>
             )}
           </Grid.Row>
