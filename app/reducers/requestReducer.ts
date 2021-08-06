@@ -3,14 +3,12 @@ import type { Environment } from 'interfaces/types';
 
 export interface RequestReducerState {
   requests?: Request[];
-  selectedRequest?: Request;
   loadingInstallation?: boolean;
   installation?: object;
   editingRequest?: boolean;
-  updatingUrls?: boolean;
 }
 
-export type ActionTypes = 'setRequests' | 'setRequest' | 'setEditingRequest' | 'setUpdatingUrls' | 'updateRequest';
+export type ActionTypes = 'setRequests' | 'setEditingRequest' | 'updateRequest';
 
 export interface Action {
   type: ActionTypes;
@@ -21,21 +19,15 @@ const reducer = (state: RequestReducerState, action: Action) => {
   switch (action.type) {
     case 'setRequests':
       return { ...state, requests: action.payload };
-    case 'setRequest':
-      return { ...state, selectedRequest: action.payload };
     case 'setEditingRequest':
       return { ...state, editingRequest: action.payload };
-    case 'setUpdatingUrls':
-      return { ...state, updatingUrls: action.payload };
     case 'updateRequest':
-      const { id, ...rest } = action.payload;
-      const { requests, selectedRequest: request } = state;
-      let newRequest = { ...request, ...rest };
+      const { requests } = state;
       const newRequests = requests?.map((request) => {
-        if (request.id === id) return newRequest;
+        if (request.id === action.payload.id) return action.payload;
         return request;
       });
-      return { ...state, requests: newRequests, selectedRequest: newRequest };
+      return { ...state, requests: newRequests };
     default:
       return state;
   }

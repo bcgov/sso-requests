@@ -30,12 +30,16 @@ const TopMargin = styled.div`
   height: var(--field-top-spacing);
 `;
 
-const InstallationPanel = ({ request }: { request: Request }) => {
+interface Props {
+  selectedRequest: Request;
+}
+
+const InstallationPanel = ({ selectedRequest }: Props) => {
   const [loading, setLoading] = useState(false);
 
   const handleInstallationClick = async (environment: Environment) => {
     setLoading(true);
-    const [data, err] = await getInstallation(request.id as number, environment);
+    const [data, err] = await getInstallation(selectedRequest.id as number, environment);
     setLoading(false);
     return data;
   };
@@ -47,7 +51,7 @@ const InstallationPanel = ({ request }: { request: Request }) => {
 
   const handleDownloadClick = async (env: Environment) => {
     const inst = await handleInstallationClick(env);
-    downloadText(prettyJSON(inst), `${request.projectName}-installation-${env}.json`);
+    downloadText(prettyJSON(inst), `${selectedRequest.projectName}-installation-${env}.json`);
   };
 
   if (loading)

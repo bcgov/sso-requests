@@ -91,9 +91,9 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const uiSchema = getUiSchema(!creatingNewForm());
 
   const handleFormSubmit = async () => {
-    try {
-      setLoading(true);
+    setLoading(true);
 
+    try {
       if (creatingNewForm()) {
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
@@ -114,9 +114,8 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
         setFormData({ ...formData, id });
       } else {
         await updateRequest(formData);
+        handleButtonSubmit();
       }
-
-      handleButtonSubmit();
     } catch (err) {
       console.error(err);
     }
@@ -124,6 +123,14 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   };
 
   const handleButtonSubmit = async () => {
+    if (formStage === 0) {
+      if (creatingNewForm()) {
+        visited[formStage] = true;
+        setVisited(visited);
+        return;
+      }
+    }
+
     const newStage = formStage + 1;
     changeStep(newStage);
   };
@@ -163,7 +170,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
             text={{ continue: 'Next', back: 'Cancel' }}
             show={formStage !== 0 || formData.projectLead}
             loading={loading}
-            handleSubmit={formStage === 0 ? noop : handleButtonSubmit}
+            handleSubmit={handleButtonSubmit}
             handleBackClick={handleBackClick}
           />
         </Form>
