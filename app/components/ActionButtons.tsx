@@ -6,7 +6,7 @@ import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { Request } from 'interfaces/Request';
-import { $setRequest, $setEditingRequest } from 'dispatchers/requestDispatcher';
+import { $setEditingRequest } from 'dispatchers/requestDispatcher';
 
 const Container = styled.div`
   height: 100%;
@@ -27,13 +27,15 @@ const EditButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
 
 interface Props {
   request: Request;
+  selectedRequest: Request;
+  setSelectedId: Function;
 }
 
-export default function Actionbuttons({ request }: Props) {
+export default function Actionbuttons({ request, selectedRequest, setSelectedId }: Props) {
   const { state, dispatch } = useContext(RequestsContext);
   const router = useRouter();
 
-  const { editingRequest, selectedRequest } = state as RequestReducerState;
+  const { editingRequest } = state as RequestReducerState;
 
   const handleEdit = (event: MouseEvent) => {
     event.stopPropagation();
@@ -47,7 +49,7 @@ export default function Actionbuttons({ request }: Props) {
       dispatch($setEditingRequest(!editingRequest));
     } else {
       dispatch($setEditingRequest(true));
-      dispatch($setRequest(request));
+      setSelectedId(request.id);
     }
   };
 

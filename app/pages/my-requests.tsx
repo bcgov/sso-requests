@@ -14,7 +14,7 @@ import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
 import RequestInfoTabs from 'components/RequestInfoTabs';
 import { getStatusDisplayName } from 'utils/status';
-import { $setRequests, $setRequest, $setEditingRequest } from 'dispatchers/requestDispatcher';
+import { $setRequests, $setEditingRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 
@@ -95,9 +95,9 @@ function RequestsPage({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
-  const [selectedId, setSelectedId] = useState<number>(0);
+  const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
   const [state, dispatch] = useReducer(reducer, {});
-  const { requests = [], selectedRequest } = state;
+  const { requests = [] } = state;
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
@@ -105,10 +105,6 @@ function RequestsPage({ currentUser }: PageProps) {
 
   const refreshRequests = (newRequests: Request[]) => {
     dispatch($setRequests(newRequests));
-
-    if (selectedRequest?.id) {
-      $setRequest(newRequests.find((request) => request?.id === Number(selectedRequest?.id)));
-    }
   };
 
   let interval: any;
@@ -126,7 +122,7 @@ function RequestsPage({ currentUser }: PageProps) {
 
         const { id } = router.query;
         if (id) {
-          dispatch($setRequest(requests.find((request) => request.id === Number(id))));
+          setSelectedId(Number(id));
         }
 
         // if (hasAnyPendingStatus(requests)) {
@@ -158,8 +154,8 @@ function RequestsPage({ currentUser }: PageProps) {
   }, []);
 
   const handleSelection = async (request: Request) => {
-    if (selectedRequest?.id === request.id) return;
-    dispatch($setRequest(request));
+    if (selectedId === request.id) return;
+    setSelectedId(request?.id);
     dispatch($setEditingRequest(false));
   };
 
@@ -168,6 +164,8 @@ function RequestsPage({ currentUser }: PageProps) {
   };
 
   if (loading) return <PageLoader />;
+
+  const selectedRequest = requests.find((request: Request) => request.id === Number(selectedId));
 
   let content = null;
   if (hasError) {
@@ -207,7 +205,7 @@ function RequestsPage({ currentUser }: PageProps) {
                 <td>{request.projectName}</td>
                 <td>{getStatusDisplayName(request.status || 'draft')}</td>
                 <td>
-                  <ActionButtons request={request} />
+                  <ActionButtons request={request} selectedRequest={selectedRequest} setSelectedId={setSelectedId} />
                 </td>
               </tr>
             );
@@ -217,8 +215,7 @@ function RequestsPage({ currentUser }: PageProps) {
     );
   }
 
-  const activeRequest = requests.find((request: Request) => request.id === Number(selectedRequest?.id));
-  console.log(activeRequest);
+  console.log(selectedRequest);
 
   return (
     <ResponsiveContainer rules={mediaRules}>
@@ -237,9 +234,9 @@ function RequestsPage({ currentUser }: PageProps) {
                 {content}
               </OverflowAuto>
             </Grid.Col>
-            {activeRequest && (
+            {selectedRequest && (
               <Grid.Col>
-                <RequestInfoTabs key={activeRequest.id + activeRequest.status} activeRequest={activeRequest} />
+                <RequestInfoTabs key={selectedRequest.id + selectedRequest.status} selectedRequest={selectedRequest} />
               </Grid.Col>
             )}
           </Grid.Row>

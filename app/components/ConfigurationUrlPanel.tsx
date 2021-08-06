@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import Form from 'form-components/GovForm';
@@ -10,7 +10,7 @@ import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
-import { $setEditingRequest, $setUpdatingUrls, $updateRequest } from 'dispatchers/requestDispatcher';
+import { $setEditingRequest, $updateRequest } from 'dispatchers/requestDispatcher';
 import { environments } from 'utils/constants';
 
 const TopMargin = styled.div`
@@ -22,37 +22,44 @@ const LeftTitle = styled.span`
   font-size: 1.1rem;
 `;
 
-const ConfigurationUrlPanel = () => {
-  const router = useRouter();
-  const { state, dispatch } = useContext(RequestsContext);
-  const { editingRequest, selectedRequest: sRequest, updatingUrls } = state as RequestReducerState;
+interface Props {
+  selectedRequest: Request;
+}
 
-  const selectedRequest = (sRequest || {}) as Request;
+const ConfigurationUrlPanel = ({ selectedRequest }: Props) => {
+  const router = useRouter();
+  const [request, setRequest] = useState<Request>(selectedRequest);
+  const [loading, setLoading] = useState<boolean>(false);
+  const { state, dispatch } = useContext(RequestsContext);
+  const { editingRequest } = state as RequestReducerState;
 
   const handleCancel = () => {
     dispatch($setEditingRequest(false));
   };
 
   const handleSubmit = async (event: any) => {
-    dispatch($setUpdatingUrls(true));
+    const newRequest = {
+      ...event.formData,
+      id: selectedRequest.id,
+    };
 
-    const [data, err] = await updateRequest(
-      {
-        ...event.formData,
-        id: selectedRequest.id,
-      },
-      true,
-    );
+    setLoading(true);
+    setRequest(newRequest);
+
+    const [data, err] = await updateRequest(newRequest, true);
 
     if (!err) {
       dispatch($updateRequest(data));
+      setRequest(data as Request);
       router.push({
         pathname: '/my-requests',
         query: { id: selectedRequest.id, mode: 'edit' },
       });
+    } else {
+      setRequest(selectedRequest);
     }
 
-    dispatch($setUpdatingUrls(false));
+    setLoading(false);
     dispatch($setEditingRequest(false));
   };
 
@@ -62,14 +69,15 @@ const ConfigurationUrlPanel = () => {
         <Form
           schema={redirectUrisSchema}
           ArrayFieldTemplate={ArrayFieldTemplate}
-          formData={selectedRequest}
-          disabled={updatingUrls}
+          formData={request}
+          disabled={loading}
           onSubmit={handleSubmit}
+          liveValidate={true}
         >
           <FormButtons
             formSubmission={true}
             show={true}
-            loading={updatingUrls || false}
+            loading={loading || false}
             text={{ continue: 'Submit', back: 'Cancel' }}
             handleBackClick={handleCancel}
           />

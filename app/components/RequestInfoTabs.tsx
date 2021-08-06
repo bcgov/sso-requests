@@ -40,14 +40,13 @@ const ONE_MIN = 60 * 1000;
 const FIVE_MIN = 5 * ONE_MIN;
 
 interface Props {
-  activeRequest: Request;
+  selectedRequest: Request;
 }
 
-function RequestInfoTabs({ activeRequest }: Props) {
-  const { state } = useContext(RequestsContext);
-  if (!activeRequest) return null;
+function RequestInfoTabs({ selectedRequest }: Props) {
+  if (!selectedRequest) return null;
 
-  const displayStatus = getStatusDisplayName(activeRequest.status || 'draft');
+  const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
 
   let panel = null;
   if (displayStatus === 'In Draft') {
@@ -63,8 +62,8 @@ function RequestInfoTabs({ activeRequest }: Props) {
       </>
     );
   } else if (displayStatus === 'Request Submitted') {
-    if (activeRequest.prNumber) {
-      if (timePassed(activeRequest.updatedAt || '') > FIVE_MIN) {
+    if (selectedRequest.prNumber) {
+      if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
         panel = (
           <>
             <br />
@@ -92,7 +91,7 @@ function RequestInfoTabs({ activeRequest }: Props) {
         );
       }
     } else {
-      if (timePassed(activeRequest.updatedAt || '') > FIVE_MIN) {
+      if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
         panel = (
           <>
             <br />
@@ -125,13 +124,13 @@ function RequestInfoTabs({ activeRequest }: Props) {
       <RequestTabs>
         <Tab eventKey="configuration-url" title="Configuration URIs">
           <TabWrapper>
-            <ConfigurationUrlPanel />
+            <ConfigurationUrlPanel selectedRequest={selectedRequest} />
           </TabWrapper>
         </Tab>
 
         <Tab eventKey="installation-json" title="Installation JSON">
           <TabWrapper>
-            <InstallationPanel request={activeRequest} />
+            <InstallationPanel selectedRequest={selectedRequest} />
           </TabWrapper>
         </Tab>
       </RequestTabs>
