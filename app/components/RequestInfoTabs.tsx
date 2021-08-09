@@ -66,7 +66,7 @@ function RequestInfoTabs({ selectedRequest }: Props) {
   const handleRefresh = async () => {
     setLoading(true);
     const [data, err] = await getRequests();
-    console.log(data, 'is data');
+    if (err) return setLoading(false);
     const requests = data || [];
     dispatch($setRequests(requests));
     setLoading(false);
