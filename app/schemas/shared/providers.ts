@@ -1,6 +1,6 @@
 import { JSONSchema6 } from 'json-schema';
 
-export const urlPattern = `^https?:\/\/([^\s]*)$`;
+export const urlPattern = `^https?:\/\/([^\\s]*)$`;
 
 export default {
   type: 'object',
