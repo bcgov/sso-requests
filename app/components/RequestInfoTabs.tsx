@@ -121,15 +121,14 @@ function RequestInfoTabs({ selectedRequest }: Props) {
   } else if (displayStatus === 'Completed') {
     panel = (
       <RequestTabs>
-        <Tab eventKey="configuration-url" title="Configuration URIs">
-          <TabWrapper>
-            <ConfigurationUrlPanel selectedRequest={selectedRequest} />
-          </TabWrapper>
-        </Tab>
-
         <Tab eventKey="installation-json" title="Installation JSON">
           <TabWrapper>
             <InstallationPanel selectedRequest={selectedRequest} />
+          </TabWrapper>
+        </Tab>
+        <Tab eventKey="configuration-url" title="Configuration URIs">
+          <TabWrapper>
+            <ConfigurationUrlPanel selectedRequest={selectedRequest} />
           </TabWrapper>
         </Tab>
       </RequestTabs>
