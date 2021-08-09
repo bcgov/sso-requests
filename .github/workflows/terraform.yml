@@ -9,11 +9,13 @@ on:
       - 'terraform/**'
       - '.github/**'
       - 'lambda/**'
+      - 'app/schemas/shared/**'
   pull_request:
     paths:
       - 'terraform/**'
       - '.github/**'
       - 'lambda/**'
+      - 'app/schemas/shared/**'
 
 env:
   TF_VERSION: 0.15.3
