@@ -103,12 +103,6 @@ function RequestsPage({ currentUser }: PageProps) {
     return { state, dispatch };
   }, [state, dispatch]);
 
-  const refreshRequests = (newRequests: Request[]) => {
-    dispatch($setRequests(newRequests));
-  };
-
-  let interval: any;
-
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
@@ -118,40 +112,49 @@ function RequestsPage({ currentUser }: PageProps) {
         setHasError(true);
       } else {
         const requests = data || [];
-        refreshRequests(requests);
+        dispatch($setRequests(requests));
 
         const { id } = router.query;
         if (id) {
           setSelectedId(Number(id));
         }
-
-        // if (hasAnyPendingStatus(requests)) {
-        //   interval = setInterval(async () => {
-        //     const [data, err] = await getRequests();
-
-        //     if (err) {
-        //       clearInterval(interval);
-        //     } else {
-        //       const requests = data || [];
-        //       refreshRequests(requests);
-
-        //       if (!hasAnyPendingStatus(requests)) {
-        //         clearInterval(interval);
-        //       }
-        //     }
-        //   }, 1000 * 5);
-        // }
       }
 
       setLoading(false);
     };
 
     getData();
+  }, []);
+
+  let interval: any;
+
+  useEffect(() => {
+    if (hasAnyPendingStatus(state.requests || [])) {
+      clearInterval(interval);
+
+      interval = setInterval(async () => {
+        const [data, err] = await getRequests();
+
+        if (err) {
+          clearInterval(interval);
+        } else {
+          let requests = data || [];
+          requests.map((request, index) => {
+            if (request.id === selectedId) return state.requests[index];
+            return request;
+          });
+
+          if (!state.editingRequest) {
+            dispatch($setRequests(requests));
+          }
+        }
+      }, 1000 * 5);
+    }
 
     return () => {
       interval && clearInterval(interval);
     };
-  }, []);
+  }, [state.requests, state.editingRequest]);
 
   const handleSelection = async (request: Request) => {
     if (selectedId === request.id) return;
@@ -214,8 +217,6 @@ function RequestsPage({ currentUser }: PageProps) {
       </Table>
     );
   }
-
-  console.log(selectedRequest);
 
   return (
     <ResponsiveContainer rules={mediaRules}>
