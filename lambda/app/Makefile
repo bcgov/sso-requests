@@ -8,9 +8,7 @@ copy-schema:
 	@rm -rf ./src/interfaces
 	@mkdir ./src/schemas
 	@mkdir ./src/interfaces
-	@cp ../../app/schemas/providers.ts ./src/schemas/providers.ts
-	@cp ../../app/schemas/requester-info.ts ./src/schemas/requester-info.ts
-	@cp ../../app/schemas/terms-and-conditions.ts ./src/schemas/terms-and-conditions.ts
+	@cp -r ../../app/schemas/shared/* ./src/schemas
 	@cp -r ../../app/interfaces ./src/
 
 .PHONY: lambda

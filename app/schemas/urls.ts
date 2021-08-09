@@ -1,5 +1,5 @@
 import { getRedirectUrlPropertyNameByEnv } from 'utils/helpers';
-import { urlPattern as pattern } from './providers';
+import { urlPattern as pattern } from './shared/providers';
 
 export default function getSchema(env: string | undefined, defaultUrls: string[]) {
   const name = getRedirectUrlPropertyNameByEnv(env);
