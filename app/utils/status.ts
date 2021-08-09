@@ -5,8 +5,8 @@ export const getStatusDisplayName = (status: Status): DisplayStatus => {
     case 'draft':
       return 'In Draft';
     case 'applied':
-      return 'Active Project';
+      return 'Completed';
     default:
-      return 'Request Submitted';
+      return 'Submitted';
   }
 };

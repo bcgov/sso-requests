@@ -30,6 +30,7 @@ export const styles = {
       text-decoration: none;
       border-radius: 0.2222em;
       padding: 0.4em 0.5em;
+      margin-right: 20px;
     `,
   },
   size: {

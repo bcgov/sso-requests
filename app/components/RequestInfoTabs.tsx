@@ -16,7 +16,6 @@ const RequestTabs = styled(Tabs)`
     font-size: 16px !important;
     font-weight: 600 !important;
     padding-top: 0; !important;
-    border-bottom: 1px solid #707070;
     border-top: unset !important;
     border-left: unset !important;
     border-right: unset !important;
@@ -61,7 +60,7 @@ function RequestInfoTabs({ selectedRequest }: Props) {
         </Alert>
       </>
     );
-  } else if (displayStatus === 'Request Submitted') {
+  } else if (displayStatus === 'Submitted') {
     if (selectedRequest.prNumber) {
       if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
         panel = (
@@ -119,18 +118,17 @@ function RequestInfoTabs({ selectedRequest }: Props) {
         );
       }
     }
-  } else if (displayStatus === 'Active Project') {
+  } else if (displayStatus === 'Completed') {
     panel = (
       <RequestTabs>
-        <Tab eventKey="configuration-url" title="Configuration URIs">
-          <TabWrapper>
-            <ConfigurationUrlPanel selectedRequest={selectedRequest} />
-          </TabWrapper>
-        </Tab>
-
         <Tab eventKey="installation-json" title="Installation JSON">
           <TabWrapper>
             <InstallationPanel selectedRequest={selectedRequest} />
+          </TabWrapper>
+        </Tab>
+        <Tab eventKey="configuration-url" title="Configuration URIs">
+          <TabWrapper>
+            <ConfigurationUrlPanel selectedRequest={selectedRequest} />
           </TabWrapper>
         </Tab>
       </RequestTabs>
