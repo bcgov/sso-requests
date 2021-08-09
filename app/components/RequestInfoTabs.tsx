@@ -58,10 +58,10 @@ interface Props {
 }
 
 function RequestInfoTabs({ selectedRequest }: Props) {
-  if (!selectedRequest) return null;
-  const { state, dispatch } = useContext(RequestsContext);
-  const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
   const [loading, setLoading] = useState(false);
+  const { dispatch } = useContext(RequestsContext);
+  if (!selectedRequest) return null;
+  const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
 
   const handleRefresh = async () => {
     setLoading(true);
