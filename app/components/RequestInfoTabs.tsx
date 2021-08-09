@@ -7,8 +7,23 @@ import InstallationPanel from 'components/InstallationPanel';
 import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRedo, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
+import { getRequests } from 'services/request';
+import { $setRequests } from 'dispatchers/requestDispatcher';
+import Loader from 'react-loader-spinner';
+
+const Spinner = styled(Loader)`
+  display: inline;
+  padding-left: 5px;
+`;
+
+const IconButton = styled(FontAwesomeIcon)`
+  padding-left: 5px;
+  color: #003366;
+`;
 
 const RequestTabs = styled(Tabs)`
   .nav-link {
@@ -44,8 +59,18 @@ interface Props {
 
 function RequestInfoTabs({ selectedRequest }: Props) {
   if (!selectedRequest) return null;
-
+  const { state, dispatch } = useContext(RequestsContext);
   const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
+  const [loading, setLoading] = useState(false);
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    const [data, err] = await getRequests();
+    console.log(data, 'is data');
+    const requests = data || [];
+    dispatch($setRequests(requests));
+    setLoading(false);
+  };
 
   let panel = null;
   if (displayStatus === 'In Draft') {
@@ -61,63 +86,32 @@ function RequestInfoTabs({ selectedRequest }: Props) {
       </>
     );
   } else if (displayStatus === 'Submitted') {
-    if (selectedRequest.prNumber) {
-      if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
-        panel = (
-          <>
-            <br />
-            <Alert variant="info">
-              <div>
-                <strong>Your URI request has been received and is under review.</strong>
-              </div>
-            </Alert>
-          </>
-        );
-      } else {
-        panel = (
-          <>
-            <br />
-            <Alert variant="info">
-              <div>
-                <strong>Your request is successfully submitted.</strong>
-              </div>
-              <div>
-                {`Your updates will be ready in just a moment… However, if you experience a delay, don't hesitate to
-                contact us via the toolbar.`}
-              </div>
-            </Alert>
-          </>
-        );
-      }
-    } else {
-      if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
-        panel = (
-          <>
-            <br />
-            <Alert variant="info">
-              <div>
-                <strong>Your request has been received and is under review.</strong>
-              </div>
-            </Alert>
-          </>
-        );
-      } else {
-        panel = (
-          <>
-            <br />
-            <Alert variant="info">
-              <div>
-                <strong>Your request is successfully submitted.</strong>
-              </div>
-              <div>
-                {`Your project will be ready in just a moment… However, if you experience a delay, don't hesitate to
-                contact us via the toolbar.`}
-              </div>
-            </Alert>
-          </>
-        );
-      }
-    }
+    panel = (
+      <>
+        <br />
+        <Alert variant="info">
+          <div>
+            <strong>Your request is successfully submitted.</strong>
+          </div>
+          <div>
+            <p>
+              Your updates will be ready in just a moment… However, if you experience a delay, please try to refresh
+              {loading ? (
+                <Spinner type="TailSpin" color="#000" height={16} width={16} />
+              ) : (
+                <IconButton icon={faRedo} role="button" aria-label="edit" onClick={handleRefresh} />
+              )}
+            </p>
+            <p>
+              If you would prefer to talk to a human, please reach out to us.
+              <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO">
+                <IconButton icon={faEnvelope} />
+              </a>
+            </p>
+          </div>
+        </Alert>
+      </>
+    );
   } else if (displayStatus === 'Completed') {
     panel = (
       <RequestTabs>
