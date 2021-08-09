@@ -61,7 +61,7 @@ function RequestInfoTabs({ selectedRequest }: Props) {
         </Alert>
       </>
     );
-  } else if (displayStatus === 'Request Submitted') {
+  } else if (displayStatus === 'Submitted') {
     if (selectedRequest.prNumber) {
       if (timePassed(selectedRequest.updatedAt || '') > FIVE_MIN) {
         panel = (
@@ -119,7 +119,7 @@ function RequestInfoTabs({ selectedRequest }: Props) {
         );
       }
     }
-  } else if (displayStatus === 'Active Project') {
+  } else if (displayStatus === 'Completed') {
     panel = (
       <RequestTabs>
         <Tab eventKey="configuration-url" title="Configuration URIs">
