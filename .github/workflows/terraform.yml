@@ -44,8 +44,8 @@ jobs:
         run: |
           echo "TFC_WORKSPACE=xgr00q-prod-sso-requests" >> $GITHUB_ENV
           echo "SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
-          echo "SUBNET_A=" >> $GITHUB_ENV
-          echo "SUBNET_B=" >> $GITHUB_ENV
+          echo "SUBNET_A=App_Prod_aza_net" >> $GITHUB_ENV
+          echo "SUBNET_B=App_Prod_azb_net" >> $GITHUB_ENV
           echo "GITHUB_REPO=sso_terraform" >> $GITHUB_ENV
           echo "KEYCLOAK_DEV_URL=https://dev.oidc.gov.bc.ca" >> $GITHUB_ENV
           echo "KEYCLOAK_TEST_URL=https://test.oidc.gov.bc.ca" >> $GITHUB_ENV
