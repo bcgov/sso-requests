@@ -11,8 +11,15 @@ copy-schema:
 	@cp -r ../../app/schemas/shared/* ./src/schemas
 	@cp -r ../../app/interfaces ./src/
 
+.PHONY: copy-helpers
+copy-schema:
+	@rm -rf ./src/helpers/customValidate.ts
+	@cp ../../app/utils/shared/customValidate.ts ./src/helpers/customValidate.ts
+
+
 .PHONY: lambda
 lambda: copy-schema
+lambda: copy-helpers
 lambda:
 	@rm -rf build
 	@yarn tsc

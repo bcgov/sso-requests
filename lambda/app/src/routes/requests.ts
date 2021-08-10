@@ -2,7 +2,7 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
-import { validateRequest } from '../helpers';
+import { validateRequest } from '../helpers/helpers';
 import { dispatchRequestWorkflow } from '../github';
 
 const NEW_REQUEST_DAY_LIMIT = 10;

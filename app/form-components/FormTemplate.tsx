@@ -17,7 +17,8 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
 import nonBceidSchemas from 'schemas/non-bceid-schemas';
-import { transformErrors, validateForm, customValidate } from 'utils/helpers';
+import { transformErrors, validateForm } from 'utils/helpers';
+import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 
 const CenteredModal = styled(Modal)`
