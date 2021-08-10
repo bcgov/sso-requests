@@ -7,16 +7,18 @@ import { Request } from 'interfaces/Request';
 import validate from 'react-jsonschema-form/lib/validate';
 import nonBceidSchemas from 'schemas/non-bceid-schemas';
 import { errorMessages } from './constants';
+import { customValidate } from './shared/customValidate';
+
+const URIS_SCHEMA_INDEX = 1;
 
 export const validateForm = (formData: Request, visited?: any) => {
   const errors: any = {};
   nonBceidSchemas.forEach((schema, i) => {
     if (visited && !visited[i]) return;
-
-    const { errors: err } = validate(formData, schema);
+    const validateUris = i === URIS_SCHEMA_INDEX;
+    const { errors: err } = validate(formData, schema, validateUris ? customValidate : undefined);
     if (err.length > 0) errors[i] = err;
   });
-
   return errors;
 };
 

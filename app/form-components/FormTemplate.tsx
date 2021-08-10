@@ -18,6 +18,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
 import nonBceidSchemas from 'schemas/non-bceid-schemas';
 import { transformErrors, validateForm } from 'utils/helpers';
+import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 
 const CenteredModal = styled(Modal)`
@@ -164,6 +165,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
           ArrayFieldTemplate={ArrayFieldTemplate}
           onBlur={handleBlur}
           liveValidate={visited[formStage]}
+          validate={customValidate}
         >
           <FormButtons
             formSubmission={formStage === 0}

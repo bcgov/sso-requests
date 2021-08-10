@@ -6,6 +6,7 @@ import redirectUrisSchema from 'schemas/redirect-uris';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { getRedirectUrlPropertyNameByEnv } from 'utils/helpers';
+import { customValidate } from 'utils/shared/customValidate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
@@ -73,6 +74,7 @@ const ConfigurationUrlPanel = ({ selectedRequest }: Props) => {
           disabled={loading}
           onSubmit={handleSubmit}
           liveValidate={true}
+          validate={customValidate}
         >
           <FormButtons
             formSubmission={true}
