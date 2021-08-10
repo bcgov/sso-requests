@@ -1,7 +1,5 @@
 import { JSONSchema6 } from 'json-schema';
 
-export const urlPattern = `^https?:\/\/.+`;
-
 export default {
   type: 'object',
   required: ['devValidRedirectUris', 'testValidRedirectUris', 'prodValidRedirectUris'],
@@ -9,22 +7,22 @@ export default {
     devValidRedirectUris: {
       type: 'array',
       title: 'Development',
-      items: { type: 'string', pattern: urlPattern },
-      additionalItems: { type: 'string', pattern: urlPattern },
+      items: { type: 'string' },
+      additionalItems: { type: 'string' },
       default: [''],
     },
     testValidRedirectUris: {
       type: 'array',
       title: 'Test',
-      items: { type: 'string', pattern: urlPattern },
-      additionalItems: { type: 'string', pattern: urlPattern },
+      items: { type: 'string' },
+      additionalItems: { type: 'string' },
       default: [''],
     },
     prodValidRedirectUris: {
       type: 'array',
       title: 'Production',
-      items: { type: 'string', pattern: urlPattern },
-      additionalItems: { type: 'string', pattern: urlPattern },
+      items: { type: 'string' },
+      additionalItems: { type: 'string' },
       default: [''],
     },
   },

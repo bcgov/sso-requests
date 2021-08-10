@@ -8,15 +8,36 @@ import validate from 'react-jsonschema-form/lib/validate';
 import nonBceidSchemas from 'schemas/non-bceid-schemas';
 import { errorMessages } from './constants';
 
+const URIS_SCHEMA_INDEX = 1;
+
+export const customValidate = (formData: Request, errors: any) => {
+  const { devValidRedirectUris = [], testValidRedirectUris = [], prodValidRedirectUris = [] } = formData;
+  try {
+    devValidRedirectUris.forEach((uri) => new URL(uri));
+  } catch (err) {
+    errors.devValidRedirectUris.addError('Please enter a valid URI');
+  }
+  try {
+    testValidRedirectUris.forEach((uri) => new URL(uri));
+  } catch (err) {
+    errors.testValidRedirectUris.addError('Please enter a valid URI');
+  }
+  try {
+    prodValidRedirectUris.forEach((uri) => new URL(uri));
+  } catch (err) {
+    errors.prodValidRedirectUris.addError('Please enter a valid URI');
+  }
+  return errors;
+};
+
 export const validateForm = (formData: Request, visited?: any) => {
   const errors: any = {};
   nonBceidSchemas.forEach((schema, i) => {
     if (visited && !visited[i]) return;
-
-    const { errors: err } = validate(formData, schema);
+    const validateUris = i === URIS_SCHEMA_INDEX;
+    const { errors: err } = validate(formData, schema, validateUris ? customValidate : undefined);
     if (err.length > 0) errors[i] = err;
   });
-
   return errors;
 };
 
