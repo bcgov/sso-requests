@@ -12,7 +12,7 @@ copy-schema:
 	@cp -r ../../app/interfaces ./src/
 
 .PHONY: copy-helpers
-copy-schema:
+copy-helpers:
 	@rm -rf ./src/utils/customValidate.ts
 	@cp ../../app/utils/shared/customValidate.ts ./src/utils/customValidate.ts
 
