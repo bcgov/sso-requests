@@ -1,7 +1,7 @@
 // migrate GitHub lambda here and call GitHub API directly to avoid multiple invocations.
 // see https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html
 const { Octokit } = require('octokit');
-import { stringifyGithubInputs } from './helpers/helpers';
+import { stringifyGithubInputs } from './utils/helpers';
 
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 

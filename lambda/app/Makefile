@@ -13,8 +13,8 @@ copy-schema:
 
 .PHONY: copy-helpers
 copy-schema:
-	@rm -rf ./src/helpers/customValidate.ts
-	@cp ../../app/utils/shared/customValidate.ts ./src/helpers/customValidate.ts
+	@rm -rf ./src/utils/customValidate.ts
+	@cp ../../app/utils/shared/customValidate.ts ./src/utils/customValidate.ts
 
 
 .PHONY: lambda
