@@ -88,6 +88,23 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       if (isValid !== true) return errorResponse({ ...isValid, prepared: mergedRequest });
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
+
+      // trigger GitHub workflow before updating the record
+      const payload = {
+        requestId: allowedRequest.id,
+        clientName: allowedRequest.clientName,
+        realmName: allowedRequest.realm,
+        validRedirectUris: {
+          dev: allowedRequest.devValidRedirectUris,
+          test: allowedRequest.testValidRedirectUris,
+          prod: allowedRequest.prodValidRedirectUris,
+        },
+        environments: allowedRequest.environments,
+        publicAccess: allowedRequest.publicAccess,
+      };
+
+      const ghResult = await dispatchRequestWorkflow(payload);
+      console.log(JSON.stringify(ghResult));
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -103,23 +120,6 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     }
 
     const updatedRequest = result[1].dataValues;
-
-    if (submit) {
-      const payload = {
-        requestId: updatedRequest.id,
-        clientName: updatedRequest.clientName,
-        realmName: updatedRequest.realm,
-        validRedirectUris: {
-          dev: updatedRequest.devValidRedirectUris,
-          test: updatedRequest.testValidRedirectUris,
-          prod: updatedRequest.prodValidRedirectUris,
-        },
-        environments: updatedRequest.environments,
-        publicAccess: updatedRequest.publicAccess,
-      };
-
-      await dispatchRequestWorkflow(payload);
-    }
 
     return {
       statusCode: 200,

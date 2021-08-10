@@ -22,7 +22,7 @@ interface GitHubRequestDispatchInput {
 export const dispatchRequestWorkflow = async (formData: GitHubRequestDispatchInput) => {
   console.log('requesting github request workflow', stringifyGithubInputs(formData));
 
-  await octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
+  return await octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
     owner: process.env.GH_OWNER,
     repo: process.env.GH_REPO,
     workflow_id: process.env.GH_WORKFLOW_ID,
