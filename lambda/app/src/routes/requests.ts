@@ -91,16 +91,16 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
       // trigger GitHub workflow before updating the record
       const payload = {
-        requestId: allowedRequest.id,
+        requestId: mergedRequest.id,
         clientName: allowedRequest.clientName,
-        realmName: allowedRequest.realm,
+        realmName: mergedRequest.realm,
         validRedirectUris: {
-          dev: allowedRequest.devValidRedirectUris,
-          test: allowedRequest.testValidRedirectUris,
-          prod: allowedRequest.prodValidRedirectUris,
+          dev: mergedRequest.devValidRedirectUris,
+          test: mergedRequest.testValidRedirectUris,
+          prod: mergedRequest.prodValidRedirectUris,
         },
-        environments: allowedRequest.environments,
-        publicAccess: allowedRequest.publicAccess,
+        environments: mergedRequest.environments,
+        publicAccess: mergedRequest.publicAccess,
       };
 
       const ghResult = await dispatchRequestWorkflow(payload);
