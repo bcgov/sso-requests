@@ -2,6 +2,7 @@ const isValidKeycloakURI = (uri: string) => {
   try {
     const url = new URL(uri);
     if (uri !== uri.trim()) return false;
+    if (uri.match(/\s/)) return false;
     return true;
   } catch (err) {
     return false;
