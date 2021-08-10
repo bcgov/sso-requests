@@ -1,0 +1,36 @@
+import { Request } from 'interfaces/Request';
+import type { Environment } from 'interfaces/types';
+
+export interface RequestReducerState {
+  requests?: Request[];
+  loadingInstallation?: boolean;
+  installation?: object;
+  editingRequest?: boolean;
+}
+
+export type ActionTypes = 'setRequests' | 'setEditingRequest' | 'updateRequest';
+
+export interface Action {
+  type: ActionTypes;
+  payload?: any;
+}
+
+const reducer = (state: RequestReducerState, action: Action) => {
+  switch (action.type) {
+    case 'setRequests':
+      return { ...state, requests: action.payload };
+    case 'setEditingRequest':
+      return { ...state, editingRequest: action.payload };
+    case 'updateRequest':
+      const { requests } = state;
+      const newRequests = requests?.map((request) => {
+        if (request.id === action.payload.id) return action.payload;
+        return request;
+      });
+      return { ...state, requests: newRequests };
+    default:
+      return state;
+  }
+};
+
+export default reducer;

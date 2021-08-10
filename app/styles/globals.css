@@ -1,0 +1,81 @@
+:root {
+  --field-top-spacing: 20px;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: 'BCSans', 'Verdana', 'Arial', 'sans-serif';
+
+  font-size: 16px !important;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+fieldset {
+  border: none !important;
+}
+
+/* RJSF overrides */
+
+#root_newToSso > .radio,
+#root_projectLead > .radio,
+#root_publicAccess > .radio {
+  display: inline;
+  margin-right: 10px;
+}
+
+.radio > label > span > input {
+  margin: 10px 5px 0 0;
+}
+
+.checkbox > label > span {
+  margin-left: 5px;
+  font-weight: bold;
+}
+
+.form-group.field:not(.field-object) {
+  margin-top: var(--field-top-spacing);
+}
+
+span.required {
+  display: none;
+}
+
+li.text-danger {
+  max-width: 380px;
+}
+
+label.control-label,
+label.pg-input-label {
+  font-weight: bold;
+}
+
+/* override spacing for first array field element */
+.field-array > div > div:nth-of-type(1) .field {
+  margin-top: 0 !important;
+}
+
+/* override default input width */
+.field-string {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+}
+
+.field-string .pg-input .pg-input-input {
+  width: 100%;
+  padding-right: 30px;
+}
+
+.pg-footer-footer {
+  height: unset !important;
+}

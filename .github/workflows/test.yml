@@ -1,0 +1,87 @@
+name: Run Tests and Lints
+on: push
+jobs:
+  test_pre-commit:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache Node dependencies
+        uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
+
+      - name: Install asdf
+        uses: asdf-vm/actions/setup@v1
+      - name: Cache asdf tools
+        uses: actions/cache@v2
+        with:
+          path: |
+            /home/runner/.asdf
+          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
+
+      - name: Install required tools
+        run: |
+          cat .tool-versions | cut -f 1 -d ' ' | xargs -n 1 asdf plugin-add || true
+          asdf plugin-update --all
+          asdf install
+          asdf reshim
+
+      - name: Rerun Pre-Commit Hooks on CI
+        run: |
+          pip install -r requirements.txt
+          asdf reshim
+          pre-commit run --color=always --show-diff-on-failure --all-files
+
+      - name: Run frontend unit tests
+        run: |
+          yarn
+          yarn test
+          yarn build
+        working-directory: ./app
+
+      - name: Setup postgres
+        run: |
+          pg_ctl start
+          createdb runner || true
+          chmod +x ./setup.sh
+          ./setup.sh ssodb
+        working-directory: ./db
+
+      - name: Install dependencies - lambda app
+        run: |
+          yarn
+          make copy-schema
+        working-directory: ./lambda/app
+
+      - name: Install dependencies - lambda db
+        run: |
+          yarn
+        working-directory: ./lambda/db
+
+      - name: Install dependencies - lambda actions
+        run: |
+          yarn
+        working-directory: ./lambda/actions
+
+      - name: Run backend integration tests
+        env:
+          DATABASE_URL: postgresql://localhost:5432/ssodb
+        run: |
+          yarn
+          yarn test
+        working-directory: ./lambda
+
+  commitlint:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v2

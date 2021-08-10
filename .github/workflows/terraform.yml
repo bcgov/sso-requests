@@ -1,0 +1,184 @@
+name: 'Terraform'
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/**'
+      - 'lambda/**'
+      - 'app/schemas/shared/**'
+  pull_request:
+    paths:
+      - 'terraform/**'
+      - '.github/**'
+      - 'lambda/**'
+      - 'app/schemas/shared/**'
+
+env:
+  TF_VERSION: 0.15.3
+
+jobs:
+  terraform:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Set env to development
+        if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
+        run: |
+          echo "TFC_WORKSPACE=xgr00q-dev-sso-requests" >> $GITHUB_ENV
+          echo "SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
+          echo "SUBNET_A=App_Dev_aza_net" >> $GITHUB_ENV
+          echo "SUBNET_B=App_Dev_azb_net" >> $GITHUB_ENV
+          echo "GITHUB_REPO=sso-terraform-dev" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_URL=https://sso-dev-3d5c3f-dev.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_URL=https://sso-test-3d5c3f-test.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_URL=https://sso-prod-3d5c3f-prod.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
+
+      - name: Set env to production
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
+        run: |
+          echo "TFC_WORKSPACE=xgr00q-prod-sso-requests" >> $GITHUB_ENV
+          echo "SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
+          echo "SUBNET_A=App_Prod_aza_net" >> $GITHUB_ENV
+          echo "SUBNET_B=App_Prod_azb_net" >> $GITHUB_ENV
+          echo "GITHUB_REPO=sso_terraform" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_URL=https://dev.oidc.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_URL=https://test.oidc.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_URL=https://oidc.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache Node dependencies
+        uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
+
+      - name: zip lambda functions - app
+        run: |
+          yarn
+          make lambda
+        working-directory: ./lambda/app
+
+      - name: zip lambda functions - db
+        run: |
+          yarn
+          make lambda
+        working-directory: ./lambda/db
+
+      - name: zip lambda functions - actions
+        run: |
+          yarn
+          make lambda
+        working-directory: ./lambda/actions
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          cli_config_credentials_token: ${{ secrets.TFC_TEAM_TOKEN }}
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+        working-directory: ./terraform
+
+      - name: Terraform Variables
+        run: |
+          cat >"versions.tf" <<EOF
+          terraform {
+            backend "remote" {
+              hostname     = "app.terraform.io"
+              organization = "bcgov"
+              workspaces {
+                name = "${{ env.TFC_WORKSPACE }}"
+              }
+            }
+          }
+          EOF
+
+          cat >"provider.tf" <<EOF
+          provider "aws" {
+            region = "ca-central-1"
+            assume_role {
+              role_arn = "arn:aws:iam::\${var.target_aws_account_id}:role/BCGOV_\${var.target_env}_Automation_Admin_Role"
+            }
+          }
+          EOF
+
+          cat >"ci.auto.tfvars" <<EOF
+          gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
+          gh_secret="${{ secrets.GH_SECRET }}"
+          configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
+          subnet_a="${{ env.SUBNET_A }}"
+          subnet_b="${{ env.SUBNET_B }}"
+          gh_repo="${{ env.GITHUB_REPO }}"
+          keycloak_dev_url="${{ env.KEYCLOAK_DEV_URL }}"
+          keycloak_test_url="${{ env.KEYCLOAK_TEST_URL }}"
+          keycloak_prod_url="${{ env.KEYCLOAK_PROD_URL }}"
+          keycloak_dev_client_secret="${{ env.KEYCLOAK_DEV_CLIENT_SECRET }}"
+          keycloak_test_client_secret="${{ env.KEYCLOAK_TEST_CLIENT_SECRET }}"
+          keycloak_prod_client_secret="${{ env.KEYCLOAK_PROD_CLIENT_SECRET }}"
+          EOF
+
+        working-directory: ./terraform
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ./terraform
+
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color
+        working-directory: ./terraform
+        continue-on-error: true
+
+      - uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+
+            \`\`\`${process.env.PLAN}\`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
