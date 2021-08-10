@@ -109,7 +109,7 @@ const RightMenuItems = () => (
   <>
     <li>Need help?</li>
     <li>
-      <a href="https://chat.developer.gov.bc.ca/" target="_blank" title="Rocket Chat">
+      <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
         <FontAwesomeIcon size="2x" icon={faCommentDots} />
       </a>
     </li>
