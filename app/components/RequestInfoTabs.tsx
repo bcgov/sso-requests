@@ -95,7 +95,8 @@ function RequestInfoTabs({ selectedRequest }: Props) {
           </div>
           <div>
             <p>
-              Your updates will be ready in just a moment… However, if you experience a delay, please try to refresh
+              Your request is successfully submitted. Your request will be ready in just a moment… However, if you
+              experience a delay, please try to refresh
               {loading ? (
                 <Spinner type="TailSpin" color="#000" height={16} width={16} />
               ) : (
