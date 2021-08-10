@@ -105,6 +105,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
       const ghResult = await dispatchRequestWorkflow(payload);
       console.log(JSON.stringify(ghResult));
+
+      if (ghResult.status !== 204) {
+        return errorResponse('failed to create a workflow dispatch event');
+      }
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
