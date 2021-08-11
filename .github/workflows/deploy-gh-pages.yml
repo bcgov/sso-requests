@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "APP_URL=https://bcgov.github.io/sso-requests" >> $GITHUB_ENV
           echo "APP_BASE_PATH=/sso-requests" >> $GITHUB_ENV
-          echo "API_URL=" >> $GITHUB_ENV
+          echo "API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app/" >> $GITHUB_ENV
           echo "SSO_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth" >> $GITHUB_ENV
           echo "DEPLOY_REPO_NAME=bcgov/sso-requests" >> $GITHUB_ENV
 
