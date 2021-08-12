@@ -23,8 +23,8 @@ const unauthorized = () => {
 };
 
 export const createRequest = async (session: Session, data: Data) => {
-  const [hasError, errorMessage] = await hasRequestWithFailedApplyStatus();
-  if (hasError) return errorResponse(errorMessage);
+  const [hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
+  if (error) return errorResponse(error);
 
   try {
     const now = new Date();
@@ -65,8 +65,8 @@ export const createRequest = async (session: Session, data: Data) => {
 };
 
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
-  const [hasError, errorMessage] = await hasRequestWithFailedApplyStatus();
-  if (hasError) return errorResponse(errorMessage);
+  const [hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
+  if (error) return errorResponse(error);
 
   try {
     const { id, ...rest } = data;
@@ -183,9 +183,9 @@ const hasRequestWithFailedApplyStatus = async () => {
       },
     });
 
-    if (applyFailedRequests.length > 0) return [true, 'A request exists in the apply-failed status'];
+    if (applyFailedRequests.length > 0) return [null, 'A request exists in the apply-failed status'];
     return [false, null];
   } catch (err) {
-    return [true, err];
+    return [null, err];
   }
 };
