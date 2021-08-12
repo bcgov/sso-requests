@@ -7,7 +7,6 @@ import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import Button from '@button-inc/bcgov-theme/Button';
-import { noop } from 'lodash';
 import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
@@ -17,9 +16,10 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
 import nonBceidSchemas from 'schemas/non-bceid-schemas';
-import { transformErrors, validateForm } from 'utils/helpers';
+import { validateForm } from 'utils/helpers';
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
+import { SaveMessage } from 'interfaces/form';
 
 const CenteredModal = styled(Modal)`
   display: flex;
@@ -48,7 +48,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 1 : 0);
   const [loading, setLoading] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
+  const [saveMessage, setSaveMessage] = useState<SaveMessage | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>({});
@@ -100,11 +100,12 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
         const { id } = data || {};
 
         if (err || !id) {
+          const errorMessage = err?.response?.data;
           alert.show({
             variant: 'danger',
             fadeOut: 10000,
             closable: true,
-            content: `Failed to create a new request`,
+            content: errorMessage || `Failed to create a new request`,
           });
 
           setLoading(false);
@@ -140,8 +141,19 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
     if (creatingNewForm()) return;
     if (request) {
       setSaving(true);
-      await updateRequest({ ...formData, id: request.id });
-      setSaveMessage(`Last saved at ${new Date().toLocaleString()}`);
+      const [receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
+      if (err) {
+        const errorMessage = err.response?.data;
+        alert.show({
+          variant: 'danger',
+          fadeOut: 10000,
+          closable: true,
+          content: errorMessage || 'Failed to save update',
+        });
+        setSaveMessage({ content: `Failed to save update`, error: true });
+      } else {
+        setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
+      }
       setSaving(false);
     }
   };

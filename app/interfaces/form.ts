@@ -33,3 +33,8 @@ export interface ErrorMessages {
   projectName: string;
   [any: string]: string;
 }
+
+export interface SaveMessage {
+  content: string;
+  error: boolean;
+}

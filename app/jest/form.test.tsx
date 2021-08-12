@@ -14,7 +14,7 @@ jest.mock('services/request', () => {
   const promise = Promise.resolve;
   return {
     createRequest: jest.fn(),
-    updateRequest: jest.fn(() => promise),
+    updateRequest: jest.fn(() => Promise.resolve([{}, null])),
     getRequest: jest.fn(),
   };
 });
