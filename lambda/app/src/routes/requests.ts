@@ -23,6 +23,9 @@ const unauthorized = () => {
 };
 
 export const createRequest = async (session: Session, data: Data) => {
+  const [hasError, errorMessage] = await hasRequestWithFailedApplyStatus();
+  if (hasError) return errorResponse(errorMessage);
+
   try {
     const now = new Date();
     const oneDayAgo = new Date();
@@ -62,6 +65,9 @@ export const createRequest = async (session: Session, data: Data) => {
 };
 
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
+  const [hasError, errorMessage] = await hasRequestWithFailedApplyStatus();
+  if (hasError) return errorResponse(errorMessage);
+
   try {
     const { id, ...rest } = data;
     const original = await models.request.findOne({
@@ -166,5 +172,20 @@ export const getRequests = async (session: Session) => {
     };
   } catch (err) {
     return errorResponse(err);
+  }
+};
+
+const hasRequestWithFailedApplyStatus = async () => {
+  try {
+    const applyFailedRequests = await models.request.findAll({
+      where: {
+        status: 'applyFailed',
+      },
+    });
+
+    if (applyFailedRequests.length > 0) return [true, 'A request exists in the apply-failed status'];
+    return [false, null];
+  } catch (err) {
+    return [true, err];
   }
 };

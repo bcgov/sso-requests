@@ -1,29 +1,33 @@
 import { instance } from './axios';
+import { AxiosError } from 'axios';
 import { getAuthConfig } from './auth';
 import { orderBy } from 'lodash';
 import { Request } from 'interfaces/Request';
 import { processRequest } from 'utils/helpers';
 
-export const createRequest = async (data: Request): Promise<[Request, null] | [null, Error]> => {
+const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
+  console.error(err);
+  return [null, err as AxiosError];
+};
+
+export const createRequest = async (data: Request): Promise<[Request, null] | [null, AxiosError]> => {
   const config = getAuthConfig();
 
   try {
     const result = await instance.post('requests', data, config).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
-    console.error(err);
-    return [null, err];
+    return handleAxiosError(err);
   }
 };
 
-export const getRequest = async (requestId: number): Promise<[Request, null] | [null, Error]> => {
+export const getRequest = async (requestId: number): Promise<[Request, null] | [null, AxiosError]> => {
   const config = getAuthConfig();
   try {
     const result: Request = await instance.post('request', { requestId }, config).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
-    console.error(err);
-    return [null, err];
+    return handleAxiosError(err);
   }
 };
 
@@ -34,12 +38,11 @@ export const getRequests = async (): Promise<[Request[], null] | [null, Error]> 
     results = orderBy(results, ['createdAt'], ['desc']);
     return [results.map(processRequest), null];
   } catch (err) {
-    console.error(err);
-    return [null, err];
+    return handleAxiosError(err);
   }
 };
 
-export const updateRequest = async (data: Request, submit = false): Promise<[Request, null] | [null, Error]> => {
+export const updateRequest = async (data: Request, submit = false): Promise<[Request, null] | [null, AxiosError]> => {
   const config = getAuthConfig();
 
   try {
@@ -53,7 +56,6 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
     const result = await instance.put(url, data, config).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
-    console.error(err);
-    return [null, err];
+    return handleAxiosError(err);
   }
 };
