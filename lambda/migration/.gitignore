@@ -1,0 +1,3 @@
+terraform/variables.tf
+src/migrations/*
+**/*.hcl
