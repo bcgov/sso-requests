@@ -6,14 +6,15 @@ be committed to the repository, in case the sso-terraform repository becomes out
 
 ## Use
 
-1. Add the migration you want to run as a typescript file to the `src/migrations` repository.
+1. Add the migration you want to run as a typescript file to the `src/query` repository.
    e.g
 
 ```javascript
-// migration-1.ts
-export const up = async ({ context: sequelize }) => {
-  await sequelize.getQueryInterface().bulkUpdate('requests', { status: 'pr' }, { id: 2 });
-};
+import { sequelize, models } from '../../shared/sequelize/models/models';
+
+export default async function query() {
+  await models.request.update({ status: 'draft' }, { where: { id: 2 } });
+}
 ```
 
 2. Run `make lambda` from this directory
