@@ -2,7 +2,6 @@ import { JSONSchema6 } from 'json-schema';
 
 export default {
   type: 'object',
-  required: ['devValidRedirectUris', 'testValidRedirectUris', 'prodValidRedirectUris'],
   properties: {
     devValidRedirectUris: {
       type: 'array',

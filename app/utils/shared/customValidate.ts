@@ -14,13 +14,19 @@ const validationMessage = 'Please enter a valid URI, including an http:// or htt
 export const customValidate = (formData: any, errors: any) => {
   const { devValidRedirectUris = [], testValidRedirectUris = [], prodValidRedirectUris = [] } = formData;
   let isAllValid = devValidRedirectUris.every(isValidKeycloakURI);
-  if (!isAllValid) errors.devValidRedirectUris.addError(validationMessage);
+  if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris');
 
   isAllValid = testValidRedirectUris.every(isValidKeycloakURI);
-  if (!isAllValid) errors.testValidRedirectUris.addError(validationMessage);
+  if (!isAllValid) validateArrayFields(testValidRedirectUris, errors, 'testValidRedirectUris');
 
   isAllValid = prodValidRedirectUris.every(isValidKeycloakURI);
-  if (!isAllValid) errors.prodValidRedirectUris.addError(validationMessage);
+  if (!isAllValid) validateArrayFields(prodValidRedirectUris, errors, 'prodValidRedirectUris');
 
   return errors;
+};
+
+const validateArrayFields = (arrayValues: any, errors: any, key: string) => {
+  arrayValues.forEach((value: any, i: number) => {
+    if (!isValidKeycloakURI(value)) errors[key][i].addError(validationMessage);
+  });
 };
