@@ -57,11 +57,10 @@ export default async function status(event) {
       ]);
       const { preferredEmail } = request;
       try {
-        await sendEmail(
-          'sso-requests@noreply.ca',
-          preferredEmail,
-          '<h1>Success</h1><p>Your request was successfully submitted.</p>',
-        );
+        await sendEmail({
+          to: preferredEmail,
+          body: '<h1>Success</h1><p>Your request was successfully submitted.</p>',
+        });
       } catch (err) {
         console.error(err);
         createEvent({ eventCode: `submit-email-failed`, details: err, requestId });

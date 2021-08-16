@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { EmailOptions } from './interfaces';
 const url = require('url');
 
 const fetchChesToken = async (username, password) => {
@@ -19,7 +20,7 @@ const fetchChesToken = async (username, password) => {
   }
 };
 
-export const sendEmail = async (from: string, to: string, body: string) => {
+export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, ...rest }: EmailOptions) => {
   try {
     const { CHES_USERNAME: username, CHES_PASSWORD: password, CHES_API_ENDPOINT: chesAPIEndpoint } = process.env;
     const [accessToken, error] = await fetchChesToken(username, password);
@@ -35,6 +36,7 @@ export const sendEmail = async (from: string, to: string, body: string) => {
         priority: 'normal',
         subject: 'CHES Email Message',
         to: [to],
+        ...rest,
       },
       {
         headers: { Authorization: `Bearer ${accessToken}` },
