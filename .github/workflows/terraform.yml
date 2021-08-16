@@ -38,6 +38,10 @@ jobs:
           echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "CHES_TOKEN_ENDPOINT=https://dev.oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token" >> $GITHUB_ENV
+          echo "CHES_API_ENDPOINT=https://ches-dev.apps.silver.devops.gov.bc.ca/api/v1/email" >> $GITHUB_ENV
+          echo "CHES_USERNAME=${{secrets.CHES_USERNAME}}" >> $GITHUB_ENV
+          echo "CHES_USERNAME=${{secrets.CHES_PASSWORD}}" >> $GITHUB_ENV
 
       - name: Set env to production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
@@ -53,6 +57,10 @@ jobs:
           echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "CHES_TOKEN_ENDPOINT=https://oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token" >> $GITHUB_ENV
+          echo "CHES_API_ENDPOINT=https://ches.nrs.gov.bc.ca/api/v1/email" >> $GITHUB_ENV
+          echo "CHES_USERNAME=${{secrets.CHES_USERNAME}}" >> $GITHUB_ENV
+          echo "CHES_USERNAME=${{secrets.CHES_PASSWORD}}" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -133,6 +141,10 @@ jobs:
           keycloak_dev_client_secret="${{ env.KEYCLOAK_DEV_CLIENT_SECRET }}"
           keycloak_test_client_secret="${{ env.KEYCLOAK_TEST_CLIENT_SECRET }}"
           keycloak_prod_client_secret="${{ env.KEYCLOAK_PROD_CLIENT_SECRET }}"
+          ches_username="${{ env.CHES_USERNAME }}"
+          ches_password="${{ env.CHES_PASSWORD }}"
+          ches_api_endpoint="${{ env.CHES_API_ENDPOINT }}"
+          ches_token_endpoint="${{ env.CHES_TOKEN_ENDPOINT }}"
           EOF
 
         working-directory: ./terraform

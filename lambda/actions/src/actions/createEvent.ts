@@ -1,5 +1,6 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { mergePR } from '../github';
+import { sendEmail } from '../ches';
 
 const createEvent = async (data) => {
   try {
@@ -54,6 +55,17 @@ export default async function status(event) {
         models.request.update({ status }, { where: { id: requestId } }),
         createEvent({ eventCode: `request-apply-${eventResult}`, requestId }),
       ]);
+      const { preferredEmail } = request;
+      try {
+        await sendEmail(
+          'sso-requests@noreply.ca',
+          preferredEmail,
+          '<h1>Success</h1><p>Your request was successfully submitted.</p>',
+        );
+      } catch (err) {
+        console.error(err);
+        createEvent({ eventCode: `submit-email-failed`, details: err, requestId });
+      }
     }
   }
 
