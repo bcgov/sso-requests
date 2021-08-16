@@ -1,4 +1,4 @@
-import axios from 'axios';
+const axios = require('axios');
 import { EmailOptions } from '../interfaces';
 const url = require('url');
 
