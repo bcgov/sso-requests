@@ -77,3 +77,19 @@ variable "local_dev" {
   description = "whether to run lambda functions in local dev environment"
   default     = "false"
 }
+
+variable "ches_password" {
+  description = "password for ches service"
+}
+
+variable "ches_username" {
+  description = "username for ches service"
+}
+
+variable "ches_api_endpoint" {
+  description = "endpoint for ches service"
+}
+
+variable "ches_token_endpoint" {
+  description = "endpoint for ches service"
+}
