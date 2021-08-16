@@ -2,7 +2,7 @@ import { JSONSchema6 } from 'json-schema';
 
 export default {
   type: 'object',
-  required: ['devValidRedirectUris', 'testValidRedirectUris', 'prodValidRedirectUris', 'realm'],
+  required: ['realm'],
   properties: {
     realm: {
       type: 'string',

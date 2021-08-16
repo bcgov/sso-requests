@@ -140,7 +140,8 @@ export const transformErrors = (errors: any) => {
       const errorMessageKey = error.property.slice(1);
       error.message = errorMessages[errorMessageKey] || error.message;
     } else if (error.property.includes('ValidRedirectUris')) {
-      error.message = errorMessages.redirectUris;
+      if (error.message === 'should be string') error.message = '';
+      else error.message = errorMessages.redirectUris;
     }
     return error;
   });
