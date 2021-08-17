@@ -100,14 +100,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
         const { id } = data || {};
 
         if (err || !id) {
-          const errorMessage = err?.response?.data;
-          alert.show({
-            variant: 'danger',
-            fadeOut: 10000,
-            closable: true,
-            content: errorMessage || `Failed to create a new request`,
-          });
-
+          router.push('/application-error');
           setLoading(false);
           return;
         }
@@ -144,13 +137,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
       const [receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
       if (err) {
         const errorMessage = err.response?.data;
-        alert.show({
-          variant: 'danger',
-          fadeOut: 10000,
-          closable: true,
-          content: errorMessage || 'Failed to save update',
-        });
-        setSaveMessage({ content: `Failed to save update`, error: true });
+        router.push('/application-error');
       } else {
         setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
       }
