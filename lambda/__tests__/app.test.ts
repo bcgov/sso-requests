@@ -4,6 +4,11 @@ import baseEvent from './base-event.json';
 import { authenticate } from '../app/src/authenticate';
 
 jest.mock('../app/src/authenticate');
+jest.mock('../shared/utils/ches', () => {
+  return {
+    sendEmail: jest.fn(),
+  };
+});
 
 const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
 
