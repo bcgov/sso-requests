@@ -1,6 +1,8 @@
 {
   "extends": ["next", "next/core-web-vitals"],
   "rules": {
-    "react-hooks/exhaustive-deps": "off"
+    "react-hooks/exhaustive-deps": "off",
+    // Image not compatible with next export
+    "@next/next/no-img-element": "off"
   }
 }
