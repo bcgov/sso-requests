@@ -10,6 +10,7 @@ import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import { Request } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
 import { environments } from 'utils/constants';
+import { DEFAULT_FONT_SIZE } from 'styles/theme';
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -17,7 +18,8 @@ const AlignCenter = styled.div`
 
 const LeftTitle = styled.span`
   color: #000;
-  font-size: 1.1rem;
+  font-size: ${DEFAULT_FONT_SIZE};
+  font-weight: bold;
 `;
 
 const StatusLabel = styled.span`
@@ -69,16 +71,16 @@ const InstallationPanel = ({ selectedRequest }: Props) => {
         {environments.map((env) => {
           return (
             <React.Fragment key={env.name}>
-              <Grid.Row collapse="992" gutter={[]}>
+              <Grid.Row collapse="992" gutter={[]} align="center">
                 <Grid.Col span={1}>
                   <LeftTitle>{env.display}</LeftTitle>
                 </Grid.Col>
                 <Grid.Col span={3}>
-                  <Button size="xsmall" variant="grey" onClick={() => handleCopyClick(env.name)}>
+                  <Button size="medium" variant="grey" onClick={() => handleCopyClick(env.name)}>
                     Copy
                   </Button>
                   &nbsp;
-                  <Button size="xsmall" variant="grey" onClick={() => handleDownloadClick(env.name)}>
+                  <Button size="medium" variant="grey" onClick={() => handleDownloadClick(env.name)}>
                     Download
                   </Button>
                   &nbsp;&nbsp;
