@@ -182,7 +182,7 @@ function RequestsPage({ currentUser }: PageProps) {
     content = (
       <NoProjects>
         <FontAwesomeIcon icon={faInfoCircle} />
-        &nbsp; No SSO project requests submitted
+        &nbsp; No requests submitted
       </NoProjects>
     );
   } else {
@@ -220,8 +220,8 @@ function RequestsPage({ currentUser }: PageProps) {
 
   return (
     <ResponsiveContainer rules={mediaRules}>
-      <Button size="small" onClick={handleNewClick}>
-        + Request Access
+      <Button size="medium" onClick={handleNewClick}>
+        + Request Integration
       </Button>
 
       <br />

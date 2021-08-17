@@ -1,4 +1,5 @@
 import { applyTheme, StyleConfig } from '@button-inc/component-library/Button';
+import { DEFAULT_FONT_SIZE, PRIMARY_BUTTON_HOVER_COLOR } from 'styles/theme';
 
 export const styles = {
   shared: {
@@ -28,7 +29,7 @@ export const styles = {
     },
     medium: {
       button: `
-        font-size: 1rem;
+        font-size: ${DEFAULT_FONT_SIZE};
       `,
     },
     large: {
@@ -61,10 +62,10 @@ export const styles = {
         background-color: #B2B2B2;
         box-shadow: 0px 0px 0px 1px #707070 inset !important;
         color: #F8F8F8;
-        width: 110px;
+        min-width: 110px;
 
         &:hover {
-          background-color: #006FC4;
+          background-color: ${PRIMARY_BUTTON_HOVER_COLOR};
           box-shadow: 0px 0px 0px 1px #707070 inset !important;
         }
       `,

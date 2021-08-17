@@ -14,6 +14,7 @@ import { Request } from 'interfaces/Request';
 import { getRequests } from 'services/request';
 import { $setRequests } from 'dispatchers/requestDispatcher';
 import Loader from 'react-loader-spinner';
+import { SECONDARY_FONT_COLOR } from 'styles/theme';
 
 const Spinner = styled(Loader)`
   display: inline;
@@ -27,6 +28,7 @@ const IconButton = styled(FontAwesomeIcon)`
 
 const RequestTabs = styled(Tabs)`
   .nav-link {
+    color: ${SECONDARY_FONT_COLOR} !important;
     height: 30px !important;
     font-size: 16px !important;
     font-weight: 600 !important;
