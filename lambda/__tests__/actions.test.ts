@@ -10,6 +10,12 @@ jest.mock('../actions/src/github', () => {
   };
 });
 
+jest.mock('../shared/utils/ches', () => {
+  return {
+    sendEmail: jest.fn(),
+  };
+});
+
 beforeAll(async () => {
   return await models.request.create({
     idirUserid: 'A1',

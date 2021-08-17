@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { EmailOptions } from './interfaces';
+const axios = require('axios');
+import { EmailOptions } from '../interfaces';
 const url = require('url');
 
 const fetchChesToken = async (username, password) => {

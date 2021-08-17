@@ -1,6 +1,6 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { mergePR } from '../github';
-import { sendEmail } from '../ches';
+import { sendEmail } from '../../../shared/utils/ches';
 
 const createEvent = async (data) => {
   try {
@@ -56,14 +56,16 @@ export default async function status(event) {
         createEvent({ eventCode: `request-apply-${eventResult}`, requestId }),
       ]);
       const { preferredEmail } = request;
-      try {
-        await sendEmail({
-          to: preferredEmail,
-          body: '<h1>Success</h1><p>Your request was successfully submitted.</p>',
-        });
-      } catch (err) {
-        console.error(err);
-        createEvent({ eventCode: `submit-email-failed`, details: err, requestId });
+      if (eventResult === 'success') {
+        try {
+          await sendEmail({
+            to: preferredEmail,
+            body: '<h1>Success</h1><p>Your request has been successfully created. You may visit the application to view your configuration details.</p>',
+          });
+        } catch (err) {
+          console.error(err);
+          createEvent({ eventCode: `submit-email-failed`, details: err, requestId });
+        }
       }
     }
   }

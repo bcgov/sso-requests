@@ -4,6 +4,7 @@ import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
 import { validateRequest } from '../utils/helpers';
 import { dispatchRequestWorkflow } from '../github';
+import { sendEmail } from '../../../shared/utils/ches';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
 
@@ -115,6 +116,12 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       if (ghResult.status !== 204) {
         return errorResponse('failed to create a workflow dispatch event');
       }
+
+      const isNewRequest = original.status === 'draft';
+      await sendEmail({
+        to: allowedRequest.preferredEmail,
+        body: `<h1>Success</h1><p>Your request was successfully ${isNewRequest ? 'submitted' : 'updated'}.</p>`,
+      });
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');

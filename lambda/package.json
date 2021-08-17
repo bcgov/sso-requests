@@ -10,13 +10,13 @@
     "@types/jest": "^26.0.24",
     "aws-lambda": "^1.0.6",
     "jest": "^27.0.6",
+    "octokit": "^1.2.0",
     "pg": "^8.6.0",
     "sequelize": "^6.6.5",
     "sqlite3": "^5.0.2",
     "ts-jest": "^27.0.4",
     "ts-node": "^10.1.0",
-    "typescript": "^4.3.5",
-    "octokit": "^1.2.0"
+    "typescript": "^4.3.5"
   },
   "dependencies": {}
 }
