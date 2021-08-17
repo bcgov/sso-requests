@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -8,7 +7,7 @@ const Container = styled.div`
 export default function ApplicationError() {
   return (
     <Container>
-      <Image src="/error-image.png" width={937} height={666} />
+      <img src="error-image.png" width={937} height={666} />
     </Container>
   );
 }
