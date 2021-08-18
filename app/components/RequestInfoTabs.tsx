@@ -65,7 +65,7 @@ function RequestInfoTabs({ selectedRequest }: Props) {
           <div>
             <p>
               It takes several minutes to automate the completion of your SSO integration request. You can either wait
-              for an email that will come to the requestor&apos;s inbox, or wait 30 minutes and then do a refresh. If
+              for an email that will come to the requestor&apos;s inbox, or wait 45 minutes and then do a refresh. If
               you would prefer to interact with a human, please reach out to us.
             </p>
           </div>
