@@ -60,13 +60,13 @@ function RequestInfoTabs({ selectedRequest }: Props) {
         <br />
         <Alert variant="info">
           <div>
-            <strong>We've got your request.</strong>
+            <strong>We&apos;ve got your request.</strong>
           </div>
           <div>
             <p>
-              It takes several minutes to automate the completion of your SSO integration request. you can either wait
-              for an email that will come to the requestor’s inbox, or wait 30 mins and then do a refresh. If you would
-              prefer to interact with a human, please reach out to us.
+              It takes several minutes to automate the completion of your SSO integration request. You can either wait
+              for an email that will come to the requestor&apos;s inbox, or wait 30 minutes and then do a refresh. If
+              you would prefer to interact with a human, please reach out to us.
             </p>
           </div>
         </Alert>
