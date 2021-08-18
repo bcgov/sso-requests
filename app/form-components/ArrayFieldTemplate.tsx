@@ -2,11 +2,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 import React from 'react';
+import { MAX_STRING_FIELD_WIDTH } from 'styles/theme';
+import InfoOverlay from 'components/InfoOverlay';
 
 const FieldContainer = styled.div`
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: ${MAX_STRING_FIELD_WIDTH};
 `;
 
 const Description = styled.p`
@@ -45,11 +47,15 @@ const Title = styled.legend`
 
 export default function ArrayFieldTemplate(props: any) {
   const { title } = props;
-  const { description } = props.schema;
+  const { description, tooltipTitle, tooltipContent, hide = 250 } = props.schema;
 
   return (
     <div>
-      {title && <Title>{title}</Title>}
+      {title && (
+        <Title>
+          {title} <InfoOverlay tooltipTitle={tooltipTitle} tooltipContent={tooltipContent} hide={hide} />
+        </Title>
+      )}
       {description && <Description>{description}</Description>}
       {props.items.map((element: any) => {
         return (

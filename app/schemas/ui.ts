@@ -17,6 +17,7 @@ const getUISchema = (created: boolean) => {
     },
     newToSso: {
       'ui:widget': 'radio',
+      'ui:FieldTemplate': FieldTemplateWithTitle,
     },
     preferredEmail: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
@@ -27,11 +28,13 @@ const getUISchema = (created: boolean) => {
     },
     projectName: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
+      'ui:placeholder': 'Project Name',
     },
     realm: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
       'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
+      'ui:default': 'onestopauth',
     },
   };
 };

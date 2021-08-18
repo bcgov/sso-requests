@@ -142,12 +142,12 @@ describe('Form Template Loading Data', () => {
     expect(
       screen.getByDisplayValue((sampleRequest.prodValidRedirectUris && sampleRequest.prodValidRedirectUris[0]) || ''),
     );
+    expect(document.querySelector('#root_publicAccess input[value="true"]')).toHaveAttribute('checked', '');
 
     // First Page Data
     fireEvent.click(firstStageBox);
     expect(document.querySelector('#root_projectLead input[value="true"]')).toHaveAttribute('checked', '');
     expect(document.querySelector('#root_newToSso input[value="true"]')).toHaveAttribute('checked', '');
-    expect(document.querySelector('#root_publicAccess input[value="true"]')).toHaveAttribute('checked', '');
     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
     expect(screen.getByDisplayValue(sampleRequest.preferredEmail || ''));
 

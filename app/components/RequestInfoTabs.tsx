@@ -6,25 +6,9 @@ import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
 import { RequestsContext } from 'pages/my-requests';
-import { RequestReducerState } from 'reducers/requestReducer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRedo, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
-import { getRequests } from 'services/request';
-import { $setRequests } from 'dispatchers/requestDispatcher';
-import Loader from 'react-loader-spinner';
 import { SECONDARY_FONT_COLOR } from 'styles/theme';
-
-const Spinner = styled(Loader)`
-  display: inline;
-  padding-left: 5px;
-`;
-
-const IconButton = styled(FontAwesomeIcon)`
-  padding-left: 5px;
-  color: #003366;
-`;
 
 const RequestTabs = styled(Tabs)`
   .nav-link {
@@ -48,31 +32,14 @@ const TabWrapper = styled.div`
   padding-right: 1rem;
 `;
 
-const timePassed = (time: string) => {
-  return new Date().getTime() - new Date(time).getTime();
-};
-
-const ONE_MIN = 60 * 1000;
-const FIVE_MIN = 5 * ONE_MIN;
-
 interface Props {
   selectedRequest: Request;
 }
 
 function RequestInfoTabs({ selectedRequest }: Props) {
-  const [loading, setLoading] = useState(false);
   const { dispatch } = useContext(RequestsContext);
   if (!selectedRequest) return null;
   const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
-
-  const handleRefresh = async () => {
-    setLoading(true);
-    const [data, err] = await getRequests();
-    if (err) return setLoading(false);
-    const requests = data || [];
-    dispatch($setRequests(requests));
-    setLoading(false);
-  };
 
   let panel = null;
   if (displayStatus === 'In Draft') {
@@ -93,23 +60,13 @@ function RequestInfoTabs({ selectedRequest }: Props) {
         <br />
         <Alert variant="info">
           <div>
-            <strong>Your request is successfully submitted.</strong>
+            <strong>We&apos;ve got your request.</strong>
           </div>
           <div>
             <p>
-              Your request is successfully submitted. Your request will be ready in just a moment… However, if you
-              experience a delay, please try to refresh
-              {loading ? (
-                <Spinner type="TailSpin" color="#000" height={16} width={16} />
-              ) : (
-                <IconButton icon={faRedo} role="button" aria-label="edit" onClick={handleRefresh} />
-              )}
-            </p>
-            <p>
-              If you would prefer to talk to a human, please reach out to us.
-              <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO">
-                <IconButton icon={faEnvelope} />
-              </a>
+              It takes several minutes to automate the completion of your SSO integration request. You can either wait
+              for an email that will come to the requestor&apos;s inbox, or wait 30 minutes and then do a refresh. If
+              you would prefer to interact with a human, please reach out to us.
             </p>
           </div>
         </Alert>

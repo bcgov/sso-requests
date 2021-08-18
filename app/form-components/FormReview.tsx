@@ -2,15 +2,13 @@ import React, { useState } from 'react';
 import { Request } from 'interfaces/Request';
 import FormButtons from 'form-components/FormButtons';
 import { realmToIDP } from 'utils/helpers';
-import { get, padStart } from 'lodash';
+import { padStart } from 'lodash';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
-import Alert from 'html-components/Alert';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
-import { useEffect } from 'react';
 
 const Table = styled.table`
   margin-top: ${FORM_TOP_SPACING};
@@ -37,19 +35,23 @@ const SemiBold = styled.span`
   font-weight: 600;
 `;
 
+const StyledUl = styled.ul`
+  list-style: none;
+`;
+
 const formatBoolean = (value?: boolean) => {
   if (value === undefined) return '';
   return value ? 'Yes' : 'No';
 };
 
 const formatList = (list?: string[]) => {
-  if (!list) return '';
-  let formattedString = '';
-  list.forEach((entry) => {
-    if (!entry) return;
-    formattedString += `${entry}, `;
-  });
-  return formattedString.slice(0, -2);
+  return (
+    <StyledUl>
+      {list?.map((item) => (
+        <li>{item}</li>
+      ))}
+    </StyledUl>
+  );
 };
 
 interface Props {
