@@ -8,13 +8,13 @@ import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
 import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
-import { SECONDARY_FONT_COLOR } from 'styles/theme';
+import { SUBTITLE_FONT_SIZE, SECONDARY_FONT_COLOR } from 'styles/theme';
 
 const RequestTabs = styled(Tabs)`
   .nav-link {
     color: ${SECONDARY_FONT_COLOR} !important;
     height: 30px !important;
-    font-size: 16px !important;
+    font-size: ${SUBTITLE_FONT_SIZE} !important;
     font-weight: 600 !important;
     padding-top: 0; !important;
     border-top: unset !important;

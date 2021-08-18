@@ -60,7 +60,7 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                   Identity Providers (IDPS)
                 </JumbotronP>
                 <Button size="medium" onClick={onLoginClick}>
-                  Request IDIR SSO Access with your IDIR Account
+                  Request IDIR SSO integration with your IDIR Account
                 </Button>
                 <br /> <br />
                 <Link
@@ -68,7 +68,7 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                   href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
                   external
                 >
-                  Request IDIR and/or BCeID SSO Access with your GitHub Account
+                  Request IDIR and BCeID SSO integration with your GitHub Account
                 </Link>
               </Panel>
             </Grid.Col>
