@@ -10,6 +10,14 @@ const createEvent = async (data) => {
   }
 };
 
+const getEmailBody = (requestNumber: number) => `
+  <h1>SSO request approved</h1>
+  <p>Your SSO request #${requestNumber} is approved.</p>
+  <p>Please login into your dashboard to access JSON Client Installation.</p>
+  <p>Thanks,</p>
+  <p>Pathfinder SSO Team</p>
+`;
+
 export default async function status(event) {
   const { body, queryStringParameters } = event;
   const {
@@ -55,12 +63,13 @@ export default async function status(event) {
         models.request.update({ status }, { where: { id: requestId } }),
         createEvent({ eventCode: `request-apply-${eventResult}`, requestId }),
       ]);
-      const { preferredEmail } = request;
+      const { preferredEmail, id } = request;
       if (eventResult === 'success') {
         try {
           await sendEmail({
             to: preferredEmail,
-            body: '<h1>Success</h1><p>Your request has been successfully created. You may visit the application to view your configuration details.</p>',
+            body: getEmailBody(id),
+            subject: 'SSO request approved',
           });
         } catch (err) {
           console.error(err);

@@ -14,7 +14,7 @@ import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import nonBceidSchemas from 'schemas/non-bceid-schemas';
 import { validateForm } from 'utils/helpers';
 import { customValidate } from 'utils/shared/customValidate';
@@ -26,6 +26,7 @@ const CenteredModal = styled(Modal)`
   align-items: center;
 
   & .pg-modal-main {
+    max-width: 600px;
     margin: auto;
   }
 `;
@@ -181,16 +182,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
       {formStage === 0 && (
         <CenteredModal id="modal">
           <Modal.Header>
-            Information{' '}
-            <Modal.Close>
-              <FontAwesomeIcon
-                icon={faWindowClose}
-                size="2x"
-                role="button"
-                aria-label="close"
-                onClick={handleModalClose}
-              />
-            </Modal.Close>
+            <FontAwesomeIcon icon={faInfoCircle} size="2x" title="Information" />
           </Modal.Header>
           <Modal.Content>
             We can only process access requests submittted by{' '}

@@ -65,7 +65,7 @@ export default function ArrayFieldTemplate(props: any) {
                 {element.children}
                 {element.index > 0 && (
                   <RemoveContainer onClick={element.onDropIndexClick(element.index)}>
-                    <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} />
+                    <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} title="Remove Item" />
                   </RemoveContainer>
                 )}
               </FieldContainer>
@@ -75,7 +75,12 @@ export default function ArrayFieldTemplate(props: any) {
       })}
       {props.canAdd && (
         <AddContainer onClick={props.onAddClick}>
-          <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} onClick={props.onAddClick} />
+          <FontAwesomeIcon
+            style={{ color: '#006fc4' }}
+            icon={faPlusCircle}
+            onClick={props.onAddClick}
+            title="Add Item"
+          />
           <StyledP>Add another URI</StyledP>
         </AddContainer>
       )}

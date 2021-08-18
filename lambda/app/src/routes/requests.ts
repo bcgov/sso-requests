@@ -23,6 +23,14 @@ const unauthorized = () => {
   };
 };
 
+const getEmailBody = (requestNumber: number) => `
+  <h1>SSO request submitted</h1>
+  <p>Your SSO request #${requestNumber} is successfully submitted. The expected processing time is 45 minutes.</p>
+  <p>Once the request is approved, you will receive an email from SSO Pathfinder Team letting you know that JSON Client Installation is ready.</p>
+  <p>Thanks,</p>
+  <p>Pathfinder SSO Team</p>
+`;
+
 export const createRequest = async (session: Session, data: Data) => {
   const [hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
   if (error) return errorResponse(error);
@@ -117,10 +125,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         return errorResponse('failed to create a workflow dispatch event');
       }
 
-      const isNewRequest = original.status === 'draft';
       await sendEmail({
         to: allowedRequest.preferredEmail,
-        body: `<h1>Success</h1><p>Your request was successfully ${isNewRequest ? 'submitted' : 'updated'}.</p>`,
+        body: getEmailBody(id),
+        subject: 'SSO request submitted',
       });
     }
 

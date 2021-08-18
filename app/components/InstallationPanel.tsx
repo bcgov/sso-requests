@@ -11,6 +11,7 @@ import { Request } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
 import { environments } from 'utils/constants';
 import { DEFAULT_FONT_SIZE } from 'styles/theme';
+import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -34,9 +35,10 @@ const TopMargin = styled.div`
 
 interface Props {
   selectedRequest: Request;
+  alert: BottomAlert;
 }
 
-const InstallationPanel = ({ selectedRequest }: Props) => {
+const InstallationPanel = ({ selectedRequest, alert }: Props) => {
   const [loading, setLoading] = useState(false);
 
   const handleInstallationClick = async (environment: Environment) => {
@@ -49,6 +51,14 @@ const InstallationPanel = ({ selectedRequest }: Props) => {
   const handleCopyClick = async (env: Environment) => {
     const inst = await handleInstallationClick(env);
     copyTextToClipboard(prettyJSON(inst));
+    const variant = inst ? 'success' : 'danger';
+    const content = inst ? 'Installation copied to clipboard' : 'Failed to download installation';
+    alert.show({
+      variant,
+      fadeOut: 10000,
+      closable: true,
+      content,
+    });
   };
 
   const handleDownloadClick = async (env: Environment) => {
@@ -84,7 +94,7 @@ const InstallationPanel = ({ selectedRequest }: Props) => {
                     Download
                   </Button>
                   &nbsp;&nbsp;
-                  <FontAwesomeIcon color="green" icon={faCheckCircle} />
+                  <FontAwesomeIcon color="green" icon={faCheckCircle} title="Ready" />
                   &nbsp;
                   <StatusLabel>Ready</StatusLabel>
                 </Grid.Col>
@@ -98,4 +108,4 @@ const InstallationPanel = ({ selectedRequest }: Props) => {
   );
 };
 
-export default InstallationPanel;
+export default withBottomAlert(InstallationPanel);
