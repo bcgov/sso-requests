@@ -46,7 +46,7 @@ export default async function status(event) {
     const request = await models.request.findOne({ where: { prNumber } });
     if (!request) throw Error(`request associated with pr number ${prNumber} not found`);
 
-    const { id: requestId, status: currentStatus } = request;
+    const { id: requestId, status: currentStatus, preferredEmail } = request;
     const isAlreadyApplied = currentStatus === 'applied';
     if (githubActionsStage === 'plan') {
       const status = String(planSuccess) === 'true' ? 'planned' : 'planFailed';
@@ -63,12 +63,12 @@ export default async function status(event) {
         models.request.update({ status }, { where: { id: requestId } }),
         createEvent({ eventCode: `request-apply-${eventResult}`, requestId }),
       ]);
-      const { preferredEmail, id } = request;
+
       if (eventResult === 'success') {
         try {
           await sendEmail({
             to: preferredEmail,
-            body: getEmailBody(id),
+            body: getEmailBody(requestId),
             subject: 'SSO request approved',
           });
         } catch (err) {
