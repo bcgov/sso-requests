@@ -21,7 +21,7 @@ export default {
               type: 'boolean',
               title: 'Have you requested an SSO integration before?',
               tooltipTitle: 'New To SSO',
-              tooltipContent: `<p>If new to SSO, please visit <a style="color: #0000EE" href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client">github</a> for more information</p>`,
+              tooltipContent: `<p>If new to SSO, please visit <a style="color: #0000EE" href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client" target="blank">github</a> for more information</p>`,
               hide: 2000,
             },
             projectName: { type: 'string', title: 'What Project is this integration for?' },
