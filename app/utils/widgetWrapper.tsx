@@ -16,6 +16,9 @@ const Wrapper = (Component, inputType: string = '') => {
   const valueKey = getValue(inputType);
   return (props) => {
     const { value, onChange, label, schema, options, required, disabled, onBlur, id = '', readonly } = props;
+    let { placeholder } = props;
+    // Array Field not passing through placeholder. Need to add for URIS
+    if (placeholder === '' && id.includes('ValidRedirectUris')) placeholder = 'e.g. https://example.com';
     const { pattern, minLength, maxLength } = schema;
     const { enumOptions = [] } = options;
     const formProps = {
@@ -38,6 +41,7 @@ const Wrapper = (Component, inputType: string = '') => {
       onBlur,
       readOnly: readonly,
       value: value || '',
+      placeholder,
       checked: typeof value === 'undefined' ? false : value,
     };
     if (inputType === 'file') {

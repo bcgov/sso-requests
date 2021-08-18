@@ -57,7 +57,7 @@ const SubLeftMenu = styled.ul`
     padding-bottom: 6px;
     border-bottom: none;
     background: linear-gradient(orange, orange) bottom /* left or right or else */ no-repeat;
-    background-size: 70% 4px;
+    background-size: calc(100% - 2rem) 4px;
   }
 `;
 

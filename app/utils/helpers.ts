@@ -112,7 +112,8 @@ export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
 
 const changeNullToUndefined = (data: any) => {
   Object.entries(data).forEach(([key, value]) => {
-    if (value === null) data[key] = undefined;
+    // RJSF won't use default values if key exists
+    if (value === null) delete data[key];
   });
   return data;
 };

@@ -79,3 +79,8 @@ label.pg-input-label {
 .pg-footer-footer {
   height: unset !important;
 }
+
+ul.error-detail {
+  list-style: none;
+  margin-left: 0;
+}
