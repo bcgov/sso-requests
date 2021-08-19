@@ -19,13 +19,17 @@ resource "aws_lambda_function" "actions" {
 
   environment {
     variables = {
-      NODE_ENV        = "production"
-      DB_HOSTNAME     = module.db.this_rds_cluster_endpoint
-      DB_USERNAME     = var.db_username
-      DB_PASSWORD     = random_password.db_password.result
-      DB_NAME         = var.db_name
-      GH_SECRET       = var.gh_secret
-      GH_ACCESS_TOKEN = var.gh_access_token
+      NODE_ENV            = "production"
+      DB_HOSTNAME         = module.db.this_rds_cluster_endpoint
+      DB_USERNAME         = var.db_username
+      DB_PASSWORD         = random_password.db_password.result
+      DB_NAME             = var.db_name
+      GH_SECRET           = var.gh_secret
+      GH_ACCESS_TOKEN     = var.gh_access_token
+      CHES_API_ENDPOINT   = var.ches_api_endpoint
+      CHES_TOKEN_ENDPOINT = var.ches_token_endpoint
+      CHES_PASSWORD       = var.ches_password
+      CHES_USERNAME       = var.ches_username
     }
   }
 

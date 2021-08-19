@@ -1,15 +1,21 @@
 import styled from 'styled-components';
-import { FORM_TOP_SPACING, DEFAULT_FONT_SIZE } from 'styles/theme';
+import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
 
 const Title = styled.h2`
   text-transform: uppercase;
   margin-bottom: 0;
-  font-size: ${DEFAULT_FONT_SIZE};
+  font-size: ${SUBTITLE_FONT_SIZE};
 `;
 
 const StyledList = styled.ul`
   & li {
     margin: 0;
+  }
+`;
+
+const SubItem = styled.li`
+  &&& {
+    margin-left: 20px;
   }
 `;
 
@@ -20,15 +26,19 @@ const Container = styled.div`
 function TermsAndConditions() {
   return (
     <Container>
+      <Title>Requirements</Title>
+      <StyledList>
+        <li>Keep your email address active, and if you are not using your realm, clean it up</li>
+        <li>
+          If you are not using your realm/client app configuration{' '}
+          <a href="https://chat.developer.gov.bc.ca/channel/sso/">ask us</a> for help
+        </li>
+      </StyledList>
       <Title>We&apos;re a Community</Title>
       <StyledList>
         <li>
-          As part of a community, we can solve things together and quickly. Please join the #SSO channel on Rocket.Chat
-        </li>
-        <li>Coordinate load testing with the Pathfinder SSO Team, and please only use the Test environment</li>
-        <li>
-          The SSO Service is multitenancy; please coordinate with the Pathfinder SSO Team if you predict moderate or
-          high loads. Contact options are available on the toolbar.
+          As part of a community, we can solve things together and quickly. Please join the{' '}
+          <a href="https://chat.developer.gov.bc.ca/channel/sso/">#SSO channel on Rocket.Chat</a>
         </li>
         <li>
           Please follow the BC Government digital standards (
@@ -37,16 +47,16 @@ function TermsAndConditions() {
           </a>
           )
         </li>
-      </StyledList>
-      <Title>Understanding the service level</Title>
-      <StyledList>
+        <li>Coordinate load testing with the Pathfinder SSO Team, and please only use the Test environment</li>
         <li>
-          The SSO service level is &quot;best-effort&quot; during business hours (Monday to Friday, 9am to 5pm), and
-          after-hours resolution time is not guaranteed
+          The SSO Service is multitenancy; meaning you share with others, so please coordinate{' '}
+          <a href="https://chat.developer.gov.bc.ca/channel/sso/">with us</a>:
+          <SubItem>if you predict moderate or high loads</SubItem>
+          OR
+          <SubItem>if you need to conduct load testing in TEST only</SubItem>
         </li>
-        <li>Please take this into account if you have a &quot;critical&quot; application</li>
-        <li>From time to time, we may contact you to confirm if your configuration is needed</li>
       </StyledList>
+
       <Title>What&apos;s included in the service</Title>
       <StyledList>
         <li>
@@ -54,10 +64,15 @@ function TermsAndConditions() {
           such as scopes or flows, are not available
         </li>
       </StyledList>
-      <Title>Requirements</Title>
+      <Title>Understanding the service level</Title>
       <StyledList>
-        <li>Keep your email address active, and if you are not using your realm, clean it up</li>
-        <li>Let us know if you do not need the client app configuration</li>
+        <li>
+          We are working towards enterprise service levels and in the interim the SSO Pathfinder service level is
+          &quot;best-effort&quot; during business hours (Monday to Friday, 9am to 5pm), and after-hours resolution time
+          is not guaranteed
+        </li>
+        <strong>Please take this into account if you have a &quot;critical&quot; application</strong>
+        <li>From time to time, we may contact you to confirm if your configuration is needed</li>
       </StyledList>
     </Container>
   );

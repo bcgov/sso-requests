@@ -57,7 +57,7 @@ const SubLeftMenu = styled.ul`
     padding-bottom: 6px;
     border-bottom: none;
     background: linear-gradient(orange, orange) bottom /* left or right or else */ no-repeat;
-    background-size: 70% 4px;
+    background-size: calc(100% - 2rem) 4px;
   }
 `;
 
@@ -68,6 +68,12 @@ const SubRightMenu = styled.ul`
 const FooterMenu = styled.div`
   padding-left: 2rem;
   padding-right: 2rem;
+`;
+
+const HoverItem = styled.li`
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 interface Route {
@@ -108,21 +114,21 @@ const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; current
 const RightMenuItems = () => (
   <>
     <li>Need help?</li>
-    <li>
+    <HoverItem>
       <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
         <FontAwesomeIcon size="2x" icon={faCommentDots} />
       </a>
-    </li>
-    <li>
+    </HoverItem>
+    <HoverItem>
       <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO">
         <FontAwesomeIcon size="2x" icon={faEnvelope} />
       </a>
-    </li>
-    <li>
+    </HoverItem>
+    <HoverItem>
       <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Wiki">
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
-    </li>
+    </HoverItem>
   </>
 );
 
@@ -134,12 +140,12 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
     <LoggedUser>
       <div className="welcome">Welcome {`${currentUser.given_name} ${currentUser.family_name}`}</div>&nbsp;&nbsp;
       {/* <FontAwesomeIcon style={{ paddingLeft: '5px', height: '25px' }} icon={faUserCircle} /> */}
-      <Button variant="secondary-inverse" size="small" onClick={onLogoutClick}>
+      <Button variant="secondary-inverse" size="medium" onClick={onLogoutClick}>
         Logout
       </Button>
     </LoggedUser>
   ) : (
-    <Button variant="secondary-inverse" size="small" onClick={onLoginClick}>
+    <Button variant="secondary-inverse" size="medium" onClick={onLoginClick}>
       Login with IDIR
     </Button>
   );

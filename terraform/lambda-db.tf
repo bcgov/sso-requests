@@ -27,7 +27,7 @@ resource "aws_lambda_function" "db" {
     }
   }
 
-  timeout = 30
+  timeout = 45
 
   tags = {
     "managed-by" = "terraform"

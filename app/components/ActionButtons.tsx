@@ -59,7 +59,15 @@ export default function Actionbuttons({ request, selectedRequest, setSelectedId 
     <Container>
       {/* TODO: Decide on delete functionality */}
       {/* <DeleteButton icon={faTrash} size="2x" role="button" aria-label="delete" /> */}
-      <EditButton disabled={!canEdit} icon={faEdit} size="2x" role="button" aria-label="edit" onClick={handleEdit} />
+      <EditButton
+        disabled={!canEdit}
+        icon={faEdit}
+        size="2x"
+        role="button"
+        aria-label="edit"
+        onClick={handleEdit}
+        title="Edit"
+      />
     </Container>
   );
 }

@@ -17,6 +17,7 @@ import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setEditingRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
+import { SUBTITLE_FONT_SIZE } from 'styles/theme';
 
 const mediaRules: MediaRule[] = [
   {
@@ -44,10 +45,10 @@ const OverflowAuto = styled.div`
   overflow: auto;
 `;
 
-const Title = styled.div`
+const Title = styled.h3`
   color: #777777;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: ${SUBTITLE_FONT_SIZE};
+  font-weight: bold;
   height: 30px;
   border-bottom: 1px solid #707070;
   margin-bottom: 5px;
@@ -174,15 +175,15 @@ function RequestsPage({ currentUser }: PageProps) {
   if (hasError) {
     content = (
       <NotAvailable>
-        <FontAwesomeIcon icon={faExclamationCircle} />
+        <FontAwesomeIcon icon={faExclamationCircle} title="Unavailable" />
         &nbsp; The system is unavailable at this moment. please refresh the page.
       </NotAvailable>
     );
   } else if (requests.length === 0) {
     content = (
       <NoProjects>
-        <FontAwesomeIcon icon={faInfoCircle} />
-        &nbsp; No SSO project requests submitted
+        <FontAwesomeIcon icon={faInfoCircle} title="Information" />
+        &nbsp; No requests submitted
       </NoProjects>
     );
   } else {
@@ -220,8 +221,8 @@ function RequestsPage({ currentUser }: PageProps) {
 
   return (
     <ResponsiveContainer rules={mediaRules}>
-      <Button size="small" onClick={handleNewClick}>
-        + Request Access
+      <Button size="medium" onClick={handleNewClick}>
+        + Request Integration
       </Button>
 
       <br />

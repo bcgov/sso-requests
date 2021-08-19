@@ -41,12 +41,12 @@ export default function FormButtons({ show, loading, text, handleSubmit, handleB
     <>
       {show && (
         <Container>
-          <CancelButton variant="secondary" size="small" type="button" onClick={handleBackClick}>
+          <CancelButton variant="secondary" size="medium" type="button" onClick={handleBackClick}>
             {text.back}
           </CancelButton>
           <PaddedButton
             variant="primary"
-            size="small"
+            size="medium"
             onClick={handleSubmit}
             type={formSubmission ? 'submit' : 'button'}
           >

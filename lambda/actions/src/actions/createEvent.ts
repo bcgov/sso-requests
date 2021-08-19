@@ -1,5 +1,6 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { mergePR } from '../github';
+import { sendEmail } from '../../../shared/utils/ches';
 
 const createEvent = async (data) => {
   try {
@@ -8,6 +9,14 @@ const createEvent = async (data) => {
     console.error(err);
   }
 };
+
+const getEmailBody = (requestNumber: number) => `
+  <h1>SSO request approved</h1>
+  <p>Your SSO request #${requestNumber} is approved.</p>
+  <p>Please login into your dashboard to access JSON Client Installation.</p>
+  <p>Thanks,</p>
+  <p>Pathfinder SSO Team</p>
+`;
 
 export default async function status(event) {
   const { body, queryStringParameters } = event;
@@ -37,7 +46,7 @@ export default async function status(event) {
     const request = await models.request.findOne({ where: { prNumber } });
     if (!request) throw Error(`request associated with pr number ${prNumber} not found`);
 
-    const { id: requestId, status: currentStatus } = request;
+    const { id: requestId, status: currentStatus, preferredEmail } = request;
     const isAlreadyApplied = currentStatus === 'applied';
     if (githubActionsStage === 'plan') {
       const status = String(planSuccess) === 'true' ? 'planned' : 'planFailed';
@@ -54,6 +63,19 @@ export default async function status(event) {
         models.request.update({ status }, { where: { id: requestId } }),
         createEvent({ eventCode: `request-apply-${eventResult}`, requestId }),
       ]);
+
+      if (eventResult === 'success') {
+        try {
+          await sendEmail({
+            to: preferredEmail,
+            body: getEmailBody(requestId),
+            subject: 'SSO request approved',
+          });
+        } catch (err) {
+          console.error(err);
+          createEvent({ eventCode: `submit-email-failed`, details: err, requestId });
+        }
+      }
     }
   }
 

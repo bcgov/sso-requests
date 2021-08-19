@@ -4,6 +4,7 @@ import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
 import { validateRequest } from '../utils/helpers';
 import { dispatchRequestWorkflow } from '../github';
+import { sendEmail } from '../../../shared/utils/ches';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
 
@@ -22,7 +23,18 @@ const unauthorized = () => {
   };
 };
 
+const getEmailBody = (requestNumber: number) => `
+  <h1>SSO request submitted</h1>
+  <p>Your SSO request #${requestNumber} is successfully submitted. The expected processing time is 45 minutes.</p>
+  <p>Once the request is approved, you will receive an email from SSO Pathfinder Team letting you know that JSON Client Installation is ready.</p>
+  <p>Thanks,</p>
+  <p>Pathfinder SSO Team</p>
+`;
+
 export const createRequest = async (session: Session, data: Data) => {
+  const [hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
+  if (error) return errorResponse(error);
+
   try {
     const now = new Date();
     const oneDayAgo = new Date();
@@ -62,6 +74,9 @@ export const createRequest = async (session: Session, data: Data) => {
 };
 
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
+  const [hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
+  if (error) return errorResponse(error);
+
   try {
     const { id, ...rest } = data;
     const original = await models.request.findOne({
@@ -109,6 +124,12 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       if (ghResult.status !== 204) {
         return errorResponse('failed to create a workflow dispatch event');
       }
+
+      await sendEmail({
+        to: allowedRequest.preferredEmail,
+        body: getEmailBody(id),
+        subject: 'SSO request submitted',
+      });
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -166,5 +187,20 @@ export const getRequests = async (session: Session) => {
     };
   } catch (err) {
     return errorResponse(err);
+  }
+};
+
+const hasRequestWithFailedApplyStatus = async () => {
+  try {
+    const applyFailedRequests = await models.request.findAll({
+      where: {
+        status: 'applyFailed',
+      },
+    });
+
+    if (applyFailedRequests.length > 0) return [null, 'A request exists in the apply-failed status'];
+    return [false, null];
+  } catch (err) {
+    return [null, err];
   }
 };

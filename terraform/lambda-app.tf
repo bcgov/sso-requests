@@ -41,6 +41,10 @@ resource "aws_lambda_function" "app" {
       GH_WORKFLOW_ID              = var.gh_workflow_id
       GH_BRANCH                   = var.gh_branch
       GH_OWNER                    = var.gh_owner
+      CHES_API_ENDPOINT           = var.ches_api_endpoint
+      CHES_TOKEN_ENDPOINT         = var.ches_token_endpoint
+      CHES_PASSWORD               = var.ches_password
+      CHES_USERNAME               = var.ches_username
     }
   }
 

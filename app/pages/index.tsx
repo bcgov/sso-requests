@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import NextLink from 'next/link';
+import React from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import Card from '@button-inc/bcgov-theme/Card';
 import Link from '@button-inc/bcgov-theme/Link';
 import Button from '@button-inc/bcgov-theme/Button';
-import ResponsiveContainer, { MediaRule, defaultRules } from 'components/ResponsiveContainer';
+import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
 
@@ -55,12 +53,14 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                 <JumbotronP>
                   Provide fast, simple
                   <br />
-                  and secure access to all BC
+                  and secure integrations
                   <br />
-                  Gov IDPs.
+                  to all BC Government
+                  <br />
+                  Identity Providers (IDPS)
                 </JumbotronP>
                 <Button size="medium" onClick={onLoginClick}>
-                  Request IDIR SSO Access with your IDIR Account
+                  Request IDIR SSO integration with your IDIR Account
                 </Button>
                 <br /> <br />
                 <Link
@@ -68,7 +68,7 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                   href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
                   external
                 >
-                  Request IDIR and/or BCeID SSO Access with your GitHub Account
+                  Request IDIR and BCeID SSO integration with your GitHub Account
                 </Link>
               </Panel>
             </Grid.Col>

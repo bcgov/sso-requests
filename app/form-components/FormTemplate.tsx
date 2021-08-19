@@ -7,7 +7,6 @@ import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import Button from '@button-inc/bcgov-theme/Button';
-import { noop } from 'lodash';
 import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
@@ -15,17 +14,19 @@ import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWindowClose } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import nonBceidSchemas from 'schemas/non-bceid-schemas';
-import { transformErrors, validateForm } from 'utils/helpers';
+import { validateForm } from 'utils/helpers';
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
+import { SaveMessage } from 'interfaces/form';
 
 const CenteredModal = styled(Modal)`
   display: flex;
   align-items: center;
 
   & .pg-modal-main {
+    max-width: 600px;
     margin: auto;
   }
 `;
@@ -48,7 +49,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 1 : 0);
   const [loading, setLoading] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | undefined>(undefined);
+  const [saveMessage, setSaveMessage] = useState<SaveMessage | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>({});
@@ -100,13 +101,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
         const { id } = data || {};
 
         if (err || !id) {
-          alert.show({
-            variant: 'danger',
-            fadeOut: 10000,
-            closable: true,
-            content: `Failed to create a new request`,
-          });
-
+          router.push('/application-error');
           setLoading(false);
           return;
         }
@@ -140,8 +135,13 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
     if (creatingNewForm()) return;
     if (request) {
       setSaving(true);
-      await updateRequest({ ...formData, id: request.id });
-      setSaveMessage(`Last saved at ${new Date().toLocaleString()}`);
+      const [receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
+      if (err) {
+        const errorMessage = err.response?.data;
+        router.push('/application-error');
+      } else {
+        setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
+      }
       setSaving(false);
     }
   };
@@ -182,16 +182,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
       {formStage === 0 && (
         <CenteredModal id="modal">
           <Modal.Header>
-            Information{' '}
-            <Modal.Close>
-              <FontAwesomeIcon
-                icon={faWindowClose}
-                size="2x"
-                role="button"
-                aria-label="close"
-                onClick={handleModalClose}
-              />
-            </Modal.Close>
+            <FontAwesomeIcon icon={faInfoCircle} size="2x" title="Information" />
           </Modal.Header>
           <Modal.Content>
             We can only process access requests submittted by{' '}
