@@ -73,6 +73,14 @@ function MyApp({ Component, pageProps }: AppProps) {
         removeTokens();
         setCurrentUser(null);
         setLoading(false);
+        if (tokens.id_token) {
+          router.push({
+            pathname: 'application-error',
+            query: {
+              error: 'E02',
+            },
+          });
+        }
       }
     }
 
