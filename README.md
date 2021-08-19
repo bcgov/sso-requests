@@ -133,3 +133,32 @@ For the first time running the tests, the database will need to be created.
 Run `./setup.sh ssodb` from the `/db` directory to initialize it _Note: you may need to run `chmod +x` to give necessary permissions_.
 To provide the local database connection string, in your console run `export DATABASE_URL=postgresql://localhost:5432/ssodb`.
 Then running `yarn test` from the lambda directory will run the necessary migrations and test suites.
+
+## Reporting
+
+For now, reporting information can be gathered directly from the AWS Data API.
+To use, you will need access to the AWS platform as well as the database credentials.
+
+- In the AWS console, navigate to the `RDS` dashboard and select DB Clusters from the resources panel.
+- Select `aurora-db-postgres`. From the top right `actions` dropdown select query.
+- You will be prompted for the db host, db name, username and password. Enter these and select `connect` (it may take some time to connect)
+- From the saved queries, select the one you would like to use (refer to descriptions for information)
+
+**Queries**
+
+```sql
+-- Count of clients in draft
+select count(*) from requests where status='draft';
+
+-- Count of clients awaiting approval (note: currently auto-approve but will apply when bceid is added)
+select count(*) from requests where status='submitted';
+
+-- Count of clients completed
+select count(*) from requests where status='applied';
+
+-- Time request was initially submitted
+select events.created_at from events join requests on requests.id = events.request_id where requests.id=1 and events.event_code = 'request-pr-success' order by events.created_at asc limit 1;
+
+-- (initial )time request was fulfilled (dev, test, and prod)
+select events.created_at from events join requests on requests.id = events.request_id where requests.id={id_here} and events.event_code = 'request-apply-success';
+```
