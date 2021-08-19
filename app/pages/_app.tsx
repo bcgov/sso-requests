@@ -73,7 +73,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         removeTokens();
         setCurrentUser(null);
         setLoading(false);
-        if (tokens.id_token) {
+        if (loginWorkflow) {
           router.push({
             pathname: 'application-error',
             query: {
