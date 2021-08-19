@@ -147,6 +147,18 @@ To use, you will need access to the AWS platform as well as the database credent
 **Queries**
 
 ```sql
-select events.created_at from events join requests on requests.id = events.request_id where requests.id = {id_here} and events.event_code = 'request-apply-success';
+-- Count of clients in draft
+select count(*) from requests where status='draft';
+
+-- Count of clients awaiting approval (note: currently auto-approve but will apply when bceid is added)
 select count(*) from requests where status='submitted';
+
+-- Count of clients completed
+select count(*) from requests where status='applied';
+
+-- Time request was initially submitted
+select events.created_at from events join requests on requests.id = events.request_id where requests.id=1 and events.event_code = 'request-pr-success' order by events.created_at asc limit 1;
+
+-- (initial )time request was fulfilled (dev, test, and prod)
+select events.created_at from events join requests on requests.id = events.request_id where requests.id={id_here} and events.event_code = 'request-apply-success';
 ```
