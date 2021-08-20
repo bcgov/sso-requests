@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import ErrorImage from 'svg/error';
+import ErrorImage from 'svg/ErrorImage';
 import { useRouter } from 'next/router';
 
 const Container = styled.div`
