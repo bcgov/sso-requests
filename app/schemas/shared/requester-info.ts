@@ -25,7 +25,7 @@ export default {
               hide: 2000,
             },
             projectName: { type: 'string', title: 'What Project is this integration for?', maxLength: 50 },
-            preferredEmail: { type: 'string', title: 'Preferred Email Address', format: 'email' },
+            preferredEmail: { type: 'string', title: 'Preferred Email Address', format: 'email', maxLength: 250 },
           },
         },
       ],

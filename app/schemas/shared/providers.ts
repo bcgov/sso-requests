@@ -7,6 +7,8 @@ const redirectUriTooltipInfo = {
   'http://localhost:1000'.`,
 };
 
+export const redirectUriItems = { type: 'string', maxLength: 250, placeholder: 'e.g. https://example.com' };
+
 export default {
   type: 'object',
   required: ['realm', 'publicAccess'],
@@ -38,24 +40,24 @@ export default {
       type: 'array',
       description: 'You can use any valid URI for your redirect URIs.',
       title: 'Dev Redirect URIs',
-      items: { type: 'string' },
-      additionalItems: { type: 'string' },
+      items: redirectUriItems,
+      additionalItems: redirectUriItems,
       default: [''],
       ...redirectUriTooltipInfo,
     },
     testValidRedirectUris: {
       type: 'array',
       title: 'Test Redirect URIs',
-      items: { type: 'string' },
-      additionalItems: { type: 'string' },
+      items: redirectUriItems,
+      additionalItems: redirectUriItems,
       default: [''],
       ...redirectUriTooltipInfo,
     },
     prodValidRedirectUris: {
       type: 'array',
       title: 'Prod Redirect URIs',
-      items: { type: 'string' },
-      additionalItems: { type: 'string' },
+      items: redirectUriItems,
+      additionalItems: redirectUriItems,
       default: [''],
       ...redirectUriTooltipInfo,
     },

@@ -1,4 +1,5 @@
 import { JSONSchema6 } from 'json-schema';
+import { redirectUriItems } from './shared/providers';
 
 export default {
   type: 'object',
@@ -6,22 +7,22 @@ export default {
     devValidRedirectUris: {
       type: 'array',
       title: 'Development',
-      items: { type: 'string' },
-      additionalItems: { type: 'string' },
+      items: redirectUriItems,
+      additionalItems: redirectUriItems,
       default: [''],
     },
     testValidRedirectUris: {
       type: 'array',
       title: 'Test',
-      items: { type: 'string' },
-      additionalItems: { type: 'string' },
+      items: redirectUriItems,
+      additionalItems: redirectUriItems,
       default: [''],
     },
     prodValidRedirectUris: {
       type: 'array',
       title: 'Production',
-      items: { type: 'string' },
-      additionalItems: { type: 'string' },
+      items: redirectUriItems,
+      additionalItems: redirectUriItems,
       default: [''],
     },
   },
