@@ -11,7 +11,7 @@ import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
-import { useRouter } from 'next/router';
+import { useRouter, NextRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
@@ -44,6 +44,23 @@ interface Props {
   request?: any;
   alert: BottomAlert;
 }
+
+interface RouterParams {
+  pathname: string;
+  query?: {
+    error: string;
+  };
+}
+
+const handleApplicationBlockedError = (err: any, router: NextRouter) => {
+  const errorMessage = err?.response?.data;
+  const routerParams: RouterParams = { pathname: '/application-error' };
+  if (errorMessage)
+    routerParams.query = {
+      error: errorMessage,
+    };
+  router.push(routerParams);
+};
 
 function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
@@ -101,7 +118,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
         const { id } = data || {};
 
         if (err || !id) {
-          router.push('/application-error');
+          handleApplicationBlockedError(err, router);
           setLoading(false);
           return;
         }
@@ -137,8 +154,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
       setSaving(true);
       const [receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
       if (err) {
-        const errorMessage = err.response?.data;
-        router.push('/application-error');
+        handleApplicationBlockedError(err, router);
       } else {
         setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
       }

@@ -134,6 +134,13 @@ Run `./setup.sh ssodb` from the `/db` directory to initialize it _Note: you may 
 To provide the local database connection string, in your console run `export DATABASE_URL=postgresql://localhost:5432/ssodb`.
 Then running `yarn test` from the lambda directory will run the necessary migrations and test suites.
 
+## Errors
+
+Error codes we use for the application:
+
+- `E01`: There is an application in the `sso-terraform` repository that cannot be applied, blocking new requests
+- `E02`: The user has a token in their session storage that is invalid
+
 ## Reporting
 
 For now, reporting information can be gathered directly from the AWS Data API.
