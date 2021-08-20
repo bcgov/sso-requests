@@ -20,8 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       publicAccess: {
         type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
+        allowNull: true,
       },
       devValidRedirectUris: {
         type: DataTypes.ARRAY(DataTypes.STRING),
