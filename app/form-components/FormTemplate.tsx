@@ -137,7 +137,6 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
       setSaving(true);
       const [receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
       if (err) {
-        const errorMessage = err.response?.data;
         router.push('/application-error');
       } else {
         setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });

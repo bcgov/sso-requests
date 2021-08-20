@@ -3,8 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 interface BoxProps {
-  active: boolean | undefined;
-  visited?: boolean | undefined;
+  active: boolean;
+  visited?: boolean;
   onClick: any;
 }
 
@@ -52,7 +52,7 @@ const Text = styled.p`
 
 export default function FormStagebox({ stageNumber, title, active, visited, handleClick, hasError }: FormStageBox) {
   return (
-    <Box active={active} visited={visited} onClick={handleClick}>
+    <Box active={active || false} visited={visited || false} onClick={handleClick}>
       <Circle>
         {hasError ? (
           <FontAwesomeIcon

@@ -12,7 +12,15 @@ const STEPPER_ERROR = 'Some additional fields require your attention.';
 
 describe('Form Stage', () => {
   it('Only allows navigation once a request is created', () => {
-    render(<FormStage creatingNewForm={creatingNewForm} currentStage={0} setFormStage={setFormStage} errors={{}} />);
+    render(
+      <FormStage
+        creatingNewForm={creatingNewForm}
+        currentStage={0}
+        setFormStage={setFormStage}
+        errors={{}}
+        visited={{}}
+      />,
+    );
     fireEvent.click(screen.getByText('Providers and URIs'));
     expect(setFormStage).not.toHaveBeenCalled();
     fireEvent.click(screen.getByText('Terms and conditions'));
@@ -20,7 +28,13 @@ describe('Form Stage', () => {
   });
   it('Displays error states correctly', () => {
     render(
-      <FormStage creatingNewForm={creatingNewForm} currentStage={0} setFormStage={setFormStage} errors={errors} />,
+      <FormStage
+        creatingNewForm={creatingNewForm}
+        currentStage={0}
+        setFormStage={setFormStage}
+        errors={errors}
+        visited={{}}
+      />,
     );
     const firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
     expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
