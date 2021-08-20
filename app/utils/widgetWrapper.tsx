@@ -16,10 +16,7 @@ const Wrapper = (Component, inputType: string = '') => {
   const valueKey = getValue(inputType);
   return (props) => {
     const { value, onChange, label, schema, options, required, disabled, onBlur, id = '', readonly } = props;
-    let { placeholder } = props;
-    // Array Field not passing through placeholder. Need to add for URIS
-    if (placeholder === '' && id.includes('ValidRedirectUris')) placeholder = 'e.g. https://example.com';
-    const { pattern, minLength, maxLength } = schema;
+    const { pattern, minLength, maxLength, placeholder } = schema;
     const { enumOptions = [] } = options;
     const formProps = {
       onChange: (e) => {
