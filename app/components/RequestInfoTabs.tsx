@@ -70,7 +70,7 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey }: Props) {
             <InstallationPanel selectedRequest={selectedRequest} />
           </TabWrapper>
         </Tab>
-        <Tab eventKey="configuration-url" title="Configuration URIs">
+        <Tab eventKey="configuration-url" title="Redirect URIs">
           <TabWrapper>
             <ConfigurationUrlPanel selectedRequest={selectedRequest} />
           </TabWrapper>
