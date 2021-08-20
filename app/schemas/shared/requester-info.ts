@@ -24,7 +24,7 @@ export default {
               tooltipContent: `<p>If new to SSO, please visit <a style="color: #0000EE" href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client" target="blank">github</a> for more information</p>`,
               hide: 2000,
             },
-            projectName: { type: 'string', title: 'What Project is this integration for?' },
+            projectName: { type: 'string', title: 'What Project is this integration for?', maxLength: 50 },
             preferredEmail: { type: 'string', title: 'Preferred Email Address', format: 'email' },
           },
         },
