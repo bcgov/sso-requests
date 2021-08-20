@@ -6,3 +6,6 @@ export const SECONDARY_FONT_COLOR = '#777777';
 export const DEFAULT_FONT_FAMILY = `BCSans, Verdana, Arial, sans-serif`;
 export const MAX_STRING_FIELD_WIDTH = '400px';
 export const SUBTITLE_FONT_SIZE = '18px';
+export const HELP_TEXT_FONT_SIZE = '12px';
+export const SECONDARY_BLUE = '#38598a';
+export const LINK_COLOR = '#0000EE';
