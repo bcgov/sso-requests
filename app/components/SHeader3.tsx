@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { SUBTITLE_FONT_SIZE } from 'styles/theme';
 
-const Title = styled.h3`
+const SHeader3 = styled.h3`
   color: #777777;
   font-size: ${SUBTITLE_FONT_SIZE};
   font-weight: bold;
@@ -11,4 +11,4 @@ const Title = styled.h3`
   overflow: wrap;
 `;
 
-export default Title;
+export default SHeader3;
