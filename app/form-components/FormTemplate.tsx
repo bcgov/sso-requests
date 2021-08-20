@@ -69,7 +69,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [saveMessage, setSaveMessage] = useState<SaveMessage | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
-  const [visited, setVisited] = useState<any>({});
+  const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const router = useRouter();
 
   const handleChange = (e: any) => {
@@ -169,7 +169,13 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   return (
     <>
       <FormHeader formStage={formStage} id={formData.id} saveMessage={saveMessage} saving={saving} />
-      <FormStage currentStage={formStage} setFormStage={changeStep} errors={errors} creatingNewForm={creatingNewForm} />
+      <FormStage
+        currentStage={formStage}
+        setFormStage={changeStep}
+        errors={errors}
+        creatingNewForm={creatingNewForm}
+        visited={visited}
+      />
       {formStage === 2 && <TermsAndConditions />}
       {[0, 1, 2].includes(formStage) ? (
         <Form

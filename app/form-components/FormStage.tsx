@@ -6,6 +6,7 @@ interface Props {
   currentStage: number;
   setFormStage: Function;
   errors: any;
+  visited: any;
   creatingNewForm: Function;
 }
 
@@ -26,7 +27,7 @@ const Container = styled.div`
   max-width: 100%;
 `;
 
-export default function Formstage({ currentStage, setFormStage, errors, creatingNewForm }: Props) {
+export default function Formstage({ currentStage, setFormStage, errors, creatingNewForm, visited }: Props) {
   const handleClick = (stage: number) => {
     // Disable navigation if record is not yet created
     if (creatingNewForm()) return;
@@ -45,6 +46,7 @@ export default function Formstage({ currentStage, setFormStage, errors, creating
                 active={stage.number === currentStage}
                 key={stage.number}
                 hasError={!!errors[stage.number]}
+                visited={visited[stage.number]}
                 handleClick={() => handleClick(stage.number)}
               />
             </Grid.Col>
