@@ -1,6 +1,6 @@
 import { JSONSchema6 } from 'json-schema';
 
-const redirectUriTooltipInfo = {
+export const redirectUriTooltipInfo = {
   tooltipTitle: 'Redirect URIs',
   tooltipContent: `At least one redirect URI is required for each of DEV, TEST and PROD. If you don't know the redirect URI for one or
   more of these environments, you may provide any valid URI for now and change it later. We suggest something like
