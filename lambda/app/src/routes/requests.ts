@@ -198,7 +198,7 @@ const hasRequestWithFailedApplyStatus = async () => {
       },
     });
 
-    if (applyFailedRequests.length > 0) return [null, 'A request exists in the apply-failed status'];
+    if (applyFailedRequests.length > 0) return [null, 'E01'];
     return [false, null];
   } catch (err) {
     return [null, err];

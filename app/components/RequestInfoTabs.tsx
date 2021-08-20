@@ -9,6 +9,7 @@ import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
 import { SUBTITLE_FONT_SIZE, SECONDARY_FONT_COLOR } from 'styles/theme';
+import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 
 const RequestTabs = styled(Tabs)`
   .nav-link {
@@ -39,7 +40,8 @@ interface Props {
 function RequestInfoTabs({ selectedRequest }: Props) {
   const { dispatch } = useContext(RequestsContext);
   if (!selectedRequest) return null;
-  const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
+  const { status } = selectedRequest;
+  const displayStatus = getStatusDisplayName(status || 'draft');
 
   let panel = null;
   if (displayStatus === 'In Draft') {
@@ -55,23 +57,7 @@ function RequestInfoTabs({ selectedRequest }: Props) {
       </>
     );
   } else if (displayStatus === 'Submitted') {
-    panel = (
-      <>
-        <br />
-        <Alert variant="info">
-          <div>
-            <strong>We&apos;ve got your request.</strong>
-          </div>
-          <div>
-            <p>
-              It takes several minutes to automate the completion of your SSO integration request. You can either wait
-              for an email that will come to the requestor&apos;s inbox, or wait 45 minutes and then do a refresh. If
-              you would prefer to interact with a human, please reach out to us.
-            </p>
-          </div>
-        </Alert>
-      </>
-    );
+    panel = <SubmittedStatusIndicator status={status} updatedAt={selectedRequest.updatedAt} />;
   } else if (displayStatus === 'Completed') {
     panel = (
       <RequestTabs>

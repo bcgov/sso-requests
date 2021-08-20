@@ -17,7 +17,7 @@ import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setEditingRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
-import { SUBTITLE_FONT_SIZE } from 'styles/theme';
+import Title from 'components/SHeader3';
 
 const mediaRules: MediaRule[] = [
   {
@@ -43,15 +43,6 @@ const mediaRules: MediaRule[] = [
 // TODO: move this logic to component Grid default style
 const OverflowAuto = styled.div`
   overflow: auto;
-`;
-
-const Title = styled.h3`
-  color: #777777;
-  font-size: ${SUBTITLE_FONT_SIZE};
-  font-weight: bold;
-  height: 30px;
-  border-bottom: 1px solid #707070;
-  margin-bottom: 5px;
 `;
 
 const NotAvailable = styled.div`
