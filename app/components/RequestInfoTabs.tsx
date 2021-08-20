@@ -33,11 +33,15 @@ const TabWrapper = styled.div`
   padding-right: 1rem;
 `;
 
+type TabKey = 'installation-json' | 'configuration-url';
+
 interface Props {
   selectedRequest: Request;
+  defaultTabKey: TabKey;
 }
 
-function RequestInfoTabs({ selectedRequest }: Props) {
+function RequestInfoTabs({ selectedRequest, defaultTabKey }: Props) {
+  const [activeKey, setActiveKey] = useState<TabKey>(defaultTabKey);
   const { dispatch } = useContext(RequestsContext);
   if (!selectedRequest) return null;
   const { status } = selectedRequest;
@@ -60,7 +64,7 @@ function RequestInfoTabs({ selectedRequest }: Props) {
     panel = <SubmittedStatusIndicator status={status} updatedAt={selectedRequest.updatedAt} />;
   } else if (displayStatus === 'Completed') {
     panel = (
-      <RequestTabs>
+      <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
         <Tab eventKey="installation-json" title="Installation JSON">
           <TabWrapper>
             <InstallationPanel selectedRequest={selectedRequest} />

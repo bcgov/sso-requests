@@ -229,7 +229,11 @@ function RequestsPage({ currentUser }: PageProps) {
             </Grid.Col>
             {selectedRequest && (
               <Grid.Col>
-                <RequestInfoTabs key={selectedRequest.id + selectedRequest.status} selectedRequest={selectedRequest} />
+                <RequestInfoTabs
+                  key={selectedRequest.id + selectedRequest.status + state.editingRequest}
+                  selectedRequest={selectedRequest}
+                  defaultTabKey={state.editingRequest ? 'configuration-url' : 'installation-json'}
+                />
               </Grid.Col>
             )}
           </Grid.Row>
