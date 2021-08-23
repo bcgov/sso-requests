@@ -19,4 +19,5 @@ export interface Request {
   newToSso?: boolean;
   agreeWithTerms?: boolean;
   status?: Status;
+  archived: boolean;
 }

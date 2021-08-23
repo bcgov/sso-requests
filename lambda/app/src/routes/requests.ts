@@ -172,13 +172,11 @@ export const getRequest = async (session: Session, data: { requestId: number }) 
   }
 };
 
-export const getRequests = async (session: Session) => {
+export const getRequests = async (session: Session, getArchived: boolean) => {
   try {
-    const requests = await models.request.findAll({
-      where: {
-        idirUserid: session.idir_userid,
-      },
-    });
+    const where = { idirUserid: session.idir_userid, archived: false };
+    if (getArchived) delete where.archived;
+    const requests = await models.request.findAll({ where });
 
     return {
       statusCode: 200,
