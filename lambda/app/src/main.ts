@@ -21,9 +21,8 @@ const BASE_PATH = '/app';
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
   const { headers, requestContext, body, path, queryStringParameters } = event;
-  const { submit, getArchived: getArchivedString, id } = queryStringParameters || {};
+  const { submit, include, id } = queryStringParameters || {};
   const { httpMethod } = requestContext;
-  const getArchived = getArchivedString === 'true';
 
   if (httpMethod === 'OPTIONS') return callback(null, { headers: responseHeaders });
 
@@ -50,7 +49,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
       response = await createRequest(session, JSON.parse(body));
     }
     if (httpMethod === 'GET') {
-      response = await getRequests(session, getArchived);
+      response = await getRequests(session, include);
     }
     if (httpMethod === 'PUT') {
       response = await updateRequest(session, JSON.parse(body), submit);

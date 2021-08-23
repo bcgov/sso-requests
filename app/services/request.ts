@@ -31,9 +31,8 @@ export const getRequest = async (requestId: number): Promise<[Request, null] | [
   }
 };
 
-export const getRequests = async (getArchived: boolean = false): Promise<[Request[], null] | [null, Error]> => {
-  let config = getAuthConfig();
-  if (getArchived) config = { ...config, params: { getArchived: 'true' } };
+export const getRequests = async (include: string = 'active'): Promise<[Request[], null] | [null, Error]> => {
+  const config = { ...getAuthConfig(), params: { include } };
   try {
     let results: Request[] = await instance.get('requests', config).then((res) => res.data);
     results = orderBy(results, ['createdAt'], ['desc']);
