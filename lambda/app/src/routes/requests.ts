@@ -3,7 +3,7 @@ import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
 import { validateRequest } from '../utils/helpers';
-import { dispatchRequestWorkflow } from '../github';
+import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
@@ -189,12 +189,48 @@ export const getRequests = async (session: Session) => {
   }
 };
 
-export const deleteRequest = async (session: Session, id: number) => {
+// 'draft',
+// 'submitted',
+// 'pr',
+// 'prFailed',
+// 'planned',
+// 'planFailed',
+// 'approved',
+// 'applied',
+// 'applyFailed',
+
+const requestHasBeenMerged = async (id: number) => {
   try {
-    const result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
+    const requests = await models.event.findAll({ where: { requestId: id } });
+    console.log('request has been merged returned requsts', requests);
+    if (requests.some((request) => ['request-apply-success', 'request-apply-failure'].includes(request.eventCode)))
+      return [true, null];
+    return [false, null];
+  } catch (err) {
+    return [null, err];
+  }
+};
+
+export const deleteRequest = async (session: Session, data: { id: number }) => {
+  const { id } = data;
+  try {
+    // Check if an applied/apply-failed event exists for the client
+    const [isMerged, err] = await requestHasBeenMerged(id);
+    if (err) throw err;
+    let result;
+
+    if (!isMerged) {
+      result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
+      const [closed, err] = await closeOpenPullRequests(id);
+      if (err) throw err;
+    }
+    // If not, set to archived, close any pr's that exists for it
+
+    // If so, run request.yml with an empty environments array. Close any PR's,  Set status to archived (do from requests.yml?)
+
     return {
       statusCode: 200,
-      body: JSON.stringify(result),
+      body: JSON.stringify({ isMerged }),
     };
   } catch (err) {
     return errorResponse(err);
