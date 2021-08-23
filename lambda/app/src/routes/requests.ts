@@ -191,10 +191,10 @@ export const getRequests = async (session: Session) => {
 
 const requestHasBeenMerged = async (id: number) => {
   try {
-    const requests = await models.event.findOne({
+    const request = await models.event.findOne({
       where: { requestId: id, eventCode: { [Op.in]: ['request-apply-success', 'request-apply-failure'] } },
     });
-    if (requests) return [true, null];
+    if (request) return [true, null];
     return [false, null];
   } catch (err) {
     return [null, err];
