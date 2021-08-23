@@ -16,17 +16,18 @@ const Container = styled.div`
   display: flex;
 `;
 
-const DeleteButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
-  border-right: 1px solid #777777;
-  padding-right: 10px;
-  color: #777777;
+const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
   ${(props) => (props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: #137ac8; }`)}
 `;
-const EditButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
+
+const DeleteButton = styled(ActionButton)`
+  border-right: 1px solid #777777;
+  padding-right: 10px;
+`;
+
+const EditButton = styled(ActionButton)`
   padding-left: 10px;
-  cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
-  ${(props) => (props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: #137ac8; }`)}
 `;
 
 interface Props {
