@@ -189,20 +189,9 @@ export const getRequests = async (session: Session) => {
   }
 };
 
-// 'draft',
-// 'submitted',
-// 'pr',
-// 'prFailed',
-// 'planned',
-// 'planFailed',
-// 'approved',
-// 'applied',
-// 'applyFailed',
-
 const requestHasBeenMerged = async (id: number) => {
   try {
     const requests = await models.event.findAll({ where: { requestId: id } });
-    console.log('request has been merged returned requsts', requests);
     if (requests.some((request) => ['request-apply-success', 'request-apply-failure'].includes(request.eventCode)))
       return [true, null];
     return [false, null];
