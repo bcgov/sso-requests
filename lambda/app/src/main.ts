@@ -12,7 +12,7 @@ const responseHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Origin': allowedOrigin,
-  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT',
+  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT, DELETE',
   'Access-Control-Allow-Credentials': 'true',
 };
 
@@ -21,7 +21,7 @@ const BASE_PATH = '/app';
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
   const { headers, requestContext, body, path, queryStringParameters } = event;
-  const { submit } = queryStringParameters || {};
+  const { submit, id } = queryStringParameters || {};
   const { httpMethod } = requestContext;
 
   if (httpMethod === 'OPTIONS') return callback(null, { headers: responseHeaders });
@@ -55,7 +55,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
       response = await updateRequest(session, JSON.parse(body), submit);
     }
     if (httpMethod === 'DELETE') {
-      response = await deleteRequest(session, JSON.parse(body));
+      response = await deleteRequest(session, Number(id));
     }
   } else if (path === `${BASE_PATH}/request`) {
     if (httpMethod === 'POST') {
