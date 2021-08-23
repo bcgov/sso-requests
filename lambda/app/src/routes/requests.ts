@@ -200,9 +200,8 @@ const requestHasBeenMerged = async (id: number) => {
   }
 };
 
-export const deleteRequest = async (session: Session, data: { id: number }) => {
+export const deleteRequest = async (session: Session, id: number) => {
   try {
-    const { id } = data;
     const original = await models.request.findOne({
       where: {
         idirUserid: session.idir_userid,
