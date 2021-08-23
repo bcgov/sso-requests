@@ -31,8 +31,8 @@ export const getRequest = async (requestId: number): Promise<[Request, null] | [
   }
 };
 
-export const getRequests = async (): Promise<[Request[], null] | [null, Error]> => {
-  const config = getAuthConfig();
+export const getRequests = async (include: string = 'active'): Promise<[Request[], null] | [null, Error]> => {
+  const config = { ...getAuthConfig(), params: { include } };
   try {
     let results: Request[] = await instance.get('requests', config).then((res) => res.data);
     results = orderBy(results, ['createdAt'], ['desc']);
@@ -55,6 +55,16 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
 
     const result = await instance.put(url, data, config).then((res) => res.data);
     return [processRequest(result), null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};
+
+export const deleteRequest = async (id?: number): Promise<[Request[], null] | [null, Error]> => {
+  const config = getAuthConfig();
+  try {
+    const result: Request[] = await instance.delete('requests', { ...config, params: { id } }).then((res) => res.data);
+    return [result, null];
   } catch (err) {
     return handleAxiosError(err);
   }

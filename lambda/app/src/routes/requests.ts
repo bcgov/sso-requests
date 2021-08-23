@@ -172,13 +172,13 @@ export const getRequest = async (session: Session, data: { requestId: number }) 
   }
 };
 
-export const getRequests = async (session: Session) => {
+export const getRequests = async (session: Session, include: string = 'active') => {
   try {
-    const requests = await models.request.findAll({
-      where: {
-        idirUserid: session.idir_userid,
-      },
-    });
+    const where: { archived?: boolean; idirUserid: string } = { idirUserid: session.idir_userid };
+    if (include === 'archived') where.archived = true;
+    else if (include === 'active') where.archived = false;
+
+    const requests = await models.request.findAll({ where });
 
     return {
       statusCode: 200,

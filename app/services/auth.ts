@@ -1,7 +1,8 @@
 import { instance } from './axios';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
+import { AxiosRequestConfig } from 'axios';
 
-export const getAuthConfig = () => {
+export const getAuthConfig = (): AxiosRequestConfig => {
   const tokens = getTokens();
   const config = { headers: { Authorization: `Bearer ${tokens.id_token}` } };
   return config;
