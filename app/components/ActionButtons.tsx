@@ -1,4 +1,4 @@
-import { useContext, MouseEvent } from 'react';
+import { useContext, MouseEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,7 +8,6 @@ import { RequestReducerState } from 'reducers/requestReducer';
 import { Request } from 'interfaces/Request';
 import { deleteRequest } from 'services/request';
 import { $deleteRequest, $setEditingRequest } from 'dispatchers/requestDispatcher';
-import { useState } from 'react';
 import Loader from 'react-loader-spinner';
 
 const Container = styled.div`
