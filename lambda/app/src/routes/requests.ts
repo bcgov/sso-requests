@@ -212,8 +212,18 @@ const requestHasBeenMerged = async (id: number) => {
 };
 
 export const deleteRequest = async (session: Session, data: { id: number }) => {
-  const { id } = data;
   try {
+    const { id } = data;
+    const original = await models.request.findOne({
+      where: {
+        idirUserid: session.idir_userid,
+        id,
+      },
+    });
+    if (!original) {
+      return unauthorized();
+    }
+
     // Check if an applied/apply-failed event exists for the client
     const [isMerged, err] = await requestHasBeenMerged(id);
     if (err) throw err;
@@ -223,15 +233,36 @@ export const deleteRequest = async (session: Session, data: { id: number }) => {
       result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
       const [closed, err] = await closeOpenPullRequests(id);
       if (err) throw err;
+    } else {
+      const payload = {
+        requestId: original.id,
+        clientName: original.clientName,
+        realmName: original.realm,
+        validRedirectUris: {
+          dev: original.devValidRedirectUris,
+          test: original.testValidRedirectUris,
+          prod: original.prodValidRedirectUris,
+        },
+        environments: [],
+        publicAccess: original.publicAccess,
+      };
+
+      // Trigger workflow tieh empty environments to delete client
+      const ghResult = await dispatchRequestWorkflow(payload);
+      if (ghResult.status !== 204) {
+        return errorResponse('failed to create a workflow dispatch event');
+      }
+
+      // Close any pr's if they exist
+      const [closed, err] = await closeOpenPullRequests(id);
+      if (err) throw err;
+
+      result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
+      return {
+        statusCode: 200,
+        body: JSON.stringify(result),
+      };
     }
-    // If not, set to archived, close any pr's that exists for it
-
-    // If so, run request.yml with an empty environments array. Close any PR's,  Set status to archived (do from requests.yml?)
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ isMerged }),
-    };
   } catch (err) {
     return errorResponse(err);
   }
