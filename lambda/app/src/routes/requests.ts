@@ -189,6 +189,18 @@ export const getRequests = async (session: Session) => {
   }
 };
 
+export const deleteRequest = async (session: Session, id: number) => {
+  try {
+    const result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
+    return {
+      statusCode: 200,
+      body: JSON.stringify(result),
+    };
+  } catch (err) {
+    return errorResponse(err);
+  }
+};
+
 const hasRequestWithFailedApplyStatus = async () => {
   try {
     const applyFailedRequests = await models.request.findAll({

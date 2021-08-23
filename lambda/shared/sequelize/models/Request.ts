@@ -89,6 +89,11 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 'draft',
         allowNull: false,
       },
+      archived: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       underscored: true,
