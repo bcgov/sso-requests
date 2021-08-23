@@ -1,5 +1,6 @@
 export interface Session {
   idir_userid: string;
+  client_roles: string[];
 }
 
 export interface Data {

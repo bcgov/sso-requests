@@ -5,6 +5,7 @@ import { faCommentDots, faEnvelope, faFileAlt } from '@fortawesome/free-solid-sv
 import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
+import { startCase } from 'lodash';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
 import BottomAlertProvider from './BottomAlert';
@@ -15,7 +16,7 @@ const LoggedUser = styled.span`
   display: flex;
 
   & .welcome {
-    padding: 2px;
+    padding: 5px;
   }
 `;
 
@@ -138,7 +139,11 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
 
   const rightSide = currentUser ? (
     <LoggedUser>
-      <div className="welcome">Welcome {`${currentUser.given_name} ${currentUser.family_name}`}</div>&nbsp;&nbsp;
+      <div className="welcome">
+        Welcome {`${currentUser.given_name} ${currentUser.family_name}`}&nbsp;
+        {currentUser.client_roles && <span className="small">({startCase(currentUser.client_roles[0])})</span>}
+      </div>
+      &nbsp;&nbsp;
       {/* <FontAwesomeIcon style={{ paddingLeft: '5px', height: '25px' }} icon={faUserCircle} /> */}
       <Button variant="secondary-inverse" size="medium" onClick={onLogoutClick}>
         Logout

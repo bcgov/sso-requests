@@ -12,7 +12,7 @@ jest.mock('../shared/utils/ches', () => {
 
 const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
 
-const mockedAuthenticate = authenticate as jest.Mock<Promise<{ idir_userid: string | null }>>;
+const mockedAuthenticate = authenticate as jest.Mock<Promise<{ idir_userid: string | null; client_roles: string[] }>>;
 
 describe('/heartbeat endpoints', () => {
   it('should response heartbeat endpoint successfully', async () => {
@@ -50,7 +50,7 @@ describe('requests endpoints', () => {
 
   it('should create a request successfully', async () => {
     mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: TEST_IDIR_USERID });
+      return Promise.resolve({ idir_userid: TEST_IDIR_USERID, client_roles: [] });
     });
 
     const sampleRequestPayload = {
@@ -81,7 +81,7 @@ describe('requests endpoints', () => {
 
   it('should send all requests successfully', async () => {
     mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: TEST_IDIR_USERID });
+      return Promise.resolve({ idir_userid: TEST_IDIR_USERID, client_roles: [] });
     });
 
     const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/requests' };
@@ -103,7 +103,7 @@ describe('requests endpoints', () => {
 
   it('should send the target request successfully', async () => {
     mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: TEST_IDIR_USERID });
+      return Promise.resolve({ idir_userid: TEST_IDIR_USERID, client_roles: [] });
     });
 
     const event: APIGatewayProxyEvent = {
@@ -127,7 +127,7 @@ describe('requests endpoints', () => {
 
   it('should update the target request successfully', async () => {
     mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: TEST_IDIR_USERID });
+      return Promise.resolve({ idir_userid: TEST_IDIR_USERID, client_roles: [] });
     });
 
     const projectName = new Date().getDate() + '';
