@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { authenticate } from './authenticate';
 import { getEvents } from './routes/events';
-import { createRequest, getRequests, getRequest, updateRequest } from './routes/requests';
+import { createRequest, getRequests, getRequest, updateRequest, deleteRequest } from './routes/requests';
 import { getClient } from './routes/client';
 import { getInstallation } from './routes/installation';
 import { wakeUpAll } from './routes/heartbeat';
@@ -53,6 +53,9 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     }
     if (httpMethod === 'PUT') {
       response = await updateRequest(session, JSON.parse(body), submit);
+    }
+    if (httpMethod === 'DELETE') {
+      response = await deleteRequest(session, JSON.parse(body));
     }
   } else if (path === `${BASE_PATH}/request`) {
     if (httpMethod === 'POST') {

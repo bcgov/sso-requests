@@ -3,7 +3,7 @@ import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
 import { validateRequest } from '../utils/helpers';
-import { dispatchRequestWorkflow } from '../github';
+import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
@@ -183,6 +183,69 @@ export const getRequests = async (session: Session) => {
     return {
       statusCode: 200,
       body: JSON.stringify(requests),
+    };
+  } catch (err) {
+    return errorResponse(err);
+  }
+};
+
+const requestHasBeenMerged = async (id: number) => {
+  try {
+    const request = await models.event.findOne({
+      where: { requestId: id, eventCode: { [Op.in]: ['request-apply-success', 'request-apply-failure'] } },
+    });
+    if (request) return [true, null];
+    return [false, null];
+  } catch (err) {
+    return [null, err];
+  }
+};
+
+export const deleteRequest = async (session: Session, data: { id: number }) => {
+  try {
+    const { id } = data;
+    const original = await models.request.findOne({
+      where: {
+        idirUserid: session.idir_userid,
+        id,
+      },
+    });
+    if (!original) {
+      return unauthorized();
+    }
+
+    // Check if an applied/apply-failed event exists for the client
+    const [isMerged, err] = await requestHasBeenMerged(id);
+    if (err) throw err;
+
+    if (isMerged) {
+      const payload = {
+        requestId: original.id,
+        clientName: original.clientName,
+        realmName: original.realm,
+        validRedirectUris: {
+          dev: original.devValidRedirectUris,
+          test: original.testValidRedirectUris,
+          prod: original.prodValidRedirectUris,
+        },
+        environments: [],
+        publicAccess: original.publicAccess,
+      };
+
+      // Trigger workflow with empty environments to delete client
+      const ghResult = await dispatchRequestWorkflow(payload);
+      if (ghResult.status !== 204) {
+        return errorResponse('failed to create a workflow dispatch event');
+      }
+    }
+    // Close any pr's if they exist
+    const [_closed, prError] = await closeOpenPullRequests(id);
+    if (err) throw prError;
+
+    const result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
+    return {
+      statusCode: 200,
+      body: JSON.stringify(result),
     };
   } catch (err) {
     return errorResponse(err);
