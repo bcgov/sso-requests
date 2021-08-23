@@ -220,8 +220,8 @@ export const deleteRequest = async (session: Session, data: { id: number }) => {
 
     if (!isMerged) {
       result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
-      const [closed, err] = await closeOpenPullRequests(id);
-      if (err) throw err;
+      const [_closed, prError] = await closeOpenPullRequests(id);
+      if (err) throw prError;
     } else {
       const payload = {
         requestId: original.id,
@@ -243,15 +243,15 @@ export const deleteRequest = async (session: Session, data: { id: number }) => {
       }
 
       // Close any pr's if they exist
-      const [closed, err] = await closeOpenPullRequests(id);
-      if (err) throw err;
+      const [_closed, prError] = await closeOpenPullRequests(id);
+      if (err) throw prError;
 
       result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
-      return {
-        statusCode: 200,
-        body: JSON.stringify(result),
-      };
     }
+    return {
+      statusCode: 200,
+      body: JSON.stringify(result),
+    };
   } catch (err) {
     return errorResponse(err);
   }
