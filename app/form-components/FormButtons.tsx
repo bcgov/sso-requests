@@ -1,6 +1,7 @@
 import Button from '@button-inc/bcgov-theme/Button';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
+import CancelButton from 'components/CancelButton';
 import { FORM_BUTTON_TOP_SPACING } from 'styles/theme';
 
 interface Props {
@@ -18,18 +19,6 @@ interface Props {
 const PaddedButton = styled(Button)`
   margin-left: 10px;
   min-width: 150px;
-`;
-
-const CancelButton = styled(Button)`
-  min-width: 150px;
-  background-color: #b2b2b2;
-  color: white;
-  box-shadow: none !important;
-
-  &:hover {
-    box-shadow: 0px 0px 0px 2px #006fc4 inset !important;
-    background-color: #b2b2b2;
-  }
 `;
 
 const Container = styled.div`

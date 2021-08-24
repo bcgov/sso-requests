@@ -5,7 +5,7 @@ import { faTrash, faInfoCircle, faExclamationCircle } from '@fortawesome/free-so
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { get, padStart } from 'lodash';
 import styled from 'styled-components';
-import { getRequests } from 'services/request';
+import { getRequests, deleteRequest } from 'services/request';
 import { Request } from 'interfaces/Request';
 import Table from 'html-components/Table';
 import Button from 'html-components/Button';
@@ -14,10 +14,14 @@ import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
 import RequestInfoTabs from 'components/RequestInfoTabs';
 import { getStatusDisplayName } from 'utils/status';
-import { $setRequests, $setEditingRequest } from 'dispatchers/requestDispatcher';
+import { $setRequests, $setEditingRequest, $deleteRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import Title from 'components/SHeader3';
+import Loader from 'react-loader-spinner';
+import Modal from '@button-inc/bcgov-theme/Modal';
+import BcButton from '@button-inc/bcgov-theme/Button';
+import CancelButton from 'components/CancelButton';
 
 const mediaRules: MediaRule[] = [
   {
@@ -39,6 +43,32 @@ const mediaRules: MediaRule[] = [
     marginTop: 20,
   },
 ];
+
+const ButtonContainer = styled.div`
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  & button {
+    min-width: 150px;
+    margin-right: 20px;
+    display: inline-block;
+  }
+`;
+
+const CenteredModal = styled(Modal)`
+  z-index: 1000;
+  & .pg-modal-main {
+    width: 600px;
+    position: absolute;
+    height: 200px;
+    top: calc(50% - 200px);
+    left: calc(50% - 300px);
+  }
+`;
+
+const PaddedIcon = styled(FontAwesomeIcon)`
+  padding-right: 10px;
+`;
 
 // TODO: move this logic to component Grid default style
 const OverflowAuto = styled.div`
@@ -89,11 +119,25 @@ function RequestsPage({ currentUser }: PageProps) {
   const [hasError, setHasError] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
   const [state, dispatch] = useReducer(reducer, {});
+  const [deleting, setDeleting] = useState(false);
   const { requests = [] } = state;
+  const selectedRequest = requests.find((request: Request) => request.id === Number(selectedId));
+  const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
   }, [state, dispatch]);
+
+  const confirmDelete = async () => {
+    if (!canDelete) return;
+    setDeleting(true);
+    const [_deletedRequest, _err] = await deleteRequest(selectedId);
+    dispatch($deleteRequest(selectedId || null));
+    setDeleting(false);
+    window.location.hash = '#';
+  };
+
+  const cancelDelete = () => (window.location.hash = '#');
 
   useEffect(() => {
     const getData = async () => {
@@ -159,8 +203,6 @@ function RequestsPage({ currentUser }: PageProps) {
   };
 
   if (loading) return <PageLoader />;
-
-  const selectedRequest = requests.find((request: Request) => request.id === Number(selectedId));
 
   let content = null;
   if (hasError) {
@@ -234,6 +276,23 @@ function RequestsPage({ currentUser }: PageProps) {
             )}
           </Grid.Row>
         </Grid>
+        <CenteredModal id="delete-modal">
+          <Modal.Header>
+            <PaddedIcon icon={faInfoCircle} title="Information" size="2x" style={{ paddingRight: '10px' }} />
+            Delete Integration
+          </Modal.Header>
+          <Modal.Content>
+            Do you really want to delete this record? This process cannot be undone.
+            <ButtonContainer>
+              <BcButton onClick={confirmDelete}>
+                {deleting ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : 'Delete'}
+              </BcButton>
+              <CancelButton variant="secondary" onClick={cancelDelete}>
+                Cancel
+              </CancelButton>
+            </ButtonContainer>
+          </Modal.Content>
+        </CenteredModal>
       </RequestsContext.Provider>
     </ResponsiveContainer>
   );

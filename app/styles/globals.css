@@ -84,3 +84,9 @@ ul.error-detail {
   list-style: none;
   margin-left: 0;
 }
+
+.pg-modal-header {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
