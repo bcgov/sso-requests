@@ -1,4 +1,4 @@
-import { useContext, MouseEvent, useState } from 'react';
+import { useContext, MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -6,13 +6,15 @@ import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { Request } from 'interfaces/Request';
-import { deleteRequest } from 'services/request';
-import { $deleteRequest, $setEditingRequest } from 'dispatchers/requestDispatcher';
-import Loader from 'react-loader-spinner';
+import { $setEditingRequest } from 'dispatchers/requestDispatcher';
+import { PRIMARY_RED } from 'styles/theme';
 
 const Container = styled.div`
   height: 100%;
   display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-right: 13px;
 `;
 
 const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
@@ -20,13 +22,20 @@ const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
   ${(props) => (props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: #137ac8; }`)}
 `;
 
-const DeleteButton = styled(ActionButton)`
-  border-right: 1px solid #777777;
-  padding-right: 10px;
+const DeleteButton = styled(ActionButton)<{ disabled?: boolean }>`
+  margin-right: 15px;
+  &:hover {
+    ${(props) => (props?.disabled ? '' : `color: ${PRIMARY_RED};`)}
+  }
 `;
 
 const EditButton = styled(ActionButton)`
-  padding-left: 10px;
+  margin-left: 15px;
+`;
+
+const VerticalLine = styled.div`
+  height: 40px;
+  border-right: 2px solid #e3e3e3;
 `;
 
 interface Props {
@@ -35,16 +44,13 @@ interface Props {
   setSelectedId: Function;
 }
 
-export default function Actionbuttons({ request, selectedRequest, setSelectedId }: Props) {
+export default function Actionbuttons({ selectedRequest, request, setSelectedId }: Props) {
   const { state, dispatch } = useContext(RequestsContext);
   const router = useRouter();
-  const [deleting, setDeleting] = useState(false);
   const { editingRequest } = state as RequestReducerState;
-  const canDelete = !['pr', 'planned', 'submitted'].includes(request.status || '');
+  const canDelete = !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
   const handleEdit = (event: MouseEvent) => {
-    event.stopPropagation();
-
     if (request.status === 'draft') {
       router.push(`/request/${request.id}`);
       return;
@@ -59,39 +65,33 @@ export default function Actionbuttons({ request, selectedRequest, setSelectedId 
   };
 
   const handleDelete = async (event: MouseEvent) => {
-    event.stopPropagation();
     if (!request.id || !canDelete) return;
-    setDeleting(true);
-    const [_deletedRequest, _err] = await deleteRequest(request.id);
-    dispatch($deleteRequest(request.id));
-    setDeleting(false);
+    window.location.hash = 'delete-modal';
   };
 
   const canEdit = ['draft', 'applied'].includes(request.status || '');
 
   return (
-    <Container>
-      {deleting ? (
-        <Loader type="TailSpin" height={28} width={32} />
-      ) : (
+    <>
+      <Container>
+        <EditButton
+          disabled={!canEdit}
+          icon={faEdit}
+          role="button"
+          aria-label="edit"
+          onClick={handleEdit}
+          title="Edit"
+        />
+        <VerticalLine />
         <DeleteButton
           icon={faTrash}
-          size="2x"
           role="button"
           aria-label="delete"
           onClick={handleDelete}
           disabled={!canDelete}
+          title="Delete"
         />
-      )}
-      <EditButton
-        disabled={!canEdit}
-        icon={faEdit}
-        size="2x"
-        role="button"
-        aria-label="edit"
-        onClick={handleEdit}
-        title="Edit"
-      />
-    </Container>
+      </Container>
+    </>
   );
 }
