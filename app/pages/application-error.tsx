@@ -14,7 +14,7 @@ export default function ApplicationError() {
 
   if (errorCode === 'E01') {
     content = (
-      <text transform="translate(291 258)" fill="#777" font-size="18" font-family="OpenSans, Open Sans">
+      <text transform="translate(291 258)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
         <tspan x="0" y="0">
           Please try{' '}
           <a href={getEndSessionUrl()} title="Clear Session">
@@ -26,13 +26,13 @@ export default function ApplicationError() {
           contact our SSO support team by{' '}
         </tspan>
         <tspan y="26" fill="#006fc4">
-          <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
+          <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
             Rocket.Chat
           </a>
         </tspan>
         <tspan y="26"> or </tspan>
         <tspan y="26" fill="#006fc4">
-          <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="_blank">
+          <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer">
             Email us
           </a>
         </tspan>
@@ -41,7 +41,7 @@ export default function ApplicationError() {
     );
   } else if (errorCode === 'E02') {
     content = (
-      <text transform="translate(291 258)" fill="#777" font-size="18" font-family="OpenSans, Open Sans">
+      <text transform="translate(291 258)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
         <tspan x="0" y="0">
           SSO support Team is currently working on this issue.
         </tspan>
@@ -52,13 +52,13 @@ export default function ApplicationError() {
           contact the team by{' '}
         </tspan>
         <tspan y="52" fill="#006fc4">
-          <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
+          <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
             Rocket.Chat
           </a>
         </tspan>
         <tspan y="52"> or </tspan>
         <tspan y="52" fill="#006fc4">
-          <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="_blank">
+          <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer">
             Email us
           </a>
         </tspan>
