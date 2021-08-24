@@ -74,15 +74,6 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
   return (
     <>
       <Container>
-        <DeleteButton
-          icon={faTrash}
-          role="button"
-          aria-label="delete"
-          onClick={handleDelete}
-          disabled={!canDelete}
-          title="Delete"
-        />
-        <VerticalLine />
         <EditButton
           disabled={!canEdit}
           icon={faEdit}
@@ -90,6 +81,15 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
           aria-label="edit"
           onClick={handleEdit}
           title="Edit"
+        />
+        <VerticalLine />
+        <DeleteButton
+          icon={faTrash}
+          role="button"
+          aria-label="delete"
+          onClick={handleDelete}
+          disabled={!canDelete}
+          title="Delete"
         />
       </Container>
     </>
