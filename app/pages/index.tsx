@@ -1,5 +1,4 @@
 import React from 'react';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -29,14 +28,7 @@ const Paragraph = styled.p`
   padding-left: 3.5rem;
 `;
 
-export default function Home({ currentUser, onLoginClick }: PageProps) {
-  const router = useRouter();
-
-  if (currentUser) {
-    router.push('/my-requests');
-    return null;
-  }
-
+export default function Home({ onLoginClick }: PageProps) {
   return (
     <>
       <Head>

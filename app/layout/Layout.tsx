@@ -85,7 +85,7 @@ interface Route {
 }
 
 const routes: Route[] = [
-  { path: '/', label: 'About Pathfinder SSO' },
+  { path: '/', label: 'Home', user: true },
   { path: '/terms-conditions', label: 'Terms and Conditions' },
   { path: '/my-requests', label: 'My Dashboard', user: true },
   { path: '/request', label: 'New Request', user: true, hide: true },
