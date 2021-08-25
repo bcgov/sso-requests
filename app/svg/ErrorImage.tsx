@@ -2,9 +2,10 @@ import React from 'react';
 
 interface Props {
   message: string;
+  children: React.ReactNode;
 }
 
-const ErrorImage = ({ message }: Props) => {
+const ErrorImage = ({ message, children }: Props) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -1127,34 +1128,7 @@ const ErrorImage = ({ message }: Props) => {
                   An error has occurred{message ? `: ${message}` : '.'}{' '}
                 </tspan>
               </text>
-              <text
-                id="Please_try_again_and_if_the_problem_persists_contact_our_SSO_support_team_by_Rocket.Chat_or_Email_us."
-                data-name="Please try again, and if the problem persists, contact
-our SSO support team by Rocket.Chat or Email us."
-                transform="translate(291 258)"
-                fill="#777"
-                font-size="18"
-                font-family="OpenSans, Open Sans"
-              >
-                <tspan x="0" y="0">
-                  Please try again, and if the problem persists, contact{' '}
-                </tspan>
-                <tspan x="0" y="26">
-                  our SSO support team by{' '}
-                </tspan>
-                <tspan y="26" fill="#006fc4">
-                  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
-                    Rocket.Chat
-                  </a>
-                </tspan>
-                <tspan y="26"> or </tspan>
-                <tspan y="26" fill="#006fc4">
-                  <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="blank">
-                    Email us
-                  </a>
-                </tspan>
-                <tspan y="26">.</tspan>
-              </text>
+              {children}
             </g>
             <line
               id="Line_11"

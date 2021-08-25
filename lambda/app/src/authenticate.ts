@@ -37,7 +37,7 @@ const validateJWTSignature = async (token) => {
 
     // jwt.verify throws error if invalid
     // If setting ignoreExpiration to true, you can control the maxAge on the backend
-    const { identity_provider, idir_userid } = jwt.verify(token, pem, {
+    const { identity_provider, idir_userid, client_roles } = jwt.verify(token, pem, {
       audience,
       issuer,
       maxAge: '2h',
@@ -47,7 +47,7 @@ const validateJWTSignature = async (token) => {
       throw new Error('IDP is not IDIR');
     }
 
-    return { idir_userid };
+    return { idir_userid, client_roles: client_roles || [] };
   } catch (err) {
     console.log(err);
     return false;
@@ -59,5 +59,8 @@ export const authenticate = async (headers) => {
   if (!Authorization) return false;
 
   const bearerToken = Authorization.split('Bearer ')[1];
-  return validateJWTSignature(bearerToken);
+  const currentUser = await validateJWTSignature(bearerToken);
+  if (!currentUser) return currentUser;
+
+  return currentUser;
 };

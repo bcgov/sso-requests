@@ -80,7 +80,7 @@ export default function SubmittedStatusIndicator({ status, updatedAt }: Props) {
     <>
       <Title>
         <StyledIcon icon={faInfoCircle} />
-        SSO Team is working on your request - Expected processing time is 45 mins
+        We are working on your request - Expected processing time is 20 mins
       </Title>
       <SubTitle>{statusMessage}</SubTitle>
       <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />

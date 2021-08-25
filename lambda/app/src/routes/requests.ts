@@ -189,9 +189,10 @@ export const getRequests = async (session: Session, include: string = 'active') 
 
 const requestHasBeenMerged = async (id: number) => {
   try {
-    const requests = await models.event.findAll({ where: { requestId: id } });
-    if (requests.some((request) => ['request-apply-success', 'request-apply-failure'].includes(request.eventCode)))
-      return [true, null];
+    const request = await models.event.findOne({
+      where: { requestId: id, eventCode: { [Op.in]: ['request-apply-success', 'request-apply-failure'] } },
+    });
+    if (request) return [true, null];
     return [false, null];
   } catch (err) {
     return [null, err];
@@ -213,13 +214,8 @@ export const deleteRequest = async (session: Session, id: number) => {
     // Check if an applied/apply-failed event exists for the client
     const [isMerged, err] = await requestHasBeenMerged(id);
     if (err) throw err;
-    let result;
 
-    if (!isMerged) {
-      result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
-      const [_closed, prError] = await closeOpenPullRequests(id);
-      if (err) throw prError;
-    } else {
+    if (isMerged) {
       const payload = {
         requestId: original.id,
         clientName: original.clientName,
@@ -233,18 +229,18 @@ export const deleteRequest = async (session: Session, id: number) => {
         publicAccess: original.publicAccess,
       };
 
-      // Trigger workflow tieh empty environments to delete client
+      // Trigger workflow with empty environments to delete client
       const ghResult = await dispatchRequestWorkflow(payload);
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
-
-      // Close any pr's if they exist
-      const [_closed, prError] = await closeOpenPullRequests(id);
-      if (err) throw prError;
-
-      result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
     }
+
+    // Close any pr's if they exist
+    const [_closed, prError] = await closeOpenPullRequests(id);
+    if (err) throw prError;
+
+    const result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
 
     Promise.all([
       sendEmail({

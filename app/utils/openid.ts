@@ -75,6 +75,14 @@ export const getAccessToken = async ({ code, state }: { code: string; state: str
   return axios(config).then((res) => res.data, console.error);
 };
 
+export const getEndSessionUrl = () => {
+  const params = {
+    redirect_uri: sso_redirect_uri,
+  };
+
+  return `${meta.end_session_endpoint}?${qs.stringify(params, { encode: false })}`;
+};
+
 // see https://access.redhat.com/solutions/3793991
 export const refreshSession = async ({ refreshToken }: { refreshToken: string }) => {
   const params = {

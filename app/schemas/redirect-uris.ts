@@ -1,5 +1,5 @@
 import { JSONSchema6 } from 'json-schema';
-import { redirectUriItems } from './shared/providers';
+import { redirectUriItems, redirectUriTooltipInfo } from './shared/providers';
 
 export default {
   type: 'object',
@@ -10,6 +10,7 @@ export default {
       items: redirectUriItems,
       additionalItems: redirectUriItems,
       default: [''],
+      ...redirectUriTooltipInfo,
     },
     testValidRedirectUris: {
       type: 'array',
@@ -17,6 +18,7 @@ export default {
       items: redirectUriItems,
       additionalItems: redirectUriItems,
       default: [''],
+      ...redirectUriTooltipInfo,
     },
     prodValidRedirectUris: {
       type: 'array',
@@ -24,6 +26,7 @@ export default {
       items: redirectUriItems,
       additionalItems: redirectUriItems,
       default: [''],
+      ...redirectUriTooltipInfo,
     },
   },
 } as JSONSchema6;
