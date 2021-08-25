@@ -62,12 +62,14 @@ function MyApp({ Component, pageProps }: AppProps) {
     async function handleTokens(tokens: any, loginWorkflow: boolean) {
       const verifiedIdToken = await verifyToken(tokens.id_token);
       if (verifiedIdToken) {
-        if (loginWorkflow) setTokens(tokens);
+        if (loginWorkflow) {
+          setTokens(tokens);
+          await router.push('/my-requests');
+        }
         const newVerifiedIdToken = await refreshTokenIfExpiriesSoon();
         setTokenInterval();
         setCurrentUser(newVerifiedIdToken);
         setLoading(false);
-        if (loginWorkflow) router.push('/my-requests');
         return null;
       } else {
         removeTokens();

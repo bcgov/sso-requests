@@ -10,6 +10,8 @@ import BCSans from './BCSans';
 import Navigation from './Navigation';
 import BottomAlertProvider from './BottomAlert';
 
+const headerPlusFooterHeight = '152px';
+
 const LoggedUser = styled.span`
   font-weight: 600;
   font-size: 1.3em;
@@ -22,7 +24,7 @@ const LoggedUser = styled.span`
 
 const MainContent = styled.div`
   padding: 1rem 0;
-  min-height: calc(100vh - 160px);
+  min-height: calc(100vh - ${headerPlusFooterHeight});
 `;
 
 const MobileSubMenu = styled.ul`
