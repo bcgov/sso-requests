@@ -2,10 +2,9 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
-import { validateRequest } from '../utils/helpers';
+import { validateRequest, getEmailBody, getEmailSubject } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
-import { getEmailBody, getEmailSubject } from '../utils/helpers';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
 
