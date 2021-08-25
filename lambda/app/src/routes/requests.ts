@@ -2,7 +2,7 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase, omit } from 'lodash';
-import { validateRequest } from '../utils/helpers';
+import { validateRequest, getEmailBody, getEmailSubject } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 
@@ -22,14 +22,6 @@ const unauthorized = () => {
     body: JSON.stringify('unauthorized request'),
   };
 };
-
-const getEmailBody = (requestNumber: number) => `
-  <h1>SSO request submitted</h1>
-  <p>Your SSO request #${requestNumber} is successfully submitted. The expected processing time is 45 minutes.</p>
-  <p>Once the request is approved, you will receive an email from SSO Pathfinder Team letting you know that JSON Client Installation is ready.</p>
-  <p>Thanks,</p>
-  <p>Pathfinder SSO Team</p>
-`;
 
 export const createRequest = async (session: Session, data: Data) => {
   const [hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
@@ -124,11 +116,16 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         return errorResponse('failed to create a workflow dispatch event');
       }
 
+      const isUpdate = requestHasBeenMerged(id);
+      const messageType = isUpdate ? 'update' : 'submit';
+
       await sendEmail({
         to: allowedRequest.preferredEmail,
-        body: getEmailBody(id),
-        subject: 'SSO request submitted',
+        body: getEmailBody(id, messageType),
+        subject: getEmailSubject(messageType),
       });
+
+      models.event.create({ eventCode: `request-submitted`, requestId: id, idirUserId: session.idir_userid });
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -234,19 +231,36 @@ export const deleteRequest = async (session: Session, id: number) => {
       // Trigger workflow with empty environments to delete client
       const ghResult = await dispatchRequestWorkflow(payload);
       if (ghResult.status !== 204) {
-        return errorResponse('failed to create a workflow dispatch event');
+        throw Error('failed to create a workflow dispatch event');
       }
     }
+
     // Close any pr's if they exist
     const [_closed, prError] = await closeOpenPullRequests(id);
     if (err) throw prError;
 
     const result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
+
+    Promise.all([
+      sendEmail({
+        to: 'bcgov.sso@gov.bc.ca',
+        body: getEmailBody(id, 'delete'),
+        subject: getEmailSubject('delete'),
+      }),
+      sendEmail({
+        to: original.preferredEmail,
+        body: getEmailBody(id, 'delete'),
+        subject: getEmailSubject('delete'),
+      }),
+    ]);
+    models.event.create({ eventCode: `request-delete-success`, requestId: id, idirUserId: session.idir_userid });
+
     return {
       statusCode: 200,
       body: JSON.stringify(result),
     };
   } catch (err) {
+    models.event.create({ eventCode: `request-delete-failure`, requestId: id, idirUserId: session.idir_userid });
     return errorResponse(err);
   }
 };
