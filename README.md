@@ -153,6 +153,8 @@ To use, you will need access to the AWS platform as well as the database credent
 
 **Queries**
 
+_Some queries are id specific, update the where clause to change the request number_
+
 ```sql
 -- Count of clients in draft
 select count(*) from requests where status='draft';
@@ -167,5 +169,5 @@ select count(*) from requests where status='applied';
 select events.created_at from events join requests on requests.id = events.request_id where requests.id=1 and events.event_code = 'request-pr-success' order by events.created_at asc limit 1;
 
 -- (initial )time request was fulfilled (dev, test, and prod)
-select events.created_at from events join requests on requests.id = events.request_id where requests.id={id_here} and events.event_code = 'request-apply-success';
+select events.created_at from events join requests on requests.id = events.request_id where requests.id=1 and events.event_code = 'request-apply-success';
 ```

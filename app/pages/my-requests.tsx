@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { get, padStart } from 'lodash';
 import styled from 'styled-components';
@@ -272,18 +272,18 @@ function RequestsPage({ currentUser }: PageProps) {
         </Grid>
         <CenteredModal id="delete-modal">
           <Modal.Header>
-            <PaddedIcon icon={faInfoCircle} title="Information" size="2x" style={{ paddingRight: '10px' }} />
-            Delete Integration
+            <PaddedIcon icon={faExclamationTriangle} title="Information" size="2x" style={{ paddingRight: '10px' }} />
+            Confirm Deletion
           </Modal.Header>
           <Modal.Content>
-            Do you really want to delete this record? This process cannot be undone.
+            You are about to delete this integration request. This action cannot be undone.
             <ButtonContainer>
-              <BcButton onClick={confirmDelete}>
-                {deleting ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : 'Delete'}
-              </BcButton>
               <CancelButton variant="secondary" onClick={cancelDelete}>
                 Cancel
               </CancelButton>
+              <BcButton onClick={confirmDelete}>
+                {deleting ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : 'Delete'}
+              </BcButton>
             </ButtonContainer>
           </Modal.Content>
         </CenteredModal>
