@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { authenticate } from './authenticate';
 import { getEvents } from './routes/events';
-import { createRequest, getRequests, getRequest, updateRequest, deleteRequest } from './routes/requests';
+import { createRequest, getRequests, getRequestAll, getRequest, updateRequest, deleteRequest } from './routes/requests';
 import { getClient } from './routes/client';
 import { getInstallation } from './routes/installation';
 import { wakeUpAll } from './routes/heartbeat';
@@ -43,18 +43,18 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   let response = {};
 
   console.log('REQUEST PATH', path);
-
-  if (path === `${BASE_PATH}/requests`) {
+  if (path === `${BASE_PATH}/requests-all`) {
+    if (httpMethod === 'POST') {
+      response = await getRequestAll(session, JSON.parse(body));
+    }
+  } else if (path === `${BASE_PATH}/requests`) {
     if (httpMethod === 'POST') {
       response = await createRequest(session, JSON.parse(body));
-    }
-    if (httpMethod === 'GET') {
+    } else if (httpMethod === 'GET') {
       response = await getRequests(session, include);
-    }
-    if (httpMethod === 'PUT') {
+    } else if (httpMethod === 'PUT') {
       response = await updateRequest(session, JSON.parse(body), submit);
-    }
-    if (httpMethod === 'DELETE') {
+    } else if (httpMethod === 'DELETE') {
       response = await deleteRequest(session, Number(id));
     }
   } else if (path === `${BASE_PATH}/request`) {

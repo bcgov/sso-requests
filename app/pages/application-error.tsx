@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import ErrorImage from 'svg/ErrorImage';
 import { useRouter } from 'next/router';
 import { getEndSessionUrl } from 'utils/openid';
+import { removeTokens } from 'utils/store';
 
 const Container = styled.div`
   text-align: center;
@@ -11,6 +12,8 @@ export default function ApplicationError() {
   const router = useRouter();
   const errorCode = router?.query?.error as string;
   let content = null;
+
+  removeTokens();
 
   if (errorCode === 'E02') {
     content = (

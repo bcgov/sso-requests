@@ -42,6 +42,32 @@ export const getRequests = async (include: string = 'active'): Promise<[Request[
   }
 };
 
+interface RequestAllData {
+  searchField: string[];
+  searchKey: string;
+  order: any;
+  limit: number;
+  page: number;
+  status: string;
+  archiveStatus: string;
+}
+
+interface RequestAllResult {
+  count: number;
+  rows: Request[];
+}
+
+export const getRequestAll = async (data: RequestAllData): Promise<[RequestAllResult, null] | [null, Error]> => {
+  const config = { ...getAuthConfig() };
+
+  try {
+    const result: RequestAllResult = await instance.post('requests-all', data, config).then((res) => res.data);
+    return [{ count: result.count, rows: result.rows.map(processRequest) }, null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};
+
 export const updateRequest = async (data: Request, submit = false): Promise<[Request, null] | [null, AxiosError]> => {
   const config = getAuthConfig();
 

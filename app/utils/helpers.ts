@@ -118,7 +118,7 @@ const changeNullToUndefined = (data: any) => {
   return data;
 };
 
-export const processRequest = (request: Request) => {
+export const processRequest = (request: Request): Request => {
   if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
     request.devValidRedirectUris = [''];
   }
