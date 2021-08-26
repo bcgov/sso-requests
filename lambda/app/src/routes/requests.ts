@@ -169,6 +169,59 @@ export const getRequest = async (session: Session, data: { requestId: number }) 
   }
 };
 
+// see https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
+export const getRequestAll = async (
+  session: Session,
+  data: {
+    searchField: string[];
+    searchKey: string;
+    order: any;
+    limit: number;
+    page: number;
+    status?: string;
+    archiveStatus?: string;
+  },
+) => {
+  if (!session.client_roles.includes('sso-admin')) {
+    throw Error('not allowed');
+  }
+
+  const { searchField, searchKey, order, limit, page, status = 'all', archiveStatus = 'active' } = data;
+
+  const where: any = {};
+
+  if (searchKey && searchField && searchField.length > 0) {
+    searchField.forEach((field) => {
+      where[Op.or] = [];
+      where[Op.or].push({ [field]: { [Op.like]: `%${searchKey}%` } });
+    });
+  }
+
+  if (status !== 'all') {
+    where.status = status;
+  }
+
+  if (archiveStatus !== 'all') {
+    where.archived = archiveStatus === 'archived';
+  }
+
+  try {
+    const result: Promise<{ count: number; rows: any[] }> = await models.request.findAndCountAll({
+      where,
+      limit,
+      offset: page > 0 ? (page - 1) * limit : 0,
+      order,
+    });
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(result),
+    };
+  } catch (err) {
+    return errorResponse(err);
+  }
+};
+
 export const getRequests = async (session: Session, include: string = 'active') => {
   try {
     const where: { archived?: boolean; idirUserid: string } = { idirUserid: session.idir_userid };
