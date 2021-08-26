@@ -37,6 +37,10 @@ const SemiBold = styled.span`
 
 const StyledUl = styled.ul`
   list-style: none;
+  margin: 0;
+  & li {
+    margin: 0;
+  }
 `;
 
 const formatBoolean = (value?: boolean) => {
@@ -151,18 +155,24 @@ function FormReview({ formData, setErrors, errors, visited, alert }: Props) {
           </tr>
           <tr>
             <td>Dev redirect URIs:</td>
+          </tr>
+          <tr>
             <td>
               <SemiBold>{formatList(formData?.devValidRedirectUris)}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Test redirect URIs:</td>
+          </tr>
+          <tr>
             <td>
               <SemiBold>{formatList(formData?.testValidRedirectUris)}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Prod redirect URIs:</td>
+          </tr>
+          <tr>
             <td>
               <SemiBold>{formatList(formData?.prodValidRedirectUris)}</SemiBold>
             </td>
