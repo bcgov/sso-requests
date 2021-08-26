@@ -1,5 +1,4 @@
 import SHeader from 'components/SHeader';
-import styled from 'styled-components';
 import { padStart } from 'lodash';
 
 interface Props {
