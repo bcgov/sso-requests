@@ -51,7 +51,6 @@ export default {
       items: redirectUriItems,
       additionalItems: redirectUriItems,
       default: [''],
-      ...redirectUriTooltipInfo,
     },
     prodValidRedirectUris: {
       type: 'array',
@@ -59,7 +58,6 @@ export default {
       items: redirectUriItems,
       additionalItems: redirectUriItems,
       default: [''],
-      ...redirectUriTooltipInfo,
     },
   },
 } as JSONSchema6;

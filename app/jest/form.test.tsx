@@ -91,7 +91,7 @@ describe('Form Template Saving and Navigation', () => {
   // });
 
   it('Redirects to my-requests on cancel', () => {
-    const cancelButton = screen.getByText('Cancel') as HTMLElement;
+    const cancelButton = screen.getByText('Save and Close') as HTMLElement;
     fireEvent.click(cancelButton);
     expect(sandbox.push).toHaveBeenCalledWith('/my-requests');
   });

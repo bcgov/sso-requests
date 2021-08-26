@@ -5,6 +5,7 @@ import Form from 'form-components/GovForm';
 import getUiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
+import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import Button from '@button-inc/bcgov-theme/Button';
 import { createRequest, updateRequest } from 'services/request';
@@ -20,16 +21,6 @@ import { validateForm } from 'utils/helpers';
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import { SaveMessage } from 'interfaces/form';
-
-const CenteredModal = styled(Modal)`
-  display: flex;
-  align-items: center;
-
-  & .pg-modal-main {
-    max-width: 600px;
-    margin: auto;
-  }
-`;
 
 const ModalButton = styled(Button)`
   display: block;
@@ -168,7 +159,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
 
   return (
     <>
-      <FormHeader formStage={formStage} id={formData.id} saveMessage={saveMessage} saving={saving} />
+      <FormHeader formStage={formStage} id={formData.id} />
       <FormStage
         currentStage={formStage}
         setFormStage={changeStep}
@@ -191,15 +182,24 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
         >
           <FormButtons
             formSubmission={formStage === 0}
-            text={{ continue: 'Next', back: 'Cancel' }}
+            text={{ continue: 'Next', back: 'Save and Close' }}
             show={formStage !== 0 || formData.projectLead}
             loading={loading}
             handleSubmit={handleButtonSubmit}
             handleBackClick={handleBackClick}
+            saving={saving}
+            saveMessage={saveMessage}
           />
         </Form>
       ) : (
-        <FormReview formData={formData} setErrors={setErrors} errors={errors} visited={visited} />
+        <FormReview
+          formData={formData}
+          setErrors={setErrors}
+          errors={errors}
+          visited={visited}
+          saving={saving}
+          saveMessage={saveMessage}
+        />
       )}
       {formStage === 0 && (
         <CenteredModal id="modal">

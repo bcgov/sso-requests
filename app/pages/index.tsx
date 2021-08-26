@@ -3,7 +3,7 @@ import Head from 'next/head';
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
-import Button from '@button-inc/bcgov-theme/Button';
+import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
@@ -15,17 +15,36 @@ const Panel = styled.div`
   margin-right: auto;
 `;
 
+const Button = styled(DefaultButton)`
+  min-width: 150px;
+`;
+
+const PaddedButton = styled(Button)`
+  margin-left: 20px;
+`;
+
 const JumbotronH1 = styled.h1`
   font-size: 3rem;
 `;
 
 const JumbotronP = styled.p`
-  font-size: 2rem;
+  font-size: 1.5rem;
+`;
+
+const BoldP = styled.p`
+  margin-top: 50px;
+  font-size: 1.5rem;
+  font-weight: bold;
 `;
 
 const Paragraph = styled.p`
   font-size: 1.2rem;
   padding-left: 3.5rem;
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  flex-direction: row;
 `;
 
 export default function Home({ onLoginClick }: PageProps) {
@@ -45,23 +64,23 @@ export default function Home({ onLoginClick }: PageProps) {
                 <JumbotronP>
                   Provide fast, simple
                   <br />
-                  and secure integrations
+                  and secure access to all BC
                   <br />
-                  to all BC Government
-                  <br />
-                  Identity Providers (IDPS)
+                  Gov IDPs.
                 </JumbotronP>
-                <Button size="medium" onClick={onLoginClick}>
-                  Request IDIR SSO integration with your IDIR Account
-                </Button>
-                <br /> <br />
-                <Link
-                  size="large"
-                  href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
-                  external
-                >
-                  Request IDIR and BCeID SSO integration with your GitHub Account
-                </Link>
+                <BoldP>Request SSO Integration</BoldP>
+                <ButtonContainer>
+                  <Button size="medium" onClick={onLoginClick}>
+                    IDIR
+                  </Button>
+                  <br /> <br />
+                  <a
+                    href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
+                    target="blank"
+                  >
+                    <PaddedButton>IDIR and BCeID</PaddedButton>
+                  </a>
+                </ButtonContainer>
               </Panel>
             </Grid.Col>
             <Grid.Col>

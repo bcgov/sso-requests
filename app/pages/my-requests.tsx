@@ -19,6 +19,7 @@ import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import Title from 'components/SHeader3';
 import Loader from 'react-loader-spinner';
+import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
@@ -52,17 +53,6 @@ const ButtonContainer = styled.div`
     min-width: 150px;
     margin-right: 20px;
     display: inline-block;
-  }
-`;
-
-const CenteredModal = styled(Modal)`
-  z-index: 1000;
-  & .pg-modal-main {
-    width: 600px;
-    position: absolute;
-    height: 200px;
-    top: calc(50% - 200px);
-    left: calc(50% - 300px);
   }
 `;
 
