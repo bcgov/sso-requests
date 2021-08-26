@@ -25,7 +25,7 @@ export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, ...res
     const { CHES_USERNAME: username, CHES_PASSWORD: password, CHES_API_ENDPOINT: chesAPIEndpoint } = process.env;
     const [accessToken, error] = await fetchChesToken(username, password);
     if (error) throw Error(error);
-    await axios.post(
+    return axios.post(
       chesAPIEndpoint,
       {
         // see https://ches.nrs.gov.bc.ca/api/v1/docs#operation/postEmail for options

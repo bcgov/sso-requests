@@ -64,7 +64,7 @@ export default async function status(event) {
         createEvent({ eventCode: `request-apply-${eventResult}`, requestId }),
       ]);
 
-      if (eventResult === 'success') {
+      if (eventResult === 'success' && !request.archived) {
         try {
           await sendEmail({
             to: preferredEmail,
