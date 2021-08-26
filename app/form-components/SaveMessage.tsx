@@ -22,6 +22,7 @@ interface Props {
 }
 
 export default function SaveMessage({ saving, saveMessage }: Props) {
+  const icon = saveMessage?.error ? faExclamationTriangle : faCheck;
   return (
     <>
       <SaveContainer>
@@ -30,11 +31,7 @@ export default function SaveMessage({ saving, saveMessage }: Props) {
             // @ts-ignore
             <Loader type="TailSpin" color="#000" height={18} width={50} visible label="request-saving" />
           ) : (
-            <FontAwesomeIcon
-              style={{ color: '#006fc4' }}
-              icon={saveMessage?.error ? faExclamationTriangle : faCheck}
-              title="request-saved"
-            />
+            <FontAwesomeIcon style={{ color: '#006fc4' }} icon={icon} title="request-saved" />
           )}
         </Icon>
         <StyledP>{saveMessage?.content}</StyledP>

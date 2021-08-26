@@ -1,21 +1,6 @@
 import SHeader from 'components/SHeader';
-import Loader from 'react-loader-spinner';
 import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { SaveMessage } from 'interfaces/form';
-import { faCheck, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { padStart } from 'lodash';
-
-const Container = styled.div`
-  display: flex;
-  & p {
-    padding-left: 15px;
-  }
-`;
-
-const Icon = styled.span`
-  width: 30px;
-`;
 
 interface Props {
   formStage: number;
