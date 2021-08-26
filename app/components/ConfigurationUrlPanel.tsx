@@ -80,7 +80,7 @@ const ConfigurationUrlPanel = ({ selectedRequest }: Props) => {
             formSubmission={true}
             show={true}
             loading={loading || false}
-            text={{ continue: 'Submit', back: 'Cancel' }}
+            text={{ continue: 'Submit', back: 'Save and Close' }}
             handleBackClick={handleCancel}
           />
         </Form>

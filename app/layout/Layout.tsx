@@ -84,10 +84,11 @@ interface Route {
   label: string;
   user?: boolean;
   hide?: boolean;
+  both?: boolean;
 }
 
 const routes: Route[] = [
-  { path: '/', label: 'Home', user: true },
+  { path: '/', label: 'Home', both: true },
   { path: '/terms-conditions', label: 'Terms and Conditions' },
   { path: '/my-requests', label: 'My Dashboard', user: true },
   { path: '/request', label: 'New Request', user: true, hide: true },
@@ -100,7 +101,7 @@ const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; current
   return (
     <>
       {routes
-        .filter((route) => !!route.user === isLoggedIn && (!route.hide || isCurrent(route.path)))
+        .filter((route) => (!!route.user === isLoggedIn || route.both) && (!route.hide || isCurrent(route.path)))
         .map((route) => {
           return (
             <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
@@ -128,7 +129,7 @@ const RightMenuItems = () => (
       </a>
     </HoverItem>
     <HoverItem>
-      <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Wiki">
+      <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Documentation">
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </HoverItem>
@@ -148,12 +149,12 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
       &nbsp;&nbsp;
       {/* <FontAwesomeIcon style={{ paddingLeft: '5px', height: '25px' }} icon={faUserCircle} /> */}
       <Button variant="secondary-inverse" size="medium" onClick={onLogoutClick}>
-        Logout
+        Log out
       </Button>
     </LoggedUser>
   ) : (
     <Button variant="secondary-inverse" size="medium" onClick={onLoginClick}>
-      Login with IDIR
+      Log in
     </Button>
   );
 
