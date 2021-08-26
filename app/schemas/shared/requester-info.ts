@@ -20,7 +20,6 @@ export default {
             newToSso: {
               type: 'boolean',
               title: 'Have you requested an SSO integration before?',
-              tooltipTitle: 'New To SSO',
               tooltipContent: `<p>If new to SSO, please visit <a style="color: #0000EE" href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client" target="blank">github</a> for more information</p>`,
               hide: 2000,
             },

@@ -55,11 +55,12 @@ function TermsAndConditions() {
         </li>
         <li>Coordinate load testing with the Pathfinder SSO Team, and please only use the Test environment</li>
         <li>
-          The SSO Service is multitenancy; meaning you share with others, so please coordinate{' '}
+          The SSO Service is multitenancy; meaning you share with others, so please coordinate with us (
           <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-            with us
-          </Link>
-          :<SubItem>if you predict moderate or high loads</SubItem>
+            #SSO channel on Rocket.Chat
+          </Link>{' '}
+          or email at <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>) :
+          <SubItem>if you predict moderate or high loads</SubItem>
           OR
           <SubItem>if you need to conduct load testing in TEST only</SubItem>
         </li>

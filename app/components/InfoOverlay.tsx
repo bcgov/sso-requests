@@ -26,7 +26,7 @@ export default function InfoOverlay({ tooltipTitle, tooltipContent, hide }: Prop
   );
   return (
     <>
-      <OverlayTrigger trigger="hover" placement="right" overlay={popover} delay={{ show: 250, hide }}>
+      <OverlayTrigger trigger="hover" placement="right-start" overlay={popover} delay={{ show: 250, hide }}>
         <FontAwesomeIcon color="#777777" icon={faInfoCircle} />
       </OverlayTrigger>
     </>

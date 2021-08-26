@@ -53,7 +53,8 @@ export default function ArrayFieldTemplate(props: any) {
     <div>
       {title && (
         <Title>
-          {title} <InfoOverlay tooltipTitle={tooltipTitle} tooltipContent={tooltipContent} hide={hide} />
+          {title}{' '}
+          {tooltipContent && <InfoOverlay tooltipTitle={tooltipTitle} tooltipContent={tooltipContent} hide={hide} />}
         </Title>
       )}
       {description && <Description>{description}</Description>}
