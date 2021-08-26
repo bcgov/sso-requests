@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { padStart, startCase } from 'lodash';
 import Loader from 'react-loader-spinner';
-import ResponsiveContainer, { MediaRule, defaultRules } from 'components/ResponsiveContainer';
+import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll } from 'services/request';
 import { PageProps } from 'interfaces/props';
@@ -41,7 +41,6 @@ const archiveStatusFilters = [
 ];
 
 const pageLimits = [
-  { value: 1, text: '1 per page' },
   { value: 5, text: '5 per page' },
   { value: 10, text: '10 per page' },
   { value: 15, text: '15 per page' },
@@ -50,13 +49,13 @@ const pageLimits = [
   { value: 100, text: '100 per page' },
 ];
 
-export default function TablePage({ currentUser }: PageProps) {
+export default function AdminDashboard({ currentUser }: PageProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
   const [searchKey, setSearchKey] = useState<string>('');
   const [count, setCount] = useState<number>(0);
-  const [limit, setLimit] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(5);
   const [page, setPage] = useState<number>(1);
   const [status, setStatus] = useState<Status>('all');
   const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
@@ -93,6 +92,10 @@ export default function TablePage({ currentUser }: PageProps) {
         <Loader type="Grid" color="#000" height={45} width={45} visible={true} />
       </ResponsiveContainer>
     );
+  }
+
+  if (hasError) {
+    return null;
   }
 
   return (

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Loader from 'react-loader-spinner';
 import styled from 'styled-components';
 import { noop } from 'lodash';
 import Input from '@button-inc/bcgov-theme/Input';
