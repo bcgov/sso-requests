@@ -13,9 +13,9 @@ export default function ApplicationError() {
   const errorCode = router?.query?.error as string;
   let content = null;
 
-  removeTokens();
-
   if (errorCode === 'E02') {
+    removeTokens();
+
     content = (
       <text transform="translate(291 258)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
         <tspan x="0" y="0">

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import getConfig from 'next/config';
 import type { AppProps } from 'next/app';
 import { fetchIssuerConfiguration } from 'utils/provider';
-import { getAuthorizationUrl, getAccessToken, refreshSession, getEndSessionUrl } from 'utils/openid';
+import { getAuthorizationUrl, getAccessToken, refreshSession } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
@@ -126,7 +126,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   const handleLogout = async () => {
     removeTokens();
-    window.location.href = getEndSessionUrl();
+    window.location.href = base_path || '/';
   };
 
   if (loading) return <PageLoader />;

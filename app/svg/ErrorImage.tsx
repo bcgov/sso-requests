@@ -23,9 +23,9 @@ const ErrorImage = ({ message, children }: Props) => {
           y2="-0.006"
           gradientUnits="objectBoundingBox"
         >
-          <stop offset="0" stop-color="gray" stop-opacity="0.251" />
-          <stop offset="0.54" stop-color="gray" stop-opacity="0.122" />
-          <stop offset="1" stop-color="gray" stop-opacity="0.102" />
+          <stop offset="0" stopColor="gray" stopOpacity="0.251" />
+          <stop offset="0.54" stopColor="gray" stopOpacity="0.122" />
+          <stop offset="1" stopColor="gray" stopOpacity="0.102" />
         </linearGradient>
       </defs>
       <g id="Group_1404" data-name="Group 1404" transform="translate(-258.5 -73.5)">
@@ -36,9 +36,9 @@ const ErrorImage = ({ message, children }: Props) => {
               data-name="?"
               transform="translate(364.824 335)"
               fill="#f8f8f8"
-              font-size="16"
-              font-family="OpenSans-Bold, Open Sans"
-              font-weight="700"
+              fontSize="16"
+              fontFamily="OpenSans-Bold, Open Sans"
+              fontWeight="700"
             >
               <tspan x="0" y="0">
                 ?
@@ -55,7 +55,7 @@ const ErrorImage = ({ message, children }: Props) => {
                 transform="translate(43.63 562.017)"
                 fill="#006fc4"
                 stroke="#ffd319"
-                stroke-width="4"
+                strokeWidth="4"
                 opacity="0.25"
               />
               <g id="Group_1396" data-name="Group 1396" transform="translate(617.46 92.03)" opacity="0.1">
@@ -194,7 +194,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-768.494 -149.12)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="3"
+                  strokeWidth="3"
                 />
                 <path
                   id="Path_6058"
@@ -357,7 +357,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-768.494 -149.12)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="3"
+                  strokeWidth="3"
                 />
                 <g id="Group_1395" data-name="Group 1395" transform="translate(156.257 350.131)" opacity="0.1">
                   <path
@@ -392,7 +392,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <g id="Group_1397" data-name="Group 1397" transform="translate(89.252 159.47)" opacity="0.1">
                   <path
@@ -402,7 +402,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6074"
@@ -411,7 +411,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6075"
@@ -420,7 +420,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6076"
@@ -429,7 +429,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6077"
@@ -438,7 +438,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6078"
@@ -447,7 +447,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6079"
@@ -456,7 +456,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6080"
@@ -465,7 +465,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6081"
@@ -474,7 +474,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6082"
@@ -483,7 +483,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6083"
@@ -492,7 +492,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6084"
@@ -501,7 +501,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6085"
@@ -510,7 +510,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6086"
@@ -519,7 +519,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6087"
@@ -528,7 +528,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                   <path
                     id="Path_6088"
@@ -537,7 +537,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-177.902 -535.95)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                 </g>
                 <path
@@ -547,7 +547,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <path
                   id="Path_6090"
@@ -556,7 +556,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <path
                   id="Path_6091"
@@ -565,7 +565,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <circle
@@ -577,7 +577,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(43.58)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <circle
                   id="Ellipse_60"
@@ -588,7 +588,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(12.12 3.46)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <circle
                   id="Ellipse_61"
@@ -599,7 +599,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(0 51.85)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <circle
                   id="Ellipse_62"
@@ -610,7 +610,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(16.37 76.02)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <circle
                   id="Ellipse_63"
@@ -621,7 +621,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(38.73 126.21)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <circle
                   id="Ellipse_64"
@@ -632,7 +632,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(38.73 126.21)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <circle
@@ -644,7 +644,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(88.46 69.36)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <circle
                   id="Ellipse_66"
@@ -655,7 +655,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(88.46 69.36)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -665,7 +665,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -675,7 +675,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -685,7 +685,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -695,7 +695,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -705,7 +705,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -715,7 +715,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -725,7 +725,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -735,7 +735,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -745,7 +745,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
                 <path
@@ -755,7 +755,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <g id="Group_1398" data-name="Group 1398" transform="translate(53.72 176.4)" opacity="0.1">
                   <path
@@ -765,7 +765,7 @@ const ErrorImage = ({ message, children }: Props) => {
                     transform="translate(-142.37 -552.88)"
                     fill="#006fc4"
                     stroke="#ffd319"
-                    stroke-width="1"
+                    strokeWidth="1"
                   />
                 </g>
                 <path
@@ -775,7 +775,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                 />
                 <path
                   id="Path_6104"
@@ -784,7 +784,7 @@ const ErrorImage = ({ message, children }: Props) => {
                   transform="translate(-88.65 -376.48)"
                   fill="#006fc4"
                   stroke="#ffd319"
-                  stroke-width="1"
+                  strokeWidth="1"
                   opacity="0.1"
                 />
               </g>
@@ -803,7 +803,7 @@ const ErrorImage = ({ message, children }: Props) => {
                 transform="translate(-107.634 -57.09)"
                 fill="#006fc4"
                 stroke="#ffd319"
-                stroke-width="3"
+                strokeWidth="3"
                 opacity="0.1"
               />
               <path
@@ -821,7 +821,7 @@ const ErrorImage = ({ message, children }: Props) => {
                 transform="translate(-88.65 -57.09)"
                 fill="#006fc4"
                 stroke="#ffd319"
-                stroke-width="1"
+                strokeWidth="1"
                 opacity="0.1"
               />
               <path
@@ -850,7 +850,7 @@ const ErrorImage = ({ message, children }: Props) => {
                 transform="translate(461.232 671.017)"
                 fill="#006fc4"
                 stroke="#ffd319"
-                stroke-width="1"
+                strokeWidth="1"
                 opacity="0.36"
               />
               <path
@@ -874,7 +874,7 @@ const ErrorImage = ({ message, children }: Props) => {
                 transform="translate(-88.65 -104.668)"
                 fill="#d0d2d5"
                 stroke="#707070"
-                stroke-width="1"
+                strokeWidth="1"
               />
               <rect
                 id="Rectangle_2109"
@@ -1120,9 +1120,9 @@ const ErrorImage = ({ message, children }: Props) => {
                 data-name="An error has occurred. "
                 transform="translate(238 212)"
                 fill="#3e3e3e"
-                font-size="20"
-                font-family="OpenSans-Semibold, Open Sans"
-                font-weight="600"
+                fontSize="20"
+                fontFamily="OpenSans-Semibold, Open Sans"
+                fontWeight="600"
               >
                 <tspan x="0" y="0">
                   An error has occurred{message ? `: ${message}` : '.'}{' '}
@@ -1137,7 +1137,7 @@ const ErrorImage = ({ message, children }: Props) => {
               transform="translate(825.5 395.5)"
               fill="none"
               stroke="#f8f8f8"
-              stroke-width="1"
+              strokeWidth="1"
             />
             <path
               id="Path_5892"
@@ -1146,7 +1146,7 @@ const ErrorImage = ({ message, children }: Props) => {
               transform="translate(881.5 395.5)"
               fill="#006fc4"
               stroke="#f8f8f8"
-              stroke-width="1"
+              strokeWidth="1"
             />
           </g>
         </g>
