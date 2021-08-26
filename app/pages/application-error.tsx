@@ -15,7 +15,7 @@ export default function ApplicationError() {
 
   removeTokens();
 
-  if (errorCode === 'E01') {
+  if (errorCode === 'E02') {
     content = (
       <text transform="translate(291 258)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
         <tspan x="0" y="0">
@@ -42,7 +42,7 @@ export default function ApplicationError() {
         <tspan y="26">.</tspan>
       </text>
     );
-  } else if (errorCode === 'E02') {
+  } else if (errorCode === 'E01') {
     content = (
       <text transform="translate(291 258)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
         <tspan x="0" y="0">
