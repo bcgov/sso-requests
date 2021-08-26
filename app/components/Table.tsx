@@ -146,8 +146,8 @@ function Table({
       <StyledTable>
         <thead>
           <tr>
-            {headers.map((header) => {
-              return <th>{header}</th>;
+            {headers.map((header, index) => {
+              return <th key={index}>{header}</th>;
             })}
           </tr>
         </thead>
