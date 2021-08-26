@@ -75,7 +75,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         setLoading(false);
         if (loginWorkflow) {
           router.push({
-            pathname: 'application-error',
+            pathname: '/application-error',
             query: {
               error: 'E02',
             },
