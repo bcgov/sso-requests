@@ -2,7 +2,7 @@ import Button from '@button-inc/bcgov-theme/Button';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
 import CancelButton from 'components/CancelButton';
-import { FORM_BUTTON_TOP_SPACING } from 'styles/theme';
+import { FORM_BUTTON_MIN_WIDTH, FORM_BUTTON_TOP_SPACING } from 'styles/theme';
 import { SaveMessage as SaveMessageInterface } from 'interfaces/form';
 import SaveMessage from 'form-components/SaveMessage';
 
@@ -22,7 +22,7 @@ interface Props {
 
 const PaddedButton = styled(Button)`
   margin-left: 10px;
-  min-width: 150px;
+  min-width: ${FORM_BUTTON_MIN_WIDTH};
 `;
 
 const Container = styled.div`

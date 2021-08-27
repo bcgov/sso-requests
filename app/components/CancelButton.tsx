@@ -1,8 +1,9 @@
 import styled from 'styled-components';
 import Button from '@button-inc/bcgov-theme/Button';
+import { FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 
 const CancelButton = styled(Button)`
-  min-width: 150px;
+  min-width: ${FORM_BUTTON_MIN_WIDTH};
   background-color: #b2b2b2;
   color: white;
   box-shadow: none !important;

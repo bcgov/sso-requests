@@ -85,6 +85,10 @@ const NoProjects = styled.div`
   background-color: #f8f8f8;
 `;
 
+const CenteredHeader = styled.th`
+  text-align: center;
+`;
+
 export const RequestsContext = React.createContext({} as any);
 
 const hasAnyPendingStatus = (requests: Request[]) => {
@@ -217,7 +221,7 @@ function RequestsPage({ currentUser }: PageProps) {
             <th>Request ID</th>
             <th>Project Name</th>
             <th>Status</th>
-            <th>Actions</th>
+            <CenteredHeader>Actions</CenteredHeader>
           </tr>
         </thead>
         <tbody>
