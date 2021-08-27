@@ -5,6 +5,7 @@ module.exports = {
   reactStrictMode: true,
   serverRuntimeConfig: {},
   publicRuntimeConfig: {
+    app_env: process.env.APP_ENV || 'develop',
     base_path: BASE_PATH,
     app_url: APP_URL,
     api_url: process.env.API_URL || '',
