@@ -76,7 +76,7 @@ describe('Form Template Saving and Navigation', () => {
 
   it('Should advance the form when clicking next', async () => {
     setUpRouter('/', sandbox);
-    let nextButton = screen.getByText('Next') as HTMLElement;
+    const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
     await waitFor(() => screen.getByText("We're a Community"));
   });
@@ -174,7 +174,6 @@ describe('Error messages', () => {
     setUpRender({});
 
     // Navigate away and back to page
-    const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(sandbox.thirdStageBox);
     fireEvent.click(sandbox.secondStageBox);
 
