@@ -64,7 +64,7 @@ describe('Form Template Saving and Navigation', () => {
     setUpRender({});
   });
 
-  it('Saves data and triggers spinner on blur events', async () => {
+  it('Should save data and triggers spinner on blur events', async () => {
     const uriInput = document.querySelector('#root_devValidRedirectUris_0') as HTMLElement;
     fireEvent.blur(uriInput);
     expect(updateRequest).toHaveBeenCalled();
@@ -74,20 +74,20 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => screen.getByTitle('request-saved'));
   });
 
-  it('Saves advances the form when clicking next', async () => {
+  it('Should advance the form when clicking next', async () => {
     setUpRouter('/', sandbox);
-    const nextButton = screen.getByText('Next') as HTMLElement;
+    let nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
     await waitFor(() => screen.getByText("We're a Community"));
   });
 
-  it('Redirects to my-requests on cancel', () => {
+  it('Should redirect to my-requests on cancel', () => {
     const cancelButton = screen.getByText('Save and Close') as HTMLElement;
     fireEvent.click(cancelButton);
     expect(sandbox.push).toHaveBeenCalledWith('/my-requests');
   });
 
-  it('Shows failed state in navigation after submission, and clears failed state on page change only if form data is correct', () => {
+  it('Should show failed state in stepper after submission and clear only after filling correct data', () => {
     // Submit empty form
     const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
     fireEvent.click(fourthStageBox);
@@ -115,7 +115,7 @@ describe('Form Template Loading Data', () => {
     jest.clearAllMocks();
   });
 
-  it('Pre-loads data if a request exists', () => {
+  it('Should pre-load data if a request exists', () => {
     setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
     const { firstStageBox, thirdStageBox } = sandbox;
@@ -149,7 +149,7 @@ describe('Form Template Loading Data', () => {
 });
 
 describe('Error messages', () => {
-  it('Displays the expected error messages on page 1 when navigating away and back', () => {
+  it('Should display the expected error messages on page 1 when navigating away and back', () => {
     setUpRouter('/', sandbox);
     setUpRender(null);
 
@@ -169,7 +169,7 @@ describe('Error messages', () => {
     screen.getByText(errorMessages.projectName);
   });
 
-  it('Displays the expected page 2 errors', () => {
+  it('Should display the expected page 2 errors', () => {
     setUpRouter('/', sandbox);
     setUpRender({});
 
@@ -181,7 +181,7 @@ describe('Error messages', () => {
     screen.getAllByText(errorMessages.redirectUris);
   });
 
-  it('Displays the expected page 3 errors after navigating away from the page', async () => {
+  it('Should display the expected page 3 errors after navigating away from the page', async () => {
     setUpRouter('/', sandbox);
     setUpRender(samplePage3Request);
 
