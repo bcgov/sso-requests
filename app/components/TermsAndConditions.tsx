@@ -60,9 +60,11 @@ function TermsAndConditions() {
             #SSO channel on Rocket.Chat
           </Link>{' '}
           or email at <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>) :
-          <SubItem>if you predict moderate or high loads</SubItem>
-          OR
-          <SubItem>if you need to conduct load testing in TEST only</SubItem>
+          <ul>
+            <SubItem>if you predict moderate or high loads</SubItem>
+            OR
+            <SubItem>if you need to conduct load testing in TEST only</SubItem>
+          </ul>
         </li>
       </StyledList>
 

@@ -19,7 +19,7 @@ export const errorMessages: ErrorMessages = {
   agreeWithTerms: 'You must agree to the terms to submit a request',
   preferredEmail: 'Please enter a valid email address',
   realm: 'Please select your IDPs',
-  redirectUris: 'Please enter a valid url, including an http:// or https:// prefix',
+  redirectUris: 'Please enter a valid URI, including an http:// or https:// prefix',
   publicAccess: 'Please select an answer',
   newToSso: 'Please select an answer',
   projectName: 'Please enter a project name',

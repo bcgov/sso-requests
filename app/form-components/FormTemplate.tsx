@@ -207,7 +207,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
             <FontAwesomeIcon icon={faInfoCircle} size="2x" title="Information" />
           </Modal.Header>
           <Modal.Content>
-            We can only process access requests submittted by{' '}
+            We can only process access requests submitted by{' '}
             <strong>product owners, project admin or team leads</strong>. If you are not acting in one of these roles,
             please get in touch with these individuals in your organization to make the request for you.
             <ModalButton onClick={handleModalClose}>Okay</ModalButton>
