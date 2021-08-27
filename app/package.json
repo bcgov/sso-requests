@@ -21,6 +21,7 @@
     "axios": "^0.21.1",
     "bootstrap": "^5.0.2",
     "jsrsasign": "^10.3.0",
+    "keycloak-js": "^15.0.2",
     "next": "11.0.1",
     "react": "17.0.2",
     "react-bootstrap": "^1.6.1",

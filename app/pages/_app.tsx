@@ -9,6 +9,7 @@ import { wakeItUp } from 'services/auth';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
 import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
+import { KeycloakConfig, KeycloakInitOptions, KeycloakInstance, KeycloakLoginOptions } from 'keycloak-js';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
@@ -53,75 +54,100 @@ const setTokenInterval = () => {
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [keycloak, setKeycloak] = useState<KeycloakInstance>();
+
+  // useEffect(() => {
+  //   console.log('app started...');
+  //   async function handleTokens(tokens: any, loginWorkflow: boolean) {
+  //     const verifiedIdToken = await verifyToken(tokens.id_token);
+  //     if (verifiedIdToken) {
+  //       if (loginWorkflow) {
+  //         setTokens(tokens);
+  //         await router.push('/my-requests');
+  //       }
+  //       const newVerifiedIdToken = await refreshTokenIfExpiriesSoon();
+  //       setTokenInterval();
+  //       setCurrentUser(newVerifiedIdToken);
+  //       setLoading(false);
+  //       return null;
+  //     } else {
+  //       removeTokens();
+  //       setCurrentUser(null);
+  //       setLoading(false);
+  //       if (loginWorkflow) {
+  //         router.push({
+  //           pathname: '/application-error',
+  //           query: {
+  //             error: 'E02',
+  //           },
+  //         });
+  //       }
+  //     }
+  //   }
+
+  //   async function fetchUser() {
+  //     setLoading(true);
+
+  //     try {
+  //       await fetchIssuerConfiguration();
+
+  //       const urlParams = new URLSearchParams(window.location.search);
+  //       const code = urlParams.get('code');
+  //       const state: string = urlParams.get('state') || '';
+
+  //       // Oauth callback endpoint
+  //       if (code) {
+  //         const tokens = await getAccessToken({ code, state });
+  //         await handleTokens(tokens, true);
+  //       }
+  //       // main entrypoint
+  //       else {
+  //         const tokens = getTokens();
+  //         await handleTokens(tokens, false);
+  //       }
+  //     } catch (err) {
+  //       console.log(err);
+  //       removeTokens();
+  //       setCurrentUser(null);
+  //       setLoading(false);
+  //       setError(err);
+  //     }
+  //   }
+
+  //   wakeItUp();
+  //   fetchUser();
+  // }, []);
 
   useEffect(() => {
-    console.log('app started...');
-    async function handleTokens(tokens: any, loginWorkflow: boolean) {
-      const verifiedIdToken = await verifyToken(tokens.id_token);
-      if (verifiedIdToken) {
-        if (loginWorkflow) {
-          setTokens(tokens);
-          await router.push('/my-requests');
-        }
-        const newVerifiedIdToken = await refreshTokenIfExpiriesSoon();
-        setTokenInterval();
-        setCurrentUser(newVerifiedIdToken);
+    const initKeycloak = async () => {
+      if (typeof window === 'object' && !keycloak) {
+        const Keycloak = (await import('keycloak-js')).default;
+        // @ts-ignore
+        const keycloak: any = new Keycloak({
+          realm: 'onestopauth',
+          url: 'https://dev.oidc.gov.bc.ca/auth/',
+          clientId: 'sso-requests',
+        });
+        keycloak.init({
+          onload: 'check-sso',
+          redirectUri: 'http://localhost:3000',
+          pkceMethod: 'S256',
+        });
+        setKeycloak(keycloak);
         setLoading(false);
-        return null;
-      } else {
-        removeTokens();
-        setCurrentUser(null);
-        setLoading(false);
-        if (loginWorkflow) {
-          router.push({
-            pathname: '/application-error',
-            query: {
-              error: 'E02',
-            },
-          });
-        }
       }
-    }
-
-    async function fetchUser() {
-      setLoading(true);
-
-      try {
-        await fetchIssuerConfiguration();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state: string = urlParams.get('state') || '';
-
-        // Oauth callback endpoint
-        if (code) {
-          const tokens = await getAccessToken({ code, state });
-          await handleTokens(tokens, true);
-        }
-        // main entrypoint
-        else {
-          const tokens = getTokens();
-          await handleTokens(tokens, false);
-        }
-      } catch (err) {
-        console.log(err);
-        removeTokens();
-        setCurrentUser(null);
-        setLoading(false);
-        setError(err);
-      }
-    }
-
-    wakeItUp();
-    fetchUser();
+    };
+    initKeycloak();
   }, []);
 
   const handleLogin = async () => {
-    const authUrl = await getAuthorizationUrl({ kc_idp_hint: 'idir' });
-    window.location.href = authUrl;
+    // const authUrl = await getAuthorizationUrl({ kc_idp_hint: 'idir' });
+    // window.location.href = authUrl;
+    await keycloak?.login({ idpHint: 'idir' });
+    setCurrentUser(keycloak?.idTokenParsed);
   };
 
   const handleLogout = async () => {
@@ -131,15 +157,17 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   if (loading) return <PageLoader />;
 
-  if (
-    [`${base_path}/my-requests`, `${base_path}/request`].some((url) => window.location.pathname.startsWith(url)) &&
-    !currentUser
-  ) {
-    router.push('/');
-    return null;
-  }
+  // if (
+  //   [`${base_path}/my-requests`, `${base_path}/request`].some((url) => window?.location?.pathname?.startsWith(url)) &&
+  //   !currentUser
+  // ) {
+  //   router.push('/');
+  //   return null;
+  // }
   return (
     <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
+      <button onClick={() => console.log(keycloak)}>Log kc object to console</button>
+      <button onClick={() => keycloak?.logout()}>logout</button>
       <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
     </Layout>
   );
