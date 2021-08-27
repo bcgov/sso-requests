@@ -74,7 +74,6 @@ export default function SubmittedStatusIndicator({ status, updatedAt }: Props) {
   const hasError = getStatusFailure(status);
   const statusMessage = getStatusMessage(status);
   const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();
-  console.log(updatedAt, typeof updatedAt);
 
   return (
     <>

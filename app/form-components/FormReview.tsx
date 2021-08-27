@@ -77,7 +77,7 @@ const formatList = (list?: string[]) => {
   return (
     <StyledUl>
       {list?.map((item) => (
-        <li>{item}</li>
+        <li key={item}>{item}</li>
       ))}
     </StyledUl>
   );
