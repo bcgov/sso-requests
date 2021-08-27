@@ -32,7 +32,7 @@ const setUpRender = (request: Request | object | null) => {
   return debug;
 };
 
-const sampleRequest: Request = {
+export const sampleRequest: Request = {
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
