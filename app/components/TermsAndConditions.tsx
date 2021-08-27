@@ -47,11 +47,10 @@ function TermsAndConditions() {
           </Link>
         </li>
         <li>
-          Please follow the BC Government digital standards (
+          Please follow the
           <Link external href="https://digital.gov.bc.ca/resources/digital-principles" target="_blank" rel="noreferrer">
-            link
+            BC Government digital standards
           </Link>
-          )
         </li>
         <li>Coordinate load testing with the Pathfinder SSO Team, and please only use the Test environment</li>
         <li>

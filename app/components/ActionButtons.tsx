@@ -14,7 +14,6 @@ const Container = styled.div`
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding-right: 13px;
 `;
 
 const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
