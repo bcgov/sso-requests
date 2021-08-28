@@ -61,7 +61,7 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey }: Props) {
       </>
     );
   } else if (displayStatus === 'Submitted') {
-    panel = <SubmittedStatusIndicator status={status} updatedAt={selectedRequest.updatedAt} />;
+    panel = <SubmittedStatusIndicator selectedRequest={selectedRequest} />;
   } else if (displayStatus === 'Completed') {
     panel = (
       <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
