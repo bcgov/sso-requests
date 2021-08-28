@@ -1,21 +1,46 @@
 import { instance } from './axios';
-import { setTokens, getTokens, removeTokens } from 'utils/store';
-import { AxiosRequestConfig } from 'axios';
+import { getTokens, setTokens } from 'utils/store';
+import { refreshSession } from 'utils/openid';
+import { verifyToken } from 'utils/jwt';
 
-export const getAuthConfig = (): AxiosRequestConfig => {
+export const getAuthHeader = async (): Promise<string> => {
+  await refreshTokenIfExpiriesSoon();
   const tokens = getTokens();
-  const config = { headers: { Authorization: `Bearer ${tokens.id_token}` } };
-  return config;
+  return `Bearer ${tokens.id_token}`;
 };
 
 export async function wakeItUp() {
   try {
-    const config = getAuthConfig();
-    const data = await instance.get('heartbeat', config).then((res) => res.data);
-
+    const data = await instance.get('heartbeat').then((res) => res.data);
     return data;
   } catch (err) {
     console.error(err);
     return null;
   }
 }
+
+const ONE_MIN = 60 * 1000;
+const TWO_MIN = 2 * ONE_MIN;
+
+const refreshToken = async (tokens: any) => {
+  const newTokens = await refreshSession({ refreshToken: tokens.refresh_token });
+  const newVerifiedIdToken = await verifyToken(newTokens?.id_token);
+  if (newVerifiedIdToken) {
+    setTokens(newTokens);
+    return newVerifiedIdToken;
+  } else {
+    console.error('failed to refresh the token');
+  }
+};
+
+const refreshTokenIfExpiriesSoon = async () => {
+  const tokens = getTokens();
+  const verifiedIdToken = await verifyToken(tokens.id_token);
+  if (verifiedIdToken) {
+    const expiresIn = verifiedIdToken.exp * 1000 - Date.now();
+    if (expiresIn < TWO_MIN) refreshToken(tokens);
+    return verifiedIdToken;
+  } else {
+    refreshToken(tokens);
+  }
+};

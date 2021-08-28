@@ -15,6 +15,14 @@ export const fetchIssuerConfiguration = async () => {
       (res: { data: any }) => res.data,
       () => null,
     );
+  const keys = await axios.get(jwks_uri).then((res) => res.data?.keys, console.error);
 
-  Object.assign(meta, { authorization_endpoint, token_endpoint, jwks_uri, userinfo_endpoint, end_session_endpoint });
+  Object.assign(meta, {
+    authorization_endpoint,
+    token_endpoint,
+    jwks_uri,
+    userinfo_endpoint,
+    end_session_endpoint,
+    keys,
+  });
 };
