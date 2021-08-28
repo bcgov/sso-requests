@@ -14,8 +14,7 @@ const instance = axios.create({
 instance.interceptors.request.use(
   async function (config) {
     const authHeader = await getAuthHeader();
-    const configWithAuthHeaders = { ...config, headers: { ...config.headers, Authorization: authHeader } };
-    return configWithAuthHeaders;
+    return { ...config, headers: { ...config.headers, Authorization: authHeader } };
   },
   function (error) {
     return Promise.reject(error);
