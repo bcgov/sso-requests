@@ -225,18 +225,19 @@ export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
       <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />
       <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
       <StatusList>{statusItems}</StatusList>
-      {hasError && (
-        <p>
-          Please contact our SSO support team by{' '}
-          <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
-            Rocket.Chat
-          </SLink>{' '}
-          or{' '}
-          <SLink href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="blank">
-            Email us
-          </SLink>{' '}
-        </p>
-      )}
+      <br />
+      <p>
+        If there is an error or the process takes longer than 20 mins then,
+        <br />
+        please contact our SSO support team by{' '}
+        <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
+          Rocket.Chat
+        </SLink>{' '}
+        or{' '}
+        <SLink href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="blank">
+          Email us
+        </SLink>{' '}
+      </p>
     </>
   );
 }
