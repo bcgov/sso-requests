@@ -1,5 +1,5 @@
 import { instance } from './axios';
-import { getTokens, setTokens } from 'utils/store';
+import { getTokens, setTokens, removeTokens } from 'utils/store';
 import { refreshSession } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 
@@ -11,7 +11,7 @@ export const getAuthHeader = async (): Promise<string> => {
 
 export async function wakeItUp() {
   try {
-    const data = await instance.get('heartbeat').then((res) => res.data);
+    const data = await instance.get('heartbeat', { skipAuth: true }).then((res) => res.data);
     return data;
   } catch (err) {
     console.error(err);
@@ -27,9 +27,10 @@ const refreshToken = async (tokens: any) => {
   const newVerifiedIdToken = await verifyToken(newTokens?.id_token);
   if (newVerifiedIdToken) {
     setTokens(newTokens);
-    return newVerifiedIdToken;
   } else {
+    removeTokens();
     console.error('failed to refresh the token');
+    window.location.href = '/';
   }
 };
 
@@ -39,7 +40,6 @@ const refreshTokenIfExpiriesSoon = async () => {
   if (verifiedIdToken) {
     const expiresIn = verifiedIdToken.exp * 1000 - Date.now();
     if (expiresIn < TWO_MIN) refreshToken(tokens);
-    return verifiedIdToken;
   } else {
     refreshToken(tokens);
   }
