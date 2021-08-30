@@ -5,10 +5,17 @@ import providerSchema from '../schemas/providers';
 import termsAndConditionsSchema from '../schemas/terms-and-conditions';
 import { isObject } from 'lodash';
 import { customValidate } from './customValidate';
+import { diff } from 'deep-diff';
+import { omit } from 'lodash';
 
 type EmailMessage = 'delete' | 'update' | 'submit' | 'create';
 
-export const validateRequest = (formData: Request) => {
+const omitUpdatedAt = (data: Request) => omit(data, ['updatedAt']);
+
+export const validateRequest = (formData: Request, original: Request) => {
+  const differences = diff(omitUpdatedAt(formData), omitUpdatedAt(original));
+  if (!differences) return { error: 'No changes submitted' };
+
   const { errors: firstPageErrors } = validate(formData, requesterSchema);
   const { errors: secondPageErrors } = validate(formData, providerSchema, customValidate);
   const { errors: thirdPageErrors } = validate(formData, termsAndConditionsSchema);
