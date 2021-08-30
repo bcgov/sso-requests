@@ -79,6 +79,18 @@ const HoverItem = styled.li`
   }
 `;
 
+const HeaderTitle = styled.div`
+  margin-top: 15px;
+`;
+
+const Beta = styled.span`
+  vertical-align: text-top;
+  color: #fcba19;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 16px;
+`;
+
 interface Route {
   path: string;
   label: string;
@@ -193,7 +205,16 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
   return (
     <>
       <BCSans />
-      <Navigation title="" rightSide={rightSide} mobileMenu={MobileMenu} onBannerClick={console.log}>
+      <Navigation
+        title={() => (
+          <HeaderTitle>
+            SSO Requests<Beta>Beta</Beta>
+          </HeaderTitle>
+        )}
+        rightSide={rightSide}
+        mobileMenu={MobileMenu}
+        onBannerClick={console.log}
+      >
         <SubMenu>
           <SubLeftMenu>
             <LeftMenuItems currentUser={currentUser} currentPath={pathname} />
