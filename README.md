@@ -124,7 +124,9 @@ In Addition, the following secrets are required for `sso-terraform` and `sso-ter
 This repository has frontend tests using jest and react testing library, and backend tests run with jest.
 Tests are run in CI in the `test.yml` file.
 
-To run the frontend tests, from the `app` directory run `yarn test`
+To run the frontend tests, from the `app` directory run `yarn test`. If adding a snapshot test,
+running `yarn test` will add the new snapshot file for you. If you want to update a snapshot test,
+run `yarn test -u`
 
 To run the backend integration tests, you willneed to have a local postgres database running.
 Ensure you have started the server with `pg_ctl start`.
