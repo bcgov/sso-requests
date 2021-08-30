@@ -11,7 +11,7 @@ export const getAuthHeader = async (): Promise<string> => {
 
 export async function wakeItUp() {
   try {
-    const data = await instance.get('heartbeat', { skipAuth: true }).then((res) => res.data);
+    const data = await instance.get('heartbeat', { headers: { skipAuth: true } }).then((res) => res.data);
     return data;
   } catch (err) {
     console.error(err);

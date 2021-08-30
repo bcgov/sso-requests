@@ -13,7 +13,7 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   async function (config) {
-    const { skipAuth } = config;
+    const { skipAuth } = config.headers;
     if (skipAuth) return config;
     const authHeader = await getAuthHeader();
     return { ...config, headers: { ...config.headers, Authorization: authHeader } };
