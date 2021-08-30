@@ -9,12 +9,26 @@ import { diff } from 'deep-diff';
 import { omit } from 'lodash';
 
 type EmailMessage = 'delete' | 'update' | 'submit' | 'create';
+export const errorMessage = 'No changes submitted. Please change the uris to update your integration.';
 
-const omitUpdatedAt = (data: Request) => omit(data, ['updatedAt']);
+const omitNonFormFields = (data: Request) =>
+  omit(data, [
+    'updatedAt',
+    'createdAt',
+    'archived',
+    'status',
+    'bceidApproved',
+    'environments',
+    'actionNumber',
+    'prNumber',
+    'clientName',
+    'idirUserid',
+    'id',
+  ]);
 
-export const validateRequest = (formData: Request, original: Request) => {
-  const differences = diff(omitUpdatedAt(formData), omitUpdatedAt(original));
-  if (!differences) return { error: 'No changes submitted' };
+export const validateRequest = (formData: Request, original: any) => {
+  const differences = diff(omitNonFormFields(formData), omitNonFormFields(original));
+  if (!differences) return { message: errorMessage };
 
   const { errors: firstPageErrors } = validate(formData, requesterSchema);
   const { errors: secondPageErrors } = validate(formData, providerSchema, customValidate);

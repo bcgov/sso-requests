@@ -90,7 +90,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     const mergedRequest = { ...original.dataValues, ...allowedRequest };
 
     if (submit) {
-      const isValid = validateRequest(mergedRequest, original);
+      const isValid = validateRequest(mergedRequest, rest);
       if (isValid !== true) return errorResponse({ ...isValid, prepared: mergedRequest });
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
