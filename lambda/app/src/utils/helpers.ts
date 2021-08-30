@@ -3,10 +3,9 @@ import validate from 'react-jsonschema-form/lib/validate';
 import requesterSchema from '../schemas/requester-info';
 import providerSchema from '../schemas/providers';
 import termsAndConditionsSchema from '../schemas/terms-and-conditions';
-import { isObject } from 'lodash';
+import { isObject, omit } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
-import { omit } from 'lodash';
 
 type EmailMessage = 'delete' | 'update' | 'submit' | 'create';
 export const errorMessage = 'No changes submitted. Please change the uris to update your integration.';

@@ -7,9 +7,9 @@ const formDataUpdated: any = {
   clientName: 'test',
   realm: 'onestopauth',
   publicAccess: true,
-  devValidRedirectUris: ['http://b'],
-  testValidRedirectUris: ['http://a'],
-  prodValidRedirectUris: ['http://a'],
+  devValidRedirectUris: ['https://b'],
+  testValidRedirectUris: ['https://a'],
+  prodValidRedirectUris: ['https://a'],
   environments: ['dev', 'test', 'prod'],
   prNumber: 10,
   actionNumber: 10,
@@ -30,9 +30,9 @@ const formDataOriginal: any = {
   clientName: 'test',
   realm: 'onestopauth',
   publicAccess: true,
-  devValidRedirectUris: ['http://a'],
-  testValidRedirectUris: ['http://a'],
-  prodValidRedirectUris: ['http://a'],
+  devValidRedirectUris: ['https://a'],
+  testValidRedirectUris: ['https://a'],
+  prodValidRedirectUris: ['https://a'],
   environments: ['dev', 'test', 'prod'],
   prNumber: 10,
   actionNumber: 10,
@@ -53,9 +53,9 @@ const formDataWithMutatedNonFormFields: any = {
   clientName: 'test-two',
   realm: 'onestopauth',
   publicAccess: true,
-  devValidRedirectUris: ['http://a'],
-  testValidRedirectUris: ['http://a'],
-  prodValidRedirectUris: ['http://a'],
+  devValidRedirectUris: ['https://a'],
+  testValidRedirectUris: ['https://a'],
+  prodValidRedirectUris: ['https://a'],
   environments: ['dev', 'test', 'prod'],
   prNumber: 15,
   actionNumber: 15,
@@ -74,7 +74,7 @@ it('should respond valid if there are valid changes', () => {
 });
 
 it('should respond invalid if there are no changes', () => {
-  const originalWithSameValues = { ...formDataOriginal, devValidRedirectUris: ['http://b'] };
+  const originalWithSameValues = { ...formDataOriginal, devValidRedirectUris: ['https://b'] };
   expect(validateRequest(formDataOriginal, formDataWithMutatedNonFormFields)).toBe({ message: errorMessage });
   expect(validateRequest(originalWithSameValues, formDataUpdated)).toEqual({ message: errorMessage });
 });
