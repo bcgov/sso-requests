@@ -42,7 +42,7 @@ exports[`should match the snapshot 1`] = `
   <p
     class="sc-gtsrHT dHnfDJ"
   >
-    Last updated at 12/31/2020, 4:00:00 PM
+    Last updated at Invalid Date
   </p>
 </DocumentFragment>
 `;
@@ -89,7 +89,7 @@ exports[`should match the snapshot 2`] = `
   <p
     class="sc-gtsrHT dHnfDJ"
   >
-    Last updated at 12/31/2020, 4:00:00 PM
+    Last updated at Invalid Date
   </p>
   <p>
     Please contact our SSO support team by

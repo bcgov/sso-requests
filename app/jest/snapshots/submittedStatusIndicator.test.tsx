@@ -4,9 +4,9 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 it('should match the snapshot', () => {
-  let { asFragment } = render(<SubmittedStatusIndicator status="pr" updatedAt="2021-01-01" />);
+  let { asFragment } = render(<SubmittedStatusIndicator status="pr" updatedAt="" />);
   expect(asFragment()).toMatchSnapshot();
 
-  ({ asFragment } = render(<SubmittedStatusIndicator status="prFailed" updatedAt="2021-01-01" />));
+  ({ asFragment } = render(<SubmittedStatusIndicator status="prFailed" updatedAt="" />));
   expect(asFragment()).toMatchSnapshot();
 });
