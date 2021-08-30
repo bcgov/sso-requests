@@ -108,7 +108,7 @@ function Table({
     <>
       <Grid cols={12}>
         <Grid.Row collapse="992" gutter={[]} align="center">
-          <Grid.Col span={6}>
+          <Grid.Col span={5}>
             <Input
               type="text"
               size="small"
@@ -121,11 +121,11 @@ function Table({
               Search
             </Button>
           </Grid.Col>
-          <Grid.Col span={6} style={{ textAlign: 'right' }}>
+          <Grid.Col span={7} style={{ textAlign: 'right' }}>
             {filterItems && (
               <>
                 <span>Status: </span>
-                <Dropdown style={{ display: 'inline-block', width: '200px' }} onChange={handleFilterChange}>
+                <Dropdown style={{ display: 'inline-block', width: '160px' }} onChange={handleFilterChange}>
                   {generateOptions(filterItems, filter)}
                 </Dropdown>
               </>
@@ -133,8 +133,7 @@ function Table({
             &nbsp;&nbsp;
             {filterItems2 && (
               <>
-                <span>Active: </span>
-                <Dropdown style={{ display: 'inline-block', width: '200px' }} onChange={handleFilterChange2}>
+                <Dropdown style={{ display: 'inline-block', width: '160px' }} onChange={handleFilterChange2}>
                   {generateOptions(filterItems2, filter2)}
                 </Dropdown>
               </>
@@ -162,7 +161,7 @@ function Table({
               </StyledPagination>
             </Grid.Col>
             <Grid.Col span={4} style={{ textAlign: 'right' }}>
-              <Dropdown style={{ display: 'inline-block', width: '200px' }} onChange={handlePageLimitChange}>
+              <Dropdown style={{ display: 'inline-block', width: '160px' }} onChange={handlePageLimitChange}>
                 {generateOptions(pageLimits, limit)}
               </Dropdown>
             </Grid.Col>
