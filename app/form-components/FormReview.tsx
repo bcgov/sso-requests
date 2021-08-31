@@ -126,8 +126,8 @@ function FormReview({ formData, setErrors, errors, visited, alert, isAdmin }: Pr
 
   const openModal = () => {
     const validationSchemas = isAdmin ? adminNonBceidSchemas : nonBceidSchemas;
-    const errors = validateForm(formData, validationSchemas);
-    if (Object.keys(errors).length > 0) {
+    const formErrors = validateForm(formData, validationSchemas);
+    if (Object.keys(formErrors).length > 0) {
       alert.show({
         variant: 'danger',
         fadeOut: 10000,
@@ -136,7 +136,7 @@ function FormReview({ formData, setErrors, errors, visited, alert, isAdmin }: Pr
           'There were errors with your submission. Please see the navigation tabs above for the form pages with errors.',
       });
 
-      return setErrors(errors);
+      return setErrors(formErrors);
     } else {
       window.location.hash = 'confirmation-modal';
     }

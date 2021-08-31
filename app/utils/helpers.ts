@@ -5,7 +5,6 @@
 import { isEqual } from 'lodash';
 import { Request } from 'interfaces/Request';
 import validate from 'react-jsonschema-form/lib/validate';
-import { nonBceidSchemas } from 'schemas/non-bceid-schemas';
 import { errorMessages } from './constants';
 import { customValidate } from './shared/customValidate';
 

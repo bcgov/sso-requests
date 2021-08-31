@@ -90,8 +90,8 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
       visited['2'] = true;
     }
 
-    const errors = validateForm(formData, schemas, visited);
-    setErrors(errors);
+    const formErrors = validateForm(formData, schemas, visited);
+    setErrors(formErrors);
     setFormStage(newStage);
     setVisited(visited);
     alert.hide();
