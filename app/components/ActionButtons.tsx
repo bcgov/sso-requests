@@ -9,30 +9,30 @@ import { Request } from 'interfaces/Request';
 import { $setEditingRequest } from 'dispatchers/requestDispatcher';
 import { PRIMARY_RED } from 'styles/theme';
 
-const Container = styled.div`
+export const Container = styled.div`
   height: 100%;
   display: flex;
   justify-content: space-around;
   align-items: center;
 `;
 
-const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
+export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
   ${(props) => (props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: #137ac8; }`)}
 `;
 
-const DeleteButton = styled(ActionButton)<{ disabled?: boolean }>`
+export const DeleteButton = styled(ActionButton)<{ disabled?: boolean }>`
   margin-right: 15px;
   &:hover {
     ${(props) => (props?.disabled ? '' : `color: ${PRIMARY_RED};`)}
   }
 `;
 
-const EditButton = styled(ActionButton)`
+export const EditButton = styled(ActionButton)`
   margin-left: 15px;
 `;
 
-const VerticalLine = styled.div`
+export const VerticalLine = styled.div`
   height: 40px;
   border-right: 2px solid #e3e3e3;
 `;
