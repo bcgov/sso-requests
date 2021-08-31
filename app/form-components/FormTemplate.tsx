@@ -182,7 +182,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           visited={visited}
           saving={saving}
           saveMessage={saveMessage}
-          includeComments={isAdmin}
+          isAdmin={isAdmin}
         />
       )}
       {stageTitlesUsingForms.includes(stageTitle) && (

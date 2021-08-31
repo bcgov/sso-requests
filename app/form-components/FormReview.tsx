@@ -95,10 +95,10 @@ interface Props {
   alert: BottomAlert;
   saving?: boolean;
   saveMessage?: SaveMessage;
-  includeComments?: boolean;
+  isAdmin?: boolean;
 }
 
-function FormReview({ formData, setErrors, errors, visited, alert, includeComments }: Props) {
+function FormReview({ formData, setErrors, errors, visited, alert, isAdmin }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -125,7 +125,7 @@ function FormReview({ formData, setErrors, errors, visited, alert, includeCommen
   };
 
   const openModal = () => {
-    const validationSchemas = includeComments ? adminNonBceidSchemas : nonBceidSchemas;
+    const validationSchemas = isAdmin ? adminNonBceidSchemas : nonBceidSchemas;
     const errors = validateForm(formData, validationSchemas);
     if (Object.keys(errors).length > 0) {
       alert.show({
@@ -218,7 +218,7 @@ function FormReview({ formData, setErrors, errors, visited, alert, includeCommen
           </tr>
         </tbody>
       </Table>
-      {includeComments && (
+      {isAdmin && (
         <Form schema={commentSchema} uiSchema={uiSchema} liveValidate>
           <></>
         </Form>

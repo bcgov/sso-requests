@@ -19,7 +19,6 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
     const { errors: err } = validate(formData, schema, validateUris ? customValidate : undefined);
     if (err.length > 0) errors[i] = err;
   });
-  console.log(errors);
   return errors;
 };
 

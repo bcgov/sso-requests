@@ -28,7 +28,7 @@ export default function Formstage({ currentStage, setFormStage, errors, creating
     <Container>
       <Grid cols={4}>
         <Grid.Row collapse="992" gutter={[]}>
-          {stages.map((stage) => (
+          {stages?.map((stage) => (
             <Grid.Col key={stage.title}>
               <FormStageBox
                 title={stage.title}
