@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { padStart, startCase } from 'lodash';
 import Loader from 'react-loader-spinner';
+import styled from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faExclamationTriangle,
+  faInfoCircle,
+  faExclamationCircle,
+  faTrash,
+  faEdit,
+} from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
-import { getRequestAll } from 'services/request';
+import { getRequestAll, getRequests, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Request } from 'interfaces/Request';
+import { Container, ActionButton, DeleteButton, EditButton, VerticalLine } from 'components/ActionButtons';
+import CenteredModal from 'components/CenteredModal';
+import Modal from '@button-inc/bcgov-theme/Modal';
+import BcButton from '@button-inc/bcgov-theme/Button';
+import CancelButton from 'components/CancelButton';
 
 type Status =
   | 'all'
@@ -71,8 +86,25 @@ const mediaRules: MediaRule[] = [
   },
 ];
 
+const ButtonContainer = styled.div`
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  & button {
+    min-width: 150px;
+    margin-right: 20px;
+    display: inline-block;
+  }
+`;
+
+const PaddedIcon = styled(FontAwesomeIcon)`
+  padding-right: 10px;
+`;
+
 export default function AdminDashboard({ currentUser }: PageProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
+  const [deleting, setDeleting] = useState(false);
   const [hasError, setHasError] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
   const [searchKey, setSearchKey] = useState<string>('');
@@ -81,30 +113,32 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [page, setPage] = useState<number>(1);
   const [status, setStatus] = useState<Status>('all');
   const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
+  const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
+  const selectedRequest = rows.find((request: Request) => request.id === Number(selectedId));
+
+  const getData = async () => {
+    setLoading(true);
+
+    const [data, err] = await getRequestAll({
+      searchField: ['projectName'],
+      searchKey,
+      order: [['createdAt', 'desc']],
+      limit,
+      page,
+      status,
+      archiveStatus,
+    });
+    if (err) {
+      setHasError(true);
+    } else if (data) {
+      setRows(data.rows);
+      setCount(data.count);
+    }
+
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const getData = async () => {
-      setLoading(true);
-
-      const [data, err] = await getRequestAll({
-        searchField: ['projectName'],
-        searchKey,
-        order: [['createdAt', 'desc']],
-        limit,
-        page,
-        status,
-        archiveStatus,
-      });
-      if (err) {
-        setHasError(true);
-      } else if (data) {
-        setRows(data.rows);
-        setCount(data.count);
-      }
-
-      setLoading(false);
-    };
-
     getData();
   }, [searchKey, limit, page, status, archiveStatus]);
 
@@ -120,13 +154,39 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     return null;
   }
 
+  const canEdit = ['applied'].includes(selectedRequest?.status || '');
+  const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
+
+  const handleEdit = (request: Request) => {
+    if (!request.id || !canEdit) return;
+    router.push(`/request-edit/${request.id}`);
+    return;
+  };
+
+  const handleDelete = async (request: Request) => {
+    if (!request.id || !canDelete) return;
+    setSelectedId(request.id);
+    window.location.hash = 'delete-modal';
+  };
+
+  const confirmDelete = async () => {
+    if (!canDelete) return;
+    setDeleting(true);
+    await deleteRequest(selectedId);
+    setDeleting(false);
+    await getData();
+    window.location.hash = '#';
+  };
+
+  const cancelDelete = () => (window.location.hash = '#');
+
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Grid cols={10}>
         <Grid.Row collapse="800" gutter={[15, 2]}>
           <Grid.Col span={6}>
             <Table
-              headers={['Request ID', 'Project Name', 'Status']}
+              headers={['Request ID', 'Project Name', 'Request Status', 'File Status', 'Actions']}
               filterItems={statusFilters}
               filterItems2={archiveStatusFilters}
               pageLimits={pageLimits}
@@ -149,7 +209,8 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 setPage(1);
               }}
               onLimit={setLimit}
-              onPage={setPage}
+              onPrev={setPage}
+              onNext={setPage}
             >
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
@@ -158,6 +219,28 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                       <td>{padStart(String(row.id), 8, '0')}</td>
                       <td>{row.projectName}</td>
                       <td>{startCase(row.status)}</td>
+                      <td>{row.archived ? 'Deleted' : 'Active'}</td>
+                      <td>
+                        <Container>
+                          <EditButton
+                            disabled={!canEdit}
+                            icon={faEdit}
+                            role="button"
+                            aria-label="edit"
+                            onClick={() => handleEdit(row)}
+                            title="Edit"
+                          />
+                          <VerticalLine />
+                          <DeleteButton
+                            icon={faTrash}
+                            role="button"
+                            aria-label="delete"
+                            onClick={() => handleDelete(row)}
+                            disabled={!canDelete}
+                            title="Delete"
+                          />
+                        </Container>
+                      </td>
                     </tr>
                   );
                 })
@@ -171,6 +254,23 @@ export default function AdminDashboard({ currentUser }: PageProps) {
           <Grid.Col span={4}></Grid.Col>
         </Grid.Row>
       </Grid>
+      <CenteredModal id="delete-modal">
+        <Modal.Header>
+          <PaddedIcon icon={faExclamationTriangle} title="Information" size="2x" style={{ paddingRight: '10px' }} />
+          Confirm Deletion
+        </Modal.Header>
+        <Modal.Content>
+          You are about to delete this integration request. This action cannot be undone.
+          <ButtonContainer>
+            <CancelButton variant="secondary" onClick={cancelDelete}>
+              Cancel
+            </CancelButton>
+            <BcButton onClick={confirmDelete}>
+              {deleting ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : 'Delete'}
+            </BcButton>
+          </ButtonContainer>
+        </Modal.Content>
+      </CenteredModal>
     </ResponsiveContainer>
   );
 }
