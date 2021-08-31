@@ -18,18 +18,18 @@ function Request({ currentUser }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [request, setRequest] = useState<Request | null>(null);
-  const { rid } = router.query;
+  const { id } = router.query;
   const isAdmin = currentUser?.client_roles?.includes('sso-admin');
 
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
-      const [data, _err] = await getRequest(parseInt(rid as string));
+      const [data, _err] = await getRequest(parseInt(id as string));
       setRequest(data as Request | null);
       setLoading(false);
     };
     getData();
-  }, [rid]);
+  }, [id]);
 
   if (!isAdmin) {
     router.push('/');

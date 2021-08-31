@@ -28,6 +28,7 @@ describe('Form Stage', () => {
     fireEvent.click(screen.getByText('Terms and conditions'));
     expect(setFormStage).toHaveBeenCalledWith(2);
   });
+
   it('Displays error states correctly', () => {
     render(
       <FormStage
@@ -43,5 +44,22 @@ describe('Form Stage', () => {
     expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
     const secondStageBox = screen.getByText('Providers and URIs').closest('div') as HTMLElement;
     expect(within(secondStageBox).queryByTitle('error')).toBeNull();
+  });
+
+  it('Shows the passed in stages correctly', () => {
+    render(
+      <FormStage
+        creatingNewForm={creatingNewForm}
+        currentStage={0}
+        setFormStage={setFormStage}
+        errors={errors}
+        visited={{}}
+        stages={bceidStages}
+      />,
+    );
+    const bceidTitles = bceidStages.map((stage) => stage.title);
+    bceidTitles.forEach((title) => {
+      expect(screen.getByText(title)).toBeInTheDocument();
+    });
   });
 });
