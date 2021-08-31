@@ -94,6 +94,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
+      idirUserDisplayName: {
+        type: DataTypes.STRING,
+        field: 'idir_user_display_name',
+      },
     },
     {
       underscored: true,

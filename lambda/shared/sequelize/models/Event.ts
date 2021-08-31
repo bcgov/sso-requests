@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: true,
       },
+      idirUserDisplayName: {
+        type: DataTypes.STRING,
+        field: 'idir_user_display_name',
+      },
     },
     {
       underscored: true,

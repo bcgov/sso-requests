@@ -94,26 +94,32 @@ const Beta = styled.span`
 interface Route {
   path: string;
   label: string;
-  user?: boolean;
   hide?: boolean;
-  both?: boolean;
+  roles: string[];
 }
 
 const routes: Route[] = [
-  { path: '/', label: 'Home', both: true },
-  { path: '/terms-conditions', label: 'Terms and Conditions' },
-  { path: '/my-requests', label: 'My Dashboard', user: true },
-  { path: '/request', label: 'New Request', user: true, hide: true },
+  { path: '/', label: 'Home', roles: ['guest', 'user', 'sso-admin'] },
+  { path: '/terms-conditions', label: 'Terms and Conditions', roles: ['guest'] },
+  { path: '/my-requests', label: 'My Dashboard', roles: ['user', 'sso-admin'] },
+  { path: '/admin-dashboard', label: 'SSO Dashboard', roles: ['sso-admin'] },
+  { path: '/request', label: 'New Request', roles: ['user', 'sso-admin'], hide: true },
+  { path: '/request-edit', label: 'Edit Request', roles: ['sso-admin'], hide: true },
 ];
 
 const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; currentPath: string }) => {
-  const isLoggedIn = !!currentUser;
+  let roles = ['guest'];
+
+  if (currentUser) {
+    roles = currentUser.client_roles.length > 0 ? currentUser.client_roles : ['user'];
+  }
+
   const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
 
   return (
     <>
       {routes
-        .filter((route) => (!!route.user === isLoggedIn || route.both) && (!route.hide || isCurrent(route.path)))
+        .filter((route) => route.roles.some((role) => roles.includes(role)) && (!route.hide || isCurrent(route.path)))
         .map((route) => {
           return (
             <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
@@ -208,7 +214,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
       <Navigation
         title={() => (
           <HeaderTitle>
-            SSO Requests<Beta>Beta</Beta>
+            SSO Pathfinder Integration<Beta>Beta</Beta>
           </HeaderTitle>
         )}
         rightSide={rightSide}
