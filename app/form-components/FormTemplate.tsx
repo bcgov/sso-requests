@@ -16,8 +16,9 @@ import { useRouter, NextRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import nonBceidSchemas from 'schemas/non-bceid-schemas';
+import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
 import { validateForm } from 'utils/helpers';
+import { bceidStages, adminBceidStages, stageTitlesUsingForms, stageTitlesReviewing } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import { SaveMessage } from 'interfaces/form';
@@ -34,6 +35,7 @@ interface Props {
   };
   request?: any;
   alert: BottomAlert;
+  isAdmin: boolean;
 }
 
 interface RouterParams {
@@ -53,7 +55,7 @@ const handleApplicationBlockedError = (err: any, router: NextRouter) => {
   router.push(routerParams);
 };
 
-function FormTemplate({ currentUser = {}, request, alert }: Props) {
+function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 1 : 0);
   const [loading, setLoading] = useState(false);
@@ -62,6 +64,9 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const router = useRouter();
+  const schemas = isAdmin ? adminNonBceidSchemas : nonBceidSchemas;
+  const stages = isAdmin ? adminBceidStages : bceidStages;
+  const stageTitle = stages.find((stage) => stage.number === formStage)?.title || '';
 
   const handleChange = (e: any) => {
     setFormData(e.formData);
@@ -85,8 +90,8 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
       visited['2'] = true;
     }
 
-    const errors = validateForm(formData, visited);
-    setErrors(errors);
+    const formErrors = validateForm(formData, schemas, visited);
+    setErrors(formErrors);
     setFormStage(newStage);
     setVisited(visited);
     alert.hide();
@@ -140,7 +145,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
   };
 
   const handleBlur = async (id: string, value: any) => {
-    if (creatingNewForm()) return;
+    if (creatingNewForm() || isAdmin) return;
     if (request) {
       setSaving(true);
       const [receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
@@ -166,18 +171,30 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
         errors={errors}
         creatingNewForm={creatingNewForm}
         visited={visited}
+        stages={stages}
       />
-      {formStage === 2 && <TermsAndConditions />}
-      {[0, 1, 2].includes(formStage) ? (
+      {stageTitle === 'Terms and conditions' && <TermsAndConditions />}
+      {stageTitlesReviewing.includes(stageTitle) && (
+        <FormReview
+          formData={formData}
+          setErrors={setErrors}
+          errors={errors}
+          visited={visited}
+          saving={saving}
+          saveMessage={saveMessage}
+          isAdmin={isAdmin}
+        />
+      )}
+      {stageTitlesUsingForms.includes(stageTitle) && (
         <Form
-          schema={nonBceidSchemas[formStage]}
+          schema={schemas[formStage] || {}}
           uiSchema={uiSchema}
           onChange={handleChange}
           onSubmit={handleFormSubmit}
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
           onBlur={handleBlur}
-          liveValidate={visited[formStage]}
+          liveValidate={visited[formStage] || isAdmin}
           validate={customValidate}
         >
           <FormButtons
@@ -191,17 +208,8 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
             saveMessage={saveMessage}
           />
         </Form>
-      ) : (
-        <FormReview
-          formData={formData}
-          setErrors={setErrors}
-          errors={errors}
-          visited={visited}
-          saving={saving}
-          saveMessage={saveMessage}
-        />
       )}
-      {formStage === 0 && (
+      {stageTitle === 'Requester Info' && (
         <CenteredModal id="modal">
           <Modal.Header>
             <FontAwesomeIcon icon={faInfoCircle} size="2x" title="Information" />

@@ -18,6 +18,10 @@ import Link from '@button-inc/bcgov-theme/Link';
 import DefaultCancelButton from 'components/CancelButton';
 import Loader from 'react-loader-spinner';
 import { SaveMessage } from 'interfaces/form';
+import Form from 'form-components/GovForm';
+import commentSchema from 'schemas/admin-comment';
+import uiSchema from 'schemas/commentUi';
+import { adminNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
 
 const Table = styled.table`
   margin-top: ${FORM_TOP_SPACING};
@@ -91,9 +95,10 @@ interface Props {
   alert: BottomAlert;
   saving?: boolean;
   saveMessage?: SaveMessage;
+  isAdmin?: boolean;
 }
 
-function FormReview({ formData, setErrors, errors, visited, alert, saving, saveMessage }: Props) {
+function FormReview({ formData, setErrors, errors, visited, alert, isAdmin }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -120,8 +125,9 @@ function FormReview({ formData, setErrors, errors, visited, alert, saving, saveM
   };
 
   const openModal = () => {
-    const errors = validateForm(formData, visited);
-    if (Object.keys(errors).length > 0) {
+    const validationSchemas = isAdmin ? adminNonBceidSchemas : nonBceidSchemas;
+    const formErrors = validateForm(formData, validationSchemas);
+    if (Object.keys(formErrors).length > 0) {
       alert.show({
         variant: 'danger',
         fadeOut: 10000,
@@ -130,7 +136,7 @@ function FormReview({ formData, setErrors, errors, visited, alert, saving, saveM
           'There were errors with your submission. Please see the navigation tabs above for the form pages with errors.',
       });
 
-      return setErrors(errors);
+      return setErrors(formErrors);
     } else {
       window.location.hash = 'confirmation-modal';
     }
@@ -212,6 +218,11 @@ function FormReview({ formData, setErrors, errors, visited, alert, saving, saveM
           </tr>
         </tbody>
       </Table>
+      {isAdmin && (
+        <Form schema={commentSchema} uiSchema={uiSchema} liveValidate>
+          <></>
+        </Form>
+      )}
       <FormButtons
         text={{ continue: 'Submit', back: 'Save and Close' }}
         show={true}
