@@ -18,6 +18,10 @@ import Link from '@button-inc/bcgov-theme/Link';
 import DefaultCancelButton from 'components/CancelButton';
 import Loader from 'react-loader-spinner';
 import { SaveMessage } from 'interfaces/form';
+import Form from 'form-components/GovForm';
+import commentSchema from 'schemas/admin-comment';
+import uiSchema from 'schemas/commentUi';
+import { adminNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
 
 const Table = styled.table`
   margin-top: ${FORM_TOP_SPACING};
@@ -91,9 +95,10 @@ interface Props {
   alert: BottomAlert;
   saving?: boolean;
   saveMessage?: SaveMessage;
+  includeComments?: boolean;
 }
 
-function FormReview({ formData, setErrors, errors, visited, alert, saving, saveMessage }: Props) {
+function FormReview({ formData, setErrors, errors, visited, alert, includeComments }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -120,7 +125,8 @@ function FormReview({ formData, setErrors, errors, visited, alert, saving, saveM
   };
 
   const openModal = () => {
-    const errors = validateForm(formData, visited);
+    const validationSchemas = includeComments ? adminNonBceidSchemas : nonBceidSchemas;
+    const errors = validateForm(formData, validationSchemas);
     if (Object.keys(errors).length > 0) {
       alert.show({
         variant: 'danger',
@@ -212,6 +218,11 @@ function FormReview({ formData, setErrors, errors, visited, alert, saving, saveM
           </tr>
         </tbody>
       </Table>
+      {includeComments && (
+        <Form schema={commentSchema} uiSchema={uiSchema} liveValidate>
+          <></>
+        </Form>
+      )}
       <FormButtons
         text={{ continue: 'Submit', back: 'Save and Close' }}
         show={true}

@@ -19,7 +19,7 @@ function Request({ currentUser }: Props) {
   const [loading, setLoading] = useState<boolean>(false);
   const [request, setRequest] = useState<Request | null>(null);
   const { rid } = router.query;
-  const isAdmin = currentUser.client_roles?.includes('sso-admin');
+  const isAdmin = currentUser?.client_roles?.includes('sso-admin');
 
   useEffect(() => {
     const getData = async () => {

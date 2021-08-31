@@ -18,7 +18,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
 import { validateForm } from 'utils/helpers';
-import { bceidStages, adminBceidStages, stageTitlesUsingForms } from 'utils/constants';
+import { bceidStages, adminBceidStages, stageTitlesUsingForms, stageTitlesReviewing } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import { SaveMessage } from 'interfaces/form';
@@ -90,7 +90,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
       visited['2'] = true;
     }
 
-    const errors = validateForm(formData, visited);
+    const errors = validateForm(formData, schemas, visited);
     setErrors(errors);
     setFormStage(newStage);
     setVisited(visited);
@@ -145,7 +145,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   };
 
   const handleBlur = async (id: string, value: any) => {
-    if (creatingNewForm()) return;
+    if (creatingNewForm() || isAdmin) return;
     if (request) {
       setSaving(true);
       const [receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
@@ -174,7 +174,18 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
         stages={stages}
       />
       {stageTitle === 'Terms and conditions' && <TermsAndConditions />}
-      {stageTitlesUsingForms.includes(stageTitle) ? (
+      {stageTitlesReviewing.includes(stageTitle) && (
+        <FormReview
+          formData={formData}
+          setErrors={setErrors}
+          errors={errors}
+          visited={visited}
+          saving={saving}
+          saveMessage={saveMessage}
+          includeComments={isAdmin}
+        />
+      )}
+      {stageTitlesUsingForms.includes(stageTitle) && (
         <Form
           schema={schemas[formStage] || {}}
           uiSchema={uiSchema}
@@ -197,15 +208,6 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
             saveMessage={saveMessage}
           />
         </Form>
-      ) : (
-        <FormReview
-          formData={formData}
-          setErrors={setErrors}
-          errors={errors}
-          visited={visited}
-          saving={saving}
-          saveMessage={saveMessage}
-        />
       )}
       {stageTitle === 'Requester Info' && (
         <CenteredModal id="modal">

@@ -11,14 +11,15 @@ import { customValidate } from './shared/customValidate';
 
 const URIS_SCHEMA_INDEX = 1;
 
-export const validateForm = (formData: Request, visited?: any) => {
+export const validateForm = (formData: Request, schemas: any[], visited?: any) => {
   const errors: any = {};
-  nonBceidSchemas.forEach((schema, i) => {
+  schemas.forEach((schema, i) => {
     if (visited && !visited[i]) return;
     const validateUris = i === URIS_SCHEMA_INDEX;
     const { errors: err } = validate(formData, schema, validateUris ? customValidate : undefined);
     if (err.length > 0) errors[i] = err;
   });
+  console.log(errors);
   return errors;
 };
 
