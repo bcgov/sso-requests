@@ -15,6 +15,11 @@ const StyledPagination = styled(Pagination)`
   }
 `;
 
+const PageInfo = styled.span`
+  padding-left: 5px;
+  line-height: 40px;
+`;
+
 interface FilterItem {
   value: string | number;
   text: string;
@@ -37,31 +42,65 @@ interface Props {
   onFilter2?: (val: any) => void;
   onLimit?: (val: number) => void;
   onPage?: (val: number) => void;
+  onPrev?: (val: number) => void;
+  onNext?: (val: number) => void;
 }
 
-const generateOptions = (items: FilterItem[], selected?: string | number) => (
+const generateOptions = (items: FilterItem[]) => (
   <>
     {items.map((item) => (
-      <option key={item.value} value={item.value} selected={item.value === selected}>
+      <option key={item.value} value={item.value}>
         {item.text}
       </option>
     ))}
   </>
 );
 
-const PaginationItems = ({ rowCount, limit, page, onPage }: any) => {
-  const pageCount = (rowCount - 1) / limit + 1;
+const PaginationItemsDetail = ({ rowCount, limit, page, onPage, onPrev, onNext }: any) => {
+  const pageCount = parseInt(String((rowCount - 1) / limit + 1));
 
-  const items = [];
+  const items = [
+    <Pagination.Item key="prev" disabled={page === 1} onClick={() => onPrev()}>
+      Previous
+    </Pagination.Item>,
+  ];
+
   for (let number = 1; number <= pageCount; number++) {
     items.push(
       <Pagination.Item key={number} active={number === page} onClick={() => onPage(number)}>
         {number}
       </Pagination.Item>,
     );
+
+    if (pageCount === number) {
+      items.push(
+        <Pagination.Item key="next" disabled={page === number} onClick={() => onNext()}>
+          Next
+        </Pagination.Item>,
+      );
+    }
   }
 
   return <>{items}</>;
+};
+
+const PaginationItems = ({ rowCount, limit, page, onPrev, onNext }: any) => {
+  const pageCount = parseInt(String((rowCount - 1) / limit + 1));
+  const startNum = parseInt(String((page - 1) * limit + 1));
+  let endNum = startNum + limit - 1;
+  if (endNum > rowCount) endNum = rowCount;
+
+  return (
+    <>
+      <Pagination.Item key="prev" disabled={page === 1} onClick={() => onPrev(page - 1)}>
+        Previous
+      </Pagination.Item>
+      <Pagination.Item key="next" disabled={page === pageCount} onClick={() => onNext(page + 1)}>
+        Next
+      </Pagination.Item>
+      <PageInfo>{`${startNum}-${endNum} of ${rowCount}`}</PageInfo>
+    </>
+  );
 };
 
 function Table({
@@ -71,7 +110,9 @@ function Table({
   onFilter = noop,
   onFilter2 = noop,
   onLimit = noop,
-  onPage = noop,
+  onPage,
+  onPrev = noop,
+  onNext = noop,
   filterItems,
   filterItems2,
   pageLimits,
@@ -82,6 +123,7 @@ function Table({
   filter = '',
   filter2 = '',
 }: Props) {
+  console.log('page', page);
   const [_searchKey, setSearchKey] = useState(searchKey);
 
   const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,16 +167,24 @@ function Table({
             {filterItems && (
               <>
                 <span>Status: </span>
-                <Dropdown style={{ display: 'inline-block', width: '160px' }} onChange={handleFilterChange}>
-                  {generateOptions(filterItems, filter)}
+                <Dropdown
+                  style={{ display: 'inline-block', width: '160px' }}
+                  value={filter}
+                  onChange={handleFilterChange}
+                >
+                  {generateOptions(filterItems)}
                 </Dropdown>
               </>
             )}
             &nbsp;&nbsp;
             {filterItems2 && (
               <>
-                <Dropdown style={{ display: 'inline-block', width: '160px' }} onChange={handleFilterChange2}>
-                  {generateOptions(filterItems2, filter2)}
+                <Dropdown
+                  style={{ display: 'inline-block', width: '160px' }}
+                  value={filter2}
+                  onChange={handleFilterChange2}
+                >
+                  {generateOptions(filterItems2)}
                 </Dropdown>
               </>
             )}
@@ -157,12 +207,20 @@ function Table({
           <Grid.Row collapse="992" gutter={[]} align="center">
             <Grid.Col span={8}>
               <StyledPagination>
-                <PaginationItems rowCount={rowCount} limit={limit} page={page} onPage={onPage} />
+                {onPage ? (
+                  <PaginationItemsDetail rowCount={rowCount} limit={limit} page={page} onPage={onPage} />
+                ) : (
+                  <PaginationItems rowCount={rowCount} limit={limit} page={page} onPrev={onPrev} onNext={onNext} />
+                )}
               </StyledPagination>
             </Grid.Col>
             <Grid.Col span={4} style={{ textAlign: 'right' }}>
-              <Dropdown style={{ display: 'inline-block', width: '160px' }} onChange={handlePageLimitChange}>
-                {generateOptions(pageLimits, limit)}
+              <Dropdown
+                style={{ display: 'inline-block', width: '160px' }}
+                value={String(limit)}
+                onChange={handlePageLimitChange}
+              >
+                {generateOptions(pageLimits)}
               </Dropdown>
             </Grid.Col>
           </Grid.Row>
