@@ -153,7 +153,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const handleEdit = (request: Request) => {
     if (!request.id || !canEdit) return;
-    router.push(`/request-edit/${request.id}`);
+    router.push(`/edit-request?id=${request.id}`);
   };
 
   const handleDelete = async (request: Request) => {
