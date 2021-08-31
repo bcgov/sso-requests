@@ -4,20 +4,14 @@ import { padStart, startCase } from 'lodash';
 import Loader from 'react-loader-spinner';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faExclamationTriangle,
-  faInfoCircle,
-  faExclamationCircle,
-  faTrash,
-  faEdit,
-} from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
-import { getRequestAll, getRequests, deleteRequest } from 'services/request';
+import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Request } from 'interfaces/Request';
-import { Container, ActionButton, DeleteButton, EditButton, VerticalLine } from 'components/ActionButtons';
+import { Container, DeleteButton, EditButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
@@ -160,7 +154,6 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const handleEdit = (request: Request) => {
     if (!request.id || !canEdit) return;
     router.push(`/request-edit/${request.id}`);
-    return;
   };
 
   const handleDelete = async (request: Request) => {
