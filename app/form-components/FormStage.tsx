@@ -1,33 +1,23 @@
 import FormStageBox from 'form-components/FormStageBox';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import { isObject } from 'lodash';
 import styled from 'styled-components';
+import { Stage } from 'interfaces/form';
+
 interface Props {
   currentStage: number;
   setFormStage: Function;
   errors: any;
   visited: any;
   creatingNewForm: Function;
+  stages: Stage[];
 }
-
-interface Stage {
-  title: string;
-  number: number;
-}
-
-const stages: Stage[] = [
-  { title: 'Requester Info', number: 0 },
-  { title: 'Providers and URIs', number: 1 },
-  { title: 'Terms and conditions', number: 2 },
-  { title: 'Review & Submit', number: 3 },
-];
 
 const Container = styled.div`
   width: 824px;
   max-width: 100%;
 `;
 
-export default function Formstage({ currentStage, setFormStage, errors, creatingNewForm, visited }: Props) {
+export default function Formstage({ currentStage, setFormStage, errors, creatingNewForm, visited, stages }: Props) {
   const handleClick = (stage: number) => {
     // Disable navigation if record is not yet created
     if (creatingNewForm()) return;

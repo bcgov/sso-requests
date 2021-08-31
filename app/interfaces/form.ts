@@ -38,3 +38,8 @@ export interface SaveMessage {
   content: string;
   error: boolean;
 }
+
+export interface Stage {
+  title: string;
+  number: number;
+}

@@ -1,4 +1,4 @@
-import type { EnvironmentOption, ErrorMessages } from 'interfaces/form';
+import type { EnvironmentOption, ErrorMessages, Stage } from 'interfaces/form';
 
 export const environments: EnvironmentOption[] = [
   {
@@ -24,3 +24,18 @@ export const errorMessages: ErrorMessages = {
   newToSso: 'Please select an answer',
   projectName: 'Please enter a project name',
 };
+
+export const bceidStages: Stage[] = [
+  { title: 'Requester Info', number: 0 },
+  { title: 'Providers and URIs', number: 1 },
+  { title: 'Terms and conditions', number: 2 },
+  { title: 'Review & Submit', number: 3 },
+];
+
+export const adminBceidStages: Stage[] = [
+  { title: 'Requester Info', number: 0 },
+  { title: 'Providers and URIs', number: 1 },
+  { title: 'Review & Submit', number: 2 },
+];
+
+export const stageTitlesUsingForms = ['Requester Info', 'Providers and URIs', 'Terms and conditions'];
