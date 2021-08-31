@@ -74,7 +74,7 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
     const result = await instance.put(url, data).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
-    return handleAxiosError(err);
+    return handleAxiosError(err?.response?.data);
   }
 };
 
