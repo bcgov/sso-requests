@@ -19,11 +19,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: true,
       },
-      firstName: {
+      idirUserDisplayName: {
         type: DataTypes.STRING,
-      },
-      lastName: {
-        type: DataTypes.STRING,
+        field: 'idir_user_display_name',
       },
     },
     {
