@@ -1,8 +1,8 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
-import { kebabCase, omit } from 'lodash';
-import { validateRequest, getEmailBody, getEmailSubject } from '../utils/helpers';
+import { kebabCase } from 'lodash';
+import { validateRequest, getEmailBody, getEmailSubject, processRequest } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 
@@ -85,12 +85,11 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       return unauthorized();
     }
 
-    const immutableFields = ['idirUserid', 'projectLead', 'clientName', 'status'];
-    const allowedRequest = omit(rest, immutableFields);
+    const allowedRequest = processRequest(rest);
     const mergedRequest = { ...original.dataValues, ...allowedRequest };
 
     if (submit) {
-      const isValid = validateRequest(mergedRequest, rest);
+      const isValid = validateRequest(rest, mergedRequest);
       if (isValid !== true) return errorResponse({ ...isValid, prepared: mergedRequest });
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';

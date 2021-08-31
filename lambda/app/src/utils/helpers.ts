@@ -3,7 +3,7 @@ import validate from 'react-jsonschema-form/lib/validate';
 import requesterSchema from '../schemas/requester-info';
 import providerSchema from '../schemas/providers';
 import termsAndConditionsSchema from '../schemas/terms-and-conditions';
-import { isObject, omit } from 'lodash';
+import { isObject, omit, sortBy } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
 
@@ -25,8 +25,24 @@ const omitNonFormFields = (data: Request) =>
     'id',
   ]);
 
-export const validateRequest = (formData: Request, original: any) => {
-  const differences = diff(omitNonFormFields(formData), omitNonFormFields(original));
+const sortURIFields = (data: any) => {
+  const sortedData = { ...data };
+  const { devValidRedirectUris, testValidRedirectUris, prodValidRedirectUris } = data;
+  sortedData.devValidRedirectUris = sortBy(devValidRedirectUris);
+  sortedData.testValidRedirectUris = sortBy(testValidRedirectUris);
+  sortedData.prodValidRedirectUris = sortBy(prodValidRedirectUris);
+  return sortedData;
+};
+
+export const processRequest = (data: any) => {
+  const immutableFields = ['idirUserid', 'projectLead', 'clientName', 'status'];
+  const allowedRequest = omit(data, immutableFields);
+  return sortURIFields(allowedRequest);
+};
+
+export const validateRequest = (formData: any, original: Request) => {
+  const sortedFormData = sortURIFields(formData);
+  const differences = diff(omitNonFormFields(sortedFormData), omitNonFormFields(original));
   if (!differences) return { message: errorMessage };
 
   const { errors: firstPageErrors } = validate(formData, requesterSchema);

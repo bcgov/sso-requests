@@ -62,7 +62,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
     } else {
       setRequest(selectedRequest);
       alert.show({
-        variant: 'danger',
+        variant: 'info',
         fadeOut: 10000,
         closable: true,
         content: err,
