@@ -27,11 +27,11 @@ let sandbox: any = {};
 
 const setUpRender = (request: Request | object | null, currentUser = {}) => {
   const { debug } = render(<FormTemplate currentUser={currentUser} request={request} />);
-  sandbox.firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
-  sandbox.secondStageBox = screen.getByText('Providers and URIs').closest('div') as HTMLElement;
-  sandbox.thirdStageBox = screen.getByText('Terms and conditions').closest('div') as HTMLElement;
-  sandbox.fourthStageBox = screen.getByText('Review & Submit').closest('div') as HTMLElement;
-  sandbox.adminReview = screen.getByText('Comment & Submit').closest('div') as HTMLElement;
+  sandbox.firstStageBox = screen.queryByText('Requester Info')?.closest('div') as HTMLElement;
+  sandbox.secondStageBox = screen.queryByText('Providers and URIs')?.closest('div') as HTMLElement;
+  sandbox.thirdStageBox = screen.queryByText('Terms and conditions')?.closest('div') as HTMLElement;
+  sandbox.fourthStageBox = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
+  sandbox.adminReview = screen.queryByText('Comment & Submit')?.closest('div') as HTMLElement;
   return debug;
 };
 
