@@ -10,7 +10,7 @@ import { diff } from 'deep-diff';
 type EmailMessage = 'delete' | 'update' | 'submit' | 'create';
 export const errorMessage = 'No changes submitted. Please change the uris to update your integration.';
 
-const omitNonFormFields = (data: Request) =>
+export const omitNonFormFields = (data: Request) =>
   omit(data, [
     'updatedAt',
     'createdAt',
@@ -22,6 +22,7 @@ const omitNonFormFields = (data: Request) =>
     'prNumber',
     'clientName',
     'idirUserid',
+    'idirUserDisplayName',
     'id',
   ]);
 
@@ -40,10 +41,16 @@ export const processRequest = (data: any) => {
   return sortURIFields(allowedRequest);
 };
 
-export const validateRequest = (formData: any, original: Request) => {
-  const sortedFormData = sortURIFields(formData);
-  const differences = diff(omitNonFormFields(sortedFormData), omitNonFormFields(original));
-  if (!differences) return { message: errorMessage };
+export const getDifferences = (newData: any, originalData: Request) => {
+  const sortedNewData = sortURIFields(newData);
+  return diff(omitNonFormFields(sortedNewData), omitNonFormFields(originalData));
+};
+
+export const validateRequest = (formData: any, original: Request, isUpdate = false) => {
+  if (isUpdate) {
+    const differences = getDifferences(formData, original);
+    if (!differences) return { message: errorMessage };
+  }
 
   const { errors: firstPageErrors } = validate(formData, requesterSchema);
   const { errors: secondPageErrors } = validate(formData, providerSchema, customValidate);

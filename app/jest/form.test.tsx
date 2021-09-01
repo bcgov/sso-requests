@@ -6,6 +6,8 @@ import { Request } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 
+const formButtonText = ['Next', 'Save and Close'];
+
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
 }));
@@ -23,12 +25,13 @@ const STEPPER_ERROR = 'Some additional fields require your attention.';
 // Container to expose variables from beforeeach to test functions
 let sandbox: any = {};
 
-const setUpRender = (request: Request | object | null) => {
-  const { debug } = render(<FormTemplate currentUser={{}} request={request} />);
+const setUpRender = (request: Request | object | null, currentUser = {}) => {
+  const { debug } = render(<FormTemplate currentUser={currentUser} request={request} />);
   sandbox.firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
   sandbox.secondStageBox = screen.getByText('Providers and URIs').closest('div') as HTMLElement;
   sandbox.thirdStageBox = screen.getByText('Terms and conditions').closest('div') as HTMLElement;
   sandbox.fourthStageBox = screen.getByText('Review & Submit').closest('div') as HTMLElement;
+  sandbox.adminReview = screen.getByText('Comment & Submit').closest('div') as HTMLElement;
   return debug;
 };
 
@@ -190,5 +193,14 @@ describe('Error messages', () => {
     fireEvent.click(sandbox.thirdStageBox);
 
     screen.getByText(errorMessages.agreeWithTerms);
+  });
+});
+
+describe('Admins', () => {
+  it('should not show buttons for admins', () => {
+    setUpRender(null, { client_roles: ['sso-admin'] });
+    formButtonText.forEach((title) => {
+      expect(screen.queryByText(title)).toBeNull();
+    });
   });
 });

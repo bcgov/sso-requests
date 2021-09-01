@@ -1,6 +1,8 @@
 export interface Session {
   idir_userid: string;
   client_roles: string[];
+  given_name: string;
+  family_name: string;
 }
 
 export interface Data {
@@ -15,6 +17,8 @@ export interface Data {
   agreeWithTC?: boolean;
   publicAccess?: boolean;
   id?: number;
+  comment?: string;
+  asAdmin?: boolean;
 }
 
 export interface FormattedData {
