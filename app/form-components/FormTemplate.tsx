@@ -183,6 +183,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           saving={saving}
           saveMessage={saveMessage}
           isAdmin={isAdmin}
+          setFormData={setFormData}
         />
       )}
       {stageTitlesUsingForms.includes(stageTitle) && (
@@ -200,7 +201,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           <FormButtons
             formSubmission={formStage === 0}
             text={{ continue: 'Next', back: 'Save and Close' }}
-            show={formStage !== 0 || formData.projectLead}
+            show={!isAdmin && (formStage !== 0 || formData.projectLead)}
             loading={loading}
             handleSubmit={handleButtonSubmit}
             handleBackClick={handleBackClick}
