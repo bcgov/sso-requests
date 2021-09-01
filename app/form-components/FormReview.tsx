@@ -96,9 +96,10 @@ interface Props {
   saving?: boolean;
   saveMessage?: SaveMessage;
   isAdmin?: boolean;
+  setFormData: Function;
 }
 
-function FormReview({ formData, setErrors, errors, visited, alert, isAdmin }: Props) {
+function FormReview({ formData, setFormData, setErrors, errors, visited, alert, isAdmin }: Props) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -122,6 +123,10 @@ function FormReview({ formData, setErrors, errors, visited, alert, isAdmin }: Pr
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleChange = (e: any) => {
+    setFormData(e.formData);
   };
 
   const openModal = () => {
@@ -219,7 +224,7 @@ function FormReview({ formData, setErrors, errors, visited, alert, isAdmin }: Pr
         </tbody>
       </Table>
       {isAdmin && (
-        <Form schema={commentSchema} uiSchema={uiSchema} liveValidate>
+        <Form schema={commentSchema} uiSchema={uiSchema} liveValidate onChange={handleChange} formData={formData}>
           <></>
         </Form>
       )}
