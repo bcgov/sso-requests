@@ -19,6 +19,8 @@ resource "aws_lambda_function" "app" {
 
   environment {
     variables = {
+      APP_URL                     = var.app_url
+      APP_ENV                     = var.app_env
       NODE_ENV                    = "production"
       LOCAL_DEV                   = var.local_dev
       DB_HOSTNAME                 = module.db.this_rds_cluster_endpoint

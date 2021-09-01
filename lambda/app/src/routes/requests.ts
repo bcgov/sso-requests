@@ -2,9 +2,10 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
-import { validateRequest, getEmailBody, getEmailSubject, processRequest, getDifferences } from '../utils/helpers';
+import { validateRequest, processRequest, getDifferences } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
+import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
 const isAdmin = (session: Session) => session.client_roles.includes('sso-admin');
@@ -118,12 +119,12 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         return errorResponse('failed to create a workflow dispatch event');
       }
 
-      const messageType = isUpdate ? 'update' : 'submit';
+      const emailCode = isUpdate ? 'uri-change-request-submitted' : 'create-request-submitted';
 
       await sendEmail({
         to: allowedRequest.preferredEmail,
-        body: getEmailBody(id, messageType),
-        subject: getEmailSubject(messageType),
+        body: getEmailBody(emailCode, { requestNumber: id, submittedBy: mergedRequest.idirUserDisplayName }),
+        subject: getEmailSubject(emailCode),
       });
 
       const idirUserDisplayName = session.given_name + ' ' + session.family_name;
@@ -314,13 +315,16 @@ export const deleteRequest = async (session: Session, id: number) => {
     Promise.all([
       sendEmail({
         to: 'bcgov.sso@gov.bc.ca',
-        body: getEmailBody(id, 'delete'),
-        subject: getEmailSubject('delete'),
+        body: getEmailBody('request-deleted-notification-to-admin', {
+          requestNumber: id,
+          submittedBy: result.idirUserDisplayName,
+        }),
+        subject: getEmailSubject('request-deleted-notification-to-admin'),
       }),
       sendEmail({
         to: original.preferredEmail,
-        body: getEmailBody(id, 'delete'),
-        subject: getEmailSubject('delete'),
+        body: getEmailBody('request-deleted', { requestNumber: id, submittedBy: result.idirUserDisplayName }),
+        subject: getEmailSubject('request-deleted'),
       }),
     ]);
     models.event.create({ eventCode: `request-delete-success`, requestId: id, idirUserId: session.idir_userid });
