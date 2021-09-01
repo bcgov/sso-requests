@@ -18,7 +18,6 @@ export interface Data {
   publicAccess?: boolean;
   id?: number;
   comment?: string;
-  asAdmin?: boolean;
 }
 
 export interface FormattedData {

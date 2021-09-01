@@ -70,7 +70,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
   if (error) return errorResponse(error);
 
   try {
-    const { id, comment, asAdmin, ...rest } = data;
+    const { id, comment, ...rest } = data;
     const where: any = { id };
     const userIsAdmin = isAdmin(session);
     if (!userIsAdmin) where.idirUserid = session.idir_userid;
@@ -139,7 +139,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         const differences = getDifferences(mergedRequest, original.dataValues);
         eventData.eventCode = 'request-updated';
         details.changes = differences;
-        if (asAdmin) details.comment = comment;
+        if (userIsAdmin && comment) details.comment = comment;
         eventData.details = details;
       }
       await models.event.create(eventData);

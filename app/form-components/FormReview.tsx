@@ -106,7 +106,7 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await updateRequest(formData, true, isAdmin);
+      await updateRequest(formData, true);
       setLoading(false);
 
       alert.show({

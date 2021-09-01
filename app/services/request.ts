@@ -62,11 +62,7 @@ export const getRequestAll = async (data: RequestAllData): Promise<[RequestAllRe
   }
 };
 
-export const updateRequest = async (
-  data: Request,
-  submit = false,
-  asAdmin = false,
-): Promise<[Request, null] | [null, AxiosError]> => {
+export const updateRequest = async (data: Request, submit = false): Promise<[Request, null] | [null, AxiosError]> => {
   try {
     let url = 'requests';
 
@@ -75,7 +71,7 @@ export const updateRequest = async (
       data.environments = ['dev', 'test', 'prod'];
     }
 
-    const result = await instance.put(url, { ...data, asAdmin }).then((res) => res.data);
+    const result = await instance.put(url, data).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
     return handleAxiosError(err?.response?.data);
