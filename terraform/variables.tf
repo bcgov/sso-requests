@@ -78,6 +78,11 @@ variable "app_url" {
   default     = "https://bcgov.github.io/sso-terraform-dev"
 }
 
+variable "app_env" {
+  description = "the application environment; development, test, production"
+  default     = "development"
+}
+
 variable "local_dev" {
   description = "whether to run lambda functions in local dev environment"
   default     = "false"

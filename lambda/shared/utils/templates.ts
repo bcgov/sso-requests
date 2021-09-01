@@ -1,4 +1,5 @@
 const APP_URL = process.env.APP_URL || '';
+const APP_ENV = process.env.APP_ENV || 'development';
 
 type EmailMessage =
   | 'create-request-submitted'
@@ -106,19 +107,21 @@ export const getEmailBody = (
 };
 
 export const getEmailSubject = (messageType: EmailMessage) => {
+  const prefix = APP_ENV === 'development' ? '[DEV] ' : '';
+
   switch (messageType) {
     case 'create-request-submitted':
-      return 'Pathfinder SSO request submitted';
+      return `${prefix}Pathfinder SSO request submitted`;
     case 'create-request-approved':
-      return 'Pathfinder SSO request approved';
+      return `${prefix}Pathfinder SSO request approved`;
     case 'uri-change-request-submitted':
-      return 'Pathfinder SSO URI change request submitted';
+      return `${prefix}Pathfinder SSO URI change request submitted`;
     case 'uri-change-request-approved':
-      return 'Pathfinder SSO URI change request approved';
+      return `${prefix}Pathfinder SSO URI change request approved`;
     case 'request-deleted':
-      return 'Pathfinder SSO request deleted';
+      return `${prefix}Pathfinder SSO request deleted`;
     case 'request-deleted-notification-to-admin':
-      return 'Pathfinder SSO request deleted';
+      return `${prefix}Pathfinder SSO request deleted`;
     default:
       return '';
   }
