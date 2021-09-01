@@ -1,6 +1,7 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { mergePR } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
+import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 
 const createEvent = async (data) => {
   try {
@@ -9,14 +10,6 @@ const createEvent = async (data) => {
     console.error(err);
   }
 };
-
-const getEmailBody = (requestNumber: number) => `
-  <h1>SSO request approved</h1>
-  <p>Your SSO request #${requestNumber} is approved.</p>
-  <p>Please login into your dashboard to access JSON Client Installation.</p>
-  <p>Thanks,</p>
-  <p>Pathfinder SSO Team</p>
-`;
 
 export default async function status(event) {
   const { body, queryStringParameters } = event;
@@ -57,6 +50,8 @@ export default async function status(event) {
       ]);
     }
     if (githubActionsStage === 'apply') {
+      const isUpdate = !!(await models.event.findOne({ where: { eventCode: `request-apply-success`, requestId } }));
+
       const status = String(applySuccess) === 'true' ? 'applied' : 'applyFailed';
       const eventResult = String(applySuccess) === 'true' ? 'success' : 'failure';
       await Promise.all([
@@ -66,10 +61,14 @@ export default async function status(event) {
 
       if (eventResult === 'success' && !request.archived) {
         try {
+          const emailCode = isUpdate ? 'uri-change-request-approved' : 'create-request-approved';
           await sendEmail({
             to: preferredEmail,
-            body: getEmailBody(requestId),
-            subject: 'SSO request approved',
+            body: getEmailBody(emailCode, {
+              requestNumber: request.id,
+              submittedBy: request.idirUserDisplayName,
+            }),
+            subject: getEmailSubject(emailCode),
           });
         } catch (err) {
           console.error(err);

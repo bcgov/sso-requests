@@ -73,6 +73,11 @@ variable "gh_secret" {
   default     = "secret"
 }
 
+variable "app_url" {
+  description = "the frontend app base url"
+  default     = "https://bcgov.github.io/sso-terraform-dev"
+}
+
 variable "local_dev" {
   description = "whether to run lambda functions in local dev environment"
   default     = "false"
