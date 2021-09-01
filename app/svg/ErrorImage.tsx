@@ -1,19 +1,30 @@
 import React from 'react';
+import styled from 'styled-components';
 
 interface Props {
   message: string;
   children: React.ReactNode;
 }
 
+const SVG = styled.svg.attrs({
+  version: '1.1',
+  xmlns: 'http://www.w3.org/2000/svg',
+  xmlnsXlink: 'http://www.w3.org/1999/xlink',
+})`
+  height: 713.017px;
+  width: 960.816px;
+  maxheight: 713.017px;
+  maxwidth: 960.816px;
+
+  & text a {
+    fill: blue;
+    text-decoration: underline;
+  }
+`;
+
 const ErrorImage = ({ message, children }: Props) => {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="960.816"
-      height="713.017"
-      viewBox="0 0 960.816 713.017"
-      style={{ height: '100%', width: '100%', maxHeight: '713.017px', maxWidth: '960.816px' }}
-    >
+    <SVG>
       <defs>
         <linearGradient
           id="linear-gradient"
@@ -1158,7 +1169,7 @@ const ErrorImage = ({ message, children }: Props) => {
           fill="#ff5c5c"
         />
       </g>
-    </svg>
+    </SVG>
   );
 };
 
