@@ -148,16 +148,16 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     return null;
   }
 
-  const canEdit = ['applied'].includes(selectedRequest?.status || '');
-  const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
+  const canEdit = (request: Request) => ['applied'].includes(request?.status || '');
+  const canDelete = (request: Request) => !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
   const handleEdit = (request: Request) => {
-    if (!request.id || !canEdit) return;
+    if (!request.id || !canEdit(request)) return;
     router.push(`/edit-request?id=${request.id}`);
   };
 
   const handleDelete = async (request: Request) => {
-    if (!request.id || !canDelete) return;
+    if (!request.id || !canDelete(request)) return;
     setSelectedId(request.id);
     window.location.hash = 'delete-modal';
   };
@@ -208,7 +208,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
                   return (
-                    <tr key={row.id}>
+                    <tr key={row.id} onClick={() => setSelectedId(row.id)}>
                       <td>{padStart(String(row.id), 8, '0')}</td>
                       <td>{row.projectName}</td>
                       <td>{startCase(row.status)}</td>
@@ -216,7 +216,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                       <td>
                         <Container>
                           <EditButton
-                            disabled={!canEdit}
+                            disabled={!canEdit(row)}
                             icon={faEdit}
                             role="button"
                             aria-label="edit"
@@ -229,7 +229,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                             role="button"
                             aria-label="delete"
                             onClick={() => handleDelete(row)}
-                            disabled={!canDelete}
+                            disabled={!canDelete(row)}
                             title="Delete"
                           />
                         </Container>
