@@ -108,7 +108,6 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [status, setStatus] = useState<Status>('all');
   const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
   const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
-  const selectedRequest = rows.find((request: Request) => request.id === Number(selectedId));
 
   const getData = async () => {
     setLoading(true);
