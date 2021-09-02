@@ -21,11 +21,9 @@ export async function wakeItUp() {
 
 export async function verifyTokenWithAPI(idToken: string) {
   try {
-    const data = await instance
+    return instance
       .get('verify-token', { headers: { skipAuth: true, Authorization: `Bearer ${idToken}` } })
       .then((res) => res.data);
-
-    return data;
   } catch (err) {
     console.error(err);
     return null;
