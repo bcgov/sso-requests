@@ -42,7 +42,7 @@ export const processRequest = (data: any) => {
 
 export const getDifferences = (newData: any, originalData: Request) => {
   const sortedNewData = sortURIFields(newData);
-  return diff(omitNonFormFields(sortedNewData), omitNonFormFields(originalData));
+  return diff(omitNonFormFields(originalData), omitNonFormFields(sortedNewData));
 };
 
 export const validateRequest = (formData: any, original: Request, isUpdate = false) => {
