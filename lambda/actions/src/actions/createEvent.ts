@@ -2,10 +2,11 @@ import { models } from '../../../shared/sequelize/models/models';
 import { mergePR } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
+import { EVENTS } from '../../../shared/enums';
 
 const createEvent = async (data) => {
   try {
-    const result = await models.event.create(data);
+    await models.event.create(data);
   } catch (err) {
     console.error(err);
   }
@@ -28,11 +29,11 @@ export default async function status(event) {
   const { status: githubActionsStage } = queryStringParameters || {};
 
   if (githubActionsStage === 'create') {
-    const status = String(prSuccess) === 'true' ? 'pr' : 'prFailed';
-    const eventResult = String(prSuccess) === 'true' ? 'success' : 'failure';
+    const success = String(prSuccess) === 'true';
+    const status = success ? 'pr' : 'prFailed';
     await Promise.all([
       models.request.update({ prNumber, status, actionNumber }, { where: { id } }),
-      createEvent({ eventCode: `request-pr-${eventResult}`, requestId: id }),
+      createEvent({ eventCode: success ? EVENTS.REQUEST_PR_SUCCESS : EVENTS.REQUEST_PR_FAILURE, requestId: id }),
     ]);
   } else {
     // After creation, gh action only has prNumber to reference request. Using this to grab the requestId first
@@ -42,38 +43,43 @@ export default async function status(event) {
     const { id: requestId, status: currentStatus, preferredEmail } = request;
     const isAlreadyApplied = currentStatus === 'applied';
     if (githubActionsStage === 'plan') {
-      const status = String(planSuccess) === 'true' ? 'planned' : 'planFailed';
-      const eventResult = String(planSuccess) === 'true' ? 'success' : 'failure';
+      const success = String(planSuccess) === 'true';
+      const status = success ? 'planned' : 'planFailed';
       await Promise.all([
         !isAlreadyApplied && models.request.update({ status }, { where: { id: requestId } }),
-        createEvent({ eventCode: `request-plan-${eventResult}`, requestId, details: { planDetails } }),
+        createEvent({
+          eventCode: success ? EVENTS.REQUEST_PLAN_SUCCESS : EVENTS.REQUEST_PLAN_FAILURE,
+          requestId,
+          details: { planDetails },
+        }),
       ]);
     }
-    if (githubActionsStage === 'apply') {
-      const isUpdate = !!(await models.event.findOne({ where: { eventCode: `request-apply-success`, requestId } }));
 
-      const status = String(applySuccess) === 'true' ? 'applied' : 'applyFailed';
-      const eventResult = String(applySuccess) === 'true' ? 'success' : 'failure';
+    if (githubActionsStage === 'apply') {
+      const isUpdate = !!(await models.event.findOne({
+        where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId },
+      }));
+
+      const success = String(applySuccess) === 'true';
+      const status = success ? 'applied' : 'applyFailed';
+
       await Promise.all([
         models.request.update({ status }, { where: { id: requestId } }),
-        createEvent({ eventCode: `request-apply-${eventResult}`, requestId }),
+        createEvent({ eventCode: success ? EVENTS.REQUEST_APPLY_SUCCESS : EVENTS.REQUEST_APPLY_FAILURE, requestId }),
       ]);
 
-      if (eventResult === 'success' && !request.archived) {
-        try {
-          const emailCode = isUpdate ? 'uri-change-request-approved' : 'create-request-approved';
-          await sendEmail({
-            to: preferredEmail,
-            body: getEmailBody(emailCode, {
-              requestNumber: request.id,
-              submittedBy: request.idirUserDisplayName,
-            }),
-            subject: getEmailSubject(emailCode),
-          });
-        } catch (err) {
-          console.error(err);
-          createEvent({ eventCode: `submit-email-failed`, details: err, requestId });
-        }
+      if (success && !request.archived) {
+        const emailCode = isUpdate ? 'uri-change-request-approved' : 'create-request-approved';
+
+        await sendEmail({
+          to: preferredEmail,
+          body: getEmailBody(emailCode, {
+            requestNumber: request.id,
+            submittedBy: request.idirUserDisplayName,
+          }),
+          subject: getEmailSubject(emailCode),
+          event: { emailCode, requestId },
+        });
       }
     }
   }

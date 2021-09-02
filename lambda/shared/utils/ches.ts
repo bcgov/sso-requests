@@ -1,5 +1,7 @@
 const axios = require('axios');
 import { EmailOptions } from '../interfaces';
+import { models } from '../../sequelize/models/models';
+import { EVENTS } from '../enums';
 const url = require('url');
 
 const fetchChesToken = async (username, password) => {
@@ -20,11 +22,12 @@ const fetchChesToken = async (username, password) => {
   }
 };
 
-export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, ...rest }: EmailOptions) => {
+export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, event, ...rest }: EmailOptions) => {
   try {
     const { CHES_USERNAME: username, CHES_PASSWORD: password, CHES_API_ENDPOINT: chesAPIEndpoint } = process.env;
     const [accessToken, error] = await fetchChesToken(username, password);
     if (error) throw Error(error);
+
     return axios.post(
       chesAPIEndpoint,
       {
@@ -44,5 +47,12 @@ export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, ...res
     );
   } catch (err) {
     console.error(err);
+    models.event
+      .create({
+        eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
+        requestId: event.requestId,
+        details: { emailCode: event.emailCode, error: err.message || err },
+      })
+      .catch(() => {});
   }
 };
