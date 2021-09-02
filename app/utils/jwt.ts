@@ -31,8 +31,9 @@ export const verifyToken = async (token: string) => {
     return false;
   }
 
-  const isValidForAPI = await verifyTokenWithAPI(token);
-  console.log('isValidForAPI', isValidForAPI);
+  // TODO: see if validation results from API also invalid when having token issue again.
+  // const isValidForAPI = await verifyTokenWithAPI(token);
+  // console.log('isValidForAPI', isValidForAPI);
 
   // verify JWT Signature
   const keyObj: any = rs.KEYUTIL.getKey(key);
