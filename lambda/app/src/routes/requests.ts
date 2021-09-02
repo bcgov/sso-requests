@@ -306,7 +306,7 @@ export const deleteRequest = async (session: Session, id: number) => {
     const [_closed, prError] = await closeOpenPullRequests(id);
     if (err) throw prError;
 
-    const result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
+    const result = await models.request.update({ archived: true }, { where });
 
     Promise.all([
       sendEmail({
