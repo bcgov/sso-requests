@@ -117,7 +117,7 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
       });
 
       router.push({
-        pathname: '/my-requests',
+        pathname: isAdmin ? '/admin-dashboard' : '/my-requests',
         query: { id: formData.id },
       });
     } catch (err) {
