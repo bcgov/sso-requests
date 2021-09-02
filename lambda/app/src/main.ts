@@ -40,7 +40,10 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     return callback(null, response);
   }
 
-  let response = {};
+  let response: any = {
+    statusCode: 404,
+    headers: responseHeaders,
+  };
 
   console.log('REQUEST PATH', path);
   if (path === `${BASE_PATH}/requests-all`) {
