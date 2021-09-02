@@ -68,7 +68,7 @@ export default function Home({ onLoginClick }: PageProps) {
                   <br />
                   Gov IDPs.
                 </JumbotronP>
-                <BoldP>Request SSO Integration</BoldP>
+                <BoldP>Request SSO Integration for:</BoldP>
                 <ButtonContainer>
                   <Button size="medium" onClick={onLoginClick}>
                     IDIR

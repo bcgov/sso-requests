@@ -25,18 +25,20 @@ export const errorMessages: ErrorMessages = {
   projectName: 'Please enter a project name',
 };
 
+export const firstFormPageTitle = 'Requester Info';
+
 export const bceidStages: Stage[] = [
-  { title: 'Requester Info', number: 0 },
+  { title: firstFormPageTitle, number: 0 },
   { title: 'Providers and URIs', number: 1 },
   { title: 'Terms and conditions', number: 2 },
   { title: 'Review & Submit', number: 3 },
 ];
 
 export const adminBceidStages: Stage[] = [
-  { title: 'Requester Info', number: 0 },
+  { title: firstFormPageTitle, number: 0 },
   { title: 'Providers and URIs', number: 1 },
   { title: 'Comment & Submit', number: 2 },
 ];
 
-export const stageTitlesUsingForms = ['Requester Info', 'Providers and URIs', 'Terms and conditions'];
+export const stageTitlesUsingForms = [firstFormPageTitle, 'Providers and URIs', 'Terms and conditions'];
 export const stageTitlesReviewing = ['Comment & Submit', 'Review & Submit'];
