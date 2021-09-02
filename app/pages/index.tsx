@@ -7,6 +7,9 @@ import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { CALLOUT_BUTTON_BACKGROUND_COLOR, CALLOUT_BUTTON_FONT_COLOR } from 'styles/theme';
 
 const Panel = styled.div`
   max-width: 450px;
@@ -16,7 +19,10 @@ const Panel = styled.div`
 `;
 
 const Button = styled(DefaultButton)`
+  background-color: #f2f2f2;
+  box-shadow: ${CALLOUT_BUTTON_BACKGROUND_COLOR} 0px 0px 0px 2px inset !important;
   min-width: 150px;
+  color: ${CALLOUT_BUTTON_FONT_COLOR};
 `;
 
 const PaddedButton = styled(Button)`
@@ -74,12 +80,14 @@ export default function Home({ onLoginClick }: PageProps) {
                     IDIR
                   </Button>
                   <br /> <br />
-                  <a
+                  <Link
                     href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
                     target="blank"
                   >
-                    <PaddedButton>IDIR and BCeID</PaddedButton>
-                  </a>
+                    <PaddedButton>
+                      IDIR and BCeID <FontAwesomeIcon icon={faExternalLinkAlt} />
+                    </PaddedButton>
+                  </Link>
                 </ButtonContainer>
               </Panel>
             </Grid.Col>
