@@ -5,7 +5,7 @@ const { publicRuntimeConfig = {} } = getConfig() || {};
 const { sso_client_id } = publicRuntimeConfig;
 
 import { meta } from './provider';
-
+// import { verifyTokenWithAPI } from 'services/auth';
 import { parseJWTPayload, parseJWTHeader } from './helpers';
 
 export const verifyToken = async (token: string) => {
@@ -30,6 +30,10 @@ export const verifyToken = async (token: string) => {
     console.log('token has expired');
     return false;
   }
+
+  // TODO: see if validation results from API also invalid when having token issue again.
+  // const isValidForAPI = await verifyTokenWithAPI(token);
+  // console.log('isValidForAPI', isValidForAPI);
 
   // verify JWT Signature
   const keyObj: any = rs.KEYUTIL.getKey(key);
