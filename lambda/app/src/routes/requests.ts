@@ -25,6 +25,13 @@ const unauthorized = () => {
   };
 };
 
+const getWhereClauseForAdmin = (session: Session, id: number) => {
+  const where: any = { id };
+  const userIsAdmin = isAdmin(session);
+  if (!userIsAdmin) where.idirUserid = session.idir_userid;
+  return where;
+};
+
 export const createRequest = async (session: Session, data: Data) => {
   const [hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
   if (error) return errorResponse(error);
@@ -72,13 +79,9 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
   try {
     const { id, comment, ...rest } = data;
-    const where: any = { id };
+    const where = getWhereClauseForAdmin(session, id);
     const userIsAdmin = isAdmin(session);
-    if (!userIsAdmin) where.idirUserid = session.idir_userid;
-
-    const original = await models.request.findOne({
-      where,
-    });
+    const original = await models.request.findOne({ where });
 
     if (!original) {
       return unauthorized();
@@ -171,13 +174,9 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
 export const getRequest = async (session: Session, data: { requestId: number }) => {
   try {
-    const request = await models.request.findOne({
-      where: {
-        idirUserid: session.idir_userid,
-        id: data.requestId,
-      },
-    });
-
+    const { requestId } = data;
+    const where = getWhereClauseForAdmin(session, requestId);
+    const request = await models.request.findOne({ where });
     return {
       statusCode: 200,
       body: JSON.stringify(request),
@@ -271,12 +270,9 @@ const requestHasBeenMerged = async (id: number) => {
 
 export const deleteRequest = async (session: Session, id: number) => {
   try {
-    const original = await models.request.findOne({
-      where: {
-        idirUserid: session.idir_userid,
-        id,
-      },
-    });
+    const where = getWhereClauseForAdmin(session, id);
+    const original = await models.request.findOne({ where });
+
     if (!original) {
       return unauthorized();
     }
