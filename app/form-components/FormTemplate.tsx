@@ -18,13 +18,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
 import { validateForm } from 'utils/helpers';
-import {
-  bceidStages,
-  adminBceidStages,
-  stageTitlesUsingForms,
-  stageTitlesReviewing,
-  firstFormPageTitle,
-} from 'utils/constants';
+import { bceidStages, adminBceidStages, stageTitlesUsingForms, stageTitlesReviewing } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import { SaveMessage } from 'interfaces/form';
@@ -169,6 +163,8 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
     router.push('my-requests');
   };
 
+  const backButtonText = request ? 'Save and Close' : 'Cancel';
+
   return (
     <>
       <FormHeader formStage={formStage} id={formData.id} />
@@ -207,7 +203,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
         >
           <FormButtons
             formSubmission={formStage === 0}
-            text={{ continue: 'Next', back: stageTitle === firstFormPageTitle ? 'Cancel' : 'Save and Close' }}
+            text={{ continue: 'Next', back: backButtonText }}
             show={!isAdmin && (formStage !== 0 || formData.projectLead)}
             loading={loading}
             handleSubmit={handleButtonSubmit}
