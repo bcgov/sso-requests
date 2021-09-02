@@ -154,7 +154,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
     if (creatingNewForm() || isAdmin) return;
     if (request) {
       setSaving(true);
-      const [_receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
+      const [, err] = await updateRequest({ ...formData, id: request.id });
       if (err) {
         handleApplicationBlockedError(err, router);
       } else {
