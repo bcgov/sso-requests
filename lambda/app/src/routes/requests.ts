@@ -137,7 +137,11 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
       await sendEmail({
         to: allowedRequest.preferredEmail,
-        body: getEmailBody(emailCode, { requestNumber: id, submittedBy: idirUserDisplayName }),
+        body: getEmailBody(emailCode, {
+          projectName: mergedRequest.projectName,
+          requestNumber: mergedRequest.id,
+          submittedBy: idirUserDisplayName,
+        }),
         subject: getEmailSubject(emailCode),
         event: { emailCode, requestId: id },
       });
@@ -336,7 +340,8 @@ export const deleteRequest = async (session: Session, id: number) => {
       sendEmail({
         to: 'bcgov.sso@gov.bc.ca',
         body: getEmailBody('request-deleted-notification-to-admin', {
-          requestNumber: id,
+          projectName: result.projectName,
+          requestNumber: result.id,
           submittedBy: result.idirUserDisplayName,
         }),
         subject: getEmailSubject('request-deleted-notification-to-admin'),
@@ -344,7 +349,11 @@ export const deleteRequest = async (session: Session, id: number) => {
       }),
       sendEmail({
         to: original.preferredEmail,
-        body: getEmailBody('request-deleted', { requestNumber: id, submittedBy: result.idirUserDisplayName }),
+        body: getEmailBody('request-deleted', {
+          projectName: result.projectName,
+          requestNumber: result.id,
+          submittedBy: result.idirUserDisplayName,
+        }),
         subject: getEmailSubject('request-deleted'),
         event: { emailCode: 'request-deleted', requestId: id },
       }),
