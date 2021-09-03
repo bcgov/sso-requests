@@ -10,6 +10,7 @@ type EmailMessage =
   | 'request-deleted-notification-to-admin';
 
 interface BodyData {
+  projectName?: string;
   requestNumber?: number;
   requestOwner?: string;
   submittedBy?: string;
@@ -30,14 +31,14 @@ const footer = `
 
 export const getEmailBody = (
   messageType: EmailMessage,
-  { requestNumber = -1, requestOwner = '', submittedBy = '' }: BodyData,
+  { projectName = '', requestNumber = -1, requestOwner = '', submittedBy = '' }: BodyData,
 ) => {
   switch (messageType) {
     case 'create-request-submitted':
       return `
         <h1>Your Pathfinder SSO request #${requestNumber} is successfully submitted.</h1>
         <p>
-            <strong>Project name: </strong>Single Sign-on Integration<br /><strong>Submitted by:</strong>${submittedBy}
+            <strong>Project name: </strong>${projectName}<br /><strong>Submitted by:</strong>${submittedBy}
         </p>
         <p>
             <strong>The expected processing time is 20 minutes</strong><br />
@@ -50,7 +51,7 @@ export const getEmailBody = (
       return `
         <h1>Your Pathfinder SSO request #${requestNumber} is approved.</h1>
         <p>
-            <strong>Project name: </strong>Single Sign-on Integration<br /><strong>Submitted by:</strong>${submittedBy}
+            <strong>Project name: </strong>${projectName}<br /><strong>Submitted by:</strong>${submittedBy}
         </p>
         <p>
             ${submittedBy}, please <a href="${APP_URL}/my-requests" title="Log in" target="_blank" rel="noreferrer">Log in</a>
@@ -63,7 +64,7 @@ export const getEmailBody = (
       return `
         <h1>Your Pathfinder SSO URI change request #${requestNumber} is successfully submitted.</h1>
         <p>
-            <strong>Project name: </strong>Single Sign-on Integration<br /><strong>Submitted by:</strong>${submittedBy}
+            <strong>Project name: </strong>${projectName}<br /><strong>Submitted by:</strong>${submittedBy}
         </p>
         <p>
             <strong>The expected processing time is 20 minutes</strong><br />
@@ -76,7 +77,7 @@ export const getEmailBody = (
       return `
         <h1>Your Pathfinder SSO URI change request #${requestNumber} is approved.</h1>
         <p>
-            <strong>Project name: </strong>Single Sign-on Integration<br /><strong>Submitted by:</strong>${submittedBy}
+            <strong>Project name: </strong>${projectName}<br /><strong>Submitted by:</strong>${submittedBy}
         </p>
         <p>
             ${submittedBy}, please <a href="${APP_URL}/my-requests" title="Log in" target="_blank" rel="noreferrer">Log in</a>
@@ -89,7 +90,7 @@ export const getEmailBody = (
       return `
         <h1>Your Pathfinder SSO request #${requestNumber} is deleted.</h1>
         <p>
-            <strong>Project name: </strong>Single Sign-on Integration<br /><strong>Deleted by:</strong>${submittedBy}
+            <strong>Project name: </strong>${projectName}<br /><strong>Deleted by:</strong>${submittedBy}
         </p>
         <p>This email serves only to notify you of the request status.</p>
         ${footer}`;
@@ -98,7 +99,7 @@ export const getEmailBody = (
       return `
         <h1>Pathfinder SSO request #${requestNumber} is deleted by ${submittedBy}</h1>
         <p>
-            <strong>Project name: </strong>Single Sign-on Integration
+            <strong>Project name: </strong>${projectName}
         </p>`;
 
     default:

@@ -37,6 +37,11 @@ export interface FormattedData {
   publicAccess?: boolean;
 }
 
+interface EmailEvent {
+  emailCode: string;
+  requestId: number;
+}
+
 export interface EmailOptions {
   from?: string;
   to: string;
@@ -49,4 +54,5 @@ export interface EmailOptions {
   priority?: 'normal' | 'low' | 'high';
   subject?: string;
   tag?: string;
+  event: EmailEvent;
 }

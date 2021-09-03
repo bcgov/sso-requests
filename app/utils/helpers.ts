@@ -21,6 +21,14 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
   return errors;
 };
 
+export const parseError = (err: any) => {
+  try {
+    return JSON.parse(err);
+  } catch (e) {
+    return { message: err };
+  }
+};
+
 // Convert Payload from Base64-URL to JSON
 export const decodePayload = (payload: string) => {
   if (!payload) return null;
