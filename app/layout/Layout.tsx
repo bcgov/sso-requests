@@ -111,7 +111,7 @@ const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; current
   let roles = ['guest'];
 
   if (currentUser) {
-    roles = currentUser.client_roles.length > 0 ? currentUser.client_roles : ['user'];
+    roles = currentUser?.client_roles?.length > 0 ? currentUser.client_roles : ['user'];
   }
 
   const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
@@ -162,7 +162,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
     <LoggedUser>
       <div className="welcome">
         Welcome {`${currentUser.given_name} ${currentUser.family_name}`}&nbsp;
-        {currentUser.client_roles && <span className="small">({startCase(currentUser.client_roles[0])})</span>}
+        {currentUser?.client_roles && <span className="small">({startCase(currentUser?.client_roles[0])})</span>}
       </div>
       &nbsp;&nbsp;
       {/* <FontAwesomeIcon style={{ paddingLeft: '5px', height: '25px' }} icon={faUserCircle} /> */}
