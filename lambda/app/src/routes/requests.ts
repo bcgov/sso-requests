@@ -9,7 +9,7 @@ import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
-const isAdmin = (session: Session) => session.client_roles.includes('sso-admin');
+const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
 
 const errorResponse = (err: any) => {
   console.error(err);
