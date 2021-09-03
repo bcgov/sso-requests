@@ -87,6 +87,7 @@ const NoProjects = styled.div`
 
 const CenteredHeader = styled.th`
   text-align: center;
+  min-width: 100px;
 `;
 
 export const RequestsContext = React.createContext({} as any);
