@@ -7,7 +7,9 @@ import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
-import { FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { CALLOUT_BUTTON_BACKGROUND_COLOR, CALLOUT_BUTTON_FONT_COLOR, FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 
 const Panel = styled.div`
   max-width: 450px;
@@ -18,6 +20,9 @@ const Panel = styled.div`
 
 const Button = styled(DefaultButton)`
   min-width: ${FORM_BUTTON_MIN_WIDTH};
+  background-color: #f2f2f2;
+  box-shadow: ${CALLOUT_BUTTON_BACKGROUND_COLOR} 0px 0px 0px 2px inset !important;
+  color: ${CALLOUT_BUTTON_FONT_COLOR};
 `;
 
 const PaddedButton = styled(Button)`
@@ -69,18 +74,20 @@ export default function Home({ onLoginClick }: PageProps) {
                   <br />
                   Gov IDPs.
                 </JumbotronP>
-                <BoldP>Request SSO Integration</BoldP>
+                <BoldP>Request SSO Integration for:</BoldP>
                 <ButtonContainer>
                   <Button size="medium" onClick={onLoginClick}>
                     IDIR
                   </Button>
                   <br /> <br />
-                  <a
+                  <Link
                     href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
                     target="blank"
                   >
-                    <PaddedButton>IDIR and BCeID</PaddedButton>
-                  </a>
+                    <PaddedButton>
+                      IDIR and BCeID <FontAwesomeIcon icon={faExternalLinkAlt} />
+                    </PaddedButton>
+                  </Link>
                 </ButtonContainer>
               </Panel>
             </Grid.Col>

@@ -6,6 +6,7 @@ import { validateRequest, processRequest, getDifferences } from '../utils/helper
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
+import { EVENTS } from '../../../shared/enums';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
 const isAdmin = (session: Session) => session.client_roles.includes('sso-admin');
@@ -25,8 +26,23 @@ const unauthorized = () => {
   };
 };
 
+const getWhereClauseForAdmin = (session: Session, id: number) => {
+  const where: any = { id };
+  const userIsAdmin = isAdmin(session);
+  if (!userIsAdmin) where.idirUserid = session.idir_userid;
+  return where;
+};
+
+const createEvent = async (data) => {
+  try {
+    await models.event.create(data);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 export const createRequest = async (session: Session, data: Data) => {
-  const [hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
+  const [, error] = await hasRequestWithFailedApplyStatus();
   if (error) return errorResponse(error);
 
   try {
@@ -67,18 +83,17 @@ export const createRequest = async (session: Session, data: Data) => {
 };
 
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
-  const [_hasFailedStatus, error] = await hasRequestWithFailedApplyStatus();
+  const [, error] = await hasRequestWithFailedApplyStatus();
   if (error) return errorResponse(error);
 
-  try {
-    const { id, comment, ...rest } = data;
-    const where: any = { id };
-    const userIsAdmin = isAdmin(session);
-    if (!userIsAdmin) where.idirUserid = session.idir_userid;
+  const userIsAdmin = isAdmin(session);
+  const idirUserDisplayName = session.given_name + ' ' + session.family_name;
+  const { id, comment, ...rest } = data;
+  const [isUpdate] = await requestHasBeenMerged(id);
 
-    const original = await models.request.findOne({
-      where,
-    });
+  try {
+    const where = getWhereClauseForAdmin(session, id);
+    const original = await models.request.findOne({ where });
 
     if (!original) {
       return unauthorized();
@@ -92,9 +107,8 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     const mergedRequest = { ...original.dataValues, ...allowedRequest };
 
     if (submit) {
-      const [isUpdate, _err] = await requestHasBeenMerged(id);
       const isValid = validateRequest(mergedRequest, original.dataValues, isUpdate);
-      if (isValid !== true) return errorResponse({ ...isValid, prepared: mergedRequest });
+      if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedRequest }));
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
 
@@ -116,34 +130,17 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       console.log(JSON.stringify(ghResult));
 
       if (ghResult.status !== 204) {
-        return errorResponse('failed to create a workflow dispatch event');
+        throw Error('failed to create a workflow dispatch event');
       }
 
       const emailCode = isUpdate ? 'uri-change-request-submitted' : 'create-request-submitted';
 
       await sendEmail({
         to: allowedRequest.preferredEmail,
-        body: getEmailBody(emailCode, { requestNumber: id, submittedBy: mergedRequest.idirUserDisplayName }),
+        body: getEmailBody(emailCode, { requestNumber: id, submittedBy: idirUserDisplayName }),
         subject: getEmailSubject(emailCode),
+        event: { emailCode, requestId: id },
       });
-
-      const idirUserDisplayName = session.given_name + ' ' + session.family_name;
-      let eventData: any = {
-        eventCode: `request-submitted`,
-        requestId: id,
-        idirUserid: session.idir_userid,
-        idirUserDisplayName,
-      };
-
-      if (isUpdate) {
-        const details: any = {};
-        const differences = getDifferences(mergedRequest, original.dataValues);
-        eventData.eventCode = 'request-updated';
-        details.changes = differences;
-        if (userIsAdmin && comment) details.comment = comment;
-        eventData.details = details;
-      }
-      await models.event.create(eventData);
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -155,29 +152,55 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     });
 
     if (result.length < 2) {
-      return errorResponse('update failed');
+      throw Error('update failed');
     }
 
     const updatedRequest = result[1].dataValues;
+
+    if (submit) {
+      const eventData: any = {
+        eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
+        requestId: id,
+        idirUserid: session.idir_userid,
+        idirUserDisplayName,
+      };
+
+      if (isUpdate) {
+        const details: any = { changes: getDifferences(mergedRequest, original.dataValues) };
+        if (userIsAdmin && comment) details.comment = comment;
+
+        eventData.eventCode = EVENTS.REQUEST_UPDATE_SUCCESS;
+        eventData.details = details;
+      }
+
+      await createEvent(eventData);
+    }
 
     return {
       statusCode: 200,
       body: JSON.stringify(updatedRequest),
     };
   } catch (err) {
+    if (submit) {
+      const eventData = {
+        eventCode: isUpdate ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
+        requestId: id,
+        idirUserid: session.idir_userid,
+        idirUserDisplayName,
+      };
+
+      await createEvent(eventData);
+    }
+
     return errorResponse(err);
   }
 };
 
 export const getRequest = async (session: Session, data: { requestId: number }) => {
   try {
-    const request = await models.request.findOne({
-      where: {
-        idirUserid: session.idir_userid,
-        id: data.requestId,
-      },
-    });
-
+    const { requestId } = data;
+    const where = getWhereClauseForAdmin(session, requestId);
+    const request = await models.request.findOne({ where });
     return {
       statusCode: 200,
       body: JSON.stringify(request),
@@ -260,7 +283,7 @@ export const getRequests = async (session: Session, include: string = 'active') 
 const requestHasBeenMerged = async (id: number) => {
   try {
     const request = await models.event.findOne({
-      where: { requestId: id, eventCode: { [Op.in]: ['request-apply-success', 'request-apply-failure'] } },
+      where: { requestId: id, eventCode: { [Op.in]: [EVENTS.REQUEST_APPLY_SUCCESS, EVENTS.REQUEST_APPLY_FAILURE] } },
     });
     if (request) return [true, null];
     return [false, null];
@@ -271,12 +294,9 @@ const requestHasBeenMerged = async (id: number) => {
 
 export const deleteRequest = async (session: Session, id: number) => {
   try {
-    const original = await models.request.findOne({
-      where: {
-        idirUserid: session.idir_userid,
-        id,
-      },
-    });
+    const where = getWhereClauseForAdmin(session, id);
+    const original = await models.request.findOne({ where });
+
     if (!original) {
       return unauthorized();
     }
@@ -310,7 +330,7 @@ export const deleteRequest = async (session: Session, id: number) => {
     const [_closed, prError] = await closeOpenPullRequests(id);
     if (err) throw prError;
 
-    const result = await models.request.update({ archived: true }, { where: { id, idirUserid: session.idir_userid } });
+    const result = await models.request.update({ archived: true }, { where });
 
     Promise.all([
       sendEmail({
@@ -320,21 +340,24 @@ export const deleteRequest = async (session: Session, id: number) => {
           submittedBy: result.idirUserDisplayName,
         }),
         subject: getEmailSubject('request-deleted-notification-to-admin'),
+        event: { emailCode: 'request-deleted-notification-to-admin', requestId: id },
       }),
       sendEmail({
         to: original.preferredEmail,
         body: getEmailBody('request-deleted', { requestNumber: id, submittedBy: result.idirUserDisplayName }),
         subject: getEmailSubject('request-deleted'),
+        event: { emailCode: 'request-deleted', requestId: id },
       }),
     ]);
-    models.event.create({ eventCode: `request-delete-success`, requestId: id, idirUserId: session.idir_userid });
+
+    createEvent({ eventCode: EVENTS.REQUEST_DELETE_SUCCESS, requestId: id, idirUserId: session.idir_userid });
 
     return {
       statusCode: 200,
       body: JSON.stringify(result),
     };
   } catch (err) {
-    models.event.create({ eventCode: `request-delete-failure`, requestId: id, idirUserId: session.idir_userid });
+    createEvent({ eventCode: EVENTS.REQUEST_DELETE_FAILURE, requestId: id, idirUserId: session.idir_userid });
     return errorResponse(err);
   }
 };

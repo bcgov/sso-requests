@@ -87,7 +87,7 @@ describe('Form Template Saving and Navigation', () => {
   it('Should redirect to my-requests on cancel', () => {
     const cancelButton = screen.getByText('Save and Close') as HTMLElement;
     fireEvent.click(cancelButton);
-    expect(sandbox.push).toHaveBeenCalledWith('/my-requests');
+    expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-requests' });
   });
 
   it('Should show failed state in stepper after submission and clear only after filling correct data', () => {

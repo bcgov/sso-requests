@@ -19,6 +19,17 @@ export async function wakeItUp() {
   }
 }
 
+export async function verifyTokenWithAPI(idToken: string) {
+  try {
+    return instance
+      .get('verify-token', { headers: { skipAuth: true, Authorization: `Bearer ${idToken}` } })
+      .then((res) => res.data);
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 const ONE_MIN = 60 * 1000;
 const TWO_MIN = 2 * ONE_MIN;
 

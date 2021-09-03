@@ -98,7 +98,8 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   };
 
   const handleBackClick = () => {
-    router.push('/my-requests');
+    const redirectUrl = isAdmin ? '/admin-dashboard' : '/my-requests';
+    router.push({ pathname: redirectUrl });
   };
 
   const creatingNewForm = () => router.route.endsWith('/request');
@@ -118,8 +119,8 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           setLoading(false);
           return;
         }
-
-        await router.push({ pathname: `/request/${id}` });
+        const redirectUrl = isAdmin ? '/admin-dashboard' : `/request/${id}`;
+        await router.push({ pathname: redirectUrl });
         setFormData({ ...formData, id });
       } else {
         await updateRequest(formData);
@@ -148,7 +149,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
     if (creatingNewForm() || isAdmin) return;
     if (request) {
       setSaving(true);
-      const [receivedRequest, err] = await updateRequest({ ...formData, id: request.id });
+      const [, err] = await updateRequest({ ...formData, id: request.id });
       if (err) {
         handleApplicationBlockedError(err, router);
       } else {
@@ -161,6 +162,8 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const handleModalClose = () => {
     router.push('my-requests');
   };
+
+  const backButtonText = request ? 'Save and Close' : 'Cancel';
 
   return (
     <>
@@ -200,7 +203,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
         >
           <FormButtons
             formSubmission={formStage === 0}
-            text={{ continue: 'Next', back: 'Save and Close' }}
+            text={{ continue: 'Next', back: backButtonText }}
             show={!isAdmin && (formStage !== 0 || formData.projectLead)}
             loading={loading}
             handleSubmit={handleButtonSubmit}
