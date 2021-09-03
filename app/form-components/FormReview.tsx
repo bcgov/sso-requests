@@ -7,7 +7,7 @@ import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { validateForm } from 'utils/helpers';
-import { FORM_TOP_SPACING } from 'styles/theme';
+import { FORM_BUTTON_MIN_WIDTH, FORM_TOP_SPACING } from 'styles/theme';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
@@ -46,7 +46,7 @@ const ButtonContainer = styled.div`
 const ModalButton = styled(Button)`
   display: block;
   margin: 10px;
-  min-width: 150px;
+  min-width: ${FORM_BUTTON_MIN_WIDTH};
 `;
 
 const CancelButton = styled(DefaultCancelButton)`

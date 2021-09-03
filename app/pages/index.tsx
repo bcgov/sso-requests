@@ -7,6 +7,7 @@ import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
+import { FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 
 const Panel = styled.div`
   max-width: 450px;
@@ -16,7 +17,7 @@ const Panel = styled.div`
 `;
 
 const Button = styled(DefaultButton)`
-  min-width: 150px;
+  min-width: ${FORM_BUTTON_MIN_WIDTH};
 `;
 
 const PaddedButton = styled(Button)`
