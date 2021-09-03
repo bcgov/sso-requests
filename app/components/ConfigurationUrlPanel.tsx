@@ -5,7 +5,7 @@ import Form from 'form-components/GovForm';
 import redirectUrisSchema from 'schemas/redirect-uris';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { getRedirectUrlPropertyNameByEnv } from 'utils/helpers';
+import { getRedirectUrlPropertyNameByEnv, parseError } from 'utils/helpers';
 import { customValidate } from 'utils/shared/customValidate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import { updateRequest } from 'services/request';
@@ -65,7 +65,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
         variant: 'info',
         fadeOut: 10000,
         closable: true,
-        content: err,
+        content: parseError(err).message,
       });
     }
 
