@@ -9,7 +9,7 @@ import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
-import { CALLOUT_BUTTON_BACKGROUND_COLOR, CALLOUT_BUTTON_FONT_COLOR } from 'styles/theme';
+import { CALLOUT_BUTTON_BACKGROUND_COLOR, CALLOUT_BUTTON_FONT_COLOR, FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 
 const Panel = styled.div`
   max-width: 450px;
@@ -19,14 +19,18 @@ const Panel = styled.div`
 `;
 
 const Button = styled(DefaultButton)`
+  width: 215px;
   background-color: #f2f2f2;
   box-shadow: ${CALLOUT_BUTTON_BACKGROUND_COLOR} 0px 0px 0px 2px inset !important;
-  min-width: 150px;
   color: ${CALLOUT_BUTTON_FONT_COLOR};
 `;
 
 const PaddedButton = styled(Button)`
   margin-left: 20px;
+  @media only screen and (max-width: 991px) {
+    margin-left: 0;
+    margin-top: 20px;
+  }
 `;
 
 const JumbotronH1 = styled.h1`
@@ -51,6 +55,10 @@ const Paragraph = styled.p`
 const ButtonContainer = styled.div`
   display: flex;
   flex-direction: row;
+
+  @media only screen and (max-width: 991px) {
+    flex-direction: column;
+  }
 `;
 
 export default function Home({ onLoginClick }: PageProps) {
