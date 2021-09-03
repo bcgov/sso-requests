@@ -74,6 +74,7 @@ export default async function status(event) {
         await sendEmail({
           to: preferredEmail,
           body: getEmailBody(emailCode, {
+            projectName: request.projectName,
             requestNumber: request.id,
             submittedBy: request.idirUserDisplayName,
           }),
