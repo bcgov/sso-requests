@@ -331,8 +331,8 @@ export const deleteRequest = async (session: Session, id: number) => {
     }
 
     // Close any pr's if they exist
-    const [_closed, prError] = await closeOpenPullRequests(id);
-    if (err) throw prError;
+    const [, prError] = await closeOpenPullRequests(id);
+    if (prError) throw prError;
 
     const result = await models.request.update({ archived: true }, { where });
 
