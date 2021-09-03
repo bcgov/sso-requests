@@ -21,11 +21,11 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
   return errors;
 };
 
-export const parseError = (err) => {
+export const parseError = (err: any) => {
   try {
     return JSON.parse(err);
   } catch (e) {
-    return err;
+    return { message: err };
   }
 };
 
