@@ -6,12 +6,13 @@ import { Request } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 
+const formButtonText = ['Next', 'Save and Close'];
+
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
 }));
 
 jest.mock('services/request', () => {
-  const promise = Promise.resolve;
   return {
     createRequest: jest.fn(),
     updateRequest: jest.fn(() => Promise.resolve([{}, null])),
@@ -24,16 +25,17 @@ const STEPPER_ERROR = 'Some additional fields require your attention.';
 // Container to expose variables from beforeeach to test functions
 let sandbox: any = {};
 
-const setUpRender = (request: Request | object | null) => {
-  const { debug } = render(<FormTemplate currentUser={{}} request={request} />);
-  sandbox.firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
-  sandbox.secondStageBox = screen.getByText('Providers and URIs').closest('div') as HTMLElement;
-  sandbox.thirdStageBox = screen.getByText('Terms and conditions').closest('div') as HTMLElement;
-  sandbox.fourthStageBox = screen.getByText('Review & Submit').closest('div') as HTMLElement;
+const setUpRender = (request: Request | object | null, currentUser = {}) => {
+  const { debug } = render(<FormTemplate currentUser={currentUser} request={request} />);
+  sandbox.firstStageBox = screen.queryByText('Requester Info')?.closest('div') as HTMLElement;
+  sandbox.secondStageBox = screen.queryByText('Providers and URIs')?.closest('div') as HTMLElement;
+  sandbox.thirdStageBox = screen.queryByText('Terms and conditions')?.closest('div') as HTMLElement;
+  sandbox.fourthStageBox = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
+  sandbox.adminReview = screen.queryByText('Comment & Submit')?.closest('div') as HTMLElement;
   return debug;
 };
 
-const sampleRequest: Request = {
+export const sampleRequest: Request = {
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
@@ -45,6 +47,7 @@ const sampleRequest: Request = {
   newToSso: true,
   agreeWithTerms: true,
   environments: ['dev', 'test', 'prod'],
+  archived: false,
 };
 
 const samplePage3Request = {
@@ -64,7 +67,7 @@ describe('Form Template Saving and Navigation', () => {
     setUpRender({});
   });
 
-  it('Saves data and triggers spinner on blur events', async () => {
+  it('Should save data and triggers spinner on blur events', async () => {
     const uriInput = document.querySelector('#root_devValidRedirectUris_0') as HTMLElement;
     fireEvent.blur(uriInput);
     expect(updateRequest).toHaveBeenCalled();
@@ -74,49 +77,40 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => screen.getByTitle('request-saved'));
   });
 
-  // it('Saves and advances the form when clicking next', async () => {
-  //   const nextButton = screen.getByText('Next') as HTMLElement;
-  //   const idirRealm = document.querySelector("input[value='onestopauth']") as HTMLElement;
-  //   const devValidRedirectUris = document.getElementById('root_devValidRedirectUris_0') as HTMLElement;
-  //   const testValidRedirectUris = document.getElementById('root_testValidRedirectUris_0') as HTMLElement;
-  //   const prodValidRedirectUris = document.getElementById('root_prodValidRedirectUris_0') as HTMLElement;
-  //   fireEvent.change(devValidRedirectUris, { target: { value: 'http://localhost' } });
-  //   fireEvent.change(testValidRedirectUris, { target: { value: 'http://localhost' } });
-  //   fireEvent.change(prodValidRedirectUris, { target: { value: 'http://localhost' } });
-  //   fireEvent.click(idirRealm);
-  //   fireEvent.click(nextButton);
-  //   expect(updateRequest).toHaveBeenCalled();
-  //   // Expect next page to load
-  //   await waitFor(() => screen.getByText("We're a Community"));
-  // });
-
-  it('Redirects to my-requests on cancel', () => {
-    const cancelButton = screen.getByText('Cancel') as HTMLElement;
-    fireEvent.click(cancelButton);
-    expect(sandbox.push).toHaveBeenCalledWith('/my-requests');
+  it('Should advance the form when clicking next', async () => {
+    setUpRouter('/', sandbox);
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    await waitFor(() => screen.getByText("We're a Community"));
   });
 
-  // it('Shows failed state in navigation after submission, and clears failed state on page change only if form data is correct', () => {
-  //   // Submit empty form
-  //   const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
-  //   fireEvent.click(fourthStageBox);
-  //   fireEvent.click(document.querySelector("button[type='button']") as HTMLElement);
-  //   expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
-  //   expect(within(secondStageBox).getByTitle(STEPPER_ERROR));
-  //   expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
-  //   expect(within(fourthStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
+  it('Should redirect to my-requests on cancel', () => {
+    const cancelButton = screen.getByText('Save and Close') as HTMLElement;
+    fireEvent.click(cancelButton);
+    expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-requests' });
+  });
 
-  //   // Navigate to and from third page without fixing errors
-  //   fireEvent.click(thirdStageBox);
-  //   fireEvent.click(fourthStageBox);
-  //   expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
+  it('Should show failed state in stepper after submission and clear only after filling correct data', () => {
+    // Submit empty form
+    const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
+    fireEvent.click(fourthStageBox);
+    fireEvent.click(document.querySelector("button[type='button']") as HTMLElement);
+    expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
+    expect(within(secondStageBox).getByTitle(STEPPER_ERROR));
+    expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
+    expect(within(fourthStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
 
-  //   // Navigate to and from third stage with fixing errors
-  //   fireEvent.click(thirdStageBox);
-  //   fireEvent.click(document.querySelector('#root_agreeWithTerms') as HTMLElement);
-  //   fireEvent.click(fourthStageBox);
-  //   expect(within(thirdStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
-  // });
+    // Navigate to and from third page without fixing errors
+    fireEvent.click(thirdStageBox);
+    fireEvent.click(fourthStageBox);
+    expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
+
+    // Navigate to and from third stage with fixing errors
+    fireEvent.click(thirdStageBox);
+    fireEvent.click(document.querySelector('#root_agreeWithTerms') as HTMLElement);
+    fireEvent.click(fourthStageBox);
+    expect(within(thirdStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
+  });
 });
 
 describe('Form Template Loading Data', () => {
@@ -124,7 +118,7 @@ describe('Form Template Loading Data', () => {
     jest.clearAllMocks();
   });
 
-  it('Pre-loads data if a request exists', () => {
+  it('Should pre-load data if a request exists', () => {
     setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
     const { firstStageBox, thirdStageBox } = sandbox;
@@ -157,38 +151,56 @@ describe('Form Template Loading Data', () => {
   });
 });
 
-// describe('Error messages', () => {
-//   it('Displays the expected error messages on page 1', () => {
-//     setUpRouter('/', sandbox);
-//     setUpRender(null);
-//     const projectLead = document.getElementById('root_projectLead') as HTMLElement;
-//     const isProjectLeadInput = within(projectLead).getByLabelText('Yes');
-//     fireEvent.click(isProjectLeadInput);
-//     const nextButton = screen.getByText('Next') as HTMLElement;
-//     fireEvent.click(nextButton);
+describe('Error messages', () => {
+  it('Should display the expected error messages on page 1 when navigating away and back', () => {
+    setUpRouter('/', sandbox);
+    setUpRender(null);
 
-//     screen.getAllByText(errorMessages.newToSso);
-//     screen.getAllByText(errorMessages.publicAccess);
-//     screen.getByText(errorMessages.preferredEmail);
-//     screen.getByText(errorMessages.projectName);
-//   });
-//   it('Displays the expected page 2 errors', () => {
-//     setUpRouter('/', sandbox);
-//     setUpRender({});
-//     const nextButton = screen.getByText('Next') as HTMLElement;
-//     fireEvent.click(nextButton);
+    // Set project lead to display form
+    const projectLead = document.getElementById('root_projectLead') as HTMLElement;
+    const isProjectLeadInput = within(projectLead).getByLabelText('Yes');
+    fireEvent.click(isProjectLeadInput);
 
-//     screen.getAllByText(errorMessages.redirectUris);
-//     screen.getByText(errorMessages.realm);
-//   });
-//   it('Displays the expected page 3 errors', async () => {
-//     setUpRouter('/', sandbox);
-//     const debug = setUpRender(samplePage3Request);
-//     const nextButton = screen.getByText('Next') as HTMLElement;
-//     fireEvent.click(nextButton);
-//     await waitFor(() => screen.getByText("We're a Community"));
-//     fireEvent.click(nextButton);
+    // Navigate away and back again
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.firstStageBox);
 
-//     screen.getByText(errorMessages.agreeWithTerms);
-//   });
-// });
+    screen.getAllByText(errorMessages.newToSso);
+    screen.getAllByText(errorMessages.publicAccess);
+    screen.getByText(errorMessages.preferredEmail);
+    screen.getByText(errorMessages.projectName);
+  });
+
+  it('Should display the expected page 2 errors', () => {
+    setUpRouter('/', sandbox);
+    setUpRender({});
+
+    // Navigate away and back to page
+    fireEvent.click(sandbox.thirdStageBox);
+    fireEvent.click(sandbox.secondStageBox);
+
+    screen.getAllByText(errorMessages.redirectUris);
+  });
+
+  it('Should display the expected page 3 errors after navigating away from the page', async () => {
+    setUpRouter('/', sandbox);
+    setUpRender(samplePage3Request);
+
+    // Navigate away and back to page
+    fireEvent.click(sandbox.thirdStageBox);
+    fireEvent.click(sandbox.fourthStageBox);
+    fireEvent.click(sandbox.thirdStageBox);
+
+    screen.getByText(errorMessages.agreeWithTerms);
+  });
+});
+
+describe('Admins', () => {
+  it('should not show buttons for admins', () => {
+    setUpRender(null, { client_roles: ['sso-admin'] });
+    formButtonText.forEach((title) => {
+      expect(screen.queryByText(title)).toBeNull();
+    });
+  });
+});

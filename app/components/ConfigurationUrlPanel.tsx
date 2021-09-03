@@ -5,7 +5,7 @@ import Form from 'form-components/GovForm';
 import redirectUrisSchema from 'schemas/redirect-uris';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { getRedirectUrlPropertyNameByEnv } from 'utils/helpers';
+import { getRedirectUrlPropertyNameByEnv, parseError } from 'utils/helpers';
 import { customValidate } from 'utils/shared/customValidate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import { updateRequest } from 'services/request';
@@ -13,6 +13,7 @@ import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import { $setEditingRequest, $updateRequest } from 'dispatchers/requestDispatcher';
 import { environments } from 'utils/constants';
+import { withBottomAlert } from 'layout/BottomAlert';
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
@@ -25,9 +26,10 @@ const LeftTitle = styled.span`
 
 interface Props {
   selectedRequest: Request;
+  alert: any;
 }
 
-const ConfigurationUrlPanel = ({ selectedRequest }: Props) => {
+const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const router = useRouter();
   const [request, setRequest] = useState<Request>(selectedRequest);
   const [loading, setLoading] = useState<boolean>(false);
@@ -56,12 +58,18 @@ const ConfigurationUrlPanel = ({ selectedRequest }: Props) => {
         pathname: '/my-requests',
         query: { id: selectedRequest.id, mode: 'edit' },
       });
+      dispatch($setEditingRequest(false));
     } else {
       setRequest(selectedRequest);
+      alert.show({
+        variant: 'info',
+        fadeOut: 10000,
+        closable: true,
+        content: parseError(err).message,
+      });
     }
 
     setLoading(false);
-    dispatch($setEditingRequest(false));
   };
 
   return (
@@ -114,4 +122,4 @@ const ConfigurationUrlPanel = ({ selectedRequest }: Props) => {
   );
 };
 
-export default ConfigurationUrlPanel;
+export default withBottomAlert(ConfigurationUrlPanel);

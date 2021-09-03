@@ -1,30 +1,12 @@
 import SHeader from 'components/SHeader';
-import Loader from 'react-loader-spinner';
-import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { SaveMessage } from 'interfaces/form';
-import { faCheck, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { padStart } from 'lodash';
-
-const Container = styled.div`
-  display: flex;
-  & p {
-    padding-left: 15px;
-  }
-`;
-
-const Icon = styled.span`
-  width: 30px;
-`;
 
 interface Props {
   formStage: number;
   id: number | undefined;
-  saveMessage?: SaveMessage;
-  saving: boolean;
 }
 
-export default function Formheader({ formStage, id, saveMessage, saving }: Props) {
+export default function Formheader({ formStage, id }: Props) {
   const paddedId = padStart(String(id), 8, '0');
   const titles = [
     `${id ? `Req ID: ${paddedId} - ` : ''}Enter requester information`,
@@ -36,24 +18,6 @@ export default function Formheader({ formStage, id, saveMessage, saving }: Props
   return (
     <>
       <SHeader>{titles[formStage]}</SHeader>
-      {(saving || saveMessage) && (
-        <Container>
-          <Icon>
-            {saving ? (
-              // @ts-ignore
-              <Loader type="TailSpin" color="#000" height={18} width={50} visible label="request-saving" />
-            ) : (
-              <FontAwesomeIcon
-                style={{ color: '#006fc4' }}
-                icon={saveMessage?.error ? faExclamationTriangle : faCheck}
-                title="request-saved"
-              />
-            )}
-          </Icon>
-
-          <p>{saveMessage?.content}</p>
-        </Container>
-      )}
     </>
   );
 }

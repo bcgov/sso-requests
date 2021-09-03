@@ -22,7 +22,8 @@ module "db" {
   # 0 is used to disable enhanced monitoring
   monitoring_interval = 0
   # Remove this to save a final snapshot before database is destroyed
-  skip_final_snapshot = true
+  skip_final_snapshot  = false
+  enable_http_endpoint = true
 
   scaling_configuration = {
     auto_pause               = true

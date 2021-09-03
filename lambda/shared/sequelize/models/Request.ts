@@ -20,8 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       publicAccess: {
         type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
+        allowNull: true,
       },
       devValidRedirectUris: {
         type: DataTypes.ARRAY(DataTypes.STRING),
@@ -89,6 +88,15 @@ module.exports = (sequelize, DataTypes) => {
         ),
         defaultValue: 'draft',
         allowNull: false,
+      },
+      archived: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      idirUserDisplayName: {
+        type: DataTypes.STRING,
+        field: 'idir_user_display_name',
       },
     },
     {

@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
+import Link from '@button-inc/bcgov-theme/Link';
 
 const Title = styled.h2`
   text-transform: uppercase;
@@ -31,29 +32,38 @@ function TermsAndConditions() {
         <li>Keep your email address active, and if you are not using your realm, clean it up</li>
         <li>
           If you are not using your realm/client app configuration{' '}
-          <a href="https://chat.developer.gov.bc.ca/channel/sso/">ask us</a> for help
+          <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
+            ask us
+          </Link>{' '}
+          for help
         </li>
       </StyledList>
       <Title>We&apos;re a Community</Title>
       <StyledList>
         <li>
           As part of a community, we can solve things together and quickly. Please join the{' '}
-          <a href="https://chat.developer.gov.bc.ca/channel/sso/">#SSO channel on Rocket.Chat</a>
+          <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
+            #SSO channel on Rocket.Chat
+          </Link>
         </li>
         <li>
-          Please follow the BC Government digital standards (
-          <a href="https://digital.gov.bc.ca/resources/digital-principles" target="_blank" rel="noreferrer">
-            link
-          </a>
-          )
+          Please follow the
+          <Link external href="https://digital.gov.bc.ca/resources/digital-principles" target="_blank" rel="noreferrer">
+            BC Government digital standards
+          </Link>
         </li>
         <li>Coordinate load testing with the Pathfinder SSO Team, and please only use the Test environment</li>
         <li>
-          The SSO Service is multitenancy; meaning you share with others, so please coordinate{' '}
-          <a href="https://chat.developer.gov.bc.ca/channel/sso/">with us</a>:
-          <SubItem>if you predict moderate or high loads</SubItem>
-          OR
-          <SubItem>if you need to conduct load testing in TEST only</SubItem>
+          The SSO Service is multitenancy; meaning you share with others, so please coordinate with us (
+          <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
+            #SSO channel on Rocket.Chat
+          </Link>{' '}
+          or email at <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>) :
+          <ul>
+            <SubItem>if you predict moderate or high loads</SubItem>
+            OR
+            <SubItem>if you need to conduct load testing in TEST only</SubItem>
+          </ul>
         </li>
       </StyledList>
 

@@ -27,6 +27,8 @@ jobs:
       - name: Set env to development
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
+          echo "APP_URL=https://bcgov.github.io/sso-terraform-dev" >> $GITHUB_ENV
+          echo "APP_ENV=development" >> $GITHUB_ENV
           echo "TFC_WORKSPACE=xgr00q-dev-sso-requests" >> $GITHUB_ENV
           echo "SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
           echo "SUBNET_A=App_Dev_aza_net" >> $GITHUB_ENV
@@ -46,6 +48,8 @@ jobs:
       - name: Set env to production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
+          echo "APP_URL=https://bcgov.github.io/sso-requests" >> $GITHUB_ENV
+          echo "APP_ENV=production" >> $GITHUB_ENV
           echo "TFC_WORKSPACE=xgr00q-prod-sso-requests" >> $GITHUB_ENV
           echo "SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
           echo "SUBNET_A=App_Prod_aza_net" >> $GITHUB_ENV
@@ -129,6 +133,8 @@ jobs:
           EOF
 
           cat >"ci.auto.tfvars" <<EOF
+          app_url="${{ env.APP_URL }}"
+          app_env="${{ env.APP_ENV }}"
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
           gh_secret="${{ secrets.GH_SECRET }}"
           configuration_endpoint="${{ env.SSO_ISSUER_URL }}"

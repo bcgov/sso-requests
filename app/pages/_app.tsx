@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import getConfig from 'next/config';
 import type { AppProps } from 'next/app';
 import { fetchIssuerConfiguration } from 'utils/provider';
-import { getAuthorizationUrl, getAccessToken, refreshSession } from 'utils/openid';
+import { getAuthorizationUrl, getAccessToken, getEndSessionUrl } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
@@ -16,41 +16,6 @@ import 'styles/globals.css';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path } = publicRuntimeConfig;
 
-const ONE_MIN = 60 * 1000;
-const TWO_MIN = 2 * ONE_MIN;
-
-const refreshTokenIfExpiriesSoon = async () => {
-  const tokens = getTokens();
-  const verifiedIdToken = await verifyToken(tokens.id_token);
-  if (verifiedIdToken) {
-    const expiesIn = verifiedIdToken.exp * 1000 - Date.now();
-    console.log(`Token expiries in ${expiesIn}ms`);
-
-    if (expiesIn < TWO_MIN) {
-      console.log(`refreshing Token...`);
-      const newTokens = await refreshSession({ refreshToken: tokens.refresh_token });
-      const newVerifiedIdToken = await verifyToken(newTokens.id_token);
-      if (newVerifiedIdToken) {
-        console.log(`Token refreshed successfully.`);
-        setTokens(newTokens);
-        return newVerifiedIdToken;
-      } else {
-        console.log(`failed to refresh Token.`);
-      }
-
-      return null;
-    }
-    return verifiedIdToken;
-  } else {
-    return null;
-  }
-};
-
-const setTokenInterval = () => {
-  // periodically using refresh_token grant flow to get new access token here
-  setInterval(refreshTokenIfExpiriesSoon, ONE_MIN);
-};
-
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
@@ -62,18 +27,24 @@ function MyApp({ Component, pageProps }: AppProps) {
     async function handleTokens(tokens: any, loginWorkflow: boolean) {
       const verifiedIdToken = await verifyToken(tokens.id_token);
       if (verifiedIdToken) {
-        if (loginWorkflow) setTokens(tokens);
-        const newVerifiedIdToken = await refreshTokenIfExpiriesSoon();
-        setTokenInterval();
-        setCurrentUser(newVerifiedIdToken);
-        setLoading(false);
-        if (loginWorkflow) router.push('/my-requests');
-        return null;
+        if (loginWorkflow) {
+          setTokens(tokens);
+          await router.push('/my-requests');
+        }
+        setCurrentUser(verifiedIdToken);
       } else {
         removeTokens();
         setCurrentUser(null);
-        setLoading(false);
+        if (loginWorkflow) {
+          router.push({
+            pathname: '/application-error',
+            query: {
+              error: 'E02',
+            },
+          });
+        }
       }
+      setLoading(false);
     }
 
     async function fetchUser() {
@@ -116,7 +87,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   const handleLogout = async () => {
     removeTokens();
-    window.location.href = base_path || '/';
+    window.location.href = getEndSessionUrl();
   };
 
   if (loading) return <PageLoader />;

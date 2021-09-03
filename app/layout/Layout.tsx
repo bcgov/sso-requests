@@ -5,9 +5,12 @@ import { faCommentDots, faEnvelope, faFileAlt } from '@fortawesome/free-solid-sv
 import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
+import { startCase } from 'lodash';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
 import BottomAlertProvider from './BottomAlert';
+
+const headerPlusFooterHeight = '152px';
 
 const LoggedUser = styled.span`
   font-weight: 600;
@@ -15,13 +18,13 @@ const LoggedUser = styled.span`
   display: flex;
 
   & .welcome {
-    padding: 2px;
+    padding: 5px;
   }
 `;
 
 const MainContent = styled.div`
   padding: 1rem 0;
-  min-height: calc(100vh - 160px);
+  min-height: calc(100vh - ${headerPlusFooterHeight});
 `;
 
 const MobileSubMenu = styled.ul`
@@ -76,28 +79,47 @@ const HoverItem = styled.li`
   }
 `;
 
+const HeaderTitle = styled.div`
+  margin-top: 15px;
+`;
+
+const Beta = styled.span`
+  vertical-align: text-top;
+  color: #fcba19;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 16px;
+`;
+
 interface Route {
   path: string;
   label: string;
-  user?: boolean;
   hide?: boolean;
+  roles: string[];
 }
 
 const routes: Route[] = [
-  { path: '/', label: 'About Pathfinder SSO' },
-  { path: '/terms-conditions', label: 'Terms and Conditions' },
-  { path: '/my-requests', label: 'My Dashboard', user: true },
-  { path: '/request', label: 'New Request', user: true, hide: true },
+  { path: '/', label: 'Home', roles: ['guest', 'user', 'sso-admin'] },
+  { path: '/terms-conditions', label: 'Terms and Conditions', roles: ['guest'] },
+  { path: '/my-requests', label: 'My Dashboard', roles: ['user', 'sso-admin'] },
+  { path: '/admin-dashboard', label: 'SSO Dashboard', roles: ['sso-admin'] },
+  { path: '/request', label: 'New Request', roles: ['user', 'sso-admin'], hide: true },
+  { path: '/edit-request', label: 'Edit Request', roles: ['sso-admin'], hide: true },
 ];
 
 const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; currentPath: string }) => {
-  const isLoggedIn = !!currentUser;
+  let roles = ['guest'];
+
+  if (currentUser) {
+    roles = currentUser.client_roles.length > 0 ? currentUser.client_roles : ['user'];
+  }
+
   const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
 
   return (
     <>
       {routes
-        .filter((route) => !!route.user === isLoggedIn && (!route.hide || isCurrent(route.path)))
+        .filter((route) => route.roles.some((role) => roles.includes(role)) && (!route.hide || isCurrent(route.path)))
         .map((route) => {
           return (
             <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
@@ -125,7 +147,7 @@ const RightMenuItems = () => (
       </a>
     </HoverItem>
     <HoverItem>
-      <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Wiki">
+      <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Documentation">
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </HoverItem>
@@ -138,15 +160,19 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
 
   const rightSide = currentUser ? (
     <LoggedUser>
-      <div className="welcome">Welcome {`${currentUser.given_name} ${currentUser.family_name}`}</div>&nbsp;&nbsp;
+      <div className="welcome">
+        Welcome {`${currentUser.given_name} ${currentUser.family_name}`}&nbsp;
+        {currentUser.client_roles && <span className="small">({startCase(currentUser.client_roles[0])})</span>}
+      </div>
+      &nbsp;&nbsp;
       {/* <FontAwesomeIcon style={{ paddingLeft: '5px', height: '25px' }} icon={faUserCircle} /> */}
       <Button variant="secondary-inverse" size="medium" onClick={onLogoutClick}>
-        Logout
+        Log out
       </Button>
     </LoggedUser>
   ) : (
     <Button variant="secondary-inverse" size="medium" onClick={onLoginClick}>
-      Login with IDIR
+      Log in
     </Button>
   );
 
@@ -185,7 +211,16 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
   return (
     <>
       <BCSans />
-      <Navigation title="" rightSide={rightSide} mobileMenu={MobileMenu} onBannerClick={console.log}>
+      <Navigation
+        title={() => (
+          <HeaderTitle>
+            SSO Pathfinder Integration<Beta>Beta</Beta>
+          </HeaderTitle>
+        )}
+        rightSide={rightSide}
+        mobileMenu={MobileMenu}
+        onBannerClick={console.log}
+      >
         <SubMenu>
           <SubLeftMenu>
             <LeftMenuItems currentUser={currentUser} currentPath={pathname} />

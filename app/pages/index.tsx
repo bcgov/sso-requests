@@ -1,13 +1,15 @@
 import React from 'react';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
-import Button from '@button-inc/bcgov-theme/Button';
+import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
+import { CALLOUT_BUTTON_BACKGROUND_COLOR, CALLOUT_BUTTON_FONT_COLOR, FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 
 const Panel = styled.div`
   max-width: 450px;
@@ -16,12 +18,33 @@ const Panel = styled.div`
   margin-right: auto;
 `;
 
+const Button = styled(DefaultButton)`
+  width: 215px;
+  background-color: #f2f2f2;
+  box-shadow: ${CALLOUT_BUTTON_BACKGROUND_COLOR} 0px 0px 0px 2px inset !important;
+  color: ${CALLOUT_BUTTON_FONT_COLOR};
+`;
+
+const PaddedButton = styled(Button)`
+  margin-left: 20px;
+  @media only screen and (max-width: 991px) {
+    margin-left: 0;
+    margin-top: 20px;
+  }
+`;
+
 const JumbotronH1 = styled.h1`
   font-size: 3rem;
 `;
 
 const JumbotronP = styled.p`
-  font-size: 2rem;
+  font-size: 1.5rem;
+`;
+
+const BoldP = styled.p`
+  margin-top: 50px;
+  font-size: 1.5rem;
+  font-weight: bold;
 `;
 
 const Paragraph = styled.p`
@@ -29,14 +52,16 @@ const Paragraph = styled.p`
   padding-left: 3.5rem;
 `;
 
-export default function Home({ currentUser, onLoginClick }: PageProps) {
-  const router = useRouter();
+const ButtonContainer = styled.div`
+  display: flex;
+  flex-direction: row;
 
-  if (currentUser) {
-    router.push('/my-requests');
-    return null;
+  @media only screen and (max-width: 991px) {
+    flex-direction: column;
   }
+`;
 
+export default function Home({ onLoginClick }: PageProps) {
   return (
     <>
       <Head>
@@ -53,23 +78,25 @@ export default function Home({ currentUser, onLoginClick }: PageProps) {
                 <JumbotronP>
                   Provide fast, simple
                   <br />
-                  and secure integrations
+                  and secure access to all BC
                   <br />
-                  to all BC Government
-                  <br />
-                  Identity Providers (IDPS)
+                  Gov IDPs.
                 </JumbotronP>
-                <Button size="medium" onClick={onLoginClick}>
-                  Request IDIR SSO integration with your IDIR Account
-                </Button>
-                <br /> <br />
-                <Link
-                  size="large"
-                  href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
-                  external
-                >
-                  Request IDIR and BCeID SSO integration with your GitHub Account
-                </Link>
+                <BoldP>Request SSO Integration for:</BoldP>
+                <ButtonContainer>
+                  <Button size="medium" onClick={onLoginClick}>
+                    IDIR
+                  </Button>
+                  <br /> <br />
+                  <Link
+                    href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
+                    target="blank"
+                  >
+                    <PaddedButton>
+                      IDIR and BCeID <FontAwesomeIcon icon={faExternalLinkAlt} />
+                    </PaddedButton>
+                  </Link>
+                </ButtonContainer>
               </Panel>
             </Grid.Col>
             <Grid.Col>

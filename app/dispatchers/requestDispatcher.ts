@@ -12,3 +12,7 @@ export const $setEditingRequest = (payload: boolean): Action => {
 export const $updateRequest = (payload: Request | null): Action => {
   return { type: 'updateRequest', payload };
 };
+
+export const $deleteRequest = (payload: number | null): Action => {
+  return { type: 'deleteRequest', payload };
+};

@@ -1,5 +1,8 @@
 export interface Session {
   idir_userid: string;
+  client_roles: string[];
+  given_name: string;
+  family_name: string;
 }
 
 export interface Data {
@@ -14,6 +17,7 @@ export interface Data {
   agreeWithTC?: boolean;
   publicAccess?: boolean;
   id?: number;
+  comment?: string;
 }
 
 export interface FormattedData {
@@ -33,6 +37,11 @@ export interface FormattedData {
   publicAccess?: boolean;
 }
 
+interface EmailEvent {
+  emailCode: string;
+  requestId: number;
+}
+
 export interface EmailOptions {
   from?: string;
   to: string;
@@ -45,4 +54,5 @@ export interface EmailOptions {
   priority?: 'normal' | 'low' | 'high';
   subject?: string;
   tag?: string;
+  event: EmailEvent;
 }

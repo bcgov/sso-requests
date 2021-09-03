@@ -58,6 +58,7 @@ jobs:
         run: |
           yarn
           make copy-schema
+          make copy-helpers
         working-directory: ./lambda/app
 
       - name: Install dependencies - lambda db

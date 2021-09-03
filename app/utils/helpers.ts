@@ -5,21 +5,28 @@
 import { isEqual } from 'lodash';
 import { Request } from 'interfaces/Request';
 import validate from 'react-jsonschema-form/lib/validate';
-import nonBceidSchemas from 'schemas/non-bceid-schemas';
 import { errorMessages } from './constants';
 import { customValidate } from './shared/customValidate';
 
 const URIS_SCHEMA_INDEX = 1;
 
-export const validateForm = (formData: Request, visited?: any) => {
+export const validateForm = (formData: Request, schemas: any[], visited?: any) => {
   const errors: any = {};
-  nonBceidSchemas.forEach((schema, i) => {
+  schemas.forEach((schema, i) => {
     if (visited && !visited[i]) return;
     const validateUris = i === URIS_SCHEMA_INDEX;
     const { errors: err } = validate(formData, schema, validateUris ? customValidate : undefined);
     if (err.length > 0) errors[i] = err;
   });
   return errors;
+};
+
+export const parseError = (err: any) => {
+  try {
+    return JSON.parse(err);
+  } catch (e) {
+    return { message: err };
+  }
 };
 
 // Convert Payload from Base64-URL to JSON
@@ -118,7 +125,7 @@ const changeNullToUndefined = (data: any) => {
   return data;
 };
 
-export const processRequest = (request: Request) => {
+export const processRequest = (request: Request): Request => {
   if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
     request.devValidRedirectUris = [''];
   }

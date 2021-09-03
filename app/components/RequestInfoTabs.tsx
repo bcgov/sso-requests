@@ -9,6 +9,7 @@ import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
 import { SUBTITLE_FONT_SIZE, SECONDARY_FONT_COLOR } from 'styles/theme';
+import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 
 const RequestTabs = styled(Tabs)`
   .nav-link {
@@ -32,14 +33,19 @@ const TabWrapper = styled.div`
   padding-right: 1rem;
 `;
 
+type TabKey = 'installation-json' | 'configuration-url';
+
 interface Props {
   selectedRequest: Request;
+  defaultTabKey: TabKey;
 }
 
-function RequestInfoTabs({ selectedRequest }: Props) {
+function RequestInfoTabs({ selectedRequest, defaultTabKey }: Props) {
+  const [activeKey, setActiveKey] = useState<TabKey>(defaultTabKey);
   const { dispatch } = useContext(RequestsContext);
   if (!selectedRequest) return null;
-  const displayStatus = getStatusDisplayName(selectedRequest.status || 'draft');
+  const { status } = selectedRequest;
+  const displayStatus = getStatusDisplayName(status || 'draft');
 
   let panel = null;
   if (displayStatus === 'In Draft') {
@@ -55,32 +61,16 @@ function RequestInfoTabs({ selectedRequest }: Props) {
       </>
     );
   } else if (displayStatus === 'Submitted') {
-    panel = (
-      <>
-        <br />
-        <Alert variant="info">
-          <div>
-            <strong>We&apos;ve got your request.</strong>
-          </div>
-          <div>
-            <p>
-              It takes several minutes to automate the completion of your SSO integration request. You can either wait
-              for an email that will come to the requestor&apos;s inbox, or wait 45 minutes and then do a refresh. If
-              you would prefer to interact with a human, please reach out to us.
-            </p>
-          </div>
-        </Alert>
-      </>
-    );
+    panel = <SubmittedStatusIndicator selectedRequest={selectedRequest} />;
   } else if (displayStatus === 'Completed') {
     panel = (
-      <RequestTabs>
+      <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
         <Tab eventKey="installation-json" title="Installation JSON">
           <TabWrapper>
             <InstallationPanel selectedRequest={selectedRequest} />
           </TabWrapper>
         </Tab>
-        <Tab eventKey="configuration-url" title="Configuration URIs">
+        <Tab eventKey="configuration-url" title="Redirect URIs">
           <TabWrapper>
             <ConfigurationUrlPanel selectedRequest={selectedRequest} />
           </TabWrapper>
