@@ -19,6 +19,7 @@
     "@fortawesome/react-fontawesome": "^0.1.14",
     "@rjsf/core": "^3.0.0",
     "axios": "^0.21.1",
+    "backslash": "^0.2.0",
     "bootstrap": "^5.0.2",
     "jsrsasign": "^10.4.0",
     "next": "11.0.1",
