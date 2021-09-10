@@ -28,8 +28,8 @@ const answerRadio = (getBy, answer) => {
   });
 };
 
-const validateSubmission = (projectName) => {
-  cy.contains('tr.active', projectName);
+const validateSubmission = (name) => {
+  cy.contains('tr.active', name);
   cy.contains('tr.active', 'Submitted');
   cy.contains(CONTAINS_INSTALLATION_JSON, { timeout: 600000 });
 };
@@ -65,9 +65,9 @@ describe('Main workflows', () => {
 
     // Page 2
     answerRadio(GET_PUBLIC_ACCESS, 'Public');
-    cy.get(GET_DEV_REDIRECT_URIS).type('http://cypress');
-    cy.get(GET_TEST_REDIRECT_URIS).type('http://cypress');
-    cy.get(GET_PROD_REDIRECT_URIS).type('http://cypress');
+    cy.get(GET_DEV_REDIRECT_URIS).type('https://cypress');
+    cy.get(GET_TEST_REDIRECT_URIS).type('https://cypress');
+    cy.get(GET_PROD_REDIRECT_URIS).type('https://cypress');
     cy.contains('button', CONTAINS_NEXT_BUTTON).click();
 
     // Page 3
@@ -97,7 +97,7 @@ describe('Main workflows', () => {
         cy.contains('Add another URI').click();
       });
 
-    cy.get(GET_DEV_REDIRECT_URIS_1).type('http://cypress-2');
+    cy.get(GET_DEV_REDIRECT_URIS_1).type('https://cypress-2');
     cy.contains('button', CONTAINS_SUBMIT_BUTTON).click();
 
     validateSubmission(projectName);
