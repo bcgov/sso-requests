@@ -23,7 +23,7 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install Yarn dependencies in next-app
         run: yarn
-        # working-directory: ./app
+        working-directory: ./app
 
       # NodeJS APP & Cypress
       - name: Run local app & e2e tests
@@ -32,4 +32,4 @@ jobs:
           CYPRESS_TOKEN: ${{ github.event.inputs.WEBHOOK_TOKEN }}
         run: |
           yarn cypress run
-        # working-directory: ./app
+        working-directory: ./app
