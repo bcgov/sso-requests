@@ -3,10 +3,20 @@ import { AxiosError } from 'axios';
 import { orderBy } from 'lodash';
 import { Request } from 'interfaces/Request';
 import { processRequest } from 'utils/helpers';
+import Router from 'next/router';
+
+const applicationBlockingErrors = ['E01'];
 
 const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
-  console.error(err);
-  return [null, err as AxiosError];
+  const errorMessage = err?.response?.data || 'Unhandled Exception';
+  if (applicationBlockingErrors.includes(errorMessage))
+    Router.push({
+      pathname: '/application-error',
+      query: {
+        error: errorMessage,
+      },
+    });
+  return [null, errorMessage as AxiosError];
 };
 
 export const createRequest = async (data: Request): Promise<[Request, null] | [null, AxiosError]> => {
@@ -74,7 +84,7 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
     const result = await instance.put(url, data).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err) {
-    return handleAxiosError(err?.response?.data);
+    return handleAxiosError(err);
   }
 };
 
