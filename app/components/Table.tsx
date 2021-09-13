@@ -20,13 +20,18 @@ const PageInfo = styled.span`
   line-height: 40px;
 `;
 
+interface Header {
+  name: string;
+  style?: any;
+}
+
 interface FilterItem {
   value: string | number;
   text: string;
 }
 
 interface Props {
-  headers: string[];
+  headers: Header[];
   children: React.ReactNode;
   filterItems?: FilterItem[];
   filterItems2?: FilterItem[];
@@ -196,7 +201,11 @@ function Table({
         <thead>
           <tr>
             {headers.map((header, index) => {
-              return <th key={index}>{header}</th>;
+              return (
+                <th key={index} style={header.style || {}}>
+                  {header.name}
+                </th>
+              );
             })}
           </tr>
         </thead>

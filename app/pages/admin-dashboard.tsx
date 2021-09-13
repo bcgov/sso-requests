@@ -4,18 +4,19 @@ import { padStart, startCase } from 'lodash';
 import Loader from 'react-loader-spinner';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Request } from 'interfaces/Request';
-import { Container, DeleteButton, EditButton, VerticalLine } from 'components/ActionButtons';
+import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
+import { PRIMARY_RED } from 'styles/theme';
 
 type Status =
   | 'all'
@@ -113,7 +114,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     setLoading(true);
 
     const [data, err] = await getRequestAll({
-      searchField: ['projectName'],
+      searchField: ['id', 'projectName'],
       searchKey,
       order: [['createdAt', 'desc']],
       limit,
@@ -178,7 +179,13 @@ export default function AdminDashboard({ currentUser }: PageProps) {
         <Grid.Row collapse="800" gutter={[15, 2]}>
           <Grid.Col span={6}>
             <Table
-              headers={['Request ID', 'Project Name', 'Request Status', 'File Status', 'Actions']}
+              headers={[
+                { name: 'Request ID' },
+                { name: 'Project Name' },
+                { name: 'Request Status' },
+                { name: 'File Status' },
+                { name: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
+              ]}
               filterItems={statusFilters}
               filterItems2={archiveStatusFilters}
               pageLimits={pageLimits}
@@ -200,7 +207,10 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 setArchiveStatus(val);
                 setPage(1);
               }}
-              onLimit={setLimit}
+              onLimit={(val) => {
+                setPage(1);
+                setLimit(val);
+              }}
               onPrev={setPage}
               onNext={setPage}
             >
@@ -214,7 +224,15 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                       <td>{row.archived ? 'Deleted' : 'Active'}</td>
                       <td>
                         <Container>
-                          <EditButton
+                          <ActionButton
+                            icon={faEye}
+                            role="button"
+                            aria-label="edit"
+                            onClick={() => handleEdit(row)}
+                            title="Edit"
+                          />
+                          <VerticalLine />
+                          <ActionButton
                             disabled={!canEdit(row)}
                             icon={faEdit}
                             role="button"
@@ -223,12 +241,13 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                             title="Edit"
                           />
                           <VerticalLine />
-                          <DeleteButton
+                          <ActionButton
                             icon={faTrash}
                             role="button"
                             aria-label="delete"
                             onClick={() => handleDelete(row)}
                             disabled={!canDelete(row)}
+                            activeColor={PRIMARY_RED}
                             title="Delete"
                           />
                         </Container>
