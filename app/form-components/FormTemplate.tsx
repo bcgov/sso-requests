@@ -12,7 +12,7 @@ import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
-import { useRouter, NextRouter } from 'next/router';
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
