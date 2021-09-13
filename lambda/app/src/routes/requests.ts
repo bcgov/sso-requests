@@ -236,9 +236,14 @@ export const getRequestAll = async (
   const where: any = {};
 
   if (searchKey && searchField && searchField.length > 0) {
+    where[Op.or] = [];
     searchField.forEach((field) => {
-      where[Op.or] = [];
-      where[Op.or].push({ [field]: { [Op.like]: `%${searchKey}%` } });
+      if (field === 'id') {
+        const id = Number(searchKey);
+        if (!Number.isNaN(id)) where[Op.or].push({ id });
+      } else {
+        where[Op.or].push({ [field]: { [Op.iLike]: `%${searchKey}%` } });
+      }
     });
   }
 

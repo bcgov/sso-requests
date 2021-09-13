@@ -14,22 +14,13 @@ export const Container = styled.div`
   display: flex;
   justify-content: space-around;
   align-items: center;
+  padding-right: 15px;
 `;
 
-export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
+export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean; activeColor?: string }>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
-  ${(props) => (props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: #137ac8; }`)}
-`;
-
-export const DeleteButton = styled(ActionButton)<{ disabled?: boolean }>`
-  margin-right: 15px;
-  &:hover {
-    ${(props) => (props?.disabled ? '' : `color: ${PRIMARY_RED};`)}
-  }
-`;
-
-export const EditButton = styled(ActionButton)`
-  margin-left: 15px;
+  ${(props) =>
+    props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: ${props.activeColor || '#137ac8'}; }`}
 `;
 
 export const VerticalLine = styled.div`
@@ -73,7 +64,7 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
   return (
     <>
       <Container>
-        <EditButton
+        <ActionButton
           disabled={!canEdit}
           icon={faEdit}
           role="button"
@@ -82,12 +73,13 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
           title="Edit"
         />
         <VerticalLine />
-        <DeleteButton
+        <ActionButton
           icon={faTrash}
           role="button"
           aria-label="delete"
           onClick={handleDelete}
           disabled={!canDelete}
+          activeColor={PRIMARY_RED}
           title="Delete"
         />
       </Container>
