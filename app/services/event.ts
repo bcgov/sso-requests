@@ -3,7 +3,7 @@ import { orderBy } from 'lodash';
 import { Event } from 'interfaces/Event';
 
 interface EventSearchCriteria {
-  requestId: string;
+  requestId: number;
   eventType: string;
   order?: any;
   limit?: number;

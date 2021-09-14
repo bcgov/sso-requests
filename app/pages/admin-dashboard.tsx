@@ -263,9 +263,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               )}
             </Table>
           </Grid.Col>
-          <Grid.Col span={4}>
-            <AdminEventPanel requestId={selectedId} />
-          </Grid.Col>
+          <Grid.Col span={4}>{selectedId && <AdminEventPanel requestId={selectedId} />}</Grid.Col>
         </Grid.Row>
       </Grid>
       <CenteredModal id="delete-modal">

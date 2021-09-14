@@ -30,7 +30,7 @@ const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
 
 interface Props {
-  requestId: string;
+  requestId: number;
 }
 
 interface FilterItem {
@@ -92,7 +92,7 @@ export default function AdminEventPanel({ requestId }: Props) {
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [eventType]);
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEventType(event.target.value);
