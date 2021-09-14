@@ -7,6 +7,7 @@ import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Pagination from 'react-bootstrap/Pagination';
 import StyledTable from 'html-components/Table';
+import SectionHeader from 'components/SectionHeader';
 
 const StyledPagination = styled(Pagination)`
   margin: 0 !important;
@@ -153,49 +154,51 @@ function Table({
 
   return (
     <>
-      <Grid cols={12}>
-        <Grid.Row collapse="992" gutter={[]} align="center">
-          <Grid.Col span={5}>
-            <Input
-              type="text"
-              size="small"
-              placeholder="Search..."
-              style={{ display: 'inline-block' }}
-              value={_searchKey}
-              onChange={handleSearchKeyChange}
-            />
-            <Button type="button" size="small" onClick={handleSearchSubmit}>
-              Search
-            </Button>
-          </Grid.Col>
-          <Grid.Col span={7} style={{ textAlign: 'right' }}>
-            {filterItems && (
-              <>
-                <span>Status: </span>
-                <Dropdown
-                  style={{ display: 'inline-block', width: '160px' }}
-                  value={filter}
-                  onChange={handleFilterChange}
-                >
-                  {generateOptions(filterItems)}
-                </Dropdown>
-              </>
-            )}
-            &nbsp;&nbsp;
-            {filterItems2 && (
-              <>
-                <Dropdown
-                  style={{ display: 'inline-block', width: '160px' }}
-                  value={filter2}
-                  onChange={handleFilterChange2}
-                >
-                  {generateOptions(filterItems2)}
-                </Dropdown>
-              </>
-            )}
-          </Grid.Col>
-        </Grid.Row>
-      </Grid>
+      <SectionHeader>
+        <Grid cols={12}>
+          <Grid.Row collapse="992" gutter={[]} align="center">
+            <Grid.Col span={5}>
+              <Input
+                type="text"
+                size="small"
+                placeholder="Search..."
+                style={{ display: 'inline-block' }}
+                value={_searchKey}
+                onChange={handleSearchKeyChange}
+              />
+              <Button type="button" size="small" onClick={handleSearchSubmit}>
+                Search
+              </Button>
+            </Grid.Col>
+            <Grid.Col span={7} style={{ textAlign: 'right' }}>
+              {filterItems && (
+                <>
+                  <span>Status: </span>
+                  <Dropdown
+                    style={{ display: 'inline-block', width: '160px' }}
+                    value={filter}
+                    onChange={handleFilterChange}
+                  >
+                    {generateOptions(filterItems)}
+                  </Dropdown>
+                </>
+              )}
+              &nbsp;&nbsp;
+              {filterItems2 && (
+                <>
+                  <Dropdown
+                    style={{ display: 'inline-block', width: '160px' }}
+                    value={filter2}
+                    onChange={handleFilterChange2}
+                  >
+                    {generateOptions(filterItems2)}
+                  </Dropdown>
+                </>
+              )}
+            </Grid.Col>
+          </Grid.Row>
+        </Grid>
+      </SectionHeader>
 
       <StyledTable>
         <thead>
