@@ -3,7 +3,7 @@ import { Event } from 'interfaces/Event';
 
 interface EventSearchCriteria {
   requestId: number;
-  eventType: string;
+  eventCode: string;
   order?: any;
   limit?: number;
   page?: number;

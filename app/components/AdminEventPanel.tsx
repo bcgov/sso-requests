@@ -56,7 +56,7 @@ const generateOptions = (items: FilterItem[]) => (
 );
 
 export default function AdminEventPanel({ requestId }: Props) {
-  const [eventType, setEventType] = useState('all');
+  const [eventCode, setEventCode] = useState('all');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
@@ -66,7 +66,7 @@ export default function AdminEventPanel({ requestId }: Props) {
 
     const [data, err] = await getEvents({
       requestId,
-      eventType,
+      eventCode,
       // order,
       // limit,
       // page,
@@ -82,10 +82,10 @@ export default function AdminEventPanel({ requestId }: Props) {
 
   useEffect(() => {
     getData();
-  }, [eventType]);
+  }, [requestId, eventCode]);
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEventType(event.target.value);
+    setEventCode(event.target.value);
   };
 
   if (hasError) return null;
@@ -101,7 +101,7 @@ export default function AdminEventPanel({ requestId }: Props) {
             <Grid.Col span={7} style={{ textAlign: 'right' }}>
               <Dropdown
                 style={{ display: 'inline-block', width: '250px' }}
-                value={eventType}
+                value={eventCode}
                 onChange={handleFilterChange}
               >
                 {generateOptions(filterItems)}
