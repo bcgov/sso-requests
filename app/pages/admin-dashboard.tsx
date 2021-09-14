@@ -16,6 +16,7 @@ import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
+import AdminEventPanel from 'components/AdminEventPanel';
 import { PRIMARY_RED } from 'styles/theme';
 
 type Status =
@@ -262,7 +263,9 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               )}
             </Table>
           </Grid.Col>
-          <Grid.Col span={4}></Grid.Col>
+          <Grid.Col span={4}>
+            <AdminEventPanel requestId={selectedId} />
+          </Grid.Col>
         </Grid.Row>
       </Grid>
       <CenteredModal id="delete-modal">
