@@ -1,5 +1,5 @@
 import { models } from '../../../shared/sequelize/models/models';
-import { Session, Data } from '../../../shared/interfaces';
+import { Session } from '../../../shared/interfaces';
 
 const handleError = (err: string) => {
   console.error(err);

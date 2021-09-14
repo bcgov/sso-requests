@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ProgressBar } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import Link from '@button-inc/bcgov-theme/Link';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
-import { LINK_COLOR, SECONDARY_BLUE } from 'styles/theme';
-import HelpText from 'components/HelpText';
 import SectionHeader from 'components/SectionHeader';
 import { Event } from 'interfaces/Event';
 import { getEvents } from 'services/event';
-import getConfig from 'next/config';
 import { SUBTITLE_FONT_SIZE } from 'styles/theme';
 
 const Title = styled.h3`
@@ -25,9 +18,6 @@ const Title = styled.h3`
 const AlignCenter = styled.div`
   text-align: center;
 `;
-
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { app_env } = publicRuntimeConfig;
 
 interface Props {
   requestId: number;
@@ -97,6 +87,8 @@ export default function AdminEventPanel({ requestId }: Props) {
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEventType(event.target.value);
   };
+
+  if (hasError) return null;
 
   return (
     <>

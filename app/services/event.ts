@@ -1,5 +1,4 @@
 import { instance } from './axios';
-import { orderBy } from 'lodash';
 import { Event } from 'interfaces/Event';
 
 interface EventSearchCriteria {
