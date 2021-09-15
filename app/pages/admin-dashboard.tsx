@@ -131,6 +131,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     }
 
     setLoading(false);
+    setSelectedId(undefined);
   };
 
   useEffect(() => {
@@ -218,7 +219,11 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
                   return (
-                    <tr key={row.id} onClick={() => setSelectedId(row.id)}>
+                    <tr
+                      key={row.id}
+                      className={selectedId === row.id ? 'active' : ''}
+                      onClick={() => setSelectedId(row.id)}
+                    >
                       <td>{padStart(String(row.id), 8, '0')}</td>
                       <td>{row.projectName}</td>
                       <td>{startCase(row.status)}</td>

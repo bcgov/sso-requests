@@ -19,6 +19,11 @@ const AlignCenter = styled.div`
   text-align: center;
 `;
 
+const EventContent = styled.div`
+  max-height: calc(100vh - 250px);
+  overflow: auto;
+`;
+
 interface Props {
   requestId: number;
 }
@@ -54,6 +59,10 @@ const generateOptions = (items: FilterItem[]) => (
     ))}
   </>
 );
+
+const getReadableDateTime = (date: any) => {
+  return new Date(date).toLocaleString();
+};
 
 export default function AdminEventPanel({ requestId }: Props) {
   const [eventCode, setEventCode] = useState('all');
@@ -115,16 +124,36 @@ export default function AdminEventPanel({ requestId }: Props) {
           <Loader type="Grid" color="#000" height={45} width={45} visible={loading} />
         </AlignCenter>
       ) : (
-        events.map((event: Event) => {
-          <>
-            <div>Event Code: {event.eventCode}</div>
-            <div>Time: {event.createdAt}</div>
-            <div>Details</div>
-            <pre>
-              <code>{event.details}</code>
-            </pre>
-          </>;
-        })
+        <EventContent>
+          {!events || events.length === 0 ? (
+            <div>No events found</div>
+          ) : (
+            events.map((event: Event) => (
+              <div key={event.id}>
+                <div>
+                  <strong>Event Code: </strong>
+                  {event.eventCode}
+                </div>
+                <div>
+                  <strong>Time: </strong>
+                  {getReadableDateTime(event.createdAt)}
+                </div>
+                {event.details && (
+                  <>
+                    <div>
+                      <strong>Details</strong>
+                    </div>
+                    <pre>
+                      <code>{JSON.stringify(event.details || {}, undefined, 2)}</code>
+                    </pre>
+                  </>
+                )}
+
+                <hr />
+              </div>
+            ))
+          )}
+        </EventContent>
       )}
     </>
   );
