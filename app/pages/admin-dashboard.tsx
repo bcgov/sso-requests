@@ -100,8 +100,9 @@ const PaddedIcon = styled(FontAwesomeIcon)`
 export default function AdminDashboard({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
+  const [showEvents, setShowEvents] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
   const [searchKey, setSearchKey] = useState<string>('');
   const [count, setCount] = useState<number>(0);
@@ -131,6 +132,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     }
 
     setLoading(false);
+    setSelectedId(undefined);
   };
 
   useEffect(() => {
@@ -218,7 +220,14 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
                   return (
-                    <tr key={row.id} onClick={() => setSelectedId(row.id)}>
+                    <tr
+                      key={row.id}
+                      className={selectedId === row.id ? 'active' : ''}
+                      onClick={() => {
+                        setSelectedId(row.id);
+                        setShowEvents(false);
+                      }}
+                    >
                       <td>{padStart(String(row.id), 8, '0')}</td>
                       <td>{row.projectName}</td>
                       <td>{startCase(row.status)}</td>
@@ -229,7 +238,11 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                             icon={faEye}
                             role="button"
                             aria-label="edit"
-                            onClick={() => handleEdit(row)}
+                            onClick={(event: any) => {
+                              event.stopPropagation();
+                              setSelectedId(row.id);
+                              setShowEvents(true);
+                            }}
                             title="Edit"
                           />
                           <VerticalLine />
@@ -263,7 +276,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               )}
             </Table>
           </Grid.Col>
-          <Grid.Col span={4}>{selectedId && <AdminEventPanel requestId={selectedId} />}</Grid.Col>
+          <Grid.Col span={4}>{showEvents && selectedId && <AdminEventPanel requestId={selectedId} />}</Grid.Col>
         </Grid.Row>
       </Grid>
       <CenteredModal id="delete-modal">
