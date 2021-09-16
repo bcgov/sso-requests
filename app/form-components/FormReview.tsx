@@ -104,6 +104,8 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
     router.push('/my-requests');
   };
 
+  const backText = isAdmin ? 'Cancel' : 'Save and Close';
+
   return (
     <>
       <RequestPreview request={formData} />
@@ -124,13 +126,15 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
         </Modal.Header>
         <Modal.Content>
           <p>Are you sure you're ready to submit your request?</p>
-          <p>
-            If you need to change anything after submitting your request, please contact our{' '}
-            <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-              #SSO channel
-            </Link>{' '}
-            or email <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>
-          </p>
+          {!isAdmin && (
+            <p>
+              If you need to change anything after submitting your request, please contact our{' '}
+              <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
+                #SSO channel
+              </Link>{' '}
+              or email <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>
+            </p>
+          )}
           <ButtonContainer>
             <CancelButton onClick={handleModalClose}>Cancel</CancelButton>
             <ModalButton onClick={handleSubmit}>
