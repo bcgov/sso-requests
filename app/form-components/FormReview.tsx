@@ -5,8 +5,8 @@ import { padStart } from 'lodash';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { validateForm } from 'utils/helpers';
-import { FORM_BUTTON_MIN_WIDTH, FORM_TOP_SPACING } from 'styles/theme';
+import { validateForm, parseError } from 'utils/helpers';
+import { FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
@@ -58,20 +58,29 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await updateRequest(formData, true);
+      const [, err] = await updateRequest(formData, true);
       setLoading(false);
 
-      alert.show({
-        variant: 'success',
-        fadeOut: 10000,
-        closable: true,
-        content: `Request ID:${padStart(String(formData.id), 8, '0')} is successfully submitted!`,
-      });
+      if (err) {
+        alert.show({
+          variant: 'info',
+          fadeOut: 10000,
+          closable: true,
+          content: parseError(err).message,
+        });
+      } else {
+        alert.show({
+          variant: 'success',
+          fadeOut: 10000,
+          closable: true,
+          content: `Request ID:${padStart(String(formData.id), 8, '0')} is successfully submitted!`,
+        });
 
-      router.push({
-        pathname: isAdmin ? '/admin-dashboard' : '/my-requests',
-        query: { id: formData.id },
-      });
+        router.push({
+          pathname: isAdmin ? '/admin-dashboard' : '/my-requests',
+          query: { id: formData.id },
+        });
+      }
     } catch (err) {
       console.error(err);
     }
@@ -104,6 +113,9 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
     router.push('/my-requests');
   };
 
+  const backText = isAdmin ? 'Cancel' : 'Save and Close';
+  const submitText = isAdmin ? 'Update' : 'Submit';
+
   return (
     <>
       <RequestPreview request={formData} />
@@ -113,7 +125,7 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
         </Form>
       )}
       <FormButtons
-        text={{ continue: 'Submit', back: 'Save and Close' }}
+        text={{ continue: submitText, back: backText }}
         show={true}
         handleSubmit={openModal}
         handleBackClick={handleBackClick}
@@ -124,13 +136,15 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
         </Modal.Header>
         <Modal.Content>
           <p>Are you sure you're ready to submit your request?</p>
-          <p>
-            If you need to change anything after submitting your request, please contact our{' '}
-            <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-              #SSO channel
-            </Link>{' '}
-            or email <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>
-          </p>
+          {!isAdmin && (
+            <p>
+              If you need to change anything after submitting your request, please contact our{' '}
+              <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
+                #SSO channel
+              </Link>{' '}
+              or email <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>
+            </p>
+          )}
           <ButtonContainer>
             <CancelButton onClick={handleModalClose}>Cancel</CancelButton>
             <ModalButton onClick={handleSubmit}>
