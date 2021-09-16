@@ -41,7 +41,7 @@ export default async function status(event) {
     const request = await models.request.findOne({ where: { prNumber } });
     if (!request) throw Error(`request associated with pr number ${prNumber} not found`);
 
-    const { id: requestId, status: currentStatus, preferredEmail } = request;
+    const { id: requestId, status: currentStatus } = request;
     const isAlreadyApplied = currentStatus === 'applied';
     if (githubActionsStage === 'plan') {
       const success = String(planSuccess) === 'true';
