@@ -20,4 +20,5 @@ export interface Request {
   agreeWithTerms?: boolean;
   status?: Status;
   archived: boolean;
+  additionalEmails: string[];
 }

@@ -181,9 +181,15 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
             </td>
           </tr>
           <tr>
-            <td>Preferred email address:</td>
+            <td>Default email address:</td>
             <td>
               <SemiBold>{formData?.preferredEmail}</SemiBold>
+            </td>
+          </tr>
+          <tr>
+            <td>Additional Emails:</td>
+            <td>
+              <SemiBold>{formatList(formData?.additionalEmails)}</SemiBold>
             </td>
           </tr>
         </tbody>
