@@ -44,7 +44,7 @@ interface EmailEvent {
 
 export interface EmailOptions {
   from?: string;
-  to: string;
+  to: string[];
   body: string;
   bodyType?: string;
   cc?: string[];

@@ -1,6 +1,7 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { mergePR } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
+import { getEmailList } from '../../../shared/utils/helpers';
 import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
@@ -40,7 +41,7 @@ export default async function status(event) {
     const request = await models.request.findOne({ where: { prNumber } });
     if (!request) throw Error(`request associated with pr number ${prNumber} not found`);
 
-    const { id: requestId, status: currentStatus, preferredEmail } = request;
+    const { id: requestId, status: currentStatus } = request;
     const isAlreadyApplied = currentStatus === 'applied';
     if (githubActionsStage === 'plan') {
       const success = String(planSuccess) === 'true';
@@ -70,9 +71,10 @@ export default async function status(event) {
 
       if (success && !request.archived) {
         const emailCode = isUpdate ? 'uri-change-request-approved' : 'create-request-approved';
+        const to = getEmailList(request);
 
         await sendEmail({
-          to: preferredEmail,
+          to,
           body: getEmailBody(emailCode, {
             projectName: request.projectName,
             requestNumber: request.id,

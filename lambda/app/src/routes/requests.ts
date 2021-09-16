@@ -5,6 +5,7 @@ import { kebabCase } from 'lodash';
 import { validateRequest, processRequest, getDifferences } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
+import { getEmailList } from '../../../shared/utils/helpers';
 import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
@@ -134,9 +135,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       }
 
       const emailCode = isUpdate ? 'uri-change-request-submitted' : 'create-request-submitted';
+      const to = getEmailList(original);
 
       await sendEmail({
-        to: allowedRequest.preferredEmail,
+        to,
         body: getEmailBody(emailCode, {
           projectName: mergedRequest.projectName,
           requestNumber: mergedRequest.id,
@@ -340,10 +342,11 @@ export const deleteRequest = async (session: Session, id: number) => {
     if (prError) throw prError;
 
     const result = await models.request.update({ archived: true }, { where });
+    const to = getEmailList(original);
 
     Promise.all([
       sendEmail({
-        to: 'bcgov.sso@gov.bc.ca',
+        to: ['bcgov.sso@gov.bc.ca'],
         body: getEmailBody('request-deleted-notification-to-admin', {
           projectName: result.projectName,
           requestNumber: result.id,
@@ -353,7 +356,7 @@ export const deleteRequest = async (session: Session, id: number) => {
         event: { emailCode: 'request-deleted-notification-to-admin', requestId: id },
       }),
       sendEmail({
-        to: original.preferredEmail,
+        to,
         body: getEmailBody('request-deleted', {
           projectName: result.projectName,
           requestNumber: result.id,

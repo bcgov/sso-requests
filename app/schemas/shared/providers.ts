@@ -40,6 +40,7 @@ export default {
       items: redirectUriItems,
       additionalItems: redirectUriItems,
       default: [''],
+      addItemText: 'Add another URI',
       ...redirectUriTooltipInfo,
     },
     testValidRedirectUris: {
@@ -48,6 +49,7 @@ export default {
       items: redirectUriItems,
       additionalItems: redirectUriItems,
       default: [''],
+      addItemText: 'Add another URI',
     },
     prodValidRedirectUris: {
       type: 'array',
@@ -55,6 +57,7 @@ export default {
       items: redirectUriItems,
       additionalItems: redirectUriItems,
       default: [''],
+      addItemText: 'Add another URI',
     },
   },
 } as JSONSchema6;
