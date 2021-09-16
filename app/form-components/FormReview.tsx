@@ -105,6 +105,7 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
   };
 
   const backText = isAdmin ? 'Cancel' : 'Save and Close';
+  const submitText = isAdmin ? 'Update' : 'Submit';
 
   return (
     <>
@@ -115,7 +116,7 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
         </Form>
       )}
       <FormButtons
-        text={{ continue: 'Submit', back: 'Save and Close' }}
+        text={{ continue: submitText, back: backText }}
         show={true}
         handleSubmit={openModal}
         handleBackClick={handleBackClick}
