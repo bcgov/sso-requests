@@ -28,8 +28,8 @@ export default {
             additionalEmails: {
               type: 'array',
               title: 'Additional Emails',
-              items: { type: 'string', maxLength: 250, placeholder: 'e.g. https://example.com' },
-              additionalItems: { type: 'string', maxLength: 250, placeholder: 'e.g. https://example.com' },
+              items: { type: 'string', maxLength: 250, format: 'email' },
+              additionalItems: { type: 'string', maxLength: 250, format: 'email' },
               deletableIndex: 0,
               addItemText: 'Add Email Address',
             },
