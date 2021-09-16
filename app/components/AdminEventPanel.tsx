@@ -19,6 +19,12 @@ const AlignCenter = styled.div`
   text-align: center;
 `;
 
+const EventContent = styled.div`
+  margin-top: 20px;
+  max-height: calc(100vh - 250px);
+  overflow: auto;
+`;
+
 interface Props {
   requestId: number;
 }
@@ -55,8 +61,12 @@ const generateOptions = (items: FilterItem[]) => (
   </>
 );
 
+const getReadableDateTime = (date: any) => {
+  return new Date(date).toLocaleString();
+};
+
 export default function AdminEventPanel({ requestId }: Props) {
-  const [eventType, setEventType] = useState('all');
+  const [eventCode, setEventCode] = useState('all');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
@@ -66,7 +76,7 @@ export default function AdminEventPanel({ requestId }: Props) {
 
     const [data, err] = await getEvents({
       requestId,
-      eventType,
+      eventCode,
       // order,
       // limit,
       // page,
@@ -82,10 +92,10 @@ export default function AdminEventPanel({ requestId }: Props) {
 
   useEffect(() => {
     getData();
-  }, [eventType]);
+  }, [requestId, eventCode]);
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEventType(event.target.value);
+    setEventCode(event.target.value);
   };
 
   if (hasError) return null;
@@ -101,7 +111,7 @@ export default function AdminEventPanel({ requestId }: Props) {
             <Grid.Col span={7} style={{ textAlign: 'right' }}>
               <Dropdown
                 style={{ display: 'inline-block', width: '250px' }}
-                value={eventType}
+                value={eventCode}
                 onChange={handleFilterChange}
               >
                 {generateOptions(filterItems)}
@@ -115,16 +125,45 @@ export default function AdminEventPanel({ requestId }: Props) {
           <Loader type="Grid" color="#000" height={45} width={45} visible={loading} />
         </AlignCenter>
       ) : (
-        events.map((event: Event) => {
-          <>
-            <div>Event Code: {event.eventCode}</div>
-            <div>Time: {event.createdAt}</div>
-            <div>Details</div>
-            <pre>
-              <code>{event.details}</code>
-            </pre>
-          </>;
-        })
+        <EventContent>
+          {!events || events.length === 0 ? (
+            <div>No events found</div>
+          ) : (
+            events.map((event: Event) => (
+              <div key={event.id}>
+                <div>
+                  <strong>Event Code: </strong>
+                  {event.eventCode}
+                </div>
+                <div>
+                  <strong>Created Time: </strong>
+                  {getReadableDateTime(event.createdAt)}
+                </div>
+                {event.idirUserDisplayName && (
+                  <>
+                    <div>
+                      <strong>Created By: </strong>
+                    </div>
+                    {event.idirUserDisplayName}
+                  </>
+                )}
+
+                {event.details && (
+                  <>
+                    <div>
+                      <strong>Details</strong>
+                    </div>
+                    <pre>
+                      <code>{JSON.stringify(event.details || {}, undefined, 2)}</code>
+                    </pre>
+                  </>
+                )}
+
+                <hr />
+              </div>
+            ))
+          )}
+        </EventContent>
       )}
     </>
   );

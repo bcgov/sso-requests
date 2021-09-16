@@ -12,19 +12,19 @@ export const getEvents = async (
   session: Session,
   data: {
     requestId: string;
-    eventType: string;
+    eventCode: string;
     order?: any;
     limit?: number;
     page?: number;
   },
 ) => {
-  const { requestId, eventType, order = [['createdAt', 'desc']], limit = 100, page = 1 } = data;
+  const { requestId, eventCode, order = [['createdAt', 'desc']], limit = 100, page = 1 } = data;
 
   try {
     const where: any = { requestId };
 
-    if (eventType !== 'all') {
-      where.eventType = eventType;
+    if (eventCode !== 'all') {
+      where.eventCode = eventCode;
     }
 
     const result: Promise<{ count: number; rows: any[] }> = await models.event.findAndCountAll({

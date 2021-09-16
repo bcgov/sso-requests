@@ -17,6 +17,7 @@ import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
 import AdminEventPanel from 'components/AdminEventPanel';
+import AdminRequestPanel from 'components/AdminRequestPanel';
 import { PRIMARY_RED } from 'styles/theme';
 
 type Status =
@@ -100,8 +101,9 @@ const PaddedIcon = styled(FontAwesomeIcon)`
 export default function AdminDashboard({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
+  const [showEvents, setShowEvents] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
   const [searchKey, setSearchKey] = useState<string>('');
   const [count, setCount] = useState<number>(0);
@@ -131,6 +133,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     }
 
     setLoading(false);
+    setSelectedId(undefined);
   };
 
   useEffect(() => {
@@ -173,6 +176,15 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   };
 
   const cancelDelete = () => (window.location.hash = '#');
+
+  let rightPanel = null;
+  if (selectedId) {
+    rightPanel = showEvents ? (
+      <AdminEventPanel requestId={selectedId} />
+    ) : (
+      <AdminRequestPanel request={rows.find((v) => v.id === selectedId)} />
+    );
+  }
 
   return (
     <ResponsiveContainer rules={mediaRules}>
@@ -218,7 +230,14 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
                   return (
-                    <tr key={row.id} onClick={() => setSelectedId(row.id)}>
+                    <tr
+                      key={row.id}
+                      className={selectedId === row.id ? 'active' : ''}
+                      onClick={() => {
+                        setSelectedId(row.id);
+                        setShowEvents(false);
+                      }}
+                    >
                       <td>{padStart(String(row.id), 8, '0')}</td>
                       <td>{row.projectName}</td>
                       <td>{startCase(row.status)}</td>
@@ -228,9 +247,13 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                           <ActionButton
                             icon={faEye}
                             role="button"
-                            aria-label="edit"
-                            onClick={() => handleEdit(row)}
-                            title="Edit"
+                            aria-label="events"
+                            onClick={(event: any) => {
+                              event.stopPropagation();
+                              setSelectedId(row.id);
+                              setShowEvents(true);
+                            }}
+                            title="Events"
                           />
                           <VerticalLine />
                           <ActionButton
@@ -263,7 +286,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               )}
             </Table>
           </Grid.Col>
-          <Grid.Col span={4}>{selectedId && <AdminEventPanel requestId={selectedId} />}</Grid.Col>
+          <Grid.Col span={4}>{rightPanel}</Grid.Col>
         </Grid.Row>
       </Grid>
       <CenteredModal id="delete-modal">
