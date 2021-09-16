@@ -5,8 +5,8 @@ import { padStart } from 'lodash';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { validateForm } from 'utils/helpers';
-import { FORM_BUTTON_MIN_WIDTH, FORM_TOP_SPACING } from 'styles/theme';
+import { validateForm, parseError } from 'utils/helpers';
+import { FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
@@ -58,20 +58,29 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await updateRequest(formData, true);
+      const [, err] = await updateRequest(formData, true);
       setLoading(false);
 
-      alert.show({
-        variant: 'success',
-        fadeOut: 10000,
-        closable: true,
-        content: `Request ID:${padStart(String(formData.id), 8, '0')} is successfully submitted!`,
-      });
+      if (err) {
+        alert.show({
+          variant: 'info',
+          fadeOut: 10000,
+          closable: true,
+          content: parseError(err).message,
+        });
+      } else {
+        alert.show({
+          variant: 'success',
+          fadeOut: 10000,
+          closable: true,
+          content: `Request ID:${padStart(String(formData.id), 8, '0')} is successfully submitted!`,
+        });
 
-      router.push({
-        pathname: isAdmin ? '/admin-dashboard' : '/my-requests',
-        query: { id: formData.id },
-      });
+        router.push({
+          pathname: isAdmin ? '/admin-dashboard' : '/my-requests',
+          query: { id: formData.id },
+        });
+      }
     } catch (err) {
       console.error(err);
     }
