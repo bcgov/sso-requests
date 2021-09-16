@@ -17,6 +17,7 @@ import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
 import AdminEventPanel from 'components/AdminEventPanel';
+import AdminRequestPanel from 'components/AdminRequestPanel';
 import { PRIMARY_RED } from 'styles/theme';
 
 type Status =
@@ -176,6 +177,15 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const cancelDelete = () => (window.location.hash = '#');
 
+  let rightPanel = null;
+  if (selectedId) {
+    rightPanel = showEvents ? (
+      <AdminEventPanel requestId={selectedId} />
+    ) : (
+      <AdminRequestPanel request={rows.find((v) => v.id === selectedId)} />
+    );
+  }
+
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Grid cols={10}>
@@ -237,13 +247,13 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                           <ActionButton
                             icon={faEye}
                             role="button"
-                            aria-label="edit"
+                            aria-label="events"
                             onClick={(event: any) => {
                               event.stopPropagation();
                               setSelectedId(row.id);
                               setShowEvents(true);
                             }}
-                            title="Edit"
+                            title="Events"
                           />
                           <VerticalLine />
                           <ActionButton
@@ -276,7 +286,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               )}
             </Table>
           </Grid.Col>
-          <Grid.Col span={4}>{showEvents && selectedId && <AdminEventPanel requestId={selectedId} />}</Grid.Col>
+          <Grid.Col span={4}>{rightPanel}</Grid.Col>
         </Grid.Row>
       </Grid>
       <CenteredModal id="delete-modal">

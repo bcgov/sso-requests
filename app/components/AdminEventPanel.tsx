@@ -20,6 +20,7 @@ const AlignCenter = styled.div`
 `;
 
 const EventContent = styled.div`
+  margin-top: 20px;
   max-height: calc(100vh - 250px);
   overflow: auto;
 `;
@@ -135,9 +136,18 @@ export default function AdminEventPanel({ requestId }: Props) {
                   {event.eventCode}
                 </div>
                 <div>
-                  <strong>Time: </strong>
+                  <strong>Created Time: </strong>
                   {getReadableDateTime(event.createdAt)}
                 </div>
+                {event.idirUserDisplayName && (
+                  <>
+                    <div>
+                      <strong>Created By: </strong>
+                    </div>
+                    {event.idirUserDisplayName}
+                  </>
+                )}
+
                 {event.details && (
                   <>
                     <div>
