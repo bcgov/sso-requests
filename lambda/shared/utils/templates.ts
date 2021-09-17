@@ -7,7 +7,8 @@ type EmailMessage =
   | 'uri-change-request-submitted'
   | 'uri-change-request-approved'
   | 'request-deleted'
-  | 'request-deleted-notification-to-admin';
+  | 'request-deleted-notification-to-admin'
+  | 'request-limit-exceeded';
 
 interface BodyData {
   projectName?: string;
@@ -101,6 +102,11 @@ export const getEmailBody = (
         <p>
             <strong>Project name: </strong>${projectName}
         </p>`;
+    case 'request-limit-exceeded':
+      return `
+        <h1>Request Limit Exceeded</h1>
+        <h1>Pathfinder SSO user ${submittedBy} has exceeded their daily limit</h1>
+        `;
 
     default:
       return '';
@@ -123,6 +129,8 @@ export const getEmailSubject = (messageType: EmailMessage) => {
       return `${prefix}Pathfinder SSO request deleted`;
     case 'request-deleted-notification-to-admin':
       return `${prefix}Pathfinder SSO request deleted`;
+    case 'request-limit-exceeded':
+      return `${prefix}Pathfinder SSO request limit reached`;
     default:
       return '';
   }
