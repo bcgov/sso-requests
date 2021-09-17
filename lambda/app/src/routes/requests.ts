@@ -61,6 +61,13 @@ export const createRequest = async (session: Session, data: Data) => {
     });
 
     if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
+      const idirUserDisplayName = session.given_name + ' ' + session.family_name;
+      const eventData = {
+        eventCode: EVENTS.REQUEST_LIMIT_REACHED,
+        idirUserid: session.idir_userid,
+        idirUserDisplayName,
+      };
+      createEvent(eventData);
       throw Error('reached the day limit');
     }
 
