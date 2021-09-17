@@ -47,7 +47,7 @@ const Title = styled.legend`
 
 export default function ArrayFieldTemplate(props: any) {
   const { title } = props;
-  const { description, tooltipTitle, tooltipContent, hide = 250 } = props.schema;
+  const { description, tooltipTitle, tooltipContent, deletableIndex = 1, hide = 250, addItemText } = props.schema;
 
   return (
     <div>
@@ -64,7 +64,7 @@ export default function ArrayFieldTemplate(props: any) {
             {element.hasRemove && (
               <FieldContainer>
                 {element.children}
-                {element.index > 0 && (
+                {element.index >= deletableIndex && (
                   <RemoveContainer onClick={element.onDropIndexClick(element.index)}>
                     <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} title="Remove Item" />
                   </RemoveContainer>
@@ -82,7 +82,7 @@ export default function ArrayFieldTemplate(props: any) {
             onClick={props.onAddClick}
             title="Add Item"
           />
-          <StyledP>Add another URI</StyledP>
+          <StyledP>{addItemText}</StyledP>
         </AddContainer>
       )}
     </div>

@@ -143,8 +143,8 @@ export default function AdminEventPanel({ requestId }: Props) {
                   <>
                     <div>
                       <strong>Created By: </strong>
+                      {event.idirUserDisplayName}
                     </div>
-                    {event.idirUserDisplayName}
                   </>
                 )}
 

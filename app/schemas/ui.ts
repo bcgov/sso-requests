@@ -21,6 +21,7 @@ const getUISchema = (created: boolean) => {
     },
     preferredEmail: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
+      'ui:readonly': true,
     },
     publicAccess: {
       'ui:widget': 'radio',
