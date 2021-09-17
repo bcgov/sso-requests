@@ -70,16 +70,15 @@ export const createRequest = async (session: Session, data: Data) => {
         idirUserid: session.idir_userid,
         idirUserDisplayName,
       };
-      // await sendEmail({
-      //   to: SSO_EMAIL_ADDRESS,
-      //   body: getEmailBody(emailCode, {
-      //     projectName: mergedRequest.projectName,
-      //     requestNumber: mergedRequest.id,
-      //     submittedBy: idirUserDisplayName,
-      //   }),
-      //   subject: getEmailSubject(emailCode),
-      //   event: { emailCode, requestId: id },
-      // });
+      const emailCode = 'request-limit-exceeded';
+      await sendEmail({
+        to: [SSO_EMAIL_ADDRESS],
+        body: getEmailBody(emailCode, {
+          submittedBy: idirUserDisplayName,
+        }),
+        subject: getEmailSubject(emailCode),
+        event: { emailCode },
+      });
       createEvent(eventData);
       throw Error('reached the day limit');
     }

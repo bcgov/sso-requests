@@ -105,7 +105,7 @@ export const getEmailBody = (
     case 'request-limit-exceeded':
       return `
         <h1>Request Limit Exceeded</h1>
-        <h1>Pathfinder SSO user ${submittedBy} has exceeded their daily limit</h1>
+        <p>Pathfinder SSO user ${submittedBy} has exceeded their daily limit</p>
         `;
 
     default:
