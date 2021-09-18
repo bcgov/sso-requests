@@ -7,6 +7,7 @@ import SectionHeader from 'components/SectionHeader';
 import { Event } from 'interfaces/Event';
 import { getEvents } from 'services/event';
 import { SUBTITLE_FONT_SIZE } from 'styles/theme';
+import EventContent from 'components/EventContent';
 
 const Title = styled.h3`
   color: #777777;
@@ -17,12 +18,6 @@ const Title = styled.h3`
 
 const AlignCenter = styled.div`
   text-align: center;
-`;
-
-const EventContent = styled.div`
-  margin-top: 20px;
-  max-height: calc(100vh - 250px);
-  overflow: auto;
 `;
 
 interface Props {
@@ -125,45 +120,7 @@ export default function AdminEventPanel({ requestId }: Props) {
           <Loader type="Grid" color="#000" height={45} width={45} visible={loading} />
         </AlignCenter>
       ) : (
-        <EventContent>
-          {!events || events.length === 0 ? (
-            <div>No events found</div>
-          ) : (
-            events.map((event: Event) => (
-              <div key={event.id}>
-                <div>
-                  <strong>Event Code: </strong>
-                  {event.eventCode}
-                </div>
-                <div>
-                  <strong>Created Time: </strong>
-                  {getReadableDateTime(event.createdAt)}
-                </div>
-                {event.idirUserDisplayName && (
-                  <>
-                    <div>
-                      <strong>Created By: </strong>
-                      {event.idirUserDisplayName}
-                    </div>
-                  </>
-                )}
-
-                {event.details && (
-                  <>
-                    <div>
-                      <strong>Details</strong>
-                    </div>
-                    <pre>
-                      <code>{JSON.stringify(event.details || {}, undefined, 2)}</code>
-                    </pre>
-                  </>
-                )}
-
-                <hr />
-              </div>
-            ))
-          )}
-        </EventContent>
+        <EventContent events={events} />
       )}
     </>
   );
