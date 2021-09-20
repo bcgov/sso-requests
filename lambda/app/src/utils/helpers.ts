@@ -7,7 +7,7 @@ import { isObject, omit, sortBy } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
 
-export const errorMessage = 'No changes submitted. Please change the uris to update your integration.';
+export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 
 export const omitNonFormFields = (data: Request) =>
   omit(data, [

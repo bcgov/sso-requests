@@ -23,6 +23,7 @@ export const errorMessages: ErrorMessages = {
   publicAccess: 'Please select an answer',
   newToSso: 'Please select an answer',
   projectName: 'Please enter a project name',
+  additionalEmails: 'Please fill in any additional emails.',
 };
 
 export const firstFormPageTitle = 'Requester Info';
