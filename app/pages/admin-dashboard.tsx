@@ -105,13 +105,13 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [hasError, setHasError] = useState<boolean>(false);
   const [showEvents, setShowEvents] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
-  const [searchKey, setSearchKey] = useState<string>('');
+  const [searchKey, setSearchKey] = useState<string>(String(router.query?.id || ''));
   const [count, setCount] = useState<number>(0);
   const [limit, setLimit] = useState<number>(5);
   const [page, setPage] = useState<number>(1);
   const [status, setStatus] = useState<Status>('all');
   const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
-  const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
+  const [selectedId, setSelectedId] = useState<number | undefined>(Number(router.query?.id) || undefined);
 
   const getData = async () => {
     setLoading(true);
@@ -133,7 +133,6 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     }
 
     setLoading(false);
-    setSelectedId(undefined);
   };
 
   useEffect(() => {
@@ -155,9 +154,9 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const canEdit = (request: Request) => ['applied'].includes(request?.status || '');
   const canDelete = (request: Request) => !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
-  const handleEdit = (request: Request) => {
+  const handleEdit = async (request: Request) => {
     if (!request.id || !canEdit(request)) return;
-    router.push(`/edit-request?id=${request.id}`);
+    await router.push(`/edit-request?id=${request.id}`);
   };
 
   const handleDelete = async (request: Request) => {

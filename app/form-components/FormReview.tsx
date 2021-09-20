@@ -110,7 +110,8 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
   const handleModalClose = () => (window.location.hash = '#');
 
   const handleBackClick = () => {
-    router.push('/my-requests');
+    const url = isAdmin ? '/admin-dashboard' : '/my-requests';
+    router.push(url);
   };
 
   const backText = isAdmin ? 'Cancel' : 'Save and Close';
