@@ -3,6 +3,7 @@ import { getEvents } from 'services/event';
 import { Event } from 'interfaces/Event';
 import Loader from 'components/PageLoader';
 import EventContent from 'components/EventContent';
+import Alert from 'html-components/Alert';
 
 interface Props {
   requestId?: number;
@@ -23,7 +24,7 @@ export default function UserEventPanel({ requestId }: Props) {
     if (err) {
       setHasError(true);
     } else if (data) {
-      setEvents(data.rows as Event[]);
+      setEvents(data.rows);
     }
     setLoading(false);
   };
@@ -32,6 +33,7 @@ export default function UserEventPanel({ requestId }: Props) {
     getData();
   }, [requestId]);
 
+  if (hasError) return <Alert variant="warning" content="Failed to load details." />;
   if (loading) return <Loader />;
 
   return (

@@ -36,10 +36,10 @@ const sampleDiff: Change[] = [
     kind: 'E',
     path: ['projectName'],
   },
-  { item: { kind: 'N', rhs: 'http://n' }, kind: 'A', path: ['devValidRedirectUris'] },
+  { item: { kind: 'N', rhs: 'https://n' }, kind: 'A', path: ['devValidRedirectUris'] },
 ];
 const expectedFormattedDetails =
-  '<ul><li><strong>Edited projectName: </strong><code>test</code> => <code>test with changes</code></li><li><strong>Added to devValidRedirectUris: </strong><code>http://n</code></li></ul>';
+  '<ul><li><strong>Edited projectName: </strong><code>test</code> => <code>test with changes</code></li><li><strong>Added to devValidRedirectUris: </strong><code>https://n</code></li></ul>';
 
 describe('format change event details', () => {
   it('Should return the expected html', () => {
