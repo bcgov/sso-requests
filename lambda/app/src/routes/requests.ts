@@ -9,6 +9,8 @@ import { getEmailList } from '../../../shared/utils/helpers';
 import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
+const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
+
 const NEW_REQUEST_DAY_LIMIT = 10;
 const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
 
@@ -62,6 +64,22 @@ export const createRequest = async (session: Session, data: Data) => {
     });
 
     if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
+      const idirUserDisplayName = session.given_name + ' ' + session.family_name;
+      const eventData = {
+        eventCode: EVENTS.REQUEST_LIMIT_REACHED,
+        idirUserid: session.idir_userid,
+        idirUserDisplayName,
+      };
+      const emailCode = 'request-limit-exceeded';
+      await sendEmail({
+        to: [SSO_EMAIL_ADDRESS],
+        body: getEmailBody(emailCode, {
+          submittedBy: idirUserDisplayName,
+        }),
+        subject: getEmailSubject(emailCode),
+        event: { emailCode },
+      });
+      createEvent(eventData);
       throw Error('reached the day limit');
     }
 
@@ -346,7 +364,7 @@ export const deleteRequest = async (session: Session, id: number) => {
 
     Promise.all([
       sendEmail({
-        to: ['bcgov.sso@gov.bc.ca'],
+        to: [SSO_EMAIL_ADDRESS],
         body: getEmailBody('request-deleted-notification-to-admin', {
           projectName: result.projectName,
           requestNumber: result.id,

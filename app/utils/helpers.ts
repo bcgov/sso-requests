@@ -150,6 +150,8 @@ export const transformErrors = (errors: any) => {
     } else if (error.property.includes('ValidRedirectUris')) {
       if (error.message === 'should be string') error.message = '';
       else error.message = errorMessages.redirectUris;
+    } else if (error.property.includes('additionalEmails')) {
+      error.message = errorMessages.additionalEmails;
     }
     return error;
   });

@@ -39,7 +39,7 @@ export interface FormattedData {
 
 interface EmailEvent {
   emailCode: string;
-  requestId: number;
+  requestId?: number;
 }
 
 export interface EmailOptions {

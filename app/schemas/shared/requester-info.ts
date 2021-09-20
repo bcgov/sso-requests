@@ -26,7 +26,7 @@ export default {
             projectName: { type: 'string', title: 'What Project is this integration for?', maxLength: 50 },
             preferredEmail: { type: 'string', title: 'Default Email Address', format: 'email', maxLength: 250 },
             additionalEmails: {
-              type: 'array',
+              type: ['array', 'null'],
               title: 'Additional Emails',
               items: { type: 'string', maxLength: 250, format: 'email' },
               additionalItems: { type: 'string', maxLength: 250, format: 'email' },
