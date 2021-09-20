@@ -14,5 +14,5 @@ export interface Change {
   path: string[];
   lhs?: string;
   rhs?: string;
-  item?: object;
+  item?: any;
 }
