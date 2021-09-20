@@ -159,29 +159,46 @@ export const transformErrors = (errors: any) => {
 };
 
 export const formatChangeEventDetails = (changes: Change[]) => {
-  let html = '<ul>';
-  changes.forEach((change: Change) => {
-    html += '<li>';
+  const changesJSX = changes.map((change) => {
     const { kind, lhs, rhs, path, item } = change;
     const changedPath = path[0];
     switch (kind) {
       case 'E':
-        html += `<strong>Edited ${changedPath}: </strong><code>${lhs}</code> => <code>${rhs}</code>`;
-        break;
+        return (
+          <>
+            <strong>Edited {changedPath}: </strong>
+            <code>{String(lhs)}</code> to <code>{rhs}</code>
+          </>
+        );
       case 'A':
-        html += `<strong>Added to ${changedPath}: </strong><code>${item?.rhs}</code>`;
-        break;
+        return (
+          <>
+            <strong>Added to {changedPath}: </strong>
+            <code>{item?.rhs}</code>
+          </>
+        );
       case 'N':
-        html += `<strong>Added ${changedPath}: </strong><code>${item}</code>`;
-        break;
+        return (
+          <>
+            <strong>Added {changedPath}: </strong>
+            <code>{item}</code>
+          </>
+        );
       case 'D':
-        html += `<strong>Deleted ${changedPath} </strong>`;
-        break;
+        return (
+          <>
+            <strong>Deleted {changedPath} </strong>
+          </>
+        );
       default:
-        html += `<code>${JSON.stringify(change, null, 2)}</code>`;
+        return <code>{JSON.stringify(change, null, 2)}</code>;
     }
-    html += '</li>';
   });
-  html += '</ul>';
-  return html;
+  return (
+    <ul>
+      {changesJSX.map((change, i) => (
+        <li key={i}>{change}</li>
+      ))}
+    </ul>
+  );
 };
