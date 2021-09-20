@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Event } from 'interfaces/Event';
+import { formatChangeEventDetails } from 'utils/helpers';
 
 const Content = styled.div`
   margin-top: 20px;
@@ -47,7 +48,11 @@ export default function EventContent({ events }: Props) {
                   <strong>Details</strong>
                 </div>
                 <pre>
-                  <code>{JSON.stringify(event.details || {}, undefined, 2)}</code>
+                  {event.eventCode === 'request-update-success' ? (
+                    <code>{formatChangeEventDetails(event.details)}</code>
+                  ) : (
+                    <code>{JSON.stringify(event.details || {}, undefined, 2)}</code>
+                  )}
                 </pre>
               </>
             )}

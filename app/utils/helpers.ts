@@ -154,3 +154,7 @@ export const transformErrors = (errors: any) => {
     return error;
   });
 };
+
+export const formatChangeEventDetails = (changes: any) => {
+  return JSON.stringify(changes, null, 2);
+};
