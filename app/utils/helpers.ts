@@ -4,6 +4,7 @@
 
 import { isEqual } from 'lodash';
 import { Request } from 'interfaces/Request';
+import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages } from './constants';
 import { customValidate } from './shared/customValidate';
@@ -157,6 +158,30 @@ export const transformErrors = (errors: any) => {
   });
 };
 
-export const formatChangeEventDetails = (changes: any) => {
-  return JSON.stringify(changes, null, 2);
+export const formatChangeEventDetails = (changes: Change[]) => {
+  let html = '<ul>';
+  changes.forEach((change: Change) => {
+    html += '<li>';
+    const { kind, lhs, rhs, path, item } = change;
+    const changedPath = path[0];
+    switch (kind) {
+      case 'E':
+        html += `<strong>Edited ${changedPath}: </strong><code>${lhs}</code> => <code>${rhs}</code>`;
+        break;
+      case 'A':
+        html += `<strong>Added to ${changedPath}: </strong><code>${item?.rhs}</code>`;
+        break;
+      case 'N':
+        html += `<strong>Added ${changedPath}: </strong><code>${item}</code>`;
+        break;
+      case 'D':
+        html += `<strong>Deleted ${changedPath} </strong>`;
+        break;
+      default:
+        html += `<code>${JSON.stringify(change, null, 2)}</code>`;
+    }
+    html += '</li>';
+  });
+  html += '</ul>';
+  return html;
 };

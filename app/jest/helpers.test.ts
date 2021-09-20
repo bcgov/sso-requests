@@ -1,5 +1,6 @@
-import { realmToIDP, idpToRealm } from 'utils/helpers';
+import { realmToIDP, idpToRealm, formatChangeEventDetails } from 'utils/helpers';
 import { isValidKeycloakURI } from 'utils/shared/customValidate';
+import { Change } from 'interfaces/Event';
 
 describe('idp to realm', () => {
   it('gives the correct realm for different orders', () => {
@@ -25,5 +26,23 @@ describe('kecloak URIs', () => {
     expect(isValidKeycloakURI(' http:/')).toBe(false);
     expect(isValidKeycloakURI('http://a ')).toBe(false);
     expect(isValidKeycloakURI('http://a b')).toBe(false);
+  });
+});
+
+const sampleDiff: Change[] = [
+  {
+    lhs: 'test',
+    rhs: 'test with changes',
+    kind: 'E',
+    path: ['projectName'],
+  },
+  { item: { kind: 'N', rhs: 'http://n' }, kind: 'A', path: ['devValidRedirectUris'] },
+];
+const expectedFormattedDetails =
+  '<ul><li><strong>Edited projectName: </strong><code>test</code> => <code>test with changes</code></li><li><strong>Added to devValidRedirectUris: </strong><code>http://n</code></li></ul>';
+
+describe('format change event details', () => {
+  it('Should return the expected html', () => {
+    expect(formatChangeEventDetails(sampleDiff)).toEqual(expectedFormattedDetails);
   });
 });

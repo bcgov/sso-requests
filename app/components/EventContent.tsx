@@ -47,13 +47,13 @@ export default function EventContent({ events }: Props) {
                 <div>
                   <strong>Details</strong>
                 </div>
-                <pre>
-                  {event.eventCode === 'request-update-success' ? (
-                    <code>{formatChangeEventDetails(event.details)}</code>
-                  ) : (
+                {event.eventCode === 'request-update-success' ? (
+                  <span dangerouslySetInnerHTML={{ __html: formatChangeEventDetails(event.details.changes) }} />
+                ) : (
+                  <pre>
                     <code>{JSON.stringify(event.details || {}, undefined, 2)}</code>
-                  )}
-                </pre>
+                  </pre>
+                )}
               </>
             )}
 
