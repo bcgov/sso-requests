@@ -1,7 +1,5 @@
-import { realmToIDP, idpToRealm, formatChangeEventDetails } from 'utils/helpers';
+import { idpToRealm } from 'utils/helpers';
 import { isValidKeycloakURI } from 'utils/shared/customValidate';
-import { Change } from 'interfaces/Event';
-import React from 'react';
 
 describe('idp to realm', () => {
   it('gives the correct realm for different orders', () => {

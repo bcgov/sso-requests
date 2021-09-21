@@ -48,21 +48,15 @@ export const decodePayload = (payload: string) => {
 // Parse JWT Payload
 export const parseJWTPayload = (token: string) => {
   if (!token) return null;
-
-  const [header, payload, signature] = token.split('.');
-  const jsonPayload = decodePayload(payload);
-
-  return jsonPayload;
+  const [, payload] = token.split('.');
+  return decodePayload(payload);
 };
 
 // Parse JWT Header
 export const parseJWTHeader = (token: string) => {
   if (!token) return null;
-
-  const [header, payload, signature] = token.split('.');
-  const jsonHeader = decodePayload(header);
-
-  return jsonHeader;
+  const [header] = token.split('.');
+  return decodePayload(header);
 };
 
 // Generate a Random String
@@ -71,8 +65,7 @@ export const getRandomString = () => {
   crypto.getRandomValues(randomItems);
   const binaryStringItems: string[] = [];
   randomItems.forEach((dec) => binaryStringItems.push(`0${dec.toString(16).substr(-2)}`));
-  const result = binaryStringItems.reduce((acc: string, item: string) => `${acc}${item}`, '');
-  return result;
+  return binaryStringItems.reduce((acc: string, item: string) => `${acc}${item}`, '');
 };
 
 // Encrypt a String with SHA256
@@ -89,8 +82,7 @@ export const hashToBase64url = (arrayBuffer: Iterable<number>) => {
   const stringifiedArrayHash = items.reduce((acc, i) => `${acc}${String.fromCharCode(i)}`, '');
   const decodedHash = btoa(stringifiedArrayHash);
 
-  const base64URL = decodedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  return base64URL;
+  return decodedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
 
 export const idpToRealm = (idp: string[]) => {
