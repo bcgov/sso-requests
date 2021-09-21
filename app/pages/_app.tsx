@@ -9,6 +9,7 @@ import { wakeItUp } from 'services/auth';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
 import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
+import Head from 'next/head';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
@@ -101,6 +102,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   }
   return (
     <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
+      <Head>
+        <title>Common Hosted Single Sign-on</title>
+      </Head>
       <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
     </Layout>
   );
