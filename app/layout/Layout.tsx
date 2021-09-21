@@ -142,7 +142,7 @@ const RightMenuItems = () => (
       </a>
     </HoverItem>
     <HoverItem>
-      <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO">
+      <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO">
         <FontAwesomeIcon size="2x" icon={faEnvelope} />
       </a>
     </HoverItem>

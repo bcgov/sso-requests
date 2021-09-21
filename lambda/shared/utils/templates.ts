@@ -24,8 +24,8 @@ const footer = `
     Rocket.Chat
     </a>
     or email at:
-    <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer">
-        Zorin.Samji@gov.bc.ca
+    <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer">
+    bcgov.sso@gov.bc.ca
     </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>`;

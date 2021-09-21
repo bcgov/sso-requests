@@ -234,7 +234,7 @@ export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
           Rocket.Chat
         </SLink>{' '}
         or{' '}
-        <SLink href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="blank">
+        <SLink href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="blank">
           Email us
         </SLink>{' '}
       </p>
