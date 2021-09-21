@@ -4,6 +4,7 @@
 
 import { isEqual } from 'lodash';
 import { Request } from 'interfaces/Request';
+import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages } from './constants';
 import { customValidate } from './shared/customValidate';
@@ -47,21 +48,15 @@ export const decodePayload = (payload: string) => {
 // Parse JWT Payload
 export const parseJWTPayload = (token: string) => {
   if (!token) return null;
-
-  const [header, payload, signature] = token.split('.');
-  const jsonPayload = decodePayload(payload);
-
-  return jsonPayload;
+  const [, payload] = token.split('.');
+  return decodePayload(payload);
 };
 
 // Parse JWT Header
 export const parseJWTHeader = (token: string) => {
   if (!token) return null;
-
-  const [header, payload, signature] = token.split('.');
-  const jsonHeader = decodePayload(header);
-
-  return jsonHeader;
+  const [header] = token.split('.');
+  return decodePayload(header);
 };
 
 // Generate a Random String
@@ -70,8 +65,7 @@ export const getRandomString = () => {
   crypto.getRandomValues(randomItems);
   const binaryStringItems: string[] = [];
   randomItems.forEach((dec) => binaryStringItems.push(`0${dec.toString(16).substr(-2)}`));
-  const result = binaryStringItems.reduce((acc: string, item: string) => `${acc}${item}`, '');
-  return result;
+  return binaryStringItems.reduce((acc: string, item: string) => `${acc}${item}`, '');
 };
 
 // Encrypt a String with SHA256
@@ -88,8 +82,7 @@ export const hashToBase64url = (arrayBuffer: Iterable<number>) => {
   const stringifiedArrayHash = items.reduce((acc, i) => `${acc}${String.fromCharCode(i)}`, '');
   const decodedHash = btoa(stringifiedArrayHash);
 
-  const base64URL = decodedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  return base64URL;
+  return decodedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
 
 export const idpToRealm = (idp: string[]) => {
@@ -155,4 +148,49 @@ export const transformErrors = (errors: any) => {
     }
     return error;
   });
+};
+
+export const formatChangeEventDetails = (changes: Change[]) => {
+  const changesJSX = changes.map((change) => {
+    const { kind, lhs, rhs, path, item } = change;
+    const changedPath = path[0];
+    switch (kind) {
+      case 'E':
+        return (
+          <>
+            <strong>Edited {changedPath}: </strong>
+            <code>{String(lhs)}</code> to <code>{rhs}</code>
+          </>
+        );
+      case 'A':
+        return (
+          <>
+            <strong>Added to {changedPath}: </strong>
+            <code>{item?.rhs}</code>
+          </>
+        );
+      case 'N':
+        return (
+          <>
+            <strong>Added {changedPath}: </strong>
+            <code>{item}</code>
+          </>
+        );
+      case 'D':
+        return (
+          <>
+            <strong>Deleted {changedPath} </strong>
+          </>
+        );
+      default:
+        return <code>{JSON.stringify(change, null, 2)}</code>;
+    }
+  });
+  return (
+    <ul>
+      {changesJSX.map((change, i) => (
+        <li key={i}>{change}</li>
+      ))}
+    </ul>
+  );
 };

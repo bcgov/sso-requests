@@ -10,6 +10,7 @@ import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
 import { SUBTITLE_FONT_SIZE, SECONDARY_FONT_COLOR } from 'styles/theme';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
+import UserEventPanel from 'components/UserEventPanel';
 
 const RequestTabs = styled(Tabs)`
   .nav-link {
@@ -73,6 +74,11 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey }: Props) {
         <Tab eventKey="configuration-url" title="Redirect URIs">
           <TabWrapper>
             <ConfigurationUrlPanel selectedRequest={selectedRequest} />
+          </TabWrapper>
+        </Tab>
+        <Tab eventKey="data-changes" title="Data Changes">
+          <TabWrapper>
+            <UserEventPanel requestId={selectedRequest.id} />
           </TabWrapper>
         </Tab>
       </RequestTabs>

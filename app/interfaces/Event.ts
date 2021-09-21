@@ -8,3 +8,11 @@ export interface Event {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface Change {
+  kind: string;
+  path: string[];
+  lhs?: string;
+  rhs?: string;
+  item?: any;
+}
