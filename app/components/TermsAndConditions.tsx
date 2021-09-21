@@ -29,9 +29,9 @@ function TermsAndConditions() {
     <Container>
       <Title>Requirements</Title>
       <StyledList>
-        <li>Keep your email address active, and if you are not using your realm, clean it up</li>
+        <li>Keep your email address active, and if you are not using your integration, clean it up</li>
         <li>
-          If you are not using your realm/client app configuration{' '}
+          If you are not using your client app configuration{' '}
           <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
             ask us
           </Link>{' '}

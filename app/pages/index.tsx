@@ -65,7 +65,6 @@ export default function Home({ onLoginClick }: PageProps) {
   return (
     <>
       <Head>
-        <title>SSO Requests</title>
         <meta name="description" content="The request process workflow tool for the RedHat SSO Dev Exchange service" />
         <link rel="icon" href="/bcid-favicon-32x32.png" />
       </Head>
@@ -76,11 +75,11 @@ export default function Home({ onLoginClick }: PageProps) {
               <Panel>
                 <JumbotronH1>Pathfinder SSO Vision</JumbotronH1>
                 <JumbotronP>
-                  Provide fast, simple
+                  Enabling BC Government
                   <br />
-                  and secure access to all BC
+                  digital delivery teams
                   <br />
-                  Gov IDPs.
+                  to get single sign-on.
                 </JumbotronP>
                 <BoldP>Request SSO Integration for:</BoldP>
                 <ButtonContainer>

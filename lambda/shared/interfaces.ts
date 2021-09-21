@@ -18,6 +18,7 @@ export interface Data {
   publicAccess?: boolean;
   id?: number;
   comment?: string;
+  additionalEmails: string[];
 }
 
 export interface FormattedData {
