@@ -31,6 +31,7 @@ export default {
               items: { type: 'string', maxLength: 250, format: 'email' },
               additionalItems: { type: 'string', maxLength: 250, format: 'email' },
               deletableIndex: 0,
+              maxItems: 2,
               addItemText: 'Add Email Address',
             },
           },

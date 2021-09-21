@@ -103,7 +103,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
       <Head>
-        <title>Common Hosted Single Sign-on</title>
+        <title>Common Hosted Single Sign-on (CSS)</title>
       </Head>
       <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
     </Layout>

@@ -214,7 +214,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
       <Navigation
         title={() => (
           <HeaderTitle>
-            SSO Pathfinder Integration<Beta>Beta</Beta>
+            Common Hosted Single Sign-on (CSS)<Beta>Beta</Beta>
           </HeaderTitle>
         )}
         rightSide={rightSide}
