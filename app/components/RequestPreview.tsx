@@ -94,6 +94,8 @@ function RequestPreview({ request }: Props) {
           </tr>
           <tr>
             <td>Additional Emails:</td>
+          </tr>
+          <tr>
             <td>
               <SemiBold>{formatList(request?.additionalEmails)}</SemiBold>
             </td>

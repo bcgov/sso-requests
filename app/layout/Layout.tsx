@@ -142,7 +142,7 @@ const RightMenuItems = () => (
       </a>
     </HoverItem>
     <HoverItem>
-      <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO">
+      <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO">
         <FontAwesomeIcon size="2x" icon={faEnvelope} />
       </a>
     </HoverItem>
@@ -214,7 +214,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
       <Navigation
         title={() => (
           <HeaderTitle>
-            SSO Pathfinder Integration<Beta>Beta</Beta>
+            Common Hosted Single Sign-on (CSS)<Beta>Beta</Beta>
           </HeaderTitle>
         )}
         rightSide={rightSide}
