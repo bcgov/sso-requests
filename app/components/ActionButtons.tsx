@@ -2,7 +2,7 @@ import { useContext, MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faComment, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { Request } from 'interfaces/Request';
@@ -32,13 +32,21 @@ interface Props {
   request: Request;
   selectedRequest: Request;
   setSelectedId: Function;
+  setActiveTab: Function;
+  archived: boolean;
 }
 
-export default function Actionbuttons({ selectedRequest, request, setSelectedId }: Props) {
+export default function Actionbuttons({
+  selectedRequest,
+  request,
+  setSelectedId,
+  setActiveTab,
+  archived = false,
+}: Props) {
   const { state, dispatch } = useContext(RequestsContext);
   const router = useRouter();
   const { editingRequest } = state as RequestReducerState;
-  const canDelete = !['pr', 'planned', 'submitted'].includes(request?.status || '');
+  const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
   const handleEdit = (event: MouseEvent) => {
     if (request.status === 'draft') {
@@ -59,7 +67,7 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
     window.location.hash = 'delete-modal';
   };
 
-  const canEdit = ['draft', 'applied'].includes(request.status || '');
+  const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
 
   return (
     <>
@@ -71,6 +79,15 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
           aria-label="edit"
           onClick={handleEdit}
           title="Edit"
+        />
+        <VerticalLine />
+        <ActionButton
+          icon={faComment}
+          role="button"
+          aria-label="view-events"
+          onClick={() => setActiveTab('data-changes')}
+          activeColor={PRIMARY_RED}
+          title="Events"
         />
         <VerticalLine />
         <ActionButton

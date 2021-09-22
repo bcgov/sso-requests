@@ -48,7 +48,11 @@ export default function EventContent({ events }: Props) {
                   <strong>Details</strong>
                 </div>
                 {event.eventCode === 'request-update-success' ? (
-                  formatChangeEventDetails(event.details.changes)
+                  <>
+                    {formatChangeEventDetails(event.details.changes)}
+                    <strong>Comment: </strong>
+                    <p>{event.details.comment}</p>
+                  </>
                 ) : (
                   <pre>
                     <code>{JSON.stringify(event.details || {}, undefined, 2)}</code>
