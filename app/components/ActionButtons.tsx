@@ -55,10 +55,10 @@ export default function Actionbuttons({
       return;
     }
     setActiveTab('configuration-url');
+    event.stopPropagation();
     if (selectedRequest?.id === request.id) {
       dispatch($setEditingRequest(!editingRequest));
     } else {
-      event.stopPropagation();
       dispatch($setEditingRequest(true));
       setSelectedId(request.id);
     }
