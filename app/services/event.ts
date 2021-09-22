@@ -7,6 +7,7 @@ interface EventSearchCriteria {
   order?: any;
   limit?: number;
   page?: number;
+  clearNotifications?: boolean;
 }
 
 interface EventsResult {

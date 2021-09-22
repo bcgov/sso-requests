@@ -2,7 +2,7 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
-import { validateRequest, processRequest, getDifferences } from '../utils/helpers';
+import { validateRequest, processRequest, getDifferences, isAdmin } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
@@ -12,7 +12,6 @@ import { EVENTS } from '../../../shared/enums';
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 
 const NEW_REQUEST_DAY_LIMIT = 10;
-const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
 
 const errorResponse = (err: any) => {
   console.error(err);

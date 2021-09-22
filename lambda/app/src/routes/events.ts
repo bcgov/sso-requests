@@ -13,12 +13,13 @@ export const getEvents = async (
   data: {
     requestId: string;
     eventCode: string;
+    clearNotifications?: boolean;
     order?: any;
     limit?: number;
     page?: number;
   },
 ) => {
-  const { requestId, eventCode, order = [['createdAt', 'desc']], limit = 100, page = 1 } = data;
+  const { requestId, eventCode, order = [['createdAt', 'desc']], limit = 100, page = 1, clearNotifications } = data;
 
   try {
     const where: any = { requestId };
@@ -33,6 +34,14 @@ export const getEvents = async (
       offset: page > 0 ? (page - 1) * limit : 0,
       order,
     });
+
+    if (clearNotifications)
+      await models.request.update(
+        { hasUnreadNotifications: false },
+        {
+          where: { id: requestId },
+        },
+      );
 
     return {
       statusCode: 200,

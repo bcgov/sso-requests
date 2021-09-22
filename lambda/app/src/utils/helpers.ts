@@ -6,6 +6,7 @@ import termsAndConditionsSchema from '../schemas/terms-and-conditions';
 import { isObject, omit, sortBy } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
+import { Session } from '../../../shared/interfaces';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 
@@ -76,3 +77,5 @@ export const stringifyGithubInputs = (inputs: any) => {
 
   return stringifiedInputs;
 };
+
+export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');

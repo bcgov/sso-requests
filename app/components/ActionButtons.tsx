@@ -17,8 +17,9 @@ export const Container = styled.div`
   padding-right: 15px;
 `;
 
-export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean; activeColor?: string }>`
+export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean; activeColor?: string; isUnread?: boolean }>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
+  ${(props) => (props.isUnread ? `${PRIMARY_RED}: red !important` : '')};
   ${(props) =>
     props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: ${props.activeColor || '#137ac8'}; }`}
 `;
@@ -67,6 +68,11 @@ export default function Actionbuttons({
     window.location.hash = 'delete-modal';
   };
 
+  const handleViewChanges = async () => {
+    setActiveTab('data-changes');
+    request.hasUnreadNotifications = false;
+  };
+
   const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
 
   return (
@@ -85,9 +91,10 @@ export default function Actionbuttons({
           icon={faComment}
           role="button"
           aria-label="view-events"
-          onClick={() => setActiveTab('data-changes')}
+          onClick={handleViewChanges}
           activeColor={PRIMARY_RED}
           title="Events"
+          isUnread={request?.hasUnreadNotifications}
         />
         <VerticalLine />
         <ActionButton

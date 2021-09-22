@@ -65,7 +65,7 @@ export default async function status(event) {
       const status = success ? 'applied' : 'applyFailed';
 
       await Promise.all([
-        models.request.update({ status }, { where: { id: requestId } }),
+        models.request.update({ status, hasUnreadNotifications: isUpdate }, { where: { id: requestId } }),
         createEvent({ eventCode: success ? EVENTS.REQUEST_APPLY_SUCCESS : EVENTS.REQUEST_APPLY_FAILURE, requestId }),
       ]);
 

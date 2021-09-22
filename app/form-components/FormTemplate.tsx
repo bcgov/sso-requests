@@ -138,7 +138,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   };
 
   const handleModalClose = () => {
-    router.push('my-requests');
+    router.push('/my-requests');
   };
 
   const backButtonText = request ? 'Save and Close' : 'Cancel';

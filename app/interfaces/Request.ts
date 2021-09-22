@@ -21,4 +21,5 @@ export interface Request {
   status?: Status;
   archived: boolean;
   additionalEmails: string[];
+  hasUnreadNotifications?: boolean;
 }
