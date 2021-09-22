@@ -2,7 +2,7 @@ import { useContext, MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faComment, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { Request } from 'interfaces/Request';
@@ -32,9 +32,10 @@ interface Props {
   request: Request;
   selectedRequest: Request;
   setSelectedId: Function;
+  setActiveTab: Function;
 }
 
-export default function Actionbuttons({ selectedRequest, request, setSelectedId }: Props) {
+export default function Actionbuttons({ selectedRequest, request, setSelectedId, setActiveTab }: Props) {
   const { state, dispatch } = useContext(RequestsContext);
   const router = useRouter();
   const { editingRequest } = state as RequestReducerState;
@@ -71,6 +72,15 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
           aria-label="edit"
           onClick={handleEdit}
           title="Edit"
+        />
+        <VerticalLine />
+        <ActionButton
+          icon={faComment}
+          role="button"
+          aria-label="view-events"
+          onClick={() => setActiveTab('data-changes')}
+          activeColor={PRIMARY_RED}
+          title="Events"
         />
         <VerticalLine />
         <ActionButton

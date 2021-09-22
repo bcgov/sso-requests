@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
+import Tab from 'react-bootstrap/Tab';
 import { get, padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests, deleteRequest } from 'services/request';
@@ -17,12 +18,14 @@ import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setEditingRequest, $deleteRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
-import Title from 'components/SHeader3';
+import { RequestTabs } from 'components/RequestTabs';
 import Loader from 'react-loader-spinner';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
+import { TabKey } from 'components/RequestInfoTabs';
+import UserEventPanel from 'components/UserEventPanel';
 
 const mediaRules: MediaRule[] = [
   {
@@ -54,6 +57,11 @@ const ButtonContainer = styled.div`
     margin-right: 20px;
     display: inline-block;
   }
+`;
+
+const TabWrapper = styled.div`
+  padding-left: 1rem;
+  padding-right: 1rem;
 `;
 
 const PaddedIcon = styled(FontAwesomeIcon)`
@@ -118,10 +126,31 @@ function RequestsPage({ currentUser }: PageProps) {
   const { requests = [] } = state;
   const selectedRequest = requests.find((request: Request) => request.id === Number(selectedId));
   const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
+  const [viewArchived, setViewArchived] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<TabKey>(state.editingRequest ? 'configuration-url' : 'installation-json');
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
   }, [state, dispatch]);
+
+  const getData = async () => {
+    setLoading(true);
+
+    const [data, err] = await getRequests('all');
+    if (err) {
+      setHasError(true);
+    } else {
+      const requests = data || [];
+      dispatch($setRequests(requests));
+
+      const { id } = router.query;
+      if (id) {
+        setSelectedId(Number(id));
+      }
+    }
+
+    setLoading(false);
+  };
 
   const confirmDelete = async () => {
     if (!canDelete) return;
@@ -129,31 +158,13 @@ function RequestsPage({ currentUser }: PageProps) {
     const [_deletedRequest, _err] = await deleteRequest(selectedId);
     dispatch($deleteRequest(selectedId || null));
     setDeleting(false);
+    getData();
     window.location.hash = '#';
   };
 
   const cancelDelete = () => (window.location.hash = '#');
 
   useEffect(() => {
-    const getData = async () => {
-      setLoading(true);
-
-      const [data, err] = await getRequests();
-      if (err) {
-        setHasError(true);
-      } else {
-        const requests = data || [];
-        dispatch($setRequests(requests));
-
-        const { id } = router.query;
-        if (id) {
-          setSelectedId(Number(id));
-        }
-      }
-
-      setLoading(false);
-    };
-
     getData();
   }, []);
 
@@ -226,22 +237,29 @@ function RequestsPage({ currentUser }: PageProps) {
           </tr>
         </thead>
         <tbody>
-          {requests.map((request: Request) => {
-            return (
-              <tr
-                className={selectedRequest?.id === request.id ? 'active' : ''}
-                key={request.id}
-                onClick={() => handleSelection(request)}
-              >
-                <td>{padStart(String(request.id), 8, '0')}</td>
-                <td>{request.projectName}</td>
-                <td>{getStatusDisplayName(request.status || 'draft')}</td>
-                <td>
-                  <ActionButtons request={request} selectedRequest={selectedRequest} setSelectedId={setSelectedId} />
-                </td>
-              </tr>
-            );
-          })}
+          {requests
+            .filter((request: Request) => viewArchived === request.archived)
+            .map((request: Request) => {
+              return (
+                <tr
+                  className={selectedRequest?.id === request.id ? 'active' : ''}
+                  key={request.id}
+                  onClick={() => handleSelection(request)}
+                >
+                  <td>{padStart(String(request.id), 8, '0')}</td>
+                  <td>{request.projectName}</td>
+                  <td>{getStatusDisplayName(request.status || 'draft')}</td>
+                  <td>
+                    <ActionButtons
+                      request={request}
+                      selectedRequest={selectedRequest}
+                      setSelectedId={setSelectedId}
+                      setActiveTab={setActiveTab}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
         </tbody>
       </Table>
     );
@@ -260,7 +278,16 @@ function RequestsPage({ currentUser }: PageProps) {
           <Grid.Row collapse="800" gutter={[15, 2]}>
             <Grid.Col>
               <OverflowAuto>
-                <Title>My Dashboard</Title>
+                <RequestTabs onSelect={(key: string) => setViewArchived(key === 'archived')}>
+                  <Tab
+                    eventKey="active"
+                    title="My Dashboard"
+                    onSelect={() => {
+                      setViewArchived(false);
+                    }}
+                  />
+                  <Tab eventKey="archived" title="Archived" onSelect={() => setViewArchived(true)} />
+                </RequestTabs>
                 {content}
               </OverflowAuto>
             </Grid.Col>
@@ -269,7 +296,9 @@ function RequestsPage({ currentUser }: PageProps) {
                 <RequestInfoTabs
                   key={selectedRequest.id + selectedRequest.status + state.editingRequest}
                   selectedRequest={selectedRequest}
-                  defaultTabKey={state.editingRequest ? 'configuration-url' : 'installation-json'}
+                  defaultTabKey={activeTab}
+                  setActiveKey={setActiveTab}
+                  activeKey={activeTab}
                 />
               </Grid.Col>
             )}
