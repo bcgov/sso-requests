@@ -48,6 +48,7 @@ export const createRequest = async (session: Session, data: Data) => {
   if (error) return errorResponse(error);
 
   try {
+    const idirUserDisplayName = session.given_name + ' ' + session.family_name;
     const now = new Date();
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
@@ -63,7 +64,6 @@ export const createRequest = async (session: Session, data: Data) => {
     });
 
     if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
-      const idirUserDisplayName = session.given_name + ' ' + session.family_name;
       const eventData = {
         eventCode: EVENTS.REQUEST_LIMIT_REACHED,
         idirUserid: session.idir_userid,
@@ -90,6 +90,7 @@ export const createRequest = async (session: Session, data: Data) => {
       preferredEmail,
       newToSso,
       additionalEmails,
+      idirUserDisplayName,
     });
 
     return {
@@ -366,9 +367,9 @@ export const deleteRequest = async (session: Session, id: number) => {
       sendEmail({
         to: [SSO_EMAIL_ADDRESS],
         body: getEmailBody('request-deleted-notification-to-admin', {
-          projectName: result.projectName,
-          requestNumber: result.id,
-          submittedBy: result.idirUserDisplayName,
+          projectName: original.projectName,
+          requestNumber: original.id,
+          submittedBy: original.idirUserDisplayName,
         }),
         subject: getEmailSubject('request-deleted-notification-to-admin'),
         event: { emailCode: 'request-deleted-notification-to-admin', requestId: id },
@@ -376,9 +377,9 @@ export const deleteRequest = async (session: Session, id: number) => {
       sendEmail({
         to,
         body: getEmailBody('request-deleted', {
-          projectName: result.projectName,
-          requestNumber: result.id,
-          submittedBy: result.idirUserDisplayName,
+          projectName: original.projectName,
+          requestNumber: original.id,
+          submittedBy: original.idirUserDisplayName,
         }),
         subject: getEmailSubject('request-deleted'),
         event: { emailCode: 'request-deleted', requestId: id },

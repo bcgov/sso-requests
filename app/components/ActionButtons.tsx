@@ -54,7 +54,8 @@ export default function Actionbuttons({
       router.push(`/request/${request.id}`);
       return;
     }
-
+    setActiveTab('configuration-url');
+    event.stopPropagation();
     if (selectedRequest?.id === request.id) {
       dispatch($setEditingRequest(!editingRequest));
     } else {
