@@ -173,7 +173,7 @@ function RequestsPage({ currentUser }: PageProps) {
       clearInterval(interval);
 
       interval = setInterval(async () => {
-        const [data, err] = await getRequests();
+        const [data, err] = await getRequests('all');
 
         if (err) {
           clearInterval(interval);

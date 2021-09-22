@@ -20,6 +20,7 @@ export default function UserEventPanel({ requestId }: Props) {
     const [data, err] = await getEvents({
       requestId,
       eventCode: 'request-update-success',
+      clearNotifications: true,
     });
     if (err) {
       setHasError(true);

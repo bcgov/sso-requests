@@ -103,6 +103,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         field: 'additional_emails',
       },
+      hasUnreadNotifications: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        field: 'has_unread_notifications',
+      },
     },
     {
       underscored: true,
