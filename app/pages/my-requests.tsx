@@ -255,6 +255,7 @@ function RequestsPage({ currentUser }: PageProps) {
                       selectedRequest={selectedRequest}
                       setSelectedId={setSelectedId}
                       setActiveTab={setActiveTab}
+                      archived={request.archived}
                     />
                   </td>
                 </tr>

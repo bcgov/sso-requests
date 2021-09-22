@@ -33,13 +33,20 @@ interface Props {
   selectedRequest: Request;
   setSelectedId: Function;
   setActiveTab: Function;
+  archived: boolean;
 }
 
-export default function Actionbuttons({ selectedRequest, request, setSelectedId, setActiveTab }: Props) {
+export default function Actionbuttons({
+  selectedRequest,
+  request,
+  setSelectedId,
+  setActiveTab,
+  archived = false,
+}: Props) {
   const { state, dispatch } = useContext(RequestsContext);
   const router = useRouter();
   const { editingRequest } = state as RequestReducerState;
-  const canDelete = !['pr', 'planned', 'submitted'].includes(request?.status || '');
+  const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
   const handleEdit = (event: MouseEvent) => {
     if (request.status === 'draft') {
@@ -60,7 +67,7 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId,
     window.location.hash = 'delete-modal';
   };
 
-  const canEdit = ['draft', 'applied'].includes(request.status || '');
+  const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
 
   return (
     <>
