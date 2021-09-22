@@ -13,7 +13,7 @@ import Button from 'html-components/Button';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
-import RequestInfoTabs from 'components/RequestInfoTabs';
+import RequestInfoTabs, { TabKey } from 'components/RequestInfoTabs';
 import { getStatusDisplayName } from 'utils/status';
 import { $setRequests, $setEditingRequest, $deleteRequest } from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
@@ -24,8 +24,6 @@ import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
-import { TabKey } from 'components/RequestInfoTabs';
-import UserEventPanel from 'components/UserEventPanel';
 
 const mediaRules: MediaRule[] = [
   {
