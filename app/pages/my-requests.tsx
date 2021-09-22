@@ -278,14 +278,8 @@ function RequestsPage({ currentUser }: PageProps) {
             <Grid.Col>
               <OverflowAuto>
                 <RequestTabs onSelect={(key: string) => setViewArchived(key === 'archived')}>
-                  <Tab
-                    eventKey="active"
-                    title="My Dashboard"
-                    onSelect={() => {
-                      setViewArchived(false);
-                    }}
-                  />
-                  <Tab eventKey="archived" title="Archived" onSelect={() => setViewArchived(true)} />
+                  <Tab eventKey="active" title="My Dashboard" />
+                  <Tab eventKey="archived" title="Archived" />
                 </RequestTabs>
                 {content}
               </OverflowAuto>

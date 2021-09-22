@@ -63,7 +63,7 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
 
       if (err) {
         alert.show({
-          variant: 'info',
+          variant: 'danger',
           fadeOut: 10000,
           closable: true,
           content: parseError(err).message,

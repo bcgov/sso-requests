@@ -41,13 +41,36 @@ const formatBoolean = (value?: boolean) => {
   return value ? 'Yes' : 'No';
 };
 
-const formatList = (list?: string[]) => {
+interface FormattedListProps {
+  list: any[];
+  title: string;
+}
+
+const FormattedList = ({ list, title }: FormattedListProps) => {
   return (
-    <StyledUl>
-      {list?.map((item) => (
-        <li key={item}>{item}</li>
-      ))}
-    </StyledUl>
+    <>
+      <tr>
+        <td>{title}</td>
+        {list?.length === 1 && (
+          <SemiBold>
+            <span key={list[0]}>{list[0]}</span>
+          </SemiBold>
+        )}
+      </tr>
+      {list?.length > 1 && (
+        <tr>
+          <td>
+            <SemiBold>
+              <StyledUl>
+                {list?.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </StyledUl>
+            </SemiBold>
+          </td>
+        </tr>
+      )}
+    </>
   );
 };
 
@@ -92,49 +115,16 @@ function RequestPreview({ request }: Props) {
               <SemiBold>{request?.preferredEmail}</SemiBold>
             </td>
           </tr>
-          <tr>
-            <td>Additional Emails:</td>
-          </tr>
-          <tr>
-            <td>
-              <SemiBold>{formatList(request?.additionalEmails)}</SemiBold>
-            </td>
-          </tr>
+          <FormattedList list={request?.additionalEmails} title="Additional Emails:" />
         </tbody>
       </Table>
       <Divider />
       <Table>
         <tbody>
-          <tr>
-            <td>Identity providers required:</td>
-            <td>
-              <SemiBold>{formatList(realmToIDP(request?.realm))}</SemiBold>
-            </td>
-          </tr>
-          <tr>
-            <td>Dev redirect URIs:</td>
-          </tr>
-          <tr>
-            <td>
-              <SemiBold>{formatList(request?.devValidRedirectUris)}</SemiBold>
-            </td>
-          </tr>
-          <tr>
-            <td>Test redirect URIs:</td>
-          </tr>
-          <tr>
-            <td>
-              <SemiBold>{formatList(request?.testValidRedirectUris)}</SemiBold>
-            </td>
-          </tr>
-          <tr>
-            <td>Prod redirect URIs:</td>
-          </tr>
-          <tr>
-            <td>
-              <SemiBold>{formatList(request?.prodValidRedirectUris)}</SemiBold>
-            </td>
-          </tr>
+          <FormattedList list={realmToIDP(request?.realm)} title="Identity Providers Required:" />
+          <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />
+          <FormattedList list={request?.testValidRedirectUris} title="Test Redirect URIs:" />
+          <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />
         </tbody>
       </Table>
     </>
