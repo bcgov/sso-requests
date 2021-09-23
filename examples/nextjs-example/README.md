@@ -1,1 +1,1 @@
-This is an example [Next.js](https://nextjs.org/) application to connect to Cognito App client without 3rd party library or wrapper.
+This is an example [Next.js](https://nextjs.org/) application, with a frontend SPA, backend API, both autheticated with a public client.

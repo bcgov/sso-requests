@@ -2,12 +2,10 @@ const debug = require('debug')('seq:server');
 const http = require('http');
 
 const { HOSTNAME, PORT } = require('./config');
-
 const port = normalizePort(PORT);
 
 const createServer = (expressServer) => {
   expressServer.set('port', port);
-
   const server = http.createServer(expressServer);
 
   server.listen(port, HOSTNAME, () => {

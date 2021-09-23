@@ -1,74 +1,50 @@
-import { Container } from 'semantic-ui-react';
-import { Table, Button } from 'semantic-ui-react';
-import isObject from 'lodash/isObject';
+import { Container, Button, Message } from 'semantic-ui-react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const getValue = (val) => {
-  return isObject(val) ? JSON.stringify(val) : String(val);
-};
+export default function Home({}) {
+  const [auth, setAuth] = useState({});
+  const [answer, setAnswer] = useState('');
 
-const ObjectTable = ({ obj }) => {
-  const fields = Object.keys(obj);
+  useEffect(() => {
+    const initKeycloak = async () => {
+      let Keycloak = require('keycloak-js');
+      const keycloak = Keycloak('/keycloak.json');
+      if (window && typeof window !== 'object') return;
+      keycloak
+        .init({ pkceMethod: 'S256', redirectUri: 'http://localhost:3000', idpHint: 'idir' })
+        .then((authenticated) => {
+          setAuth({ keycloak: keycloak, authenticated: authenticated });
+        });
+    };
+    initKeycloak();
+  }, []);
 
-  return (
-    <Table celled>
-      <Table.Header>
-        <Table.Row>
-          <Table.HeaderCell>Key</Table.HeaderCell>
-          <Table.HeaderCell>Value</Table.HeaderCell>
-        </Table.Row>
-      </Table.Header>
+  const handleLogin = () => auth.keycloak.login({ idpHint: 'idir' });
+  const handleLogout = () => auth.keycloak.logout();
 
-      <Table.Body>
-        {fields.map((field) => {
-          return (
-            <Table.Row key={field}>
-              <Table.Cell>{field}</Table.Cell>
-              <Table.Cell style={{ overflowWrap: 'anywhere' }}>{getValue(obj[field])}</Table.Cell>
-            </Table.Row>
-          );
-        })}
-      </Table.Body>
-    </Table>
-  );
-};
-
-export default function Home({ authorization, tokens, user }) {
-  const userFields = Object.keys(user);
-
-  if (userFields.length === 0) {
-    return (
-      <Container>
-        <Button primary onClick={() => (window.location = '/oauth/cognito/login')}>
-          Login
-        </Button>
-      </Container>
-    );
-  }
+  const getSecret = async () => {
+    try {
+      const headers = auth.keycloak.token ? { Authorization: `Bearer ${auth.keycloak.token}` } : {};
+      const response = await axios.get('http://localhost:3000/api/secret', { headers });
+      setAnswer(`The password is: ${response.data.message}`);
+    } catch (err) {
+      setAnswer('Failed to fetch resources');
+    }
+  };
 
   return (
     <Container>
-      <h3>Authorization</h3>
-      <ObjectTable obj={authorization} />
-
-      <h3>Tokens</h3>
-      <ObjectTable obj={tokens} />
-
-      <h3>User Info</h3>
-      <ObjectTable obj={user} />
-
-      <Button primary onClick={() => (window.location = '/oauth/cognito/logout')}>
-        Logout
-      </Button>
+      <h1>A simple Keycloak Configuration</h1>
+      <Button onClick={handleLogin}>Login</Button>
+      <Button onClick={handleLogout}>Logout</Button>
+      <Button onClick={getSecret}>Get Protected Resources</Button>
+      <Message>
+        <Message.Header>
+          Click on the button <em>Get Protected Resources</em> to fetch from the API
+        </Message.Header>{' '}
+        <p>{answer && answer}</p>
+      </Message>
     </Container>
   );
-}
-
-export async function getServerSideProps({ req, res, query: params }) {
-  return {
-    props: {
-      authorization: req.session?.authorization || {},
-      tokens: req.session?.tokens || {},
-      user: req.session?.user || {},
-    },
-  };
 }
