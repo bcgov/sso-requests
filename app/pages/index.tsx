@@ -105,8 +105,12 @@ export default function Home({ onLoginClick }: PageProps) {
                   To learn more about Pathfinder SSO
                   <br />
                   visit the{' '}
-                  <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki/SSO-Onboarding" external>
-                    Onboarding Guide
+                  <Link
+                    size="large"
+                    href="https://github.com/bcgov/ocp-sso/wiki/SSO-Pathfinder-Knowledge-Base"
+                    external
+                  >
+                    SSO Pathfinder Knowledge Base
                   </Link>
                 </Paragraph>
               </Panel>
