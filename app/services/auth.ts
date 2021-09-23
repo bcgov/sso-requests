@@ -2,6 +2,7 @@ import { instance } from './axios';
 import { getTokens, setTokens, removeTokens } from 'utils/store';
 import { refreshSession } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
+import Router from 'next/router';
 
 export const getAuthHeader = async (): Promise<string> => {
   await refreshTokenIfExpiriesSoon();
@@ -41,7 +42,7 @@ const refreshToken = async (tokens: any) => {
   } else {
     removeTokens();
     console.error('failed to refresh the token');
-    window.location.href = '/';
+    Router.push('/');
   }
 };
 
