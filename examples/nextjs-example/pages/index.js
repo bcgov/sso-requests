@@ -2,8 +2,8 @@ import { Container, Button, Message } from 'semantic-ui-react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-export default function Home({}) {
-  const [auth, setAuth] = useState({});
+export default function Home() {
+  const [auth, setAuth] = useState({ keycloak: {} });
   const [answer, setAnswer] = useState('');
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function Home({}) {
         <Message.Header>
           Click on the button <em>Get Protected Resources</em> to fetch from the API
         </Message.Header>{' '}
-        <p>{answer && answer}</p>
+        {answer && <p>{answer}</p>}
       </Message>
     </Container>
   );

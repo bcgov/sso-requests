@@ -20,6 +20,7 @@ const initExpresss = async () => {
         httpOnly: true,
         secure: false,
       },
+      secure: true,
       store: memoryStore,
     }),
   );

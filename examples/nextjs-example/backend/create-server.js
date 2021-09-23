@@ -45,16 +45,16 @@ const createServer = (expressServer) => {
 };
 
 function normalizePort(val) {
-  const port = parseInt(val, 10);
+  const parsedPort = parseInt(val, 10);
 
-  if (Number.isNaN(port)) {
+  if (Number.isNaN(parsedPort)) {
     // named pipe
     return val;
   }
 
-  if (port >= 0) {
+  if (parsedPort >= 0) {
     // port number
-    return port;
+    return parsedPort;
   }
 
   return false;
