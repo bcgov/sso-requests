@@ -2,7 +2,10 @@ import { instance } from './axios';
 import { getTokens, setTokens, removeTokens } from 'utils/store';
 import { refreshSession } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
-import Router from 'next/router';
+import getConfig from 'next/config';
+
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { base_path } = publicRuntimeConfig;
 
 export const getAuthHeader = async (): Promise<string> => {
   await refreshTokenIfExpiriesSoon();
@@ -42,7 +45,7 @@ const refreshToken = async (tokens: any) => {
   } else {
     removeTokens();
     console.error('failed to refresh the token');
-    Router.push('/');
+    window.location.href = `${base_path}`;
   }
 };
 
