@@ -2,14 +2,16 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
-import { validateRequest, processRequest, getDifferences } from '../utils/helpers';
+import { validateRequest, processRequest, getDifferences, isAdmin } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
+import { getEmailList } from '../../../shared/utils/helpers';
 import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
+const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
+
 const NEW_REQUEST_DAY_LIMIT = 10;
-const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
 
 const errorResponse = (err: any) => {
   console.error(err);
@@ -46,6 +48,7 @@ export const createRequest = async (session: Session, data: Data) => {
   if (error) return errorResponse(error);
 
   try {
+    const idirUserDisplayName = session.given_name + ' ' + session.family_name;
     const now = new Date();
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
@@ -61,16 +64,33 @@ export const createRequest = async (session: Session, data: Data) => {
     });
 
     if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
+      const eventData = {
+        eventCode: EVENTS.REQUEST_LIMIT_REACHED,
+        idirUserid: session.idir_userid,
+        idirUserDisplayName,
+      };
+      const emailCode = 'request-limit-exceeded';
+      await sendEmail({
+        to: [SSO_EMAIL_ADDRESS],
+        body: getEmailBody(emailCode, {
+          submittedBy: idirUserDisplayName,
+        }),
+        subject: getEmailSubject(emailCode),
+        event: { emailCode },
+      });
+      createEvent(eventData);
       throw Error('reached the day limit');
     }
 
-    const { projectName, projectLead, preferredEmail, newToSso } = data;
+    const { projectName, projectLead, preferredEmail, newToSso, additionalEmails } = data;
     const result = await models.request.create({
       idirUserid: session.idir_userid,
       projectName,
       projectLead,
       preferredEmail,
       newToSso,
+      additionalEmails,
+      idirUserDisplayName,
     });
 
     return {
@@ -134,9 +154,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       }
 
       const emailCode = isUpdate ? 'uri-change-request-submitted' : 'create-request-submitted';
+      const to = getEmailList(original);
 
       await sendEmail({
-        to: allowedRequest.preferredEmail,
+        to,
         body: getEmailBody(emailCode, {
           projectName: mergedRequest.projectName,
           requestNumber: mergedRequest.id,
@@ -236,9 +257,14 @@ export const getRequestAll = async (
   const where: any = {};
 
   if (searchKey && searchField && searchField.length > 0) {
+    where[Op.or] = [];
     searchField.forEach((field) => {
-      where[Op.or] = [];
-      where[Op.or].push({ [field]: { [Op.like]: `%${searchKey}%` } });
+      if (field === 'id') {
+        const id = Number(searchKey);
+        if (!Number.isNaN(id)) where[Op.or].push({ id });
+      } else {
+        where[Op.or].push({ [field]: { [Op.iLike]: `%${searchKey}%` } });
+      }
     });
   }
 
@@ -335,24 +361,25 @@ export const deleteRequest = async (session: Session, id: number) => {
     if (prError) throw prError;
 
     const result = await models.request.update({ archived: true }, { where });
+    const to = getEmailList(original);
 
     Promise.all([
       sendEmail({
-        to: 'bcgov.sso@gov.bc.ca',
+        to: [SSO_EMAIL_ADDRESS],
         body: getEmailBody('request-deleted-notification-to-admin', {
-          projectName: result.projectName,
-          requestNumber: result.id,
-          submittedBy: result.idirUserDisplayName,
+          projectName: original.projectName,
+          requestNumber: original.id,
+          submittedBy: original.idirUserDisplayName,
         }),
         subject: getEmailSubject('request-deleted-notification-to-admin'),
         event: { emailCode: 'request-deleted-notification-to-admin', requestId: id },
       }),
       sendEmail({
-        to: original.preferredEmail,
+        to,
         body: getEmailBody('request-deleted', {
-          projectName: result.projectName,
-          requestNumber: result.id,
-          submittedBy: result.idirUserDisplayName,
+          projectName: original.projectName,
+          requestNumber: original.id,
+          submittedBy: original.idirUserDisplayName,
         }),
         subject: getEmailSubject('request-deleted'),
         event: { emailCode: 'request-deleted', requestId: id },

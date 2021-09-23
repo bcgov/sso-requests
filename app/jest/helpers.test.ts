@@ -1,4 +1,4 @@
-import { realmToIDP, idpToRealm } from 'utils/helpers';
+import { idpToRealm } from 'utils/helpers';
 import { isValidKeycloakURI } from 'utils/shared/customValidate';
 
 describe('idp to realm', () => {

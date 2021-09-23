@@ -98,6 +98,16 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         field: 'idir_user_display_name',
       },
+      additionalEmails: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: true,
+        field: 'additional_emails',
+      },
+      hasUnreadNotifications: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        field: 'has_unread_notifications',
+      },
     },
     {
       underscored: true,

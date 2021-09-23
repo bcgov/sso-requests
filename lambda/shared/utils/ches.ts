@@ -46,7 +46,7 @@ export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, event,
         from,
         priority: 'normal',
         subject: 'CHES Email Message',
-        to: [to],
+        to,
         ...rest,
       },
       {

@@ -7,7 +7,8 @@ type EmailMessage =
   | 'uri-change-request-submitted'
   | 'uri-change-request-approved'
   | 'request-deleted'
-  | 'request-deleted-notification-to-admin';
+  | 'request-deleted-notification-to-admin'
+  | 'request-limit-exceeded';
 
 interface BodyData {
   projectName?: string;
@@ -23,8 +24,8 @@ const footer = `
     Rocket.Chat
     </a>
     or email at:
-    <a href="mailto:zorin.samji@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer">
-        Zorin.Samji@gov.bc.ca
+    <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer">
+    bcgov.sso@gov.bc.ca
     </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>`;
@@ -101,6 +102,11 @@ export const getEmailBody = (
         <p>
             <strong>Project name: </strong>${projectName}
         </p>`;
+    case 'request-limit-exceeded':
+      return `
+        <h1>Request Limit Exceeded</h1>
+        <p>Pathfinder SSO user ${submittedBy} has exceeded their daily limit</p>
+        `;
 
     default:
       return '';
@@ -123,6 +129,8 @@ export const getEmailSubject = (messageType: EmailMessage) => {
       return `${prefix}Pathfinder SSO request deleted`;
     case 'request-deleted-notification-to-admin':
       return `${prefix}Pathfinder SSO request deleted`;
+    case 'request-limit-exceeded':
+      return `${prefix}Pathfinder SSO request limit reached`;
     default:
       return '';
   }

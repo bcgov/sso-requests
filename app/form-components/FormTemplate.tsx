@@ -12,7 +12,7 @@ import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
-import { useRouter, NextRouter } from 'next/router';
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
@@ -37,23 +37,6 @@ interface Props {
   alert: BottomAlert;
   isAdmin: boolean;
 }
-
-interface RouterParams {
-  pathname: string;
-  query?: {
-    error: string;
-  };
-}
-
-const handleApplicationBlockedError = (err: any, router: NextRouter) => {
-  const errorMessage = err?.response?.data;
-  const routerParams: RouterParams = { pathname: '/application-error' };
-  if (errorMessage)
-    routerParams.query = {
-      error: errorMessage,
-    };
-  router.push(routerParams);
-};
 
 function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
@@ -115,7 +98,6 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
         const { id } = data || {};
 
         if (err || !id) {
-          handleApplicationBlockedError(err, router);
           setLoading(false);
           return;
         }
@@ -150,17 +132,13 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
     if (request) {
       setSaving(true);
       const [, err] = await updateRequest({ ...formData, id: request.id });
-      if (err) {
-        handleApplicationBlockedError(err, router);
-      } else {
-        setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
-      }
+      if (!err) setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
       setSaving(false);
     }
   };
 
   const handleModalClose = () => {
-    router.push('my-requests');
+    router.push('/my-requests');
   };
 
   const backButtonText = request ? 'Save and Close' : 'Cancel';

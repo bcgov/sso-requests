@@ -4,18 +4,21 @@ import { padStart, startCase } from 'lodash';
 import Loader from 'react-loader-spinner';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Request } from 'interfaces/Request';
-import { Container, DeleteButton, EditButton, VerticalLine } from 'components/ActionButtons';
+import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
+import AdminEventPanel from 'components/AdminEventPanel';
+import AdminRequestPanel from 'components/AdminRequestPanel';
+import { PRIMARY_RED } from 'styles/theme';
 
 type Status =
   | 'all'
@@ -98,22 +101,23 @@ const PaddedIcon = styled(FontAwesomeIcon)`
 export default function AdminDashboard({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting, setDeleting] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
+  const [showEvents, setShowEvents] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
-  const [searchKey, setSearchKey] = useState<string>('');
+  const [searchKey, setSearchKey] = useState<string>(String(router.query?.id || ''));
   const [count, setCount] = useState<number>(0);
   const [limit, setLimit] = useState<number>(5);
   const [page, setPage] = useState<number>(1);
   const [status, setStatus] = useState<Status>('all');
   const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
-  const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
+  const [selectedId, setSelectedId] = useState<number | undefined>(Number(router.query?.id) || undefined);
 
   const getData = async () => {
     setLoading(true);
 
     const [data, err] = await getRequestAll({
-      searchField: ['projectName'],
+      searchField: ['id', 'projectName'],
       searchKey,
       order: [['createdAt', 'desc']],
       limit,
@@ -150,9 +154,9 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const canEdit = (request: Request) => ['applied'].includes(request?.status || '');
   const canDelete = (request: Request) => !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
-  const handleEdit = (request: Request) => {
+  const handleEdit = async (request: Request) => {
     if (!request.id || !canEdit(request)) return;
-    router.push(`/edit-request?id=${request.id}`);
+    await router.push(`/edit-request?id=${request.id}`);
   };
 
   const handleDelete = async (request: Request) => {
@@ -172,13 +176,28 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const cancelDelete = () => (window.location.hash = '#');
 
+  let rightPanel = null;
+  if (selectedId) {
+    rightPanel = showEvents ? (
+      <AdminEventPanel requestId={selectedId} />
+    ) : (
+      <AdminRequestPanel request={rows.find((v) => v.id === selectedId)} />
+    );
+  }
+
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Grid cols={10}>
         <Grid.Row collapse="800" gutter={[15, 2]}>
           <Grid.Col span={6}>
             <Table
-              headers={['Request ID', 'Project Name', 'Request Status', 'File Status', 'Actions']}
+              headers={[
+                { name: 'Request ID' },
+                { name: 'Project Name' },
+                { name: 'Request Status' },
+                { name: 'File Status' },
+                { name: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
+              ]}
               filterItems={statusFilters}
               filterItems2={archiveStatusFilters}
               pageLimits={pageLimits}
@@ -200,21 +219,43 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 setArchiveStatus(val);
                 setPage(1);
               }}
-              onLimit={setLimit}
+              onLimit={(val) => {
+                setPage(1);
+                setLimit(val);
+              }}
               onPrev={setPage}
               onNext={setPage}
             >
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
                   return (
-                    <tr key={row.id} onClick={() => setSelectedId(row.id)}>
+                    <tr
+                      key={row.id}
+                      className={selectedId === row.id ? 'active' : ''}
+                      onClick={() => {
+                        setSelectedId(row.id);
+                        setShowEvents(false);
+                      }}
+                    >
                       <td>{padStart(String(row.id), 8, '0')}</td>
                       <td>{row.projectName}</td>
                       <td>{startCase(row.status)}</td>
                       <td>{row.archived ? 'Deleted' : 'Active'}</td>
                       <td>
                         <Container>
-                          <EditButton
+                          <ActionButton
+                            icon={faEye}
+                            role="button"
+                            aria-label="events"
+                            onClick={(event: any) => {
+                              event.stopPropagation();
+                              setSelectedId(row.id);
+                              setShowEvents(true);
+                            }}
+                            title="Events"
+                          />
+                          <VerticalLine />
+                          <ActionButton
                             disabled={!canEdit(row)}
                             icon={faEdit}
                             role="button"
@@ -223,12 +264,13 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                             title="Edit"
                           />
                           <VerticalLine />
-                          <DeleteButton
+                          <ActionButton
                             icon={faTrash}
                             role="button"
                             aria-label="delete"
                             onClick={() => handleDelete(row)}
                             disabled={!canDelete(row)}
+                            activeColor={PRIMARY_RED}
                             title="Delete"
                           />
                         </Container>
@@ -243,7 +285,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               )}
             </Table>
           </Grid.Col>
-          <Grid.Col span={4}></Grid.Col>
+          <Grid.Col span={4}>{rightPanel}</Grid.Col>
         </Grid.Row>
       </Grid>
       <CenteredModal id="delete-modal">

@@ -12,4 +12,5 @@ export const EVENTS = {
   REQUEST_DELETE_SUCCESS: 'request-delete-success',
   REQUEST_DELETE_FAILURE: 'request-delete-failure',
   EMAIL_SUBMISSION_FAILURE: 'email-submission-failure',
+  REQUEST_LIMIT_REACHED: 'request-limit-reached',
 };

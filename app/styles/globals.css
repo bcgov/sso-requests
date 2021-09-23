@@ -71,6 +71,10 @@ label.pg-input-label {
   max-width: 400px;
 }
 
+.control-label[for='root_additionalEmails'] {
+  display: none;
+}
+
 .field-string .pg-input .pg-input-input {
   width: 100%;
   padding-right: 30px;

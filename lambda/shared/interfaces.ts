@@ -18,6 +18,7 @@ export interface Data {
   publicAccess?: boolean;
   id?: number;
   comment?: string;
+  additionalEmails: string[];
 }
 
 export interface FormattedData {
@@ -39,12 +40,12 @@ export interface FormattedData {
 
 interface EmailEvent {
   emailCode: string;
-  requestId: number;
+  requestId?: number;
 }
 
 export interface EmailOptions {
   from?: string;
-  to: string;
+  to: string[];
   body: string;
   bodyType?: string;
   cc?: string[];

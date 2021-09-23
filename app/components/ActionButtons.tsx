@@ -2,7 +2,7 @@ import { useContext, MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faComment, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
 import { Request } from 'interfaces/Request';
@@ -14,22 +14,14 @@ export const Container = styled.div`
   display: flex;
   justify-content: space-around;
   align-items: center;
+  padding-right: 15px;
 `;
 
-export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean }>`
+export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean; activeColor?: string; isUnread?: boolean }>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
-  ${(props) => (props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: #137ac8; }`)}
-`;
-
-export const DeleteButton = styled(ActionButton)<{ disabled?: boolean }>`
-  margin-right: 15px;
-  &:hover {
-    ${(props) => (props?.disabled ? '' : `color: ${PRIMARY_RED};`)}
-  }
-`;
-
-export const EditButton = styled(ActionButton)`
-  margin-left: 15px;
+  ${(props) => (props.isUnread ? `${PRIMARY_RED}: red !important` : '')};
+  ${(props) =>
+    props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: ${props.activeColor || '#137ac8'}; }`}
 `;
 
 export const VerticalLine = styled.div`
@@ -41,20 +33,29 @@ interface Props {
   request: Request;
   selectedRequest: Request;
   setSelectedId: Function;
+  setActiveTab: Function;
+  archived: boolean;
 }
 
-export default function Actionbuttons({ selectedRequest, request, setSelectedId }: Props) {
+export default function Actionbuttons({
+  selectedRequest,
+  request,
+  setSelectedId,
+  setActiveTab,
+  archived = false,
+}: Props) {
   const { state, dispatch } = useContext(RequestsContext);
   const router = useRouter();
   const { editingRequest } = state as RequestReducerState;
-  const canDelete = !['pr', 'planned', 'submitted'].includes(request?.status || '');
+  const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
   const handleEdit = (event: MouseEvent) => {
     if (request.status === 'draft') {
       router.push(`/request/${request.id}`);
       return;
     }
-
+    setActiveTab('configuration-url');
+    event.stopPropagation();
     if (selectedRequest?.id === request.id) {
       dispatch($setEditingRequest(!editingRequest));
     } else {
@@ -68,12 +69,17 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
     window.location.hash = 'delete-modal';
   };
 
-  const canEdit = ['draft', 'applied'].includes(request.status || '');
+  const handleViewChanges = async () => {
+    setActiveTab('data-changes');
+    request.hasUnreadNotifications = false;
+  };
+
+  const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
 
   return (
     <>
       <Container>
-        <EditButton
+        <ActionButton
           disabled={!canEdit}
           icon={faEdit}
           role="button"
@@ -82,12 +88,23 @@ export default function Actionbuttons({ selectedRequest, request, setSelectedId 
           title="Edit"
         />
         <VerticalLine />
-        <DeleteButton
+        <ActionButton
+          icon={faComment}
+          role="button"
+          aria-label="view-events"
+          onClick={handleViewChanges}
+          activeColor={PRIMARY_RED}
+          title="Events"
+          isUnread={request?.hasUnreadNotifications}
+        />
+        <VerticalLine />
+        <ActionButton
           icon={faTrash}
           role="button"
           aria-label="delete"
           onClick={handleDelete}
           disabled={!canDelete}
+          activeColor={PRIMARY_RED}
           title="Delete"
         />
       </Container>

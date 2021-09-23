@@ -73,8 +73,8 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
       response = await getClient(session, JSON.parse(body));
     }
   } else if (path === `${BASE_PATH}/events`) {
-    if (httpMethod === 'GET') {
-      response = await getEvents();
+    if (httpMethod === 'POST') {
+      response = await getEvents(session, JSON.parse(body));
     }
   }
 

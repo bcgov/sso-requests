@@ -1,6 +1,5 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import styled from 'styled-components';
-import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
@@ -8,40 +7,25 @@ import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
 import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
-import { SUBTITLE_FONT_SIZE, SECONDARY_FONT_COLOR } from 'styles/theme';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
-
-const RequestTabs = styled(Tabs)`
-  .nav-link {
-    color: ${SECONDARY_FONT_COLOR} !important;
-    height: 30px !important;
-    font-size: ${SUBTITLE_FONT_SIZE} !important;
-    font-weight: 600 !important;
-    padding-top: 0; !important;
-    border-top: unset !important;
-    border-left: unset !important;
-    border-right: unset !important;
-  }
-  .nav-link.active {
-    background-color: unset !important;
-    border-bottom: 3px solid orange;
-  }
-`;
+import UserEventPanel from 'components/UserEventPanel';
+import { RequestTabs } from 'components/RequestTabs';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
   padding-right: 1rem;
 `;
 
-type TabKey = 'installation-json' | 'configuration-url';
+export type TabKey = 'installation-json' | 'configuration-url' | 'data-changes';
 
 interface Props {
   selectedRequest: Request;
   defaultTabKey: TabKey;
+  setActiveKey: Function;
+  activeKey: TabKey;
 }
 
-function RequestInfoTabs({ selectedRequest, defaultTabKey }: Props) {
-  const [activeKey, setActiveKey] = useState<TabKey>(defaultTabKey);
+function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeKey = defaultTabKey }: Props) {
   const { dispatch } = useContext(RequestsContext);
   if (!selectedRequest) return null;
   const { status } = selectedRequest;
@@ -73,6 +57,11 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey }: Props) {
         <Tab eventKey="configuration-url" title="Redirect URIs">
           <TabWrapper>
             <ConfigurationUrlPanel selectedRequest={selectedRequest} />
+          </TabWrapper>
+        </Tab>
+        <Tab eventKey="data-changes" title="Data Changes">
+          <TabWrapper>
+            <UserEventPanel requestId={selectedRequest.id} />
           </TabWrapper>
         </Tab>
       </RequestTabs>
