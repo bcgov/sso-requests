@@ -5,7 +5,7 @@ This is an example express app with a confidential client using the nodejs adapt
 ## Getting Started
 
 To run this example,
-you will need a public keycloak client you can use. If you have generated one with
+you will need a confidential keycloak client you can use. If you have generated one with
 our self-service [webapp](https://bcgov.github.io/sso-requests/), copy the
 installation json you receive into `keycloak.json`. To run locally
 ensure that your client allows `http://localhost:3000` as a valid

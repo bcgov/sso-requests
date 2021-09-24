@@ -19,7 +19,7 @@ Visit `localhost:3000` on your machine to test it out.
 An example express app with a confidential client. To run this example,
 you will need a confidential keycloak client you can use. If you have generated one with
 our self-service [webapp](https://bcgov.github.io/sso-requests/), copy the
-installation json you receive into `public/keycloak.json`. To run locally
+installation json you receive into `keycloak.json`. To run locally
 ensure that your client allows `http://localhost:3000` as a valid
 redirect URI. Then from `examples/nextjs-example`:
 
