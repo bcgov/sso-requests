@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  h1 A Simple Keycloak Cofiguration
+  a(href="/secret").ui.button login
+  a(href="/logout").ui.button logout
+  div.ui.message
+    div.header Click on the button
+      em Get Protected Resources
+      | to fetch from the API
+    p Secret: #{secret}
