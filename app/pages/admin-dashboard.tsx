@@ -119,7 +119,10 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     const [data, err] = await getRequestAll({
       searchField: ['id', 'projectName'],
       searchKey,
-      order: [['createdAt', 'desc']],
+      order: [
+        ['updatedAt', 'desc'],
+        ['status', 'desc'],
+      ],
       limit,
       page,
       status,
@@ -202,6 +205,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               filterItems2={archiveStatusFilters}
               pageLimits={pageLimits}
               searchKey={searchKey}
+              searchPlaceholder="Project ID or Name"
               limit={limit}
               page={page}
               rowCount={count}
