@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./services/backend
+    environment:
+      - WELL_KNOWN_ENDPOINT=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
+    ports:
+      - 5000:5000
+    volumes:
+      - ./services/backend/src:/app
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 5000
+
+  frontend:
+    build: ./services/frontend
+    volumes:
+      - './services/frontend:/app'
+      - '/app/node_modules'
+    ports:
+      - 3000:8080

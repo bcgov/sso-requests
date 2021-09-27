@@ -1,0 +1,5 @@
+fastapi==0.68.1
+uvicorn==0.14.0
+requests==2.22.0
+pyjwt==2.1.0
+cryptography==3.4.7
