@@ -48,6 +48,7 @@ export const sampleRequest: Request = {
   agreeWithTerms: true,
   environments: ['dev', 'test', 'prod'],
   archived: false,
+  additionalEmails: [],
 };
 
 const samplePage3Request = {
