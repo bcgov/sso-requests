@@ -60,8 +60,12 @@ function TermsAndConditions() {
           </Link>{' '}
           or email at <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>) :
           <ul>
-            <SubItem>if you predict moderate or high loads</SubItem>
-            OR
+            <SubItem>
+              if you predict moderate or high loads
+              <br />
+              OR
+              <br />
+            </SubItem>
             <SubItem>if you need to conduct load testing in TEST only</SubItem>
           </ul>
         </li>
@@ -79,9 +83,11 @@ function TermsAndConditions() {
         <li>
           We are working towards enterprise service levels and in the interim the SSO Pathfinder service level is
           &quot;best-effort&quot; during business hours (Monday to Friday, 9am to 5pm), and after-hours resolution time
-          is not guaranteed
+          is not guaranteed.
+          <p>
+            <strong>Please take this into account if you have a &quot;critical&quot; application</strong>
+          </p>
         </li>
-        <strong>Please take this into account if you have a &quot;critical&quot; application</strong>
         <li>From time to time, we may contact you to confirm if your configuration is needed</li>
       </StyledList>
     </Container>
