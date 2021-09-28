@@ -151,7 +151,6 @@ export const transformErrors = (errors: any) => {
 };
 
 export const formatChangeEventDetails = (changes: Change[]) => {
-  console.log(changes);
   const changesJSX = changes.map((change) => {
     const { kind, lhs, rhs, path, item } = change;
     const changedPath = path[0];
