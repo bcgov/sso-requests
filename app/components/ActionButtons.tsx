@@ -19,9 +19,9 @@ export const Container = styled.div`
 
 export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean; activeColor?: string; isUnread?: boolean }>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
-  ${(props) => (props.isUnread ? `${PRIMARY_RED}: red !important` : '')};
   ${(props) =>
     props.disabled ? `color: #CACACA;` : `color: #777777;&:hover { color: ${props.activeColor || '#137ac8'}; }`}
+  ${(props) => (props.isUnread ? `color: ${PRIMARY_RED}` : '')};
 `;
 
 export const VerticalLine = styled.div`

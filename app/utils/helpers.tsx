@@ -159,16 +159,34 @@ export const formatChangeEventDetails = (changes: Change[]) => {
         return (
           <>
             <strong>Edited {changedPath}: </strong>
-            <code>{String(lhs)}</code> to <code>{rhs}</code>
+            Changed <code>{String(lhs)}</code> to <code>{rhs}</code>
           </>
         );
       case 'A':
-        return (
-          <>
-            <strong>Added to {changedPath}: </strong>
-            <code>{item?.rhs}</code>
-          </>
-        );
+        if (item?.kind === 'D')
+          return (
+            <>
+              <strong>Changed Array {changedPath}: </strong>
+              Deleted <code> {item?.lhs}</code>
+            </>
+          );
+        if (item?.kind === 'N')
+          return (
+            <>
+              <strong>Changed Array {changedPath}: </strong>
+              Added <code>{item?.rhs}</code>
+            </>
+          );
+        else
+          return (
+            <>
+              <strong>Changed Array {changedPath}: </strong>
+              Edited{' '}
+              <code>
+                {item?.lhs} to {item?.rhs}
+              </code>
+            </>
+          );
       case 'N':
         return (
           <>
