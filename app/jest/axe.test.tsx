@@ -1,5 +1,5 @@
 import { axe, toHaveNoViolations } from 'jest-axe';
-import { render, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import React from 'react';
 import 'regenerator-runtime/runtime';
 import '@testing-library/jest-dom/extend-expect';
@@ -86,7 +86,7 @@ describe('Terms and Conditions', () => {
 
 describe('Request Page', () => {
   it('Should have no accessibility violations', async () => {
-    const { container, debug } = render(<RequestPage currentUser={{ email: '' }} />);
+    const { container } = render(<RequestPage currentUser={{ email: '' }} />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -94,9 +94,8 @@ describe('Request Page', () => {
 
 describe('Form Template', () => {
   it('Should have no accessibility violations with the form open', async () => {
-    const { container, debug } = render(<FormTemplate currentUser={{ email: '' }} request={{ projectLead: true }} />);
+    const { container } = render(<FormTemplate currentUser={{ email: '' }} request={{ projectLead: true }} />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
-    debug();
   });
 });
