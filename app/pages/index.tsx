@@ -9,7 +9,6 @@ import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
-import { CALLOUT_BUTTON_BACKGROUND_COLOR, CALLOUT_BUTTON_FONT_COLOR, FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 
 const Panel = styled.div`
   max-width: 450px;
@@ -20,9 +19,6 @@ const Panel = styled.div`
 
 const Button = styled(DefaultButton)`
   width: 215px;
-  background-color: #f2f2f2;
-  box-shadow: ${CALLOUT_BUTTON_BACKGROUND_COLOR} 0px 0px 0px 2px inset !important;
-  color: ${CALLOUT_BUTTON_FONT_COLOR};
 `;
 
 const PaddedButton = styled(Button)`
@@ -105,7 +101,7 @@ export default function Home({ onLoginClick }: PageProps) {
                   To learn more about Pathfinder SSO
                   <br />
                   visit the{' '}
-                  <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki/SSO-Onboarding" external>
+                  <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki" external>
                     Onboarding Guide
                   </Link>
                 </Paragraph>
