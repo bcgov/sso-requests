@@ -38,6 +38,7 @@ interface Props {
   filterItems2?: FilterItem[];
   pageLimits?: FilterItem[];
   searchKey?: string;
+  searchPlaceholder?: string;
   page?: number;
   limit?: number;
   rowCount?: number;
@@ -123,6 +124,7 @@ function Table({
   filterItems2,
   pageLimits,
   searchKey = '',
+  searchPlaceholder = 'Search...',
   page = 1,
   limit = 10,
   rowCount = 10,
@@ -161,7 +163,7 @@ function Table({
               <Input
                 type="text"
                 size="small"
-                placeholder="Search..."
+                placeholder={searchPlaceholder}
                 style={{ display: 'inline-block' }}
                 value={_searchKey}
                 onChange={handleSearchKeyChange}

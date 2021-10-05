@@ -102,7 +102,7 @@ export default function Home({ onLoginClick }: PageProps) {
                   <br />
                   visit the{' '}
                   <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki" external>
-                    Onboarding Guide
+                    SSO Pathfinder Knowledge Base
                   </Link>
                 </Paragraph>
               </Panel>
