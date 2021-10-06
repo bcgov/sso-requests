@@ -42,7 +42,9 @@ export const generateInstallation = async (data: { environment: string; realmNam
 
   // see https://github.com/keycloak/keycloak/blob/dce163d3e204115933df794772e4d49a4abf701f/services/src/main/java/org/keycloak/protocol/oidc/installation/KeycloakOIDCClientInstallation.java#L65
   if (showClientCredentialsAdapterConfig(client)) {
-    rep['credentials'] = await getClientCredentialsAdapterConfig(client, realm, kcAdminClient);
+    const credentials = await getClientCredentialsAdapterConfig(client, realm, kcAdminClient);
+    if (typeof credentials['secret'] === 'object') rep['credentials'] = { secret: credentials.secret.value };
+    else rep['credentials'] = credentials;
   }
 
   // see https://github.com/keycloak/keycloak/blob/dce163d3e204115933df794772e4d49a4abf701f/services/src/main/java/org/keycloak/protocol/oidc/installation/KeycloakOIDCClientInstallation.java#L70

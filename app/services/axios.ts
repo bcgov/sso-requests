@@ -11,7 +11,7 @@ const instance = axios.create({
   withCredentials: true,
 });
 
-instance.interceptors.request.use(
+instance?.interceptors.request.use(
   async function (config) {
     const { skipAuth } = config.headers;
     if (skipAuth) {
