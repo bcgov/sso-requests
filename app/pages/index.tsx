@@ -141,8 +141,8 @@ export default function Home({ onLoginClick }: PageProps) {
                   <ul>
                     <li>Use our self-service to quickly get setup</li>
                     <li>
-                      We set up a "Standard Realm" for you, a space where your application lives. You do not have to do
-                      any setup yourself
+                      We set up a &quot;Standard Realm&quot; for you, a space where your application lives. You do not
+                      have to do any setup yourself
                     </li>
                     <li>We provide you with a Client ID and secret (for confidential clients)</li>
                     <li>You can easily update and configure URIs</li>
