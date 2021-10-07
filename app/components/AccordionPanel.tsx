@@ -51,7 +51,7 @@ export default function Accordionpanel({ title, allOpen, setAllOpen, children }:
   return (
     <Container>
       <Header onClick={handleClick}>
-        <header>{title}</header>
+        <span>{title}</span>
         <FontAwesomeIcon icon={open ? faAngleUp : faAngleDown} size="2x"></FontAwesomeIcon>
       </Header>
       <SmoothTransition open={open}>{children}</SmoothTransition>
