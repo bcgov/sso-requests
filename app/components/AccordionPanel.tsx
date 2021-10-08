@@ -29,7 +29,7 @@ const Header = styled.div`
   cursor: pointer;
   padding: 10px 20px;
   background-color: ${ACCORDION_HEADER_COLOR};
-  & header {
+  & span {
     font-size: 1.5rem;
     font-weight: bold;
   }
