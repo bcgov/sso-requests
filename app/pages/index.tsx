@@ -10,6 +10,7 @@ import main from 'svg/main';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import Accordion from 'components/Accordion';
+import { LANDING_HEADER_FONT } from 'styles/theme';
 
 interface PanelProps {
   marginLeft?: boolean;
@@ -70,6 +71,10 @@ const ButtonContainer = styled.div`
 
 const HorizontalRule = styled.hr`
   margin: 30px 0;
+`;
+
+const Header = styled.h2`
+  font-size: ${LANDING_HEADER_FONT};
 `;
 
 export default function Home({ onLoginClick }: PageProps) {
