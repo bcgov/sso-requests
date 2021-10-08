@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AccordionPanel from 'components/AccordionPanel';
 import styled from 'styled-components';
+import { SECONDARY_BLUE } from 'styles/theme';
 
 interface Props {
   children: any;
@@ -9,6 +10,7 @@ interface Props {
 const ActionsContainer = styled.div`
   display: flex;
   flex-direction: row;
+  color: ${SECONDARY_BLUE};
   & span {
     cursor: pointer;
   }

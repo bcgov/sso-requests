@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons';
+import { LANDING_HEADER_FONT } from 'styles/theme';
 
 const ACCORDION_HEADER_COLOR = '#eaeaea';
 const ACCORDION_BODY_COLOR = '#f5f5f5';
@@ -30,7 +31,7 @@ const Header = styled.div`
   padding: 10px 20px;
   background-color: ${ACCORDION_HEADER_COLOR};
   & span {
-    font-size: 1.5rem;
+    font-size: ${LANDING_HEADER_FONT};
     font-weight: bold;
   }
 `;
