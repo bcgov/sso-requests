@@ -34,9 +34,9 @@ jobs:
           echo "SUBNET_A=App_Dev_aza_net" >> $GITHUB_ENV
           echo "SUBNET_B=App_Dev_azb_net" >> $GITHUB_ENV
           echo "GITHUB_REPO=sso-terraform-dev" >> $GITHUB_ENV
-          echo "KEYCLOAK_DEV_URL=https://sso-dev-3d5c3f-dev.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
-          echo "KEYCLOAK_TEST_URL=https://sso-test-3d5c3f-test.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
-          echo "KEYCLOAK_PROD_URL=https://sso-prod-3d5c3f-prod.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_DEV_URL=https://sso-keycloak-3d5c3f-dev.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_TEST_URL=https://sso-keycloak-3d5c3f-test.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
+          echo "KEYCLOAK_PROD_URL=https://sso-keycloak-3d5c3f-prod.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
           echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
