@@ -27,22 +27,20 @@ import CancelButton from 'components/CancelButton';
 
 const mediaRules: MediaRule[] = [
   {
-    maxWidth: 1000,
-    marginTop: 10,
+    maxWidth: 900,
+    marginTop: 0,
+    marginLeft: 10,
+    marginRight: 10,
+    marginUnit: 'px',
+    horizontalAlign: 'none',
   },
   {
-    maxWidth: 1199,
-    width: 933,
-    marginTop: 20,
-  },
-  {
-    maxWidth: 1440,
-    width: 1127,
-    marginTop: 20,
-  },
-  {
-    width: 1400,
-    marginTop: 20,
+    width: 480,
+    marginTop: 0,
+    marginLeft: 2.5,
+    marginRight: 2.5,
+    marginUnit: 'rem',
+    horizontalAlign: 'none',
   },
 ];
 
@@ -273,9 +271,9 @@ function RequestsPage({ currentUser }: PageProps) {
       <br />
       <br />
       <RequestsContext.Provider value={contextValue}>
-        <Grid cols={2}>
-          <Grid.Row collapse="800" gutter={[15, 2]}>
-            <Grid.Col>
+        <Grid cols={10}>
+          <Grid.Row collapse="1100" gutter={[15, 2]}>
+            <Grid.Col span={6}>
               <OverflowAuto>
                 <RequestTabs onSelect={(key: string) => setViewArchived(key === 'archived')}>
                   <Tab eventKey="active" title="My Dashboard" />
@@ -285,7 +283,7 @@ function RequestsPage({ currentUser }: PageProps) {
               </OverflowAuto>
             </Grid.Col>
             {selectedRequest && (
-              <Grid.Col>
+              <Grid.Col span={4}>
                 <RequestInfoTabs
                   key={selectedRequest.id + selectedRequest.status + state.editingRequest}
                   selectedRequest={selectedRequest}

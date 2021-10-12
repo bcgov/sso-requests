@@ -56,7 +56,7 @@ const getHorizontalMarginStyle = (
   } else {
     let margin = '';
     if (marginLeft) margin += `margin-left: ${marginLeft}${marginUnit} !important;`;
-    else if (marginRight) margin += `margin-right: ${marginRight}${marginUnit} !important;`;
+    if (marginRight) margin += `margin-right: ${marginRight}${marginUnit} !important;`;
     return margin;
   }
 };

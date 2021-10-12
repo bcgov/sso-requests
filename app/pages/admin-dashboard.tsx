@@ -64,22 +64,20 @@ const pageLimits = [
 
 const mediaRules: MediaRule[] = [
   {
-    maxWidth: 1280,
-    marginTop: 10,
+    maxWidth: 900,
+    marginTop: 0,
+    marginLeft: 10,
+    marginRight: 10,
+    marginUnit: 'px',
+    horizontalAlign: 'none',
   },
   {
-    maxWidth: 1400,
-    width: 1200,
-    marginTop: 20,
-  },
-  {
-    maxWidth: 1700,
-    width: 1300,
-    marginTop: 20,
-  },
-  {
-    width: 1600,
-    marginTop: 20,
+    width: 480,
+    marginTop: 0,
+    marginLeft: 2.5,
+    marginRight: 2.5,
+    marginUnit: 'rem',
+    horizontalAlign: 'none',
   },
 ];
 
@@ -212,6 +210,10 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               filter={status}
               filter2={archiveStatus}
               onSearch={(val) => {
+                setSearchKey(val);
+                setPage(1);
+              }}
+              onEnter={(val) => {
                 setSearchKey(val);
                 setPage(1);
               }}
