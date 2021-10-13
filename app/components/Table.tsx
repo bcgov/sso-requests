@@ -45,6 +45,7 @@ interface Props {
   filter?: string;
   filter2?: string;
   onSearch?: (val: string) => void;
+  onEnter?: (val: string) => void;
   onFilter?: (val: any) => void;
   onFilter2?: (val: any) => void;
   onLimit?: (val: number) => void;
@@ -114,6 +115,7 @@ function Table({
   headers,
   children,
   onSearch = noop,
+  onEnter = noop,
   onFilter = noop,
   onFilter2 = noop,
   onLimit = noop,
@@ -136,6 +138,12 @@ function Table({
 
   const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchKey(event.target.value);
+  };
+
+  const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      onEnter(_searchKey);
+    }
   };
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,6 +175,7 @@ function Table({
                 style={{ display: 'inline-block' }}
                 value={_searchKey}
                 onChange={handleSearchKeyChange}
+                onKeyUp={handleKeyUp}
               />
               <Button type="button" size="small" onClick={handleSearchSubmit}>
                 Search

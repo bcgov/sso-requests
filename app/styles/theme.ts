@@ -11,3 +11,4 @@ export const SECONDARY_BLUE = '#38598a';
 export const LINK_COLOR = '#0000EE';
 export const PRIMARY_RED = '#D8292F';
 export const FORM_BUTTON_MIN_WIDTH = '190px';
+export const LANDING_HEADER_FONT = '22px';
