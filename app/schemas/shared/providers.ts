@@ -8,6 +8,35 @@ export const redirectUriTooltipInfo = {
 
 export const redirectUriItems = { type: 'string', maxLength: 250, placeholder: 'e.g. https://example.com' };
 
+const testValidRedirectUris = {
+  type: 'array',
+  title: 'Test Redirect URIs',
+  items: redirectUriItems,
+  additionalItems: redirectUriItems,
+  default: [''],
+  addItemText: 'Add another URI',
+};
+
+const prodValidRedirectUris = {
+  type: 'array',
+  title: 'Prod Redirect URIs',
+  items: redirectUriItems,
+  additionalItems: redirectUriItems,
+  default: [''],
+  addItemText: 'Add another URI',
+};
+
+const environments = {
+  type: 'string',
+  title: 'Environments',
+  tooltipContent:
+    "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
+  enum: [['dev'], ['dev, test'], ['dev', 'test', 'prod']],
+  enumNames: ['dev', 'dev & test', 'dev & test & prod'],
+  uniqueItems: true,
+  default: ['dev'],
+};
+
 export default {
   type: 'object',
   required: ['realm', 'publicAccess'],
@@ -28,16 +57,7 @@ export default {
       enumNames: ['IDIR', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
       default: 'onestopauth',
     },
-    environments: {
-      type: 'string',
-      title: 'Environments',
-      tooltipContent:
-        "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
-      enum: [['dev'], ['dev, test'], ['dev', 'test', 'prod']],
-      enumNames: ['dev', 'dev & test', 'dev & test & prod'],
-      uniqueItems: true,
-      default: ['dev'],
-    },
+    environments,
     devValidRedirectUris: {
       type: 'array',
       description: 'You can use any valid URI for your redirect URIs.',
@@ -58,11 +78,7 @@ export default {
               enum: ['bceidbasic'],
             },
             environments: {
-              type: 'string',
-              title: 'Environments',
               enum: ['dev', 'dev & test'],
-              uniqueItems: true,
-              default: ['dev'],
             },
           },
         },
@@ -72,11 +88,7 @@ export default {
               enum: ['bceidbusiness'],
             },
             environments: {
-              type: 'string',
-              title: 'Environments',
               enum: ['dev', 'dev & test'],
-              uniqueItems: true,
-              default: ['dev'],
             },
           },
         },
@@ -86,11 +98,7 @@ export default {
               enum: ['bceidboth'],
             },
             environments: {
-              type: 'string',
-              title: 'Environments',
               enum: ['dev', 'dev & test'],
-              uniqueItems: true,
-              default: ['dev'],
             },
           },
         },
@@ -104,12 +112,7 @@ export default {
             environments: {
               enum: ['dev & test'],
             },
-            testValidRedirectUris: {
-              type: 'array',
-              title: 'Test Redirect URIs',
-              items: redirectUriItems,
-              additionalItems: redirectUriItems,
-            },
+            testValidRedirectUris,
           },
         },
         {
@@ -117,20 +120,8 @@ export default {
             environments: {
               enum: ['dev & test & prod'],
             },
-            testValidRedirectUris: {
-              type: 'array',
-              title: 'Test Redirect URIs',
-              items: redirectUriItems,
-              additionalItems: redirectUriItems,
-            },
-            prodValidRedirectUris: {
-              type: 'array',
-              title: 'Prod Redirect URIs',
-              items: redirectUriItems,
-              additionalItems: redirectUriItems,
-              default: [''],
-              addItemText: 'Add another URI',
-            },
+            testValidRedirectUris,
+            prodValidRedirectUris,
           },
         },
       ],
