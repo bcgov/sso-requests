@@ -25,18 +25,14 @@ export default {
       title: 'Identity Providers Required',
       tooltipContent: 'The identity providers you add will let your users authenticate with those services.',
       enum: ['onestopauth', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
-      enumNames: [
-        'IDIR',
-        'IDIR + BCeID Basic (coming soon)',
-        'IDIR + BCeID Business (coming soon)',
-        'IDIR + BCeID Both (coming soon)',
-      ],
+      enumNames: ['IDIR', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
       default: 'onestopauth',
     },
     environments: {
       type: 'string',
       title: 'Environments',
-      tooltipContent: "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
+      tooltipContent:
+        "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
       enum: [['dev'], ['dev, test'], ['dev', 'test', 'prod']],
       enumNames: ['dev', 'dev & test', 'dev & test & prod'],
       uniqueItems: true,
@@ -54,13 +50,12 @@ export default {
     },
   },
   dependencies: {
-
     realm: {
       oneOf: [
         {
           properties: {
             realm: {
-              enum: ['bceidbasic']
+              enum: ['bceidbasic'],
             },
             environments: {
               type: 'string',
@@ -68,13 +63,13 @@ export default {
               enum: ['dev', 'dev & test'],
               uniqueItems: true,
               default: ['dev'],
-            }
-          }
+            },
+          },
         },
         {
           properties: {
             realm: {
-              enum: ['bceidbusiness']
+              enum: ['bceidbusiness'],
             },
             environments: {
               type: 'string',
@@ -82,13 +77,13 @@ export default {
               enum: ['dev', 'dev & test'],
               uniqueItems: true,
               default: ['dev'],
-            }
-          }
+            },
+          },
         },
         {
           properties: {
             realm: {
-              enum: ['bceidboth']
+              enum: ['bceidboth'],
             },
             environments: {
               type: 'string',
@@ -96,10 +91,10 @@ export default {
               enum: ['dev', 'dev & test'],
               uniqueItems: true,
               default: ['dev'],
-            }
-          }
+            },
+          },
         },
-      ]
+      ],
     },
 
     environments: {
