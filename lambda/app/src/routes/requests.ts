@@ -149,7 +149,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
           test: mergedRequest.testValidRedirectUris,
           prod: mergedRequest.prodValidRedirectUris,
         },
-        environments: mergedRequest.environments,
+        environments: processEnvironments(mergedRequest.environments),
         publicAccess: mergedRequest.publicAccess,
       };
 
