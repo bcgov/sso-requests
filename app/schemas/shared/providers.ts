@@ -31,10 +31,9 @@ const environments = {
   title: 'Environments',
   tooltipContent:
     "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
-  enum: [['dev'], ['dev, test'], ['dev', 'test', 'prod']],
-  enumNames: ['dev', 'dev & test', 'dev & test & prod'],
+  enum: ['dev', 'dev, test', 'dev, test, prod'],
   uniqueItems: true,
-  default: ['dev'],
+  default: 'dev',
 };
 
 export default {
@@ -78,7 +77,17 @@ export default {
               enum: ['bceidbasic'],
             },
             environments: {
-              enum: ['dev', 'dev & test'],
+              enum: ['dev', 'dev, test'],
+            },
+          },
+        },
+        {
+          properties: {
+            realm: {
+              enum: ['onestopauth'],
+            },
+            environments: {
+              enum: ['dev', 'dev, test', 'dev, test, prod'],
             },
           },
         },
@@ -88,7 +97,7 @@ export default {
               enum: ['bceidbusiness'],
             },
             environments: {
-              enum: ['dev', 'dev & test'],
+              enum: ['dev', 'dev, test'],
             },
           },
         },
@@ -98,7 +107,7 @@ export default {
               enum: ['bceidboth'],
             },
             environments: {
-              enum: ['dev', 'dev & test'],
+              enum: ['dev', 'dev, test'],
             },
           },
         },
@@ -110,7 +119,7 @@ export default {
         {
           properties: {
             environments: {
-              enum: ['dev & test'],
+              enum: ['dev, test'],
             },
             testValidRedirectUris,
           },
@@ -118,10 +127,17 @@ export default {
         {
           properties: {
             environments: {
-              enum: ['dev & test & prod'],
+              enum: ['dev, test, prod'],
             },
             testValidRedirectUris,
             prodValidRedirectUris,
+          },
+        },
+        {
+          properties: {
+            environments: {
+              enum: ['dev'],
+            },
           },
         },
       ],

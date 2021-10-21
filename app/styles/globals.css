@@ -92,6 +92,14 @@ ul.error-detail {
   margin-left: 0;
 }
 
+.pg-select > label {
+  display: none;
+}
+
+.pg-select {
+  padding-top: 5px;
+}
+
 .pg-modal-header {
   font-weight: bold;
   display: flex;

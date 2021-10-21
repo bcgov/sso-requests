@@ -78,7 +78,6 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
 
     if (submit) {
       url = `${url}?submit=true`;
-      data.environments = ['dev', 'test', 'prod'];
     }
 
     const result = await instance.put(url, data).then((res) => res.data);
