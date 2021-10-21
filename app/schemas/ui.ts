@@ -8,9 +8,6 @@ const getUISchema = (created: boolean) => {
       'ui:disabled': 'true',
       'ui:help': 'Currently we only support the onestopauth realm and IDPs cant be changed.',
     },
-    environments: {
-      'ui:widget': 'checkboxes',
-    },
     projectLead: {
       'ui:widget': 'radio',
       'ui:readonly': created,
@@ -34,8 +31,11 @@ const getUISchema = (created: boolean) => {
     realm: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
-      'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
+      // 'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
       'ui:default': 'onestopauth',
+    },
+    environments: {
+      'ui:FieldTemplate': FieldTemplateWithTitle,
     },
   };
 };

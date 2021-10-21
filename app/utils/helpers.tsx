@@ -131,6 +131,7 @@ export const processRequest = (request: Request): Request => {
     request.prodValidRedirectUris = [''];
   }
 
+  request.environments = request.environments[0] || 'dev';
   return changeNullToUndefined(request);
 };
 

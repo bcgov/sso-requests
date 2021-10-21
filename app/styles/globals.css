@@ -37,8 +37,11 @@ fieldset {
   margin: 10px 5px 0 0;
 }
 
-.checkbox > label > span {
+.checkbox > label > span > span {
   margin-left: 5px;
+}
+
+#root_agreeWithTerms + span {
   font-weight: bold;
 }
 
@@ -87,6 +90,14 @@ label.pg-input-label {
 ul.error-detail {
   list-style: none;
   margin-left: 0;
+}
+
+.pg-select > label {
+  display: none;
+}
+
+.pg-select {
+  padding-top: 5px;
 }
 
 .pg-modal-header {

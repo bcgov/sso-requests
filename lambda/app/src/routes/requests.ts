@@ -102,6 +102,13 @@ export const createRequest = async (session: Session, data: Data) => {
   }
 };
 
+const processEnvironments = (environments: string | string[]) => {
+  if (environments === 'dev') return ['dev'];
+  if (environments === 'dev, test') return ['dev', 'test'];
+  if (environments === 'dev, test, prod') return ['dev', 'test', 'prod'];
+  return [];
+};
+
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
   const [, error] = await hasRequestWithFailedApplyStatus();
   if (error) return errorResponse(error);
@@ -169,7 +176,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-
+    allowedRequest.environments = processEnvironments(allowedRequest.environments);
     const result = await models.request.update(allowedRequest, {
       where: { id },
       returning: true,
