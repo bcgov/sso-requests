@@ -33,6 +33,15 @@ export default {
       ],
       default: 'onestopauth',
     },
+    environments: {
+      type: 'string',
+      title: 'Environments',
+      tooltipContent: "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
+      enum: [['dev'], ['dev, test'], ['dev', 'test', 'prod']],
+      enumNames: ['dev', 'dev & test', 'dev & test & prod'],
+      uniqueItems: true,
+      default: ['dev'],
+    },
     devValidRedirectUris: {
       type: 'array',
       description: 'You can use any valid URI for your redirect URIs.',
@@ -43,21 +52,93 @@ export default {
       addItemText: 'Add another URI',
       ...redirectUriTooltipInfo,
     },
-    testValidRedirectUris: {
-      type: 'array',
-      title: 'Test Redirect URIs',
-      items: redirectUriItems,
-      additionalItems: redirectUriItems,
-      default: [''],
-      addItemText: 'Add another URI',
+  },
+  dependencies: {
+
+    realm: {
+      oneOf: [
+        {
+          properties: {
+            realm: {
+              enum: ['bceidbasic']
+            },
+            environments: {
+              type: 'string',
+              title: 'Environments',
+              enum: ['dev', 'dev & test'],
+              uniqueItems: true,
+              default: ['dev'],
+            }
+          }
+        },
+        {
+          properties: {
+            realm: {
+              enum: ['bceidbusiness']
+            },
+            environments: {
+              type: 'string',
+              title: 'Environments',
+              enum: ['dev', 'dev & test'],
+              uniqueItems: true,
+              default: ['dev'],
+            }
+          }
+        },
+        {
+          properties: {
+            realm: {
+              enum: ['bceidboth']
+            },
+            environments: {
+              type: 'string',
+              title: 'Environments',
+              enum: ['dev', 'dev & test'],
+              uniqueItems: true,
+              default: ['dev'],
+            }
+          }
+        },
+      ]
     },
-    prodValidRedirectUris: {
-      type: 'array',
-      title: 'Prod Redirect URIs',
-      items: redirectUriItems,
-      additionalItems: redirectUriItems,
-      default: [''],
-      addItemText: 'Add another URI',
+
+    environments: {
+      oneOf: [
+        {
+          properties: {
+            environments: {
+              enum: ['dev & test'],
+            },
+            testValidRedirectUris: {
+              type: 'array',
+              title: 'Test Redirect URIs',
+              items: redirectUriItems,
+              additionalItems: redirectUriItems,
+            },
+          },
+        },
+        {
+          properties: {
+            environments: {
+              enum: ['dev & test & prod'],
+            },
+            testValidRedirectUris: {
+              type: 'array',
+              title: 'Test Redirect URIs',
+              items: redirectUriItems,
+              additionalItems: redirectUriItems,
+            },
+            prodValidRedirectUris: {
+              type: 'array',
+              title: 'Prod Redirect URIs',
+              items: redirectUriItems,
+              additionalItems: redirectUriItems,
+              default: [''],
+              addItemText: 'Add another URI',
+            },
+          },
+        },
+      ],
     },
   },
 } as JSONSchema6;
