@@ -43,6 +43,7 @@ fieldset {
 
 #root_agreeWithTerms + span {
   font-weight: bold;
+  margin-left: 5px;
 }
 
 .form-group.field:not(.field-object) {

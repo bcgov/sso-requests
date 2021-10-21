@@ -2,17 +2,16 @@ import React, { useContext, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import Form from 'form-components/GovForm';
-import redirectUrisSchema from 'schemas/redirect-uris';
+import getRedirectUrisSchema from 'schemas/redirect-uris';
 import { RequestsContext } from 'pages/my-requests';
 import { RequestReducerState } from 'reducers/requestReducer';
-import { getRedirectUrlPropertyNameByEnv, parseError } from 'utils/helpers';
+import { getRedirectUrlPropertyNameByEnv, parseError, getRequestedEnvironments } from 'utils/helpers';
 import { customValidate } from 'utils/shared/customValidate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import { $setEditingRequest, $updateRequest } from 'dispatchers/requestDispatcher';
-import { environments } from 'utils/constants';
 import { withBottomAlert } from 'layout/BottomAlert';
 
 const TopMargin = styled.div`
@@ -35,6 +34,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const [loading, setLoading] = useState<boolean>(false);
   const { state, dispatch } = useContext(RequestsContext);
   const { editingRequest } = state as RequestReducerState;
+  const schema = getRedirectUrisSchema(selectedRequest?.environments as string);
 
   const handleCancel = () => {
     dispatch($setEditingRequest(false));
@@ -76,7 +76,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
     <>
       {editingRequest ? (
         <Form
-          schema={redirectUrisSchema}
+          schema={schema}
           ArrayFieldTemplate={ArrayFieldTemplate}
           formData={request}
           disabled={loading}
@@ -95,7 +95,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
       ) : (
         <>
           <TopMargin />
-          {environments.map((env) => {
+          {getRequestedEnvironments(selectedRequest).map((env) => {
             const redirectUris = selectedRequest[getRedirectUrlPropertyNameByEnv(env.name)] || [];
 
             return (
