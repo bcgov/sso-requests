@@ -24,8 +24,8 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
 
 export const getRequestedEnvironments = (request: Request) => {
   const requestEnvironments = request?.environments as string;
-  return environments.filter(env => requestEnvironments.includes(env.name))
-}
+  return environments.filter((env) => requestEnvironments.includes(env.name));
+};
 
 export const parseError = (err: any) => {
   try {
@@ -124,7 +124,7 @@ const changeNullToUndefined = (data: any) => {
 };
 
 export const processRequest = (request: Request): Request => {
-  const environments = request.environments as string[]; 
+  const environments = request.environments as string[];
   if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
     request.devValidRedirectUris = [''];
   }

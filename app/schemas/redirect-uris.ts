@@ -1,7 +1,7 @@
 import { JSONSchema6 } from 'json-schema';
 import { redirectUriItems, redirectUriTooltipInfo } from './shared/providers';
 
-export default function getSchema (env: string) {
+export default function getSchema(env: string) {
   const schema: any = {
     type: 'object',
     properties: {

@@ -81,9 +81,9 @@ interface Props {
 const hasUris = (uris: string[] | undefined) => {
   if (!uris) return false;
   // URI arrays are initialized with an empty string to prompt an empty input in the rjsf array
-  if (uris.length === 1 && uris[0] === "") return false;
+  if (uris.length === 1 && uris[0] === '') return false;
   return true;
-} 
+};
 
 function RequestPreview({ request }: Props) {
   if (!request) return null;
@@ -129,9 +129,15 @@ function RequestPreview({ request }: Props) {
       <Table>
         <tbody>
           <FormattedList list={realmToIDP(request?.realm)} title="Identity Providers Required:" />
-          {hasUris(request?.devValidRedirectUris) && <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />}
-          {hasUris(request?.testValidRedirectUris) && <FormattedList list={request?.testValidRedirectUris} title="Test Redirect URIs:" />}
-          {hasUris(request?.prodValidRedirectUris) && <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />}
+          {hasUris(request?.devValidRedirectUris) && (
+            <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />
+          )}
+          {hasUris(request?.testValidRedirectUris) && (
+            <FormattedList list={request?.testValidRedirectUris} title="Test Redirect URIs:" />
+          )}
+          {hasUris(request?.prodValidRedirectUris) && (
+            <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />
+          )}
         </tbody>
       </Table>
     </>
