@@ -74,7 +74,7 @@ export default {
         {
           properties: {
             realm: {
-              enum: ['bceidbasic'],
+              enum: ['onestopauth-basic'],
             },
             environments: {
               enum: ['dev', 'dev, test'],
@@ -94,7 +94,7 @@ export default {
         {
           properties: {
             realm: {
-              enum: ['bceidbusiness'],
+              enum: ['onestopauth-business'],
             },
             environments: {
               enum: ['dev', 'dev, test'],
@@ -104,7 +104,7 @@ export default {
         {
           properties: {
             realm: {
-              enum: ['bceidboth'],
+              enum: ['onestopauth-both'],
             },
             environments: {
               enum: ['dev', 'dev, test'],
