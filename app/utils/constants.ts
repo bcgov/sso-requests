@@ -43,3 +43,17 @@ export const adminBceidStages: Stage[] = [
 
 export const stageTitlesUsingForms = [firstFormPageTitle, 'Providers and URIs', 'Terms and conditions'];
 export const stageTitlesReviewing = ['Comment & Submit', 'Review & Submit'];
+
+export const bceidBody = `Organization Details (Organization/Division/Branch/Program): \n
+Exectutive Sponsor Name, Title, & Email:\n
+Project Manager / Business Lead Name, Title, & Email:\n
+Technical Lead (if applicable) Name, Title, & Email:\n
+Privacy Lead (if applicable) Name, Title, & Email:\n
+Security Lead (if applicable) Name, Title, & Email:\n
+Communications Lead (if applicable) Name, Title, & Email:\n
+Name of service or application:\n
+URL of service or application:\n
+Estimated volume of initial users:\n
+Forecast of anticipated growth over the next three years:\n
+Date of release in production environment:\n
+Date of first use by citizens or end users:`;

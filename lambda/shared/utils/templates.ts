@@ -8,7 +8,8 @@ type EmailMessage =
   | 'uri-change-request-approved'
   | 'request-deleted'
   | 'request-deleted-notification-to-admin'
-  | 'request-limit-exceeded';
+  | 'request-limit-exceeded'
+  | 'bceid-request-submitted';
 
 interface BodyData {
   projectName?: string;
@@ -131,6 +132,8 @@ export const getEmailSubject = (messageType: EmailMessage) => {
       return `${prefix}Pathfinder SSO request deleted`;
     case 'request-limit-exceeded':
       return `${prefix}Pathfinder SSO request limit reached`;
+    case 'bceid-request-submitted':
+      return `New BCeID Integration Request`;
     default:
       return '';
   }

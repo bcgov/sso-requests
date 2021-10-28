@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Request } from 'interfaces/Request';
 import FormButtons from 'form-components/FormButtons';
 import { padStart } from 'lodash';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { validateForm, parseError } from 'utils/helpers';
+import { validateForm, parseError, usesBceid } from 'utils/helpers';
 import { FORM_BUTTON_MIN_WIDTH } from 'styles/theme';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import CenteredModal from 'components/CenteredModal';
@@ -22,6 +22,8 @@ import Form from 'form-components/GovForm';
 import commentSchema from 'schemas/admin-comment';
 import uiSchema from 'schemas/commentUi';
 import { adminNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
+import BceidEmailTemplate from 'form-components/BceidEmailTemplate';
+import { bceidBody } from 'utils/constants';
 
 const ButtonContainer = styled.div`
   display: flex;
@@ -51,14 +53,29 @@ interface Props {
   setFormData: Function;
 }
 
-function FormReview({ formData, setFormData, setErrors, errors, visited, alert, isAdmin }: Props) {
+function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props) {
   const [loading, setLoading] = useState(false);
+  const [bceidEmailDetails, setBceidEmailDetails] = useState({});
   const router = useRouter();
+  const hasBceid = usesBceid(formData.realm);
+
+  useEffect(() => {
+    const { additionalEmails, preferredEmail } = formData;
+    let emails = [preferredEmail];
+    if (Array.isArray(additionalEmails)) emails = emails.concat(additionalEmails);
+    const bceidCc = emails.join(', ');
+    setBceidEmailDetails({
+      bceidTo: 'bcgov.sso@gov.bc.ca, IDIM.Consulting@gov.bc.ca',
+      bceidCc,
+      bceidBody,
+    });
+  }, [formData]);
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const [, err] = await updateRequest(formData, true);
+      const data = hasBceid ? { ...formData, bceidEmailDetails } : formData;
+      const [, err] = await updateRequest(data, true);
       setLoading(false);
 
       if (err) {
@@ -119,11 +136,14 @@ function FormReview({ formData, setFormData, setErrors, errors, visited, alert, 
 
   return (
     <>
-      <RequestPreview request={formData} />
+      <RequestPreview request={formData} hasBceid={hasBceid || false} />
       {isAdmin && (
         <Form schema={commentSchema} uiSchema={uiSchema} liveValidate onChange={handleChange} formData={formData}>
           <></>
         </Form>
+      )}
+      {hasBceid && (
+        <BceidEmailTemplate bceidEmailDetails={bceidEmailDetails} setBceidEmailDetails={setBceidEmailDetails} />
       )}
       <FormButtons
         text={{ continue: submitText, back: backText }}
