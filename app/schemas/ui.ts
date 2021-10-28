@@ -37,6 +37,16 @@ const getUISchema = (created: boolean) => {
     environments: {
       'ui:FieldTemplate': FieldTemplateWithTitle,
     },
+    bceidTo: {
+      'ui:FieldTemplate': FieldTemplateNoTitle,
+      'ui:readonly': true,
+    },
+    bceidCc: {
+      'ui:FieldTemplate': FieldTemplateNoTitle,
+    },
+    bceidBody: {
+      'ui:widget': 'textarea',
+    },
   };
 };
 

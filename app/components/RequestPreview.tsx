@@ -36,6 +36,10 @@ const StyledUl = styled.ul`
   }
 `;
 
+const Header = styled.h2`
+  margin-top: 10px;
+`;
+
 const formatBoolean = (value?: boolean) => {
   if (value === undefined) return '';
   return value ? 'Yes' : 'No';
@@ -76,6 +80,7 @@ const FormattedList = ({ list, title }: FormattedListProps) => {
 
 interface Props {
   request: Request;
+  hasBceid: boolean;
 }
 
 const hasUris = (uris: string[] | undefined) => {
@@ -85,11 +90,12 @@ const hasUris = (uris: string[] | undefined) => {
   return true;
 };
 
-function RequestPreview({ request }: Props) {
+function RequestPreview({ request, hasBceid }: Props) {
   if (!request) return null;
 
   return (
     <>
+      {hasBceid && <Header>Provided by SSO Pathfinder team: access to dev and/or test </Header>}
       <Table>
         <tbody>
           <tr>

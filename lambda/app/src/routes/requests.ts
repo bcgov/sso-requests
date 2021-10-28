@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { Session, Data } from '../../../shared/interfaces';
+import { Session, Data, BceidEmailDetails } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
 import { validateRequest, processRequest, getDifferences, isAdmin } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
@@ -9,8 +9,8 @@ import { getEmailList } from '../../../shared/utils/helpers';
 import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
+const APP_ENV = process.env.APP_ENV || 'development';
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
-
 const NEW_REQUEST_DAY_LIMIT = 10;
 
 const errorResponse = (err: any) => {
@@ -41,6 +41,34 @@ const createEvent = async (data) => {
   } catch (err) {
     console.error(err);
   }
+};
+
+const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
+const usesBceid = (realm: string | undefined) => {
+  if (!realm) return false;
+  return bceidRealms.includes(realm);
+};
+
+const formatBody = (body) => {
+  return `
+    <p>
+    ${body.replace(/\n/g, '<br />')}
+    </p>
+  `;
+};
+
+const notifyBceid = async (realm: string, bceidEmailDetails: BceidEmailDetails, id: number) => {
+  if (!usesBceid(realm)) return;
+  const { bceidBody, bceidCc } = bceidEmailDetails;
+  const emailCode = 'bceid-request-submitted';
+  const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
+  return sendEmail({
+    to,
+    cc: bceidCc.split(', '),
+    body: formatBody(bceidBody),
+    subject: getEmailSubject(emailCode),
+    event: { emailCode, requestId: id },
+  });
 };
 
 export const createRequest = async (session: Session, data: Data) => {
@@ -115,7 +143,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = session.given_name + ' ' + session.family_name;
-  const { id, comment, ...rest } = data;
+  const { id, comment, bceidEmailDetails, ...rest } = data;
   const [isUpdate] = await requestHasBeenMerged(id);
 
   try {
@@ -163,16 +191,19 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       const emailCode = isUpdate ? 'uri-change-request-submitted' : 'create-request-submitted';
       const to = getEmailList(original);
 
-      await sendEmail({
-        to,
-        body: getEmailBody(emailCode, {
-          projectName: mergedRequest.projectName,
-          requestNumber: mergedRequest.id,
-          submittedBy: idirUserDisplayName,
+      await Promise.all([
+        sendEmail({
+          to,
+          body: getEmailBody(emailCode, {
+            projectName: mergedRequest.projectName,
+            requestNumber: mergedRequest.id,
+            submittedBy: idirUserDisplayName,
+          }),
+          subject: getEmailSubject(emailCode),
+          event: { emailCode, requestId: id },
         }),
-        subject: getEmailSubject(emailCode),
-        event: { emailCode, requestId: id },
-      });
+        notifyBceid(mergedRequest.realm, bceidEmailDetails, mergedRequest.id),
+      ]);
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');

@@ -19,6 +19,7 @@ export interface Data {
   id?: number;
   comment?: string;
   additionalEmails: string[];
+  bceidEmailDetails?: object;
 }
 
 export interface FormattedData {
@@ -56,4 +57,10 @@ export interface EmailOptions {
   subject?: string;
   tag?: string;
   event: EmailEvent;
+}
+
+export interface BceidEmailDetails {
+  bceidTo?: string;
+  bceidCc?: string;
+  bceidBody?: string;
 }
