@@ -31,7 +31,7 @@ export default function AdminRequestPanel({ request }: Props) {
         <Title>Details</Title>
       </SectionHeader>
       <EventContent>
-        <RequestPreview request={request} />
+        <RequestPreview request={request} hasBceid={false}/>
       </EventContent>
     </>
   );
