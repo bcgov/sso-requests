@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Request } from 'interfaces/Request';
 import FormButtons from 'form-components/FormButtons';
 import { padStart } from 'lodash';
@@ -23,7 +23,9 @@ import commentSchema from 'schemas/admin-comment';
 import uiSchema from 'schemas/commentUi';
 import { adminNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
 import BceidEmailTemplate from 'form-components/BceidEmailTemplate';
-import { bceidBody } from 'utils/constants';
+
+const CIRCLE_DIAMETER = '40px';
+const CIRCLE_MARGIN = '10px';
 
 const ButtonContainer = styled.div`
   display: flex;
@@ -39,6 +41,34 @@ const ModalButton = styled(Button)`
 
 const CancelButton = styled(DefaultCancelButton)`
   margin: 10px;
+`;
+
+const Circle = styled.div`
+  height: ${CIRCLE_DIAMETER};
+  width: ${CIRCLE_DIAMETER};
+  text-align: center;
+  line-height: ${CIRCLE_DIAMETER};
+  border-radius: ${CIRCLE_DIAMETER};
+  background-color: black;
+  color: white;
+  font-weight: bold;
+  margin: ${CIRCLE_MARGIN};
+  margin-left: 0;
+`;
+
+const Line = styled.div`
+  border-left: 1px solid #bcbcbc;
+  height: calc(100% - 60px);
+  margin-left: calc(${CIRCLE_DIAMETER} / 2);
+`;
+
+const Container = styled.div<{ showStepper: boolean }>`
+  ${(props) =>
+    props.showStepper
+      ? `
+  display: grid;
+  grid-template-columns: 50px 1fr;`
+      : ''}
 `;
 
 interface Props {
@@ -58,24 +88,25 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
   const [bceidEmailDetails, setBceidEmailDetails] = useState({});
   const router = useRouter();
   const hasBceid = usesBceid(formData.realm);
+  const showStepper = hasBceid && !isAdmin;
 
-  useEffect(() => {
-    const { additionalEmails, preferredEmail } = formData;
-    let emails = [preferredEmail];
-    if (Array.isArray(additionalEmails)) emails = emails.concat(additionalEmails);
-    const bceidCc = emails.join(', ');
-    setBceidEmailDetails({
-      bceidTo: 'bcgov.sso@gov.bc.ca, IDIM.Consulting@gov.bc.ca',
-      bceidCc,
-      bceidBody,
-    });
-  }, [formData]);
+  // useEffect(() => {
+  //   const { additionalEmails, preferredEmail } = formData;
+  //   let emails = [preferredEmail];
+  //   if (Array.isArray(additionalEmails)) emails = emails.concat(additionalEmails);
+  //   const bceidCc = emails.join(', ');
+  //   setBceidEmailDetails({
+  //     bceidTo: 'bcgov.sso@gov.bc.ca, IDIM.Consulting@gov.bc.ca',
+  //     bceidCc,
+  //     bceidBody,
+  //   });
+  // }, [formData]);
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const data = hasBceid ? { ...formData, bceidEmailDetails } : formData;
-      const [, err] = await updateRequest(data, true);
+      // const data = hasBceid ? { ...formData, bceidEmailDetails } : formData;
+      const [, err] = await updateRequest(formData, true);
       setLoading(false);
 
       if (err) {
@@ -135,16 +166,32 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
   const submitText = isAdmin ? 'Update' : 'Submit';
 
   return (
-    <>
-      <RequestPreview request={formData} hasBceid={hasBceid || false} />
+    <Container showStepper={showStepper}>
+      {showStepper && (
+        <div>
+          <Circle>1</Circle>
+          <Line />
+        </div>
+      )}
+      <div>
+        <RequestPreview request={formData} hasBceid={hasBceid || false} isAdmin={isAdmin} />
+      </div>
       {isAdmin && (
         <Form schema={commentSchema} uiSchema={uiSchema} liveValidate onChange={handleChange} formData={formData}>
           <></>
         </Form>
       )}
-      {hasBceid && (
-        <BceidEmailTemplate bceidEmailDetails={bceidEmailDetails} setBceidEmailDetails={setBceidEmailDetails} />
+      {showStepper && (
+        <>
+          <div>
+            <Circle>2</Circle>
+          </div>
+          <div>
+            <BceidEmailTemplate bceidEmailDetails={bceidEmailDetails} setBceidEmailDetails={setBceidEmailDetails} />
+          </div>
+        </>
       )}
+      <div />
       <FormButtons
         text={{ continue: submitText, back: backText }}
         show={true}
@@ -174,7 +221,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
           </ButtonContainer>
         </Modal.Content>
       </CenteredModal>
-    </>
+    </Container>
   );
 }
 

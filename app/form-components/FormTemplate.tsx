@@ -22,11 +22,23 @@ import { bceidStages, adminBceidStages, stageTitlesUsingForms, stageTitlesReview
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import { SaveMessage } from 'interfaces/form';
+import Link from '@button-inc/bcgov-theme/Link';
 
 const ModalButton = styled(Button)`
   display: block;
   margin: 10px;
   margin-left: auto;
+`;
+
+const Description = styled.p`
+  margin: 0;
+`;
+
+const HeaderContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 150px;
 `;
 
 interface Props {
@@ -138,22 +150,31 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   };
 
   const handleModalClose = () => {
-    router.push('/my-requests');
+    window.location.hash = '#';
   };
 
   const backButtonText = request ? 'Save and Close' : 'Cancel';
 
   return (
     <>
-      <FormHeader formStage={formStage} id={formData.id} />
-      <FormStage
-        currentStage={formStage}
-        setFormStage={changeStep}
-        errors={errors}
-        creatingNewForm={creatingNewForm}
-        visited={visited}
-        stages={stages}
-      />
+      <HeaderContainer>
+        <FormHeader formStage={formStage} id={formData.id} />
+        <FormStage
+          currentStage={formStage}
+          setFormStage={changeStep}
+          errors={errors}
+          creatingNewForm={creatingNewForm}
+          visited={visited}
+          stages={stages}
+        />
+        <Description>
+          If new to SSO, please visit{' '}
+          <Link external href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client">
+            github
+          </Link>{' '}
+          for more information.
+        </Description>
+      </HeaderContainer>
       {stageTitle === 'Terms and conditions' && <TermsAndConditions />}
       {stageTitlesReviewing.includes(stageTitle) && (
         <FormReview
@@ -197,9 +218,10 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
             <FontAwesomeIcon icon={faInfoCircle} size="2x" title="Information" />
           </Modal.Header>
           <Modal.Content>
-            We can only process access requests submitted by{' '}
-            <strong>product owners, project admin or team leads</strong>. If you are not acting in one of these roles,
-            please get in touch with these individuals in your organization to make the request for you.
+            If you are not accountable for this project, please refer this request to someone who is.
+            <br />
+            <br />
+            Only the person who is responsible for this project can submit the intergration request.
             <ModalButton onClick={handleModalClose}>Okay</ModalButton>
           </Modal.Content>
         </CenteredModal>

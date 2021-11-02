@@ -11,6 +11,7 @@ const getUISchema = (created: boolean) => {
     projectLead: {
       'ui:widget': 'radio',
       'ui:readonly': created,
+      'ui:FieldTemplate': FieldTemplateWithTitle,
     },
     newToSso: {
       'ui:widget': 'radio',

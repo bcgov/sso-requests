@@ -8,6 +8,7 @@ import { LINK_COLOR, SECONDARY_BLUE } from 'styles/theme';
 import HelpText from 'components/HelpText';
 import { Request } from 'interfaces/Request';
 import getConfig from 'next/config';
+import StatusList from 'components/StatusList';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
@@ -32,21 +33,6 @@ const SLink = styled.a`
 
 const SProgressBar = styled(ProgressBar)`
   margin-bottom: 10px;
-`;
-
-const StatusList = styled.ul`
-  list-style-type: none;
-  margin: 0;
-  max-width: 330px;
-  position: relative;
-
-  & li {
-    border-bottom: 1px solid #d4d4d4;
-    & svg.svg-inline--fa {
-      position: absolute;
-      right: 0;
-    }
-  }
 `;
 
 const getPercent = (status?: string) => {

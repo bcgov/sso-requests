@@ -22,7 +22,6 @@ beforeAll(async () => {
     projectName: 'test',
     projectLead: 'yes',
     preferredEmail: 'me@me.com',
-    newToSso: 'yes',
     publicAccess: 'yes',
   });
 });

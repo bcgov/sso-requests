@@ -9,11 +9,10 @@ export interface Data {
   realm?: string;
   projectName: string;
   preferredEmail: string;
-  newToSso: boolean;
   projectLead: boolean;
-  devRedirectUrls?: string[];
-  testRedirectUrls?: string[];
-  prodRedirectUrls?: string[];
+  devValidRedirectUris?: string[];
+  testValidRedirectUris?: string[];
+  prodValidRedirectUris?: string[];
   agreeWithTC?: boolean;
   publicAccess?: boolean;
   id?: number;
@@ -34,7 +33,6 @@ export interface FormattedData {
   id?: number;
   projectLead: boolean;
   preferredEmail: string;
-  newToSso: boolean;
   agreeWithTC?: boolean;
   publicAccess?: boolean;
 }

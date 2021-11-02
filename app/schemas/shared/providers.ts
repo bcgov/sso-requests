@@ -32,6 +32,7 @@ const environments = {
   tooltipContent:
     "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
   enum: ['dev', 'dev, test', 'dev, test, prod'],
+  enumNames: ['Dev', 'Dev, Test', 'Dev, Test, Prod'],
   uniqueItems: true,
   default: 'dev',
 };
