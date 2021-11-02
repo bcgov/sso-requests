@@ -55,7 +55,8 @@ const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
   let cc = [preferredEmail];
   if (Array.isArray(additionalEmails)) cc = cc.concat(additionalEmails);
   const emailCode = 'bceid-request-submitted';
-  const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
+  // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
+  const to = ['bcgov.sso@gov.bc.ca'];
   return sendEmail({
     to,
     cc,
