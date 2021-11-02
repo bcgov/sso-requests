@@ -2,7 +2,7 @@ import React from 'react';
 import { Request } from 'interfaces/Request';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import Link from '@button-inc/bcgov-theme/Link';
 import StatusList from 'components/StatusList';
 import Title from 'components/SHeader3';

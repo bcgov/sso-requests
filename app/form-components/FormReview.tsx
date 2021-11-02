@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Request } from 'interfaces/Request';
 import FormButtons from 'form-components/FormButtons';
 import { padStart } from 'lodash';
@@ -23,7 +23,6 @@ import commentSchema from 'schemas/admin-comment';
 import uiSchema from 'schemas/commentUi';
 import { adminNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
 import BceidEmailTemplate from 'form-components/BceidEmailTemplate';
-import { bceidBody } from 'utils/constants';
 
 const CIRCLE_DIAMETER = '40px';
 const CIRCLE_MARGIN = '10px';
