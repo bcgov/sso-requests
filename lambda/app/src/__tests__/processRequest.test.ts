@@ -17,7 +17,6 @@ const data: any = {
   updatedAt: '11-12-2015',
   projectLead: false,
   preferredEmail: 'test',
-  newToSso: true,
   agreeWithTerms: true,
   status: 'submitted',
   archived: true,

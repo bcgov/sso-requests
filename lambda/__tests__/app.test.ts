@@ -56,7 +56,6 @@ describe('requests endpoints', () => {
     });
 
     const sampleRequestPayload = {
-      newToSso: false,
       preferredEmail: 'testuser@example.com',
       projectLead: true,
       projectName: 'sampleprojectname',
