@@ -6,7 +6,7 @@ import { isEqual } from 'lodash';
 import { Request } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
-import { errorMessages } from './constants';
+import { errorMessages, environments } from './constants';
 import { customValidate } from './shared/customValidate';
 
 const URIS_SCHEMA_INDEX = 1;
@@ -20,6 +20,17 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
     if (err.length > 0) errors[i] = err;
   });
   return errors;
+};
+
+const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
+export const usesBceid = (realm: string | undefined) => {
+  if (!realm) return false;
+  return bceidRealms.includes(realm);
+};
+
+export const getRequestedEnvironments = (request: Request) => {
+  const requestEnvironments = request?.environments as string;
+  return environments.filter((env) => requestEnvironments.includes(env.name));
 };
 
 export const parseError = (err: any) => {
@@ -119,6 +130,7 @@ const changeNullToUndefined = (data: any) => {
 };
 
 export const processRequest = (request: Request): Request => {
+  const environments = request.environments as string[];
   if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
     request.devValidRedirectUris = [''];
   }
@@ -131,6 +143,10 @@ export const processRequest = (request: Request): Request => {
     request.prodValidRedirectUris = [''];
   }
 
+  if (isEqual(['dev'], environments)) request.environments = 'dev';
+  else if (isEqual(['dev', 'test'], environments)) request.environments = 'dev, test';
+  else if (isEqual(['dev', 'test', 'prod'], environments)) request.environments = 'dev, test, prod';
+  else request.environments = 'dev';
   return changeNullToUndefined(request);
 };
 

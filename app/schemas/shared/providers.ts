@@ -8,6 +8,35 @@ export const redirectUriTooltipInfo = {
 
 export const redirectUriItems = { type: 'string', maxLength: 250, placeholder: 'e.g. https://example.com' };
 
+const testValidRedirectUris = {
+  type: 'array',
+  title: 'Test Redirect URIs',
+  items: redirectUriItems,
+  additionalItems: redirectUriItems,
+  default: [''],
+  addItemText: 'Add another URI',
+};
+
+const prodValidRedirectUris = {
+  type: 'array',
+  title: 'Prod Redirect URIs',
+  items: redirectUriItems,
+  additionalItems: redirectUriItems,
+  default: [''],
+  addItemText: 'Add another URI',
+};
+
+const environments = {
+  type: 'string',
+  title: 'Environments',
+  tooltipContent:
+    "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
+  enum: ['dev', 'dev, test', 'dev, test, prod'],
+  enumNames: ['Dev', 'Dev, Test', 'Dev, Test, Prod'],
+  uniqueItems: true,
+  default: 'dev',
+};
+
 export default {
   type: 'object',
   required: ['realm', 'publicAccess'],
@@ -24,15 +53,11 @@ export default {
       type: 'string',
       title: 'Identity Providers Required',
       tooltipContent: 'The identity providers you add will let your users authenticate with those services.',
-      enum: ['onestopauth', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
-      enumNames: [
-        'IDIR',
-        'IDIR + BCeID Basic (coming soon)',
-        'IDIR + BCeID Business (coming soon)',
-        'IDIR + BCeID Both (coming soon)',
-      ],
+      enum: ['onestopauth', 'onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
+      enumNames: ['IDIR', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
       default: 'onestopauth',
     },
+    environments,
     devValidRedirectUris: {
       type: 'array',
       description: 'You can use any valid URI for your redirect URIs.',
@@ -43,21 +68,80 @@ export default {
       addItemText: 'Add another URI',
       ...redirectUriTooltipInfo,
     },
-    testValidRedirectUris: {
-      type: 'array',
-      title: 'Test Redirect URIs',
-      items: redirectUriItems,
-      additionalItems: redirectUriItems,
-      default: [''],
-      addItemText: 'Add another URI',
+  },
+  dependencies: {
+    realm: {
+      oneOf: [
+        {
+          properties: {
+            realm: {
+              enum: ['onestopauth-basic'],
+            },
+            environments: {
+              enum: ['dev', 'dev, test'],
+            },
+          },
+        },
+        {
+          properties: {
+            realm: {
+              enum: ['onestopauth'],
+            },
+            environments: {
+              enum: ['dev', 'dev, test', 'dev, test, prod'],
+            },
+          },
+        },
+        {
+          properties: {
+            realm: {
+              enum: ['onestopauth-business'],
+            },
+            environments: {
+              enum: ['dev', 'dev, test'],
+            },
+          },
+        },
+        {
+          properties: {
+            realm: {
+              enum: ['onestopauth-both'],
+            },
+            environments: {
+              enum: ['dev', 'dev, test'],
+            },
+          },
+        },
+      ],
     },
-    prodValidRedirectUris: {
-      type: 'array',
-      title: 'Prod Redirect URIs',
-      items: redirectUriItems,
-      additionalItems: redirectUriItems,
-      default: [''],
-      addItemText: 'Add another URI',
+
+    environments: {
+      oneOf: [
+        {
+          properties: {
+            environments: {
+              enum: ['dev, test'],
+            },
+            testValidRedirectUris,
+          },
+        },
+        {
+          properties: {
+            environments: {
+              enum: ['dev, test, prod'],
+            },
+            testValidRedirectUris,
+            prodValidRedirectUris,
+          },
+        },
+        {
+          properties: {
+            environments: {
+              enum: ['dev'],
+            },
+          },
+        },
+      ],
     },
   },
 } as JSONSchema6;

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
@@ -9,7 +9,7 @@ import Button from 'html-components/Button';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import { Request } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
-import { environments } from 'utils/constants';
+import { getRequestedEnvironments } from 'utils/helpers';
 import { DEFAULT_FONT_SIZE } from 'styles/theme';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 
@@ -78,7 +78,7 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
     <>
       <TopMargin />
       <Grid cols={4}>
-        {environments.map((env) => {
+        {getRequestedEnvironments(selectedRequest).map((env) => {
           return (
             <React.Fragment key={env.name}>
               <Grid.Row collapse="992" gutter={[]} align="center">

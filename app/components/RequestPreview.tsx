@@ -36,6 +36,10 @@ const StyledUl = styled.ul`
   }
 `;
 
+const Header = styled.h2`
+  margin-top: 10px;
+`;
+
 const formatBoolean = (value?: boolean) => {
   if (value === undefined) return '';
   return value ? 'Yes' : 'No';
@@ -44,20 +48,26 @@ const formatBoolean = (value?: boolean) => {
 interface FormattedListProps {
   list: any[];
   title: string;
+  inline?: boolean;
 }
 
-const FormattedList = ({ list, title }: FormattedListProps) => {
+const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
   return (
     <>
       <tr>
         <td>{title}</td>
-        {list?.length === 1 && (
+        {(list?.length === 1 || inline) && (
           <SemiBold>
-            <span key={list[0]}>{list[0]}</span>
+            {list?.map((item, i) => (
+              <span key={item}>
+                {item}
+                {i !== list.length - 1 && ', '}{' '}
+              </span>
+            ))}
           </SemiBold>
         )}
       </tr>
-      {list?.length > 1 && (
+      {!inline && list?.length > 1 && (
         <tr>
           <td>
             <SemiBold>
@@ -76,13 +86,25 @@ const FormattedList = ({ list, title }: FormattedListProps) => {
 
 interface Props {
   request: Request;
+  hasBceid: boolean;
+  isAdmin?: boolean;
 }
 
-function RequestPreview({ request }: Props) {
+const hasUris = (uris: string[] | undefined) => {
+  if (!uris) return false;
+  // URI arrays are initialized with an empty string to prompt an empty input in the rjsf array
+  if (uris.length === 1 && uris[0] === '') return false;
+  return true;
+};
+
+function RequestPreview({ request, hasBceid, isAdmin = false }: Props) {
   if (!request) return null;
 
   return (
     <>
+      {hasBceid && !isAdmin && (
+        <Header>Your Dev and/or Test environments are provided by the SSO Pathfinder team </Header>
+      )}
       <Table>
         <tbody>
           <tr>
@@ -116,15 +138,16 @@ function RequestPreview({ request }: Props) {
             </td>
           </tr>
           <FormattedList list={request?.additionalEmails} title="Additional Emails:" />
-        </tbody>
-      </Table>
-      <Divider />
-      <Table>
-        <tbody>
-          <FormattedList list={realmToIDP(request?.realm)} title="Identity Providers Required:" />
-          <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />
-          <FormattedList list={request?.testValidRedirectUris} title="Test Redirect URIs:" />
-          <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />
+          <FormattedList list={realmToIDP(request?.realm)} title="Identity Providers Required:" inline />
+          {hasUris(request?.devValidRedirectUris) && (
+            <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />
+          )}
+          {hasUris(request?.testValidRedirectUris) && (
+            <FormattedList list={request?.testValidRedirectUris} title="Test Redirect URIs:" />
+          )}
+          {hasUris(request?.prodValidRedirectUris) && (
+            <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />
+          )}
         </tbody>
       </Table>
     </>

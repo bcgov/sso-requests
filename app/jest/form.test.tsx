@@ -44,7 +44,6 @@ export const sampleRequest: Request = {
   projectName: 'test project',
   preferredEmail: 'test@email.com',
   projectLead: true,
-  newToSso: true,
   agreeWithTerms: true,
   environments: ['dev', 'test', 'prod'],
   archived: false,
@@ -131,18 +130,11 @@ describe('Form Template Loading Data', () => {
     expect(
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
-    expect(
-      screen.getByDisplayValue((sampleRequest.testValidRedirectUris && sampleRequest.testValidRedirectUris[0]) || ''),
-    );
-    expect(
-      screen.getByDisplayValue((sampleRequest.prodValidRedirectUris && sampleRequest.prodValidRedirectUris[0]) || ''),
-    );
     expect(document.querySelector('#root_publicAccess input[value="true"]')).toHaveAttribute('checked', '');
 
     // First Page Data
     fireEvent.click(firstStageBox);
     expect(document.querySelector('#root_projectLead input[value="true"]')).toHaveAttribute('checked', '');
-    expect(document.querySelector('#root_newToSso input[value="true"]')).toHaveAttribute('checked', '');
     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
     expect(screen.getByDisplayValue(sampleRequest.preferredEmail || ''));
 
@@ -167,8 +159,6 @@ describe('Error messages', () => {
     fireEvent.click(nextButton);
     fireEvent.click(sandbox.firstStageBox);
 
-    screen.getAllByText(errorMessages.newToSso);
-    screen.getAllByText(errorMessages.publicAccess);
     screen.getByText(errorMessages.preferredEmail);
     screen.getByText(errorMessages.projectName);
   });

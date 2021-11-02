@@ -2,15 +2,15 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
-import { validateRequest, processRequest, getDifferences, isAdmin } from '../utils/helpers';
+import { validateRequest, processRequest, getDifferences, isAdmin, formatBody } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
 import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
+const APP_ENV = process.env.APP_ENV || 'development';
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
-
 const NEW_REQUEST_DAY_LIMIT = 10;
 
 const errorResponse = (err: any) => {
@@ -41,6 +41,29 @@ const createEvent = async (data) => {
   } catch (err) {
     console.error(err);
   }
+};
+
+const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
+const usesBceid = (realm: string | undefined) => {
+  if (!realm) return false;
+  return bceidRealms.includes(realm);
+};
+
+const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
+  const { realm, id, preferredEmail, additionalEmails } = request;
+  if (!usesBceid(realm)) return;
+  let cc = [preferredEmail];
+  if (Array.isArray(additionalEmails)) cc = cc.concat(additionalEmails);
+  const emailCode = 'bceid-request-submitted';
+  // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
+  const to = ['bcgov.sso@gov.bc.ca'];
+  return sendEmail({
+    to,
+    cc,
+    body: formatBody(request, idirUserDisplayName),
+    subject: getEmailSubject(emailCode),
+    event: { emailCode, requestId: id },
+  });
 };
 
 export const createRequest = async (session: Session, data: Data) => {
@@ -82,13 +105,12 @@ export const createRequest = async (session: Session, data: Data) => {
       throw Error('reached the day limit');
     }
 
-    const { projectName, projectLead, preferredEmail, newToSso, additionalEmails } = data;
+    const { projectName, projectLead, preferredEmail, additionalEmails } = data;
     const result = await models.request.create({
       idirUserid: session.idir_userid,
       projectName,
       projectLead,
       preferredEmail,
-      newToSso,
       additionalEmails,
       idirUserDisplayName,
     });
@@ -102,13 +124,20 @@ export const createRequest = async (session: Session, data: Data) => {
   }
 };
 
+const processEnvironments = (environments: string | string[]) => {
+  if (environments === 'dev') return ['dev'];
+  if (environments === 'dev, test') return ['dev', 'test'];
+  if (environments === 'dev, test, prod') return ['dev', 'test', 'prod'];
+  return [];
+};
+
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
   const [, error] = await hasRequestWithFailedApplyStatus();
   if (error) return errorResponse(error);
 
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = session.given_name + ' ' + session.family_name;
-  const { id, comment, ...rest } = data;
+  const { id, comment, bceidEmailDetails, ...rest } = data;
   const [isUpdate] = await requestHasBeenMerged(id);
 
   try {
@@ -142,7 +171,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
           test: mergedRequest.testValidRedirectUris,
           prod: mergedRequest.prodValidRedirectUris,
         },
-        environments: mergedRequest.environments,
+        environments: processEnvironments(mergedRequest.environments),
         publicAccess: mergedRequest.publicAccess,
       };
 
@@ -156,20 +185,23 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       const emailCode = isUpdate ? 'uri-change-request-submitted' : 'create-request-submitted';
       const to = getEmailList(original);
 
-      await sendEmail({
-        to,
-        body: getEmailBody(emailCode, {
-          projectName: mergedRequest.projectName,
-          requestNumber: mergedRequest.id,
-          submittedBy: idirUserDisplayName,
+      await Promise.all([
+        sendEmail({
+          to,
+          body: getEmailBody(emailCode, {
+            projectName: mergedRequest.projectName,
+            requestNumber: mergedRequest.id,
+            submittedBy: idirUserDisplayName,
+          }),
+          subject: getEmailSubject(emailCode),
+          event: { emailCode, requestId: id },
         }),
-        subject: getEmailSubject(emailCode),
-        event: { emailCode, requestId: id },
-      });
+        notifyBceid(mergedRequest, idirUserDisplayName),
+      ]);
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-
+    allowedRequest.environments = processEnvironments(allowedRequest.environments);
     const result = await models.request.update(allowedRequest, {
       where: { id },
       returning: true,

@@ -9,16 +9,16 @@ export interface Data {
   realm?: string;
   projectName: string;
   preferredEmail: string;
-  newToSso: boolean;
   projectLead: boolean;
-  devRedirectUrls?: string[];
-  testRedirectUrls?: string[];
-  prodRedirectUrls?: string[];
+  devValidRedirectUris?: string[];
+  testValidRedirectUris?: string[];
+  prodValidRedirectUris?: string[];
   agreeWithTC?: boolean;
   publicAccess?: boolean;
   id?: number;
   comment?: string;
   additionalEmails: string[];
+  bceidEmailDetails?: object;
 }
 
 export interface FormattedData {
@@ -33,7 +33,6 @@ export interface FormattedData {
   id?: number;
   projectLead: boolean;
   preferredEmail: string;
-  newToSso: boolean;
   agreeWithTC?: boolean;
   publicAccess?: boolean;
 }
@@ -56,4 +55,10 @@ export interface EmailOptions {
   subject?: string;
   tag?: string;
   event: EmailEvent;
+}
+
+export interface BceidEmailDetails {
+  bceidTo?: string;
+  bceidCc?: string;
+  bceidBody?: string;
 }

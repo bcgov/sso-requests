@@ -3,14 +3,11 @@ import Head from 'next/head';
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
-import DefaultButton from '@button-inc/bcgov-theme/Button';
+import Button from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import Accordion from 'components/Accordion';
-import { LANDING_HEADER_FONT } from 'styles/theme';
 
 interface PanelProps {
   marginLeft?: boolean;
@@ -19,25 +16,16 @@ interface PanelProps {
 
 const Panel = styled.div<PanelProps>`
   max-width: 450px;
-  margin-bottom: 1rem;
-  ${(props) => props.marginLeft && 'margin-left: auto'}
-  ${(props) => props.marginRight && 'margin-right: auto'}
+  ${(props) => props.marginLeft && 'margin-left: auto;'}
+  ${(props) => props.marginRight && 'margin-right: auto;'}
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   @media only screen and (max-width: 800) {
     margin-left: 0;
     margin-right: 0;
-  }
-`;
-
-const Button = styled(DefaultButton)`
-  width: 215px;
-`;
-
-const PaddedButton = styled(Button)`
-  margin-left: 20px;
-  @media only screen and (max-width: 991px) {
-    margin-left: 0;
-    margin-top: 20px;
   }
 `;
 
@@ -49,32 +37,19 @@ const JumbotronP = styled.p`
   font-size: 1.5rem;
 `;
 
-const BoldP = styled.p`
-  margin-top: 50px;
-  font-size: 1.5rem;
-  font-weight: bold;
-`;
-
 const Paragraph = styled.p`
   font-size: 1.2rem;
   padding-left: 3.5rem;
+  margin: 0;
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   flex-direction: row;
-
-  @media only screen and (max-width: 991px) {
-    flex-direction: column;
-  }
 `;
 
 const HorizontalRule = styled.hr`
   margin: 30px 0;
-`;
-
-const Header = styled.h2`
-  font-size: ${LANDING_HEADER_FONT};
 `;
 
 export default function Home({ onLoginClick }: PageProps) {
@@ -97,20 +72,10 @@ export default function Home({ onLoginClick }: PageProps) {
                   <br />
                   to get single sign-on.
                 </JumbotronP>
-                <BoldP>Request SSO Integration for:</BoldP>
                 <ButtonContainer>
                   <Button size="medium" onClick={onLoginClick}>
-                    IDIR
+                    Request SSO Integration
                   </Button>
-                  <br /> <br />
-                  <Link
-                    href="https://github.com/BCDevOps/devops-requests/issues/new?assignees=nvunnamm&labels=keycloak-client%2C+pending%2C+sso&template=keycloak_standard_client_request.md&title="
-                    target="blank"
-                  >
-                    <PaddedButton>
-                      IDIR and BCeID <FontAwesomeIcon icon={faExternalLinkAlt} />
-                    </PaddedButton>
-                  </Link>
                 </ButtonContainer>
               </Panel>
             </Grid.Col>
