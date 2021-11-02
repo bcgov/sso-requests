@@ -16,21 +16,16 @@ interface PanelProps {
 
 const Panel = styled.div<PanelProps>`
   max-width: 450px;
-  margin-bottom: 1rem;
-  ${(props) => props.marginLeft && 'margin-left: auto'}
-  ${(props) => props.marginRight && 'margin-right: auto'}
+  ${(props) => props.marginLeft && 'margin-left: auto;'}
+  ${(props) => props.marginRight && 'margin-right: auto;'}
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   @media only screen and (max-width: 800) {
     margin-left: 0;
     margin-right: 0;
-  }
-`;
-
-const PaddedButton = styled(Button)`
-  margin-left: 20px;
-  @media only screen and (max-width: 991px) {
-    margin-left: 0;
-    margin-top: 20px;
   }
 `;
 
@@ -45,6 +40,7 @@ const JumbotronP = styled.p`
 const Paragraph = styled.p`
   font-size: 1.2rem;
   padding-left: 3.5rem;
+  margin: 0;
 `;
 
 const ButtonContainer = styled.div`

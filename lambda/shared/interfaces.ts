@@ -11,9 +11,9 @@ export interface Data {
   preferredEmail: string;
   newToSso: boolean;
   projectLead: boolean;
-  devRedirectUrls?: string[];
-  testRedirectUrls?: string[];
-  prodRedirectUrls?: string[];
+  devValidRedirectUris?: string[];
+  testValidRedirectUris?: string[];
+  prodValidRedirectUris?: string[];
   agreeWithTC?: boolean;
   publicAccess?: boolean;
   id?: number;

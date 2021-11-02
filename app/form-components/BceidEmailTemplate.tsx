@@ -1,30 +1,32 @@
 import React from 'react';
-import Form from 'form-components/GovForm';
-import bceidEmailSchema from 'schemas/bceid-email';
-import getUiSchema from 'schemas/ui';
 import { BceidEmailDetails } from 'interfaces/form';
-
+import styled from 'styled-components';
 interface Props {
   setBceidEmailDetails: Function;
   bceidEmailDetails: BceidEmailDetails;
 }
 
-export default function BceidEmailTemplate({ bceidEmailDetails, setBceidEmailDetails }: Props) {
-  const uiSchema = getUiSchema(true);
+const Title = styled.h2`
+  margin-top: 10px;
+`;
 
-  const handleChange = (e: any) => {
-    setBceidEmailDetails(e.formData);
-  };
+export default function BceidEmailTemplate({ bceidEmailDetails, setBceidEmailDetails }: Props) {
+  // const uiSchema = getUiSchema(true);
+
+  // const handleChange = (e: any) => {
+  //   setBceidEmailDetails(e.formData);
+  // };
 
   return (
     <>
-      <h2>Provided by BCeID team: access to prod </h2>
+      <Title>Your Prod environment will be provided by the BCeID Team </Title>
       <p>
-        The email below will be provided to the BCeID team. They will reach out to you to complete the request for prod.
+        Once you submit the request, both you and the BCeID team will receive an email with your request details. The
+        BCeID team will reach out to you within <strong>2 business days</strong> to schedule an on-boarding meeting. 
       </p>
-      <Form schema={bceidEmailSchema} uiSchema={uiSchema} formData={bceidEmailDetails} onChange={handleChange}>
+      {/* <Form schema={bceidEmailSchema} uiSchema={uiSchema} formData={bceidEmailDetails} onChange={handleChange}>
         <></>
-      </Form>
+      </Form> */}
     </>
   );
 }

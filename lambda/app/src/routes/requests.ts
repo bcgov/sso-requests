@@ -1,8 +1,8 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { Session, Data, BceidEmailDetails } from '../../../shared/interfaces';
+import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
-import { validateRequest, processRequest, getDifferences, isAdmin } from '../utils/helpers';
+import { validateRequest, processRequest, getDifferences, isAdmin, formatBody } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
@@ -49,23 +49,17 @@ const usesBceid = (realm: string | undefined) => {
   return bceidRealms.includes(realm);
 };
 
-const formatBody = (body) => {
-  return `
-    <p>
-    ${body.replace(/\n/g, '<br />')}
-    </p>
-  `;
-};
-
-const notifyBceid = async (realm: string, bceidEmailDetails: BceidEmailDetails, id: number) => {
+const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
+  const { realm, id, preferredEmail, additionalEmails } = request;
   if (!usesBceid(realm)) return;
-  const { bceidBody, bceidCc } = bceidEmailDetails;
+  let cc = [preferredEmail];
+  if (Array.isArray(additionalEmails)) cc = cc.concat(additionalEmails);
   const emailCode = 'bceid-request-submitted';
   const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
   return sendEmail({
     to,
-    cc: bceidCc.split(', '),
-    body: formatBody(bceidBody),
+    cc,
+    body: formatBody(request, idirUserDisplayName),
     subject: getEmailSubject(emailCode),
     event: { emailCode, requestId: id },
   });
@@ -202,7 +196,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
           subject: getEmailSubject(emailCode),
           event: { emailCode, requestId: id },
         }),
-        notifyBceid(mergedRequest.realm, bceidEmailDetails, mergedRequest.id),
+        notifyBceid(mergedRequest, idirUserDisplayName),
       ]);
     }
 

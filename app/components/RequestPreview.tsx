@@ -48,20 +48,26 @@ const formatBoolean = (value?: boolean) => {
 interface FormattedListProps {
   list: any[];
   title: string;
+  inline?: boolean;
 }
 
-const FormattedList = ({ list, title }: FormattedListProps) => {
+const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
   return (
     <>
       <tr>
         <td>{title}</td>
-        {list?.length === 1 && (
+        {(list?.length === 1 || inline) && (
           <SemiBold>
-            <span key={list[0]}>{list[0]}</span>
+            {list?.map((item, i) => (
+              <span key={item}>
+                {item}
+                {i !== list.length - 1 && ', '}{' '}
+              </span>
+            ))}
           </SemiBold>
         )}
       </tr>
-      {list?.length > 1 && (
+      {!inline && list?.length > 1 && (
         <tr>
           <td>
             <SemiBold>
@@ -81,6 +87,7 @@ const FormattedList = ({ list, title }: FormattedListProps) => {
 interface Props {
   request: Request;
   hasBceid: boolean;
+  isAdmin?: boolean;
 }
 
 const hasUris = (uris: string[] | undefined) => {
@@ -90,12 +97,14 @@ const hasUris = (uris: string[] | undefined) => {
   return true;
 };
 
-function RequestPreview({ request, hasBceid }: Props) {
+function RequestPreview({ request, hasBceid, isAdmin = false }: Props) {
   if (!request) return null;
 
   return (
     <>
-      {hasBceid && <Header>Provided by SSO Pathfinder team: access to dev and/or test </Header>}
+      {hasBceid && !isAdmin && (
+        <Header>Your Dev and/or Test environments are provided by the SSO Pathfinder team </Header>
+      )}
       <Table>
         <tbody>
           <tr>
@@ -129,12 +138,7 @@ function RequestPreview({ request, hasBceid }: Props) {
             </td>
           </tr>
           <FormattedList list={request?.additionalEmails} title="Additional Emails:" />
-        </tbody>
-      </Table>
-      <Divider />
-      <Table>
-        <tbody>
-          <FormattedList list={realmToIDP(request?.realm)} title="Identity Providers Required:" />
+          <FormattedList list={realmToIDP(request?.realm)} title="Identity Providers Required:" inline />
           {hasUris(request?.devValidRedirectUris) && (
             <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />
           )}
