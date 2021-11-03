@@ -114,7 +114,7 @@ export const getEmailBody = (
   }
 };
 
-export const getEmailSubject = (messageType: EmailMessage) => {
+export const getEmailSubject = (messageType: EmailMessage, id = null) => {
   const prefix = APP_ENV === 'development' ? '[DEV] ' : '';
 
   switch (messageType) {
@@ -133,7 +133,7 @@ export const getEmailSubject = (messageType: EmailMessage) => {
     case 'request-limit-exceeded':
       return `${prefix}Pathfinder SSO request limit reached`;
     case 'bceid-request-submitted':
-      return `New BCeID Integration Request`;
+      return `New BCeID Integration Request - ${id}`;
     default:
       return '';
   }

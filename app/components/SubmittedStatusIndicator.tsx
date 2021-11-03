@@ -9,6 +9,7 @@ import HelpText from 'components/HelpText';
 import { Request } from 'interfaces/Request';
 import getConfig from 'next/config';
 import StatusList from 'components/StatusList';
+import { usesBceid } from 'utils/helpers';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
@@ -98,11 +99,12 @@ const getStatusStatusCode = (status?: string) => {
 };
 
 export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
-  const { status, prNumber, updatedAt } = selectedRequest;
+  const { status, prNumber, updatedAt, realm } = selectedRequest;
 
   const hasError = getStatusFailure(status);
   const statusMessage = getStatusMessage(status);
   const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();
+  const hasBceid = usesBceid(realm);
 
   // Step 1.
   const statusItems = [
@@ -205,7 +207,7 @@ export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
     <>
       <Title>
         <StyledIcon icon={faInfoCircle} />
-        We are working on your request - Expected processing time is 20 mins
+        We are working on your request {hasBceid && 'for your BCeID integration'} - Expected processing time is 20 mins
       </Title>
       <SubTitle>{statusMessage}</SubTitle>
       <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />
@@ -213,9 +215,7 @@ export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
       <StatusList>{statusItems}</StatusList>
       <br />
       <p>
-        If there is an error or the process takes longer than 20 mins then,
-        <br />
-        please contact our SSO support team by{' '}
+        If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
         <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
           Rocket.Chat
         </SLink>{' '}

@@ -108,15 +108,9 @@ function RequestPreview({ request, hasBceid, isAdmin = false }: Props) {
       <Table>
         <tbody>
           <tr>
-            <td>Are you the product owner or project admin/team lead?</td>
+            <td>Are you accountable for this project?</td>
             <td>
               <SemiBold>{formatBoolean(request?.projectLead)}</SemiBold>
-            </td>
-          </tr>
-          <tr>
-            <td>Have you requested an SSO access before?</td>
-            <td>
-              <SemiBold>{formatBoolean(request?.newToSso)}</SemiBold>
             </td>
           </tr>
           <tr>

@@ -61,7 +61,7 @@ const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
     to,
     cc,
     body: formatBody(request, idirUserDisplayName),
-    subject: getEmailSubject(emailCode),
+    subject: getEmailSubject(emailCode, id),
     event: { emailCode, requestId: id },
   });
 };
