@@ -25,7 +25,7 @@ export default {
         {
           properties: {
             projectLead: { enum: [true] },
-            projectName: { type: 'string', title: 'What Project is this integration for?', maxLength: 50 },
+            projectName: { type: 'string', title: 'Project Name', maxLength: 50 },
             preferredEmail: { type: 'string', title: 'Default Email Address', format: 'email', maxLength: 250 },
             additionalEmails: {
               type: ['array', 'null'],
