@@ -114,7 +114,7 @@ export const getEmailBody = (
   }
 };
 
-export const getEmailSubject = (messageType: EmailMessage, id=null) => {
+export const getEmailSubject = (messageType: EmailMessage, id = null) => {
   const prefix = APP_ENV === 'development' ? '[DEV] ' : '';
 
   switch (messageType) {
