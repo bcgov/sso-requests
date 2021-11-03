@@ -214,7 +214,6 @@ export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
       <br />
       <p>
         If there is an error or the process takes longer than 20 mins then,
-        <br />
         please contact our SSO support team by{' '}
         <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
           Rocket.Chat

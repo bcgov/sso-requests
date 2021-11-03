@@ -3,7 +3,6 @@ import styled from 'styled-components';
 export default styled.ul`
   list-style-type: none;
   margin: 0;
-  max-width: 330px;
   position: relative;
 
   & li {

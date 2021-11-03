@@ -2,7 +2,7 @@ import React from 'react';
 import { Request } from 'interfaces/Request';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import Link from '@button-inc/bcgov-theme/Link';
 import StatusList from 'components/StatusList';
 import Title from 'components/SHeader3';
@@ -41,6 +41,7 @@ export default function Bceidstatus({ request }: Props) {
         <li>
           Please reach out to IDIM if you do not hear back within the next 2-3 business days (
           <Link href="mailto:IDIM.Consulting@gov.bc.ca">IDIM.Consulting@gov.bc.ca</Link>)
+          <FontAwesomeIcon icon={faEnvelope} color="#b3b3b3" />
         </li>
         <li>
           Access to prod
