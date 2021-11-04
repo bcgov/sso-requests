@@ -9,3 +9,13 @@ export const getInstallation = async (requestId: number, environment: string) =>
     return [null, err];
   }
 };
+
+export const changeClientSecret = async (requestId?: number, environment?: string): Promise<(string | null)[]> => {
+  try {
+    const result = await instance.put('installation', { requestId, environment }).then((res) => res.data);
+    return [result, null];
+  } catch (err) {
+    console.error(err);
+    return [null, err];
+  }
+};

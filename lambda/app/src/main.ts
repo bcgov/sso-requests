@@ -3,7 +3,7 @@ import { authenticate } from './authenticate';
 import { getEvents } from './routes/events';
 import { createRequest, getRequests, getRequestAll, getRequest, updateRequest, deleteRequest } from './routes/requests';
 import { getClient } from './routes/client';
-import { getInstallation } from './routes/installation';
+import { getInstallation, changeSecret } from './routes/installation';
 import { wakeUpAll } from './routes/heartbeat';
 
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -67,6 +67,9 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   } else if (path === `${BASE_PATH}/installation`) {
     if (httpMethod === 'POST') {
       response = await getInstallation(session, JSON.parse(body));
+    }
+    if (httpMethod === 'PUT') {
+      response = await changeSecret(session, JSON.parse(body));
     }
   } else if (path === `${BASE_PATH}/client`) {
     if (httpMethod === 'POST') {
