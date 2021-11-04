@@ -13,7 +13,6 @@ export const verifyToken = async (token: string) => {
 
   const keys = meta.keys;
   const tokenHeader = parseJWTHeader(token);
-  console.log('JWT key id: ', tokenHeader.kid);
 
   // search for the kid key id in the JWK Keys
   const key = keys?.find((currentKey: { kid: string }) => currentKey.kid === tokenHeader.kid);
@@ -21,8 +20,6 @@ export const verifyToken = async (token: string) => {
     console.error('public key not found in JWK jwks.json');
     return false;
   }
-
-  console.log('JWK key: ', key);
 
   // verify token has not expired
   const tokenPayload = parseJWTPayload(token);
