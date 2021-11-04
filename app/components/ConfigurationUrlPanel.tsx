@@ -118,7 +118,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
     setUpdatingSecret(true);
     const [result, err] = await changeClientSecret(selectedRequest?.id, 'dev');
     const variant = err ? 'danger' : 'success';
-    const content = err ? 'Failed to regenerate secret' : "Client Secret Successfully Updated";
+    const content = err ? 'Failed to regenerate secret' : 'Client Secret Successfully Updated';
     alert.show({
       variant,
       fadeOut: 10000,
