@@ -54,7 +54,7 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
             <InstallationPanel selectedRequest={selectedRequest} />
           </TabWrapper>
         </Tab>
-        <Tab eventKey="configuration-url" title="Redirect URIs">
+        <Tab eventKey="configuration-url" title="Redirect URIs & Client Secret">
           <TabWrapper>
             <ConfigurationUrlPanel selectedRequest={selectedRequest} />
           </TabWrapper>

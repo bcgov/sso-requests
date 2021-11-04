@@ -13,6 +13,11 @@ import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import { $setEditingRequest, $updateRequest } from 'dispatchers/requestDispatcher';
 import { withBottomAlert } from 'layout/BottomAlert';
+import Button from '@button-inc/bcgov-theme/Button';
+import Modal from '@button-inc/bcgov-theme/Modal';
+import CenteredModal from 'components/CenteredModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
@@ -21,6 +26,22 @@ const TopMargin = styled.div`
 const LeftTitle = styled.span`
   color: #000;
   font-size: 1.1rem;
+`;
+
+const PaddedIcon = styled(FontAwesomeIcon)`
+  margin-right: 20px;
+`;
+
+const StyledP = styled.p`
+  margin-bottom: 5px;
+`;
+
+const StyledHr = styled.hr`
+  background-color: black;
+`;
+
+const CenteredContainer = styled.div`
+  text-align: center;
 `;
 
 interface Props {
@@ -72,6 +93,9 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
     setLoading(false);
   };
 
+  const handleModalClose = () => (window.location.hash = '#');
+  const openModal = () => (window.location.hash = 'confirm-new-secret');
+
   return (
     <>
       {editingRequest ? (
@@ -113,6 +137,38 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
                   )}
                 </ul>
                 <br />
+
+                {!selectedRequest.publicAccess && (
+                  <>
+                    <Button onClick={openModal}>Change your client secret</Button>
+                    <CenteredModal id={`confirm-new-secret`}>
+                      <Modal.Header>
+                        You're About to Change Your Client Secret{' '}
+                        <Modal.Close onClick={handleModalClose}>X</Modal.Close>
+                      </Modal.Header>
+                      <Modal.Content>
+                        <StyledP>
+                          <PaddedIcon icon={faExclamationTriangle} color="black" title="Warning" size="2x" />
+                          <strong>You're About to Change Your Client Secret</strong>{' '}
+                        </StyledP>
+                        <StyledHr />
+                        <ul>
+                          <li>
+                            Once you change your secret, your previous secret will no longer be valid for any
+                            applications using it.
+                          </li>
+                          <li>
+                            This means you will need to update your application with the new JSON details before it is
+                            functional again.
+                          </li>
+                        </ul>
+                        <CenteredContainer>
+                          <Button>Change Secret</Button>
+                        </CenteredContainer>
+                      </Modal.Content>
+                    </CenteredModal>
+                  </>
+                )}
               </React.Fragment>
             );
           })}
