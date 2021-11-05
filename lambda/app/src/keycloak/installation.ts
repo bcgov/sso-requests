@@ -2,9 +2,12 @@ import { getAdminClient } from './adminClient';
 
 export const updateClientSecret = async (data: { environment: string; realmName: string; clientId: string }) => {
   try {
-    const { environment, clientId } = data;
+    const { environment, clientId, realmName } = data;
     const { kcAdminClient } = await getAdminClient({ environment });
-    await kcAdminClient.clients.generateNewClientSecret({ id: clientId });
+    kcAdminClient.setConfig({ realmName });
+    const clients = await kcAdminClient.clients.find({ realm: realmName });
+    const { id } = clients.find((client) => client.clientId === clientId);
+    await kcAdminClient.clients.generateNewClientSecret({ id });
     return [true, null];
   } catch (err) {
     return [null, err];
