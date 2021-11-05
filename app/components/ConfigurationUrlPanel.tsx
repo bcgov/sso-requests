@@ -11,6 +11,7 @@ import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import { updateRequest } from 'services/request';
 import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
+import { EnvironmentOption } from 'interfaces/form';
 import { $setEditingRequest, $updateRequest } from 'dispatchers/requestDispatcher';
 import { withBottomAlert } from 'layout/BottomAlert';
 import Button from '@button-inc/bcgov-theme/Button';
@@ -63,7 +64,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const [request, setRequest] = useState<Request>(selectedRequest);
   const [updatingRequest, setUpdatingRequest] = useState<boolean>(false);
   const [updatingSecret, setUpdatingSecret] = useState<boolean>(false);
-  const [activeEnv, setActiveEnv] = useState<string | null>(null);
+  const [activeEnv, setActiveEnv] = useState<EnvironmentOption | null>(null);
   const { state, dispatch } = useContext(RequestsContext);
   const { editingRequest } = state as RequestReducerState;
   const schema = getRedirectUrisSchema(selectedRequest?.environments as string);
@@ -109,14 +110,14 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
     setActiveEnv(null);
   };
 
-  const openModal = (env: string) => {
+  const openModal = (env: EnvironmentOption) => {
     setActiveEnv(env);
     window.location.hash = 'confirm-new-secret';
   };
 
   const handleSecretChange = async () => {
     setUpdatingSecret(true);
-    const [result, err] = await changeClientSecret(selectedRequest?.id, 'dev');
+    const [result, err] = await changeClientSecret(selectedRequest.id, activeEnv?.name || null);
     const variant = err ? 'danger' : 'success';
     const content = err ? 'Failed to regenerate secret' : 'Client Secret Successfully Updated';
     alert.show({
@@ -172,7 +173,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
                 </ul>
                 {!selectedRequest.publicAccess && (
                   <>
-                    <Button type="button" onClick={() => openModal(env.display)}>
+                    <Button type="button" onClick={() => openModal(env)}>
                       {`Change your client secret`}
                     </Button>
                   </>
@@ -191,7 +192,9 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
         <Modal.Content>
           <StyledP>
             <PaddedIcon icon={faExclamationTriangle} color="black" title="Warning" size="2x" />
-            <strong>You&apos;re About to Change Your Client Secret for Your {activeEnv} Environment.</strong>{' '}
+            <strong>
+              You&apos;re About to Change Your Client Secret for Your {activeEnv?.display} Environment.
+            </strong>{' '}
           </StyledP>
           <StyledHr />
           <ul>

@@ -1,6 +1,5 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { Session } from '../../../shared/interfaces';
-import { kebabCase } from 'lodash';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
 
 export const getInstallation = async (session: Session, data: { requestId: number; environment: string }) => {
@@ -42,13 +41,20 @@ export const changeSecret = async (session: Session, data: { requestId: number; 
         id: data.requestId,
       },
     });
-    const [success, err] = await updateClientSecret({
+    await updateClientSecret({
       environment: data.environment,
       realmName: request.realm,
       clientId: request.clientName,
     });
-    return [success, err];
+    return {
+      statusCode: 200,
+    };
   } catch (err) {
-    return [null, err];
+    console.error(err);
+
+    return {
+      statusCode: 422,
+      body: JSON.stringify({ success: false, message: err.message || err }),
+    };
   }
 };
