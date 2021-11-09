@@ -195,3 +195,40 @@ describe('Admins', () => {
     });
   });
 });
+
+describe('Redirect URIs', () => {
+  it('Should show the appropriate URIS depending on selected environments', () => {
+    setUpRouter('/', sandbox);
+    setUpRender(sampleRequest);
+    const devCheckbox = screen.getByLabelText('dev') as HTMLInputElement;
+    const testCheckbox = screen.getByLabelText('test') as HTMLInputElement;
+    const prodCheckbox = screen.getByLabelText('prod') as HTMLInputElement;
+
+    // Dev checked by default
+    expect(devCheckbox.checked).toEqual(true);
+    expect(testCheckbox.checked).toEqual(false);
+    expect(prodCheckbox.checked).toEqual(false);
+
+    const devValidRedirectUris = document.querySelector('#root_devValidRedirectUris_0');
+    let testValidRedirectUris = document.querySelector('#root_testValidRedirectUris_0');
+    let prodValidRedirectUris = document.querySelector('#root_prodValidRedirectUris_0');
+
+    // Only displays dev
+    expect(devValidRedirectUris).not.toBe(null);
+    expect(testValidRedirectUris).toBe(null);
+    expect(prodValidRedirectUris).toBe(null);
+
+    // Select test and prod and expect new URI fields
+    fireEvent.click(testCheckbox);
+    fireEvent.click(prodCheckbox);
+
+    expect(testCheckbox.checked).toEqual(true);
+    expect(prodCheckbox.checked).toEqual(true);
+
+    testValidRedirectUris = document.querySelector('#root_testValidRedirectUris_0');
+    prodValidRedirectUris = document.querySelector('#root_prodValidRedirectUris_0');
+
+    expect(testValidRedirectUris).not.toBe(null);
+    expect(prodValidRedirectUris).not.toBe(null);
+  });
+});

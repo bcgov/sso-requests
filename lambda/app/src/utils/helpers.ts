@@ -38,7 +38,17 @@ const sortURIFields = (data: any) => {
 export const processRequest = (data: any) => {
   const immutableFields = ['idirUserid', 'projectLead', 'clientName', 'status'];
   const allowedRequest = omit(data, immutableFields);
-  return sortURIFields(allowedRequest);
+  const sortedRequest = sortURIFields(allowedRequest);
+  sortedRequest.environments = processEnvironments(sortedRequest);
+  return sortedRequest;
+};
+
+const processEnvironments = (data: any) => {
+  const environments = [];
+  if (data.dev) environments.push('dev');
+  if (data.test) environments.push('test');
+  if (data.prod) environments.push('prod');
+  return environments;
 };
 
 export const getDifferences = (newData: any, originalData: Request) => {

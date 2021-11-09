@@ -1,5 +1,6 @@
 import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
 import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
+import EnvironmentsFieldTemplate from 'form-components/EnvironmentsFieldTemplate';
 
 const getUISchema = (created: boolean) => {
   return {
@@ -35,9 +36,6 @@ const getUISchema = (created: boolean) => {
       // 'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
       'ui:default': 'onestopauth',
     },
-    environments: {
-      'ui:FieldTemplate': FieldTemplateWithTitle,
-    },
     bceidTo: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
       'ui:readonly': true,
@@ -47,6 +45,10 @@ const getUISchema = (created: boolean) => {
     },
     bceidBody: {
       'ui:widget': 'textarea',
+    },
+    dev: {
+      'ui:readonly': true,
+      'ui:FieldTemplate': EnvironmentsFieldTemplate,
     },
   };
 };

@@ -10,6 +10,9 @@ export interface Request {
   testValidRedirectUris: string[];
   prodValidRedirectUris: string[];
   environments: string | string[];
+  dev?: boolean;
+  test?: boolean;
+  prod?: boolean;
   prNumber?: number;
   actionNumber?: number;
   createdAt?: string;
