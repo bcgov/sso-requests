@@ -107,10 +107,9 @@ export const formatBody = (request: Data, idirUserDisplayName: string) => {
   return `
     <h1>Hello Pathfinder SSO friend,</h1>
     <p>
-    You are receiving this email to summarize your BCeID prod integration request details.  The integration request will be completed by the Identity and Information Management (IDIM) team.
+      Thank you for your integration request. <strong>Below is a summary of your integration request details.</strong>
     </p>
 
-    <strong>Integration request details: </strong>
     <ul>
       <li><strong>Project name:</strong> ${request.projectName}</li>
       <li><strong>Accountable person:</strong> ${idirUserDisplayName}</li>
@@ -118,9 +117,9 @@ export const formatBody = (request: Data, idirUserDisplayName: string) => {
       <li><strong>Identity Providers Required:</strong> ${realmToIDP(request.realm)}</li>
     </ul>
 
-    <h2>Next Steps</h2>
+    <h1>Next Steps</h1>
     <ol>
-      <li>The IDIM team will be in touch with you within the next 2 business days to schedule a meeting.</li>
+      <li><strong>On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an on-boarding meeting.</strong></li>
       <li><strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong></li>
     </ol>
     <ul>
@@ -130,9 +129,9 @@ export const formatBody = (request: Data, idirUserDisplayName: string) => {
       <li>When will your end users need access to the production environment?</li>
     </ul>
 
-    Thank you,
+    <p>Thank you,</p>
 
-    Pathfinder SSO team.
+    <p>Pathfinder SSO team.</p>
 
   `;
 };

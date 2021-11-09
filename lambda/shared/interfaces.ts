@@ -19,6 +19,7 @@ export interface Data {
   comment?: string;
   additionalEmails: string[];
   bceidEmailDetails?: object;
+  environments?: string[];
 }
 
 export interface FormattedData {
