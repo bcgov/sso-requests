@@ -74,7 +74,6 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
   const [bceidEmailDetails, setBceidEmailDetails] = useState({});
   const router = useRouter();
   const hasBceid = usesBceid(formData.realm);
-  const showStepper = hasBceid && !isAdmin;
   const hasBceidProd = hasBceid && formData.prod;
 
   // useEffect(() => {
