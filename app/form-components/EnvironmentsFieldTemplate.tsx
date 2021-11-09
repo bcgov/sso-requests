@@ -9,7 +9,7 @@ const Title = styled.legend`
 `;
 
 export default function EnvironmentsFieldTemplate(props: any) {
-  const { id, classNames, label, help, required, errors, children, schema } = props;
+  const { classNames, help, errors, children, schema } = props;
   const { tooltipTitle, tooltipContent, hide = 250, description } = schema;
   return (
     <div className={classNames}>
