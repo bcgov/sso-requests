@@ -31,7 +31,6 @@ const BannerLogo = styled.div`
 
 const Title = styled.h1`
   font-weight: normal;
-  margin-top: 10px;
 `;
 
 const DEFAULT_MOBILE_BREAK_POINT = '900';

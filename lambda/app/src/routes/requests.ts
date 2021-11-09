@@ -50,8 +50,8 @@ const usesBceid = (realm: string | undefined) => {
 };
 
 const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
-  const { realm, id, preferredEmail, additionalEmails } = request;
-  if (!usesBceid(realm)) return;
+  const { realm, id, preferredEmail, additionalEmails, environments } = request;
+  if (!usesBceid(realm) || !environments.includes('prod')) return;
   let cc = [preferredEmail];
   if (Array.isArray(additionalEmails)) cc = cc.concat(additionalEmails);
   const emailCode = 'bceid-request-submitted';
@@ -154,6 +154,9 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
 
+      let { environments } = mergedRequest;
+      if (!mergedRequest.bceidApproved) environments = environments.filter((environment) => environment !== 'prod');
+
       // trigger GitHub workflow before updating the record
       const payload = {
         requestId: mergedRequest.id,
@@ -164,7 +167,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
           test: mergedRequest.testValidRedirectUris,
           prod: mergedRequest.prodValidRedirectUris,
         },
-        environments: mergedRequest.environments,
+        environments,
         publicAccess: mergedRequest.publicAccess,
       };
 

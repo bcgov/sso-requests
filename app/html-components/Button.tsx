@@ -1,5 +1,5 @@
 import { applyTheme, StyleConfig } from '@button-inc/component-library/Button';
-import { DEFAULT_FONT_SIZE, PRIMARY_BUTTON_HOVER_COLOR } from 'styles/theme';
+import { DEFAULT_FONT_SIZE, LARGE_BUTTON_FONT_SIZE, PRIMARY_BUTTON_HOVER_COLOR } from 'styles/theme';
 
 export const styles = {
   shared: {
@@ -34,7 +34,7 @@ export const styles = {
     },
     large: {
       button: `
-        font-size: 1.2rem;
+        font-size: ${LARGE_BUTTON_FONT_SIZE};
       `,
     },
   },

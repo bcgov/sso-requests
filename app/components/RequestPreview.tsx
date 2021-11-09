@@ -1,27 +1,17 @@
 import { Request } from 'interfaces/Request';
 import { realmToIDP } from 'utils/helpers';
 import styled from 'styled-components';
-import { FORM_TOP_SPACING } from 'styles/theme';
 
 const Table = styled.table`
-  margin-top: ${FORM_TOP_SPACING};
   font-size: unset;
   & tr {
     display: flex;
-    margin-top: 5px;
     margin-bottom: 5px;
     & > td {
       border: none;
       padding: 0 5px 0 0;
     }
   }
-`;
-
-const Divider = styled.hr`
-  margin: 20px 0;
-  max-width: 500px;
-  background-color: #e3e3e3;
-  height: 2px !important;
 `;
 
 const SemiBold = styled.span`
@@ -34,10 +24,6 @@ const StyledUl = styled.ul`
   & li {
     margin: 0;
   }
-`;
-
-const Header = styled.h2`
-  margin-top: 10px;
 `;
 
 const formatBoolean = (value?: boolean) => {
@@ -97,14 +83,11 @@ const hasUris = (uris: string[] | undefined) => {
   return true;
 };
 
-function RequestPreview({ request, hasBceid, isAdmin = false }: Props) {
+function RequestPreview({ request }: Props) {
   if (!request) return null;
 
   return (
     <>
-      {hasBceid && !isAdmin && (
-        <Header>Your Dev and/or Test environments are provided by the SSO Pathfinder team </Header>
-      )}
       <Table>
         <tbody>
           <tr>

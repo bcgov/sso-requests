@@ -23,6 +23,7 @@ import commentSchema from 'schemas/admin-comment';
 import uiSchema from 'schemas/commentUi';
 import { adminNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
 import BceidEmailTemplate from 'form-components/BceidEmailTemplate';
+import NumberedContents from 'components/NumberedContents';
 
 const CIRCLE_DIAMETER = '40px';
 const CIRCLE_MARGIN = '10px';
@@ -56,21 +57,6 @@ const Circle = styled.div`
   margin-left: 0;
 `;
 
-const Line = styled.div`
-  border-left: 1px solid #bcbcbc;
-  height: calc(100% - 60px);
-  margin-left: calc(${CIRCLE_DIAMETER} / 2);
-`;
-
-const Container = styled.div<{ showStepper: boolean }>`
-  ${(props) =>
-    props.showStepper
-      ? `
-  display: grid;
-  grid-template-columns: 50px 1fr;`
-      : ''}
-`;
-
 interface Props {
   formData: Request;
   setErrors: Function;
@@ -88,7 +74,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
   const [bceidEmailDetails, setBceidEmailDetails] = useState({});
   const router = useRouter();
   const hasBceid = usesBceid(formData.realm);
-  const showStepper = hasBceid && !isAdmin;
+  const hasBceidProd = hasBceid && formData.prod;
 
   // useEffect(() => {
   //   const { additionalEmails, preferredEmail } = formData;
@@ -166,38 +152,40 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
   const submitText = isAdmin ? 'Update' : 'Submit';
 
   return (
-    <Container showStepper={showStepper}>
-      {showStepper && (
-        <div>
-          <Circle>1</Circle>
-          <Line />
-        </div>
-      )}
-      <div>
+    <div>
+      <NumberedContents title="Please review your information to make sure it is correct." number={1}>
         <RequestPreview request={formData} hasBceid={hasBceid || false} isAdmin={isAdmin} />
-      </div>
+      </NumberedContents>
+
+      <NumberedContents
+        title={`Your ${hasBceid ? 'Dev and/or Test' : ''} environment(s) will be provided by the SSO Pathfinder team.`}
+        number={2}
+      >
+        <p>Once you submit the request, access will be provided in 20 minutes or fewer.</p>
+      </NumberedContents>
       {isAdmin && (
         <Form schema={commentSchema} uiSchema={uiSchema} liveValidate onChange={handleChange} formData={formData}>
           <></>
         </Form>
       )}
-      {showStepper && (
-        <>
-          <div>
-            <Circle>2</Circle>
-          </div>
-          <div>
-            <BceidEmailTemplate bceidEmailDetails={bceidEmailDetails} setBceidEmailDetails={setBceidEmailDetails} />
-          </div>
-        </>
+      {hasBceidProd ? (
+        <NumberedContents number={3} title="Your Prod environment will be provided by the BCeID Team" showLine={false}>
+          <BceidEmailTemplate bceidEmailDetails={bceidEmailDetails} setBceidEmailDetails={setBceidEmailDetails} />
+          <FormButtons
+            text={{ continue: submitText, back: backText }}
+            show={true}
+            handleSubmit={openModal}
+            handleBackClick={handleBackClick}
+          />
+        </NumberedContents>
+      ) : (
+        <FormButtons
+          text={{ continue: submitText, back: backText }}
+          show={true}
+          handleSubmit={openModal}
+          handleBackClick={handleBackClick}
+        />
       )}
-      <div />
-      <FormButtons
-        text={{ continue: submitText, back: backText }}
-        show={true}
-        handleSubmit={openModal}
-        handleBackClick={handleBackClick}
-      />
       <CenteredModal id="confirmation-modal">
         <Modal.Header>
           <FontAwesomeIcon icon={faInfoCircle} size="2x" title="Information" />
@@ -221,7 +209,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
           </ButtonContainer>
         </Modal.Content>
       </CenteredModal>
-    </Container>
+    </div>
   );
 }
 
