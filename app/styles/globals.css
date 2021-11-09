@@ -24,6 +24,11 @@ fieldset {
   border: none !important;
 }
 
+.pg-menu-item {
+  display: flex;
+  align-items: center;
+}
+
 /* RJSF overrides */
 
 #root_newToSso > .radio,

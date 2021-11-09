@@ -4,12 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Tab from 'react-bootstrap/Tab';
-import { get, padStart } from 'lodash';
+import { padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests, deleteRequest } from 'services/request';
 import { Request } from 'interfaces/Request';
 import Table from 'html-components/Table';
-import Button from 'html-components/Button';
+import DefaultButton from 'html-components/Button';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
@@ -94,6 +94,10 @@ const NoProjects = styled.div`
 const CenteredHeader = styled.th`
   text-align: center;
   min-width: 100px;
+`;
+
+const Button = styled(DefaultButton)`
+  margin-bottom: 16px;
 `;
 
 export const RequestsContext = React.createContext({} as any);
@@ -268,12 +272,9 @@ function RequestsPage({ currentUser }: PageProps) {
 
   return (
     <ResponsiveContainer rules={mediaRules}>
-      <Button size="medium" onClick={handleNewClick}>
+      <Button size="large" onClick={handleNewClick}>
         + Request Integration
       </Button>
-
-      <br />
-      <br />
       <RequestsContext.Provider value={contextValue}>
         <Grid cols={10}>
           <Grid.Row collapse="1100" gutter={[15, 2]}>

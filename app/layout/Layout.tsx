@@ -16,10 +16,7 @@ const LoggedUser = styled.span`
   font-weight: 600;
   font-size: 1.3em;
   display: flex;
-
-  & .welcome {
-    padding: 5px;
-  }
+  align-items: end;
 `;
 
 const MainContent = styled.div`
@@ -80,7 +77,7 @@ const HoverItem = styled.li`
 `;
 
 const HeaderTitle = styled.div`
-  margin-top: 15px;
+  height: 100%;
 `;
 
 const Beta = styled.span`

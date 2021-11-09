@@ -3,11 +3,12 @@ import Head from 'next/head';
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
-import Button from '@button-inc/bcgov-theme/Button';
+import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
 import Accordion from 'components/Accordion';
+import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 
 interface PanelProps {
   marginLeft?: boolean;
@@ -50,6 +51,14 @@ const ButtonContainer = styled.div`
 
 const HorizontalRule = styled.hr`
   margin: 30px 0;
+`;
+
+const Header = styled.h2`
+  font-size: ${LANDING_HEADER_FONT};
+`;
+
+const Button = styled(DefaultButton)`
+  font-size: ${LARGE_BUTTON_FONT_SIZE};
 `;
 
 export default function Home({ onLoginClick }: PageProps) {
@@ -96,7 +105,7 @@ export default function Home({ onLoginClick }: PageProps) {
           <Grid.Row>
             <Grid.Col span="2">
               <HorizontalRule />
-              <h2>About</h2>
+              <Header>About</Header>
               <Accordion>
                 <Accordion.Panel title="What is Pathfinder's Common Hosted Sign-On (CSS) App?">
                   <ul>
