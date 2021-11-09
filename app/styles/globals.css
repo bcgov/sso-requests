@@ -64,6 +64,19 @@ label.pg-textarea-label {
   font-weight: bold;
 }
 
+[type='checkbox'] + span {
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.form-group.field.field-boolean {
+  margin: 0;
+}
+
+.form-group.field.field-boolean > legend {
+  margin-top: var(--field-top-spacing);
+}
+
 /* override spacing for first array field element */
 .field-array > div > div:nth-of-type(1) .field {
   margin-top: 0 !important;

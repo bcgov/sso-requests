@@ -143,10 +143,8 @@ export const processRequest = (request: Request): Request => {
     request.prodValidRedirectUris = [''];
   }
 
-  if (isEqual(['dev'], environments)) request.environments = 'dev';
-  else if (isEqual(['dev', 'test'], environments)) request.environments = 'dev, test';
-  else if (isEqual(['dev', 'test', 'prod'], environments)) request.environments = 'dev, test, prod';
-  else request.environments = 'dev';
+  if (environments.includes('test')) request.test = true;
+  if (environments.includes('prod')) request.prod = true;
   return changeNullToUndefined(request);
 };
 
