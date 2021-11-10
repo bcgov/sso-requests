@@ -24,7 +24,6 @@ import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
-import { usesBceid } from 'utils/helpers';
 
 const mediaRules: MediaRule[] = [
   {
@@ -54,11 +53,6 @@ const ButtonContainer = styled.div`
     margin-right: 20px;
     display: inline-block;
   }
-`;
-
-const TabWrapper = styled.div`
-  padding-left: 1rem;
-  padding-right: 1rem;
 `;
 
 const PaddedIcon = styled(FontAwesomeIcon)`
@@ -129,7 +123,6 @@ function RequestsPage({ currentUser }: PageProps) {
   const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
   const [viewArchived, setViewArchived] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<TabKey>(state.editingRequest ? 'configuration-url' : 'installation-json');
-  const { realm } = selectedRequest || {};
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
