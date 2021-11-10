@@ -48,7 +48,6 @@ export default function Bceidstatus({ request }: Props) {
 
   return (
     <>
-      {/* TODO: Change "now" when BCeID approval workflow is implemented */}
       <ProgressBar now={50} animated />
       <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
 

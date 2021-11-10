@@ -200,9 +200,9 @@ describe('Redirect URIs', () => {
   it('Should show the appropriate URIS depending on selected environments', () => {
     setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
-    const devCheckbox = screen.getByLabelText('dev') as HTMLInputElement;
-    const testCheckbox = screen.getByLabelText('test') as HTMLInputElement;
-    const prodCheckbox = screen.getByLabelText('prod') as HTMLInputElement;
+    const devCheckbox = screen.getByLabelText('Development') as HTMLInputElement;
+    const testCheckbox = screen.getByLabelText('Test') as HTMLInputElement;
+    const prodCheckbox = screen.getByLabelText('Production') as HTMLInputElement;
 
     // Dev checked by default
     expect(devCheckbox.checked).toEqual(true);

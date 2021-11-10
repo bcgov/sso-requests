@@ -131,7 +131,6 @@ function RequestsPage({ currentUser }: PageProps) {
   const [activeTab, setActiveTab] = useState<TabKey>(state.editingRequest ? 'configuration-url' : 'installation-json');
   const { realm } = selectedRequest || {};
   const hasBceid = usesBceid(realm);
-  const showBceidProgress = hasBceid && selectedRequest?.status !== 'draft';
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
