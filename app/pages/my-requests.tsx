@@ -24,7 +24,6 @@ import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
-import BceidStatus from 'components/BceidStatus';
 import { usesBceid } from 'utils/helpers';
 
 const mediaRules: MediaRule[] = [
@@ -132,6 +131,7 @@ function RequestsPage({ currentUser }: PageProps) {
   const [activeTab, setActiveTab] = useState<TabKey>(state.editingRequest ? 'configuration-url' : 'installation-json');
   const { realm } = selectedRequest || {};
   const hasBceid = usesBceid(realm);
+  const showBceidProgress = hasBceid && selectedRequest?.status !== 'draft';
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
@@ -296,7 +296,6 @@ function RequestsPage({ currentUser }: PageProps) {
                   setActiveKey={setActiveTab}
                   activeKey={activeTab}
                 />
-                {hasBceid && <BceidStatus request={selectedRequest} />}
               </Grid.Col>
             )}
           </Grid.Row>

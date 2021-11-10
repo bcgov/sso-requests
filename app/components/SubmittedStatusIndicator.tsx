@@ -1,5 +1,5 @@
 import { ProgressBar } from 'react-bootstrap';
-import Title from 'components/SHeader3';
+import DefaultTitle from 'components/SHeader3';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Link from '@button-inc/bcgov-theme/Link';
@@ -16,16 +16,20 @@ const { app_env } = publicRuntimeConfig;
 
 interface Props {
   selectedRequest: Request;
+  showTitle?: boolean;
 }
 
-const StyledIcon = styled(FontAwesomeIcon)`
-  color: ${SECONDARY_BLUE};
-  padding-right: 5px;
+const PaddedIcon = styled(FontAwesomeIcon)`
+  margin-right: 10px;
+`;
+
+const Title = styled(DefaultTitle)`
+  border-bottom: none;
+  margin-top: 10px;
 `;
 
 const SubTitle = styled(Title)`
-  margin-top: 20px;
-  border-bottom: none;
+  font-size: 14px;
 `;
 
 const SLink = styled.a`
@@ -34,6 +38,12 @@ const SLink = styled.a`
 
 const SProgressBar = styled(ProgressBar)`
   margin-bottom: 10px;
+`;
+
+const FlexContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 `;
 
 const getPercent = (status?: string) => {
@@ -98,7 +108,7 @@ const getStatusStatusCode = (status?: string) => {
   }
 };
 
-export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
+export default function SubmittedStatusIndicator({ selectedRequest, showTitle = true }: Props) {
   const { status, prNumber, updatedAt, realm } = selectedRequest;
 
   const hasError = getStatusFailure(status);
@@ -205,25 +215,27 @@ export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
 
   return (
     <>
-      <Title>
-        <StyledIcon icon={faInfoCircle} />
-        We are working on your request {hasBceid && 'for your BCeID integration'} - Expected processing time is 20 mins
-      </Title>
+      {showTitle && <Title>Access to {hasBceid && 'Dev and/or Test'} environment(s) - approx 20 mins</Title>}
       <SubTitle>{statusMessage}</SubTitle>
       <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />
       <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
       <StatusList>{statusItems}</StatusList>
       <br />
-      <p>
-        If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
-        <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
-          Rocket.Chat
-        </SLink>{' '}
-        or{' '}
-        <SLink href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="blank">
-          Email us
-        </SLink>{' '}
-      </p>
+      <FlexContainer>
+        <PaddedIcon icon={faInfoCircle} color={SECONDARY_BLUE} size="2x" />
+        <span>
+          <em>
+            If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
+            <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
+              Rocket.Chat
+            </SLink>{' '}
+            or{' '}
+            <SLink href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="blank">
+              Email us
+            </SLink>{' '}
+          </em>
+        </span>
+      </FlexContainer>
     </>
   );
 }

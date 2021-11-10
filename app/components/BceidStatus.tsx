@@ -17,7 +17,6 @@ const CIRCLE_MARGIN = '0';
 const Circle = styled.div`
   height: ${CIRCLE_DIAMETER};
   width: ${CIRCLE_DIAMETER};
-  line-height: ${CIRCLE_DIAMETER};
   border-radius: ${CIRCLE_DIAMETER};
   margin: ${CIRCLE_MARGIN};
   margin-left: 0;
@@ -29,24 +28,38 @@ const SubTitle = styled(Title)`
   border-bottom: none;
 `;
 
+const StyledLi = styled.li`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+
+  & p {
+    max-width: 90%;
+    margin: 5px 0;
+  }
+`;
+
 export default function Bceidstatus({ request }: Props) {
   return (
     <>
       <SubTitle>Expected processing time for prod</SubTitle>
       <StatusList>
-        <li>
-          Introduction email submitted
+        <StyledLi>
+          Requirements email sent to IDIM
           <FontAwesomeIcon icon={faCheckCircle} color="#00C45B" />
-        </li>
-        <li>
-          Please reach out to IDIM if you do not hear back within the next 2-3 business days (
-          <Link href="mailto:IDIM.Consulting@gov.bc.ca">IDIM.Consulting@gov.bc.ca</Link>)
+        </StyledLi>
+        <StyledLi>
+          <p>
+            Please reach out to IDIM if you do not hear back within the next 2-3 business days (
+            <Link href="mailto:IDIM.Consulting@gov.bc.ca">IDIM.Consulting@gov.bc.ca</Link>)
+          </p>
           <FontAwesomeIcon icon={faEnvelope} color="#b3b3b3" />
-        </li>
-        <li>
-          Access to prod
-          <Circle className="icon" />
-        </li>
+        </StyledLi>
+        <StyledLi>
+          <p>Access to prod</p>
+          <Circle />
+        </StyledLi>
       </StatusList>
     </>
   );

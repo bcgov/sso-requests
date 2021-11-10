@@ -10,6 +10,9 @@ import { Request } from 'interfaces/Request';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
 import { RequestTabs } from 'components/RequestTabs';
+import { usesBceid } from 'utils/helpers';
+import NumberedContents from 'components/NumberedContents';
+import BceidStatus from 'components/BceidStatus';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -30,6 +33,7 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
   if (!selectedRequest) return null;
   const { status } = selectedRequest;
   const displayStatus = getStatusDisplayName(status || 'draft');
+  const hasBceid = usesBceid(selectedRequest?.realm);
 
   let panel = null;
   if (displayStatus === 'In Draft') {
@@ -45,7 +49,31 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
       </>
     );
   } else if (displayStatus === 'Submitted') {
-    panel = <SubmittedStatusIndicator selectedRequest={selectedRequest} />;
+    panel = (
+      <RequestTabs activeKey="Integration-request-summary">
+        <Tab eventKey="Integration-request-summary" title="Integration Request Summary">
+          <TabWrapper>
+            {hasBceid ? (
+              <>
+                <NumberedContents
+                  number={1}
+                  title="Access to Dev and/or Test environment(s) - approx 20 mins"
+                  variant="secondary"
+                >
+                  <SubmittedStatusIndicator selectedRequest={selectedRequest} showTitle={false} />
+                  <br />
+                </NumberedContents>
+                <NumberedContents number={2} title="Access to Prod environment - (TBD)" variant="secondary">
+                  <BceidStatus request={selectedRequest} />
+                </NumberedContents>
+              </>
+            ) : (
+              <SubmittedStatusIndicator selectedRequest={selectedRequest} />
+            )}
+          </TabWrapper>
+        </Tab>
+      </RequestTabs>
+    );
   } else if (displayStatus === 'Completed') {
     panel = (
       <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
