@@ -24,7 +24,8 @@ fieldset {
   border: none !important;
 }
 
-.pg-menu-item {
+.pg-menu-item,
+.pg-menu-item > span {
   display: flex;
   align-items: center;
 }
