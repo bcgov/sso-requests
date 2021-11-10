@@ -130,7 +130,6 @@ function RequestsPage({ currentUser }: PageProps) {
   const [viewArchived, setViewArchived] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<TabKey>(state.editingRequest ? 'configuration-url' : 'installation-json');
   const { realm } = selectedRequest || {};
-  const hasBceid = usesBceid(realm);
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
