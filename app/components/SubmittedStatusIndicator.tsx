@@ -1,15 +1,16 @@
 import { ProgressBar } from 'react-bootstrap';
 import DefaultTitle from 'components/SHeader3';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Link from '@button-inc/bcgov-theme/Link';
 import styled from 'styled-components';
-import { LINK_COLOR, SECONDARY_BLUE } from 'styles/theme';
+import { LINK_COLOR } from 'styles/theme';
 import HelpText from 'components/HelpText';
 import { Request } from 'interfaces/Request';
 import getConfig from 'next/config';
 import StatusList from 'components/StatusList';
 import { usesBceid } from 'utils/helpers';
+import InfoMessage from 'components/InfoMessage';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
@@ -18,10 +19,6 @@ interface Props {
   selectedRequest: Request;
   showTitle?: boolean;
 }
-
-const PaddedIcon = styled(FontAwesomeIcon)`
-  margin-right: 10px;
-`;
 
 const Title = styled(DefaultTitle)`
   border-bottom: none;
@@ -38,12 +35,6 @@ const SLink = styled.a`
 
 const SProgressBar = styled(ProgressBar)`
   margin-bottom: 10px;
-`;
-
-const FlexContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
 `;
 
 const getPercent = (status?: string) => {
@@ -221,21 +212,16 @@ export default function SubmittedStatusIndicator({ selectedRequest, showTitle = 
       <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
       <StatusList>{statusItems}</StatusList>
       <br />
-      <FlexContainer>
-        <PaddedIcon icon={faInfoCircle} color={SECONDARY_BLUE} size="2x" />
-        <span>
-          <em>
-            If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
-            <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
-              Rocket.Chat
-            </SLink>{' '}
-            or{' '}
-            <SLink href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="blank">
-              Email us
-            </SLink>{' '}
-          </em>
-        </span>
-      </FlexContainer>
+      <InfoMessage>
+        If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
+        <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
+          Rocket.Chat
+        </SLink>{' '}
+        or{' '}
+        <SLink href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="blank">
+          Email us
+        </SLink>{' '}
+      </InfoMessage>
     </>
   );
 }
