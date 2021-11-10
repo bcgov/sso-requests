@@ -67,7 +67,8 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const [activeEnv, setActiveEnv] = useState<EnvironmentOption | null>(null);
   const { state, dispatch } = useContext(RequestsContext);
   const { editingRequest } = state as RequestReducerState;
-  const schema = getRedirectUrisSchema(selectedRequest?.environments as string);
+  const requestedEnvironments = getRequestedEnvironments(selectedRequest);
+  const schema = getRedirectUrisSchema(requestedEnvironments);
 
   const handleCancel = () => {
     dispatch($setEditingRequest(false));

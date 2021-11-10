@@ -38,7 +38,7 @@ const HeaderContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 150px;
+  min-height: 150px;
 `;
 
 interface Props {

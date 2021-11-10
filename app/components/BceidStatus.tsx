@@ -6,6 +6,8 @@ import { faCheckCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import Link from '@button-inc/bcgov-theme/Link';
 import StatusList from 'components/StatusList';
 import Title from 'components/SHeader3';
+import { ProgressBar } from 'react-bootstrap';
+import HelpText from 'components/HelpText';
 
 interface Props {
   request: Request;
@@ -41,9 +43,15 @@ const StyledLi = styled.li`
 `;
 
 export default function Bceidstatus({ request }: Props) {
+  const { updatedAt } = request;
+  const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();
+
   return (
     <>
-      <SubTitle>Expected processing time for prod</SubTitle>
+      {/* TODO: Change "now" when BCeID approval workflow is implemented */}
+      <ProgressBar now={50} animated />
+      <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
+
       <StatusList>
         <StyledLi>
           Requirements email sent to IDIM

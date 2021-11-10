@@ -71,7 +71,6 @@ label.pg-textarea-label {
 }
 
 [type='checkbox'] + span {
-  font-weight: bold;
   margin-left: 5px;
 }
 

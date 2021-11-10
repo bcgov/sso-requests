@@ -29,7 +29,10 @@ export const usesBceid = (realm: string | undefined) => {
 };
 
 export const getRequestedEnvironments = (request: Request) => {
-  const requestEnvironments = request?.environments as string;
+  const requestEnvironments: string[] = [];
+  if (request.dev) requestEnvironments.push('dev');
+  if (request.test) requestEnvironments.push('test');
+  if (request.prod) requestEnvironments.push('prod');
   return environments.filter((env) => requestEnvironments.includes(env.name));
 };
 
@@ -143,8 +146,10 @@ export const processRequest = (request: Request): Request => {
     request.prodValidRedirectUris = [''];
   }
 
+  if (environments.includes('dev')) request.dev = true;
   if (environments.includes('test')) request.test = true;
   if (environments.includes('prod')) request.prod = true;
+  delete request.environments;
   return changeNullToUndefined(request);
 };
 
