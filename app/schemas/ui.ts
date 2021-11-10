@@ -1,6 +1,5 @@
 import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
 import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
-import EnvironmentsFieldTemplate from 'form-components/EnvironmentsFieldTemplate';
 
 const getUISchema = (created: boolean) => {
   return {
@@ -48,7 +47,7 @@ const getUISchema = (created: boolean) => {
     },
     dev: {
       'ui:readonly': true,
-      'ui:FieldTemplate': EnvironmentsFieldTemplate,
+      'ui:FieldTemplate': FieldTemplateWithTitle,
     },
   };
 };

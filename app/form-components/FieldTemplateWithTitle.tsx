@@ -10,11 +10,11 @@ const Title = styled.legend`
 
 export default function FieldTemplateWithTitle(props: any) {
   const { id, classNames, label, help, required, errors, children, schema } = props;
-  const { tooltipTitle, tooltipContent, hide = 250, description } = schema;
+  const { tooltipTitle, tooltipContent, hide = 250, description, displayTitle } = schema;
   return (
     <div className={classNames}>
       <Title>
-        {label}&nbsp;
+        {displayTitle || label}&nbsp;
         {tooltipContent && <InfoOverlay tooltipTitle={tooltipTitle} tooltipContent={tooltipContent} hide={hide} />}
       </Title>
       {description}

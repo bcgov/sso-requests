@@ -13,16 +13,24 @@ export const isValidKeycloakURI = (uri: string) => {
 const validationMessage = 'Please enter a valid URI, including an http:// or https:// prefix';
 
 export const customValidate = (formData: any, errors: any) => {
-  const { devValidRedirectUris = [], testValidRedirectUris = [], prodValidRedirectUris = [], environments } = formData;
+  const {
+    devValidRedirectUris = [],
+    testValidRedirectUris = [],
+    prodValidRedirectUris = [],
+    environments = [],
+    test,
+    prod,
+  } = formData;
+
   let isAllValid = devValidRedirectUris.every(isValidKeycloakURI);
   if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris');
 
-  if (environments === 'dev, test' || environments === 'dev, test, prod') {
+  if (test || environments.includes('test')) {
     isAllValid = testValidRedirectUris.every(isValidKeycloakURI);
     if (!isAllValid) validateArrayFields(testValidRedirectUris, errors, 'testValidRedirectUris');
   }
 
-  if (environments === 'dev, test, prod') {
+  if (prod || environments.includes('prod')) {
     isAllValid = prodValidRedirectUris.every(isValidKeycloakURI);
     if (!isAllValid) validateArrayFields(prodValidRedirectUris, errors, 'prodValidRedirectUris');
   }

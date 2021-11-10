@@ -41,19 +41,21 @@ const dev = {
   type: 'boolean',
   enum: [true, false],
   default: true,
+  title: 'Development',
+  displayTitle: 'Environments',
   tooltipContent:
-    "Choose environments to have separate SSO instances for your application's development, testing, and production phases.",
+    'We will provide a separate client for each environment you select. Select the environments that are required for your project.',
 };
 
 const test = {
   type: 'boolean',
-  title: 'test',
+  title: 'Test',
   enum: [true, false],
 };
 
 const prod = {
   type: 'boolean',
-  title: 'prod',
+  title: 'Production',
   enum: [true, false],
 };
 
@@ -75,7 +77,6 @@ export default {
       tooltipContent: 'The identity providers you add will let your users authenticate with those services.',
       enum: ['onestopauth', 'onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
       enumNames: ['IDIR', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
-      default: 'onestopauth',
     },
     dev,
     test,
