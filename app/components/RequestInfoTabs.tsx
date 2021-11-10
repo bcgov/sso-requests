@@ -33,7 +33,7 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
   if (!selectedRequest) return null;
   const { status } = selectedRequest;
   const displayStatus = getStatusDisplayName(status || 'draft');
-  const hasBceid = usesBceid(selectedRequest?.realm);
+  const hasBceidProd = usesBceid(selectedRequest?.realm) && selectedRequest.prod;
 
   let panel = null;
   if (displayStatus === 'In Draft') {
@@ -53,7 +53,7 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
       <RequestTabs activeKey="Integration-request-summary">
         <Tab eventKey="Integration-request-summary" title="Integration Request Summary">
           <TabWrapper>
-            {hasBceid ? (
+            {hasBceidProd ? (
               <>
                 <NumberedContents
                   number={1}
