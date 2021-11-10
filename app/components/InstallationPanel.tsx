@@ -12,6 +12,8 @@ import type { Environment } from 'interfaces/types';
 import { getRequestedEnvironments } from 'utils/helpers';
 import { DEFAULT_FONT_SIZE } from 'styles/theme';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
+import InfoMessage from 'components/InfoMessage';
+import Link from '@button-inc/bcgov-theme/Link';
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -104,6 +106,16 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
           );
         })}
       </Grid>
+      <InfoMessage>
+        For more information on how to use these details, or for the public endpoints associated to your client, see{' '}
+        <Link
+          href="https://github.com/bcgov/sso-requests/blob/dev/docs/developer-guide.md#using-your-integration"
+          external
+        >
+          here
+        </Link>
+        .
+      </InfoMessage>
     </>
   );
 };

@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import Link from '@button-inc/bcgov-theme/Link';
 import StatusList from 'components/StatusList';
-import Title from 'components/SHeader3';
 import { ProgressBar } from 'react-bootstrap';
 import HelpText from 'components/HelpText';
 
@@ -23,11 +22,6 @@ const Circle = styled.div`
   margin: ${CIRCLE_MARGIN};
   margin-left: 0;
   border: 2px solid #b3b3b3;
-`;
-
-const SubTitle = styled(Title)`
-  margin-top: 20px;
-  border-bottom: none;
 `;
 
 const StyledLi = styled.li`
