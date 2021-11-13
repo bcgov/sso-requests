@@ -102,6 +102,7 @@ const routes: Route[] = [
   { path: '/admin-dashboard', label: 'SSO Dashboard', roles: ['sso-admin'] },
   { path: '/request', label: 'New Request', roles: ['user', 'sso-admin'], hide: true },
   { path: '/edit-request', label: 'Edit Request', roles: ['sso-admin'], hide: true },
+  { path: '/qna', label: 'Q & A', roles: ['guest', 'user', 'sso-admin'] },
 ];
 
 const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; currentPath: string }) => {
