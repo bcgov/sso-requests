@@ -39,8 +39,8 @@ export default function QNA() {
                   <p>
                     Yes, you can start with <b>http://localhost</b> and change your redirect URIs anytime later.
                     <br />
-                    Before going to production, please make sure that your production environment's redirect URIs are
-                    properly set to your live application's domain.
+                    Before going to production, please make sure that your production environment&quot;s redirect URIs
+                    are properly set to your live application&quot;s domain.
                   </p>
                 </Accordion.Panel>
                 <Accordion.Panel title="Q. How do I allow dynamic redirect URIs for my integration?">
