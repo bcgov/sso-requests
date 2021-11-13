@@ -6,7 +6,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import Accordion from 'components/Accordion';
 
-export default function QNA() {
+export default function FAQ() {
   return (
     <>
       <Head>
