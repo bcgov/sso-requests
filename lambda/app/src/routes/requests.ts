@@ -51,16 +51,20 @@ const usesBceid = (realm: string | undefined) => {
 
 const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
   const { realm, id, preferredEmail, additionalEmails, environments } = request;
-  if (!usesBceid(realm) || !environments.includes('prod')) return;
-  let cc = [preferredEmail];
-  if (Array.isArray(additionalEmails)) cc = cc.concat(additionalEmails);
+  if (!usesBceid(realm)) return;
+  const usesProd = environments.includes('prod');
+
+  // Only cc user for production requests
+  let cc = usesProd ? [preferredEmail] : [];
+  if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
+
   const emailCode = 'bceid-request-submitted';
   // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
   const to = ['bcgov.sso@gov.bc.ca'];
   return sendEmail({
     to,
     cc,
-    body: formatBody(request, idirUserDisplayName),
+    body: formatBody(request, idirUserDisplayName, usesProd),
     subject: getEmailSubject(emailCode, id),
     event: { emailCode, requestId: id },
   });

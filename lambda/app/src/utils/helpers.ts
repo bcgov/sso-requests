@@ -99,15 +99,21 @@ export const realmToIDP = (realm?: string) => {
   return idps;
 };
 
-export const formatBody = (request: Data, idirUserDisplayName: string) => {
+export const formatBody = (request: Data, idirUserDisplayName: string, usesProd: boolean) => {
   const testUris =
     request.testValidRedirectUris.length > 0 && request.testValidRedirectUris[0] !== ''
       ? `, TEST: ${request.testValidRedirectUris.join(', ')}`
       : '';
+
+  const introduction = usesProd ? 'Pathfinder SSO friend' : 'IDIM Team';
+  const summary = usesProd
+    ? 'Thank you for your integration request. <strong>Below is a summary of your integration request details.</strong>'
+    : 'We are notifying you that a new dev and/or test integration request has been submitted. The request details are below:';
+
   return `
-    <h1>Hello Pathfinder SSO friend,</h1>
+    <h1>Hello ${introduction},</h1>
     <p>
-      Thank you for your integration request. <strong>Below is a summary of your integration request details.</strong>
+      ${summary}
     </p>
 
     <ul>
@@ -117,17 +123,21 @@ export const formatBody = (request: Data, idirUserDisplayName: string) => {
       <li><strong>Identity Providers Required:</strong> ${realmToIDP(request.realm)}</li>
     </ul>
 
-    <h1>Next Steps</h1>
-    <ol>
-      <li><strong>On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an on-boarding meeting.</strong></li>
-      <li><strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong></li>
-    </ol>
-    <ul>
-      <li>What is your estimated volume of initial users?</li>
-      <li>Do you anticipate your volume of users will grow over the next three years?</li>
-      <li>When do you need access to the production environment by?</li>
-      <li>When will your end users need access to the production environment?</li>
-    </ul>
+    ${
+      usesProd
+        ? `<h1>Next Steps</h1>
+      <ol>
+        <li><strong>On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an on-boarding meeting.</strong></li>
+        <li><strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong></li>
+      </ol>
+      <ul>
+        <li>What is your estimated volume of initial users?</li>
+        <li>Do you anticipate your volume of users will grow over the next three years?</li>
+        <li>When do you need access to the production environment by?</li>
+        <li>When will your end users need access to the production environment?</li>
+      </ul>`
+        : ''
+    }
 
     <p>Thank you,</p>
 

@@ -40,7 +40,7 @@ export const getEmailBody = (
       return `
         <h1>Your Pathfinder SSO request #${requestNumber} is successfully submitted.</h1>
         <p>
-            <strong>Project name: </strong>${projectName}<br /><strong>Submitted by:</strong>${submittedBy}
+            <strong>Project name: </strong>${projectName}<br /><strong>Submitted by: </strong>${submittedBy}
         </p>
         <p>
             <strong>The expected processing time is 20 minutes</strong><br />
