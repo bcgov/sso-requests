@@ -6,7 +6,7 @@ import createEvent from './actions/createEvent';
 const responseHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://bcgov.github.io',
   'Access-Control-Allow-Methods': 'OPTIONS,PUT,GET',
 };
 
