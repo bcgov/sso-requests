@@ -98,8 +98,12 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
             </TabWrapper>
           </Tab>
         </RequestTabs>
-        <Title>Production Status</Title>
-        <BceidStatus request={selectedRequest} />
+        {hasBceidProd && (
+          <>
+            <Title>Production Status</Title>
+            <BceidStatus request={selectedRequest} />
+          </>
+        )}
       </>
     );
   }
