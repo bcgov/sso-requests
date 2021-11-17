@@ -42,7 +42,7 @@ export default function Bceidstatus({ request }: Props) {
 
   return (
     <>
-      <ProgressBar now={50} animated />
+      <ProgressBar now={50} />
       <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
 
       <StatusList>
