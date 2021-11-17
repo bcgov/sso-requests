@@ -39,7 +39,6 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
   const { status } = selectedRequest;
   const displayStatus = getStatusDisplayName(status || 'draft');
   const hasBceidProd = usesBceid(selectedRequest?.realm) && selectedRequest.prod;
-  console.log(hasBceidProd);
   let panel = null;
   if (displayStatus === 'In Draft') {
     panel = (
