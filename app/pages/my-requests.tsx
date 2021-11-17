@@ -4,12 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Tab from 'react-bootstrap/Tab';
-import { get, padStart } from 'lodash';
+import { padStart } from 'lodash';
 import styled from 'styled-components';
 import { getRequests, deleteRequest } from 'services/request';
 import { Request } from 'interfaces/Request';
 import Table from 'html-components/Table';
-import Button from 'html-components/Button';
+import DefaultButton from 'html-components/Button';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import ActionButtons from 'components/ActionButtons';
 import reducer from 'reducers/requestReducer';
@@ -24,8 +24,6 @@ import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
-import BceidStatus from 'components/BceidStatus';
-import { usesBceid } from 'utils/helpers';
 
 const mediaRules: MediaRule[] = [
   {
@@ -55,11 +53,6 @@ const ButtonContainer = styled.div`
     margin-right: 20px;
     display: inline-block;
   }
-`;
-
-const TabWrapper = styled.div`
-  padding-left: 1rem;
-  padding-right: 1rem;
 `;
 
 const PaddedIcon = styled(FontAwesomeIcon)`
@@ -96,6 +89,10 @@ const CenteredHeader = styled.th`
   min-width: 100px;
 `;
 
+const Button = styled(DefaultButton)`
+  margin-bottom: 16px;
+`;
+
 export const RequestsContext = React.createContext({} as any);
 
 const hasAnyPendingStatus = (requests: Request[]) => {
@@ -126,8 +123,6 @@ function RequestsPage({ currentUser }: PageProps) {
   const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
   const [viewArchived, setViewArchived] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<TabKey>(state.editingRequest ? 'configuration-url' : 'installation-json');
-  const { realm } = selectedRequest || {};
-  const hasBceid = usesBceid(realm);
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
@@ -268,12 +263,9 @@ function RequestsPage({ currentUser }: PageProps) {
 
   return (
     <ResponsiveContainer rules={mediaRules}>
-      <Button size="medium" onClick={handleNewClick}>
+      <Button size="large" onClick={handleNewClick}>
         + Request Integration
       </Button>
-
-      <br />
-      <br />
       <RequestsContext.Provider value={contextValue}>
         <Grid cols={10}>
           <Grid.Row collapse="1100" gutter={[15, 2]}>
@@ -295,7 +287,6 @@ function RequestsPage({ currentUser }: PageProps) {
                   setActiveKey={setActiveTab}
                   activeKey={activeTab}
                 />
-                {hasBceid && <BceidStatus request={selectedRequest} />}
               </Grid.Col>
             )}
           </Grid.Row>

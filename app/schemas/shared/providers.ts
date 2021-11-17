@@ -26,15 +26,37 @@ const prodValidRedirectUris = {
   addItemText: 'Add another URI',
 };
 
-const environments = {
-  type: 'string',
-  title: 'Environments',
+const devValidRedirectUris = {
+  type: 'array',
+  description: 'You can use any valid URI for your redirect URIs.',
+  title: 'Dev Redirect URIs',
+  items: redirectUriItems,
+  additionalItems: redirectUriItems,
+  default: [''],
+  addItemText: 'Add another URI',
+  ...redirectUriTooltipInfo,
+};
+
+const dev = {
+  type: 'boolean',
+  enum: [true, false],
+  default: true,
+  title: 'Development',
+  displayTitle: 'Environments',
   tooltipContent:
-    "Choose environments to have separate SSO instances for your application's development, testing, and produtcion phases.",
-  enum: ['dev', 'dev, test', 'dev, test, prod'],
-  enumNames: ['Dev', 'Dev, Test', 'Dev, Test, Prod'],
-  uniqueItems: true,
-  default: 'dev',
+    'We will provide a separate client for each environment you select. Select the environments that are required for your project.',
+};
+
+const test = {
+  type: 'boolean',
+  title: 'Test',
+  enum: [true, false],
+};
+
+const prod = {
+  type: 'boolean',
+  title: 'Production',
+  enum: [true, false],
 };
 
 export default {
@@ -55,89 +77,46 @@ export default {
       tooltipContent: 'The identity providers you add will let your users authenticate with those services.',
       enum: ['onestopauth', 'onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
       enumNames: ['IDIR', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
-      default: 'onestopauth',
     },
-    environments,
-    devValidRedirectUris: {
-      type: 'array',
-      description: 'You can use any valid URI for your redirect URIs.',
-      title: 'Dev Redirect URIs',
-      items: redirectUriItems,
-      additionalItems: redirectUriItems,
-      default: [''],
-      addItemText: 'Add another URI',
-      ...redirectUriTooltipInfo,
-    },
+    dev,
+    test,
+    prod,
+    devValidRedirectUris,
   },
   dependencies: {
-    realm: {
+    test: {
       oneOf: [
         {
           properties: {
-            realm: {
-              enum: ['onestopauth-basic'],
+            test: {
+              enum: [true],
             },
-            environments: {
-              enum: ['dev', 'dev, test'],
-            },
+            testValidRedirectUris,
           },
         },
         {
           properties: {
-            realm: {
-              enum: ['onestopauth'],
-            },
-            environments: {
-              enum: ['dev', 'dev, test', 'dev, test, prod'],
-            },
-          },
-        },
-        {
-          properties: {
-            realm: {
-              enum: ['onestopauth-business'],
-            },
-            environments: {
-              enum: ['dev', 'dev, test'],
-            },
-          },
-        },
-        {
-          properties: {
-            realm: {
-              enum: ['onestopauth-both'],
-            },
-            environments: {
-              enum: ['dev', 'dev, test'],
+            test: {
+              enum: [false],
             },
           },
         },
       ],
     },
-
-    environments: {
+    prod: {
       oneOf: [
         {
           properties: {
-            environments: {
-              enum: ['dev, test'],
+            prod: {
+              enum: [true],
             },
-            testValidRedirectUris,
-          },
-        },
-        {
-          properties: {
-            environments: {
-              enum: ['dev, test, prod'],
-            },
-            testValidRedirectUris,
             prodValidRedirectUris,
           },
         },
         {
           properties: {
-            environments: {
-              enum: ['dev'],
+            prod: {
+              enum: [false],
             },
           },
         },

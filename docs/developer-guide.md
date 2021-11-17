@@ -66,9 +66,16 @@ _See [here](https://www.keycloak.org/docs/latest/securing_apps/index.html#other-
 If you are not using an adapter, you will require some additional information to set up your OpenID connection. Required information
 can be found behind the publicly accessible `.well-known` endpoint for your environment. These are:
 
-- **Dev**: https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
-- **Test**: https://test.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
-- **Prod**: https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
+- **Dev**: https://dev.oidc.gov.bc.ca/auth/realms/< realm_name >/.well-known/openid-configuration
+- **Test**: https://test.oidc.gov.bc.ca/auth/realms/< realm_name >/.well-known/openid-configuration
+- **Prod**: https://oidc.gov.bc.ca/auth/realms/< realm_name >/.well-known/openid-configuration
+
+Where < realm_name > needs to be replaced with the standard realm you are using, one of:
+
+- onestopauth (For IDIR only)
+- onestopauth-basic (For IDIR and BCeID basic)
+- onestopauth-business (For IDIR and BCeID business)
+- onestopauth-both (For IDIR and BCeID basic and business)
 
 Depending on the library you are using, it may only require this url, or additional information from the JSON response. The JSON response
 lists the realm-level endpoints you will require, such as the `authorization-endpoint` and `token-endpoint`. Please see

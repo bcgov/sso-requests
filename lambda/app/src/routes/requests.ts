@@ -50,17 +50,21 @@ const usesBceid = (realm: string | undefined) => {
 };
 
 const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
-  const { realm, id, preferredEmail, additionalEmails } = request;
+  const { realm, id, preferredEmail, additionalEmails, environments } = request;
   if (!usesBceid(realm)) return;
-  let cc = [preferredEmail];
-  if (Array.isArray(additionalEmails)) cc = cc.concat(additionalEmails);
+  const usesProd = environments.includes('prod');
+
+  // Only cc user for production requests
+  let cc = usesProd ? [preferredEmail] : [];
+  if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
+
   const emailCode = 'bceid-request-submitted';
   // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
   const to = ['bcgov.sso@gov.bc.ca'];
   return sendEmail({
     to,
     cc,
-    body: formatBody(request, idirUserDisplayName),
+    body: formatBody(request, idirUserDisplayName, usesProd),
     subject: getEmailSubject(emailCode, id),
     event: { emailCode, requestId: id },
   });
@@ -124,13 +128,6 @@ export const createRequest = async (session: Session, data: Data) => {
   }
 };
 
-const processEnvironments = (environments: string | string[]) => {
-  if (environments === 'dev') return ['dev'];
-  if (environments === 'dev, test') return ['dev', 'test'];
-  if (environments === 'dev, test, prod') return ['dev', 'test', 'prod'];
-  return [];
-};
-
 export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
   const [, error] = await hasRequestWithFailedApplyStatus();
   if (error) return errorResponse(error);
@@ -161,6 +158,9 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
 
+      let { environments } = mergedRequest;
+      if (!mergedRequest.bceidApproved) environments = environments.filter((environment) => environment !== 'prod');
+
       // trigger GitHub workflow before updating the record
       const payload = {
         requestId: mergedRequest.id,
@@ -171,7 +171,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
           test: mergedRequest.testValidRedirectUris,
           prod: mergedRequest.prodValidRedirectUris,
         },
-        environments: processEnvironments(mergedRequest.environments),
+        environments,
         publicAccess: mergedRequest.publicAccess,
       };
 
@@ -201,7 +201,6 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     }
 
     allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    allowedRequest.environments = processEnvironments(allowedRequest.environments);
     const result = await models.request.update(allowedRequest, {
       where: { id },
       returning: true,

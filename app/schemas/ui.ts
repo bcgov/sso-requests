@@ -35,9 +35,6 @@ const getUISchema = (created: boolean) => {
       // 'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
       'ui:default': 'onestopauth',
     },
-    environments: {
-      'ui:FieldTemplate': FieldTemplateWithTitle,
-    },
     bceidTo: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
       'ui:readonly': true,
@@ -47,6 +44,10 @@ const getUISchema = (created: boolean) => {
     },
     bceidBody: {
       'ui:widget': 'textarea',
+    },
+    dev: {
+      'ui:readonly': true,
+      'ui:FieldTemplate': FieldTemplateWithTitle,
     },
   };
 };

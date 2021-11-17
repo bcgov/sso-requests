@@ -1,5 +1,14 @@
 import { getAdminClient } from './adminClient';
 
+export const updateClientSecret = async (data: { environment: string; realmName: string; clientId: string }) => {
+  const { environment, clientId, realmName } = data;
+  const { kcAdminClient } = await getAdminClient({ environment });
+  kcAdminClient.setConfig({ realmName });
+  const clients = await kcAdminClient.clients.find({ realm: realmName });
+  const { id } = clients.find((client) => client.clientId === clientId);
+  await kcAdminClient.clients.generateNewClientSecret({ id });
+};
+
 export const generateInstallation = async (data: { environment: string; realmName: string; clientId: string }) => {
   console.log(data);
   const { environment, realmName, clientId } = data;

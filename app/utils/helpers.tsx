@@ -29,7 +29,16 @@ export const usesBceid = (realm: string | undefined) => {
 };
 
 export const getRequestedEnvironments = (request: Request) => {
-  const requestEnvironments = request?.environments as string;
+  const requestEnvironments: string[] = [];
+  const { realm, bceidApproved, dev, test, prod } = request;
+  const hasBceid = usesBceid(realm);
+  if (dev) requestEnvironments.push('dev');
+  if (test) requestEnvironments.push('test');
+  if (hasBceid) {
+    if (bceidApproved && prod) requestEnvironments.push('prod');
+  } else {
+    if (prod) requestEnvironments.push('prod');
+  }
   return environments.filter((env) => requestEnvironments.includes(env.name));
 };
 
@@ -143,10 +152,10 @@ export const processRequest = (request: Request): Request => {
     request.prodValidRedirectUris = [''];
   }
 
-  if (isEqual(['dev'], environments)) request.environments = 'dev';
-  else if (isEqual(['dev', 'test'], environments)) request.environments = 'dev, test';
-  else if (isEqual(['dev', 'test', 'prod'], environments)) request.environments = 'dev, test, prod';
-  else request.environments = 'dev';
+  if (environments.includes('dev')) request.dev = true;
+  if (environments.includes('test')) request.test = true;
+  if (environments.includes('prod')) request.prod = true;
+  delete request.environments;
   return changeNullToUndefined(request);
 };
 

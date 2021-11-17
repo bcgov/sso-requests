@@ -1,7 +1,10 @@
 import { JSONSchema6 } from 'json-schema';
 import { redirectUriItems, redirectUriTooltipInfo } from './shared/providers';
+import { EnvironmentOption } from 'interfaces/form';
 
-export default function getSchema(env: string) {
+export default function getSchema(envs: EnvironmentOption[]) {
+  const environmentNames = envs.map((env) => env.name);
+
   const schema: any = {
     type: 'object',
     properties: {
@@ -17,7 +20,7 @@ export default function getSchema(env: string) {
     },
   };
 
-  if (env.includes('test')) {
+  if (environmentNames.includes('test')) {
     schema.properties.testValidRedirectUris = {
       type: 'array',
       title: 'Test',
@@ -28,7 +31,7 @@ export default function getSchema(env: string) {
     };
   }
 
-  if (env.includes('prod')) {
+  if (environmentNames.includes('prod')) {
     schema.properties.prodValidRedirectUris = {
       type: 'array',
       title: 'Production',

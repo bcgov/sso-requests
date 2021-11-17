@@ -24,6 +24,12 @@ fieldset {
   border: none !important;
 }
 
+.pg-menu-item,
+.pg-menu-item > span {
+  display: flex;
+  align-items: center;
+}
+
 /* RJSF overrides */
 
 #root_newToSso > .radio,
@@ -62,6 +68,18 @@ label.control-label,
 label.pg-input-label,
 label.pg-textarea-label {
   font-weight: bold;
+}
+
+[type='checkbox'] + span {
+  margin-left: 5px;
+}
+
+.form-group.field.field-boolean {
+  margin: 0;
+}
+
+.form-group.field.field-boolean > legend {
+  margin-top: var(--field-top-spacing);
 }
 
 /* override spacing for first array field element */

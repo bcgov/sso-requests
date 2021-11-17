@@ -6,10 +6,13 @@ export interface Request {
   clientName?: string;
   realm?: string;
   publicAccess?: boolean;
-  devValidRedirectUris: string[];
-  testValidRedirectUris: string[];
-  prodValidRedirectUris: string[];
-  environments: string | string[];
+  devValidRedirectUris?: string[];
+  testValidRedirectUris?: string[];
+  prodValidRedirectUris?: string[];
+  environments?: string | string[];
+  dev?: boolean;
+  test?: boolean;
+  prod?: boolean;
   prNumber?: number;
   actionNumber?: number;
   createdAt?: string;
@@ -19,7 +22,8 @@ export interface Request {
   newToSso?: boolean;
   agreeWithTerms?: boolean;
   status?: Status;
-  archived: boolean;
-  additionalEmails: string[];
+  archived?: boolean;
+  additionalEmails?: string[];
   hasUnreadNotifications?: boolean;
+  bceidApproved?: boolean;
 }

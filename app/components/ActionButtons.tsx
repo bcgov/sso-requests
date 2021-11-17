@@ -34,7 +34,7 @@ interface Props {
   selectedRequest: Request;
   setSelectedId: Function;
   setActiveTab: Function;
-  archived: boolean;
+  archived?: boolean;
 }
 
 export default function Actionbuttons({

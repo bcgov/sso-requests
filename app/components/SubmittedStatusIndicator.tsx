@@ -1,31 +1,32 @@
 import { ProgressBar } from 'react-bootstrap';
-import Title from 'components/SHeader3';
+import DefaultTitle from 'components/SHeader3';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Link from '@button-inc/bcgov-theme/Link';
 import styled from 'styled-components';
-import { LINK_COLOR, SECONDARY_BLUE } from 'styles/theme';
+import { LINK_COLOR } from 'styles/theme';
 import HelpText from 'components/HelpText';
 import { Request } from 'interfaces/Request';
 import getConfig from 'next/config';
 import StatusList from 'components/StatusList';
 import { usesBceid } from 'utils/helpers';
+import InfoMessage from 'components/InfoMessage';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
 
 interface Props {
   selectedRequest: Request;
+  showTitle?: boolean;
 }
 
-const StyledIcon = styled(FontAwesomeIcon)`
-  color: ${SECONDARY_BLUE};
-  padding-right: 5px;
+const Title = styled(DefaultTitle)`
+  border-bottom: none;
+  margin-top: 10px;
 `;
 
 const SubTitle = styled(Title)`
-  margin-top: 20px;
-  border-bottom: none;
+  font-size: 14px;
 `;
 
 const SLink = styled.a`
@@ -98,7 +99,7 @@ const getStatusStatusCode = (status?: string) => {
   }
 };
 
-export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
+export default function SubmittedStatusIndicator({ selectedRequest, showTitle = true }: Props) {
   const { status, prNumber, updatedAt, realm } = selectedRequest;
 
   const hasError = getStatusFailure(status);
@@ -205,16 +206,13 @@ export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
 
   return (
     <>
-      <Title>
-        <StyledIcon icon={faInfoCircle} />
-        We are working on your request {hasBceid && 'for your BCeID integration'} - Expected processing time is 20 mins
-      </Title>
+      {showTitle && <Title>Access to {hasBceid && 'Dev and/or Test'} environment(s) - approx 20 mins</Title>}
       <SubTitle>{statusMessage}</SubTitle>
       <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />
       <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
       <StatusList>{statusItems}</StatusList>
       <br />
-      <p>
+      <InfoMessage>
         If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
         <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
           Rocket.Chat
@@ -223,7 +221,7 @@ export default function SubmittedStatusIndicator({ selectedRequest }: Props) {
         <SLink href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="blank">
           Email us
         </SLink>{' '}
-      </p>
+      </InfoMessage>
     </>
   );
 }

@@ -40,7 +40,7 @@ export const getEmailBody = (
       return `
         <h1>Your Pathfinder SSO request #${requestNumber} is successfully submitted.</h1>
         <p>
-            <strong>Project name: </strong>${projectName}<br /><strong>Submitted by:</strong>${submittedBy}
+            <strong>Project name: </strong>${projectName}<br /><strong>Submitted by: </strong>${submittedBy}
         </p>
         <p>
             <strong>The expected processing time is 20 minutes</strong><br />
@@ -133,7 +133,7 @@ export const getEmailSubject = (messageType: EmailMessage, id = null) => {
     case 'request-limit-exceeded':
       return `${prefix}Pathfinder SSO request limit reached`;
     case 'bceid-request-submitted':
-      return `New BCeID Integration Request - ${id}`;
+      return `New BCeID Integration Request ID ${id}`;
     default:
       return '';
   }
