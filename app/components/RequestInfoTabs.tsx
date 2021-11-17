@@ -34,7 +34,6 @@ interface Props {
 }
 
 function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeKey = defaultTabKey }: Props) {
-  const { dispatch } = useContext(RequestsContext);
   if (!selectedRequest) return null;
   const { status } = selectedRequest;
   const displayStatus = getStatusDisplayName(status || 'draft');

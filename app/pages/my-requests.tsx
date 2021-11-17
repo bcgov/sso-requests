@@ -176,11 +176,6 @@ function RequestsPage({ currentUser }: PageProps) {
           clearInterval(interval);
         } else {
           let requests = data || [];
-          requests.map((request, index) => {
-            if (request.id === selectedId) return state.requests[index];
-            return request;
-          });
-
           if (!state.editingRequest) {
             dispatch($setRequests(requests));
           }
