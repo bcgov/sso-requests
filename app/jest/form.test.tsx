@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
-import { createRequest, updateRequest, getRequest } from 'services/request';
+import { updateRequest } from 'services/request';
 import { Request } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';

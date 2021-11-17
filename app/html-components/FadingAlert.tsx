@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import Alert from 'html-components/Alert';
 
-interface props {
+interface Props {
   variant?: string;
   size?: string;
   closable?: boolean;
@@ -11,7 +10,7 @@ interface props {
   children?: React.ReactNode;
 }
 
-const FadingAlert = ({ children, variant, size, closable, content, fadeOut }: props) => {
+const FadingAlert = ({ children, variant, size, closable, content, fadeOut }: Props) => {
   const [faded, setFaded] = useState(false);
 
   useEffect(() => {

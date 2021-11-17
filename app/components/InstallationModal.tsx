@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useState } from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import Button from '@button-inc/bcgov-theme/Button';
 import Alert from 'html-components/Alert';
@@ -28,7 +28,7 @@ const InstallationModal = ({
   const handleInstallationClick = async () => {
     setLoading(true);
     setInstallation(null);
-    const [data, err] = await getInstallation(requestId, environment);
+    const [data] = await getInstallation(requestId, environment);
     setInstallation(data);
     setLoading(false);
   };

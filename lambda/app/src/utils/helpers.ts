@@ -77,7 +77,7 @@ export const validateRequest = (formData: any, original: Request, isUpdate = fal
 // GH actions inputs expects an object where all values are strings
 export const stringifyGithubInputs = (inputs: any) => {
   const stringifiedInputs = {};
-  Object.entries(inputs).map(([key, value]) => {
+  Object.entries(inputs).forEach(([key, value]) => {
     if (isObject(value) || Array.isArray(value)) {
       stringifiedInputs[key] = JSON.stringify(value);
     } else {

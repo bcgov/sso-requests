@@ -13,7 +13,7 @@ const customWidgets = {
   SelectWidget: wrapper(Dropdown, 'select'),
 };
 
-export default function MyForm(props: any) {
+export default function GovForm(props: any) {
   return (
     <Form {...props} widgets={customWidgets} noHtml5Validate ErrorList={() => null} transformErrors={transformErrors} />
   );
