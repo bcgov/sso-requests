@@ -25,7 +25,7 @@ const validateJWTSignature = async (token) => {
     // 2. Compare the local key ID (kid) to the public kid.
     const { jwk, issuer } = await getConfiguration();
 
-    const key = jwk.keys.find((key) => key.kid === header.kid);
+    const key = jwk.keys.find((jwkKey) => jwkKey.kid === header.kid);
     const isValidKid = !!key;
 
     if (!isValidKid) {

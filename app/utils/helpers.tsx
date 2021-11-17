@@ -139,7 +139,7 @@ const changeNullToUndefined = (data: any) => {
 };
 
 export const processRequest = (request: Request): Request => {
-  const environments = request.environments as string[];
+  const requestedEnvironments = request.environments as string[];
   if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
     request.devValidRedirectUris = [''];
   }
@@ -152,9 +152,9 @@ export const processRequest = (request: Request): Request => {
     request.prodValidRedirectUris = [''];
   }
 
-  if (environments.includes('dev')) request.dev = true;
-  if (environments.includes('test')) request.test = true;
-  if (environments.includes('prod')) request.prod = true;
+  if (requestedEnvironments.includes('dev')) request.dev = true;
+  if (requestedEnvironments.includes('test')) request.test = true;
+  if (requestedEnvironments.includes('prod')) request.prod = true;
   delete request.environments;
   return changeNullToUndefined(request);
 };

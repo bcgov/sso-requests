@@ -1,10 +1,8 @@
-import { useContext } from 'react';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
-import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';

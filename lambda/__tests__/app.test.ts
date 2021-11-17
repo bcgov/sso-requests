@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { handler } from '../app/src/main';
 import baseEvent from './base-event.json';
 import { authenticate } from '../app/src/authenticate';

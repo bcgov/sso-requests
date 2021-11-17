@@ -1,5 +1,5 @@
 import React from 'react';
-import ResponsiveContainer, { MediaRule, defaultRules } from 'components/ResponsiveContainer';
+import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import TermsAndConditions from 'components/TermsAndConditions';
 import { PageProps } from 'interfaces/props';
 
