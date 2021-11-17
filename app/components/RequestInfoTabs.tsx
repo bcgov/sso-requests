@@ -13,6 +13,11 @@ import { RequestTabs } from 'components/RequestTabs';
 import { usesBceid } from 'utils/helpers';
 import NumberedContents from 'components/NumberedContents';
 import BceidStatus from 'components/BceidStatus';
+import DefaultTitle from 'components/SHeader3';
+
+const Title = styled(DefaultTitle)`
+  margin-top: 10px;
+`;
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -34,7 +39,6 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
   const { status } = selectedRequest;
   const displayStatus = getStatusDisplayName(status || 'draft');
   const hasBceidProd = usesBceid(selectedRequest?.realm) && selectedRequest.prod;
-
   let panel = null;
   if (displayStatus === 'In Draft') {
     panel = (
@@ -76,23 +80,27 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
     );
   } else if (displayStatus === 'Completed') {
     panel = (
-      <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
-        <Tab eventKey="installation-json" title="Installation JSON">
-          <TabWrapper>
-            <InstallationPanel selectedRequest={selectedRequest} />
-          </TabWrapper>
-        </Tab>
-        <Tab eventKey="configuration-url" title="URIs & Secrets">
-          <TabWrapper>
-            <ConfigurationUrlPanel selectedRequest={selectedRequest} />
-          </TabWrapper>
-        </Tab>
-        <Tab eventKey="data-changes" title="Data Changes">
-          <TabWrapper>
-            <UserEventPanel requestId={selectedRequest.id} />
-          </TabWrapper>
-        </Tab>
-      </RequestTabs>
+      <>
+        <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
+          <Tab eventKey="installation-json" title="Installation JSON">
+            <TabWrapper>
+              <InstallationPanel selectedRequest={selectedRequest} />
+            </TabWrapper>
+          </Tab>
+          <Tab eventKey="configuration-url" title="URIs & Secrets">
+            <TabWrapper>
+              <ConfigurationUrlPanel selectedRequest={selectedRequest} />
+            </TabWrapper>
+          </Tab>
+          <Tab eventKey="data-changes" title="Data Changes">
+            <TabWrapper>
+              <UserEventPanel requestId={selectedRequest.id} />
+            </TabWrapper>
+          </Tab>
+        </RequestTabs>
+        <Title>Production Status</Title>
+        <BceidStatus request={selectedRequest} />
+      </>
     );
   }
 

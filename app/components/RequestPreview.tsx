@@ -32,7 +32,7 @@ const formatBoolean = (value?: boolean) => {
 };
 
 interface FormattedListProps {
-  list: any[];
+  list?: any[];
   title: string;
   inline?: boolean;
 }
@@ -53,7 +53,7 @@ const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
           </SemiBold>
         )}
       </tr>
-      {!inline && list?.length > 1 && (
+      {!inline && (list?.length || 0) > 1 && (
         <tr>
           <td>
             <SemiBold>

@@ -30,9 +30,15 @@ export const usesBceid = (realm: string | undefined) => {
 
 export const getRequestedEnvironments = (request: Request) => {
   const requestEnvironments: string[] = [];
-  if (request.dev) requestEnvironments.push('dev');
-  if (request.test) requestEnvironments.push('test');
-  if (request.prod) requestEnvironments.push('prod');
+  const { realm, bceidApproved, dev, test, prod } = request;
+  const hasBceid = usesBceid(realm);
+  if (dev) requestEnvironments.push('dev');
+  if (test) requestEnvironments.push('test');
+  if (hasBceid) {
+    if (bceidApproved && prod) requestEnvironments.push('prod');
+  } else {
+    if (prod) requestEnvironments.push('prod');
+  }
   return environments.filter((env) => requestEnvironments.includes(env.name));
 };
 
