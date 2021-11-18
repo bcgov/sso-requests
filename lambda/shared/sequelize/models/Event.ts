@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Event = sequelize.define(
+  return sequelize.define(
     'event',
     {
       requestId: {
@@ -28,5 +28,4 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     },
   );
-  return Event;
 };

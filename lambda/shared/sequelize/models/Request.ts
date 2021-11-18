@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Request = sequelize.define(
+  return sequelize.define(
     'request',
     {
       idirUserid: {
@@ -113,6 +113,4 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     },
   );
-
-  return Request;
 };

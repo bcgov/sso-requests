@@ -135,8 +135,8 @@ function RequestsPage({ currentUser }: PageProps) {
     if (err) {
       setHasError(true);
     } else {
-      const requests = data || [];
-      dispatch($setRequests(requests));
+      const downloadedRequests = data || [];
+      dispatch($setRequests(downloadedRequests));
 
       const { id } = router.query;
       if (id) {
@@ -175,9 +175,9 @@ function RequestsPage({ currentUser }: PageProps) {
         if (err) {
           clearInterval(interval);
         } else {
-          let requests = data || [];
+          let downloadedRequests = data || [];
           if (!state.editingRequest) {
-            dispatch($setRequests(requests));
+            dispatch($setRequests(downloadedRequests));
           }
         }
       }, 1000 * 5);

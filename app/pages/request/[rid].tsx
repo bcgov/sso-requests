@@ -22,7 +22,7 @@ function Request({ currentUser }: Props) {
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
-      const [data, err] = await getRequest(parseInt(rid as string));
+      const [data] = await getRequest(parseInt(rid as string));
       setRequest(data as Request | null);
       setLoading(false);
     };

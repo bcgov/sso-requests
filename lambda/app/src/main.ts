@@ -33,11 +33,11 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
 
   const session = await authenticate(headers);
   if (!session) {
-    const response = {
+    const unauthorizedResponse = {
       statusCode: 401,
       headers: responseHeaders,
     };
-    return callback(null, response);
+    return callback(null, unauthorizedResponse);
   }
 
   let response: any = {
