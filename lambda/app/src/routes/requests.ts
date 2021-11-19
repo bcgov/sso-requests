@@ -60,7 +60,7 @@ const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
 
   const emailCode = 'bceid-request-submitted';
   // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
-  const to = ['bcgov.sso@gov.bc.ca'];
+  const to = ['jon@button.is'];
   return sendEmail({
     to,
     cc,
