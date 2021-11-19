@@ -8,6 +8,7 @@ import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContaine
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
 import Accordion from 'components/Accordion';
+import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 
 interface PanelProps {
@@ -165,9 +166,8 @@ export default function Home({ onLoginClick }: PageProps) {
                 </Accordion.Panel>
               </Accordion>
               <br />
-              <h2>Getting Started</h2>
-              <Accordion>
-                <Accordion.Panel title="Which Identity Provider Should I Use?">
+              <FaqItems>
+                <Accordion.Panel title="Q. Which Identity Provider Should I Use?">
                   <p>
                     <ul>
                       <li>
@@ -204,7 +204,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     </ul>
                   </p>
                 </Accordion.Panel>
-                <Accordion.Panel title="Which Information Do I Need to Get Started?">
+                <Accordion.Panel title="Q. Which Information Do I Need to Get Started?">
                   <p>
                     Before starting the integration request, make sure you have this information ready:
                     <br />
@@ -224,7 +224,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     </ul>
                   </p>
                 </Accordion.Panel>
-              </Accordion>
+              </FaqItems>
               <br />
               <h2>Need Help?</h2>
               Message us on{' '}
