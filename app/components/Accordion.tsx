@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AccordionPanel from 'components/AccordionPanel';
 import styled from 'styled-components';
+import flatten from 'lodash/flatten';
 import { SECONDARY_BLUE } from 'styles/theme';
 
 interface Props {
@@ -40,7 +41,7 @@ function Accordion({ children }: Props) {
         <span onClick={handleClose}>Collapse All</span>
       </ActionsContainer>
       {Array.isArray(children)
-        ? children?.map((child: any) => React.cloneElement(child, { allOpen, setAllOpen }))
+        ? flatten(children).map((child: any) => React.cloneElement(child, { allOpen, setAllOpen }))
         : React.cloneElement(children, { allOpen, setAllOpen })}
     </>
   );
