@@ -133,7 +133,7 @@ export const getEmailSubject = (messageType: EmailMessage, id = null) => {
     case 'request-limit-exceeded':
       return `${prefix}Pathfinder SSO request limit reached`;
     case 'bceid-request-submitted':
-      return `New BCeID Integration Request ID ${id}`;
+      return `${prefix}New BCeID Integration Request ID ${id}`;
     default:
       return '';
   }
