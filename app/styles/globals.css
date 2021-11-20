@@ -120,12 +120,13 @@ ul.error-detail {
   display: none;
 }
 
-.pg-select {
-  padding-top: 5px;
-}
-
 .pg-modal-header {
   font-weight: bold;
   display: flex;
   align-items: center;
+}
+
+.multiselect {
+  position: relative;
+  outline: none;
 }
