@@ -21,7 +21,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [, setError] = useState(null);
+  const [, setError] = useState<any>(null);
 
   useEffect(() => {
     console.log('app started...');
