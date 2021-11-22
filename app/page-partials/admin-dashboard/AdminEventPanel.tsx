@@ -1,27 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
 import SectionHeader from 'components/SectionHeader';
 import { Event } from 'interfaces/Event';
 import { getEvents } from 'services/event';
-import { SUBTITLE_FONT_SIZE } from 'styles/theme';
 import EventContent from 'components/EventContent';
-
-const Title = styled.h3`
-  color: #777777;
-  font-size: ${SUBTITLE_FONT_SIZE};
-  font-weight: bold;
-  margin-bottom: 0;
-`;
 
 const AlignCenter = styled.div`
   text-align: center;
 `;
 
 interface Props {
-  requestId: number;
+  requestId?: number;
 }
 
 interface FilterItem {
@@ -67,14 +58,12 @@ export default function AdminEventPanel({ requestId }: Props) {
   const [hasError, setHasError] = useState<boolean>(false);
 
   const getData = async () => {
+    if (!requestId) return;
     setLoading(true);
 
     const [data, err] = await getEvents({
       requestId,
       eventCode,
-      // order,
-      // limit,
-      // page,
     });
     if (err) {
       setHasError(true);
@@ -98,22 +87,10 @@ export default function AdminEventPanel({ requestId }: Props) {
   return (
     <>
       <SectionHeader>
-        <Grid cols={12}>
-          <Grid.Row collapse="992" gutter={[]} align="center">
-            <Grid.Col span={5}>
-              <Title>Events</Title>
-            </Grid.Col>
-            <Grid.Col span={7} style={{ textAlign: 'right' }}>
-              <Dropdown
-                style={{ display: 'inline-block', width: '250px' }}
-                value={eventCode}
-                onChange={handleFilterChange}
-              >
-                {generateOptions(filterItems)}
-              </Dropdown>
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
+        <br />
+        <Dropdown style={{ display: 'inline-block', width: '250px' }} value={eventCode} onChange={handleFilterChange}>
+          {generateOptions(filterItems)}
+        </Dropdown>
       </SectionHeader>
       {loading ? (
         <AlignCenter>
