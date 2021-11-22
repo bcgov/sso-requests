@@ -30,7 +30,7 @@ const Label = styled.label`
   }
 `;
 
-const PageInfo = styled.span`
+const PageInfo = styled.li`
   padding-left: 5px;
   line-height: 40px;
 `;
@@ -159,7 +159,6 @@ function Table({
   loading,
 }: Props) {
   const [_searchKey, setSearchKey] = useState(searchKey);
-  console.log(rowCount, 'is row count');
 
   const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchKey(event.target.value);
