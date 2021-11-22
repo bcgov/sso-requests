@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
 
 const Table = styled.table`
   width: 100%;
@@ -7,18 +8,22 @@ const Table = styled.table`
   box-shadow: none;
   text-align: left;
   border-collapse: separate;
-  border-spacing: 0 5px;
+  border-spacing: 0 ${TABLE_ROW_SPACING}px;
 
   & thead {
     font-size: 12px;
     color: #777777;
+
+    & th {
+      min-width: 140px;
+    }
   }
 
   & tbody {
     font-size: 16px;
 
     tr {
-      height: 60px;
+      height: ${TABLE_ROW_HEIGHT}px;
       background-color: #f8f8f8;
       &:hover {
         background-color: #fff7d5;
@@ -37,6 +42,7 @@ const Table = styled.table`
   & th,
   & td {
     border: none;
+    padding: 0;
   }
 `;
 

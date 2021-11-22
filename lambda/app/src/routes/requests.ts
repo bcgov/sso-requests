@@ -2,7 +2,14 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
-import { validateRequest, processRequest, getDifferences, isAdmin, formatBody } from '../utils/helpers';
+import {
+  validateRequest,
+  processRequest,
+  getDifferences,
+  isAdmin,
+  formatBody,
+  getWhereClauseForAllRequests,
+} from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
@@ -277,35 +284,16 @@ export const getRequestAll = async (
     page: number;
     status?: string;
     archiveStatus?: string;
+    realms?: string[];
+    environments?: string[];
   },
 ) => {
   if (!isAdmin(session)) {
     throw Error('not allowed');
   }
 
-  const { searchField, searchKey, order, limit, page, status = 'all', archiveStatus = 'active' } = data;
-
-  const where: any = {};
-
-  if (searchKey && searchField && searchField.length > 0) {
-    where[Op.or] = [];
-    searchField.forEach((field) => {
-      if (field === 'id') {
-        const id = Number(searchKey);
-        if (!Number.isNaN(id)) where[Op.or].push({ id });
-      } else {
-        where[Op.or].push({ [field]: { [Op.iLike]: `%${searchKey}%` } });
-      }
-    });
-  }
-
-  if (status !== 'all') {
-    where.status = status;
-  }
-
-  if (archiveStatus !== 'all') {
-    where.archived = archiveStatus === 'archived';
-  }
+  const { order, limit, page, ...rest } = data;
+  const where = getWhereClauseForAllRequests(rest);
 
   try {
     const result: Promise<{ count: number; rows: any[] }> = await models.request.findAndCountAll({

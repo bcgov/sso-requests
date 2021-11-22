@@ -3,7 +3,7 @@
 //
 
 import { isEqual } from 'lodash';
-import { Request } from 'interfaces/Request';
+import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
@@ -20,6 +20,16 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
     if (err.length > 0) errors[i] = err;
   });
   return errors;
+};
+
+export const formatFilters = (idps: Option[], envs: Option[]) => {
+  let realms: string[] | null = [];
+  idps.forEach((idp: Option) => (realms = realms?.concat(idp.value) || null));
+  realms = realms.length > 0 ? realms : null;
+
+  let formattedEnvironments: string[] | null = envs.map((env: Option) => env.value as string);
+  formattedEnvironments = formattedEnvironments.length > 0 ? formattedEnvironments : null;
+  return [realms, formattedEnvironments];
 };
 
 const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];

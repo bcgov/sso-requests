@@ -8,6 +8,12 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import Pagination from 'react-bootstrap/Pagination';
 import StyledTable from 'html-components/Table';
 import SectionHeader from 'components/SectionHeader';
+import { MultiSelect } from 'react-multi-select-component';
+import { TextBlock } from 'react-placeholder/lib/placeholders';
+import ReactPlaceholder from 'react-placeholder';
+import 'react-placeholder/lib/reactPlaceholder.css';
+import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
+import { Option } from 'interfaces/Request';
 
 const StyledPagination = styled(Pagination)`
   margin: 0 !important;
@@ -16,9 +22,26 @@ const StyledPagination = styled(Pagination)`
   }
 `;
 
-const PageInfo = styled.span`
+const Label = styled.label`
+  cursor: pointer;
+  font-weight: bold;
+  & * {
+    font-weight: normal;
+  }
+`;
+
+const PageInfo = styled.li`
   padding-left: 5px;
   line-height: 40px;
+`;
+
+const FiltersContainer = styled.div<{ itemsLength: number }>`
+  display: grid;
+  grid-template-columns:
+    ${(props) => `repeat(${props.itemsLength}, 1fr);`}
+    &> * {
+    margin-right: 10px;
+  }
 `;
 
 interface Header {
@@ -31,19 +54,24 @@ interface FilterItem {
   text: string;
 }
 
+interface Filter {
+  value?: string | Option[];
+  multiselect?: boolean;
+  onChange?: Function;
+  options: Option[];
+  label: string;
+}
+
 interface Props {
   headers: Header[];
   children: React.ReactNode;
-  filterItems?: FilterItem[];
-  filterItems2?: FilterItem[];
   pageLimits?: FilterItem[];
   searchKey?: string;
   searchPlaceholder?: string;
   page?: number;
   limit?: number;
   rowCount?: number;
-  filter?: string;
-  filter2?: string;
+  filters: Filter[];
   onSearch?: (val: string) => void;
   onEnter?: (val: string) => void;
   onFilter?: (val: any) => void;
@@ -52,6 +80,7 @@ interface Props {
   onPage?: (val: number) => void;
   onPrev?: (val: number) => void;
   onNext?: (val: number) => void;
+  loading?: boolean;
 }
 
 const generateOptions = (items: FilterItem[]) => (
@@ -116,24 +145,19 @@ function Table({
   children,
   onSearch = noop,
   onEnter = noop,
-  onFilter = noop,
-  onFilter2 = noop,
+  filters = [] as Filter[],
   onLimit = noop,
   onPage,
   onPrev = noop,
   onNext = noop,
-  filterItems,
-  filterItems2,
   pageLimits,
   searchKey = '',
   searchPlaceholder = 'Search...',
   page = 1,
   limit = 10,
   rowCount = 10,
-  filter = '',
-  filter2 = '',
+  loading,
 }: Props) {
-  console.log('page', page);
   const [_searchKey, setSearchKey] = useState(searchKey);
 
   const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,14 +170,6 @@ function Table({
     }
   };
 
-  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onFilter(event.target.value);
-  };
-
-  const handleFilterChange2 = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onFilter2(event.target.value);
-  };
-
   const handlePageLimitChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onLimit(Number(event.target.value));
   };
@@ -162,12 +178,26 @@ function Table({
     onSearch(_searchKey);
   };
 
+  const rowSpaces = rowCount || 1;
+  const awesomePlaceholder = (
+    <td colSpan={100}>
+      <div
+        style={{
+          height: `${rowSpaces * (TABLE_ROW_HEIGHT + TABLE_ROW_SPACING) - TABLE_ROW_SPACING}px`,
+          paddingTop: '10px',
+        }}
+      >
+        <TextBlock rows={rowSpaces * 2} color="#CCC" />
+      </div>
+    </td>
+  );
+
   return (
     <>
       <SectionHeader>
         <Grid cols={12}>
-          <Grid.Row collapse="992" gutter={[]} align="center">
-            <Grid.Col span={5}>
+          <Grid.Row collapse="1160" gutter={[]} align="center">
+            <Grid.Col span={4}>
               <Input
                 type="text"
                 size="small"
@@ -181,31 +211,43 @@ function Table({
                 Search
               </Button>
             </Grid.Col>
-            <Grid.Col span={7} style={{ textAlign: 'right' }}>
-              {filterItems && (
-                <>
-                  <span>Status: </span>
-                  <Dropdown
-                    style={{ display: 'inline-block', width: '160px' }}
-                    value={filter}
-                    onChange={handleFilterChange}
-                  >
-                    {generateOptions(filterItems)}
-                  </Dropdown>
-                </>
-              )}
-              &nbsp;&nbsp;
-              {filterItems2 && (
-                <>
-                  <Dropdown
-                    style={{ display: 'inline-block', width: '160px' }}
-                    value={filter2}
-                    onChange={handleFilterChange2}
-                  >
-                    {generateOptions(filterItems2)}
-                  </Dropdown>
-                </>
-              )}
+            <Grid.Col span={8} style={{ textAlign: 'right' }}>
+              <FiltersContainer itemsLength={filters.length}>
+                {filters.map((filter) => (
+                  <>
+                    {filter.multiselect ? (
+                      <Label>
+                        {filter.label}
+                        <MultiSelect
+                          className="multiselect"
+                          options={filter.options}
+                          value={Array.isArray(filter.value) ? filter.value : []}
+                          onChange={filter.onChange}
+                          labelledBy="Select"
+                          hasSelectAll={false}
+                        />
+                      </Label>
+                    ) : (
+                      <Label>
+                        {filter.label}
+                        <Dropdown
+                          onChange={filter.onChange}
+                          value={typeof filter.value === 'string' ? filter.value : ''}
+                        >
+                          {filter.options.map((option) => (
+                            <option
+                              value={option.value}
+                              key={Array.isArray(option.value) ? JSON.stringify(option.value) : option.value}
+                            >
+                              {option.label}
+                            </option>
+                          ))}
+                        </Dropdown>
+                      </Label>
+                    )}
+                  </>
+                ))}
+              </FiltersContainer>
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -223,7 +265,11 @@ function Table({
             })}
           </tr>
         </thead>
-        <tbody>{children}</tbody>
+        <tbody>
+          <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
+            {children}
+          </ReactPlaceholder>
+        </tbody>
       </StyledTable>
       {pageLimits && (
         <Grid cols={12}>

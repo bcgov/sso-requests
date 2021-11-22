@@ -10,7 +10,7 @@ import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
-import { Request } from 'interfaces/Request';
+import { Request, Option } from 'interfaces/Request';
 import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
@@ -19,6 +19,7 @@ import CancelButton from 'components/CancelButton';
 import AdminEventPanel from 'components/AdminEventPanel';
 import AdminRequestPanel from 'components/AdminRequestPanel';
 import { PRIMARY_RED } from 'styles/theme';
+import { formatFilters } from 'utils/helpers';
 
 type Status =
   | 'all'
@@ -34,23 +35,34 @@ type Status =
 
 type ArchiveStatus = 'all' | 'active' | 'archived';
 
-const statusFilters = [
-  { value: 'all', text: 'All' },
-  { value: 'draft', text: 'Draft' },
-  { value: 'submitted', text: 'Submitted' },
-  { value: 'pr', text: 'PR' },
-  { value: 'prFailed', text: 'PR Failed' },
-  { value: 'planned', text: 'Planned' },
-  { value: 'planFailed', text: 'Plan Failed' },
-  { value: 'approved', text: 'Approved' },
-  { value: 'applied', text: 'Applied' },
-  { value: 'applyFailed', text: 'Apply Failed' },
+const workflowStatusOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'submitted', label: 'Submitted' },
+  { value: 'pr', label: 'PR' },
+  { value: 'prFailed', label: 'PR Failed' },
+  { value: 'planned', label: 'Planned' },
+  { value: 'planFailed', label: 'Plan Failed' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'applied', label: 'Applied' },
+  { value: 'applyFailed', label: 'Apply Failed' },
 ];
 
-const archiveStatusFilters = [
-  { value: 'all', text: 'All' },
-  { value: 'active', text: 'Active' },
-  { value: 'archived', text: 'Deleted' },
+const idpOptions = [
+  { value: ['onestopauth'], label: 'IDIR' },
+  { value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'], label: 'BCeID' },
+];
+
+const archiveStatusOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'Active' },
+  { value: 'archived', label: 'Deleted' },
+];
+
+const environmentOptions = [
+  { value: 'dev', label: 'Dev' },
+  { value: 'test', label: 'Test' },
+  { value: 'prod', label: 'Prod' },
 ];
 
 const pageLimits = [
@@ -107,12 +119,15 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [count, setCount] = useState<number>(0);
   const [limit, setLimit] = useState<number>(5);
   const [page, setPage] = useState<number>(1);
-  const [status, setStatus] = useState<Status>('all');
-  const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
   const [selectedId, setSelectedId] = useState<number | undefined>(Number(router.query?.id) || undefined);
+  const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
+  const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
+  const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
+  const [workflowStatus, setWorkflowStatus] = useState('all');
 
   const getData = async () => {
     setLoading(true);
+    const [realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
 
     const [data, err] = await getRequestAll({
       searchField: ['id', 'projectName'],
@@ -123,8 +138,10 @@ export default function AdminDashboard({ currentUser }: PageProps) {
       ],
       limit,
       page,
-      status,
+      status: workflowStatus,
       archiveStatus,
+      realms,
+      environments,
     });
     if (err) {
       setHasError(true);
@@ -138,15 +155,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   useEffect(() => {
     getData();
-  }, [searchKey, limit, page, status, archiveStatus]);
-
-  if (loading) {
-    return (
-      <ResponsiveContainer rules={mediaRules} style={{ textAlign: 'center' }}>
-        <Loader type="Grid" color="#000" height={45} width={45} visible={true} />
-      </ResponsiveContainer>
-    );
-  }
+  }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
 
   if (hasError) {
     return null;
@@ -177,6 +186,9 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const cancelDelete = () => (window.location.hash = '#');
 
+  const handleWorkflowChange = (e: any) => setWorkflowStatus(e.target.value);
+  const handleArchiveChange = (e: any) => setArchiveStatus(e.target.value);
+
   let rightPanel = null;
   if (selectedId) {
     rightPanel = showEvents ? (
@@ -192,6 +204,36 @@ export default function AdminDashboard({ currentUser }: PageProps) {
         <Grid.Row collapse="800" gutter={[15, 2]}>
           <Grid.Col span={6}>
             <Table
+              filters={[
+                {
+                  value: selectedEnvironments,
+                  multiselect: true,
+                  onChange: setSelectedEnvironments,
+                  options: environmentOptions,
+                  label: 'Environments',
+                },
+                {
+                  value: selectedIdp,
+                  multiselect: true,
+                  onChange: setSelectedIdp,
+                  options: idpOptions,
+                  label: 'IDPs',
+                },
+                {
+                  value: workflowStatus,
+                  multiselect: false,
+                  onChange: handleWorkflowChange,
+                  options: workflowStatusOptions,
+                  label: 'Workflow Status',
+                },
+                {
+                  value: archiveStatus,
+                  multiselect: false,
+                  onChange: handleArchiveChange,
+                  options: archiveStatusOptions,
+                  label: 'Archive Status',
+                },
+              ]}
               headers={[
                 { name: 'Request ID' },
                 { name: 'Project Name' },
@@ -199,16 +241,12 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 { name: 'File Status' },
                 { name: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
               ]}
-              filterItems={statusFilters}
-              filterItems2={archiveStatusFilters}
               pageLimits={pageLimits}
               searchKey={searchKey}
               searchPlaceholder="Project ID or Name"
               limit={limit}
               page={page}
               rowCount={count}
-              filter={status}
-              filter2={archiveStatus}
               onSearch={(val) => {
                 setSearchKey(val);
                 setPage(1);
@@ -217,20 +255,13 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 setSearchKey(val);
                 setPage(1);
               }}
-              onFilter={(val) => {
-                setStatus(val);
-                setPage(1);
-              }}
-              onFilter2={(val) => {
-                setArchiveStatus(val);
-                setPage(1);
-              }}
               onLimit={(val) => {
                 setPage(1);
                 setLimit(val);
               }}
               onPrev={setPage}
               onNext={setPage}
+              loading={loading}
             >
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
