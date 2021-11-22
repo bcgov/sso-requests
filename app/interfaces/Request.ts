@@ -27,3 +27,8 @@ export interface Request {
   hasUnreadNotifications?: boolean;
   bceidApproved?: boolean;
 }
+
+export interface Option {
+  value: string | string[];
+  label: string;
+}

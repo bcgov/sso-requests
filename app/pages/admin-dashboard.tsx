@@ -19,6 +19,8 @@ import CancelButton from 'components/CancelButton';
 import AdminEventPanel from 'components/AdminEventPanel';
 import AdminRequestPanel from 'components/AdminRequestPanel';
 import { PRIMARY_RED } from 'styles/theme';
+import { Option } from 'interfaces/Request';
+import { formatFilters } from 'utils/helpers';
 
 type Status =
   | 'all'
@@ -48,8 +50,8 @@ const workflowStatusOptions = [
 ];
 
 const idpOptions = [
-  { value: 'idir', label: 'IDIR' },
-  { value: 'bceid', label: 'BCeID' },
+  { value: ['onestopauth'], label: 'IDIR' },
+  { value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'], label: 'BCeID' },
 ];
 
 const archiveStatusOptions = [
@@ -120,16 +122,14 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [page, setPage] = useState<number>(1);
   const [selectedId, setSelectedId] = useState<number | undefined>(Number(router.query?.id) || undefined);
   const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
-  const [selectedEnvironments, setSelectedEnvironments] = useState([]);
-  const [selectedIdp, setSelectedIdp] = useState('all');
+  const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
+  const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState('all');
 
   const getData = async () => {
     setLoading(true);
-    const realms =
-      selectedIdp === 'idir' ? ['onestopauth'] : ['onestopauth-basic', 'onestopauth-both', 'onestopauth-business'];
+    const [realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
 
-    const environments = selectedEnvironments.map((env: any) => env.value);
     const [data, err] = await getRequestAll({
       searchField: ['id', 'projectName'],
       searchKey,
@@ -190,7 +190,6 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const handleWorkflowChange = (e: any) => setWorkflowStatus(e.target.value);
   const handleArchiveChange = (e: any) => setArchiveStatus(e.target.value);
-  const handleIdpChange = (e: any) => setSelectedIdp(e.target.value);
 
   let rightPanel = null;
   if (selectedId) {
@@ -217,8 +216,8 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 },
                 {
                   value: selectedIdp,
-                  multiselect: false,
-                  onChange: handleIdpChange,
+                  multiselect: true,
+                  onChange: setSelectedIdp,
                   options: idpOptions,
                   label: 'IDPs',
                 },

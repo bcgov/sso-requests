@@ -49,11 +49,8 @@ export default function Actionbuttons({
   const { editingRequest } = state as RequestReducerState;
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
-  const handleEdit = (event: MouseEvent) => {
-    if (request.status === 'draft') {
-      router.push(`/request/${request.id}`);
-      return;
-    }
+  const handleEdit = async (event: MouseEvent) => {
+    if (request.status === 'draft') return await router.push(`/request/${request.id}`);
     setActiveTab('configuration-url');
     event.stopPropagation();
     if (selectedRequest?.id === request.id) {

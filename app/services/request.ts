@@ -56,8 +56,8 @@ interface RequestAllData {
   page: number;
   status: string;
   archiveStatus: string;
-  realms: string[];
-  environments: string[];
+  realms: string[] | null;
+  environments: string[] | null;
 }
 
 interface RequestAllResult {

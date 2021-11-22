@@ -277,13 +277,25 @@ export const getRequestAll = async (
     page: number;
     status?: string;
     archiveStatus?: string;
+    realms?: string[];
+    environments?: string[];
   },
 ) => {
   if (!isAdmin(session)) {
     throw Error('not allowed');
   }
 
-  const { searchField, searchKey, order, limit, page, status = 'all', archiveStatus = 'active' } = data;
+  const {
+    searchField,
+    searchKey,
+    order,
+    limit,
+    page,
+    status = 'all',
+    archiveStatus = 'active',
+    realms,
+    environments,
+  } = data;
 
   const where: any = {};
 
@@ -306,6 +318,16 @@ export const getRequestAll = async (
   if (archiveStatus !== 'all') {
     where.archived = archiveStatus === 'archived';
   }
+
+  if (realms)
+    where.realm = {
+      [Op.in]: realms,
+    };
+
+  if (environments)
+    where.environments = {
+      [Op.contains]: environments,
+    };
 
   try {
     const result: Promise<{ count: number; rows: any[] }> = await models.request.findAndCountAll({

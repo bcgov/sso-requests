@@ -8,6 +8,7 @@ import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
 import { customValidate } from './shared/customValidate';
+import { Option } from 'interfaces/Request';
 
 const URIS_SCHEMA_INDEX = 1;
 
@@ -20,6 +21,16 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
     if (err.length > 0) errors[i] = err;
   });
   return errors;
+};
+
+export const formatFilters = (idps: Option[], environments: Option[]) => {
+  let realms: string[] | null = [];
+  idps.forEach((idp: Option) => (realms = realms?.concat(idp.value) || null));
+  realms = realms.length > 0 ? realms : null;
+
+  let formattedEnvironments: string[] | null = environments.map((env: Option) => env.value as string);
+  formattedEnvironments = formattedEnvironments.length > 0 ? formattedEnvironments : null;
+  return [realms, formattedEnvironments];
 };
 
 const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];

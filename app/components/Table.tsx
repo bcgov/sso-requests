@@ -13,6 +13,7 @@ import { TextBlock } from 'react-placeholder/lib/placeholders';
 import ReactPlaceholder from 'react-placeholder';
 import 'react-placeholder/lib/reactPlaceholder.css';
 import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
+import { Option } from 'interfaces/Request';
 
 const StyledPagination = styled(Pagination)`
   margin: 0 !important;
@@ -51,11 +52,6 @@ interface Header {
 interface FilterItem {
   value: string | number;
   text: string;
-}
-
-interface Option {
-  value: string;
-  label: string;
 }
 
 interface Filter {
@@ -201,7 +197,7 @@ function Table({
     <>
       <SectionHeader>
         <Grid cols={12}>
-          <Grid.Row collapse="992" gutter={[]} align="center">
+          <Grid.Row collapse="1160" gutter={[]} align="center">
             <Grid.Col span={4}>
               <Input
                 type="text"
@@ -240,7 +236,10 @@ function Table({
                           value={typeof filter.value === 'string' ? filter.value : ''}
                         >
                           {filter.options.map((option) => (
-                            <option value={option.value} key={option.value}>
+                            <option
+                              value={option.value}
+                              key={Array.isArray(option.value) ? JSON.stringify(option.value) : option.value}
+                            >
                               {option.label}
                             </option>
                           ))}
