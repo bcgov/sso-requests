@@ -16,10 +16,9 @@ import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
-import AdminEventPanel from 'components/AdminEventPanel';
-import AdminRequestPanel from 'components/AdminRequestPanel';
 import { PRIMARY_RED } from 'styles/theme';
 import { formatFilters } from 'utils/helpers';
+import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 
 type Status =
   | 'all'
@@ -113,7 +112,6 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
-  const [showEvents, setShowEvents] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
   const [searchKey, setSearchKey] = useState<string>(String(router.query?.id || ''));
   const [count, setCount] = useState<number>(0);
@@ -123,7 +121,9 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
   const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
   const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
-  const [workflowStatus, setWorkflowStatus] = useState('all');
+  const [workflowStatus, setWorkflowStatus] = useState<Status>('all');
+  const [activePanel, setActivePanel] = useState<TabKey>('details');
+  const selectedRequest = rows.find((v) => v.id === selectedId);
 
   const getData = async () => {
     setLoading(true);
@@ -154,6 +154,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   };
 
   useEffect(() => {
+    setSelectedId(undefined);
     getData();
   }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
 
@@ -188,15 +189,6 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const handleWorkflowChange = (e: any) => setWorkflowStatus(e.target.value);
   const handleArchiveChange = (e: any) => setArchiveStatus(e.target.value);
-
-  let rightPanel = null;
-  if (selectedId) {
-    rightPanel = showEvents ? (
-      <AdminEventPanel requestId={selectedId} />
-    ) : (
-      <AdminRequestPanel request={rows.find((v) => v.id === selectedId)} />
-    );
-  }
 
   return (
     <ResponsiveContainer rules={mediaRules}>
@@ -271,7 +263,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                       className={selectedId === row.id ? 'active' : ''}
                       onClick={() => {
                         setSelectedId(row.id);
-                        setShowEvents(false);
+                        setActivePanel('details');
                       }}
                     >
                       <td>{padStart(String(row.id), 8, '0')}</td>
@@ -287,7 +279,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                             onClick={(event: any) => {
                               event.stopPropagation();
                               setSelectedId(row.id);
-                              setShowEvents(true);
+                              setActivePanel('events');
                             }}
                             title="Events"
                           />
@@ -322,7 +314,16 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               )}
             </Table>
           </Grid.Col>
-          <Grid.Col span={4}>{rightPanel}</Grid.Col>
+          <Grid.Col span={4}>
+            {selectedRequest && (
+              <AdminTabs
+                selectedRequest={selectedRequest}
+                defaultTabKey={'details'}
+                setActiveKey={setActivePanel}
+                activeKey={activePanel}
+              ></AdminTabs>
+            )}
+          </Grid.Col>
         </Grid.Row>
       </Grid>
       <CenteredModal id="delete-modal">
