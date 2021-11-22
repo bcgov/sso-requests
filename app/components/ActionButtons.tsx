@@ -50,7 +50,7 @@ export default function Actionbuttons({
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
   const handleEdit = async (event: MouseEvent) => {
-    if (request.status === 'draft') return await router.push(`/request/${request.id}`);
+    if (request.status === 'draft') return router.push(`/request/${request.id}`);
     setActiveTab('configuration-url');
     event.stopPropagation();
     if (selectedRequest?.id === request.id) {

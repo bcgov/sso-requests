@@ -3,12 +3,11 @@
 //
 
 import { isEqual } from 'lodash';
-import { Request } from 'interfaces/Request';
+import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
 import { customValidate } from './shared/customValidate';
-import { Option } from 'interfaces/Request';
 
 const URIS_SCHEMA_INDEX = 1;
 
@@ -23,12 +22,12 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
   return errors;
 };
 
-export const formatFilters = (idps: Option[], environments: Option[]) => {
+export const formatFilters = (idps: Option[], envs: Option[]) => {
   let realms: string[] | null = [];
   idps.forEach((idp: Option) => (realms = realms?.concat(idp.value) || null));
   realms = realms.length > 0 ? realms : null;
 
-  let formattedEnvironments: string[] | null = environments.map((env: Option) => env.value as string);
+  let formattedEnvironments: string[] | null = envs.map((env: Option) => env.value as string);
   formattedEnvironments = formattedEnvironments.length > 0 ? formattedEnvironments : null;
   return [realms, formattedEnvironments];
 };

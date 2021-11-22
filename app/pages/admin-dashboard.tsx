@@ -10,7 +10,7 @@ import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
-import { Request } from 'interfaces/Request';
+import { Request, Option } from 'interfaces/Request';
 import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import Modal from '@button-inc/bcgov-theme/Modal';
@@ -19,7 +19,6 @@ import CancelButton from 'components/CancelButton';
 import AdminEventPanel from 'components/AdminEventPanel';
 import AdminRequestPanel from 'components/AdminRequestPanel';
 import { PRIMARY_RED } from 'styles/theme';
-import { Option } from 'interfaces/Request';
 import { formatFilters } from 'utils/helpers';
 
 type Status =
@@ -156,7 +155,6 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   useEffect(() => {
     getData();
-    // setLoading(!loading);
   }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
 
   if (hasError) {

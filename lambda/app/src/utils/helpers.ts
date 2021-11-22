@@ -7,6 +7,7 @@ import { isObject, omit, sortBy } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
 import { Session, Data } from '../../../shared/interfaces';
+import { Op } from 'sequelize';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 
@@ -144,4 +145,48 @@ export const formatBody = (request: Data, idirUserDisplayName: string, usesProd:
     <p>Pathfinder SSO team.</p>
 
   `;
+};
+
+export const getWhereClauseForAllRequests = (data: {
+  searchField: string[];
+  searchKey: string;
+  status?: string;
+  archiveStatus?: string;
+  realms?: string[];
+  environments?: string[];
+}) => {
+  const where: any = {};
+  const { searchField, searchKey, status = 'all', archiveStatus = 'active', realms, environments } = data;
+
+  if (searchKey && searchField && searchField.length > 0) {
+    where[Op.or] = [];
+    searchField.forEach((field) => {
+      if (field === 'id') {
+        const id = Number(searchKey);
+        if (!Number.isNaN(id)) where[Op.or].push({ id });
+      } else {
+        where[Op.or].push({ [field]: { [Op.iLike]: `%${searchKey}%` } });
+      }
+    });
+  }
+
+  if (status !== 'all') {
+    where.status = status;
+  }
+
+  if (archiveStatus !== 'all') {
+    where.archived = archiveStatus === 'archived';
+  }
+
+  if (realms)
+    where.realm = {
+      [Op.in]: realms,
+    };
+
+  if (environments)
+    where.environments = {
+      [Op.contains]: environments,
+    };
+
+  return where;
 };
