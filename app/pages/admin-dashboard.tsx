@@ -89,7 +89,6 @@ const mediaRules: MediaRule[] = [
 export default function AdminDashboard({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [deleting, setDeleting] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
   const [searchKey, setSearchKey] = useState<string>(String(router.query?.id || ''));
@@ -157,9 +156,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const confirmDelete = async () => {
     if (!canDelete) return;
-    setDeleting(true);
     await deleteRequest(selectedId);
-    setDeleting(false);
     await getData();
     window.location.hash = '#';
   };

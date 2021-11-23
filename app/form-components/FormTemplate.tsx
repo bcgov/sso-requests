@@ -6,7 +6,6 @@ import getUiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import CenteredModal from 'components/CenteredModal';
-import Button from '@button-inc/bcgov-theme/Button';
 import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
