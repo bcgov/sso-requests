@@ -165,8 +165,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
 
-      let { environments } = mergedRequest;
-      if (!mergedRequest.bceidApproved) environments = environments.filter((environment) => environment !== 'prod');
+      let { environments, realm } = mergedRequest;
+
+      if (!mergedRequest.bceidApproved && usesBceid(realm))
+        environments = environments.filter((environment) => environment !== 'prod');
 
       // trigger GitHub workflow before updating the record
       const payload = {
