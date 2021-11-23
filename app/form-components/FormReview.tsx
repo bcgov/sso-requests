@@ -30,7 +30,6 @@ interface Props {
 }
 
 function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props) {
-  const [loading, setLoading] = useState(false);
   const [bceidEmailDetails, setBceidEmailDetails] = useState({});
   const router = useRouter();
   const hasBceid = usesBceid(formData.realm);
