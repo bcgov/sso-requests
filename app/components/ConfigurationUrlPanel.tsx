@@ -15,12 +15,10 @@ import { EnvironmentOption } from 'interfaces/form';
 import { $setEditingRequest, $updateRequest } from 'dispatchers/requestDispatcher';
 import { withBottomAlert } from 'layout/BottomAlert';
 import Button from '@button-inc/bcgov-theme/Button';
-import Modal from '@button-inc/bcgov-theme/Modal';
 import CenteredModal from 'components/CenteredModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { changeClientSecret } from 'services/keycloak';
-import Loader from 'react-loader-spinner';
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
@@ -46,14 +44,6 @@ const StyledHr = styled.hr`
   background-color: black;
 `;
 
-const CenteredContainer = styled.div`
-  text-align: center;
-`;
-
-const WideButton = styled(Button)`
-  width: 200px;
-`;
-
 interface Props {
   selectedRequest: Request;
   alert: any;
@@ -63,7 +53,6 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const router = useRouter();
   const [request, setRequest] = useState<Request>(selectedRequest);
   const [updatingRequest, setUpdatingRequest] = useState<boolean>(false);
-  const [updatingSecret, setUpdatingSecret] = useState<boolean>(false);
   const [activeEnv, setActiveEnv] = useState<EnvironmentOption | null>(null);
   const { state, dispatch } = useContext(RequestsContext);
   const { editingRequest } = state as RequestReducerState;
@@ -106,18 +95,12 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
     setUpdatingRequest(false);
   };
 
-  const handleModalClose = () => {
-    window.location.hash = '#';
-    setActiveEnv(null);
-  };
-
   const openModal = (env: EnvironmentOption) => {
     setActiveEnv(env);
     window.location.hash = 'confirm-new-secret';
   };
 
   const handleSecretChange = async () => {
-    setUpdatingSecret(true);
     const [result, err] = await changeClientSecret(selectedRequest.id, activeEnv?.name || null);
     const variant = err ? 'danger' : 'success';
     const content = err ? 'Failed to regenerate secret' : 'Client Secret Successfully Updated';
@@ -127,10 +110,28 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
       closable: true,
       content,
     });
-    setUpdatingSecret(false);
     window.location.hash = '#';
     console.log(result, err);
   };
+
+  const modalContents = (
+    <>
+      <StyledP>
+        <PaddedIcon icon={faExclamationTriangle} color="black" title="Warning" size="2x" />
+        <strong>You&apos;re About to Change Your Client Secret for Your {activeEnv?.display} Environment.</strong>{' '}
+      </StyledP>
+      <StyledHr />
+      <ul>
+        <li>
+          Once you change your secret, your previous secret will no longer be valid for any applications using it.
+        </li>
+        <li>
+          This means you will need to update any applications using this client with the new JSON details before they
+          are functional again.
+        </li>
+      </ul>
+    </>
+  );
 
   return (
     <>
@@ -186,34 +187,14 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
           })}
         </>
       )}
-      <CenteredModal id={`confirm-new-secret`}>
-        <Modal.Header>
-          You&apos;re About to Change Your Client Secret <Modal.Close onClick={handleModalClose}>X</Modal.Close>
-        </Modal.Header>
-        <Modal.Content>
-          <StyledP>
-            <PaddedIcon icon={faExclamationTriangle} color="black" title="Warning" size="2x" />
-            <strong>
-              You&apos;re About to Change Your Client Secret for Your {activeEnv?.display} Environment.
-            </strong>{' '}
-          </StyledP>
-          <StyledHr />
-          <ul>
-            <li>
-              Once you change your secret, your previous secret will no longer be valid for any applications using it.
-            </li>
-            <li>
-              This means you will need to update any applications using this client with the new JSON details before
-              they are functional again.
-            </li>
-          </ul>
-          <CenteredContainer>
-            <WideButton onClick={handleSecretChange}>
-              {updatingSecret ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : 'Change Secret'}
-            </WideButton>
-          </CenteredContainer>
-        </Modal.Content>
-      </CenteredModal>
+      <CenteredModal
+        id={`confirm-new-secret`}
+        content={modalContents}
+        onConfirm={handleSecretChange}
+        icon={faExclamationTriangle}
+        title="You're About to Change Your Client Secret"
+        closable
+      />
     </>
   );
 };
