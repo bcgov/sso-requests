@@ -6,6 +6,8 @@ import Button from '@button-inc/bcgov-theme/Button';
 import { usesBceid } from 'utils/helpers';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
 import AdminEventPanel from 'page-partials/admin-dashboard/AdminEventPanel';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import CenteredModal from 'components/CenteredModal';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -25,11 +27,13 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
   if (!selectedRequest) return null;
   const { realm, prod } = selectedRequest;
   const hasBceidProd = usesBceid(realm) && prod;
+  const modalId = 'bceid-approval-modal';
 
+  const openModal = () => (window.location.hash = modalId);
   const ProductionPanel = hasBceidProd ? (
     <>
       <p>To begin the BCeID integration in production, Click Below.</p>
-      <Button>Approve Production</Button>
+      <Button onClick={openModal}>Approve Production</Button>
     </>
   ) : (
     <>
@@ -57,6 +61,13 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
           </TabWrapper>
         </Tab>
       </RequestTabs>
+      <CenteredModal
+        id={modalId}
+        content="Are you sure you want to approve this integration for production?"
+        onConfirm={() => {}}
+        icon={faExclamationTriangle}
+        title="Approve Production"
+      />
     </>
   );
 }

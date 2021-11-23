@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Tab from 'react-bootstrap/Tab';
 import { padStart } from 'lodash';
@@ -19,11 +19,7 @@ import { $setRequests, $setEditingRequest, $deleteRequest } from 'dispatchers/re
 import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import { RequestTabs } from 'components/RequestTabs';
-import Loader from 'react-loader-spinner';
 import CenteredModal from 'components/CenteredModal';
-import Modal from '@button-inc/bcgov-theme/Modal';
-import BcButton from '@button-inc/bcgov-theme/Button';
-import CancelButton from 'components/CancelButton';
 
 const mediaRules: MediaRule[] = [
   {
@@ -43,21 +39,6 @@ const mediaRules: MediaRule[] = [
     horizontalAlign: 'none',
   },
 ];
-
-const ButtonContainer = styled.div`
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-  & button {
-    min-width: 150px;
-    margin-right: 20px;
-    display: inline-block;
-  }
-`;
-
-const PaddedIcon = styled(FontAwesomeIcon)`
-  padding-right: 10px;
-`;
 
 // TODO: move this logic to component Grid default style
 const OverflowAuto = styled.div`
@@ -117,7 +98,6 @@ function RequestsPage({ currentUser }: PageProps) {
   const [hasError, setHasError] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
   const [state, dispatch] = useReducer(reducer, {});
-  const [deleting, setDeleting] = useState(false);
   const { requests = [] } = state;
   const selectedRequest = requests.find((request: Request) => request.id === Number(selectedId));
   const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
@@ -130,6 +110,7 @@ function RequestsPage({ currentUser }: PageProps) {
 
   const getData = async () => {
     setLoading(true);
+    setSelectedId(undefined);
 
     const [data, err] = await getRequests('all');
     if (err) {
@@ -149,15 +130,11 @@ function RequestsPage({ currentUser }: PageProps) {
 
   const confirmDelete = async () => {
     if (!canDelete) return;
-    setDeleting(true);
     const [_deletedRequest, _err] = await deleteRequest(selectedId);
     dispatch($deleteRequest(selectedId || null));
-    setDeleting(false);
     getData();
     window.location.hash = '#';
   };
-
-  const cancelDelete = () => (window.location.hash = '#');
 
   useEffect(() => {
     getData();
@@ -286,23 +263,13 @@ function RequestsPage({ currentUser }: PageProps) {
             )}
           </Grid.Row>
         </Grid>
-        <CenteredModal id="delete-modal">
-          <Modal.Header>
-            <PaddedIcon icon={faExclamationTriangle} title="Information" size="2x" style={{ paddingRight: '10px' }} />
-            Confirm Deletion
-          </Modal.Header>
-          <Modal.Content>
-            You are about to delete this integration request. This action cannot be undone.
-            <ButtonContainer>
-              <CancelButton variant="secondary" onClick={cancelDelete}>
-                Cancel
-              </CancelButton>
-              <BcButton onClick={confirmDelete}>
-                {deleting ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : 'Delete'}
-              </BcButton>
-            </ButtonContainer>
-          </Modal.Content>
-        </CenteredModal>
+        <CenteredModal
+          id={'delete-modal'}
+          content="You are about to delete this integration request. This action cannot be undone."
+          onConfirm={confirmDelete}
+          title="Confirm Deletion"
+          confirmText="Delete"
+        />
       </RequestsContext.Provider>
     </ResponsiveContainer>
   );

@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { padStart, startCase } from 'lodash';
-import Loader from 'react-loader-spinner';
-import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
@@ -13,9 +10,6 @@ import { PageProps } from 'interfaces/props';
 import { Request, Option } from 'interfaces/Request';
 import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
-import Modal from '@button-inc/bcgov-theme/Modal';
-import BcButton from '@button-inc/bcgov-theme/Button';
-import CancelButton from 'components/CancelButton';
 import { PRIMARY_RED } from 'styles/theme';
 import { formatFilters } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
@@ -92,25 +86,9 @@ const mediaRules: MediaRule[] = [
   },
 ];
 
-const ButtonContainer = styled.div`
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-  & button {
-    min-width: 150px;
-    margin-right: 20px;
-    display: inline-block;
-  }
-`;
-
-const PaddedIcon = styled(FontAwesomeIcon)`
-  padding-right: 10px;
-`;
-
 export default function AdminDashboard({ currentUser }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [deleting, setDeleting] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
   const [rows, setRows] = useState<Request[]>([]);
   const [searchKey, setSearchKey] = useState<string>(String(router.query?.id || ''));
@@ -178,14 +156,10 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const confirmDelete = async () => {
     if (!canDelete) return;
-    setDeleting(true);
     await deleteRequest(selectedId);
-    setDeleting(false);
     await getData();
     window.location.hash = '#';
   };
-
-  const cancelDelete = () => (window.location.hash = '#');
 
   const handleWorkflowChange = (e: any) => setWorkflowStatus(e.target.value);
   const handleArchiveChange = (e: any) => setArchiveStatus(e.target.value);
@@ -326,23 +300,13 @@ export default function AdminDashboard({ currentUser }: PageProps) {
           </Grid.Col>
         </Grid.Row>
       </Grid>
-      <CenteredModal id="delete-modal">
-        <Modal.Header>
-          <PaddedIcon icon={faExclamationTriangle} title="Information" size="2x" style={{ paddingRight: '10px' }} />
-          Confirm Deletion
-        </Modal.Header>
-        <Modal.Content>
-          You are about to delete this integration request. This action cannot be undone.
-          <ButtonContainer>
-            <CancelButton variant="secondary" onClick={cancelDelete}>
-              Cancel
-            </CancelButton>
-            <BcButton onClick={confirmDelete}>
-              {deleting ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : 'Delete'}
-            </BcButton>
-          </ButtonContainer>
-        </Modal.Content>
-      </CenteredModal>
+      <CenteredModal
+        id="delete-modal"
+        content="You are about to delete this integration request. This action cannot be undone."
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        title="Confirm Deletion"
+      />
     </ResponsiveContainer>
   );
 }
