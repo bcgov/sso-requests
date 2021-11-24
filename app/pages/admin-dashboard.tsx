@@ -11,7 +11,7 @@ import { Request, Option } from 'interfaces/Request';
 import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
-import { formatFilters } from 'utils/helpers';
+import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 
 type Status =
@@ -104,10 +104,8 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
   const getData = async () => {
-    setLoading(true);
     const [realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
-
-    const [data, err] = await getRequestAll({
+    return getRequestAll({
       searchField: ['id', 'projectName'],
       searchKey,
       order: [
@@ -121,20 +119,44 @@ export default function AdminDashboard({ currentUser }: PageProps) {
       realms,
       environments,
     });
+  };
+
+  const loadData = async () => {
+    setLoading(true);
+    const [data, err] = await getData();
     if (err) {
       setHasError(true);
     } else if (data) {
       setRows(data.rows);
       setCount(data.count);
     }
-
     setLoading(false);
   };
 
   useEffect(() => {
     setSelectedId(undefined);
-    getData();
+    loadData();
   }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
+
+  useEffect(() => {
+    let interval: any;
+    if (hasAnyPendingStatus(rows)) {
+      interval = setTimeout(async () => {
+        const [data, err] = await getData();
+
+        if (err) {
+          clearInterval(interval);
+        } else if (data) {
+          setRows(data.rows);
+          setCount(data.count);
+        }
+      }, 1000 * 5);
+    }
+
+    return () => {
+      interval && clearInterval(interval);
+    };
+  }, [rows]);
 
   if (hasError) {
     return null;
@@ -167,7 +189,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Grid cols={10}>
-        <Grid.Row collapse="800" gutter={[15, 2]}>
+        <Grid.Row collapse="1200" gutter={[15, 2]}>
           <Grid.Col span={6}>
             <Table
               filters={[
@@ -295,6 +317,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 defaultTabKey={'details'}
                 setActiveKey={setActivePanel}
                 activeKey={activePanel}
+                setRows={loadData}
               ></AdminTabs>
             )}
           </Grid.Col>

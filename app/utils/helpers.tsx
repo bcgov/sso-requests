@@ -247,3 +247,19 @@ export const formatChangeEventDetails = (changes: Change[]) => {
     </ul>
   );
 };
+
+export const hasAnyPendingStatus = (requests: Request[]) => {
+  return requests.some((request) => {
+    return [
+      // 'draft',
+      'submitted',
+      'pr',
+      'prFailed',
+      'planned',
+      'planFailed',
+      'approved',
+      // 'applied',
+      'applyFailed',
+    ].includes(request.status || '');
+  });
+};

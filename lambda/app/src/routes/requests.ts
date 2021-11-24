@@ -56,9 +56,9 @@ const usesBceid = (realm: string | undefined) => {
   return bceidRealms.includes(realm);
 };
 
-const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
+const notifyBceid = async (request: Data, idirUserDisplayName: string, isUpdate: boolean) => {
   const { realm, id, preferredEmail, additionalEmails, environments } = request;
-  if (!usesBceid(realm)) return;
+  if (!usesBceid(realm) || isUpdate) return;
   const usesProd = environments.includes('prod');
 
   // Only cc user for production requests
@@ -147,12 +147,9 @@ export const updateRequest = async (session: Session, data: Data, submit: string
   try {
     const where = getWhereClauseForAdmin(session, id);
     const original = await models.request.findOne({ where });
+    const hasAllowedStatus = ['draft', 'applied'].includes(original.dataValues.status);
 
-    if (!original) {
-      return unauthorized();
-    }
-
-    if (!['draft', 'applied'].includes(original.dataValues.status)) {
+    if (!original || !hasAllowedStatus) {
       return unauthorized();
     }
 
@@ -205,7 +202,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
           subject: getEmailSubject(emailCode),
           event: { emailCode, requestId: id },
         }),
-        notifyBceid(mergedRequest, idirUserDisplayName),
+        notifyBceid(mergedRequest, idirUserDisplayName, isUpdate),
       ]);
     }
 
