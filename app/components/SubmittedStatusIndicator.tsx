@@ -9,7 +9,6 @@ import HelpText from 'components/HelpText';
 import { Request } from 'interfaces/Request';
 import getConfig from 'next/config';
 import StatusList from 'components/StatusList';
-import { usesBceid } from 'utils/helpers';
 import InfoMessage from 'components/InfoMessage';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
@@ -105,7 +104,6 @@ export default function SubmittedStatusIndicator({ selectedRequest, title }: Pro
   const hasError = getStatusFailure(status);
   const statusMessage = getStatusMessage(status);
   const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();
-  const hasBceid = usesBceid(realm);
 
   // Step 1.
   const statusItems = [

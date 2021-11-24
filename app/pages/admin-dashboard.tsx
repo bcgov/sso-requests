@@ -11,9 +11,8 @@ import { Request, Option } from 'interfaces/Request';
 import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
-import { formatFilters } from 'utils/helpers';
+import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
-import { hasAnyPendingStatus } from 'utils/helpers';
 
 type Status =
   | 'all'

@@ -10,7 +10,6 @@ import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';
 import { updateRequest } from 'services/request';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
-import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -64,7 +63,7 @@ function AdminTabs({ selectedRequest, defaultTabKey, setActiveKey, setRows, acti
   }
 
   const onConfirm = async () => {
-    const [data, err] = await updateRequest(
+    const [, err] = await updateRequest(
       {
         ...selectedRequest,
         bceidApproved: true,
