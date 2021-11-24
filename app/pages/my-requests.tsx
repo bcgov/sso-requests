@@ -20,6 +20,7 @@ import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import { RequestTabs } from 'components/RequestTabs';
 import CenteredModal from 'components/CenteredModal';
+import { hasAnyPendingStatus } from 'utils/helpers';
 
 const mediaRules: MediaRule[] = [
   {
@@ -75,22 +76,6 @@ const Button = styled(DefaultButton)`
 `;
 
 export const RequestsContext = React.createContext({} as any);
-
-const hasAnyPendingStatus = (requests: Request[]) => {
-  return requests.some((request) => {
-    return [
-      // 'draft',
-      'submitted',
-      'pr',
-      'prFailed',
-      'planned',
-      'planFailed',
-      'approved',
-      // 'applied',
-      'applyFailed',
-    ].includes(request.status || '');
-  });
-};
 
 function RequestsPage({ currentUser }: PageProps) {
   const router = useRouter();

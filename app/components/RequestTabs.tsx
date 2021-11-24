@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import Tabs from 'react-bootstrap/Tabs';
 import { SUBTITLE_FONT_SIZE, SECONDARY_FONT_COLOR } from 'styles/theme';
 
-export const RequestTabs = styled(Tabs)<{ onSelect: any }>`
+export const RequestTabs = styled(Tabs)<{ onSelect?: any; activeKey?: string }>`
   .nav-link {
     color: ${SECONDARY_FONT_COLOR} !important;
     height: 30px !important;

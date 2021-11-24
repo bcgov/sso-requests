@@ -17,7 +17,7 @@ const { app_env } = publicRuntimeConfig;
 
 interface Props {
   selectedRequest: Request;
-  showTitle?: boolean;
+  title?: string;
 }
 
 const Title = styled(DefaultTitle)`
@@ -99,7 +99,7 @@ const getStatusStatusCode = (status?: string) => {
   }
 };
 
-export default function SubmittedStatusIndicator({ selectedRequest, showTitle = true }: Props) {
+export default function SubmittedStatusIndicator({ selectedRequest, title }: Props) {
   const { status, prNumber, updatedAt, realm } = selectedRequest;
 
   const hasError = getStatusFailure(status);
@@ -206,7 +206,7 @@ export default function SubmittedStatusIndicator({ selectedRequest, showTitle = 
 
   return (
     <>
-      {showTitle && <Title>Access to {hasBceid && 'Dev and/or Test'} environment(s) - approx 20 mins</Title>}
+      {title && <Title>{title}</Title>}
       <SubTitle>{statusMessage}</SubTitle>
       <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />
       <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
