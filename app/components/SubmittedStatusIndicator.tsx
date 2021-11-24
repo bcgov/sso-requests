@@ -99,7 +99,7 @@ const getStatusStatusCode = (status?: string) => {
 };
 
 export default function SubmittedStatusIndicator({ selectedRequest, title }: Props) {
-  const { status, prNumber, updatedAt, realm } = selectedRequest;
+  const { status, prNumber, updatedAt } = selectedRequest;
 
   const hasError = getStatusFailure(status);
   const statusMessage = getStatusMessage(status);
