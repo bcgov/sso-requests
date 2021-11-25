@@ -13,7 +13,7 @@ import {
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
-import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
+import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
 const APP_ENV = process.env.APP_ENV || 'development';
@@ -156,6 +156,9 @@ export const updateRequest = async (session: Session, data: Data, submit: string
     const allowedRequest = processRequest(rest);
     const mergedRequest = { ...original.dataValues, ...allowedRequest };
 
+    const isApprovingBceid = !original.dataValues.bceidApproved && mergedRequest.bceidApproved;
+    if (isApprovingBceid && !userIsAdmin) return unauthorized();
+
     if (submit) {
       const isValid = validateRequest(mergedRequest, original.dataValues, isUpdate);
       if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedRequest }));
@@ -188,7 +191,11 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         throw Error('failed to create a workflow dispatch event');
       }
 
-      const emailCode = isUpdate ? 'uri-change-request-submitted' : 'create-request-submitted';
+      let emailCode: EmailMessage;
+      if (isUpdate && isApprovingBceid) emailCode = 'bceid-request-approved';
+      else if (isUpdate) emailCode = 'uri-change-request-submitted';
+      else emailCode = 'create-request-submitted';
+
       const to = getEmailList(original);
 
       await Promise.all([
@@ -199,7 +206,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
             requestNumber: mergedRequest.id,
             submittedBy: idirUserDisplayName,
           }),
-          subject: getEmailSubject(emailCode),
+          subject: getEmailSubject(emailCode, id),
           event: { emailCode, requestId: id },
         }),
         notifyBceid(mergedRequest, idirUserDisplayName, isUpdate),
