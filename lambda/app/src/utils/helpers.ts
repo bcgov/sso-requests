@@ -17,7 +17,6 @@ export const omitNonFormFields = (data: Request) =>
     'createdAt',
     'archived',
     'status',
-    'bceidApproved',
     'environments',
     'actionNumber',
     'prNumber',
