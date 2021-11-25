@@ -234,7 +234,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
               searchPlaceholder="Project ID or Name"
               limit={limit}
               page={page}
-              rowCount={limit}
+              rowCount={count}
               onSearch={(val) => {
                 setSearchKey(val);
                 setPage(1);
