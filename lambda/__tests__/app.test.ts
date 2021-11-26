@@ -335,4 +335,40 @@ describe('Updating', () => {
       });
     });
   });
+
+  it('should include browser flow override in dispatch', async () => {
+    mockedAuthenticate.mockImplementation(() => {
+      return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
+    });
+
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      path: '/app/requests',
+      requestContext: { httpMethod: 'PUT' },
+      body: JSON.stringify({ id: testProjectId, ...validRequest, browserFlowOverride: 'asdf' }),
+      queryStringParameters: { submit: true },
+    };
+    const context: Context = {};
+
+    await new Promise((resolve, reject) => {
+      handler(event, context, (error, response) => {
+        const request = JSON.parse(response.body);
+        expect(response.statusCode).toEqual(200);
+        expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
+          requestId: request.id,
+          clientName: request.clientName,
+          realmName: request.realm,
+          validRedirectUris: {
+            dev: request.devValidRedirectUris,
+            test: request.testValidRedirectUris,
+            prod: request.prodValidRedirectUris,
+          },
+          environments: ['dev', 'test', 'prod'],
+          publicAccess: request.publicAccess,
+          browserFlowOverride: 'asdf',
+        });
+        resolve(true);
+      });
+    });
+  });
 });

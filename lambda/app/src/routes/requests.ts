@@ -182,6 +182,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         },
         environments,
         publicAccess: mergedRequest.publicAccess,
+        browserFlowOverride: mergedRequest.browserFlowOverride,
       };
 
       const ghResult = await dispatchRequestWorkflow(payload);
