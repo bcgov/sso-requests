@@ -295,6 +295,7 @@ describe('Updating', () => {
           },
           environments: request.environments,
           publicAccess: request.publicAccess,
+          browserFlowOverride: null,
         });
         resolve(true);
       });
@@ -330,6 +331,7 @@ describe('Updating', () => {
           },
           environments: ['dev', 'test'],
           publicAccess: request.publicAccess,
+          browserFlowOverride: null,
         });
         resolve(true);
       });
