@@ -30,11 +30,6 @@ const ClientTypeWidget = ({ id, value, onChange, onBlur, schema }: WidgetProps) 
     }
   };
 
-  if (isNil(value)) {
-    onChange(true);
-    value = true;
-  }
-
   return (
     <div>
       {enumNames.map((name, index) => (

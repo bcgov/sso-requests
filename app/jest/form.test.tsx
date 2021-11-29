@@ -120,7 +120,7 @@ describe('Form Template Loading Data', () => {
     jest.clearAllMocks();
   });
 
-  it('Should pre-load data if a request exists', () => {
+  it('Should pre-load data if a request exists', async () => {
     setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
     const { firstStageBox, thirdStageBox } = sandbox;
@@ -132,11 +132,13 @@ describe('Form Template Loading Data', () => {
     expect(
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
-    expect(document.querySelector('#root_publicAccess-Public input[value="Public"]')).toHaveAttribute('checked', '');
+
+    await waitFor(() => document.querySelector('#root_publicAccess-Public'));
+    expect(document.querySelector('#root_publicAccess-Public')).toHaveAttribute('checked', '');
 
     // First Page Data
     fireEvent.click(firstStageBox);
-    expect(document.querySelector('#root_projectLead input[value="Public"]')).toHaveAttribute('checked', '');
+    expect(document.querySelector('#root_projectLead input[value="true"]')).toHaveAttribute('checked', '');
     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
     expect(screen.getByDisplayValue(sampleRequest.preferredEmail || ''));
 
