@@ -19,7 +19,7 @@ interface Schema {
   enumNames: string[];
 }
 
-const ClientTypeWidget = ({ id, value, onChange, schema }: WidgetProps) => {
+const ClientTypeWidget = ({ id, value, onChange, onBlur, schema }: WidgetProps) => {
   const { enum: enumValues, enumNames } = schema as Schema;
   const [openModal, setOpenModal] = useState(false);
 
@@ -46,6 +46,7 @@ const ClientTypeWidget = ({ id, value, onChange, schema }: WidgetProps) => {
             value={name}
             checked={enumValues[index] === value}
             onChange={() => onChange(enumValues[index])}
+            onBlur={() => onBlur(id, value)}
           />
           <label htmlFor={`${id}-${name}`}>{name}</label>
         </InputGroup>

@@ -85,9 +85,9 @@ describe('Form Template Saving and Navigation', () => {
   });
 
   it('Should redirect to my-requests on cancel', () => {
-    const cancelButton = within(document.querySelector('form.rjsf .form-btns') as HTMLElement).getByText(
-      'Save and Close',
-    );
+    const cancelButton = within(
+      document.querySelector("form.rjsf [data-test-id='form-btns']") as HTMLElement,
+    ).getByText('Save and Close');
     fireEvent.click(cancelButton);
     expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-requests' });
   });
@@ -132,7 +132,7 @@ describe('Form Template Loading Data', () => {
     expect(
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
-    expect(document.querySelector('#root_publicAccess input[value="Public"]')).toHaveAttribute('checked', '');
+    expect(document.querySelector('#root_publicAccess-Public input[value="Public"]')).toHaveAttribute('checked', '');
 
     // First Page Data
     fireEvent.click(firstStageBox);
