@@ -6,7 +6,6 @@ import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContaine
 import { getRequest } from 'services/request';
 import { Request } from 'interfaces/Request';
 import PageLoader from 'components/PageLoader';
-import SolutionNavigator from 'page-partials/new-request/SolutionNavigator';
 
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
@@ -29,7 +28,6 @@ function RequestEdit({ currentUser }: Props) {
       if (isNil(data)) {
         setRequest(null);
       } else {
-        if (isNil(data.publicAccess)) data.publicAccess = true;
         setRequest(data);
       }
       setLoading(false);
