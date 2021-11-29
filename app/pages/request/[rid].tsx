@@ -4,6 +4,7 @@ import FormTemplate from 'form-components/FormTemplate';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { getRequest } from 'services/request';
 import PageLoader from 'components/PageLoader';
+import SolutionNavigator from 'page-partials/new-request/SolutionNavigator';
 
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
