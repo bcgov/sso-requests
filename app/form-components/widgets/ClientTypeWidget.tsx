@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { WidgetProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
+import { isNil } from 'lodash';
 import SolutionNavigator from 'page-partials/new-request/SolutionNavigator';
 import Link from '@button-inc/bcgov-theme/Link';
 
@@ -28,6 +29,11 @@ const ClientTypeWidget = ({ id, value, onChange, schema }: WidgetProps) => {
       onChange(result === 'public');
     }
   };
+
+  if (isNil(value)) {
+    onChange(true);
+    value = true;
+  }
 
   return (
     <div>

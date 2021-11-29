@@ -85,7 +85,9 @@ describe('Form Template Saving and Navigation', () => {
   });
 
   it('Should redirect to my-requests on cancel', () => {
-    const cancelButton = screen.getByText('Save and Close') as HTMLElement;
+    const cancelButton = within(document.querySelector('form.rjsf .form-btns') as HTMLElement).getByText(
+      'Save and Close',
+    );
     fireEvent.click(cancelButton);
     expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-requests' });
   });
@@ -130,11 +132,11 @@ describe('Form Template Loading Data', () => {
     expect(
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
-    expect(document.querySelector('#root_publicAccess input[value="true"]')).toHaveAttribute('checked', '');
+    expect(document.querySelector('#root_publicAccess input[value="Public"]')).toHaveAttribute('checked', '');
 
     // First Page Data
     fireEvent.click(firstStageBox);
-    expect(document.querySelector('#root_projectLead input[value="true"]')).toHaveAttribute('checked', '');
+    expect(document.querySelector('#root_projectLead input[value="Public"]')).toHaveAttribute('checked', '');
     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
     expect(screen.getByDisplayValue(sampleRequest.preferredEmail || ''));
 

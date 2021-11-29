@@ -43,7 +43,7 @@ export default function FormButtons({
     <>
       {show && (
         <>
-          <Container>
+          <Container className="form-btns">
             <CancelButton variant="secondary" size="medium" type="button" onClick={handleBackClick}>
               {text.back}
             </CancelButton>

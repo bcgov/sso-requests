@@ -83,8 +83,8 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
           <>
             <br />
             <h3>Does the framework require a client secret, or have an option for a secret?</h3>
-            <Radio name="secret" label="Yes" checked={secret === true} onClick={() => setSecret(true)} />
-            <Radio name="secret" label="No" checked={secret === false} onClick={() => setSecret(false)} />
+            <Radio name="secret" label="Yes" checked={secret === true} onChange={() => setSecret(true)} />
+            <Radio name="secret" label="No" checked={secret === false} onChange={() => setSecret(false)} />
           </>
         )}
 
