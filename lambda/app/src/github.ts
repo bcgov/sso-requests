@@ -51,7 +51,7 @@ export const dispatchRequestWorkflow = async (formData: GitHubRequestDispatchInp
   //       "x-xss-protection": "0"
   //   }
   // }
-  return await octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
+  return octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
     owner: process.env.GH_OWNER,
     repo: process.env.GH_REPO,
     workflow_id: process.env.GH_WORKFLOW_ID,

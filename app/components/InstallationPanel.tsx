@@ -45,7 +45,7 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
 
   const handleInstallationClick = async (environment: Environment) => {
     setLoading(true);
-    const [data, err] = await getInstallation(selectedRequest.id as number, environment);
+    const [data] = await getInstallation(selectedRequest.id as number, environment);
     setLoading(false);
     return data;
   };

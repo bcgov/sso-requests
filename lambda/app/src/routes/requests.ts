@@ -2,11 +2,18 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
-import { validateRequest, processRequest, getDifferences, isAdmin, formatBody } from '../utils/helpers';
+import {
+  validateRequest,
+  processRequest,
+  getDifferences,
+  isAdmin,
+  formatBody,
+  getWhereClauseForAllRequests,
+} from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
-import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
+import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
 const APP_ENV = process.env.APP_ENV || 'development';
@@ -49,9 +56,9 @@ const usesBceid = (realm: string | undefined) => {
   return bceidRealms.includes(realm);
 };
 
-const notifyBceid = async (request: Data, idirUserDisplayName: string) => {
+const notifyBceid = async (request: Data, idirUserDisplayName: string, isUpdate: boolean) => {
   const { realm, id, preferredEmail, additionalEmails, environments } = request;
-  if (!usesBceid(realm)) return;
+  if (!usesBceid(realm) || isUpdate) return;
   const usesProd = environments.includes('prod');
 
   // Only cc user for production requests
@@ -140,17 +147,17 @@ export const updateRequest = async (session: Session, data: Data, submit: string
   try {
     const where = getWhereClauseForAdmin(session, id);
     const original = await models.request.findOne({ where });
+    const hasAllowedStatus = ['draft', 'applied'].includes(original.dataValues.status);
 
-    if (!original) {
-      return unauthorized();
-    }
-
-    if (!['draft', 'applied'].includes(original.dataValues.status)) {
+    if (!original || !hasAllowedStatus) {
       return unauthorized();
     }
 
     const allowedRequest = processRequest(rest);
     const mergedRequest = { ...original.dataValues, ...allowedRequest };
+
+    const isApprovingBceid = !original.dataValues.bceidApproved && mergedRequest.bceidApproved;
+    if (isApprovingBceid && !userIsAdmin) return unauthorized();
 
     if (submit) {
       const isValid = validateRequest(mergedRequest, original.dataValues, isUpdate);
@@ -175,6 +182,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         },
         environments,
         publicAccess: mergedRequest.publicAccess,
+        browserFlowOverride: mergedRequest.browserFlowOverride,
       };
 
       const ghResult = await dispatchRequestWorkflow(payload);
@@ -184,7 +192,11 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         throw Error('failed to create a workflow dispatch event');
       }
 
-      const emailCode = isUpdate ? 'uri-change-request-submitted' : 'create-request-submitted';
+      let emailCode: EmailMessage;
+      if (isUpdate && isApprovingBceid) emailCode = 'bceid-request-approved';
+      else if (isUpdate) emailCode = 'uri-change-request-submitted';
+      else emailCode = 'create-request-submitted';
+
       const to = getEmailList(original);
 
       await Promise.all([
@@ -195,10 +207,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
             requestNumber: mergedRequest.id,
             submittedBy: idirUserDisplayName,
           }),
-          subject: getEmailSubject(emailCode),
+          subject: getEmailSubject(emailCode, id),
           event: { emailCode, requestId: id },
         }),
-        notifyBceid(mergedRequest, idirUserDisplayName),
+        notifyBceid(mergedRequest, idirUserDisplayName, isUpdate),
       ]);
     }
 
@@ -279,35 +291,16 @@ export const getRequestAll = async (
     page: number;
     status?: string;
     archiveStatus?: string;
+    realms?: string[];
+    environments?: string[];
   },
 ) => {
   if (!isAdmin(session)) {
     throw Error('not allowed');
   }
 
-  const { searchField, searchKey, order, limit, page, status = 'all', archiveStatus = 'active' } = data;
-
-  const where: any = {};
-
-  if (searchKey && searchField && searchField.length > 0) {
-    where[Op.or] = [];
-    searchField.forEach((field) => {
-      if (field === 'id') {
-        const id = Number(searchKey);
-        if (!Number.isNaN(id)) where[Op.or].push({ id });
-      } else {
-        where[Op.or].push({ [field]: { [Op.iLike]: `%${searchKey}%` } });
-      }
-    });
-  }
-
-  if (status !== 'all') {
-    where.status = status;
-  }
-
-  if (archiveStatus !== 'all') {
-    where.archived = archiveStatus === 'archived';
-  }
+  const { order, limit, page, ...rest } = data;
+  const where = getWhereClauseForAllRequests(rest);
 
   try {
     const result: Promise<{ count: number; rows: any[] }> = await models.request.findAndCountAll({

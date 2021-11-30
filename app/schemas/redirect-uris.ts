@@ -1,4 +1,3 @@
-import { JSONSchema6 } from 'json-schema';
 import { redirectUriItems, redirectUriTooltipInfo } from './shared/providers';
 import { EnvironmentOption } from 'interfaces/form';
 

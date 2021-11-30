@@ -17,11 +17,18 @@ import 'styles/globals.css';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path } = publicRuntimeConfig;
 
+const authenticatedUris = [
+  `${base_path}/my-requests`,
+  `${base_path}/request`,
+  `${base_path}/admin-dashboard`,
+  `${base_path}/edit-request`,
+];
+
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState<any>(null);
 
   useEffect(() => {
     console.log('app started...');
@@ -93,10 +100,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   if (loading) return <PageLoader />;
 
-  if (
-    [`${base_path}/my-requests`, `${base_path}/request`].some((url) => window.location.pathname.startsWith(url)) &&
-    !currentUser
-  ) {
+  if (authenticatedUris.some((url) => window.location.pathname.startsWith(url)) && !currentUser) {
     router.push('/');
     return null;
   }

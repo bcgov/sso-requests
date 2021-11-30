@@ -1,12 +1,12 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { Response } from './interfaces';
 import { wakeUpAll } from './actions/wakeUp';
-import createEvent from './actions/createEvent';
+import createEvent from './actions/updateStatus';
 
 const responseHeaders = {
   'Content-Type': 'text/html; charset=utf-8',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://bcgov.github.io',
   'Access-Control-Allow-Methods': 'OPTIONS,PUT,GET',
 };
 
@@ -32,7 +32,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   // Sequelize waits ~10seconds to drop connection, delaying API response.
   // Use this to prevent, see https://forum.serverless.com/t/lambda-with-rds-using-vpc-works-slow/1261/7 for more
   context.callbackWaitsForEmptyEventLoop = false;
-  const { headers, body, path, requestContext } = event;
+  const { headers, body, requestContext } = event;
   const { httpMethod } = requestContext;
   console.log('event.body', body);
 

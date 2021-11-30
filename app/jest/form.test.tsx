@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
-import { createRequest, updateRequest, getRequest } from 'services/request';
+import { updateRequest } from 'services/request';
 import { Request } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
@@ -85,7 +85,9 @@ describe('Form Template Saving and Navigation', () => {
   });
 
   it('Should redirect to my-requests on cancel', () => {
-    const cancelButton = screen.getByText('Save and Close') as HTMLElement;
+    const cancelButton = within(
+      document.querySelector("form.rjsf [data-test-id='form-btns']") as HTMLElement,
+    ).getByText('Save and Close');
     fireEvent.click(cancelButton);
     expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-requests' });
   });
@@ -118,7 +120,7 @@ describe('Form Template Loading Data', () => {
     jest.clearAllMocks();
   });
 
-  it('Should pre-load data if a request exists', () => {
+  it('Should pre-load data if a request exists', async () => {
     setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
     const { firstStageBox, thirdStageBox } = sandbox;
@@ -130,7 +132,9 @@ describe('Form Template Loading Data', () => {
     expect(
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
-    expect(document.querySelector('#root_publicAccess input[value="true"]')).toHaveAttribute('checked', '');
+
+    await waitFor(() => document.querySelector('#root_publicAccess-Public'));
+    expect(document.querySelector('#root_publicAccess-Public')).toHaveAttribute('checked', '');
 
     // First Page Data
     fireEvent.click(firstStageBox);

@@ -9,7 +9,6 @@ import HelpText from 'components/HelpText';
 import { Request } from 'interfaces/Request';
 import getConfig from 'next/config';
 import StatusList from 'components/StatusList';
-import { usesBceid } from 'utils/helpers';
 import InfoMessage from 'components/InfoMessage';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
@@ -17,7 +16,7 @@ const { app_env } = publicRuntimeConfig;
 
 interface Props {
   selectedRequest: Request;
-  showTitle?: boolean;
+  title?: string;
 }
 
 const Title = styled(DefaultTitle)`
@@ -99,13 +98,12 @@ const getStatusStatusCode = (status?: string) => {
   }
 };
 
-export default function SubmittedStatusIndicator({ selectedRequest, showTitle = true }: Props) {
-  const { status, prNumber, updatedAt, realm } = selectedRequest;
+export default function SubmittedStatusIndicator({ selectedRequest, title }: Props) {
+  const { status, prNumber, updatedAt } = selectedRequest;
 
   const hasError = getStatusFailure(status);
   const statusMessage = getStatusMessage(status);
   const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();
-  const hasBceid = usesBceid(realm);
 
   // Step 1.
   const statusItems = [
@@ -206,7 +204,7 @@ export default function SubmittedStatusIndicator({ selectedRequest, showTitle = 
 
   return (
     <>
-      {showTitle && <Title>Access to {hasBceid && 'Dev and/or Test'} environment(s) - approx 20 mins</Title>}
+      {title && <Title>{title}</Title>}
       <SubTitle>{statusMessage}</SubTitle>
       <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />
       <HelpText>Last updated at {formattedUpdatedAt}</HelpText>

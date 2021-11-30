@@ -6,15 +6,12 @@ import getUiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import CenteredModal from 'components/CenteredModal';
-import Modal from '@button-inc/bcgov-theme/Modal';
-import Button from '@button-inc/bcgov-theme/Button';
 import { createRequest, updateRequest } from 'services/request';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
 import { validateForm } from 'utils/helpers';
@@ -23,12 +20,6 @@ import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import { SaveMessage } from 'interfaces/form';
 import Link from '@button-inc/bcgov-theme/Link';
-
-const ModalButton = styled(Button)`
-  display: block;
-  margin: 10px;
-  margin-left: auto;
-`;
 
 const Description = styled.p`
   margin: 0;
@@ -66,7 +57,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const handleChange = (e: any) => {
     setFormData(e.formData);
     if (e.formData.projectLead === false) {
-      window.location.hash = 'modal';
+      window.location.hash = 'info-modal';
     }
   };
 
@@ -213,18 +204,19 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
         </Form>
       )}
       {stageTitle === 'Requester Info' && (
-        <CenteredModal id="modal">
-          <Modal.Header>
-            <FontAwesomeIcon icon={faInfoCircle} size="2x" title="Information" />
-          </Modal.Header>
-          <Modal.Content>
-            If you are not accountable for this project, please refer this request to someone who is.
-            <br />
-            <br />
-            Only the person who is responsible for this project can submit the intergration request.
-            <ModalButton onClick={handleModalClose}>Okay</ModalButton>
-          </Modal.Content>
-        </CenteredModal>
+        <CenteredModal
+          id="info-modal"
+          content={
+            <>
+              <p>If you are not accountable for this project, please refer this request to someone who is.</p>
+              <p> Only the person who is responsible for this project can submit the intergration request.</p>
+            </>
+          }
+          icon={faInfoCircle}
+          onConfirm={handleModalClose}
+          confirmText="Okay"
+          showCancel={false}
+        />
       )}
     </>
   );

@@ -1,5 +1,6 @@
 import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
 import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
+import ClientTypeWidget from 'form-components/widgets/ClientTypeWidget';
 
 const getUISchema = (created: boolean) => {
   return {
@@ -22,7 +23,7 @@ const getUISchema = (created: boolean) => {
       'ui:readonly': true,
     },
     publicAccess: {
-      'ui:widget': 'radio',
+      'ui:widget': ClientTypeWidget,
       'ui:FieldTemplate': FieldTemplateWithTitle,
     },
     projectName: {

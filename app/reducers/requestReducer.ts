@@ -1,5 +1,4 @@
 import { Request } from 'interfaces/Request';
-import type { Environment } from 'interfaces/types';
 
 export interface RequestReducerState {
   requests?: Request[];

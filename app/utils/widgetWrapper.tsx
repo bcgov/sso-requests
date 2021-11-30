@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React from 'react';
 
 function getValue(inputType) {
   switch (inputType) {
@@ -12,7 +12,7 @@ function getValue(inputType) {
   }
 }
 
-const Wrapper = (Component, inputType: string = '') => {
+const WidgetWrapper = (Component, inputType: string = '') => {
   const valueKey = getValue(inputType);
   return (props) => {
     const { value, onChange, label, schema, options, required, disabled, onBlur, id = '', readonly } = props;
@@ -20,11 +20,11 @@ const Wrapper = (Component, inputType: string = '') => {
     const { enumOptions = [] } = options;
     const formProps = {
       onChange: (e) => {
-        let value = e.target[valueKey];
-        if (value === '') value = undefined;
-        if (value === 'true') value = true;
-        if (value === 'false') value = false;
-        onChange(value);
+        let newValue = e.target[valueKey];
+        if (newValue === '') newValue = undefined;
+        if (newValue === 'true') newValue = true;
+        if (newValue === 'false') newValue = false;
+        onChange(newValue);
       },
       label,
       name,
@@ -74,10 +74,10 @@ const Wrapper = (Component, inputType: string = '') => {
     return (
       <Component {...formProps} onBlur={onBlur && ((event) => onBlur(id, event.target.value))}>
         {enumOptions &&
-          enumOptions.map(({ value, label }) => {
+          enumOptions.map(({ value: enumValue, label: enumLabel }) => {
             return (
-              <option key={value} value={value}>
-                {label}
+              <option key={enumValue} value={enumValue}>
+                {enumLabel}
               </option>
             );
           })}
@@ -86,4 +86,4 @@ const Wrapper = (Component, inputType: string = '') => {
   };
 };
 
-export default Wrapper;
+export default WidgetWrapper;

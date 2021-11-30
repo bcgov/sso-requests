@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Request = sequelize.define(
+  return sequelize.define(
     'request',
     {
       idirUserid: {
@@ -108,11 +108,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         field: 'has_unread_notifications',
       },
+      browserFlowOverride: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        field: 'browser_flow_override',
+      },
     },
     {
       underscored: true,
     },
   );
-
-  return Request;
 };

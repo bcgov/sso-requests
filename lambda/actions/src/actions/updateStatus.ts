@@ -13,7 +13,7 @@ const createEvent = async (data) => {
   }
 };
 
-export default async function status(event) {
+export default async function updateStatus(event) {
   const { body, queryStringParameters } = event;
   const {
     prNumber,
@@ -31,9 +31,9 @@ export default async function status(event) {
 
   if (githubActionsStage === 'create') {
     const success = String(prSuccess) === 'true';
-    const status = success ? 'pr' : 'prFailed';
+    const requestStatus = success ? 'pr' : 'prFailed';
     await Promise.all([
-      models.request.update({ prNumber, status, actionNumber }, { where: { id } }),
+      models.request.update({ prNumber, status: requestStatus, actionNumber }, { where: { id } }),
       createEvent({ eventCode: success ? EVENTS.REQUEST_PR_SUCCESS : EVENTS.REQUEST_PR_FAILURE, requestId: id }),
     ]);
   } else {
@@ -45,9 +45,9 @@ export default async function status(event) {
     const isAlreadyApplied = currentStatus === 'applied';
     if (githubActionsStage === 'plan') {
       const success = String(planSuccess) === 'true';
-      const status = success ? 'planned' : 'planFailed';
+      const planStatus = success ? 'planned' : 'planFailed';
       await Promise.all([
-        !isAlreadyApplied && models.request.update({ status }, { where: { id: requestId } }),
+        !isAlreadyApplied && models.request.update({ status: planStatus }, { where: { id: requestId } }),
         createEvent({
           eventCode: success ? EVENTS.REQUEST_PLAN_SUCCESS : EVENTS.REQUEST_PLAN_FAILURE,
           requestId,
@@ -62,10 +62,10 @@ export default async function status(event) {
       }));
 
       const success = String(applySuccess) === 'true';
-      const status = success ? 'applied' : 'applyFailed';
+      const applyStatus = success ? 'applied' : 'applyFailed';
 
       await Promise.all([
-        models.request.update({ status, hasUnreadNotifications: isUpdate }, { where: { id: requestId } }),
+        models.request.update({ status: applyStatus, hasUnreadNotifications: isUpdate }, { where: { id: requestId } }),
         createEvent({ eventCode: success ? EVENTS.REQUEST_APPLY_SUCCESS : EVENTS.REQUEST_APPLY_FAILURE, requestId }),
       ]);
 

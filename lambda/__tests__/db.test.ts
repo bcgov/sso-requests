@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { handler } from '../db/src/main';
 
 const event: APIGatewayProxyEvent = {

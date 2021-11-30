@@ -3,7 +3,7 @@
 //
 
 import { isEqual } from 'lodash';
-import { Request } from 'interfaces/Request';
+import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
@@ -20,6 +20,16 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
     if (err.length > 0) errors[i] = err;
   });
   return errors;
+};
+
+export const formatFilters = (idps: Option[], envs: Option[]) => {
+  let realms: string[] | null = [];
+  idps.forEach((idp: Option) => (realms = realms?.concat(idp.value) || null));
+  realms = realms.length > 0 ? realms : null;
+
+  let formattedEnvironments: string[] | null = envs.map((env: Option) => env.value as string);
+  formattedEnvironments = formattedEnvironments.length > 0 ? formattedEnvironments : null;
+  return [realms, formattedEnvironments];
 };
 
 const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
@@ -139,7 +149,7 @@ const changeNullToUndefined = (data: any) => {
 };
 
 export const processRequest = (request: Request): Request => {
-  const environments = request.environments as string[];
+  const requestedEnvironments = request.environments as string[];
   if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
     request.devValidRedirectUris = [''];
   }
@@ -152,9 +162,9 @@ export const processRequest = (request: Request): Request => {
     request.prodValidRedirectUris = [''];
   }
 
-  if (environments.includes('dev')) request.dev = true;
-  if (environments.includes('test')) request.test = true;
-  if (environments.includes('prod')) request.prod = true;
+  if (requestedEnvironments.includes('dev')) request.dev = true;
+  if (requestedEnvironments.includes('test')) request.test = true;
+  if (requestedEnvironments.includes('prod')) request.prod = true;
   delete request.environments;
   return changeNullToUndefined(request);
 };
@@ -236,4 +246,20 @@ export const formatChangeEventDetails = (changes: Change[]) => {
       ))}
     </ul>
   );
+};
+
+export const hasAnyPendingStatus = (requests: Request[]) => {
+  return requests.some((request) => {
+    return [
+      // 'draft',
+      'submitted',
+      'pr',
+      'prFailed',
+      'planned',
+      'planFailed',
+      'approved',
+      // 'applied',
+      'applyFailed',
+    ].includes(request.status || '');
+  });
 };

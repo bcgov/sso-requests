@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { handler } from '../actions/src/main';
 import baseEvent from './base-event.json';
 import { models } from '../shared/sequelize/models/models';
@@ -17,7 +17,7 @@ jest.mock('../shared/utils/ches', () => {
 });
 
 beforeAll(async () => {
-  return await models.request.create({
+  return models.request.create({
     idirUserid: 'A1',
     projectName: 'test',
     projectLead: 'yes',

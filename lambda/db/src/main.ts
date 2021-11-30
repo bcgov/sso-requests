@@ -2,8 +2,6 @@ import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { createMigrator } from './umzug';
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
-  const { headers } = event;
-
   const logs = [];
   const logger = {
     info: (...data) => {

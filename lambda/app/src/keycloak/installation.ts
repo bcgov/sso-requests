@@ -17,7 +17,7 @@ export const generateInstallation = async (data: { environment: string; realmNam
 
   const realm = await kcAdminClient.realms.findOne({ realm: realmName });
   const clients = await kcAdminClient.clients.find({ realm: realm.realm });
-  const client = clients.find((client) => client.clientId === clientId);
+  const client = clients.find((kcClient) => kcClient.clientId === clientId);
 
   console.log(client);
 

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { isNil } from 'lodash';
 import FormTemplate from 'form-components/FormTemplate';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { getRequest } from 'services/request';
+import { Request } from 'interfaces/Request';
 import PageLoader from 'components/PageLoader';
 
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
@@ -13,7 +15,7 @@ interface Props {
   };
 }
 
-function Request({ currentUser }: Props) {
+function RequestEdit({ currentUser }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [request, setRequest] = useState<Request | null>(null);
@@ -22,8 +24,12 @@ function Request({ currentUser }: Props) {
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
-      const [data, err] = await getRequest(parseInt(rid as string));
-      setRequest(data as Request | null);
+      const [data] = await getRequest(parseInt(rid as string));
+      if (isNil(data)) {
+        setRequest(null);
+      } else {
+        setRequest(data);
+      }
       setLoading(false);
     };
     getData();
@@ -36,4 +42,4 @@ function Request({ currentUser }: Props) {
   );
 }
 
-export default Request;
+export default RequestEdit;

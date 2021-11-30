@@ -1,10 +1,8 @@
-import { useContext } from 'react';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
-import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import { Request } from 'interfaces/Request';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
@@ -34,12 +32,12 @@ interface Props {
 }
 
 function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeKey = defaultTabKey }: Props) {
-  const { dispatch } = useContext(RequestsContext);
   if (!selectedRequest) return null;
-  const { status } = selectedRequest;
+  const { status, bceidApproved } = selectedRequest;
   const displayStatus = getStatusDisplayName(status || 'draft');
-  const hasBceidProd = usesBceid(selectedRequest?.realm) && selectedRequest.prod;
+  const awaitingBceidProd = usesBceid(selectedRequest?.realm) && selectedRequest.prod && !bceidApproved;
   let panel = null;
+
   if (displayStatus === 'In Draft') {
     panel = (
       <>
@@ -57,14 +55,14 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
       <RequestTabs activeKey="Integration-request-summary">
         <Tab eventKey="Integration-request-summary" title="Integration Request Summary">
           <TabWrapper>
-            {hasBceidProd ? (
+            {awaitingBceidProd ? (
               <>
                 <NumberedContents
                   number={1}
                   title="Access to Dev and/or Test environment(s) - approx 20 mins"
                   variant="secondary"
                 >
-                  <SubmittedStatusIndicator selectedRequest={selectedRequest} showTitle={false} />
+                  <SubmittedStatusIndicator selectedRequest={selectedRequest} />
                   <br />
                 </NumberedContents>
                 <NumberedContents number={2} title="Access to Prod environment - (TBD)" variant="secondary">
@@ -72,7 +70,10 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
                 </NumberedContents>
               </>
             ) : (
-              <SubmittedStatusIndicator selectedRequest={selectedRequest} />
+              <SubmittedStatusIndicator
+                selectedRequest={selectedRequest}
+                title="Access to environment(s) - approx 20 mins"
+              />
             )}
           </TabWrapper>
         </Tab>
@@ -98,7 +99,7 @@ function RequestInfoTabs({ selectedRequest, defaultTabKey, setActiveKey, activeK
             </TabWrapper>
           </Tab>
         </RequestTabs>
-        {hasBceidProd && (
+        {awaitingBceidProd && (
           <>
             <Title>Production Status</Title>
             <BceidStatus request={selectedRequest} />
