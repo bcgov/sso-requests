@@ -1,10 +1,14 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import Api from 'lambda-api-router';
 import { authenticate } from './authenticate';
 import { getEvents } from './routes/events';
 import { createRequest, getRequests, getRequestAll, getRequest, updateRequest, deleteRequest } from './routes/requests';
 import { getClient } from './routes/client';
 import { getInstallation, changeSecret } from './routes/installation';
 import { wakeUpAll } from './routes/heartbeat';
+import { Session } from '../../shared/interfaces';
+
+const app = new Api();
 
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
 
@@ -18,74 +22,135 @@ const responseHeaders = {
 
 const BASE_PATH = '/app';
 
-export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
-  context.callbackWaitsForEmptyEventLoop = false;
-  const { headers, requestContext, body, path, queryStringParameters } = event;
-  const { submit, include, id } = queryStringParameters || {};
-  const { httpMethod } = requestContext;
+app.options('*', async (req, res) => {
+  res.json(null);
+});
 
-  if (httpMethod === 'OPTIONS') return callback(null, { headers: responseHeaders });
+app.use((req, res) => {
+  res.headers(responseHeaders);
+});
 
-  if (path === `${BASE_PATH}/heartbeat`) {
-    const result = await wakeUpAll();
-    return callback(null, { ...result, headers: responseHeaders });
-  }
-
-  const session = await authenticate(headers);
+app.use(async (req, res) => {
+  const session = await authenticate(req.headers);
   if (!session) {
-    const unauthorizedResponse = {
-      statusCode: 401,
-      headers: responseHeaders,
-    };
-    return callback(null, unauthorizedResponse);
+    res.status(401).json({ success: false });
   }
+});
 
-  let response: any = {
-    statusCode: 404,
-    headers: responseHeaders,
-  };
-
-  console.log('REQUEST PATH', path);
-  if (path === `${BASE_PATH}/requests-all`) {
-    if (httpMethod === 'POST') {
-      response = await getRequestAll(session, JSON.parse(body));
-    }
-  } else if (path === `${BASE_PATH}/requests`) {
-    if (httpMethod === 'POST') {
-      response = await createRequest(session, JSON.parse(body));
-    } else if (httpMethod === 'GET') {
-      response = await getRequests(session, include);
-    } else if (httpMethod === 'PUT') {
-      response = await updateRequest(session, JSON.parse(body), submit);
-    } else if (httpMethod === 'DELETE') {
-      response = await deleteRequest(session, Number(id));
-    }
-  } else if (path === `${BASE_PATH}/request`) {
-    if (httpMethod === 'POST') {
-      response = await getRequest(session, JSON.parse(body));
-    }
-  } else if (path === `${BASE_PATH}/installation`) {
-    if (httpMethod === 'POST') {
-      response = await getInstallation(session, JSON.parse(body));
-    }
-    if (httpMethod === 'PUT') {
-      response = await changeSecret(session, JSON.parse(body));
-    }
-  } else if (path === `${BASE_PATH}/client`) {
-    if (httpMethod === 'POST') {
-      response = await getClient(session, JSON.parse(body));
-    }
-  } else if (path === `${BASE_PATH}/events`) {
-    if (httpMethod === 'POST') {
-      response = await getEvents(session, JSON.parse(body));
-    }
+app.any(`${BASE_PATH}/heartbeat`, async (req, res) => {
+  try {
+    const result = await wakeUpAll();
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false });
   }
+});
 
-  response = {
-    ...response,
-    isBase64Encoded: false,
-    headers: responseHeaders,
-  };
+app.post(`${BASE_PATH}/requests-all`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const result = await getRequestAll(session as Session, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
 
-  callback(null, response);
+app.get(`${BASE_PATH}/requests`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const { include } = req.query;
+    const result = await getRequests(session as Session, include);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+app.post(`${BASE_PATH}/requests`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const result = await createRequest(session as Session, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+app.put(`${BASE_PATH}/requests`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const { submit } = req.query;
+    const result = await updateRequest(session as Session, req.body, submit);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+app.delete(`${BASE_PATH}/requests`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const { id } = req.query;
+    const result = await deleteRequest(session as Session, Number(id));
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+app.post(`${BASE_PATH}/request`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const result = await getRequest(session as Session, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+app.post(`${BASE_PATH}/installation`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const result = await getInstallation(session as Session, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+app.put(`${BASE_PATH}/installation`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const result = await changeSecret(session as Session, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+app.post(`${BASE_PATH}/client`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const result = await getClient(session as Session, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+app.post(`${BASE_PATH}/events`, async (req, res) => {
+  try {
+    const session = await authenticate(req.headers);
+    const result = await getEvents(session as Session, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(422).json({ success: false, message: err.message || err });
+  }
+});
+
+export const handler = async (event: APIGatewayProxyEvent, context?: Context) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+
+  return app.listen(event, context);
 };
