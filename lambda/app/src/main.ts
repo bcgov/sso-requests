@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
-import Api from 'lambda-api-router';
+const Api = require('lambda-api-router');
 import { authenticate } from './authenticate';
 import { getEvents } from './routes/events';
 import { createRequest, getRequests, getRequestAll, getRequest, updateRequest, deleteRequest } from './routes/requests';
@@ -22,12 +22,16 @@ const responseHeaders = {
 
 const BASE_PATH = '/app';
 
-app.options('*', async (req, res) => {
-  res.json(null);
+app.use((req, res) => {
+  try {
+    req.body = JSON.parse(req.body);
+  } catch {}
+
+  res.headers(responseHeaders);
 });
 
-app.use((req, res) => {
-  res.headers(responseHeaders);
+app.options('(.*)', async (req, res) => {
+  res.status(200).json(null);
 });
 
 app.use(async (req, res) => {
@@ -37,10 +41,10 @@ app.use(async (req, res) => {
   }
 });
 
-app.any(`${BASE_PATH}/heartbeat`, async (req, res) => {
+app.get(`${BASE_PATH}/heartbeat`, async (req, res) => {
   try {
     const result = await wakeUpAll();
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false });
   }
@@ -49,8 +53,10 @@ app.any(`${BASE_PATH}/heartbeat`, async (req, res) => {
 app.post(`${BASE_PATH}/requests-all`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const result = await getRequestAll(session as Session, req.body);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -59,9 +65,11 @@ app.post(`${BASE_PATH}/requests-all`, async (req, res) => {
 app.get(`${BASE_PATH}/requests`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const { include } = req.query;
     const result = await getRequests(session as Session, include);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -70,8 +78,10 @@ app.get(`${BASE_PATH}/requests`, async (req, res) => {
 app.post(`${BASE_PATH}/requests`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const result = await createRequest(session as Session, req.body);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -80,9 +90,11 @@ app.post(`${BASE_PATH}/requests`, async (req, res) => {
 app.put(`${BASE_PATH}/requests`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const { submit } = req.query;
     const result = await updateRequest(session as Session, req.body, submit);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -91,9 +103,11 @@ app.put(`${BASE_PATH}/requests`, async (req, res) => {
 app.delete(`${BASE_PATH}/requests`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const { id } = req.query;
     const result = await deleteRequest(session as Session, Number(id));
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -102,8 +116,10 @@ app.delete(`${BASE_PATH}/requests`, async (req, res) => {
 app.post(`${BASE_PATH}/request`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const result = await getRequest(session as Session, req.body);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -112,8 +128,10 @@ app.post(`${BASE_PATH}/request`, async (req, res) => {
 app.post(`${BASE_PATH}/installation`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const result = await getInstallation(session as Session, req.body);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -122,8 +140,10 @@ app.post(`${BASE_PATH}/installation`, async (req, res) => {
 app.put(`${BASE_PATH}/installation`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const result = await changeSecret(session as Session, req.body);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -132,8 +152,10 @@ app.put(`${BASE_PATH}/installation`, async (req, res) => {
 app.post(`${BASE_PATH}/client`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const result = await getClient(session as Session, req.body);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }
@@ -142,8 +164,10 @@ app.post(`${BASE_PATH}/client`, async (req, res) => {
 app.post(`${BASE_PATH}/events`, async (req, res) => {
   try {
     const session = await authenticate(req.headers);
+    if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+
     const result = await getEvents(session as Session, req.body);
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     res.status(422).json({ success: false, message: err.message || err });
   }

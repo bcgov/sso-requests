@@ -11,6 +11,7 @@
     "x-forwarded-proto": "http",
     "x-imforwards": "20"
   },
+  "httpMethod": "GET",
   "requestContext": { "httpMethod": "GET" },
   "body": "",
   "path": "/app/heartbeat",

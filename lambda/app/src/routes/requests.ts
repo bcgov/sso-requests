@@ -101,6 +101,7 @@ export const createRequest = async (session: Session, data: Data) => {
   }
 
   const { projectName, projectLead, preferredEmail, additionalEmails } = data;
+
   const result = await models.request.create({
     idirUserid: session.idir_userid,
     projectName,
