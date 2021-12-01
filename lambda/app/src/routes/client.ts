@@ -16,7 +16,5 @@ export const getClient = async (session: Session, data: { requestId: number }) =
     proms.push(fetchClient({ environment: env, realmName: 'onestopauth', clientId: kebabCase(request.projectName) }));
   });
 
-  const clients = await Promise.all(proms);
-
-  return clients;
+  return Promise.all(proms);
 };

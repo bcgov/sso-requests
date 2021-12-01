@@ -26,6 +26,7 @@ export const changeSecret = async (session: Session, data: { requestId: number; 
       id: data.requestId,
     },
   });
+
   await updateClientSecret({
     environment: data.environment,
     realmName: request.realm,
