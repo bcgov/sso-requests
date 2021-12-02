@@ -328,6 +328,7 @@ export const deleteRequest = async (session: Session, id: number) => {
         },
         environments: [],
         publicAccess: original.publicAccess,
+        browserFlowOverride: original.browserFlowOverride,
       };
 
       // Trigger workflow with empty environments to delete client
