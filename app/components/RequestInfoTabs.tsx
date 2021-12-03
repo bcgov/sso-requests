@@ -9,7 +9,7 @@ import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
 import { RequestTabs } from 'components/RequestTabs';
 import { usesBceid } from 'utils/helpers';
-import NumberedContents from 'components/NumberedContents';
+import { NumberedContents } from '@bcgov-sso/react-npm';
 import BceidStatus from 'components/BceidStatus';
 import DefaultTitle from 'components/SHeader3';
 
