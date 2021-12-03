@@ -54,8 +54,8 @@ interface RequestAllData {
   order: any;
   limit: number;
   page: number;
-  status: string;
-  archiveStatus: string;
+  status: string[];
+  archiveStatus: string[];
   realms: string[] | null;
   environments: string[] | null;
 }

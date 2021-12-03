@@ -14,22 +14,7 @@ import { PRIMARY_RED } from 'styles/theme';
 import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 
-type Status =
-  | 'all'
-  | 'draft'
-  | 'submitted'
-  | 'pr'
-  | 'prFailed'
-  | 'planned'
-  | 'planFailed'
-  | 'approved'
-  | 'applied'
-  | 'applyFailed';
-
-type ArchiveStatus = 'all' | 'active' | 'archived';
-
 const workflowStatusOptions = [
-  { value: 'all', label: 'All' },
   { value: 'draft', label: 'Draft' },
   { value: 'submitted', label: 'Submitted' },
   { value: 'pr', label: 'PR' },
@@ -47,7 +32,6 @@ const idpOptions = [
 ];
 
 const archiveStatusOptions = [
-  { value: 'all', label: 'All' },
   { value: 'active', label: 'Active' },
   { value: 'archived', label: 'Deleted' },
 ];
@@ -96,10 +80,10 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [limit, setLimit] = useState<number>(5);
   const [page, setPage] = useState<number>(1);
   const [selectedId, setSelectedId] = useState<number | undefined>(Number(router.query?.id) || undefined);
-  const [archiveStatus, setArchiveStatus] = useState<ArchiveStatus>('active');
   const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
   const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
-  const [workflowStatus, setWorkflowStatus] = useState<Status>('all');
+  const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
+  const [archiveStatus, setArchiveStatus] = useState<Option[]>([]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
@@ -114,8 +98,8 @@ export default function AdminDashboard({ currentUser }: PageProps) {
       ],
       limit,
       page,
-      status: workflowStatus,
-      archiveStatus,
+      status: workflowStatus.map((v) => v.value) as string[],
+      archiveStatus: archiveStatus.map((v) => v.value) as string[],
       realms,
       environments,
     });
@@ -183,9 +167,6 @@ export default function AdminDashboard({ currentUser }: PageProps) {
     window.location.hash = '#';
   };
 
-  const handleWorkflowChange = (e: any) => setWorkflowStatus(e.target.value);
-  const handleArchiveChange = (e: any) => setArchiveStatus(e.target.value);
-
   return (
     <ResponsiveContainer rules={mediaRules}>
       <Grid cols={10}>
@@ -209,15 +190,15 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 },
                 {
                   value: workflowStatus,
-                  multiselect: false,
-                  onChange: handleWorkflowChange,
+                  multiselect: true,
+                  onChange: setWorkflowStatus,
                   options: workflowStatusOptions,
                   label: 'Workflow Status',
                 },
                 {
                   value: archiveStatus,
-                  multiselect: false,
-                  onChange: handleArchiveChange,
+                  multiselect: true,
+                  onChange: setArchiveStatus,
                   options: archiveStatusOptions,
                   label: 'Archive Status',
                 },

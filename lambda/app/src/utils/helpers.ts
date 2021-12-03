@@ -155,7 +155,7 @@ export const getWhereClauseForAllRequests = (data: {
   environments?: string[];
 }) => {
   const where: any = {};
-  const { searchField, searchKey, status = 'all', archiveStatus = 'active', realms, environments } = data;
+  const { searchField, searchKey, status = [], archiveStatus = [], realms, environments } = data;
 
   if (searchKey && searchField && searchField.length > 0) {
     where[Op.or] = [];
@@ -169,12 +169,14 @@ export const getWhereClauseForAllRequests = (data: {
     });
   }
 
-  if (status !== 'all') {
-    where.status = status;
+  if (status.length > 0) {
+    where.status = {
+      [Op.in]: status,
+    };
   }
 
-  if (archiveStatus !== 'all') {
-    where.archived = archiveStatus === 'archived';
+  if (archiveStatus.length === 1) {
+    where.archived = archiveStatus[0] === 'archived';
   }
 
   if (realms)
@@ -184,7 +186,7 @@ export const getWhereClauseForAllRequests = (data: {
 
   if (environments)
     where.environments = {
-      [Op.contains]: environments,
+      [Op.overlap]: environments,
     };
 
   return where;
