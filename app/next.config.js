@@ -21,4 +21,12 @@ module.exports = {
   // basePath has to start with a /
   // basePath has to be either an empty string or a path prefix
   basePath: BASE_PATH,
+  async rewrites() {
+    return [
+      {
+        source: '/app/:path*',
+        destination: 'http://localhost:8080/app/:path*', // Proxy to Backend
+      },
+    ];
+  },
 };

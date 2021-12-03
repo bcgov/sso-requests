@@ -55,10 +55,11 @@ const validateJWTSignature = async (token) => {
 };
 
 export const authenticate = async (headers) => {
-  const { Authorization } = headers || {};
-  if (!Authorization) return false;
+  const { Authorization, authorization } = headers || {};
+  const authHeader = Authorization || authorization;
+  if (!authHeader) return false;
 
-  const bearerToken = Authorization.split('Bearer ')[1];
+  const bearerToken = authHeader.split('Bearer ')[1];
   const currentUser = await validateJWTSignature(bearerToken);
   if (!currentUser) return currentUser;
 
