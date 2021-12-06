@@ -51,8 +51,7 @@ export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
   else if (bceidEvent === 'deletion') emailCode = 'bceid-idim-deleted';
   else return;
   // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
-  // const to = ['bcgov.sso@gov.bc.ca'];
-  const to = ['timafmpv@gmail.com'];
+  const to = ['bcgov.sso@gov.bc.ca'];
   return sendEmail({
     to,
     cc,
