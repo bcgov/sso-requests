@@ -16,12 +16,6 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
-const addId = (id, event) => {
-  const body = JSON.parse(event.body);
-  body.id = id;
-  return { ...event, body: JSON.stringify(body) };
-};
-
 let id;
 let wakeUpEvent: APIGatewayProxyEvent = {
   ...baseEvent,
@@ -47,7 +41,15 @@ let updateEvent: APIGatewayProxyEvent = {
   requestContext: { httpMethod: 'PUT' },
 };
 
+let planEvent: APIGatewayProxyEvent = { ...updateEvent, queryStringParameters: { status: 'plan' } };
+let applyEvent: APIGatewayProxyEvent = { ...updateEvent, queryStringParameters: { status: 'apply' } };
+
+const changeBody = (event: APIGatewayProxyEvent, key: string, value: any) => {
+  return { ...event, body: JSON.stringify({ ...JSON.parse(event.body), [key]: value }) };
+};
+
 beforeAll(async () => {
+  await models.request.destroy({ where: { idirUserid: 'A1' } });
   const request = await models.request.create({
     idirUserid: 'A1',
     projectName: 'test',
@@ -56,13 +58,11 @@ beforeAll(async () => {
     publicAccess: 'yes',
   });
   id = request.dataValues.id;
-  wakeUpEvent = addId(request.dataValues.id, wakeUpEvent);
-  updateEvent = addId(request.dataValues.id, updateEvent);
+  wakeUpEvent = changeBody(wakeUpEvent, 'id', request.dataValues.id);
+  updateEvent = changeBody(updateEvent, 'id', request.dataValues.id);
+  planEvent = changeBody(planEvent, 'id', request.dataValues.id);
+  applyEvent = changeBody(applyEvent, 'id', request.dataValues.id);
 });
-
-const changeBody = (event: APIGatewayProxyEvent, key: string, value: any) => {
-  return { ...event, body: JSON.stringify({ ...JSON.parse(event.body), [key]: value }) };
-};
 
 describe('actions endpoints', () => {
   afterEach(() => {
@@ -74,8 +74,6 @@ describe('actions endpoints', () => {
   });
 
   const context: Context = {};
-  const planEvent: APIGatewayProxyEvent = { ...updateEvent, queryStringParameters: { status: 'plan' } };
-  const applyEvent: APIGatewayProxyEvent = { ...updateEvent, queryStringParameters: { status: 'apply' } };
 
   it('should successfully wake up the API on GET requests', async () => {
     const event: APIGatewayProxyEvent = { ...wakeUpEvent, path: '/app/actions' };

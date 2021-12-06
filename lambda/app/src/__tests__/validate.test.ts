@@ -6,7 +6,6 @@ it('should respond valid if there are valid changes', () => {
 });
 
 it('should respond invalid if there are no changes', () => {
-  const originalWithSameValues = { ...formDataOriginal, devValidRedirectUris: ['https://b'] };
   expect(validateRequest(formDataOriginal, formDataWithMutatedNonFormFields, true)).toEqual({ message: errorMessage });
-  expect(validateRequest(originalWithSameValues, formDataUpdated, true)).toEqual({ message: errorMessage });
+  expect(validateRequest(formDataUpdated, formDataUpdated, true)).toEqual({ message: errorMessage });
 });

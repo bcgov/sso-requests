@@ -43,6 +43,7 @@ export const formDataOriginal: any = {
   agreeWithTerms: true,
   status: 'draft',
   archived: false,
+  additionalEmails: [],
 };
 
 export const formDataWithMutatedNonFormFields: any = {
@@ -66,6 +67,7 @@ export const formDataWithMutatedNonFormFields: any = {
   agreeWithTerms: true,
   status: 'submitted',
   archived: true,
+  additionalEmails: [],
 };
 
 export const formDataBceid: any = {
