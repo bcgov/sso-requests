@@ -7,7 +7,6 @@ import { isObject, omit, sortBy } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
 import { Session, Data } from '../../../shared/interfaces';
-import { realmToIDP } from '../../../shared/utils/helpers';
 import { Op } from 'sequelize';
 import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
 import { sendEmail } from '../../../shared/utils/ches';

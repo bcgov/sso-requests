@@ -71,6 +71,11 @@ jobs:
           yarn
         working-directory: ./lambda/actions
 
+      - name: Install dependencies - lambda shared
+        run: |
+          yarn
+        working-directory: ./lambda/shared
+
       - name: Run backend integration tests
         env:
           DATABASE_URL: postgresql://localhost:5432/ssodb
