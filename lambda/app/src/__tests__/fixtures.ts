@@ -19,6 +19,7 @@ export const formDataUpdated: any = {
   agreeWithTerms: true,
   status: 'draft',
   archived: false,
+  additionalEmails: [],
 };
 
 export const formDataOriginal: any = {
@@ -65,4 +66,9 @@ export const formDataWithMutatedNonFormFields: any = {
   agreeWithTerms: true,
   status: 'submitted',
   archived: true,
+};
+
+export const formDataBceid: any = {
+  ...formDataWithMutatedNonFormFields,
+  realm: 'onestopauth-basic',
 };

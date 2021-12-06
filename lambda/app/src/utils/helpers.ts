@@ -7,7 +7,10 @@ import { isObject, omit, sortBy } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
 import { Session, Data } from '../../../shared/interfaces';
+import { realmToIDP } from '../../../shared/utils/helpers';
 import { Op } from 'sequelize';
+import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
+import { sendEmail } from '../../../shared/utils/ches';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 
@@ -25,6 +28,39 @@ export const omitNonFormFields = (data: Request) =>
     'idirUserDisplayName',
     'id',
   ]);
+
+export type BceidEvent = 'submission' | 'deletion' | 'update';
+const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
+export const usesBceid = (realm: string | undefined) => {
+  if (!realm) return false;
+  return bceidRealms.includes(realm);
+};
+
+export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
+  const { realm, id, preferredEmail, additionalEmails, environments } = request;
+  if (!usesBceid(realm) || bceidEvent === 'update') return;
+  const usesProd = environments.includes('prod');
+
+  // Only cc user for production requests
+  let cc = usesProd ? [preferredEmail] : [];
+  if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
+
+  let emailCode: EmailMessage;
+  if (bceidEvent === 'submission' && usesProd) emailCode = 'bceid-idim-prod-submitted';
+  else if (bceidEvent === 'submission') emailCode = 'bceid-idim-prod-submitted';
+  else if (bceidEvent === 'deletion') emailCode = 'bceid-idim-deleted';
+  else return;
+  // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
+  // const to = ['bcgov.sso@gov.bc.ca'];
+  const to = ['timafmpv@gmail.com'];
+  return sendEmail({
+    to,
+    cc,
+    body: getEmailBody(emailCode, request),
+    subject: getEmailSubject(emailCode, id),
+    event: { emailCode, requestId: id },
+  });
+};
 
 const sortURIFields = (data: any) => {
   const sortedData = { ...data };
@@ -89,62 +125,6 @@ export const stringifyGithubInputs = (inputs: any) => {
 };
 
 export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
-
-export const realmToIDP = (realm?: string) => {
-  let idps: string[] = [];
-  if (realm === 'onestopauth') idps = ['idir'];
-  if (realm === 'onestopauth-basic') idps = ['idir', 'bceid-basic'];
-  if (realm === 'onestopauth-business') idps = ['idir', 'bceid-business'];
-  if (realm === 'onestopauth-both') idps = ['idir', 'bceid-business', 'bceid-basic'];
-  return idps;
-};
-
-export const formatBody = (request: Data, idirUserDisplayName: string, usesProd: boolean) => {
-  const testUris =
-    request.testValidRedirectUris.length > 0 && request.testValidRedirectUris[0] !== ''
-      ? `, TEST: ${request.testValidRedirectUris.join(', ')}`
-      : '';
-
-  const introduction = usesProd ? 'Pathfinder SSO friend' : 'IDIM Team';
-  const summary = usesProd
-    ? 'Thank you for your integration request. <strong>Below is a summary of your integration request details.</strong>'
-    : 'We are notifying you that a new dev and/or test integration request has been submitted. The request details are below:';
-
-  return `
-    <h1>Hello ${introduction},</h1>
-    <p>
-      ${summary}
-    </p>
-
-    <ul>
-      <li><strong>Project name:</strong> ${request.projectName}</li>
-      <li><strong>Accountable person:</strong> ${idirUserDisplayName}</li>
-      <li><strong>URIs (for dev and test):</strong> DEV: ${request.devValidRedirectUris.join(', ')}${testUris}</li>
-      <li><strong>Identity Providers Required:</strong> ${realmToIDP(request.realm)}</li>
-    </ul>
-
-    ${
-      usesProd
-        ? `<h1>Next Steps</h1>
-      <ol>
-        <li><strong>On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an on-boarding meeting.</strong></li>
-        <li><strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong></li>
-      </ol>
-      <ul>
-        <li>What is your estimated volume of initial users?</li>
-        <li>Do you anticipate your volume of users will grow over the next three years?</li>
-        <li>When do you need access to the production environment by?</li>
-        <li>When will your end users need access to the production environment?</li>
-      </ul>`
-        : ''
-    }
-
-    <p>Thank you,</p>
-
-    <p>Pathfinder SSO team.</p>
-
-  `;
-};
 
 export const getWhereClauseForAllRequests = (data: {
   searchField: string[];

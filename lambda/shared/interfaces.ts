@@ -20,6 +20,13 @@ export interface Data {
   additionalEmails: string[];
   bceidEmailDetails?: object;
   environments?: string[];
+  idirUserDisplayName?: string;
+  idirUserId?: string;
+  clientName?: string;
+  newToSso?: boolean;
+  agreeWithTerms?: boolean;
+  status?: string;
+  archived?: boolean;
 }
 
 export interface FormattedData {
