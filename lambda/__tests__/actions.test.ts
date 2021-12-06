@@ -16,17 +16,14 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
-beforeAll(async () => {
-  return models.request.create({
-    idirUserid: 'A1',
-    projectName: 'test',
-    projectLead: 'yes',
-    preferredEmail: 'me@me.com',
-    publicAccess: 'yes',
-  });
-});
+const addId = (id, event) => {
+  const body = JSON.parse(event.body);
+  body.id = id;
+  return { ...event, body: JSON.stringify(body) };
+};
 
-const wakeUpEvent: APIGatewayProxyEvent = {
+let id;
+let wakeUpEvent: APIGatewayProxyEvent = {
   ...baseEvent,
   path: '/app/actions',
   queryStringParameters: { status: 'create' },
@@ -35,7 +32,6 @@ const wakeUpEvent: APIGatewayProxyEvent = {
     prSuccess: true,
     planSuccess: true,
     applySuccess: true,
-    id: 1,
     actionNumber: 1,
     planDetails: null,
     repoOwner: 'test',
@@ -46,10 +42,23 @@ const wakeUpEvent: APIGatewayProxyEvent = {
   },
 };
 
-const updateEvent: APIGatewayProxyEvent = {
+let updateEvent: APIGatewayProxyEvent = {
   ...wakeUpEvent,
   requestContext: { httpMethod: 'PUT' },
 };
+
+beforeAll(async () => {
+  const request = await models.request.create({
+    idirUserid: 'A1',
+    projectName: 'test',
+    projectLead: 'yes',
+    preferredEmail: 'me@me.com',
+    publicAccess: 'yes',
+  });
+  id = request.dataValues.id;
+  wakeUpEvent = addId(request.dataValues.id, wakeUpEvent);
+  updateEvent = addId(request.dataValues.id, updateEvent);
+});
 
 const changeBody = (event: APIGatewayProxyEvent, key: string, value: any) => {
   return { ...event, body: JSON.stringify({ ...JSON.parse(event.body), [key]: value }) };
@@ -87,11 +96,12 @@ describe('actions endpoints', () => {
       });
     });
 
-    const request = await models.request.findOne({ where: { id: 1 } });
+    const request = await models.request.findOne({ where: { id } });
+
     expect(request.prNumber).toBe(1);
     expect(request.status).toBe('pr');
 
-    const prEvent = await models.event.findOne({ where: { requestId: 1 } });
+    const prEvent = await models.event.findOne({ where: { requestId: id } });
     expect(prEvent.eventCode).toBe('request-pr-success');
   });
 
@@ -110,7 +120,7 @@ describe('actions endpoints', () => {
         resolve(true);
       });
     });
-    const prEvent = await models.event.findOne({ where: { requestId: 1 } });
+    const prEvent = await models.event.findOne({ where: { requestId: id } });
     expect(prEvent.eventCode).toBe('request-pr-failure');
     expect(mergePR).not.toHaveBeenCalled();
   });
@@ -124,10 +134,10 @@ describe('actions endpoints', () => {
       });
     });
 
-    const request = await models.request.findOne({ where: { id: 1 } });
+    const request = await models.request.findOne({ where: { id } });
     expect(request.status).toBe('planned');
 
-    const savedPlanEvent = await models.event.findOne({ where: { requestId: 1 } });
+    const savedPlanEvent = await models.event.findOne({ where: { requestId: id } });
     expect(savedPlanEvent.eventCode).toBe('request-plan-success');
     expect(mergePR).toHaveBeenCalled();
   });
@@ -141,7 +151,7 @@ describe('actions endpoints', () => {
         resolve(true);
       });
     });
-    const savedPlanEvent = await models.event.findOne({ where: { requestId: 1 } });
+    const savedPlanEvent = await models.event.findOne({ where: { requestId: id } });
     expect(savedPlanEvent.eventCode).toBe('request-plan-failure');
     expect(mergePR).not.toHaveBeenCalled();
   });
@@ -154,10 +164,10 @@ describe('actions endpoints', () => {
       });
     });
 
-    const request = await models.request.findOne({ where: { id: 1 } });
+    const request = await models.request.findOne({ where: { id } });
     expect(request.status).toBe('applied');
 
-    const savedApplyEvent = await models.event.findOne({ where: { requestId: 1 } });
+    const savedApplyEvent = await models.event.findOne({ where: { requestId: id } });
     expect(savedApplyEvent.eventCode).toBe('request-apply-success');
   });
 
@@ -170,7 +180,7 @@ describe('actions endpoints', () => {
         resolve(true);
       });
     });
-    const savedApplyEvent = await models.event.findOne({ where: { requestId: 1 } });
+    const savedApplyEvent = await models.event.findOne({ where: { requestId: id } });
     expect(savedApplyEvent.eventCode).toBe('request-apply-failure');
   });
 
