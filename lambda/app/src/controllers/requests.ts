@@ -7,7 +7,8 @@ import {
   processRequest,
   getDifferences,
   isAdmin,
-  formatBody,
+  usesBceid,
+  notifyIdim,
   getWhereClauseForAllRequests,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
@@ -16,7 +17,6 @@ import { getEmailList } from '../../../shared/utils/helpers';
 import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
 import { EVENTS } from '../../../shared/enums';
 
-const APP_ENV = process.env.APP_ENV || 'development';
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const NEW_REQUEST_DAY_LIMIT = 10;
 
@@ -33,33 +33,6 @@ const createEvent = async (data) => {
   } catch (err) {
     console.error(err);
   }
-};
-
-const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
-const usesBceid = (realm: string | undefined) => {
-  if (!realm) return false;
-  return bceidRealms.includes(realm);
-};
-
-const notifyBceid = async (request: Data, idirUserDisplayName: string, isUpdate: boolean) => {
-  const { realm, id, preferredEmail, additionalEmails, environments } = request;
-  if (!usesBceid(realm) || isUpdate) return;
-  const usesProd = environments.includes('prod');
-
-  // Only cc user for production requests
-  let cc = usesProd ? [preferredEmail] : [];
-  if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
-
-  const emailCode = 'bceid-request-submitted';
-  // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
-  const to = ['bcgov.sso@gov.bc.ca'];
-  return sendEmail({
-    to,
-    cc,
-    body: formatBody(request, idirUserDisplayName, usesProd),
-    subject: getEmailSubject(emailCode, id),
-    event: { emailCode, requestId: id },
-  });
 };
 
 export const createRequest = async (session: Session, data: Data) => {
@@ -90,9 +63,7 @@ export const createRequest = async (session: Session, data: Data) => {
     const emailCode = 'request-limit-exceeded';
     await sendEmail({
       to: [SSO_EMAIL_ADDRESS],
-      body: getEmailBody(emailCode, {
-        submittedBy: idirUserDisplayName,
-      }),
+      body: getEmailBody(emailCode, data),
       subject: getEmailSubject(emailCode),
       event: { emailCode },
     });
@@ -177,19 +148,16 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       else emailCode = 'create-request-submitted';
 
       const to = getEmailList(original);
+      const event = isUpdate ? 'update' : 'submission';
 
       await Promise.all([
         sendEmail({
           to,
-          body: getEmailBody(emailCode, {
-            projectName: mergedRequest.projectName,
-            requestNumber: mergedRequest.id,
-            submittedBy: idirUserDisplayName,
-          }),
+          body: getEmailBody(emailCode, mergedRequest),
           subject: getEmailSubject(emailCode, id),
           event: { emailCode, requestId: id },
         }),
-        notifyBceid(mergedRequest, idirUserDisplayName, isUpdate),
+        notifyIdim(mergedRequest, event),
       ]);
     }
 
@@ -348,24 +316,17 @@ export const deleteRequest = async (session: Session, id: number) => {
     Promise.all([
       sendEmail({
         to: [SSO_EMAIL_ADDRESS],
-        body: getEmailBody('request-deleted-notification-to-admin', {
-          projectName: original.projectName,
-          requestNumber: original.id,
-          submittedBy: original.idirUserDisplayName,
-        }),
+        body: getEmailBody('request-deleted-notification-to-admin', original),
         subject: getEmailSubject('request-deleted-notification-to-admin'),
         event: { emailCode: 'request-deleted-notification-to-admin', requestId: id },
       }),
       sendEmail({
         to,
-        body: getEmailBody('request-deleted', {
-          projectName: original.projectName,
-          requestNumber: original.id,
-          submittedBy: original.idirUserDisplayName,
-        }),
+        body: getEmailBody('request-deleted', original),
         subject: getEmailSubject('request-deleted'),
         event: { emailCode: 'request-deleted', requestId: id },
       }),
+      notifyIdim(original, 'deletion'),
     ]);
 
     createEvent({ eventCode: EVENTS.REQUEST_DELETE_SUCCESS, requestId: id, idirUserId: session.idir_userid });
