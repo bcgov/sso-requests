@@ -13,7 +13,7 @@ exports[`Email snapshots Should return the expeted email for Dev IDIM submission
         <li><strong>URIs:</strong>
           <ul>
             <li> Development: https://b </li>
-
+            
           </ul>
         </li>
         <li><strong>Identity Providers Required:</strong> idir</li>
@@ -100,7 +100,7 @@ exports[`Email snapshots Should return the expeted email for approved 1`] = `
              to your dashboard to access JSON Client Installation File.
             If you are not the requester, this email serves only to notify you of the request status.
         </p>
-
+        
 <p>
     If you have any questions, please contact us by
     <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
@@ -140,7 +140,7 @@ exports[`Email snapshots Should return the expeted email for created requests 1`
             Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
             not the requester, this email serves only to notify you of the request status.
         </p>
-
+        
 <p>
     If you have any questions, please contact us by
     <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
@@ -161,7 +161,7 @@ exports[`Email snapshots Should return the expeted email for deletions 1`] = `
             <strong>Project name: </strong>test<br /><strong>Deleted by:</strong>test user
         </p>
         <p>This email serves only to notify you of the request status.</p>
-
+        
 <p>
     If you have any questions, please contact us by
     <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
@@ -201,7 +201,7 @@ exports[`Email snapshots Should return the expeted email for updated approvals 1
              to your dashboard to access JSON Client Installation File.
             If you are not the requester, this email serves only to notify you of the request status.
         </p>
-
+        
 <p>
     If you have any questions, please contact us by
     <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
@@ -226,7 +226,7 @@ exports[`Email snapshots Should return the expeted email for updated submissions
             Once the request is approved, you will receive another email once your JSON Client Installation is ready. If you are
             not the requester, this email serves only to notify you of the request status.
         </p>
-
+        
 <p>
     If you have any questions, please contact us by
     <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
