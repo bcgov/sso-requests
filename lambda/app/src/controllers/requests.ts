@@ -114,10 +114,11 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedRequest }));
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
-
       let { environments, realm } = mergedRequest;
+      const hasBceid = usesBceid(realm);
+      const hasBceidProd = hasBceid && environments.includes('prod');
 
-      if (!mergedRequest.bceidApproved && usesBceid(realm))
+      if (!mergedRequest.bceidApproved && hasBceid)
         environments = environments.filter((environment) => environment !== 'prod');
 
       // trigger GitHub workflow before updating the record
@@ -145,6 +146,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       let emailCode: EmailMessage;
       if (isUpdate && isApprovingBceid) emailCode = 'bceid-request-approved';
       else if (isUpdate) emailCode = 'uri-change-request-submitted';
+      else if (hasBceidProd) emailCode = 'bceid-user-prod-submitted';
       else emailCode = 'create-request-submitted';
 
       const to = getEmailList(original);

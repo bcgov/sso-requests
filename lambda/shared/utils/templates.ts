@@ -15,6 +15,7 @@ export type EmailMessage =
   | 'bceid-request-approved'
   | 'bceid-idim-dev-submitted'
   | 'bceid-idim-prod-submitted'
+  | 'bceid-user-prod-submitted'
   | 'bceid-idim-deleted';
 
 const footer = `
@@ -121,14 +122,12 @@ export const getEmailBody = (messageType: EmailMessage, Request: Data) => {
       return `
         <h1>Hello Pathfinder Friend,</h1>
         <p>Your production environment for BCeID <strong>integration request ID ${id}</strong> has been approved.</p>
+        <p>Your resources will be available in the next 20 minutes or so, please log in to your dashboard to see the progress.</p>
         <p><strong>Project Name: </strong> ${projectName}</p>
         <p><strong>Submitted By: </strong> ${idirUserDisplayName}</p>
 
-        <p>please <a href="${APP_URL}/my-requests" title="Log in" target="_blank" rel="noreferrer">Log in</a>
-             to your dashboard to access JSON Client Installation File.
-            If you are not the requester, this email serves only to notify you of the request status.</p>
-
-        <p>For more direction on using your integration, visit our <a href="https://github.com/bcgov/ocp-sso/wiki" title="Log in" target="_blank" rel="noreferrer">Wiki Page</a>
+        <p>If you are not the requester, this email serves only to notify you of the request status.</p>
+        ${footer}
         `;
     case 'bceid-idim-dev-submitted':
       return `
@@ -174,21 +173,50 @@ export const getEmailBody = (messageType: EmailMessage, Request: Data) => {
         <li><strong>Identity Providers Required:</strong> ${realmToIDP(realm)}</li>
       </ul>
 
-      <h1>Next Steps</h1>
-      <ol>
-        <li><strong>On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an on-boarding meeting.</strong></li>
-        <li><strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong></li>
-      </ol>
-      <ul>
-        <li>What is your estimated volume of initial users?</li>
-        <li>Do you anticipate your volume of users will grow over the next three years?</li>
-        <li>When do you need access to the production environment by?</li>
-        <li>When will your end users need access to the production environment?</li>
-      </ul>
-
       <p>Thank you,</p>
 
       <p>Pathfinder SSO team.</p>
+      `;
+
+    case 'bceid-user-prod-submitted':
+      return `
+        <h1>Hello Pathfinder SSO friend,</h1>
+        <p>
+        Thank you for your integration request. Below is a summary of your integration request details.
+        </p>
+
+        <ul>
+          <li><strong>Project name:</strong> ${projectName}</li>
+          <li><strong>Accountable person:</strong> ${idirUserDisplayName}</li>
+          <li><strong>URIs:</strong>
+            <ul>
+              ${devUris}
+              ${testUris}
+            </ul>
+          </li>
+          <li><strong>Identity Providers Required:</strong> ${realmToIDP(realm)}</li>
+        </ul>
+
+        <p>As you've requested an integration with BCeID, any production integration request requires you to work with the Identity and Information Management (IDIM) team.</p>
+        <ul>
+          ${prodUris}
+        </ul>
+
+        <h1>Next Steps</h1>
+        <ol>
+          <li><strong>On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an on-boarding meeting.</strong></li>
+          <li><strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong></li>
+        </ol>
+        <ul>
+          <li>What is your estimated volume of initial users?</li>
+          <li>Do you anticipate your volume of users will grow over the next three years?</li>
+          <li>When do you need access to the production environment by?</li>
+          <li>When will your end users need access to the production environment?</li>
+        </ul>
+
+        <p>Thank you,</p>
+
+        <p>Pathfinder SSO team.</p>
       `;
 
     case 'bceid-idim-deleted':
@@ -241,6 +269,7 @@ export const getEmailSubject = (messageType: EmailMessage, id = null) => {
       return `${prefix}Pathfinder SSO request limit reached`;
     case 'bceid-idim-dev-submitted':
     case 'bceid-idim-prod-submitted':
+    case 'bceid-user-prod-submitted':
       return `${prefix}New BCeID Integration Request ID ${id}`;
     case 'bceid-request-approved':
       return `${prefix}BCeID Integration Request ID ${id} Approved`;
