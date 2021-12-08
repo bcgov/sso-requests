@@ -7,7 +7,7 @@ import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import main from 'svg/main';
-import { Accordion } from '@bcgov-sso/react-npm';
+import { Accordion } from '@bcgov-sso/common-react-components';
 import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 

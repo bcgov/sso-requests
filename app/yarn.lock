@@ -357,11 +357,12 @@
     "@babel/helper-validator-identifier" "^7.14.5"
     to-fast-properties "^2.0.0"
 
-"@bcgov-sso/react-npm@^1.1.3":
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/@bcgov-sso/react-npm/-/react-npm-1.1.3.tgz#8d4f7fca2640b10915fe001d7759b424a42b6907"
-  integrity sha512-ybfq/aMsVYqatrB8+gsizsrY3NGPhRWQcYSFoQdi8uwWClQtUDlH1EyTEF7HDqev7i6MG//HfWy0jtkyEABOzw==
+"@bcgov-sso/common-react-components@1.7.0":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@bcgov-sso/common-react-components/-/common-react-components-1.7.0.tgz#cd16db1cf18725cff4888be03fb150eb3e2797b0"
+  integrity sha512-OCSNrXmA4J24kL8qMAvYQEpJsM8rP8VZBIJg5sSV0jAIlR2rMXOY1C1kRcC7I2x8CMfdZxdN0BRexmp5bH/0lQ==
   dependencies:
+    "@button-inc/component-library" "^1.0.1"
     "@fortawesome/fontawesome-svg-core" "^1.2.36"
     "@fortawesome/free-solid-svg-icons" "^5.15.4"
     "@fortawesome/react-fontawesome" "^0.1.16"
@@ -396,7 +397,7 @@
     styled-components "^5.2.1"
     typography "^0.16.19"
 
-"@button-inc/component-library@1.0.1":
+"@button-inc/component-library@1.0.1", "@button-inc/component-library@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@button-inc/component-library/-/component-library-1.0.1.tgz#212a19f716ac498dddbbf2bd4fd694386013324a"
   integrity sha512-7sRdQktfaRbB2hN+Ukpjod2iJ64FIGkgtVPozRrNz+fHfcH4FX7SyZCDSp+3CnVpxOLLS23krU7fKjPojjAmGQ==
@@ -1493,9 +1494,9 @@
   integrity sha512-RJJrrySY7A8havqpGObOB4W92QXKJo63/jFLLgpvOtsGUqbQZ9Sbgl35KMm1DjC6j7AvmmU2bIno+3IyEaemaw==
 
 "@types/styled-components@^5.1.16":
-  version "5.1.16"
-  resolved "https://registry.yarnpkg.com/@types/styled-components/-/styled-components-5.1.16.tgz#e6cb31301ff8d6b99e25502d2bea754069c1efc9"
-  integrity sha512-pj5zI2VvK86VB9vS5exwXpIvQxiiwVfBTmMYcfMzwQAhB6s+x0a7o2JKzsGviWgjjosuwfYlOyf3JrEvmLPhtg==
+  version "5.1.17"
+  resolved "https://registry.yarnpkg.com/@types/styled-components/-/styled-components-5.1.17.tgz#0b5ecf748eb5fb81db4b4115b168a162379c181b"
+  integrity sha512-niMaIan3C2LYCGEPntljGrkxLBfz1RZf4WTTv7w9GJygMsCOl226/UoSwXC8dIHCHs4sQKFQUs5JtdL2hj7k0g==
   dependencies:
     "@types/hoist-non-react-statics" "*"
     "@types/react" "*"
