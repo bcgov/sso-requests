@@ -1,6 +1,8 @@
 import { isFunction } from 'lodash';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
+import { listTeams, createTeam, updateTeam, deleteTeam } from './controllers/team';
+import { findOrCreateUser } from './controllers/user';
 import {
   createRequest,
   getRequests,
@@ -56,7 +58,21 @@ export const setRoutes = (app: any) => {
       return res.status(401).json({ success: false });
     }
 
+    try {
+      req.user = await findOrCreateUser(session);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+
     if (next) next();
+  });
+
+  app.get(`${BASE_PATH}/me`, async (req, res) => {
+    try {
+      res.status(200).json(req.user);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
   });
 
   app.post(`${BASE_PATH}/requests-all`, async (req, res) => {
@@ -178,6 +194,48 @@ export const setRoutes = (app: any) => {
       const result = await getEvents(session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.get(`${BASE_PATH}/teams`, async (req, res) => {
+    try {
+      const result = await listTeams(req.user);
+      res.status(200).json(result);
+    } catch (err) {
+      console.log(err);
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.post(`${BASE_PATH}/teams`, async (req, res) => {
+    try {
+      const result = await createTeam(req.user, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      console.log(err);
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.put(`${BASE_PATH}/teams/:id`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await updateTeam(req.user, id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      console.log(err);
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.delete(`${BASE_PATH}/teams/:id`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await deleteTeam(req.user, id);
+      res.status(200).json(result);
+    } catch (err) {
+      console.log(err);
       res.status(422).json({ success: false, message: err.message || err });
     }
   });

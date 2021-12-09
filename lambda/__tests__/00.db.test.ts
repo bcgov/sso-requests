@@ -1,6 +1,8 @@
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { handler } from '../db/src/main';
+import { sequelize, models, modelNames } from '../shared/sequelize/models/models';
 
+// see https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
 const event: APIGatewayProxyEvent = {
   httpMethod: 'GET',
   path: '/',
@@ -27,6 +29,29 @@ const event: APIGatewayProxyEvent = {
 };
 
 const context: Context = {};
+
+export const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
+export const TEST_IDIR_EMAIL = 'testuser@example.com';
+
+export type AuthMock = Promise<{
+  idir_userid: string | null;
+  email?: string;
+  client_roles: string[];
+  given_name: string;
+  family_name: string;
+}>;
+
+beforeAll(async () => {
+  jest.clearAllMocks();
+  const query =
+    "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'";
+
+  let tableNames = await sequelize.query(query);
+  tableNames = tableNames.map((v) => v[0]);
+  for (let x = 0; x < tableNames.length; x++) {
+    await sequelize.query(`DROP TABLE "${tableNames[x]}" CASCADE`);
+  }
+});
 
 describe('DB migration', () => {
   it('should migrate db successfully', async () => {

@@ -5,4 +5,5 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   setupFilesAfterEnv: ['./__tests__/jest.setup.js'],
+  testSequencer: './testSequencer.js',
 };
