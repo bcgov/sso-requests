@@ -5,7 +5,13 @@ module.exports = {
   },
   test: {
     dialect: 'postgres',
-    use_env_variable: 'DATABASE_URL',
+    databaseUrl: 'postgresql://localhost:5432/ssodb',
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
   },
   production: {
     host: process.env.DB_HOSTNAME,
