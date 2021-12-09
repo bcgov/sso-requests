@@ -31,7 +31,9 @@ const event: APIGatewayProxyEvent = {
 const context: Context = {};
 
 export const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
+export const TEST_IDIR_USERID_2 = 'AABBCCDDEEFFGGHH';
 export const TEST_IDIR_EMAIL = 'testuser@example.com';
+export const TEST_IDIR_EMAIL_2 = 'testuser2@example.com';
 
 export type AuthMock = Promise<{
   idir_userid: string | null;

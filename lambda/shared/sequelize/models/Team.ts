@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define(
+  const Team = sequelize.define(
     'team',
     {
       name: {
@@ -9,6 +9,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       underscored: true,
+      associate: function (models) {
+        Team.hasMany(models.usersTeam, { foreignKey: 'teamId', onDelete: 'cascade', hooks: true });
+      },
     },
   );
+
+  return Team;
 };

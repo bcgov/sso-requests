@@ -8,12 +8,14 @@ export const up = async ({ context: sequelize }) => {
       field: 'user_id',
       primaryKey: true,
       references: { model: 'users', key: 'id' },
+      onDelete: 'CASCADE',
     },
     teamId: {
       type: DataTypes.INTEGER,
       field: 'team_id',
       primaryKey: true,
       references: { model: 'teams', key: 'id' },
+      onDelete: 'CASCADE',
     },
     role: {
       type: DataTypes.STRING,

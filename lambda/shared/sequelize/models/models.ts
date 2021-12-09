@@ -26,12 +26,13 @@ fs.readdirSync(__dirname)
   });
 
 Object.keys(models).forEach((modelName) => {
-  if (models[modelName].associate) {
-    models[modelName].associate(models);
+  // console.log('models[modelName].associate', modelName, Object.keys(models[modelName].options))
+  if (models[modelName]?.options.associate) {
+    models[modelName].options.associate(models);
   }
 });
 
-models.usersTeam.hasMany(models.user, { foreignKey: 'id' });
-models.usersTeam.hasMany(models.team, { foreignKey: 'id' });
+// models.user.hasMany(models.usersTeam, { foreignKey: 'userId', onDelete: 'cascade' });
+// models.team.hasMany(models.usersTeam, { foreignKey: 'teamId', onDelete: 'cascade' });
 
 export default { models, modelNames, sequelize };
