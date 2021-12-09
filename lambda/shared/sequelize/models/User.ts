@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define(
+  const User = sequelize.define(
     'user',
     {
       idirUserid: {
@@ -13,6 +13,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       underscored: true,
+      associate: function (models) {
+        User.hasMany(models.usersTeam, { foreignKey: 'userId', onDelete: 'cascade', hooks: true });
+      },
     },
   );
+
+  return User;
 };

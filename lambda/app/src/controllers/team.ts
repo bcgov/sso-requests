@@ -1,5 +1,6 @@
-import { Op, literal } from 'sequelize';
-import { models } from '../../../shared/sequelize/models/models';
+import QueryGenerator from 'sequelize/lib/dialects/abstract/query-generator';
+import { Op } from 'sequelize';
+import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, User } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
 import { fetchClient } from '../keycloak/client';
@@ -7,7 +8,7 @@ import { fetchClient } from '../keycloak/client';
 export const listTeams = async (user: User) => {
   const result = await models.team.findAll({
     where: {
-      id: { [Op.in]: literal(`(select team_id from users_teams where user_id='${user.id}')`) },
+      id: { [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}')`) },
     },
   });
 
@@ -21,7 +22,7 @@ export const createTeam = async (user: User, data: { name: string }) => {
 
   const newteam = result.dataValues;
 
-  await models.teamUser.create({ userId: user.id, teamId: newteam.id, role: 'owner' });
+  await models.usersTeam.create({ userId: user.id, teamId: newteam.id, role: 'owner' });
 
   return newteam;
 };
