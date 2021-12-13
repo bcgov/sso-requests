@@ -211,25 +211,6 @@ describe('Updating', () => {
     expect(sendEmail).toHaveBeenCalledTimes(1);
   });
 
-  it('should notify IDIM if the request is for bceid with production', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
-    });
-
-    const event: APIGatewayProxyEvent = {
-      ...baseEvent,
-      path: '/app/requests',
-      httpMethod: 'PUT',
-      body: JSON.stringify({ id: testProjectId, ...bceidRequest }),
-      queryStringParameters: { submit: true },
-    };
-    const context: Context = {};
-
-    const response = await handler(event, context);
-    expect(response.statusCode).toEqual(200);
-    expect(sendEmail).toHaveBeenCalledTimes(2);
-  });
-
   it('should create all requested environments for idir only requests', async () => {
     mockedAuthenticate.mockImplementation(() => {
       return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
