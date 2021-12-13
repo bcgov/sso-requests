@@ -144,10 +144,13 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       }
 
       let emailCode: EmailMessage;
+      let cc = [];
       if (isUpdate && isApprovingBceid) emailCode = 'bceid-request-approved';
       else if (isUpdate) emailCode = 'uri-change-request-submitted';
-      else if (hasBceidProd) emailCode = 'bceid-user-prod-submitted';
-      else emailCode = 'create-request-submitted';
+      else if (hasBceidProd) {
+        emailCode = 'bceid-user-prod-submitted';
+        cc.push('bcgov.sso@gov.bc.ca');
+      } else emailCode = 'create-request-submitted';
 
       const to = getEmailList(original);
       const event = isUpdate ? 'update' : 'submission';
@@ -158,6 +161,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
           body: getEmailBody(emailCode, mergedRequest),
           subject: getEmailSubject(emailCode, id),
           event: { emailCode, requestId: id },
+          cc,
         }),
         notifyIdim(mergedRequest, event),
       ]);

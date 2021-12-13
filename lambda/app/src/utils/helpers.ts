@@ -45,8 +45,7 @@ export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
   if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
 
   let emailCode: EmailMessage;
-  if (bceidEvent === 'submission' && usesProd) emailCode = 'bceid-idim-prod-submitted';
-  else if (bceidEvent === 'submission') emailCode = 'bceid-idim-prod-submitted';
+  if (bceidEvent === 'submission' && !usesProd) emailCode = 'bceid-idim-dev-submitted';
   else if (bceidEvent === 'deletion') emailCode = 'bceid-idim-deleted';
   else return;
   // const to = APP_ENV === 'production' ? ['bcgov.sso@gov.bc.ca', 'IDIM.Consulting@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];

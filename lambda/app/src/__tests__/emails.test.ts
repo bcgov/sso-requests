@@ -13,22 +13,28 @@ describe('Notify BCeID', () => {
     jest.clearAllMocks();
   });
 
-  it('Should not send an email if updating', () => {
+  it('Should not send an email to IDIM if updating', () => {
     notifyIdim(formDataBceid, 'update');
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it('Should send an email if deleting', () => {
+  it('Should send an email to IDIM if deleting', () => {
     notifyIdim(formDataBceid, 'deletion');
     expect(sendEmail).toHaveBeenCalled();
   });
 
-  it('Should send an email if submitting', () => {
-    notifyIdim(formDataBceid, 'submission');
+  it('Should send an email to IDIM if submitting dev/test', () => {
+    const formDataBceidDev = { ...formDataBceid, environments: ['dev'] };
+    notifyIdim(formDataBceidDev, 'submission');
     expect(sendEmail).toHaveBeenCalled();
   });
 
-  it('Should not send an email if in onestopauth', () => {
+  it('Should not send an email to IDIM if submitting prod', () => {
+    notifyIdim(formDataBceid, 'submission');
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it('Should not send an email to IDIM if in onestopauth', () => {
     const formDataIdir = { ...formDataBceid, realm: 'onestopauth' };
     notifyIdim(formDataIdir, 'submission');
     expect(sendEmail).not.toHaveBeenCalled();
