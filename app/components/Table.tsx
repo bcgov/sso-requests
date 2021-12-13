@@ -184,7 +184,9 @@ function Table({
     onSearch(_searchKey);
   };
 
-  const rowSpaces = rowCount > limit ? limit : rowCount;
+  let rowSpaces = rowCount || limit;
+  if (rowCount > limit) rowSpaces = limit;
+
   const awesomePlaceholder = (
     <td colSpan={100}>
       <div

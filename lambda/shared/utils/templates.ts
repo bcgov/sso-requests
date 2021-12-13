@@ -121,7 +121,7 @@ export const getEmailBody = (messageType: EmailMessage, Request: Data) => {
     case 'bceid-request-approved':
       return `
         <h1>Hello Pathfinder Friend,</h1>
-        <p>Your production environment for BCeID <strong>integration request ID ${id}</strong> has been approved.</p>
+        <p>Your Pathfinder SSO production environment for BCeID <strong>integration request ID ${id}</strong> has been approved.</p>
         <p>Your resources will be available in the next 20 minutes or so, please log in to your dashboard to see the progress.</p>
         <p><strong>Project Name: </strong> ${projectName}</p>
         <p><strong>Submitted By: </strong> ${idirUserDisplayName}</p>
