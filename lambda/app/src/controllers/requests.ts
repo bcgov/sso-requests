@@ -10,6 +10,7 @@ import {
   usesBceid,
   notifyIdim,
   getWhereClauseForAllRequests,
+  IDIM_EMAIL_ADDRESS,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
@@ -149,7 +150,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       else if (isUpdate) emailCode = 'uri-change-request-submitted';
       else if (hasBceidProd) {
         emailCode = 'bceid-user-prod-submitted';
-        cc.push('bcgov.sso@gov.bc.ca');
+        cc.push(IDIM_EMAIL_ADDRESS);
       } else emailCode = 'create-request-submitted';
 
       const to = getEmailList(original);
