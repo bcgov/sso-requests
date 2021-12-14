@@ -5,7 +5,6 @@ module.exports = {
   },
   test: {
     dialect: 'postgres',
-    use_env_variable: 'DATABASE_URL',
     logging: false,
     databaseUrl: 'postgresql://localhost:5432/ssodb',
     pool: {
