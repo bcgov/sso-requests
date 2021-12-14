@@ -31,7 +31,13 @@ jest.mock('../app/src/github', () => {
 const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
 
 const mockedAuthenticate = authenticate as jest.Mock<
-  Promise<{ idir_userid: string | null; client_roles: string[]; given_name: string; family_name: string }>
+  Promise<{
+    idir_userid: string | null;
+    email?: string;
+    client_roles: string[];
+    given_name: string;
+    family_name: string;
+  }>
 >;
 
 describe('/heartbeat endpoints', () => {
@@ -175,7 +181,13 @@ describe('Updating', () => {
 
   it('should submit updates to the target request successfully if owned by the user', async () => {
     mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
+      return Promise.resolve({
+        idir_userid: testUser,
+        email: 'testuser',
+        client_roles: [],
+        given_name: '',
+        family_name: '',
+      });
     });
 
     const event: APIGatewayProxyEvent = {
