@@ -96,7 +96,7 @@ export const validateRequest = (formData: any, original: Request, isUpdate = fal
     if (!differences) return { message: errorMessage };
   }
 
-  const { errors: firstPageErrors } = validate(formData, requesterSchema);
+  const { errors: firstPageErrors } = validate(formData, requesterSchema(formData.usesTeam));
   const { errors: secondPageErrors } = validate(formData, providerSchema, customValidate);
   const { errors: thirdPageErrors } = validate(formData, termsAndConditionsSchema);
   const allValid = firstPageErrors.length === 0 && secondPageErrors.length === 0 && thirdPageErrors.length === 0;
