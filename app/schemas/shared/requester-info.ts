@@ -1,5 +1,3 @@
-import { JSONSchema6 } from 'json-schema';
-
 export default function getSchema(hasTeam = true) {
   return {
     type: 'object',
@@ -38,7 +36,7 @@ export default function getSchema(hasTeam = true) {
                   enum: ['one', 'two'],
                 },
               }),
-
+              projectName: { type: 'string', title: 'Project Name', maxLength: 50 },
               preferredEmail: { type: 'string', title: 'Default Email Address', format: 'email', maxLength: 250 },
               additionalEmails: {
                 type: ['array', 'null'],
@@ -58,6 +56,7 @@ export default function getSchema(hasTeam = true) {
           {
             properties: {
               projectLead: { enum: [true] },
+              projectName: { type: 'string', title: 'Project Name', maxLength: 50 },
               preferredEmail: { type: 'string', title: 'Default Email Address', format: 'email', maxLength: 250 },
               additionalEmails: {
                 type: ['array', 'null'],

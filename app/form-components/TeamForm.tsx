@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@bcgov-sso/common-react-components';
+import { v4 as uuidv4 } from 'uuid';
 
 const Container = styled.div`
   display: grid;
@@ -72,10 +73,10 @@ export default function TeamForm() {
     {
       email: '',
       role: 'user',
-      id: String(Math.random()),
+      id: String(uuidv4()),
     },
   ]);
-  const [teamName, setTeamName] = useState(null);
+  const [_teamName, setTeamName] = useState(null);
 
   const handleAddMember = () => {
     setMembers([
@@ -83,7 +84,7 @@ export default function TeamForm() {
       {
         email: '',
         role: 'user',
-        id: String(Math.random()),
+        id: String(uuidv4()),
       },
     ]);
   };

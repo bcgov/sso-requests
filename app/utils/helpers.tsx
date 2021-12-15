@@ -5,7 +5,6 @@
 import { isEqual } from 'lodash';
 import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
-import { Stage } from 'interfaces/form';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
 import { customValidate } from './shared/customValidate';

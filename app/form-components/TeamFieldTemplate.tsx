@@ -48,7 +48,7 @@ export default function TeamFieldTemplate(props: any) {
       <Modal
         title="Create a new team"
         icon={null}
-        onConfirm={() => {}}
+        onConfirm={() => console.log('confirm')}
         id={modalId}
         content={<TeamForm />}
         showCancel={false}
