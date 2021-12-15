@@ -15,6 +15,12 @@ import 'react-placeholder/lib/reactPlaceholder.css';
 import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
 import { Option } from 'interfaces/Request';
 
+const StyledMultiSelect = styled(MultiSelect)`
+  .dropdown-container {
+    border: 1.8px solid black !important;
+  }
+`;
+
 const StyledPagination = styled(Pagination)`
   margin: 0 !important;
   & li {
@@ -178,7 +184,9 @@ function Table({
     onSearch(_searchKey);
   };
 
-  const rowSpaces = rowCount > limit ? limit : rowCount;
+  let rowSpaces = rowCount || limit;
+  if (rowCount > limit) rowSpaces = limit;
+
   const awesomePlaceholder = (
     <td colSpan={100}>
       <div
@@ -218,7 +226,7 @@ function Table({
                     {filter.multiselect ? (
                       <Label>
                         {filter.label}
-                        <MultiSelect
+                        <StyledMultiSelect
                           className="multiselect"
                           options={filter.options}
                           value={Array.isArray(filter.value) ? filter.value : []}

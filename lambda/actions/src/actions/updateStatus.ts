@@ -75,11 +75,7 @@ export default async function updateStatus(event) {
 
         await sendEmail({
           to,
-          body: getEmailBody(emailCode, {
-            projectName: request.projectName,
-            requestNumber: request.id,
-            submittedBy: request.idirUserDisplayName,
-          }),
+          body: getEmailBody(emailCode, request),
           subject: getEmailSubject(emailCode),
           event: { emailCode, requestId },
         });

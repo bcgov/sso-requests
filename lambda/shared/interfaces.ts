@@ -1,8 +1,15 @@
 export interface Session {
   idir_userid: string;
+  email?: string;
   client_roles: string[];
   given_name: string;
   family_name: string;
+}
+
+export interface User {
+  id: string;
+  idirUserid: string;
+  idirEmail: string;
 }
 
 export interface Data {
@@ -20,6 +27,13 @@ export interface Data {
   additionalEmails: string[];
   bceidEmailDetails?: object;
   environments?: string[];
+  idirUserDisplayName?: string;
+  idirUserId?: string;
+  clientName?: string;
+  newToSso?: boolean;
+  agreeWithTerms?: boolean;
+  status?: string;
+  archived?: boolean;
 }
 
 export interface FormattedData {

@@ -27,6 +27,7 @@ const Table = styled.table`
       background-color: #f8f8f8;
       &:hover {
         background-color: #fff7d5;
+        cursor: pointer;
       }
       &.active {
         background-color: #ffed9f;

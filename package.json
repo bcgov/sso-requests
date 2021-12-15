@@ -1,0 +1,9 @@
+{
+  "name": "sso-requests",
+  "version": "0.1.0",
+  "description": "",
+  "dependencies": {},
+  "devDependencies": {
+    "axios": "^0.24.0"
+  }
+}

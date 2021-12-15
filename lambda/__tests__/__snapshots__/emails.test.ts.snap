@@ -1,0 +1,212 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Email snapshots Should return the expeted email for Dev IDIM submissions 1`] = `
+"
+      <h1>Hello IDIM Team,</h1>
+      <p>
+        We are notifying you that a new dev and/or test integration request has been submitted. The request details are below:
+      </p>
+
+      <ul>
+        <li><strong>Project name:</strong> test</li>
+        <li><strong>Accountable person:</strong> test user</li>
+        <li><strong>URIs:</strong>
+          <ul>
+            <li> Development: https://b </li>
+            
+          </ul>
+        </li>
+        <li><strong>Identity Providers Required:</strong> idir</li>
+      </ul>
+
+      <p>Thank you,</p>
+
+      <p>Pathfinder SSO team.</p>
+      "
+`;
+
+exports[`Email snapshots Should return the expeted email for IDIM deletions 1`] = `
+"
+      <h1>Hello IDIM Team,</h1>
+      <p>
+        We are notifying you that the client for the following integration request has requested a deletion. The request details are below:
+      </p>
+
+      <ul>
+        <li><strong>Project name:</strong> test</li>
+        <li><strong>Accountable person:</strong> test user</li>
+        <li><strong>URIs:</strong>
+          <ul>
+            <li> Development: https://b </li>
+            <li> Test: https://a </li>
+            <li> Production: https://a </li>
+          </ul>
+        </li>
+        <li><strong>Identity Providers Required:</strong> idir</li>
+      </ul>
+
+      <p>Thank you,</p>
+
+      <p>Pathfinder SSO team.</p>
+      "
+`;
+
+exports[`Email snapshots Should return the expeted email for approved 1`] = `
+"
+        <h1>Your Pathfinder SSO request #1 is approved.</h1>
+        <p>
+            <strong>Project name: </strong>test<br /><strong>Submitted by:</strong>test user
+        </p>
+        <p>
+            test user, please <a href=\\"/my-requests\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+             to your dashboard to access JSON Client Installation File.
+            If you are not the requester, this email serves only to notify you of the request status.
+        </p>
+        
+<p>
+    If you have any questions, please contact us by
+    <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+    </a>
+    or email at:
+    <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\">
+    bcgov.sso@gov.bc.ca
+    </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>"
+`;
+
+exports[`Email snapshots Should return the expeted email for bceid approvals 1`] = `
+"
+        <h1>Hello Pathfinder Friend,</h1>
+        <p>Your Pathfinder SSO production environment for BCeID <strong>integration request ID 1</strong> has been approved.</p>
+        <p>Your resources will be available in the next 20 minutes or so, please log in to your dashboard to see the progress.</p>
+        <p><strong>Project Name: </strong> test</p>
+        <p><strong>Submitted By: </strong> test user</p>
+
+        <p>If you are not the requester, this email serves only to notify you of the request status.</p>
+        
+<p>
+    If you have any questions, please contact us by
+    <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+    </a>
+    or email at:
+    <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\">
+    bcgov.sso@gov.bc.ca
+    </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+        "
+`;
+
+exports[`Email snapshots Should return the expeted email for created requests 1`] = `
+"
+        <h1>Your Pathfinder SSO request #1 is successfully submitted.</h1>
+        <p>
+            <strong>Project name: </strong>test<br /><strong>Submitted by: </strong>test user
+        </p>
+        <p>
+            <strong>The expected processing time is 20 minutes</strong><br />
+            Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+            not the requester, this email serves only to notify you of the request status.
+        </p>
+        
+<p>
+    If you have any questions, please contact us by
+    <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+    </a>
+    or email at:
+    <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\">
+    bcgov.sso@gov.bc.ca
+    </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>"
+`;
+
+exports[`Email snapshots Should return the expeted email for deletions 1`] = `
+"
+        <h1>Your Pathfinder SSO request #1 is deleted.</h1>
+        <p>
+            <strong>Project name: </strong>test<br /><strong>Deleted by:</strong>test user
+        </p>
+        <p>This email serves only to notify you of the request status.</p>
+        
+<p>
+    If you have any questions, please contact us by
+    <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+    </a>
+    or email at:
+    <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\">
+    bcgov.sso@gov.bc.ca
+    </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>"
+`;
+
+exports[`Email snapshots Should return the expeted email for deletions to admins 1`] = `
+"
+        <h1>Pathfinder SSO request #1 is deleted by test user</h1>
+        <p>
+            <strong>Project name: </strong>test
+        </p>"
+`;
+
+exports[`Email snapshots Should return the expeted email for exceeding the limit 1`] = `
+"
+        <h1>Request Limit Exceeded</h1>
+        <p>Pathfinder SSO user test user has exceeded their daily limit</p>
+        "
+`;
+
+exports[`Email snapshots Should return the expeted email for updated approvals 1`] = `
+"
+        <h1>Your Pathfinder SSO change for request #1 is approved.</h1>
+        <p>
+            <strong>Project name: </strong>test<br /><strong>Submitted by:</strong>test user
+        </p>
+        <p>
+            test user, please <a href=\\"/my-requests\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+             to your dashboard to access JSON Client Installation File.
+            If you are not the requester, this email serves only to notify you of the request status.
+        </p>
+        
+<p>
+    If you have any questions, please contact us by
+    <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+    </a>
+    or email at:
+    <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\">
+    bcgov.sso@gov.bc.ca
+    </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>"
+`;
+
+exports[`Email snapshots Should return the expeted email for updated submissions 1`] = `
+"
+        <h1>Your Pathfinder SSO change for request #1 is successfully submitted.</h1>
+        <p>
+            <strong>Project name: </strong>test<br /><strong>Submitted by:</strong>test user
+        </p>
+        <p>
+            <strong>The expected processing time is 20 minutes</strong><br />
+            Once the request is approved, you will receive another email once your JSON Client Installation is ready. If you are
+            not the requester, this email serves only to notify you of the request status.
+        </p>
+        
+<p>
+    If you have any questions, please contact us by
+    <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+    </a>
+    or email at:
+    <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\">
+    bcgov.sso@gov.bc.ca
+    </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>"
+`;

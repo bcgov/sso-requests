@@ -15,7 +15,7 @@ import commentSchema from 'schemas/admin-comment';
 import uiSchema from 'schemas/commentUi';
 import { adminNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
 import BceidEmailTemplate from 'form-components/BceidEmailTemplate';
-import NumberedContents from 'components/NumberedContents';
+import { NumberedContents } from '@bcgov-sso/common-react-components';
 
 interface Props {
   formData: Request;

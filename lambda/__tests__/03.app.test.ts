@@ -7,6 +7,8 @@ import { validRequest, bceidRequest } from './validRequest.js';
 import { sendEmail } from '../shared/utils/ches';
 import { dispatchRequestWorkflow } from '../app/src/github';
 
+// see https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+
 jest.mock('../app/src/authenticate');
 jest.mock('../shared/utils/ches', () => {
   return {
@@ -29,7 +31,13 @@ jest.mock('../app/src/github', () => {
 const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
 
 const mockedAuthenticate = authenticate as jest.Mock<
-  Promise<{ idir_userid: string | null; client_roles: string[]; given_name: string; family_name: string }>
+  Promise<{
+    idir_userid: string | null;
+    email?: string;
+    client_roles: string[];
+    given_name: string;
+    family_name: string;
+  }>
 >;
 
 describe('/heartbeat endpoints', () => {
@@ -37,13 +45,9 @@ describe('/heartbeat endpoints', () => {
     const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/heartbeat' };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        expect(JSON.parse(response.body).length).toEqual(1);
-        expect(response.statusCode).toEqual(200);
-        resolve(true);
-      });
-    });
+    const response = await handler(event, context);
+    expect(JSON.parse(response.body).length).toEqual(1);
+    expect(response.statusCode).toEqual(200);
   });
 });
 
@@ -58,12 +62,8 @@ describe('requests endpoints', () => {
     const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/requests' };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        expect(response.statusCode).toEqual(401);
-        resolve(true);
-      });
-    });
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(401);
   });
 
   it('should create a request successfully', async () => {
@@ -81,19 +81,15 @@ describe('requests endpoints', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
-      requestContext: { httpMethod: 'POST' },
+      httpMethod: 'POST',
       body: JSON.stringify(sampleRequestPayload),
     };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        const request = JSON.parse(response.body);
-        expect(request.projectName).toEqual(sampleRequestPayload.projectName);
-        expect(response.statusCode).toEqual(200);
-        resolve(true);
-      });
-    });
+    const response = await handler(event, context);
+    const request = JSON.parse(response.body);
+    expect(request.projectName).toEqual(sampleRequestPayload.projectName);
+    expect(response.statusCode).toEqual(200);
   });
 
   it('should send all requests successfully', async () => {
@@ -104,18 +100,14 @@ describe('requests endpoints', () => {
     const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/requests' };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        const requests = JSON.parse(response.body);
+    const response = await handler(event, context);
+    const requests = JSON.parse(response.body);
 
-        // it should be more than one as one just got created by the previous test
-        expect(requests.length).toBeGreaterThan(0);
-        expect(response.statusCode).toEqual(200);
+    // it should be more than one as one just got created by the previous test
+    expect(requests.length).toBeGreaterThan(0);
+    expect(response.statusCode).toEqual(200);
 
-        requestId = requests[0].id;
-        resolve(true);
-      });
-    });
+    requestId = requests[0].id;
   });
 
   it('should send the target request successfully', async () => {
@@ -126,20 +118,16 @@ describe('requests endpoints', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/request',
-      requestContext: { httpMethod: 'POST' },
+      httpMethod: 'POST',
       body: JSON.stringify({ requestId }),
     };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        const request = JSON.parse(response.body);
+    const response = await handler(event, context);
+    const request = JSON.parse(response.body);
 
-        expect(request.id).toBe(requestId);
-        expect(response.statusCode).toEqual(200);
-        resolve(true);
-      });
-    });
+    expect(request.id).toBe(requestId);
+    expect(response.statusCode).toEqual(200);
   });
 
   it('should update the target request successfully', async () => {
@@ -152,20 +140,15 @@ describe('requests endpoints', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
-      requestContext: { httpMethod: 'PUT' },
+      httpMethod: 'PUT',
       body: JSON.stringify({ id: requestId, projectName }),
     };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        const request = JSON.parse(response.body);
-
-        expect(request.projectName).toBe(projectName);
-        expect(response.statusCode).toEqual(200);
-        resolve(true);
-      });
-    });
+    const response = await handler(event, context);
+    const request = JSON.parse(response.body);
+    expect(request.projectName).toBe(projectName);
+    expect(response.statusCode).toEqual(200);
   });
 });
 
@@ -198,25 +181,27 @@ describe('Updating', () => {
 
   it('should submit updates to the target request successfully if owned by the user', async () => {
     mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
+      return Promise.resolve({
+        idir_userid: testUser,
+        email: 'testuser',
+        client_roles: [],
+        given_name: '',
+        family_name: '',
+      });
     });
 
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
-      requestContext: { httpMethod: 'PUT' },
+      httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
       queryStringParameters: { submit: true },
     };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        expect(response.statusCode).toEqual(200);
-        expect(sendEmail).toHaveBeenCalledTimes(1);
-        resolve(true);
-      });
-    });
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(200);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
   });
 
   it('should allow updates to the target request if requester is admin', async () => {
@@ -227,42 +212,15 @@ describe('Updating', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
-      requestContext: { httpMethod: 'PUT' },
+      httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
       queryStringParameters: { submit: true },
     };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        expect(response.statusCode).toEqual(200);
-        expect(sendEmail).toHaveBeenCalledTimes(1);
-        resolve(true);
-      });
-    });
-  });
-
-  it('should notify IDIM if the request is for bceid with production', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
-    });
-
-    const event: APIGatewayProxyEvent = {
-      ...baseEvent,
-      path: '/app/requests',
-      requestContext: { httpMethod: 'PUT' },
-      body: JSON.stringify({ id: testProjectId, ...bceidRequest }),
-      queryStringParameters: { submit: true },
-    };
-    const context: Context = {};
-
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        expect(response.statusCode).toEqual(200);
-        expect(sendEmail).toHaveBeenCalledTimes(2);
-        resolve(true);
-      });
-    });
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(200);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
   });
 
   it('should create all requested environments for idir only requests', async () => {
@@ -273,32 +231,28 @@ describe('Updating', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
-      requestContext: { httpMethod: 'PUT' },
+      httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
       queryStringParameters: { submit: true },
     };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        const request = JSON.parse(response.body);
-        expect(response.statusCode).toEqual(200);
-        expect(sendEmail).toHaveBeenCalledTimes(1);
-        expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
-          requestId: request.id,
-          clientName: request.clientName,
-          realmName: request.realm,
-          validRedirectUris: {
-            dev: request.devValidRedirectUris,
-            test: request.testValidRedirectUris,
-            prod: request.prodValidRedirectUris,
-          },
-          environments: request.environments,
-          publicAccess: request.publicAccess,
-          browserFlowOverride: null,
-        });
-        resolve(true);
-      });
+    const response = await handler(event, context);
+    const request = JSON.parse(response.body);
+    expect(response.statusCode).toEqual(200);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
+      requestId: request.id,
+      clientName: request.clientName,
+      realmName: request.realm,
+      validRedirectUris: {
+        dev: request.devValidRedirectUris,
+        test: request.testValidRedirectUris,
+        prod: request.prodValidRedirectUris,
+      },
+      environments: request.environments,
+      publicAccess: request.publicAccess,
+      browserFlowOverride: null,
     });
   });
 
@@ -310,31 +264,27 @@ describe('Updating', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
-      requestContext: { httpMethod: 'PUT' },
+      httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...bceidRequest }),
       queryStringParameters: { submit: true },
     };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        const request = JSON.parse(response.body);
-        expect(response.statusCode).toEqual(200);
-        expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
-          requestId: request.id,
-          clientName: request.clientName,
-          realmName: request.realm,
-          validRedirectUris: {
-            dev: request.devValidRedirectUris,
-            test: request.testValidRedirectUris,
-            prod: request.prodValidRedirectUris,
-          },
-          environments: ['dev', 'test'],
-          publicAccess: request.publicAccess,
-          browserFlowOverride: null,
-        });
-        resolve(true);
-      });
+    const response = await handler(event, context);
+    const request = JSON.parse(response.body);
+    expect(response.statusCode).toEqual(200);
+    expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
+      requestId: request.id,
+      clientName: request.clientName,
+      realmName: request.realm,
+      validRedirectUris: {
+        dev: request.devValidRedirectUris,
+        test: request.testValidRedirectUris,
+        prod: request.prodValidRedirectUris,
+      },
+      environments: ['dev', 'test'],
+      publicAccess: request.publicAccess,
+      browserFlowOverride: null,
     });
   });
 
@@ -346,31 +296,27 @@ describe('Updating', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
-      requestContext: { httpMethod: 'PUT' },
+      httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest, browserFlowOverride: 'asdf' }),
       queryStringParameters: { submit: true },
     };
     const context: Context = {};
 
-    await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
-        const request = JSON.parse(response.body);
-        expect(response.statusCode).toEqual(200);
-        expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
-          requestId: request.id,
-          clientName: request.clientName,
-          realmName: request.realm,
-          validRedirectUris: {
-            dev: request.devValidRedirectUris,
-            test: request.testValidRedirectUris,
-            prod: request.prodValidRedirectUris,
-          },
-          environments: ['dev', 'test', 'prod'],
-          publicAccess: request.publicAccess,
-          browserFlowOverride: 'asdf',
-        });
-        resolve(true);
-      });
+    const response = await handler(event, context);
+    const request = JSON.parse(response.body);
+    expect(response.statusCode).toEqual(200);
+    expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
+      requestId: request.id,
+      clientName: request.clientName,
+      realmName: request.realm,
+      validRedirectUris: {
+        dev: request.devValidRedirectUris,
+        test: request.testValidRedirectUris,
+        prod: request.prodValidRedirectUris,
+      },
+      environments: ['dev', 'test', 'prod'],
+      publicAccess: request.publicAccess,
+      browserFlowOverride: 'asdf',
     });
   });
 });

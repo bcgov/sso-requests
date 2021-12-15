@@ -1,0 +1,8 @@
+{
+  "watch": false,
+  "exec": "ts-node ./migrate-db.ts",
+  "env": {
+    "NODE_ENV": "development",
+    "DATABASE_URL": "postgresql://localhost:5432/ssorequests"
+  }
+}

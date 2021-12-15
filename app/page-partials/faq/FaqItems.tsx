@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
-import Accordion from 'components/Accordion';
+import { Accordion } from '@bcgov-sso/common-react-components';
 
 interface Props {
   children?: any;

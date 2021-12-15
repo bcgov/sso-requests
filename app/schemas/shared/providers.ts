@@ -76,7 +76,7 @@ export default {
       title: 'Identity Providers Required',
       tooltipContent: 'The identity providers you add will let your users authenticate with those services.',
       enum: ['onestopauth', 'onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
-      enumNames: ['IDIR', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
+      enumNames: ['IDIR + IDIR Azure Beta', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
     },
     dev,
     test,
