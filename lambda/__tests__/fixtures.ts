@@ -9,7 +9,7 @@ export const formDataDev: Data = {
   publicAccess: true,
   devValidRedirectUris: ['https://b'],
   environments: ['dev'],
-  projectLead: false,
+  projectLead: true,
   preferredEmail: 'test',
   newToSso: true,
   agreeWithTerms: true,
@@ -17,6 +17,7 @@ export const formDataDev: Data = {
   archived: false,
   additionalEmails: [],
   idirUserDisplayName: 'test user',
+  usesTeam: false,
 };
 
 export const formDataProd: Data = {

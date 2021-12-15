@@ -30,7 +30,7 @@ describe('Requests', () => {
       path: '/app/requests',
       body: JSON.stringify({
         projectName: 'test',
-        projectLead: 'yes',
+        projectLead: true,
         preferredEmail: 'me@me.com',
         publicAccess: 'yes',
       }),

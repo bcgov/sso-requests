@@ -34,6 +34,7 @@ export interface Data {
   agreeWithTerms?: boolean;
   status?: string;
   archived?: boolean;
+  usesTeam?: boolean;
 }
 
 export interface FormattedData {

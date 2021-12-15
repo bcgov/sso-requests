@@ -162,6 +162,7 @@ describe('Updating', () => {
         idirUserid: testUser,
         projectName: 'test',
         status: 'draft',
+        projectLead: true,
       }),
     ]);
   });
