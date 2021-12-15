@@ -14,7 +14,6 @@ export type EmailMessage =
   | 'request-limit-exceeded'
   | 'bceid-request-approved'
   | 'bceid-idim-dev-submitted'
-  | 'bceid-idim-prod-submitted'
   | 'bceid-user-prod-submitted'
   | 'bceid-idim-deleted';
 
@@ -153,31 +152,6 @@ export const getEmailBody = (messageType: EmailMessage, Request: Data) => {
       <p>Pathfinder SSO team.</p>
       `;
 
-    case 'bceid-idim-prod-submitted':
-      return `
-      <h1>Hello IDIM Team,</h1>
-      <p>
-      We are notifying you that a new production integration request has been submitted. <strong>Below is a summary of the integration request details.</strong>
-      </p>
-
-      <ul>
-        <li><strong>Project name:</strong> ${projectName}</li>
-        <li><strong>Accountable person:</strong> ${idirUserDisplayName}</li>
-        <li><strong>URIs:</strong>
-          <ul>
-            ${devUris}
-            ${testUris}
-            ${prodUris}
-          </ul>
-        </li>
-        <li><strong>Identity Providers Required:</strong> ${realmToIDP(realm)}</li>
-      </ul>
-
-      <p>Thank you,</p>
-
-      <p>Pathfinder SSO team.</p>
-      `;
-
     case 'bceid-user-prod-submitted':
       return `
         <h1>Hello Pathfinder SSO friend,</h1>
@@ -199,7 +173,11 @@ export const getEmailBody = (messageType: EmailMessage, Request: Data) => {
 
         <p>As you've requested an integration with BCeID, any production integration request requires you to work with the Identity and Information Management (IDIM) team.</p>
         <ul>
+          <li><strong>URIs:</strong>
+          <ul>
           ${prodUris}
+          </ul>
+          </li>
         </ul>
 
         <h1>Next Steps</h1>
@@ -268,7 +246,6 @@ export const getEmailSubject = (messageType: EmailMessage, id = null) => {
     case 'request-limit-exceeded':
       return `${prefix}Pathfinder SSO request limit reached`;
     case 'bceid-idim-dev-submitted':
-    case 'bceid-idim-prod-submitted':
     case 'bceid-user-prod-submitted':
       return `${prefix}New BCeID Integration Request ID ${id}`;
     case 'bceid-request-approved':

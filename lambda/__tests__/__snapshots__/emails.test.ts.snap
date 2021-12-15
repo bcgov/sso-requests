@@ -51,32 +51,6 @@ exports[`Email snapshots Should return the expeted email for IDIM deletions 1`] 
       "
 `;
 
-exports[`Email snapshots Should return the expeted email for Prod IDIM submissions 1`] = `
-"
-      <h1>Hello IDIM Team,</h1>
-      <p>
-      We are notifying you that a new production integration request has been submitted. <strong>Below is a summary of the integration request details.</strong>
-      </p>
-
-      <ul>
-        <li><strong>Project name:</strong> test</li>
-        <li><strong>Accountable person:</strong> test user</li>
-        <li><strong>URIs:</strong>
-          <ul>
-            <li> Development: https://b </li>
-            <li> Test: https://a </li>
-            <li> Production: https://a </li>
-          </ul>
-        </li>
-        <li><strong>Identity Providers Required:</strong> idir</li>
-      </ul>
-
-      <p>Thank you,</p>
-
-      <p>Pathfinder SSO team.</p>
-      "
-`;
-
 exports[`Email snapshots Should return the expeted email for approved 1`] = `
 "
         <h1>Your Pathfinder SSO request #1 is approved.</h1>
