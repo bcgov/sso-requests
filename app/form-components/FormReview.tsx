@@ -34,6 +34,8 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
   const router = useRouter();
   const hasBceid = usesBceid(formData.realm);
   const hasBceidProd = hasBceid && formData.prod;
+  // TODO: pull from api
+  const hasTeam = true;
 
   const handleSubmit = async () => {
     try {
@@ -69,7 +71,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
   };
 
   const openModal = () => {
-    const validationSchemas = isAdmin ? adminNonBceidSchemas : nonBceidSchemas;
+    const validationSchemas = isAdmin ? adminNonBceidSchemas(hasTeam) : nonBceidSchemas(hasTeam);
     const formErrors = validateForm(formData, validationSchemas);
     if (Object.keys(formErrors).length > 0) {
       alert.show({

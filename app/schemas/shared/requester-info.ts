@@ -1,3 +1,5 @@
+import { JSONSchema6 } from 'json-schema';
+
 const projectLead = {
   type: 'boolean',
   title: 'Are you the product owner or technical contact for this project?',
@@ -70,5 +72,5 @@ export default function getSchema(hasTeam = true) {
         ],
       },
     },
-  };
+  } as JSONSchema6;
 }
