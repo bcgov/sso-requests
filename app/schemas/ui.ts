@@ -1,5 +1,6 @@
 import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
 import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
+import TeamFieldTemplate from 'form-components/TeamFieldTemplate';
 import ClientTypeWidget from 'form-components/widgets/ClientTypeWidget';
 
 const getUISchema = (created: boolean) => {
@@ -30,6 +31,10 @@ const getUISchema = (created: boolean) => {
       'ui:FieldTemplate': FieldTemplateNoTitle,
       'ui:placeholder': 'Project Name',
     },
+    usesTeam: {
+      'ui:widget': 'radio',
+      'ui:FieldTemplate': FieldTemplateWithTitle,
+    },
     realm: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
@@ -49,6 +54,9 @@ const getUISchema = (created: boolean) => {
     dev: {
       'ui:readonly': true,
       'ui:FieldTemplate': FieldTemplateWithTitle,
+    },
+    team: {
+      'ui:FieldTemplate': TeamFieldTemplate,
     },
   };
 };

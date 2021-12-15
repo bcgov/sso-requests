@@ -13,9 +13,8 @@ import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
-import { validateForm } from 'utils/helpers';
-import { bceidStages, adminBceidStages, stageTitlesUsingForms, stageTitlesReviewing } from 'utils/constants';
+import { validateForm, getFormStageInfo } from 'utils/helpers';
+import { stageTitlesUsingForms, stageTitlesReviewing } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
 import { SaveMessage } from 'interfaces/form';
@@ -50,13 +49,17 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const router = useRouter();
-  const schemas = isAdmin ? adminNonBceidSchemas : nonBceidSchemas;
-  const stages = isAdmin ? adminBceidStages : bceidStages;
-  const stageTitle = stages.find((stage) => stage.number === formStage)?.title || '';
+  const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isAdmin, hasTeam: true, formStage });
 
   const handleChange = (e: any) => {
-    setFormData(e.formData);
-    if (e.formData.projectLead === false) {
+    const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
+    const togglingTeamToTrue = formData.usesTeam === false && e.formData.usesTeam === true;
+    if (togglingTeamToTrue) {
+      setFormData({ ...e.formData, projectLead: undefined });
+    } else {
+      setFormData(e.formData);
+    }
+    if (showModal) {
       window.location.hash = 'info-modal';
     }
   };
@@ -181,7 +184,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
       )}
       {stageTitlesUsingForms.includes(stageTitle) && (
         <Form
-          schema={schemas[formStage] || {}}
+          schema={schema}
           uiSchema={uiSchema}
           onChange={handleChange}
           onSubmit={handleFormSubmit}
