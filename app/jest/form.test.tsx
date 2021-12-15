@@ -48,6 +48,7 @@ export const sampleRequest: Request = {
   environments: ['dev', 'test', 'prod'],
   archived: false,
   additionalEmails: [],
+  usesTeam: false,
 };
 
 const samplePage3Request = {
@@ -153,7 +154,11 @@ describe('Error messages', () => {
     setUpRouter('/', sandbox);
     setUpRender(null);
 
-    // Set project lead to display form
+    // Set project lead and team to display form
+    const usesTeam = document.getElementById('root_usesTeam') as HTMLElement;
+    const usesTeamInput = within(usesTeam).getByLabelText('No');
+    fireEvent.click(usesTeamInput);
+
     const projectLead = document.getElementById('root_projectLead') as HTMLElement;
     const isProjectLeadInput = within(projectLead).getByLabelText('Yes');
     fireEvent.click(isProjectLeadInput);

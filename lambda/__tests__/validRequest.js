@@ -11,6 +11,7 @@ const validRequest = {
   dev: true,
   test: true,
   prod: true,
+  usesTeam: false,
 };
 
 const invalidRequest = {

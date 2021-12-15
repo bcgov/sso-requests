@@ -17,7 +17,7 @@ const data: any = {
   actionNumber: 15,
   createdAt: 'test2',
   updatedAt: '11-12-2015',
-  projectLead: false,
+  projectLead: true,
   preferredEmail: 'test',
   agreeWithTerms: true,
   status: 'submitted',

@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import BcButton from '@button-inc/bcgov-theme/Button';
 import CancelButton from 'components/CancelButton';
 import Loader from 'react-loader-spinner';
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const StyledModal = styled(Modal)`
   display: flex;
@@ -15,6 +15,11 @@ const StyledModal = styled(Modal)`
     max-width: 600px;
     margin: auto;
   }
+`;
+
+const Header = styled(Modal.Header)`
+  font-size: 1.5em;
+  padding: 0.75em;
 `;
 
 const PaddedIcon = styled(FontAwesomeIcon)`
@@ -40,6 +45,7 @@ interface Props {
   title?: string;
   closable?: boolean;
   showCancel?: boolean;
+  showConfirm?: boolean;
   confirmText?: string;
 }
 
@@ -52,9 +58,11 @@ const CenteredModal = ({
   icon = faExclamationTriangle,
   confirmText = 'Confirm',
   showCancel = true,
+  showConfirm = true,
 }: Props) => {
   const [loading, setLoading] = useState(false);
   const handleCancel = () => (window.location.hash = '#');
+  const showButtons = showCancel || showConfirm;
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -65,23 +73,29 @@ const CenteredModal = ({
 
   return (
     <StyledModal id={id}>
-      <Modal.Header>
-        <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />
+      <Header>
+        {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
         {title}
-        {closable && <Modal.Close onClick={handleCancel}>X</Modal.Close>}
-      </Modal.Header>
+        {closable && (
+          <Modal.Close onClick={handleCancel}>
+            <FontAwesomeIcon icon={faTimes} size="lg"></FontAwesomeIcon>
+          </Modal.Close>
+        )}
+      </Header>
       <Modal.Content>
         {content}
-        <ButtonContainer>
-          {showCancel && (
-            <CancelButton variant="secondary" onClick={handleCancel}>
-              Cancel
-            </CancelButton>
-          )}
-          <BcButton onClick={handleConfirm}>
-            {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : confirmText}
-          </BcButton>
-        </ButtonContainer>
+        {showButtons && (
+          <ButtonContainer>
+            {showCancel && (
+              <CancelButton variant="secondary" onClick={handleCancel}>
+                Cancel
+              </CancelButton>
+            )}
+            <BcButton onClick={handleConfirm}>
+              {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : confirmText}
+            </BcButton>
+          </ButtonContainer>
+        )}
       </Modal.Content>
     </StyledModal>
   );

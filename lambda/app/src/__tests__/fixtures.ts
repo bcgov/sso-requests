@@ -8,18 +8,19 @@ export const formDataUpdated: any = {
   devValidRedirectUris: ['https://b'],
   testValidRedirectUris: ['https://a'],
   prodValidRedirectUris: ['https://a'],
-  environments: 'dev',
+  environments: ['dev', 'test', 'prod'],
   prNumber: 10,
   actionNumber: 10,
   createdAt: 'test',
   updatedAt: '10-11-2012',
-  projectLead: false,
-  preferredEmail: 'test',
+  projectLead: true,
+  preferredEmail: 'test@test',
   newToSso: true,
   agreeWithTerms: true,
   status: 'draft',
   archived: false,
   additionalEmails: [],
+  usesTeam: false,
 };
 
 export const formDataOriginal: any = {
@@ -32,18 +33,19 @@ export const formDataOriginal: any = {
   devValidRedirectUris: ['https://a'],
   testValidRedirectUris: ['https://a'],
   prodValidRedirectUris: ['https://a'],
-  environments: 'dev',
+  environments: ['dev', 'test', 'prod'],
   prNumber: 10,
   actionNumber: 10,
   createdAt: 'test',
   updatedAt: '11-12-2013',
-  projectLead: false,
-  preferredEmail: 'test',
+  projectLead: true,
+  preferredEmail: 'test@test',
   newToSso: true,
   agreeWithTerms: true,
   status: 'draft',
   archived: false,
   additionalEmails: [],
+  usesTeam: false,
 };
 
 export const formDataWithMutatedNonFormFields: any = {
@@ -61,13 +63,14 @@ export const formDataWithMutatedNonFormFields: any = {
   actionNumber: 15,
   createdAt: 'test2',
   updatedAt: '11-12-2015',
-  projectLead: false,
-  preferredEmail: 'test',
+  projectLead: true,
+  preferredEmail: 'test@test',
   newToSso: true,
   agreeWithTerms: true,
   status: 'submitted',
   archived: true,
   additionalEmails: [],
+  usesTeam: false,
 };
 
 export const formDataBceid: any = {

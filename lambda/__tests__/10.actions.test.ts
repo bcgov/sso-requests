@@ -53,7 +53,7 @@ beforeAll(async () => {
   const request = await models.request.create({
     idirUserid: 'A1',
     projectName: 'test',
-    projectLead: 'yes',
+    projectLead: true,
     preferredEmail: 'me@me.com',
     publicAccess: 'yes',
   });

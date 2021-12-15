@@ -32,6 +32,7 @@ fieldset {
 /* RJSF overrides */
 
 #root_newToSso > .radio,
+#root_usesTeam > .radio,
 #root_projectLead > .radio {
   display: inline;
   margin-right: 10px;

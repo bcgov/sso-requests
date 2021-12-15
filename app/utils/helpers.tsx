@@ -8,6 +8,8 @@ import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
 import { customValidate } from './shared/customValidate';
+import { bceidStages, adminBceidStages } from 'utils/constants';
+import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
 
 const URIS_SCHEMA_INDEX = 1;
 
@@ -263,3 +265,23 @@ export const hasAnyPendingStatus = (requests: Request[]) => {
     ].includes(request.status || '');
   });
 };
+
+interface Args {
+  isAdmin: boolean;
+  hasTeam: boolean;
+  formStage: number;
+}
+
+export function getFormStageInfo({ isAdmin, hasTeam, formStage }: Args) {
+  const stages = isAdmin ? adminBceidStages : bceidStages;
+  const schemas = isAdmin ? adminNonBceidSchemas(hasTeam) : nonBceidSchemas(hasTeam);
+  const stageTitle = stages.find((stage) => stage.number === formStage)?.title || '';
+  const schema = schemas[formStage] || {};
+
+  return {
+    stages,
+    stageTitle,
+    schema,
+    schemas,
+  };
+}
