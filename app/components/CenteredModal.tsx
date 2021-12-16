@@ -20,6 +20,11 @@ const StyledModal = styled(Modal)`
 const Header = styled(Modal.Header)`
   font-size: 1.5em;
   padding: 0.75em;
+  background: #38598a;
+  color: #fff;
+  & a {
+    float: right;
+  }
 `;
 
 const PaddedIcon = styled(FontAwesomeIcon)`

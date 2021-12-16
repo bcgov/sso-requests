@@ -51,8 +51,8 @@ export default function getSchema(teams: any[] = []) {
               team: {
                 type: 'string',
                 title: 'Project Member(s)',
-                enum: teamValues,
-                enumNames: teamNames,
+                enum: [null, ...teamValues],
+                enumNames: ['-', ...teamNames],
               },
               preferredEmail,
               additionalEmails,

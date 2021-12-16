@@ -118,7 +118,7 @@ export const setRoutes = (app: any) => {
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
 
       const { submit } = req.query;
-      const result = await updateRequest(session as Session, req.body, submit);
+      const result = await updateRequest(session as Session, req.body, req.user, submit);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
