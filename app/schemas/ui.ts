@@ -1,6 +1,6 @@
 import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
 import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
-import TeamFieldTemplate from 'form-components/TeamFieldTemplate';
+import AddTeamWidget from 'form-components/AddTeamWidget';
 import ClientTypeWidget from 'form-components/widgets/ClientTypeWidget';
 
 const getUISchema = (created: boolean) => {
@@ -34,12 +34,14 @@ const getUISchema = (created: boolean) => {
     usesTeam: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
+      'ui:readonly': created,
     },
     realm: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
       // 'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
       'ui:default': 'onestopauth',
+      'ui:readonly': created,
     },
     bceidTo: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
@@ -55,8 +57,8 @@ const getUISchema = (created: boolean) => {
       'ui:readonly': true,
       'ui:FieldTemplate': FieldTemplateWithTitle,
     },
-    team: {
-      'ui:FieldTemplate': TeamFieldTemplate,
+    createTeam: {
+      'ui:FieldTemplate': AddTeamWidget,
     },
   };
 };

@@ -23,23 +23,12 @@ const Description = styled.p`
 `;
 
 export default function TeamFieldTemplate(props: any) {
-  const { classNames, help, description, errors, children, schema } = props;
-  const { enum: teams } = schema;
   const handleClick = () => {
     window.location.hash = createTeamModalId;
   };
-  const hasExistingTeams = teams.length > 0;
 
   return (
     <>
-      {hasExistingTeams && (
-        <div className={classNames}>
-          {description}
-          {children}
-          {errors}
-          {help}
-        </div>
-      )}
       <Container onClick={handleClick}>
         <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} onClick={props.onAddClick} title="Add Item" />
         <Label>Create a new team (optional)</Label>

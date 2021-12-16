@@ -24,7 +24,9 @@ const additionalEmails = {
 
 export default function getSchema(teams: any[] = []) {
   const teamNames = teams.map((team) => team.name);
-  const teamValues = teams.map((team) => team.id);
+  const teamValues = teams.map((team) => String(team.id));
+  const hasTeams = teams.length > 0;
+
   return {
     type: 'object',
     properties: {
@@ -48,11 +50,17 @@ export default function getSchema(teams: any[] = []) {
           {
             properties: {
               usesTeam: { enum: [true] },
-              team: {
+              ...(hasTeams && {
+                team: {
+                  type: 'string',
+                  title: 'Project Member(s)',
+                  enum: teamValues,
+                  enumNames: teamNames,
+                  default: teamValues[0],
+                },
+              }),
+              createTeam: {
                 type: 'string',
-                title: 'Project Member(s)',
-                enum: [null, ...teamValues],
-                enumNames: ['-', ...teamNames],
               },
               preferredEmail,
               additionalEmails,
@@ -69,6 +77,11 @@ export default function getSchema(teams: any[] = []) {
               additionalEmails,
             },
             required: ['projectLead'],
+          },
+          {
+            properties: {
+              projectLead: { enum: [false] },
+            },
           },
         ],
       },

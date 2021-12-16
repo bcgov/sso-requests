@@ -72,8 +72,7 @@ export const createRequest = async (session: Session, data: Data) => {
     throw Error('reached the day limit');
   }
 
-  const { projectName, projectLead, preferredEmail, additionalEmails } = data;
-
+  const { projectName, projectLead, preferredEmail, additionalEmails, usesTeam, team } = data;
   const result = await models.request.create({
     idirUserid: session.idir_userid,
     projectName,
@@ -81,6 +80,8 @@ export const createRequest = async (session: Session, data: Data) => {
     preferredEmail,
     additionalEmails,
     idirUserDisplayName,
+    usesTeam,
+    teamId: team,
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
