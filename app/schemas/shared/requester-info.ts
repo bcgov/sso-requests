@@ -22,17 +22,22 @@ const additionalEmails = {
   addItemText: 'Add Email Address',
 };
 
-export default function getSchema(hasTeam = true) {
+export default function getSchema(teams: any[] = []) {
+  const teamNames = teams.map((team) => team.name);
+  const teamValues = teams.map((team) => String(team.id));
+  const hasTeams = teams.length > 0;
+
   return {
     type: 'object',
     properties: {
+      projectName,
       usesTeam: {
         type: 'boolean',
         title: 'Project Member(s)',
         description: 'Would you like to allow multiple members to manage this integration?',
       },
     },
-    required: ['projectLead', 'projectName', 'preferredEmail'],
+    required: ['projectName', 'preferredEmail'],
     dependencies: {
       usesTeam: {
         oneOf: [
@@ -45,14 +50,18 @@ export default function getSchema(hasTeam = true) {
           {
             properties: {
               usesTeam: { enum: [true] },
-              ...(hasTeam && {
+              ...(hasTeams && {
                 team: {
                   type: 'string',
                   title: 'Project Member(s)',
-                  enum: ['one', 'two'],
+                  enum: teamValues,
+                  enumNames: teamNames,
+                  default: teamValues[0],
                 },
               }),
-              projectName,
+              createTeam: {
+                type: 'string',
+              },
               preferredEmail,
               additionalEmails,
             },
@@ -64,9 +73,14 @@ export default function getSchema(hasTeam = true) {
           {
             properties: {
               projectLead: { enum: [true] },
-              projectName,
               preferredEmail,
               additionalEmails,
+            },
+            required: ['projectLead'],
+          },
+          {
+            properties: {
+              projectLead: { enum: [false] },
             },
           },
         ],

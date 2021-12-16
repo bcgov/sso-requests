@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { Session, Data } from '../../../shared/interfaces';
+import { Session, Data, User } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
 import {
   validateRequest,
@@ -10,6 +10,7 @@ import {
   usesBceid,
   notifyIdim,
   getWhereClauseForAllRequests,
+  getUsersTeams,
   IDIM_EMAIL_ADDRESS,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
@@ -72,8 +73,7 @@ export const createRequest = async (session: Session, data: Data) => {
     throw Error('reached the day limit');
   }
 
-  const { projectName, projectLead, preferredEmail, additionalEmails } = data;
-
+  const { projectName, projectLead, preferredEmail, additionalEmails, usesTeam, team } = data;
   const result = await models.request.create({
     idirUserid: session.idir_userid,
     projectName,
@@ -81,15 +81,16 @@ export const createRequest = async (session: Session, data: Data) => {
     preferredEmail,
     additionalEmails,
     idirUserDisplayName,
+    usesTeam,
+    teamId: team,
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
 };
 
-export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
+export const updateRequest = async (session: Session, data: Data, user: User, submit: string | undefined) => {
   const [, error] = await hasRequestWithFailedApplyStatus();
   if (error) throw Error(error);
-
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = session.given_name + ' ' + session.family_name;
   const { id, comment, bceidEmailDetails, ...rest } = data;
@@ -109,9 +110,10 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
     const isApprovingBceid = !original.dataValues.bceidApproved && mergedRequest.bceidApproved;
     if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
+    const usersTeams = await getUsersTeams(user);
 
     if (submit) {
-      const isValid = validateRequest(mergedRequest, original.dataValues, isUpdate);
+      const isValid = validateRequest(mergedRequest, original.dataValues, isUpdate, usersTeams);
       if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedRequest }));
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';

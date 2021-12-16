@@ -20,6 +20,11 @@ const StyledModal = styled(Modal)`
 const Header = styled(Modal.Header)`
   font-size: 1.5em;
   padding: 0.75em;
+  background: #38598a;
+  color: #fff;
+  & a {
+    float: right;
+  }
 `;
 
 const PaddedIcon = styled(FontAwesomeIcon)`
@@ -73,7 +78,7 @@ const CenteredModal = ({
 
   return (
     <StyledModal id={id}>
-      <Header>
+      <Header title={title} as="div">
         {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
         {title}
         {closable && (

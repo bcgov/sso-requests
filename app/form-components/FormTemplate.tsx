@@ -14,11 +14,14 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { validateForm, getFormStageInfo } from 'utils/helpers';
-import { stageTitlesUsingForms, stageTitlesReviewing } from 'utils/constants';
+import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';
 import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
+import { getTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
+import { Team } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
+import TeamForm from 'form-components/TeamForm';
 
 const Description = styled.p`
   margin: 0;
@@ -48,8 +51,11 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
+  const [teams, setTeams] = useState<Team[]>([]);
   const router = useRouter();
-  const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isAdmin, hasTeam: true, formStage });
+
+  const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isAdmin, formStage, teams });
+  const showFormButtons = !isAdmin && (formStage !== 0 || formData.usesTeam || formData.projectLead);
 
   const handleChange = (e: any) => {
     const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
@@ -69,6 +75,20 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
       setFormData({ ...formData, preferredEmail: currentUser.email || '' });
     }
   }, [currentUser]);
+
+  const loadTeams = async () => {
+    const [teams, err] = await getTeams();
+    if (err) {
+      // add err handling
+      console.error(err);
+    } else {
+      setTeams(teams || []);
+    }
+  };
+
+  useEffect(() => {
+    loadTeams();
+  }, []);
 
   const changeStep = (newStage: number) => {
     visited[formStage] = true;
@@ -180,6 +200,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           saveMessage={saveMessage}
           isAdmin={isAdmin}
           setFormData={setFormData}
+          teams={teams}
         />
       )}
       {stageTitlesUsingForms.includes(stageTitle) && (
@@ -197,7 +218,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           <FormButtons
             formSubmission={formStage === 0}
             text={{ continue: 'Next', back: backButtonText }}
-            show={!isAdmin && (formStage !== 0 || formData.projectLead)}
+            show={showFormButtons}
             loading={loading}
             handleSubmit={handleButtonSubmit}
             handleBackClick={handleBackClick}
@@ -207,19 +228,31 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
         </Form>
       )}
       {stageTitle === 'Requester Info' && (
-        <CenteredModal
-          id="info-modal"
-          content={
-            <>
-              <p>If you are not accountable for this project, please refer this request to someone who is.</p>
-              <p> Only the person who is responsible for this project can submit the intergration request.</p>
-            </>
-          }
-          icon={faInfoCircle}
-          onConfirm={handleModalClose}
-          confirmText="Okay"
-          showCancel={false}
-        />
+        <>
+          <CenteredModal
+            id="info-modal"
+            content={
+              <>
+                <p>If you are not accountable for this project, please refer this request to someone who is.</p>
+                <p> Only the person who is responsible for this project can submit the intergration request.</p>
+              </>
+            }
+            icon={faInfoCircle}
+            onConfirm={handleModalClose}
+            confirmText="Okay"
+            showCancel={false}
+          />
+          <CenteredModal
+            title="Create a new team"
+            icon={null}
+            onConfirm={() => console.log('confirm')}
+            id={createTeamModalId}
+            content={<TeamForm onSubmit={loadTeams} />}
+            showCancel={false}
+            showConfirm={false}
+            closable
+          />
+        </>
       )}
     </>
   );

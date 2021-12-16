@@ -10,6 +10,7 @@ import { Session, Data } from '../../../shared/interfaces';
 import { Op } from 'sequelize';
 import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
 import { sendEmail } from '../../../shared/utils/ches';
+import { sequelize, models } from '../../../shared/sequelize/models/models';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
@@ -90,13 +91,13 @@ export const getDifferences = (newData: any, originalData: Request) => {
   return diff(omitNonFormFields(originalData), omitNonFormFields(sortedNewData));
 };
 
-export const validateRequest = (formData: any, original: Request, isUpdate = false) => {
+export const validateRequest = (formData: any, original: Request, isUpdate = false, teams: any[]) => {
   if (isUpdate) {
     const differences = getDifferences(formData, original);
     if (!differences) return { message: errorMessage };
   }
 
-  const { errors: firstPageErrors } = validate(formData, requesterSchema(formData.usesTeam));
+  const { errors: firstPageErrors } = validate(formData, requesterSchema(teams));
   const { errors: secondPageErrors } = validate(formData, providerSchema, customValidate);
   const { errors: thirdPageErrors } = validate(formData, termsAndConditionsSchema);
   const allValid = firstPageErrors.length === 0 && secondPageErrors.length === 0 && thirdPageErrors.length === 0;
@@ -169,3 +170,13 @@ export const getWhereClauseForAllRequests = (data: {
 
   return where;
 };
+
+export async function getUsersTeams(user) {
+  return models.team
+    .findAll({
+      where: {
+        id: { [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}')`) },
+      },
+    })
+    .then((res) => res.map((res) => res.dataValues));
+}

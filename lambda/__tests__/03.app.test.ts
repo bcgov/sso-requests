@@ -22,6 +22,14 @@ jest.mock('../app/src/github', () => {
   };
 });
 
+jest.mock('../app/src/utils/helpers', () => {
+  const actual = jest.requireActual('../app/src/utils/helpers');
+  return {
+    ...actual,
+    getUsersTeams: jest.fn(() => []),
+  };
+});
+
 jest.mock('../app/src/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),

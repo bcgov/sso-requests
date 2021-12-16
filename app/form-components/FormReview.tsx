@@ -16,6 +16,7 @@ import uiSchema from 'schemas/commentUi';
 import { adminNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
 import BceidEmailTemplate from 'form-components/BceidEmailTemplate';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
+import { Team } from 'interfaces/team';
 
 interface Props {
   formData: Request;
@@ -27,15 +28,14 @@ interface Props {
   saveMessage?: SaveMessage;
   isAdmin?: boolean;
   setFormData: Function;
+  teams: Team[];
 }
 
-function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props) {
+function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }: Props) {
   const [bceidEmailDetails, setBceidEmailDetails] = useState({});
   const router = useRouter();
   const hasBceid = usesBceid(formData.realm);
   const hasBceidProd = hasBceid && formData.prod;
-  // TODO: pull from api
-  const hasTeam = true;
 
   const handleSubmit = async () => {
     try {
@@ -71,7 +71,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin }: Props)
   };
 
   const openModal = () => {
-    const validationSchemas = isAdmin ? adminNonBceidSchemas(hasTeam) : nonBceidSchemas(hasTeam);
+    const validationSchemas = isAdmin ? adminNonBceidSchemas(teams) : nonBceidSchemas(teams);
     const formErrors = validateForm(formData, validationSchemas);
     if (Object.keys(formErrors).length > 0) {
       alert.show({
