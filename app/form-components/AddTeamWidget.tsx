@@ -22,7 +22,7 @@ const Description = styled.p`
   color: #7f7f7f;
 `;
 
-export default function TeamFieldTemplate(props: any) {
+export default function AddTeamWidget(props: any) {
   const handleClick = () => {
     window.location.hash = createTeamModalId;
   };
