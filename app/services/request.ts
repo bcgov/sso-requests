@@ -1,23 +1,9 @@
 import { instance } from './axios';
-import { AxiosError } from 'axios';
 import { orderBy } from 'lodash';
 import { Request } from 'interfaces/Request';
 import { processRequest } from 'utils/helpers';
-import Router from 'next/router';
-
-const applicationBlockingErrors = ['E01'];
-
-const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
-  const errorMessage = err?.response?.data || 'Unhandled Exception';
-  if (applicationBlockingErrors.includes(errorMessage))
-    Router.push({
-      pathname: '/application-error',
-      query: {
-        error: errorMessage,
-      },
-    });
-  return [null, errorMessage as AxiosError];
-};
+import { handleAxiosError } from 'services/axios';
+import { AxiosError } from 'axios';
 
 export const createRequest = async (data: Request): Promise<[Request, null] | [null, AxiosError]> => {
   try {

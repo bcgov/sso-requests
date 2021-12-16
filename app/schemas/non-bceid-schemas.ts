@@ -2,14 +2,15 @@ import getRequesterInfoSchema from 'schemas/shared/requester-info';
 import termsAndConditionsSchema from 'schemas/shared/terms-and-conditions';
 import providersSchema from 'schemas/shared/providers';
 import adminCommentSchema from 'schemas/admin-comment';
+import { Team } from 'interfaces/team';
 
-export const nonBceidSchemas = (hasTeam: boolean) => [
-  getRequesterInfoSchema(hasTeam),
+export const nonBceidSchemas = (teams: Team[]) => [
+  getRequesterInfoSchema(teams),
   providersSchema,
   termsAndConditionsSchema,
 ];
-export const adminNonBceidSchemas = (hasTeam: boolean) => [
-  getRequesterInfoSchema(hasTeam),
+export const adminNonBceidSchemas = (teams: Team[]) => [
+  getRequesterInfoSchema(teams),
   providersSchema,
   adminCommentSchema,
 ];

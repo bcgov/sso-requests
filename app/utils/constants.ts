@@ -1,5 +1,7 @@
 import type { EnvironmentOption, ErrorMessages, Stage } from 'interfaces/form';
 
+export const createTeamModalId = `create-team-modal`;
+
 export const environments: EnvironmentOption[] = [
   {
     name: 'dev',

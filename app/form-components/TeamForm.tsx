@@ -6,6 +6,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@bcgov-sso/common-react-components';
 import { v4 as uuidv4 } from 'uuid';
+import { createTeam } from 'services/team';
+import Loader from 'react-loader-spinner';
+import { User } from 'interfaces/team';
 
 const Container = styled.div`
   display: grid;
@@ -58,25 +61,24 @@ const ButtonsContainer = styled.div`
   justify-content: space-between;
   margin-top: 20px;
   & button {
-    min-width: 150px;
+    min-width: 180px;
   }
 `;
 
-interface Member {
-  email: string;
-  role: 'admin' | 'user' | '';
-  id: string;
+interface Props {
+  onSubmit: Function;
 }
 
-export default function TeamForm() {
-  const [members, setMembers] = useState<Member[]>([
+export default function TeamForm({ onSubmit }: Props) {
+  const [members, setMembers] = useState<User[]>([
     {
       email: '',
       role: 'user',
       id: String(uuidv4()),
     },
   ]);
-  const [_teamName, setTeamName] = useState(null);
+  const [teamName, setTeamName] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleAddMember = () => {
     setMembers([
@@ -94,7 +96,7 @@ export default function TeamForm() {
   };
 
   const handleEmailChange = (index: number, e: any) => {
-    const newMember = { ...members[index] };
+    const newMember: User = { ...members[index] };
     newMember.email = e.target.value;
     const newMembers = [...members];
     newMembers[index] = newMember;
@@ -102,7 +104,7 @@ export default function TeamForm() {
   };
 
   const handleRoleChange = (index: number, e: any) => {
-    const newMember = { ...members[index] };
+    const newMember: User = { ...members[index] };
     newMember.role = e.target.value;
     const newMembers = [...members];
     newMembers[index] = newMember;
@@ -114,6 +116,14 @@ export default function TeamForm() {
   };
 
   const handleCancel = () => {
+    window.location.hash = '#';
+  };
+
+  const handleCreate = async () => {
+    setLoading(true);
+    const [team, err] = await createTeam({ name: teamName });
+    await onSubmit();
+    setLoading(false);
     window.location.hash = '#';
   };
 
@@ -157,7 +167,9 @@ export default function TeamForm() {
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
         </Button>
-        <Button>Send Invitation</Button>
+        <Button type="button" onClick={handleCreate}>
+          {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
+        </Button>
       </ButtonsContainer>
     </div>
   );

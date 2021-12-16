@@ -10,6 +10,7 @@ import { errorMessages, environments } from './constants';
 import { customValidate } from './shared/customValidate';
 import { bceidStages, adminBceidStages } from 'utils/constants';
 import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
+import { Team } from 'interfaces/team';
 
 const URIS_SCHEMA_INDEX = 1;
 
@@ -268,13 +269,13 @@ export const hasAnyPendingStatus = (requests: Request[]) => {
 
 interface Args {
   isAdmin: boolean;
-  hasTeam: boolean;
   formStage: number;
+  teams: Team[];
 }
 
-export function getFormStageInfo({ isAdmin, hasTeam, formStage }: Args) {
+export function getFormStageInfo({ isAdmin, formStage, teams }: Args) {
   const stages = isAdmin ? adminBceidStages : bceidStages;
-  const schemas = isAdmin ? adminNonBceidSchemas(hasTeam) : nonBceidSchemas(hasTeam);
+  const schemas = isAdmin ? adminNonBceidSchemas(teams) : nonBceidSchemas(teams);
   const stageTitle = stages.find((stage) => stage.number === formStage)?.title || '';
   const schema = schemas[formStage] || {};
 

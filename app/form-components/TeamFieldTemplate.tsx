@@ -2,8 +2,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { FORM_TOP_SPACING } from 'styles/theme';
-import Modal from 'components/CenteredModal';
-import TeamForm from 'form-components/TeamForm';
+import { createTeamModalId } from 'utils/constants';
 
 const Container = styled.div`
   display: grid;
@@ -24,20 +23,23 @@ const Description = styled.p`
 `;
 
 export default function TeamFieldTemplate(props: any) {
-  const { classNames, help, description, errors, children } = props;
-  const modalId = 'create-team';
+  const { classNames, help, description, errors, children, schema } = props;
+  const { enum: teams } = schema;
   const handleClick = () => {
-    window.location.hash = modalId;
+    window.location.hash = createTeamModalId;
   };
+  const hasExistingTeams = teams.length > 0;
 
   return (
     <>
-      <div className={classNames}>
-        {description}
-        {children}
-        {errors}
-        {help}
-      </div>
+      {hasExistingTeams && (
+        <div className={classNames}>
+          {description}
+          {children}
+          {errors}
+          {help}
+        </div>
+      )}
       <Container onClick={handleClick}>
         <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} onClick={props.onAddClick} title="Add Item" />
         <Label>Create a new team (optional)</Label>
@@ -45,16 +47,6 @@ export default function TeamFieldTemplate(props: any) {
           Add other members to help manage the integration, and re-use your teams across multiple integrations
         </Description>
       </Container>
-      <Modal
-        title="Create a new team"
-        icon={null}
-        onConfirm={() => console.log('confirm')}
-        id={modalId}
-        content={<TeamForm />}
-        showCancel={false}
-        showConfirm={false}
-        closable
-      />
     </>
   );
 }

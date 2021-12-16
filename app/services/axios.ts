@@ -1,6 +1,8 @@
 import getConfig from 'next/config';
 import axios from 'axios';
 import { getAuthHeader } from 'services/auth';
+import { AxiosError } from 'axios';
+import Router from 'next/router';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { api_url } = publicRuntimeConfig;
@@ -25,5 +27,19 @@ instance?.interceptors.request.use(
     return Promise.reject(error);
   },
 );
+
+const applicationBlockingErrors = ['E01'];
+
+export const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
+  const errorMessage = err?.response?.data || 'Unhandled Exception';
+  if (applicationBlockingErrors.includes(errorMessage))
+    Router.push({
+      pathname: '/application-error',
+      query: {
+        error: errorMessage,
+      },
+    });
+  return [null, errorMessage as AxiosError];
+};
 
 export { instance };
