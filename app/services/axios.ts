@@ -1,7 +1,6 @@
 import getConfig from 'next/config';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { getAuthHeader } from 'services/auth';
-import { AxiosError } from 'axios';
 import Router from 'next/router';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};

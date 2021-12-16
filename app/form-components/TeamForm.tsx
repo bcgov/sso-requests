@@ -121,7 +121,10 @@ export default function TeamForm({ onSubmit }: Props) {
 
   const handleCreate = async () => {
     setLoading(true);
-    const [team, err] = await createTeam({ name: teamName });
+    const [, err] = await createTeam({ name: teamName });
+    if (err) {
+      console.error(err);
+    }
     await onSubmit();
     setLoading(false);
     window.location.hash = '#';

@@ -200,6 +200,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           saveMessage={saveMessage}
           isAdmin={isAdmin}
           setFormData={setFormData}
+          teams={teams}
         />
       )}
       {stageTitlesUsingForms.includes(stageTitle) && (
