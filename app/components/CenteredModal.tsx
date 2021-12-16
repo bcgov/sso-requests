@@ -73,7 +73,7 @@ const CenteredModal = ({
 
   return (
     <StyledModal id={id}>
-      <Header>
+      <Header title={title} as="div">
         {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
         {title}
         {closable && (

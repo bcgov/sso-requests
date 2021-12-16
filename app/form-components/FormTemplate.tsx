@@ -54,7 +54,6 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const [teams, setTeams] = useState<Team[]>([]);
   const router = useRouter();
 
-  const hasTeam = teams.length > 0;
   const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isAdmin, formStage, teams });
   const showFormButtons = !isAdmin && (formStage !== 0 || formData.usesTeam || formData.projectLead);
 
