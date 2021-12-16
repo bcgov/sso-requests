@@ -26,9 +26,6 @@ describe('Email snapshots', () => {
   it('Should return the expeted email for Dev IDIM submissions', () => {
     expect(getEmailBody('bceid-idim-dev-submitted', formDataDev)).toMatchSnapshot();
   });
-  it('Should return the expeted email for Prod IDIM submissions', () => {
-    expect(getEmailBody('bceid-idim-prod-submitted', formDataProd)).toMatchSnapshot();
-  });
   it('Should return the expeted email for IDIM deletions', () => {
     expect(getEmailBody('bceid-idim-deleted', formDataProd)).toMatchSnapshot();
   });
