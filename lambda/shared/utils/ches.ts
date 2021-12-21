@@ -36,7 +36,7 @@ export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, event,
     const [accessToken, error] = await fetchChesToken(username, password);
     if (error) throw Error(error);
 
-    return axios.post(
+    const res = await axios.post(
       chesAPIEndpoint,
       {
         // see https://ches.nrs.gov.bc.ca/api/v1/docs#operation/postEmail for options
@@ -53,6 +53,7 @@ export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, event,
         headers: { Authorization: `Bearer ${accessToken}` },
       },
     );
+    return res;
   } catch (err) {
     console.error(err);
 

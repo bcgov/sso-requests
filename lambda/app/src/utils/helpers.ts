@@ -11,9 +11,11 @@ import { Op } from 'sequelize';
 import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
 import { sendEmail } from '../../../shared/utils/ches';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
+import { verify, sign } from 'jsonwebtoken';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
+const API_URL = process.env.API_URL || '';
 
 export const omitNonFormFields = (data: Request) =>
   omit(data, [
@@ -179,4 +181,28 @@ export async function getUsersTeams(user) {
       },
     })
     .then((res) => res.map((res) => res.dataValues));
+}
+
+export async function inviteTeamMembers(users: any[], teamId: number) {
+  return users.map((user) => {
+    const invitationLink = generateInvitationToken(user, teamId);
+    const { idirEmail } = user.dataValues;
+    const args = {
+      body: `<a href="${API_URL}/teams/verify?token=${invitationLink}">link</a>`,
+      event: {
+        emailCode: 'hi',
+      },
+      to: [idirEmail],
+    };
+    return sendEmail(args);
+  });
+}
+
+function generateInvitationToken(user: any, teamId: number) {
+  return sign({ userId: user.id, teamId }, 'asdf', { expiresIn: '2d' });
+}
+
+export async function parseInvitationToken(token) {
+  const data = (verify(token, 'asdf') as any) || {};
+  return [data, null];
 }

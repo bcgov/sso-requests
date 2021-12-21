@@ -39,9 +39,7 @@ const getUISchema = (created: boolean) => {
     realm: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
-      // 'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
       'ui:default': 'onestopauth',
-      'ui:readonly': created,
     },
     bceidTo: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
