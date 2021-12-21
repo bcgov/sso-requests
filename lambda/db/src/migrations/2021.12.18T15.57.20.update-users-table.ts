@@ -8,6 +8,9 @@ export const up = async ({ context: sequelize }) => {
     allowNull: true,
   });
   await sequelize.getQueryInterface().changeColumn('users', 'idir_email', {
+    type: DataTypes.STRING,
+    field: 'idir_email',
+    allowNull: false,
     unique: true,
   });
 };
@@ -19,6 +22,9 @@ export const down = async ({ context: sequelize }) => {
     allowNull: false,
   });
   await sequelize.getQueryInterface().changeColumn('users', 'idir_email', {
+    type: DataTypes.STRING,
+    field: 'idir_email',
+    allowNull: false,
     unique: false,
   });
 };
