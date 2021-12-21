@@ -79,3 +79,9 @@ export interface BceidEmailDetails {
   bceidCc?: string;
   bceidBody?: string;
 }
+
+export interface User {
+  email: string;
+  role: 'admin' | 'user' | '';
+  id: string;
+}

@@ -1,7 +1,7 @@
 import { isFunction } from 'lodash';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
-import { listTeams, createTeam, updateTeam, deleteTeam } from './controllers/team';
+import { listTeams, createTeam, updateTeam, deleteTeam, verifyTeamMember } from './controllers/team';
 import { findOrCreateUser } from './controllers/user';
 import {
   createRequest,
@@ -15,6 +15,8 @@ import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
 import { Session } from '../../shared/interfaces';
+import { parseInvitationToken } from '../src/utils/helpers';
+const APP_URL = process.env.APP_URL || '';
 
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
 
@@ -48,6 +50,26 @@ export const setRoutes = (app: any) => {
       const result = await wakeUpAll();
       res.status(200).json(result);
     } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
+    try {
+      const token = req.query.token;
+      if (!req.query.token) return res.status(401).redirect(`${APP_URL}/verify-user?message=no-token`);
+      else {
+        const [data] = await parseInvitationToken(token);
+        const { userId, teamId, exp } = data;
+        // exp returns seconds not milliseconds
+        const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
+        if (expired) return res.status(401).redirect(`${APP_URL}/verify-user?message=expired`);
+        const verified = verifyTeamMember(userId, teamId);
+        if (!verified) return res.status(422).redirect(`${APP_URL}/verify-user?message=not-found`);
+        return res.status(200).redirect(`${APP_URL}/verify-user?message=success`);
+      }
+    } catch (err) {
+      console.log(err);
       res.status(422).json({ success: false, message: err.message || err });
     }
   });

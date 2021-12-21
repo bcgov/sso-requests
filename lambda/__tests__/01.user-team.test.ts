@@ -55,6 +55,7 @@ describe('User and Teams', () => {
       path: '/app/teams',
       body: JSON.stringify({
         name: 'ssoteam',
+        members: [],
       }),
     };
 
@@ -63,6 +64,7 @@ describe('User and Teams', () => {
     const response = await handler(event, context);
     const team = JSON.parse(response.body);
     expect(team.name).toEqual('ssoteam');
+
     expect(response.statusCode).toEqual(200);
   });
 

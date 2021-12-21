@@ -121,7 +121,7 @@ export default function TeamForm({ onSubmit }: Props) {
 
   const handleCreate = async () => {
     setLoading(true);
-    const [, err] = await createTeam({ name: teamName });
+    const [, err] = await createTeam({ name: teamName, members });
     if (err) {
       console.error(err);
     }
