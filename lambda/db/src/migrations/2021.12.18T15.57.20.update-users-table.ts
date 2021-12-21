@@ -7,6 +7,9 @@ export const up = async ({ context: sequelize }) => {
     field: 'idir_userid',
     allowNull: true,
   });
+  await sequelize.getQueryInterface().changeColumn('users', 'idir_email', {
+    unique: true,
+  });
 };
 
 export const down = async ({ context: sequelize }) => {
@@ -14,5 +17,8 @@ export const down = async ({ context: sequelize }) => {
     type: DataTypes.STRING,
     field: 'idir_userid',
     allowNull: false,
+  });
+  await sequelize.getQueryInterface().changeColumn('users', 'idir_email', {
+    unique: false,
   });
 };
