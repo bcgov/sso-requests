@@ -62,7 +62,6 @@ describe('User and Teams', () => {
     const context: Context = {};
 
     const response = await handler(event, context);
-    console.log(response.body, '====================================');
     const team = JSON.parse(response.body);
     expect(team.name).toEqual('ssoteam');
 
