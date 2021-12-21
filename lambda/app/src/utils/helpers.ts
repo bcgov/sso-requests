@@ -16,6 +16,7 @@ import { verify, sign } from 'jsonwebtoken';
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const API_URL = process.env.API_URL || '';
+const VERIFY_USER_SECRET = process.env.VERIFY_USER_SECRET || '';
 
 export const omitNonFormFields = (data: Request) =>
   omit(data, [
@@ -199,10 +200,10 @@ export async function inviteTeamMembers(users: any[], teamId: number) {
 }
 
 function generateInvitationToken(user: any, teamId: number) {
-  return sign({ userId: user.id, teamId }, 'asdf', { expiresIn: '2d' });
+  return sign({ userId: user.id, teamId }, VERIFY_USER_SECRET, { expiresIn: '2d' });
 }
 
 export async function parseInvitationToken(token) {
-  const data = (verify(token, 'asdf') as any) || {};
+  const data = (verify(token, VERIFY_USER_SECRET) as any) || {};
   return [data, null];
 }
