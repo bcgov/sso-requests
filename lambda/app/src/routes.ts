@@ -66,7 +66,7 @@ export const setRoutes = (app: any) => {
         if (expired) return res.status(401).redirect(`${APP_URL}/verify-user?message=expired`);
         const verified = verifyTeamMember(userId, teamId);
         if (!verified) return res.status(422).redirect(`${APP_URL}/verify-user?message=not-found`);
-        return res.status(200).redirect(`${APP_URL}/verify-user?message=success`);
+        return res.status(200).redirect(`${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {
       console.log(err);
