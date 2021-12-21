@@ -39,13 +39,14 @@ export const createTeam = async (user: User, data: { name: string; members: User
     return user;
   });
 
-  return Promise.all([
+  await Promise.all([
     ...allUsers.map((user) =>
       models.usersTeam.create({ teamId: team.id, userId: user.id, role: user.role, pending: true }),
     ),
     models.usersTeam.create({ teamId: team.id, userId: user.id, role: 'admin', pending: false }),
     inviteTeamMembers(allUsers, team.id),
   ]);
+  return team;
 };
 
 export const updateTeam = async (user: User, id: string, data: { name: string }) => {
