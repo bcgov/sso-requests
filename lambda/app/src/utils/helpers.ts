@@ -6,7 +6,7 @@ import termsAndConditionsSchema from '../schemas/terms-and-conditions';
 import { isObject, omit, sortBy } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
-import { Session, Data } from '../../../shared/interfaces';
+import { Session, Data, User } from '../../../shared/interfaces';
 import { Op } from 'sequelize';
 import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
 import { sendEmail } from '../../../shared/utils/ches';
@@ -16,7 +16,7 @@ import { verify, sign } from 'jsonwebtoken';
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const API_URL = process.env.API_URL || '';
-const VERIFY_USER_SECRET = process.env.VERIFY_USER_SECRET || '';
+const VERIFY_USER_SECRET = process.env.VERIFY_USER_SECRET || 'asdf';
 
 export const omitNonFormFields = (data: Request) =>
   omit(data, [
@@ -207,3 +207,38 @@ export async function parseInvitationToken(token) {
   const data = (verify(token, VERIFY_USER_SECRET) as any) || {};
   return [data, null];
 }
+
+export const getWhereClauseForRequest = (session: Session, user: User, requestId: number) => {
+  const where: any = { id: requestId };
+  const { idir_userid: idirUserid } = session;
+  const userIsAdmin = isAdmin(session);
+  if (!userIsAdmin) {
+    where[Op.or] = [
+      {
+        idirUserid,
+      },
+      {
+        teamId: {
+          [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}')`),
+        },
+      },
+    ];
+  }
+  return where;
+};
+
+export const getWhereClauseForRequests = (session: Session, user: User) => {
+  const { idir_userid: idirUserid } = session;
+  return {
+    [Op.or]: [
+      {
+        idirUserid,
+      },
+      {
+        teamId: {
+          [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}')`),
+        },
+      },
+    ],
+  };
+};

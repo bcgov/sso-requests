@@ -7,3 +7,8 @@ export interface User {
   role: 'admin' | 'user' | '';
   id: string;
 }
+
+export interface LoggedInUser {
+  email?: string;
+  client_roles?: string[];
+}

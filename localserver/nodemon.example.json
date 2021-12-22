@@ -27,6 +27,7 @@
     "CHES_API_ENDPOINT": "https://ches-dev.apps.silver.devops.gov.bc.ca/api/v1/email",
     "CHES_TOKEN_ENDPOINT": "https://dev.oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token",
     "CHES_USERNAME": "",
-    "CHES_PASSWORD": ""
+    "CHES_PASSWORD": "",
+    "VERIFY_USER_SECRET": "asdf"
   }
 }
