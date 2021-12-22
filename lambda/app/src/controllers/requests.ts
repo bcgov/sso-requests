@@ -11,6 +11,8 @@ import {
   notifyIdim,
   getWhereClauseForAllRequests,
   getUsersTeams,
+  getWhereClauseForRequest,
+  getWhereClauseForRequests,
   IDIM_EMAIL_ADDRESS,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
@@ -21,13 +23,6 @@ import { EVENTS } from '../../../shared/enums';
 
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const NEW_REQUEST_DAY_LIMIT = 10;
-
-const getWhereClauseForAdmin = (session: Session, id: number) => {
-  const where: any = { id };
-  const userIsAdmin = isAdmin(session);
-  if (!userIsAdmin) where.idirUserid = session.idir_userid;
-  return where;
-};
 
 const createEvent = async (data) => {
   try {
@@ -73,7 +68,7 @@ export const createRequest = async (session: Session, data: Data) => {
     throw Error('reached the day limit');
   }
 
-  const { projectName, projectLead, preferredEmail, additionalEmails, usesTeam, team } = data;
+  const { projectName, projectLead, preferredEmail, additionalEmails, usesTeam, teamId } = data;
   const result = await models.request.create({
     idirUserid: session.idir_userid,
     projectName,
@@ -82,7 +77,7 @@ export const createRequest = async (session: Session, data: Data) => {
     additionalEmails,
     idirUserDisplayName,
     usesTeam,
-    teamId: team,
+    teamId,
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
@@ -97,7 +92,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
   const [isUpdate] = await requestHasBeenMerged(id);
 
   try {
-    const where = getWhereClauseForAdmin(session, id);
+    const where = getWhereClauseForRequest(session, user, data.id);
     const original = await models.request.findOne({ where });
     const hasAllowedStatus = ['draft', 'applied'].includes(original.dataValues.status);
 
@@ -219,9 +214,9 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
   }
 };
 
-export const getRequest = async (session: Session, data: { requestId: number }) => {
+export const getRequest = async (session: Session, user: User, data: { requestId: number }) => {
   const { requestId } = data;
-  const where = getWhereClauseForAdmin(session, requestId);
+  const where = getWhereClauseForRequest(session, user, requestId);
   const request = await models.request.findOne({ where });
   return request;
 };
@@ -258,8 +253,8 @@ export const getRequestAll = async (
   return result;
 };
 
-export const getRequests = async (session: Session, include: string = 'active') => {
-  const where: { archived?: boolean; idirUserid: string } = { idirUserid: session.idir_userid };
+export const getRequests = async (session: Session, user: User, include: string = 'active') => {
+  const where: any = getWhereClauseForRequests(session, user);
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
@@ -280,9 +275,9 @@ const requestHasBeenMerged = async (id: number) => {
   }
 };
 
-export const deleteRequest = async (session: Session, id: number) => {
+export const deleteRequest = async (session: Session, user: User, id: number) => {
   try {
-    const where = getWhereClauseForAdmin(session, id);
+    const where = getWhereClauseForRequest(session, user, id);
     const original = await models.request.findOne({ where });
 
     if (!original) {

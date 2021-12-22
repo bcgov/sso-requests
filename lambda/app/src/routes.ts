@@ -115,7 +115,7 @@ export const setRoutes = (app: any) => {
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
 
       const { include } = req.query;
-      const result = await getRequests(session as Session, include);
+      const result = await getRequests(session as Session, req.user, include);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -153,7 +153,7 @@ export const setRoutes = (app: any) => {
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
 
       const { id } = req.query;
-      const result = await deleteRequest(session as Session, Number(id));
+      const result = await deleteRequest(session as Session, req.user, Number(id));
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -164,8 +164,7 @@ export const setRoutes = (app: any) => {
     try {
       const session = await authenticate(req.headers);
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
-      const result = await getRequest(session as Session, req.body);
+      const result = await getRequest(session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });

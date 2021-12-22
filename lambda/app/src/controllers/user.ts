@@ -1,8 +1,5 @@
-import { Op, literal } from 'sequelize';
 import { models } from '../../../shared/sequelize/models/models';
 import { Session } from '../../../shared/interfaces';
-import { kebabCase } from 'lodash';
-import { fetchClient } from '../keycloak/client';
 
 export const findOrCreateUser = async (session: Session) => {
   const { idir_userid, email } = session;
@@ -22,7 +19,7 @@ export const findOrCreateUser = async (session: Session) => {
   const userFromEmail = await models.user.findOne({ where: { idirEmail: email } });
   if (userFromEmail) {
     const updated = await models.user.update(
-      { idirUserId: idir_userid },
+      { idirUserid: idir_userid },
       { where: { idirEmail: email }, returning: true, plain: true },
     );
 
