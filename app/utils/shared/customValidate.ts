@@ -21,6 +21,8 @@ export const customValidate = (formData: any, errors: any) => {
     environments = [],
     test,
     prod,
+    usesTeam,
+    teamId,
   } = formData;
 
   let isAllValid = devValidRedirectUris.every(isValidKeycloakURI);
@@ -36,6 +38,9 @@ export const customValidate = (formData: any, errors: any) => {
     if (!isAllValid) validateArrayFields(prodValidRedirectUris, errors, 'prodValidRedirectUris');
   }
 
+  if (usesTeam && !teamId) {
+    errors['createTeam'].addError('Please select or create a team');
+  }
   return errors;
 };
 

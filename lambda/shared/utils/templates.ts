@@ -2,6 +2,7 @@ import { Data } from '../interfaces';
 import { formatUrisForEmail, realmToIDP } from './helpers';
 
 const APP_URL = process.env.APP_URL || '';
+const API_URL = process.env.API_URL || '';
 const APP_ENV = process.env.APP_ENV || 'development';
 
 export type EmailMessage =
@@ -30,7 +31,7 @@ const footer = `
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>`;
 
-export const getEmailBody = (messageType: EmailMessage, Request: Data) => {
+export const getEmailBody = (messageType: EmailMessage, Request?: Data, teamId?: number) => {
   const {
     id,
     projectName,
@@ -256,3 +257,18 @@ export const getEmailSubject = (messageType: EmailMessage, id = null) => {
       return '';
   }
 };
+
+export const getInvitationEmail = (teamId: number, invitationLink: string) => `<h1>Hello Pathfinder SSO friend,</h1>
+  <p>You are invited to join team #${teamId}</p>
+  <p>
+    To accept this invitation, please follow this <a href="${API_URL}/teams/verify?token=${invitationLink}">link</a> to view the project in your dashboard</a>. This link will expire in <strong>2 business days.</strong>
+  </p>
+  <p>
+    If you think you're receiving this invitation by accident, or have any questions, please contact the SSO Pathfinder team by <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
+    Rocket.Chat
+    </a>
+    or reply to this email
+  </p>
+
+  <p>Thank you,</p>
+  <p>SSO Pathfinder Team</p>`;

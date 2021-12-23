@@ -57,10 +57,12 @@ export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, event,
   } catch (err) {
     console.error(err);
 
-    createEvent({
-      eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
-      requestId: event.requestId,
-      details: { emailCode: event.emailCode, error: err.message || err },
-    });
+    if (event) {
+      createEvent({
+        eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
+        requestId: event.requestId,
+        details: { emailCode: event.emailCode, error: err.message || err },
+      });
+    }
   }
 };

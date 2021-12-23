@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { User } from '../../../shared/interfaces';
+import { User, Team } from '../../../shared/interfaces';
 import { inviteTeamMembers } from '../utils/helpers';
 
 export const listTeams = async (user: User) => {
@@ -13,7 +13,7 @@ export const listTeams = async (user: User) => {
   return result;
 };
 
-export const createTeam = async (user: User, data: { name: string; members: User[] }) => {
+export const createTeam = async (user: User, data: Team) => {
   const { members } = data;
   const memberEmails = members.map((member) => member.email);
 
@@ -92,4 +92,16 @@ export const verifyTeamMember = async (userId: number, teamId: number) => {
     },
   );
   return result === 1;
+};
+
+export const getUsersOnTeam = async (teamId: number) => {
+  return models.user
+    .findAll({
+      where: {
+        id: {
+          [Op.in]: sequelize.literal(`(select user_id from users_teams where team_id='${teamId}')`),
+        },
+      },
+    })
+    .then((res) => res.map((user) => user.dataValues));
 };

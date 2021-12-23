@@ -71,7 +71,7 @@ export interface EmailOptions {
   priority?: 'normal' | 'low' | 'high';
   subject?: string;
   tag?: string;
-  event: EmailEvent;
+  event?: EmailEvent;
 }
 
 export interface BceidEmailDetails {
@@ -84,4 +84,9 @@ export interface User {
   email: string;
   role: 'admin' | 'user' | '';
   id: string;
+}
+
+export interface Team {
+  name: string;
+  members: User[];
 }

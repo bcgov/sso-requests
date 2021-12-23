@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createTeam } from 'services/team';
 import Loader from 'react-loader-spinner';
 import { User } from 'interfaces/team';
+import ErrorText from 'components/ErrorText';
 
 const Container = styled.div`
   display: grid;
@@ -46,7 +47,7 @@ const MembersSection = styled.section`
 
 const MemberContainer = styled(Container)`
   grid-template-columns: 2fr 2fr 1fr;
-  align-items: end;
+  align-items: start;
   margin-bottom: 20px;
 `;
 
@@ -69,6 +70,11 @@ interface Props {
   onSubmit: Function;
 }
 
+interface Errors {
+  name?: string;
+  members?: string[];
+}
+
 export default function TeamForm({ onSubmit }: Props) {
   const [members, setMembers] = useState<User[]>([
     {
@@ -79,6 +85,7 @@ export default function TeamForm({ onSubmit }: Props) {
   ]);
   const [teamName, setTeamName] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Errors | null>(null);
 
   const handleAddMember = () => {
     setMembers([
@@ -89,6 +96,24 @@ export default function TeamForm({ onSubmit }: Props) {
         id: String(uuidv4()),
       },
     ]);
+  };
+
+  const validateTeam = (team: any) => {
+    const errors: any = { members: [] };
+    let hasError = false;
+    if (!team.name) {
+      errors.name = 'Please enter a name';
+      hasError = true;
+    }
+    team.members.forEach((member: User, i: number) => {
+      if (!member.email) {
+        errors.members[i] = 'Please enter an email';
+        hasError = true;
+      }
+    });
+    if (hasError) return errors;
+    setErrors(null);
+    return null;
   };
 
   const handleNameChange = (e: any) => {
@@ -120,8 +145,11 @@ export default function TeamForm({ onSubmit }: Props) {
   };
 
   const handleCreate = async () => {
+    const team = { name: teamName, members };
+    const errors = validateTeam(team);
+    if (errors) return setErrors(errors);
     setLoading(true);
-    const [, err] = await createTeam({ name: teamName, members });
+    const [, err] = await createTeam(team);
     if (err) {
       console.error(err);
     }
@@ -133,6 +161,7 @@ export default function TeamForm({ onSubmit }: Props) {
   return (
     <div>
       <Input label="Team Name" onChange={handleNameChange} />
+      {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <strong>Team Members</strong>
       <p>
@@ -148,18 +177,23 @@ export default function TeamForm({ onSubmit }: Props) {
           <Divider />
         </Container>
         {members.map((member, i) => (
-          <MemberContainer key={member.id}>
-            <Input
-              placeholder="Enter email address"
-              onChange={(e: any) => handleEmailChange(i, e)}
-              value={member.email}
-            />
-            <Dropdown label="Role" onChange={(e: any) => handleRoleChange(i, e)}>
-              <option value="user">user</option>
-              <option value="admin">admin</option>
-            </Dropdown>
-            {i !== 0 && <Icon icon={faMinusCircle} onClick={() => handleMemberDelete(i)} title="Delete" />}
-          </MemberContainer>
+          <>
+            <MemberContainer key={member.id}>
+              <div>
+                <Input
+                  placeholder="Enter email address"
+                  onChange={(e: any) => handleEmailChange(i, e)}
+                  value={member.email}
+                />
+                {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
+              </div>
+              <Dropdown label="Role" onChange={(e: any) => handleRoleChange(i, e)}>
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </Dropdown>
+              {i !== 0 && <Icon icon={faMinusCircle} onClick={() => handleMemberDelete(i)} title="Delete" />}
+            </MemberContainer>
+          </>
         ))}
         <AddMemberButton onClick={handleAddMember}>
           <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Item" />

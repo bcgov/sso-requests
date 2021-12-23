@@ -182,6 +182,10 @@ describe('Creating Teams', () => {
 });
 
 describe('Team member permissions', () => {
+  beforeAll(async () => {
+    await models.usersTeam.update({ pending: false }, { where: { team_id: teamWithMember.id } });
+  });
+
   beforeEach(() => {
     // Log in as team member
     mockedAuthenticate.mockImplementation(() => {

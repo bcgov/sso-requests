@@ -27,6 +27,7 @@ export interface Request {
   hasUnreadNotifications?: boolean;
   usesTeam?: boolean;
   bceidApproved?: boolean;
+  teamId?: string | number;
 }
 
 export interface Option {

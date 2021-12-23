@@ -34,6 +34,11 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
+const ErrorText = styled.p`
+  color: #d94532;
+  font-weight: bold;
+`;
+
 interface Props {
   currentUser: {
     email?: string;
@@ -52,6 +57,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
+  const [showAccountableError, setShowAccountableError] = useState(false);
   const router = useRouter();
 
   const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isAdmin, formStage, teams });
@@ -67,6 +73,9 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
     }
     if (showModal) {
       window.location.hash = 'info-modal';
+      setShowAccountableError(true);
+    } else {
+      setShowAccountableError(false);
     }
   };
 
@@ -237,10 +246,14 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
                 <p> Only the person who is responsible for this project can submit the intergration request.</p>
               </>
             }
-            icon={faInfoCircle}
+            icon={false}
             onConfirm={handleModalClose}
-            confirmText="Okay"
+            confirmText="Close"
             showCancel={false}
+            title="Project Accountability"
+            buttonStyle="custom"
+            buttonAlign="center"
+            closable
           />
           <CenteredModal
             title="Create a new team"
@@ -252,6 +265,12 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
             showConfirm={false}
             closable
           />
+          {showAccountableError && (
+            <ErrorText>
+              If you are not accountable for this request, please refer this request to someone who is. Only the
+              responsible person can submit the integration request.
+            </ErrorText>
+          )}
         </>
       )}
     </>
