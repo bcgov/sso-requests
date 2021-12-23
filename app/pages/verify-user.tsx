@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { LoggedInUser } from 'interfaces/team';
 import { getAuthorizationUrl } from 'utils/openid';
 import getConfig from 'next/config';
+import { Button } from '@bcgov-sso/common-react-components';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { sso_redirect_uri } = publicRuntimeConfig;
@@ -15,15 +16,9 @@ interface Props {
 export default function VerifyUser({ currentUser }: Props) {
   const router = useRouter();
   const { message, teamId } = router.query;
+  const validated = message === 'success';
 
-  if (message === 'success') {
-    if (currentUser) router.push('/my-requests');
-    else {
-      // Display please login link
-    }
-  }
-
-  if (currentUser && message === 'success') router.push('/my-requests');
+  if (currentUser && validated) router.push('/my-requests');
 
   const handleLogin = async () => {
     sessionStorage.setItem('team_id', (teamId || '') as string);
@@ -35,7 +30,12 @@ export default function VerifyUser({ currentUser }: Props) {
     <>
       <ResponsiveContainer rules={defaultRules}>
         <h1>{message}</h1>
-        <button onClick={handleLogin}>Login</button>
+        {validated && (
+          <p>You have successfully joined team # {teamId}. Please click below to login and view your dashboard.</p>
+        )}
+        <Button onClick={handleLogin} variant="bcPrimary">
+          Login
+        </Button>
       </ResponsiveContainer>
     </>
   );

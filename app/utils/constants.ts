@@ -26,6 +26,7 @@ export const errorMessages: ErrorMessages = {
   newToSso: 'Please select an answer',
   projectName: 'Please enter a project name',
   additionalEmails: 'Please fill in any additional emails.',
+  teamId: 'Please select an existing team',
 };
 
 export const firstFormPageTitle = 'Requester Info';
