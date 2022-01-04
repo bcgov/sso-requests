@@ -20,6 +20,7 @@ resource "aws_lambda_function" "app" {
   environment {
     variables = {
       APP_URL                     = var.app_url
+      API_URL                     = var.api_url
       APP_ENV                     = var.app_env
       NODE_ENV                    = "production"
       LOCAL_DEV                   = var.local_dev
