@@ -138,6 +138,7 @@ jobs:
 
           cat >"ci.auto.tfvars" <<EOF
           app_url="${{ env.APP_URL }}"
+          api_url="${{ env.API_URL }}"
           app_env="${{ env.APP_ENV }}"
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
           gh_secret="${{ secrets.GH_SECRET }}"
