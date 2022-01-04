@@ -161,7 +161,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
           event: { emailCode, requestId: id },
           cc,
         }),
-        notifyIdim(mergedRequest, event),
+        notifyIdim(mergedRequest, event, isApprovingBceid),
       ]);
     }
 

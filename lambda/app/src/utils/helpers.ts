@@ -39,11 +39,12 @@ export const usesBceid = (realm: string | undefined) => {
   return bceidRealms.includes(realm);
 };
 
-export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
+export const notifyIdim = async (request: Data, bceidEvent: BceidEvent, isApprovingBceid: boolean = false) => {
   const { realm, id, preferredEmail, additionalEmails, environments } = request;
-  if (!usesBceid(realm) || bceidEvent === 'update') return;
-  const usesProd = environments.includes('prod');
+  const skipNotification = !usesBceid(realm) || (bceidEvent === 'update' && !isApprovingBceid);
+  if (skipNotification) return;
 
+  const usesProd = environments.includes('prod');
   // Only cc user for production requests
   let cc = usesProd ? [preferredEmail] : [];
   if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
@@ -51,6 +52,7 @@ export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
   let emailCode: EmailMessage;
   if (bceidEvent === 'submission' && !usesProd) emailCode = 'bceid-idim-dev-submitted';
   else if (bceidEvent === 'deletion') emailCode = 'bceid-idim-deleted';
+  else if (bceidEvent === 'update') emailCode = 'bceid-request-approved';
   else return;
   // const to = APP_ENV === 'production' ? [IDIM_EMAIL_ADDRESS, 'IDIM.Consulting@gov.bc.ca'] : [IDIM_EMAIL_ADDRESS];
   const to = [IDIM_EMAIL_ADDRESS];
