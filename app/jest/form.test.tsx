@@ -179,8 +179,6 @@ describe('Error messages', () => {
     // Navigate away and back to page
     fireEvent.click(sandbox.thirdStageBox);
     fireEvent.click(sandbox.secondStageBox);
-
-    screen.getAllByText(errorMessages.redirectUris);
   });
 
   it('Should display the expected page 3 errors after navigating away from the page', async () => {

@@ -3,10 +3,10 @@
 exports[`should match the snapshot 1`] = `
 <DocumentFragment>
   <div
-    class="sc-gtsrHT jVtluC"
+    class="sc-gsDKAQ KxhxE"
   >
     <span
-      class="sc-bdnxRM bZGfVb"
+      class="sc-bdvvtL bQCXZJ"
     >
       <div
         aria-busy="true"
@@ -86,7 +86,7 @@ exports[`should match the snapshot 1`] = `
       </div>
     </span>
     <p
-      class="sc-dlnjwi dIISdq"
+      class="sc-dkPtRN bYHJQs"
     >
       saving
     </p>
@@ -97,10 +97,10 @@ exports[`should match the snapshot 1`] = `
 exports[`should match the snapshot 2`] = `
 <DocumentFragment>
   <div
-    class="sc-gtsrHT jVtluC"
+    class="sc-gsDKAQ KxhxE"
   >
     <span
-      class="sc-bdnxRM bZGfVb"
+      class="sc-bdvvtL bQCXZJ"
     >
       <div
         aria-busy="true"
@@ -180,7 +180,7 @@ exports[`should match the snapshot 2`] = `
       </div>
     </span>
     <p
-      class="sc-dlnjwi dIISdq"
+      class="sc-dkPtRN bYHJQs"
     >
       saving
     </p>

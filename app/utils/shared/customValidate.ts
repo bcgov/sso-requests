@@ -4,14 +4,15 @@ export const isValidKeycloakURI = (uri: string) => {
     new URL(uri);
     if (uri !== uri.trim()) return false;
     if (uri.match(/\s/)) return false;
-    if (!uri.match(/^https?:\/\//)) return false;
+    if (!uri.match(/^[a-zA-Z]+?:\/\//)) return false;
     return true;
   } catch (err) {
     return false;
   }
 };
 
-const validationMessage = 'Please enter a valid URI, including an http:// or https:// prefix';
+export const validationMessage =
+  'Please enter a valid URI, including a prefix like http://, https://, or for custom URL schemes something like ionicApp:// ';
 
 export const customValidate = (formData: any, errors: any) => {
   const {
