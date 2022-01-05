@@ -18,11 +18,6 @@ describe('Notify BCeID', () => {
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it('Should send an email to IDIM if updating and approving', () => {
-    notifyIdim(formDataBceid, 'update');
-    expect(sendEmail).toHaveBeenCalled();
-  });
-
   it('Should send an email to IDIM if deleting', () => {
     notifyIdim(formDataBceid, 'deletion');
     expect(sendEmail).toHaveBeenCalled();
