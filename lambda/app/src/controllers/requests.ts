@@ -143,8 +143,10 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
 
       let emailCode: EmailMessage;
       let cc = [];
-      if (isUpdate && isApprovingBceid) emailCode = 'bceid-request-approved';
-      else if (isUpdate) emailCode = 'uri-change-request-submitted';
+      if (isUpdate && isApprovingBceid) {
+        emailCode = 'bceid-request-approved';
+        cc.push(IDIM_EMAIL_ADDRESS);
+      } else if (isUpdate) emailCode = 'uri-change-request-submitted';
       else if (hasBceidProd) {
         emailCode = 'bceid-user-prod-submitted';
         cc.push(IDIM_EMAIL_ADDRESS);
@@ -161,7 +163,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
           event: { emailCode, requestId: id },
           cc,
         }),
-        notifyIdim(mergedRequest, event, isApprovingBceid),
+        notifyIdim(mergedRequest, event),
       ]);
     }
 

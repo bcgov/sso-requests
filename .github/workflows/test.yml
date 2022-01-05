@@ -1,5 +1,5 @@
 name: Run Tests and Lints
-on: push
+on: [push, pull_request]
 jobs:
   test_pre-commit:
     runs-on: ubuntu-18.04
