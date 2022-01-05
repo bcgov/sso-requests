@@ -61,12 +61,18 @@ export const setRoutes = (app: any) => {
       else {
         const [data] = await parseInvitationToken(token);
         const { userId, teamId, exp } = data;
+        const headers = {
+          Location: `${APP_URL}/verify-user?message=success&teamId=${teamId}`,
+        };
+
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
         if (expired) return res.status(401).redirect(`${APP_URL}/verify-user?message=expired`);
         const verified = verifyTeamMember(userId, teamId);
         if (!verified) return res.status(422).redirect(`${APP_URL}/verify-user?message=not-found`);
-        return res.status(200).redirect(`${APP_URL}/verify-user?message=success&teamId=${teamId}`);
+        if (isFunction(res.headers)) res.headers(headers);
+        else res.set(headers);
+        return res.status(301).send();
       }
     } catch (err) {
       console.log(err);

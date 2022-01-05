@@ -28,7 +28,7 @@ jobs:
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
           echo "APP_URL=https://bcgov.github.io/sso-terraform-dev" >> $GITHUB_ENV
-          echo "API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/" >> $GITHUB_ENV
+          echo "API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app" >> $GITHUB_ENV
           echo "APP_ENV=development" >> $GITHUB_ENV
           echo "TFC_WORKSPACE=xgr00q-dev-sso-requests" >> $GITHUB_ENV
           echo "SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
@@ -51,7 +51,7 @@ jobs:
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
           echo "APP_URL=https://bcgov.github.io/sso-requests" >> $GITHUB_ENV
-          echo "API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app/" >> $GITHUB_ENV
+          echo "API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app" >> $GITHUB_ENV
           echo "APP_ENV=production" >> $GITHUB_ENV
           echo "TFC_WORKSPACE=xgr00q-prod-sso-requests" >> $GITHUB_ENV
           echo "SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
