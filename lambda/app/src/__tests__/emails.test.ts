@@ -19,7 +19,7 @@ describe('Notify BCeID', () => {
   });
 
   it('Should send an email to IDIM if updating and approving', () => {
-    notifyIdim(formDataBceid, 'update', true);
+    notifyIdim(formDataBceid, 'update');
     expect(sendEmail).toHaveBeenCalled();
   });
 
