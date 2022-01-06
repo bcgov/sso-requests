@@ -22,6 +22,7 @@ lambda: copy-schema
 lambda: copy-helpers
 lambda:
 	@rm -rf build
+	@yarn install
 	@yarn tsc
 	@mkdir -p bundle
 	@cp package.json bundle

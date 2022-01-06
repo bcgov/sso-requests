@@ -5,6 +5,7 @@ TARGET := ../../../terraform/lambda-actions.zip
 .PHONY: lambda
 lambda:
 	@rm -rf build
+	@yarn install
 	@yarn tsc
 	@mkdir -p bundle
 	@cp package.json bundle

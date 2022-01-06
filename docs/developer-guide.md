@@ -1,85 +1,89 @@
-# Developers Guide
+# Developer Guidelines
 
-## Audience
+## Setting up the local development environment
 
-This guide is intended for developers looking to integrate with keycloak using OpenID Connect (OIDC).
+- [`asdf`](https://asdf-vm.com/#/core-manage-asdf) is a tool to manage the required packages with specific versions.
+- All the packages are defined in `tool-versions`:
+  - nodejs 12.18.3
+  - yarn 1.22.4
+  - python 3.8.6
+  - postgres 11.4
+  - terraform 0.14.4
 
-## Technical Overview
+### Installation
 
-The following links are a good overview for integrating with keycloak:
+1. Install `asdf` according to the `asdf` installation guide.
+   - https://asdf-vm.com/#/core-manage-asdf?id=install
+1. Install `asdf` packages defined in `.tool-versions`.
+   ```sh
+      cat .tool-versions | cut -f 1 -d ' ' | xargs -n 1 asdf plugin-add || true
+      asdf plugin-update --all
+      asdf install
+      asdf reshim
+   ```
 
-- [General Overview](https://www.keycloak.org/docs/latest/securing_apps/index.html)
-- [OIDC Protocol](https://www.keycloak.org/docs/latest/securing_apps/index.html#openid-connect-2)
-- [Supported Platforms](https://www.keycloak.org/docs/latest/securing_apps/index.html#supported-platforms)
-- [Core concepts and Terms](https://www.keycloak.org/docs/latest/server_admin/#core-concepts-and-terms)
+### Setup
 
-### Glossary
+1. Copy environment variables
+   ```sh
+     make setup_env
+   ```
 
-We will make use of the following terms in this document:
+_**Note:** The defaults will get you up and running, but actual credentials are required for full functionality._
 
-- **Identity Provider**: An identity provider (IDP) is a service that can authenticate a user. IDIR and BCeID are identity providers.
+2. Install dependencies
 
-- **Realms**: A keycloak realm manages a set of users, credentials, roles, groups and IDPs.
+   ```sh
+    make server_install
+    make app_install
+   ```
 
-- **Standard Realms**: Configured realms that support different IDPs. Currently integration with IDIR is supported in the `onestopauth` standard realm.
+   _**Note:** Installing all dependencies the first time will take a while._
 
-- **Clients**: Clients are entities that can request Keycloak to authenticate a user. Most often, clients are applications and services that want to use Keycloak to secure themselves and provide a single sign-on solution. This application will generate a client for you in one of the standard realms.
+3. Start the local `postgres` server (`pg_ctl start` if you installed it with `asdf`)
+4. Generate initial database schemas, fields, functions and related objects.
+   ```sh
+    make local_db
+   ```
 
-- **Client Adapters**: Client adapters are plugins that you install into your application environment to be able to communicate and be secured by Keycloak. Keycloak has a number of adapters for different platforms that you can download. There are also third-party adapters you can get for environments that we don’t cover.
+_**Note:** If the script has logged `migration done` but won't close, you can exit with `ctrl + c`._
 
-- **Installation JSON**: The JSON file you can use to connect with a **client adapter**. This is the same JSON that is available from
-  the installation tab of a client in the keycloak application, under `Keycloak OIDC JSON`.
+5. Start the server
 
-## Requesting an Integration
+```sh
+make server
+```
 
-This service can be used to request an integration into one of the standard realms.
+6. In another terminal, start the app
+   ```sh
+    make app
+   ```
 
-When you request an integration, new clients will be created for you under **Dev**, **Test**, and **Prod** environments, and
-you will be able to download the **Installation JSON** for each one. To complete the request, you will need to know the following information:
+## Code style and Linting
 
-- **Are you the product owner or project admin/team lead**: At this time we can only process access requests submittted by product owners, project admin or team leads. If you are not acting in one of these roles, please get in touch with these individuals in your organization to make the request for you.
+We use pre-commit to run local linting when committing changes. To install this as a hook, run
 
-- **What Project the Integration is for**: An identifier for your project, this will be used to generate your client id so should be meaningful.
+```sh
+ pre-commit install
+```
 
-- **Preferred Email Address**: This email address will be used to send updates on your requests status.
+## Testing
 
-**SSO Client Type**: This can be set to either public or confidential. Confidential clients are recommended for additional
-security, but require a secret that would have to be kept on the server-side. If your application is entirely client-side, you will need
-a public client. For more information on the client-side adapter, see [here](https://www.keycloak.org/docs/latest/securing_apps/index.html#_javascript_adapter).
+To run tests for the front-end application, run
 
-**Redirect URIs (dev, test, prod)**: Valid URIs that a browser can redirect to after login/logout. These fields are required,
-but can be changed at a later time if you are unsure what to use. Using a valid URI such as http://localhost:1000 as a temporary
-value will work.
+```sh
+  make app_test
+```
 
-## Using your Integration
+For the backend application, run:
 
-### Connecting to Keycloak using an adapter
+```sh
+  make server_test
+```
 
-Once your request has been completed, you will be able to download your installation file for each environment. It can be used with keycloak adapters
-to quickly setup your application. Keycloak has adapters for a number of languages, including java, javascript and C#.
-For a list of adapters and instructions on how to connect see [here](https://www.keycloak.org/docs/latest/securing_apps/index.html#openid-connect).
+## Committing
 
-### Connecting without an adapter
+Our repository uses commit linting. If pre-commit is installed it will tell you if your commit message is valid.
+In general, commits should have the format `<type>:name` followed by a descriptive lower-case message, e.g:
 
-_See [here](https://www.keycloak.org/docs/latest/securing_apps/index.html#other-openid-connect-libraries) for keycloak documentation_
-
-If you are not using an adapter, you will require some additional information to set up your OpenID connection. Required information
-can be found behind the publicly accessible `.well-known` endpoint for your environment. These are:
-
-- **Dev**: https://dev.oidc.gov.bc.ca/auth/realms/< realm_name >/.well-known/openid-configuration
-- **Test**: https://test.oidc.gov.bc.ca/auth/realms/< realm_name >/.well-known/openid-configuration
-- **Prod**: https://oidc.gov.bc.ca/auth/realms/< realm_name >/.well-known/openid-configuration
-
-Where < realm_name > needs to be replaced with the standard realm you are using, one of:
-
-- onestopauth (For IDIR only)
-- onestopauth-basic (For IDIR and BCeID basic)
-- onestopauth-business (For IDIR and BCeID business)
-- onestopauth-both (For IDIR and BCeID basic and business)
-
-Depending on the library you are using, it may only require this url, or additional information from the JSON response. The JSON response
-lists the realm-level endpoints you will require, such as the `authorization-endpoint` and `token-endpoint`. Please see
-[here](https://www.keycloak.org/docs/latest/securing_apps/index.html#endpoints) for a full list of endpoints and their descriptions.
-
-Application specific information, such as the `client-id`, can be found from the installation JSON that
-you can download from our app for each environment. Note that in the JSON we provide, the `resource` key is your `client-id`.
+`git commit -m "feat: button" -m "add a button to the landing page"`.
