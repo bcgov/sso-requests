@@ -5,3 +5,4 @@ lambda-all:
 	@cd app; make lambda
 	@cd db; make lambda
 	@cd actions; make lambda
+	yarn --cwd ./shared install

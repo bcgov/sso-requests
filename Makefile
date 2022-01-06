@@ -15,6 +15,7 @@ app:
 .PHONY: server_install
 server_install:
 	yarn install
+	@cd lambda; make lambda-all
 	yarn --cwd ./localserver install
 
 .PHONY: server
