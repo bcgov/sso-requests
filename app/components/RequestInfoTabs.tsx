@@ -28,7 +28,7 @@ export type TabKey = 'installation-json' | 'configuration-url' | 'history';
 
 function RequestInfoTabs() {
   const { state, dispatch } = useContext(RequestsContext);
-  const { requests, activeRequestId, panelTab, downloadError } = state;
+  const { requests, activeRequestId, panelTab } = state;
   const selectedRequest = requests?.find((request) => request.id === activeRequestId);
   if (!selectedRequest) return null;
 

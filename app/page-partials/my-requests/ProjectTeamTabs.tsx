@@ -1,10 +1,9 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import { RequestTabs } from 'components/RequestTabs';
 import Tab from 'react-bootstrap/Tab';
 import { Request } from 'interfaces/Request';
 import { padStart } from 'lodash';
 import Table from 'html-components/Table';
-import ActionButtons from 'components/ActionButtons';
 import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
@@ -12,10 +11,9 @@ import { $setEditingRequest, $setActiveRequestId, $setTableTab, $setActiveTeamId
 import { Button } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faExclamationCircle, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Team } from 'interfaces/team';
-import { ActionButton } from 'components/ActionButtons';
-import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+import ActionButtons, { ActionButton } from 'components/ActionButtons';
 
 const CenteredHeader = styled.th`
   text-align: center;
