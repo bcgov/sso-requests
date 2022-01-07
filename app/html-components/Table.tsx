@@ -11,8 +11,8 @@ const Table = styled.table`
   border-spacing: 0 ${TABLE_ROW_SPACING}px;
 
   & thead {
-    font-size: 12px;
-    color: #777777;
+    font-size: 16px;
+    color: black;
 
     & th {
       min-width: 140px;
@@ -26,18 +26,24 @@ const Table = styled.table`
       height: ${TABLE_ROW_HEIGHT}px;
       background-color: #f8f8f8;
       &:hover {
-        background-color: #fff7d5;
+        background-color: #f0f8fe;
         cursor: pointer;
       }
       &.active {
-        background-color: #ffed9f;
+        background-color: #f0f8fe;
+        font-weight: bold;
+        border: 2px solid #9fadc0 !important;
       }
     }
   }
 
-  th:first-child,
   td:first-child {
     padding-left: 1em;
+    text-align: left;
+  }
+
+  th:last-child {
+    text-align: right;
   }
 
   & th,
