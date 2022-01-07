@@ -1,5 +1,6 @@
 export interface Team {
   name: string;
+  id: number;
 }
 
 export interface User {

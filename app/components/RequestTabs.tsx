@@ -4,7 +4,7 @@ import { SUBTITLE_FONT_SIZE, SECONDARY_FONT_COLOR } from 'styles/theme';
 
 export const RequestTabs = styled(Tabs)<{ onSelect?: any; activeKey?: string }>`
   .nav-link {
-    color: ${SECONDARY_FONT_COLOR} !important;
+    color: black !important;
     height: 30px !important;
     font-size: ${SUBTITLE_FONT_SIZE} !important;
     font-weight: 600 !important;

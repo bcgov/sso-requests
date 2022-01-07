@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import Form from 'form-components/GovForm';
 import getRedirectUrisSchema from 'schemas/redirect-uris';
 import { RequestsContext } from 'pages/my-requests';
-import { RequestReducerState } from 'reducers/requestReducer';
+import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { getRedirectUrlPropertyNameByEnv, parseError, getRequestedEnvironments } from 'utils/helpers';
 import { customValidate } from 'utils/shared/customValidate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
@@ -55,7 +55,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const [updatingRequest, setUpdatingRequest] = useState<boolean>(false);
   const [activeEnv, setActiveEnv] = useState<EnvironmentOption | null>(null);
   const { state, dispatch } = useContext(RequestsContext);
-  const { editingRequest } = state as RequestReducerState;
+  const { editingRequest } = state as DashboardReducerState;
   const requestedEnvironments = getRequestedEnvironments(selectedRequest);
   const schema = getRedirectUrisSchema(requestedEnvironments);
 
