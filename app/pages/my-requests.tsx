@@ -7,7 +7,7 @@ import { getTeams } from 'services/team';
 import { Request } from 'interfaces/Request';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
-import RequestInfoTabs, { TabKey } from 'components/RequestInfoTabs';
+import RequestInfoTabs from 'components/RequestInfoTabs';
 import TeamInfoTabs from 'page-partials/my-requests/TeamInfoTabs';
 import {
   $setRequests,

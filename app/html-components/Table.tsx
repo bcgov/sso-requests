@@ -1,4 +1,3 @@
-import React from 'react';
 import styled from 'styled-components';
 import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
 

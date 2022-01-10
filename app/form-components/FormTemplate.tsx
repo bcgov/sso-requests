@@ -12,7 +12,6 @@ import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { validateForm, getFormStageInfo } from 'utils/helpers';
 import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { RequestTabs } from 'components/RequestTabs';
 import Tab from 'react-bootstrap/Tab';
 import { Request } from 'interfaces/Request';
@@ -7,13 +7,23 @@ import Table from 'html-components/Table';
 import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
-import { $setEditingRequest, $setActiveRequestId, $setTableTab, $setActiveTeamId } from 'dispatchers/requestDispatcher';
+import {
+  $setEditingRequest,
+  $setActiveRequestId,
+  $setTableTab,
+  $setActiveTeamId,
+  $setTeams,
+} from 'dispatchers/requestDispatcher';
 import { Button } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faExclamationCircle, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Team } from 'interfaces/team';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
+import { getTeams } from 'services/team';
+import TeamForm from 'form-components/TeamForm';
+import CenteredModal from 'components/CenteredModal';
+import { createTeamModalId } from 'utils/constants';
 
 const CenteredHeader = styled.th`
   text-align: center;
@@ -59,6 +69,30 @@ const NoEntitiesMessage = ({ message }: { message: string }) => (
   </NoProjects>
 );
 
+const NewEntityButton = ({
+  tableTab,
+  handleNewIntegrationClick,
+  handleNewTeamClick,
+}: {
+  tableTab?: string;
+  handleNewTeamClick: Function;
+  handleNewIntegrationClick: Function;
+}) => {
+  if (tableTab === 'activeTeams')
+    return (
+      <Button size="large" onClick={handleNewTeamClick} variant="callout">
+        + Request Team
+      </Button>
+    );
+  if (tableTab === 'activeProjects')
+    return (
+      <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
+        + Request Integration
+      </Button>
+    );
+  return null;
+};
+
 export default function ProjectTeamTabs() {
   const router = useRouter();
   const { state, dispatch } = useContext(RequestsContext);
@@ -69,7 +103,6 @@ export default function ProjectTeamTabs() {
   const selectedTeam = teams?.find((team) => team.id === activeTeamId);
 
   const handleProjectSelection = async (request: Request) => {
-    console.log(request.id, activeRequestId);
     if (activeRequestId === request.id) return;
     dispatch($setActiveRequestId(request.id));
     dispatch($setEditingRequest(false));
@@ -77,9 +110,20 @@ export default function ProjectTeamTabs() {
 
   const handleTeamSelection = async (team: Team) => dispatch($setActiveTeamId(team?.id));
 
-  const handleNewClick = async () => {
+  const handleNewIntegrationClick = async () => {
     router.push('/request');
   };
+
+  const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
+  const loadTeams = async () => {
+    const [teams, err] = await getTeams();
+    if (err) console.error(err);
+    else dispatch($setTeams(teams || []));
+  };
+
+  useEffect(() => {
+    loadTeams();
+  }, []);
 
   const getTableContents = (tableTab?: string) => {
     const viewArchived = tableTab === 'archivedProjects';
@@ -156,6 +200,7 @@ export default function ProjectTeamTabs() {
   };
 
   const content = getTableContents(tableTab);
+
   return (
     <>
       <RequestTabs onSelect={(key: string) => dispatch($setTableTab(key))}>
@@ -164,12 +209,24 @@ export default function ProjectTeamTabs() {
         <Tab eventKey="activeTeams" title="My Teams" />
       </RequestTabs>
       <br />
-      <Button size="large" onClick={handleNewClick} variant="callout">
-        + Request Integration
-      </Button>
+      <NewEntityButton
+        tableTab={tableTab}
+        handleNewIntegrationClick={handleNewIntegrationClick}
+        handleNewTeamClick={handleNewTeamClick}
+      />
       <br />
       <br />
       {content}
+      <CenteredModal
+        title="Create a new team"
+        icon={null}
+        onConfirm={() => console.log('confirm')}
+        id={createTeamModalId}
+        content={<TeamForm onSubmit={loadTeams} />}
+        showCancel={false}
+        showConfirm={false}
+        closable
+      />
     </>
   );
 }
