@@ -118,3 +118,26 @@ export const getUsersOnTeam = async (teamId: number) => {
       return res.map((user) => user.dataValues);
     });
 };
+
+export const userCanEditTeam = async (user: User, teamId: number) => {
+  const { id } = user;
+  return models.usersTeam.findOne({
+    where: {
+      userId: id,
+      teamId,
+      role: 'admin',
+      pending: false,
+    },
+  });
+};
+
+export const userCanReadTeam = async (user: User, teamId: number) => {
+  const { id } = user;
+  return models.usersTeam.findOne({
+    where: {
+      userId: id,
+      teamId,
+      pending: false,
+    },
+  });
+};
