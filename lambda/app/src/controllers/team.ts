@@ -15,38 +15,39 @@ export const listTeams = async (user: User) => {
 
 export const createTeam = async (user: User, data: Team) => {
   const { members } = data;
-  const memberEmails = members.map((member) => member.email);
-
-  const [team, existingUsers] = await Promise.all([
-    models.team.create({
-      name: data.name,
-    }),
-    models.user.findAll({
-      where: {
-        idir_email: { [Op.in]: memberEmails },
-      },
-    }),
+  const team = await models.team.create({ name: data.name });
+  await Promise.all([
+    addUsersToTeam(team.id, members),
+    models.usersTeam.create({ teamId: team.id, userId: user.id, role: 'admin', pending: false }),
   ]);
+  return team;
+};
 
+export const addUsersToTeam = async (teamId: number, members: User[]) => {
+  const usersEmailsAlreadyOnTeam = await getUsersOnTeam(teamId).then((result) =>
+    result.map((member) => member.idirEmail),
+  );
+  const membersToAdd = members.filter((member) => !usersEmailsAlreadyOnTeam.includes(member.idirEmail));
+  const memberEmails = membersToAdd.map((member) => member.idirEmail);
+  const existingUsers = await models.user.findAll({
+    where: {
+      idir_email: { [Op.in]: memberEmails },
+    },
+  });
   const existingUserEmails = existingUsers.map((user) => user.idirEmail);
-  const missingUsers = members.filter((member) => !existingUserEmails.includes(member.email));
-
-  const newUsers = await Promise.all(missingUsers.map((user) => models.user.create({ idirEmail: user.email })));
-  const allUsers = members.map((member) => {
-    const { email, role } = member;
-    let user = [...existingUsers, ...newUsers].find((user) => user.dataValues.idirEmail === email);
+  const missingUsers = membersToAdd.filter((member) => !existingUserEmails.includes(member.idirEmail));
+  const newUsers = await Promise.all(missingUsers.map((user) => models.user.create({ idirEmail: user.idirEmail })));
+  const allUsers = membersToAdd.map((member) => {
+    const { idirEmail, role } = member;
+    let user = [...existingUsers, ...newUsers].find((user) => user.dataValues.idirEmail === idirEmail);
     user.role = role;
     return user;
   });
 
-  await Promise.all([
-    ...allUsers.map((user) =>
-      models.usersTeam.create({ teamId: team.id, userId: user.id, role: user.role, pending: true }),
-    ),
-    models.usersTeam.create({ teamId: team.id, userId: user.id, role: 'admin', pending: false }),
-    inviteTeamMembers(allUsers, team.id),
+  return Promise.all([
+    ...allUsers.map((user) => models.usersTeam.create({ teamId, userId: user.id, role: user.role, pending: true })),
+    inviteTeamMembers(allUsers, teamId),
   ]);
-  return team;
 };
 
 export const updateTeam = async (user: User, id: string, data: { name: string }) => {
@@ -97,11 +98,23 @@ export const verifyTeamMember = async (userId: number, teamId: number) => {
 export const getUsersOnTeam = async (teamId: number) => {
   return models.user
     .findAll({
-      where: {
-        id: {
-          [Op.in]: sequelize.literal(`(select user_id from users_teams where team_id='${teamId}')`),
+      include: [
+        {
+          model: models.usersTeam,
+          where: { teamId },
+          required: true,
+          attributes: [],
         },
-      },
+      ],
+      attributes: [
+        'id',
+        'idirUserid',
+        'idirEmail',
+        [sequelize.col('usersTeams.role'), 'role'],
+        [sequelize.col('usersTeams.pending'), 'pending'],
+      ],
     })
-    .then((res) => res.map((user) => user.dataValues));
+    .then((res) => {
+      return res.map((user) => user.dataValues);
+    });
 };

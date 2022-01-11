@@ -20,7 +20,7 @@ import { getTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
 import { Team } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
-import TeamForm from 'form-components/TeamForm';
+import TeamForm from 'form-components/team-form/CreateTeamForm';
 
 const Description = styled.p`
   margin: 0;
@@ -257,7 +257,6 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           <CenteredModal
             title="Create a new team"
             icon={null}
-            onConfirm={() => console.log('confirm')}
             id={createTeamModalId}
             content={<TeamForm onSubmit={loadTeams} />}
             showCancel={false}

@@ -13,6 +13,7 @@ import {
   $setTableTab,
   $setActiveTeamId,
   $setTeams,
+  $setDownloadError,
 } from 'dispatchers/requestDispatcher';
 import { Button } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
@@ -21,7 +22,7 @@ import { faInfoCircle, faExclamationCircle, faTrash, faEdit } from '@fortawesome
 import { Team } from 'interfaces/team';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import { getTeams } from 'services/team';
-import TeamForm from 'form-components/TeamForm';
+import TeamForm from 'form-components/team-form/CreateTeamForm';
 import CenteredModal from 'components/CenteredModal';
 import { createTeamModalId } from 'utils/constants';
 
@@ -55,6 +56,13 @@ const ActionButtonContainer = styled.div`
   justify-content: flex-end;
 `;
 
+const UnpaddedButton = styled(Button)`
+  &&& {
+    margin: 0;
+    padding: 0;
+  }
+`;
+
 const SystemUnavailableMessage = (
   <NotAvailable>
     <FontAwesomeIcon icon={faExclamationCircle} title="Unavailable" />
@@ -80,9 +88,9 @@ const NewEntityButton = ({
 }) => {
   if (tableTab === 'activeTeams')
     return (
-      <Button size="large" onClick={handleNewTeamClick} variant="callout">
-        + Request Team
-      </Button>
+      <UnpaddedButton size="large" onClick={handleNewTeamClick} variant="plainText">
+        + Create a new Team
+      </UnpaddedButton>
     );
   if (tableTab === 'activeProjects')
     return (
@@ -117,7 +125,7 @@ export default function ProjectTeamTabs() {
   const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
   const loadTeams = async () => {
     const [teams, err] = await getTeams();
-    if (err) console.error(err);
+    if (err) dispatch($setDownloadError(true));
     else dispatch($setTeams(teams || []));
   };
 

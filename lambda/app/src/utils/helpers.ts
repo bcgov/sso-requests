@@ -185,16 +185,18 @@ export async function getUsersTeams(user) {
 }
 
 export async function inviteTeamMembers(users: User[], teamId: number) {
-  return users.map((user) => {
-    const invitationLink = generateInvitationToken(user, teamId);
-    const { idirEmail } = user;
-    const args = {
-      body: getInvitationEmail(teamId, invitationLink),
-      subject: `Invitation for pathfinder SSO team #${teamId}`,
-      to: [idirEmail],
-    };
-    return sendEmail(args);
-  });
+  return Promise.all(
+    users.map((user) => {
+      const invitationLink = generateInvitationToken(user, teamId);
+      const { idirEmail } = user;
+      const args = {
+        body: getInvitationEmail(teamId, invitationLink),
+        subject: `Invitation for pathfinder SSO team #${teamId}`,
+        to: [idirEmail],
+      };
+      return sendEmail(args);
+    }),
+  );
 }
 
 function generateInvitationToken(user: User, teamId: number) {

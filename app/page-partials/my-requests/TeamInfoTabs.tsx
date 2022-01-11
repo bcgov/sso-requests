@@ -3,9 +3,12 @@ import Tab from 'react-bootstrap/Tab';
 import { RequestTabs } from 'components/RequestTabs';
 import Table from 'html-components/Table';
 import { RequestsContext } from 'pages/my-requests';
-import { useContext } from 'react';
 import { Button } from '@bcgov-sso/common-react-components';
-import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+import CenteredModal from 'components/CenteredModal';
+import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
+import { User } from 'interfaces/team';
+import { useState, useEffect, useContext } from 'react';
+import { addTeamMembers, getTeamMembers } from 'services/team';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -19,17 +22,37 @@ const UnpaddedButton = styled(Button)`
   }
 `;
 
-export type TabKey = 'members';
+const addMemberModalId = 'add-member-modal';
 
-const members = [
-  { email: 'jon@button.is', role: 'admin', status: 'active' },
-  { email: 'jon@button.is', role: 'admin', status: 'active' },
-];
+export type TabKey = 'members';
 
 function TeamInfoTabs() {
   const { state } = useContext(RequestsContext);
   const { teams, activeTeamId } = state;
   const selectedTeam = teams?.find((team) => team.id === activeTeamId);
+  const [members, setMembers] = useState<User[]>([]);
+  const [tempMembers, setTempMembers] = useState<User[]>(members);
+
+  const openModal = () => (window.location.hash = addMemberModalId);
+
+  useEffect(() => {
+    const getMembers = async (id?: number) => {
+      const result = await getTeamMembers(id);
+      const [members, err] = result;
+      if (err) {
+        console.error(err);
+      } else {
+        setMembers(members);
+        setTempMembers(members);
+      }
+    };
+    getMembers(activeTeamId);
+  }, [activeTeamId]);
+
+  const handleConfirm = () => {
+    setMembers(tempMembers);
+    addTeamMembers({ members: tempMembers, id: activeTeamId });
+  };
 
   if (!selectedTeam) return null;
 
@@ -39,7 +62,9 @@ function TeamInfoTabs() {
         <Tab eventKey="members" title="Members">
           <TabWrapper>
             <br />
-            <UnpaddedButton variant="plainText">+ Add new team members</UnpaddedButton>
+            <UnpaddedButton variant="plainText" onClick={openModal}>
+              + Add new team members
+            </UnpaddedButton>
             <Table>
               <thead>
                 <tr>
@@ -50,11 +75,11 @@ function TeamInfoTabs() {
                 </tr>
               </thead>
               <tbody>
-                {members.map((member: any) => (
+                {members.map((member) => (
                   <tr>
-                    <td>{member.email}</td>
+                    <td>{member.idirEmail}</td>
                     <td>{member.role}</td>
-                    <td>{member.status}</td>
+                    <td>{member.pending ? 'pending' : 'active'}</td>
                     <td>hi</td>
                   </tr>
                 ))}
@@ -63,6 +88,15 @@ function TeamInfoTabs() {
           </TabWrapper>
         </Tab>
       </RequestTabs>
+      <CenteredModal
+        title="Add a New Team Member"
+        icon={null}
+        id={addMemberModalId}
+        content={<TeamMembersForm members={tempMembers} setMembers={setTempMembers} allowDelete={false} />}
+        onConfirm={handleConfirm}
+        buttonStyle="custom"
+        closable
+      />
     </>
   );
 }

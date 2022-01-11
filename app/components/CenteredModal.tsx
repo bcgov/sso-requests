@@ -41,7 +41,7 @@ const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
 `;
 
 interface Props {
-  onConfirm: Function;
+  onConfirm?: Function;
   content: any;
   icon?: any;
   id: string;
@@ -75,7 +75,7 @@ const CenteredModal = ({
 
   const handleConfirm = async () => {
     setLoading(true);
-    await onConfirm();
+    if (onConfirm) await onConfirm();
     setLoading(false);
     window.location.hash = '#';
   };

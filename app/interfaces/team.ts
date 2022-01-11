@@ -4,9 +4,11 @@ export interface Team {
 }
 
 export interface User {
-  email: string;
+  idirEmail: string;
   role: 'admin' | 'user' | '';
   id: string;
+  status?: string;
+  pending?: boolean;
 }
 
 export interface LoggedInUser {

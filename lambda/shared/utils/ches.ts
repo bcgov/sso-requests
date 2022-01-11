@@ -64,5 +64,6 @@ export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, event,
         details: { emailCode: event.emailCode, error: err.message || err },
       });
     }
+    throw err;
   }
 };

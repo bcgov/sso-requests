@@ -1,7 +1,14 @@
 import { isFunction } from 'lodash';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
-import { listTeams, createTeam, updateTeam, deleteTeam, verifyTeamMember } from './controllers/team';
+import {
+  listTeams,
+  createTeam,
+  addUsersToTeam,
+  deleteTeam,
+  verifyTeamMember,
+  getUsersOnTeam,
+} from './controllers/team';
 import { findOrCreateUser } from './controllers/user';
 import {
   createRequest,
@@ -249,6 +256,27 @@ export const setRoutes = (app: any) => {
     try {
       const { id } = req.params;
       const result = await updateTeam(req.user, id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      console.log(err);
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.post(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await addUsersToTeam(id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.get(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await getUsersOnTeam(id);
       res.status(200).json(result);
     } catch (err) {
       console.log(err);
