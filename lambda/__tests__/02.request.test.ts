@@ -106,7 +106,7 @@ describe('Creating Teams', () => {
         name: 'test-2',
         members: [
           {
-            email: newMemberEmail,
+            idirEmail: newMemberEmail,
             role: 'user',
           },
         ],
@@ -141,7 +141,7 @@ describe('Creating Teams', () => {
         name: 'test-2',
         members: [
           {
-            email: memberEmail,
+            idirEmail: memberEmail,
             role: 'user',
           },
         ],
@@ -241,7 +241,6 @@ describe('Team member permissions', () => {
 
     const context: Context = {};
     const response = await handler(event, context);
-    console.log(response);
     expect(response.statusCode).toEqual(200);
     const updatedRequest = await models.request.findOne({ where: { id: teamRequest.id } });
     expect(updatedRequest.archived).toBe(true);
