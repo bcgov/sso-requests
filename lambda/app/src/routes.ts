@@ -8,6 +8,7 @@ import {
   deleteTeam,
   verifyTeamMember,
   getUsersOnTeam,
+  updateTeam,
 } from './controllers/team';
 import { findOrCreateUser } from './controllers/user';
 import {
