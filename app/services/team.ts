@@ -27,7 +27,7 @@ export const addTeamMembers = async (data: { members: User[]; id?: number }) => 
     const result = await instance.post(`teams/${id}/members`, members).then((res) => res.data);
     return [result, null];
   } catch (err) {
-    handleAxiosError(err);
+    return handleAxiosError(err);
   }
 };
 

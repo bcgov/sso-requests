@@ -56,7 +56,7 @@ const Icon = styled(FontAwesomeIcon)`
 `;
 
 interface Props {
-  errors?: Errors;
+  errors?: Errors | null;
   members: User[];
   setMembers: Function;
   allowDelete?: boolean;
@@ -96,6 +96,12 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
 
   return (
     <div>
+      <p>
+        Enter your team member’s email address and they will be sent an invitation to join the project. Once they accept
+        the invitation, they will have access to your project. Their invitation will expire in{' '}
+        <strong>2 business days</strong>.
+      </p>
+      <br />
       <MembersSection>
         <Container>
           <strong>Member</strong>

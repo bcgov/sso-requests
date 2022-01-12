@@ -273,7 +273,7 @@ export const setRoutes = (app: any) => {
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await addUsersToTeam(id, req.body);
-      res.status(200).json(result);
+      res.status(200).send();
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
     }

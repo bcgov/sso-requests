@@ -52,6 +52,7 @@ interface Props {
   confirmText?: string;
   buttonStyle?: 'bcgov' | 'custom';
   buttonAlign?: 'center' | 'default';
+  skipCloseOnConfirm?: boolean;
 }
 
 const CenteredModal = ({
@@ -66,6 +67,7 @@ const CenteredModal = ({
   showConfirm = true,
   buttonStyle = 'bcgov',
   buttonAlign = 'default',
+  skipCloseOnConfirm = false,
 }: Props) => {
   const [loading, setLoading] = useState(false);
   const handleCancel = () => (window.location.hash = '#');
@@ -77,7 +79,7 @@ const CenteredModal = ({
     setLoading(true);
     if (onConfirm) await onConfirm();
     setLoading(false);
-    window.location.hash = '#';
+    if (!skipCloseOnConfirm) window.location.hash = '#';
   };
 
   return (
