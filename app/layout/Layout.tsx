@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import { startCase } from 'lodash';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
-import BottomAlertProvider from './BottomAlert';
+import TopAlertProvider from './TopAlert';
 
 const headerPlusFooterHeight = '152px';
 
@@ -229,7 +229,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
         </SubMenu>
       </Navigation>
       <MainContent>
-        <BottomAlertProvider>{children}</BottomAlertProvider>
+        <TopAlertProvider>{children}</TopAlertProvider>
       </MainContent>
       <Footer>
         <FooterMenu>

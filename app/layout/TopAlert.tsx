@@ -1,10 +1,10 @@
 import React, { createContext, useReducer, useMemo } from 'react';
 import { isBoolean } from 'lodash';
 import FadingAlert from 'html-components/FadingAlert';
-import BottomAlertWrapper from 'components/BottomAlertWrapper';
+import TopAlertWrapper from 'components/TopAlertWrapper';
 
 const defaultContextValue = { state: '', dispatch: () => null } as any;
-const BottomAlertContext = createContext(defaultContextValue);
+const TopAlertContext = createContext(defaultContextValue);
 
 interface ReducerState {
   show?: boolean;
@@ -23,7 +23,7 @@ const reducer = (state: ReducerState, update: any) => {
   return { ...state, ...update };
 };
 
-export default function BottomAlertProvider({ children }: Props) {
+export default function TopAlertProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, {});
 
   const contextValue = useMemo(() => {
@@ -31,25 +31,25 @@ export default function BottomAlertProvider({ children }: Props) {
   }, [state, dispatch]);
 
   return (
-    <BottomAlertContext.Provider value={contextValue}>
-      {children}
+    <TopAlertContext.Provider value={contextValue}>
       {state.show && (
-        <BottomAlertWrapper key={state.key}>
+        <TopAlertWrapper key={state.key}>
           <FadingAlert
             variant={state.variant || 'success'}
             fadeOut={state.fadeOut || 10000}
             closable={isBoolean(state.closable) ? state.closable : true}
             content={state.content || ``}
           />
-        </BottomAlertWrapper>
+        </TopAlertWrapper>
       )}
-    </BottomAlertContext.Provider>
+      {children}
+    </TopAlertContext.Provider>
   );
 }
 
-export const withBottomAlert = (Component: any) => (props: any) =>
+export const withTopAlert = (Component: any) => (props: any) =>
   (
-    <BottomAlertContext.Consumer>
+    <TopAlertContext.Consumer>
       {({ state, dispatch }) => (
         <Component
           {...props}
@@ -61,10 +61,10 @@ export const withBottomAlert = (Component: any) => (props: any) =>
           {props.children}
         </Component>
       )}
-    </BottomAlertContext.Consumer>
+    </TopAlertContext.Consumer>
   );
 
-export interface BottomAlert {
+export interface TopAlert {
   show: Function;
   hide: Function;
 }

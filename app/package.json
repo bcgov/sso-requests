@@ -12,7 +12,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@bcgov-sso/common-react-components": "1.17.0",
+    "@bcgov-sso/common-react-components": "1.18.0",
     "@bcgov/bc-sans": "^1.0.1",
     "@button-inc/bcgov-theme": "^1.0.1",
     "@fortawesome/fontawesome-svg-core": "^1.2.35",

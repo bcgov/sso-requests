@@ -13,6 +13,7 @@ const StyledModal = styled(Modal)`
   & .pg-modal-main {
     max-width: 600px;
     margin: auto;
+    box-shadow: 5px 5px 10px black;
   }
 `;
 
@@ -33,7 +34,7 @@ const PaddedIcon = styled(FontAwesomeIcon)`
 const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
   margin-top: 20px;
   display: flex;
-  justify-content: ${(props) => (props.buttonAlign === 'center' ? 'center;' : 'flex-end;')} & button {
+  justify-content: ${(props) => (props.buttonAlign === 'center' ? 'center;' : 'space-between;')} & button {
     min-width: 150px;
     margin-right: 20px;
     display: inline-block;
@@ -50,7 +51,7 @@ interface Props {
   showCancel?: boolean;
   showConfirm?: boolean;
   confirmText?: string;
-  buttonStyle?: 'bcgov' | 'custom';
+  buttonStyle?: 'bcgov' | 'custom' | 'danger';
   buttonAlign?: 'center' | 'default';
   skipCloseOnConfirm?: boolean;
 }
@@ -72,8 +73,21 @@ const CenteredModal = ({
   const [loading, setLoading] = useState(false);
   const handleCancel = () => (window.location.hash = '#');
   const showButtons = showCancel || showConfirm;
-  const cancelButtonVariant = buttonStyle === 'bcgov' ? 'bcSecondary' : 'secondary';
-  const confirmButtonVariant = buttonStyle === 'bcgov' ? 'bcPrimary' : 'primary';
+  let cancelButtonVariant = 'bcSecondary';
+  let confirmButtonVariant = 'bcPrimary';
+
+  switch (buttonStyle) {
+    case 'bcgov':
+      break;
+    case 'custom':
+      cancelButtonVariant = 'secondary';
+      confirmButtonVariant = 'primary';
+      break;
+    case 'danger':
+      cancelButtonVariant = 'secondary';
+      confirmButtonVariant = 'danger';
+      break;
+  }
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -88,7 +102,7 @@ const CenteredModal = ({
         {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
         {title}
         {closable && (
-          <Modal.Close onClick={handleCancel}>
+          <Modal.Close onClick={handleCancel} title="exit">
             <FontAwesomeIcon icon={faTimes} size="lg"></FontAwesomeIcon>
           </Modal.Close>
         )}

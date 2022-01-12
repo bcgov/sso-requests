@@ -15,7 +15,7 @@ import styled from 'styled-components';
 import { validateForm, getFormStageInfo } from 'utils/helpers';
 import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';
-import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
+import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
 import { Team } from 'interfaces/team';
@@ -43,7 +43,7 @@ interface Props {
     email?: string;
   };
   request?: any;
-  alert: BottomAlert;
+  alert: TopAlert;
   isAdmin: boolean;
 }
 
@@ -275,4 +275,4 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   );
 }
 
-export default withBottomAlert(FormTemplate);
+export default withTopAlert(FormTemplate);

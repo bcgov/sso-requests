@@ -70,6 +70,7 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
         idirEmail: '',
         role: 'user',
         id: String(uuidv4()),
+        pending: true,
       },
     ]);
   };

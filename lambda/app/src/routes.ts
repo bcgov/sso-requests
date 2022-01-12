@@ -11,6 +11,7 @@ import {
   updateTeam,
   userCanEditTeam,
   userCanReadTeam,
+  removeUserFromTeam,
 } from './controllers/team';
 import { findOrCreateUser } from './controllers/user';
 import {
@@ -78,11 +79,11 @@ export const setRoutes = (app: any) => {
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
         if (expired) return res.status(401).redirect(`${APP_URL}/verify-user?message=expired`);
-        const verified = verifyTeamMember(userId, teamId);
+        const verified = await verifyTeamMember(userId, teamId);
         if (!verified) return res.status(422).redirect(`${APP_URL}/verify-user?message=not-found`);
         if (isFunction(res.headers)) res.headers(headers);
         else res.set(headers);
-        return res.status(301).send();
+        return res.status(200).send();
       }
     } catch (err) {
       console.log(err);
@@ -273,7 +274,20 @@ export const setRoutes = (app: any) => {
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await addUsersToTeam(id, req.body);
-      res.status(200).send();
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.delete(`${BASE_PATH}/teams/:id/members/:memberId`, async (req, res) => {
+    try {
+      const { id, memberId } = req.params;
+      const authorized = await userCanEditTeam(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
+      const result = await removeUserFromTeam(memberId, id);
+      res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
     }

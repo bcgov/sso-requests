@@ -8,9 +8,11 @@ import CenteredModal from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
 import { User } from 'interfaces/team';
 import { useState, useEffect, useContext } from 'react';
-import { addTeamMembers, getTeamMembers } from 'services/team';
-import { withBottomAlert } from 'layout/BottomAlert';
+import { addTeamMembers, getTeamMembers, deleteTeamMember } from 'services/team';
+import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -25,6 +27,7 @@ const UnpaddedButton = styled(Button)`
 `;
 
 const addMemberModalId = 'add-member-modal';
+const deleteMemberModalId = 'delete-member-modal';
 
 export type TabKey = 'members';
 
@@ -46,11 +49,30 @@ const validateMembers = (members: User[], setErrors: Function) => {
   }
 };
 
-const emptyMember: User = { idirEmail: '', role: 'user' };
+const emptyMember: User = { idirEmail: '', role: 'user', pending: true };
 
 interface Props {
   alert: any;
 }
+
+const RedIcon = styled(FontAwesomeIcon)`
+  color: #ff0303;
+`;
+
+const ModalContentContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 6fr;
+`;
+
+const ModalContents = (
+  <ModalContentContainer>
+    <RedIcon icon={faExclamationCircle} size="3x" />
+    <div>
+      <strong>Are you sure that you want to delete this team member?</strong>
+      <p>Once they are deleted, they will no longer have access to the team's integrations.</p>
+    </div>
+  </ModalContentContainer>
+);
 
 function TeamInfoTabs({ alert }: Props) {
   const { state } = useContext(RequestsContext);
@@ -60,25 +82,33 @@ function TeamInfoTabs({ alert }: Props) {
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
   const [loading, setLoading] = useState(false);
+  const [deleteMemberId, setDeleteMemberId] = useState<string>();
 
   const openModal = () => (window.location.hash = addMemberModalId);
 
+  const getMembers = async (id?: number) => {
+    setLoading(true);
+    const result = await getTeamMembers(id);
+    const [members, err] = result;
+    if (err) {
+      console.error(err);
+    } else {
+      setMembers(members);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const getMembers = async (id?: number) => {
-      setLoading(true);
-      const result = await getTeamMembers(id);
-      const [members, err] = result;
-      if (err) {
-        console.error(err);
-      } else {
-        setMembers(members);
-      }
-      setLoading(false);
-    };
     getMembers(activeTeamId);
   }, [activeTeamId]);
 
-  const handleConfirm = async () => {
+  const handleDeleteClick = (memberId?: string) => {
+    if (!memberId) return;
+    setDeleteMemberId(memberId);
+    window.location.hash = deleteMemberModalId;
+  };
+
+  const onConfirmAdd = async () => {
     const errors = validateMembers(tempMembers, setErrors);
     if (errors) return;
     const [result, err] = await addTeamMembers({ members: tempMembers, id: activeTeamId });
@@ -92,7 +122,7 @@ function TeamInfoTabs({ alert }: Props) {
         and reach out to the SSO team if the problem persists`,
       });
     } else {
-      setMembers([...members, ...tempMembers]);
+      await getMembers(activeTeamId);
       setTempMembers([emptyMember]);
       window.location.hash = '';
       alert.show({
@@ -100,6 +130,28 @@ function TeamInfoTabs({ alert }: Props) {
         fadeOut: 10000,
         closable: true,
         content: `Invited new members to your team!`,
+      });
+    }
+  };
+
+  const onConfirmDelete = async () => {
+    if (!deleteMemberId || !activeTeamId) return;
+    const [, err] = await deleteTeamMember(Number(deleteMemberId), activeTeamId);
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        fadeOut: 10000,
+        closable: true,
+        content: `Failed to delete team member.`,
+      });
+    } else {
+      setMembers(members.filter((member) => member.id !== deleteMemberId));
+      const memberEmail = members.find((member) => member.id === deleteMemberId)?.idirEmail;
+      alert.show({
+        variant: 'success',
+        fadeOut: 10000,
+        closable: true,
+        content: `${memberEmail} has successfully been deleted.`,
       });
     }
   };
@@ -127,11 +179,13 @@ function TeamInfoTabs({ alert }: Props) {
                 </thead>
                 <tbody>
                   {members.map((member) => (
-                    <tr>
+                    <tr key={member.id}>
                       <td>{member.idirEmail}</td>
                       <td>{member.role}</td>
                       <td>{member.pending ? 'pending' : 'active'}</td>
-                      <td>hi</td>
+                      <td>
+                        <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteClick(member.id)} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -147,13 +201,23 @@ function TeamInfoTabs({ alert }: Props) {
         content={
           <TeamMembersForm members={tempMembers} setMembers={setTempMembers} allowDelete={false} errors={errors} />
         }
-        onConfirm={handleConfirm}
+        onConfirm={onConfirmAdd}
         skipCloseOnConfirm={true}
         buttonStyle="custom"
+        closable
+      />
+      <CenteredModal
+        title="Delete Team Member"
+        icon={null}
+        onConfirm={onConfirmDelete}
+        id={deleteMemberModalId}
+        content={ModalContents}
+        buttonStyle="danger"
+        confirmText="Delete"
         closable
       />
     </>
   );
 }
 
-export default withBottomAlert(TeamInfoTabs);
+export default withTopAlert(TeamInfoTabs);

@@ -11,7 +11,7 @@ import { Request } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
 import { getRequestedEnvironments } from 'utils/helpers';
 import { DEFAULT_FONT_SIZE } from 'styles/theme';
-import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
+import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import InfoMessage from 'components/InfoMessage';
 import Link from '@button-inc/bcgov-theme/Link';
 
@@ -37,7 +37,7 @@ const TopMargin = styled.div`
 
 interface Props {
   selectedRequest: Request;
-  alert: BottomAlert;
+  alert: TopAlert;
 }
 
 const InstallationPanel = ({ selectedRequest, alert }: Props) => {
@@ -120,4 +120,4 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
   );
 };
 
-export default withBottomAlert(InstallationPanel);
+export default withTopAlert(InstallationPanel);

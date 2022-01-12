@@ -44,10 +44,11 @@ export const addUsersToTeam = async (teamId: number, members: User[]) => {
     return user;
   });
 
+  // Return IDs of new users
   return Promise.all([
     ...allUsers.map((user) => models.usersTeam.create({ teamId, userId: user.id, role: user.role, pending: true })),
     inviteTeamMembers(allUsers, teamId),
-  ]);
+  ]).then((result) => result.slice(0, -1).map((userTeam) => userTeam.userId));
 };
 
 export const updateTeam = async (user: User, id: string, data: { name: string }) => {
@@ -88,11 +89,9 @@ export const verifyTeamMember = async (userId: number, teamId: number) => {
         userId,
         teamId,
       },
-      returning: true,
-      plain: true,
     },
   );
-  return result === 1;
+  return result[0] === 1;
 };
 
 export const getUsersOnTeam = async (teamId: number) => {
@@ -138,6 +137,15 @@ export const userCanReadTeam = async (user: User, teamId: number) => {
       userId: id,
       teamId,
       pending: false,
+    },
+  });
+};
+
+export const removeUserFromTeam = async (userId: number, teamId: number) => {
+  return models.usersTeam.destroy({
+    where: {
+      userId,
+      teamId,
     },
   });
 };

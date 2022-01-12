@@ -39,3 +39,12 @@ export const getTeamMembers = async (id?: number) => {
     return handleAxiosError(err);
   }
 };
+
+export const deleteTeamMember = async (userId: number, teamId: number) => {
+  try {
+    const result = await instance.delete(`teams/${teamId}/members/${userId}`).then((res) => res.data);
+    return [result, null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};

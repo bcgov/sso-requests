@@ -13,7 +13,7 @@ import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import { EnvironmentOption } from 'interfaces/form';
 import { $setEditingRequest, $updateRequest } from 'dispatchers/requestDispatcher';
-import { withBottomAlert } from 'layout/BottomAlert';
+import { withTopAlert } from 'layout/TopAlert';
 import Button from '@button-inc/bcgov-theme/Button';
 import CenteredModal from 'components/CenteredModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -199,4 +199,4 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   );
 };
 
-export default withBottomAlert(ConfigurationUrlPanel);
+export default withTopAlert(ConfigurationUrlPanel);
