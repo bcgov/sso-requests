@@ -27,15 +27,15 @@ export interface Errors {
   members?: string[];
 }
 
+const emptyUser: User = {
+  idirEmail: '',
+  role: 'user',
+  id: String(uuidv4()),
+};
+
 export default function TeamForm({ onSubmit }: Props) {
-  const [members, setMembers] = useState<User[]>([
-    {
-      idirEmail: '',
-      role: 'user',
-      id: String(uuidv4()),
-    },
-  ]);
-  const [teamName, setTeamName] = useState(null);
+  const [members, setMembers] = useState<User[]>([emptyUser]);
+  const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>();
 
@@ -75,22 +75,18 @@ export default function TeamForm({ onSubmit }: Props) {
       console.error(err);
     }
     await onSubmit();
+    setMembers([emptyUser]);
+    setTeamName('');
     setLoading(false);
     window.location.hash = '#';
   };
 
   return (
     <div>
-      <Input label="Team Name" onChange={handleNameChange} />
+      <Input label="Team Name" onChange={handleNameChange} value={teamName} />
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <strong>Team Members</strong>
-      <p>
-        Enter your team member’s email address and they will be sent an invitation to join the project. Once they accept
-        the invitation, they will have access to your project. Their invitation will expire in{' '}
-        <strong>2 business days</strong>.
-      </p>
-      <br />
       <TeamMembersForm errors={errors} members={members} setMembers={setMembers} />
       <ButtonsContainer>
         <Button variant="secondary" onClick={handleCancel}>

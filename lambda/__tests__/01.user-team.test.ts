@@ -2,13 +2,14 @@ import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { handler } from '../app/src/main';
 import baseEvent from './base-event.json';
 import { authenticate } from '../app/src/authenticate';
-import { models } from '../shared/sequelize/models/models';
-import { validRequest, bceidRequest } from './validRequest.js';
-import { sendEmail } from '../shared/utils/ches';
-import { dispatchRequestWorkflow } from '../app/src/github';
 import { TEST_IDIR_USERID, TEST_IDIR_USERID_2, TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2, AuthMock } from './00.db.test';
 
 jest.mock('../app/src/authenticate');
+jest.mock('../shared/utils/ches', () => {
+  return {
+    sendEmail: jest.fn(),
+  };
+});
 
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 const createMockAuth = (idir_userid, email) => {
@@ -106,6 +107,58 @@ describe('User and Teams', () => {
     const team = JSON.parse(response.body);
     expect(team.name).toEqual('ssoteam2');
     expect(response.statusCode).toEqual(200);
+  });
+
+  it('Should allow an admin to add users to a team', async () => {
+    createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'POST',
+      path: '/app/teams/1/members',
+      body: JSON.stringify([
+        {
+          idirEmail: 'test@email.com',
+          role: 'admin',
+        },
+      ]),
+    };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(200);
+  });
+
+  it('Should block non-admins from adding users to a team', async () => {
+    createMockAuth(TEST_IDIR_USERID_2, TEST_IDIR_EMAIL_2);
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'POST',
+      path: '/app/teams/1/members',
+      body: JSON.stringify([
+        {
+          idirEmail: 'test2@email.com',
+          role: 'admin',
+        },
+      ]),
+    };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(401);
+  });
+
+  it('Should allow team members to read team membership', async () => {
+    createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: '/app/teams/1/members' };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(200);
+  });
+
+  it('Should block non-team members from reading team membership', async () => {
+    createMockAuth(TEST_IDIR_USERID_2, TEST_IDIR_EMAIL_2);
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: '/app/teams/1/members' };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(401);
   });
 
   it('should delete the first team successfully', async () => {

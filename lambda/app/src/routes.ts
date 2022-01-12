@@ -9,6 +9,8 @@ import {
   verifyTeamMember,
   getUsersOnTeam,
   updateTeam,
+  userCanEditTeam,
+  userCanReadTeam,
 } from './controllers/team';
 import { findOrCreateUser } from './controllers/user';
 import {
@@ -267,8 +269,11 @@ export const setRoutes = (app: any) => {
   app.post(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
+      const authorized = await userCanEditTeam(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await addUsersToTeam(id, req.body);
-      res.status(200).json(result);
+      res.status(200).send();
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
     }
@@ -277,6 +282,9 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
+      const authorized = await userCanReadTeam(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
       const result = await getUsersOnTeam(id);
       res.status(200).json(result);
     } catch (err) {
