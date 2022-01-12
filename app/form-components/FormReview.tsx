@@ -5,7 +5,7 @@ import { padStart } from 'lodash';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
 import { validateForm, parseError, usesBceid } from 'utils/helpers';
-import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
+import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import CenteredModal from 'components/CenteredModal';
 import Link from '@button-inc/bcgov-theme/Link';
 import RequestPreview from 'components/RequestPreview';
@@ -23,7 +23,7 @@ interface Props {
   setErrors: Function;
   errors: any;
   visited: any;
-  alert: BottomAlert;
+  alert: TopAlert;
   saving?: boolean;
   saveMessage?: SaveMessage;
   isAdmin?: boolean;
@@ -153,4 +153,4 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }:
   );
 }
 
-export default withBottomAlert(FormReview);
+export default withTopAlert(FormReview);

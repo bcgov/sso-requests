@@ -57,6 +57,7 @@ export const getRequestedEnvironments = (request: Request) => {
 
 export const parseError = (err: any) => {
   try {
+    if (typeof err === 'object') return err;
     return JSON.parse(err);
   } catch (e) {
     return { message: err };
