@@ -97,7 +97,6 @@ const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Functi
       break;
     case 'notAllowed':
       content = 'Before you delete the last team admin, you must assign a new admin.';
-      title = '';
       props.confirmText = 'Okay';
       props.buttonStyle = 'custom';
   }
