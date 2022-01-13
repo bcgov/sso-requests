@@ -26,7 +26,7 @@ import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
 import { Session } from '../../shared/interfaces';
-import { parseInvitationToken } from '../src/utils/helpers';
+import { parseInvitationToken, inviteTeamMembers } from '../src/utils/helpers';
 const APP_URL = process.env.APP_URL || '';
 
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -83,7 +83,7 @@ export const setRoutes = (app: any) => {
         if (!verified) return res.status(422).redirect(`${APP_URL}/verify-user?message=not-found`);
         if (isFunction(res.headers)) res.headers(headers);
         else res.set(headers);
-        return res.status(200).send();
+        return res.status(301).send();
       }
     } catch (err) {
       console.log(err);
@@ -301,6 +301,20 @@ export const setRoutes = (app: any) => {
         return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
       const result = await getUsersOnTeam(id);
       res.status(200).json(result);
+    } catch (err) {
+      console.log(err);
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.post(`${BASE_PATH}/teams/:id/invite`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const authorized = await userCanEditTeam(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
+      await inviteTeamMembers([req.body], id);
+      res.status(200).send();
     } catch (err) {
       console.log(err);
       res.status(422).json({ success: false, message: err.message || err });
