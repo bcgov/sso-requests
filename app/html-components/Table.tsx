@@ -1,7 +1,7 @@
 import styled from 'styled-components';
-import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
+import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING, TABLE_ROW_HEIGHT_MINI } from 'styles/theme';
 
-const Table = styled.table`
+const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   width: 100%;
   -webkit-box-shadow: none;
   box-shadow: none;
@@ -14,25 +14,28 @@ const Table = styled.table`
     color: black;
 
     & th {
-      min-width: 140px;
+      min-width: ${(props) => (props.variant === 'mini' ? '30px' : '140px')};
     }
   }
 
   & tbody {
-    font-size: 16px;
-
+    font-size: ${(props) => (props.variant === 'mini' ? '14px' : '16px')};
     tr {
-      height: ${TABLE_ROW_HEIGHT}px;
+      height: ${(props) => (props.variant === 'mini' ? `${TABLE_ROW_HEIGHT_MINI}px` : `${TABLE_ROW_HEIGHT}px`)};
       background-color: #f8f8f8;
-      &:hover {
-        background-color: #f0f8fe;
-        cursor: pointer;
-      }
-      &.active {
-        background-color: #f0f8fe;
-        font-weight: bold;
-        border: 2px solid #9fadc0 !important;
-      }
+      ${(props) =>
+        !props.readOnly &&
+        `
+        &:hover {
+          background-color: #f0f8fe;
+          cursor: pointer;
+        }
+        &.active {
+          background-color: #f0f8fe;
+          font-weight: bold;
+          border: 2px solid #9fadc0 !important;
+        }
+      `}
     }
   }
 
@@ -42,7 +45,7 @@ const Table = styled.table`
   }
 
   th:last-child {
-    text-align: right;
+    text-align: ${(props) => (props.variant === 'mini' ? `left` : `right`)};
   }
 
   & th,

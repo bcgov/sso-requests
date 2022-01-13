@@ -41,6 +41,8 @@ const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
   }
 `;
 
+export type ButtonStyle = 'bcgov' | 'custom' | 'danger';
+
 interface Props {
   onConfirm?: Function;
   content: any;
@@ -51,7 +53,7 @@ interface Props {
   showCancel?: boolean;
   showConfirm?: boolean;
   confirmText?: string;
-  buttonStyle?: 'bcgov' | 'custom' | 'danger';
+  buttonStyle?: ButtonStyle;
   buttonAlign?: 'center' | 'default';
   skipCloseOnConfirm?: boolean;
 }
