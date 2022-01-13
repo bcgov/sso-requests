@@ -10,7 +10,7 @@ import { errorMessages, environments } from './constants';
 import { customValidate } from './shared/customValidate';
 import { bceidStages, adminBceidStages } from 'utils/constants';
 import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
-import { Team } from 'interfaces/team';
+import { Team, User } from 'interfaces/team';
 
 const URIS_SCHEMA_INDEX = 1;
 
@@ -287,4 +287,13 @@ export function getFormStageInfo({ isAdmin, formStage, teams }: Args) {
     schema,
     schemas,
   };
+}
+
+export function canDeleteMember(members: User[], memberId?: string) {
+  if (members.length === 1) return false;
+  const memberToDelete = members.find((member) => member.id === memberId);
+  const memberIsLastAdmin =
+    members.filter((member) => member.role === 'admin').length === 1 && memberToDelete?.role === 'admin';
+  if (memberIsLastAdmin) return false;
+  return true;
 }

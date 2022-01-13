@@ -4,7 +4,7 @@ import { RequestTabs } from 'components/RequestTabs';
 import Table from 'html-components/Table';
 import { RequestsContext } from 'pages/my-requests';
 import { Button } from '@bcgov-sso/common-react-components';
-import CenteredModal from 'components/CenteredModal';
+import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
 import { User } from 'interfaces/team';
 import { useState, useEffect, useContext } from 'react';
@@ -12,7 +12,16 @@ import { addTeamMembers, getTeamMembers, deleteTeamMember } from 'services/team'
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import {
+  faTrash,
+  faExclamationCircle,
+  faEdit,
+  faClock,
+  faTimesCircle,
+  faCheckCircle,
+} from '@fortawesome/free-solid-svg-icons';
+import { canDeleteMember } from 'utils/helpers';
+import type { Status } from 'interfaces/types';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -50,7 +59,6 @@ const validateMembers = (members: User[], setErrors: Function) => {
 };
 
 const emptyMember: User = { idirEmail: '', role: 'user', pending: true };
-
 interface Props {
   alert: any;
 }
@@ -64,25 +72,85 @@ const ModalContentContainer = styled.div`
   grid-template-columns: 1fr 6fr;
 `;
 
-const ModalContents = (
+const ModalContents = ({ title, content }: { title?: string; content?: string }) => (
   <ModalContentContainer>
     <RedIcon icon={faExclamationCircle} size="3x" />
     <div>
-      <strong>Are you sure that you want to delete this team member?</strong>
-      <p>Once they are deleted, they will no longer have access to the team's integrations.</p>
+      {title && <strong>{title}</strong>}
+      {content && <p>{content}</p>}
     </div>
   </ModalContentContainer>
 );
 
+const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Function; type: string }) => {
+  let props: { confirmText: string; buttonStyle: ButtonStyle; onConfirm?: Function } = {
+    confirmText: 'Delete',
+    buttonStyle: 'danger',
+  };
+  let content = '';
+  let title = '';
+  switch (type) {
+    case 'allow':
+      content = "Once they are deleted, they will no longer have access to the team's integrations.";
+      title = 'Are you sure that you want to delete this team member?';
+      props.onConfirm = onConfirmDelete;
+      break;
+    case 'notAllowed':
+      content = 'Before you delete the last team admin, you must assign a new admin.';
+      props.confirmText = 'Okay';
+      props.buttonStyle = 'custom';
+  }
+  return (
+    <CenteredModal
+      title="Delete Team Member"
+      icon={null}
+      id={deleteMemberModalId}
+      content={<ModalContents content={content} title={title} />}
+      closable
+      {...props}
+    />
+  );
+};
+
+const ButtonIcon = styled(FontAwesomeIcon)`
+  &:hover {
+    cursor: pointer;
+  }
+`;
+
+const RequestStatusIcon = ({ status }: { status?: Status }) => {
+  if (!status) return null;
+  let icon = faExclamationCircle;
+  let color = 'black';
+  const errorStatuses: Status[] = ['prFailed', 'applyFailed', 'planFailed'];
+  if (status === 'draft') {
+    icon = faEdit;
+    color = '#1a5a96';
+  } else if (status === 'submitted') {
+    icon = faClock;
+    color = '#fcba19';
+  } else if (errorStatuses.includes(status)) {
+    icon = faTimesCircle;
+    color = '#ff0303';
+  } else if (status === 'applied') {
+    color = '#2e8540';
+    icon = faCheckCircle;
+  }
+  return <FontAwesomeIcon icon={icon} title={status} style={{ color }} />;
+};
+
 function TeamInfoTabs({ alert }: Props) {
   const { state } = useContext(RequestsContext);
-  const { teams, activeTeamId } = state;
-  const selectedTeam = teams?.find((team) => team.id === activeTeamId);
+  const { teams, activeTeamId, requests } = state;
   const [members, setMembers] = useState<User[]>([]);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<string>();
+  const [modalType, setModalType] = useState('allow');
+
+  const selectedTeam = teams?.find((team) => team.id === activeTeamId);
+  const teamRequests = requests?.filter((request) => Number(request.teamId) === activeTeamId);
 
   const openModal = () => (window.location.hash = addMemberModalId);
 
@@ -104,6 +172,12 @@ function TeamInfoTabs({ alert }: Props) {
 
   const handleDeleteClick = (memberId?: string) => {
     if (!memberId) return;
+    const canDelete = canDeleteMember(members, memberId);
+    if (!canDelete) {
+      setModalType('notAllowed');
+    } else {
+      setModalType('allow');
+    }
     setDeleteMemberId(memberId);
     window.location.hash = deleteMemberModalId;
   };
@@ -160,7 +234,7 @@ function TeamInfoTabs({ alert }: Props) {
 
   return (
     <>
-      <RequestTabs activeKey={'members'}>
+      <RequestTabs defaultActiveKey={'members'}>
         <Tab eventKey="members" title="Members">
           <TabWrapper>
             <br />
@@ -168,7 +242,7 @@ function TeamInfoTabs({ alert }: Props) {
               + Add new team members
             </UnpaddedButton>
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table>
+              <Table variant="mini" readOnly>
                 <thead>
                   <tr>
                     <th>Email</th>
@@ -184,13 +258,37 @@ function TeamInfoTabs({ alert }: Props) {
                       <td>{member.role}</td>
                       <td>{member.pending ? 'pending' : 'active'}</td>
                       <td>
-                        <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteClick(member.id)} />
+                        <ButtonIcon icon={faTrash} onClick={() => handleDeleteClick(member.id)} size="lg" />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </Table>
             </ReactPlaceholder>
+          </TabWrapper>
+        </Tab>
+        <Tab eventKey="integrations" title="Integrations">
+          <TabWrapper>
+            <Table variant="mini" readOnly>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Request ID</th>
+                  <th>Project Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teamRequests?.map((request) => (
+                  <tr key={request.id}>
+                    <td>
+                      <RequestStatusIcon status={request?.status} />
+                    </td>
+                    <td>{request.id}</td>
+                    <td>{request.projectName}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
           </TabWrapper>
         </Tab>
       </RequestTabs>
@@ -206,16 +304,7 @@ function TeamInfoTabs({ alert }: Props) {
         buttonStyle="custom"
         closable
       />
-      <CenteredModal
-        title="Delete Team Member"
-        icon={null}
-        onConfirm={onConfirmDelete}
-        id={deleteMemberModalId}
-        content={ModalContents}
-        buttonStyle="danger"
-        confirmText="Delete"
-        closable
-      />
+      <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
     </>
   );
 }
