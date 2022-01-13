@@ -24,6 +24,12 @@ const createMockAuth = (idir_userid, email) => {
   });
 };
 
+let testUserId;
+
+const adminEmail = 'admin@email.com';
+const pendingAdminEmail = 'pendingAdmin@email.com';
+const userEmail = 'user@email.com';
+
 describe('User and Teams', () => {
   it('should find current user successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
@@ -117,13 +123,23 @@ describe('User and Teams', () => {
       path: '/app/teams/1/members',
       body: JSON.stringify([
         {
-          idirEmail: 'test@email.com',
+          idirEmail: userEmail,
+          role: 'user',
+        },
+        {
+          idirEmail: adminEmail,
+          role: 'admin',
+        },
+        {
+          idirEmail: pendingAdminEmail,
           role: 'admin',
         },
       ]),
     };
     const context: Context = {};
     const response = await handler(event, context);
+    const body = JSON.parse(response.body);
+    testUserId = body[0];
     expect(response.statusCode).toEqual(200);
   });
 
@@ -159,6 +175,42 @@ describe('User and Teams', () => {
     const context: Context = {};
     const response = await handler(event, context);
     expect(response.statusCode).toEqual(401);
+  });
+
+  it('Should block pending admins from removing team members', async () => {
+    createMockAuth(pendingAdminEmail, pendingAdminEmail);
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'DELETE',
+      path: `/app/teams/1/members/${testUserId}`,
+    };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(401);
+  });
+
+  it('Should block team users from removing team members', async () => {
+    createMockAuth(userEmail, userEmail);
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'DELETE',
+      path: `/app/teams/1/members/${testUserId}`,
+    };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(401);
+  });
+
+  it('Should allow admins to remove team members', async () => {
+    createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'DELETE',
+      path: `/app/teams/1/members/${testUserId}`,
+    };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(200);
   });
 
   it('should delete the first team successfully', async () => {

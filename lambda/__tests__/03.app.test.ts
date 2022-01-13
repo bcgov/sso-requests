@@ -107,7 +107,6 @@ describe('requests endpoints', () => {
     const requests = JSON.parse(response.body);
 
     // it should be more than one as one just got created by the previous test
-    console.log(']]]]]]]]]]]]]]]]]]]', requests);
     expect(requests.length).toBeGreaterThan(0);
     expect(response.statusCode).toEqual(200);
 

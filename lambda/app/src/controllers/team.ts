@@ -141,7 +141,16 @@ export const userCanReadTeam = async (user: User, teamId: number) => {
   });
 };
 
+const canRemoveUser = async (userId: number, teamId: number) => {
+  const teamMembers = await getUsersOnTeam(teamId);
+  const teamAdmins = teamMembers.filter((member) => member.role === 'admin');
+  if (teamAdmins.length === 1 && teamAdmins.id === userId) return false;
+  return true;
+};
+
 export const removeUserFromTeam = async (userId: number, teamId: number) => {
+  const canRemove = canRemoveUser(userId, teamId);
+  if (!canRemove) throw new Error('Not allowed');
   return models.usersTeam.destroy({
     where: {
       userId,
