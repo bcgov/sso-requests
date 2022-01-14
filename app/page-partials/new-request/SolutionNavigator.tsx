@@ -95,7 +95,8 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
               {useSecret ? (
                 <span>
                   Based on your response, we recommend that you use a <strong>confidential client.</strong> Confidential
-                  clients have back-end components that securely store an application's secret.
+                  clients have back-end components that securely store an application's secret and use a secure OAuth
+                  flow called PKCE, or Proof Key for Code Exchange.
                 </span>
               ) : (
                 <span>
@@ -107,7 +108,8 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
             <>
               <span>
                 {` `}
-                To learn more about the difference between confidential and public clients, visit our{' '}
+                To learn more about the difference between confidential and public clients and understand what a PKCE
+                is, visit our{' '}
                 <Link
                   external
                   href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client#confidential-vs-private-client"
