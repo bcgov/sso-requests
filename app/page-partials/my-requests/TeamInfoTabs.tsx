@@ -24,6 +24,8 @@ import {
 import { canDeleteMember } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
 
+const INVITATION_EXPIRY_DAYS = 0.01;
+
 const TabWrapper = styled.div`
   padding-left: 1rem;
   padding-right: 1rem;
@@ -141,17 +143,27 @@ const RequestStatusIcon = ({ status }: { status?: Status }) => {
   return <FontAwesomeIcon icon={icon} title={status} style={{ color }} />;
 };
 
-const MemberStatusIcon = ({ pending }: { pending?: boolean }) => {
+const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; invitationSendTime?: string }) => {
+  if (!invitationSendTime) return null;
+  const invitationAgeMilliseconds = new Date().getTime() - new Date(invitationSendTime).getTime();
+  const invitationAgeDays = invitationAgeMilliseconds / (60 * 60 * 24 * 1000);
   let icon = faExclamationCircle;
   let color = 'black';
-  if (pending) {
+  let title = '';
+  if (pending && invitationAgeDays > INVITATION_EXPIRY_DAYS) {
+    icon = faExclamationCircle;
+    color = '#ff0303';
+    title = 'Invitation Expired';
+  } else if (pending) {
     icon = faClock;
     color = '#fcba19';
+    title = 'Invitation Sent';
   } else {
     color = '#2e8540';
     icon = faCheckCircle;
+    title = 'Active Member';
   }
-  return <FontAwesomeIcon icon={icon} title={pending ? 'Invitation Sent' : 'Active Member'} style={{ color }} />;
+  return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
 };
 
 function TeamInfoTabs({ alert }: Props) {
@@ -290,7 +302,7 @@ function TeamInfoTabs({ alert }: Props) {
                   {members.map((member) => (
                     <tr key={member.id}>
                       <td>
-                        <MemberStatusIcon pending={member.pending} />
+                        <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
                       </td>
                       <td>{member.idirEmail}</td>
                       <td>{member.role}</td>

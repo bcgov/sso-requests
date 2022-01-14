@@ -9,6 +9,7 @@ export interface User {
   id?: string;
   status?: string;
   pending?: boolean;
+  createdAt?: string;
 }
 
 export interface LoggedInUser {
