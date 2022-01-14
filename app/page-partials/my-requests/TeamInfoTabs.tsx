@@ -147,9 +147,9 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
   if (!invitationSendTime) return null;
   const invitationAgeMilliseconds = new Date().getTime() - new Date(invitationSendTime).getTime();
   const invitationAgeDays = invitationAgeMilliseconds / (60 * 60 * 24 * 1000);
-  let icon = faExclamationCircle;
-  let color = 'black';
-  let title = '';
+  let icon;
+  let color;
+  let title;
   if (pending && invitationAgeDays > INVITATION_EXPIRY_DAYS) {
     icon = faExclamationCircle;
     color = '#ff0303';
