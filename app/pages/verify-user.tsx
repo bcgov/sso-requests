@@ -3,15 +3,56 @@ import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContaine
 import { useRouter } from 'next/router';
 import { LoggedInUser } from 'interfaces/team';
 import { getAuthorizationUrl } from 'utils/openid';
-import getConfig from 'next/config';
 import { Button } from '@bcgov-sso/common-react-components';
-
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { sso_redirect_uri } = publicRuntimeConfig;
+import ErrorImage from 'svg/ErrorImage';
+import Link from 'next/link';
 
 interface Props {
   currentUser: LoggedInUser;
 }
+
+const content = (
+  <text transform="translate(240 238)" fill="#777" fontSize="16" fontFamily="OpenSans, Open Sans">
+    <tspan x="0" y="0">
+      If you know the team admin, please reach out to them so they
+    </tspan>
+    <tspan x="0" y="26">
+      can re-send the invitation.
+    </tspan>
+
+    <tspan x="0" y="52">
+      You may still
+    </tspan>
+    <tspan y="52" x="120" fill="#006fc4">
+      <Link href="/my-requests">
+        <a>login to your dashboard</a>
+      </Link>
+    </tspan>
+    <tspan y="52"> to start a new integration</tspan>
+    <tspan y="78" x="0">
+      request or view existing integrations.{' '}
+    </tspan>
+    <tspan y="26">.</tspan>
+    <tspan x="120" y="104">
+      If the problem persists for 24 hours,
+    </tspan>
+    <tspan x="120" y="130">
+      contact the team by{' '}
+    </tspan>
+    <tspan y="130" fill="#006fc4">
+      <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
+        Rocket.Chat
+      </a>
+    </tspan>
+    <tspan y="130"> or </tspan>
+    <tspan y="130" fill="#006fc4">
+      <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer">
+        Email us
+      </a>
+      .
+    </tspan>
+  </text>
+);
 
 export default function VerifyUser({ currentUser }: Props) {
   const router = useRouter();
@@ -30,12 +71,18 @@ export default function VerifyUser({ currentUser }: Props) {
     <>
       <ResponsiveContainer rules={defaultRules}>
         <h1>{message}</h1>
-        {validated && (
-          <p>You have successfully joined team # {teamId}. Please click below to login and view your dashboard.</p>
+        {validated ? (
+          <>
+            <p>You have successfully joined team # {teamId}. Please click below to login and view your dashboard.</p>
+            <Button onClick={handleLogin} variant="bcPrimary">
+              Login
+            </Button>
+          </>
+        ) : (
+          <ErrorImage message="This link has expired" isError={false}>
+            {content}
+          </ErrorImage>
         )}
-        <Button onClick={handleLogin} variant="bcPrimary">
-          Login
-        </Button>
       </ResponsiveContainer>
     </>
   );

@@ -26,7 +26,7 @@ import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
 import { Session } from '../../shared/interfaces';
-import { parseInvitationToken } from '../src/utils/helpers';
+import { parseInvitationToken, inviteTeamMembers } from '../src/utils/helpers';
 const APP_URL = process.env.APP_URL || '';
 
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -39,6 +39,13 @@ const responseHeaders = {
 };
 
 const BASE_PATH = '/app';
+
+const redirect = (res, url, status = 301) => {
+  const headers = { Location: url };
+  if (isFunction(res.headers)) res.headers(headers);
+  else res.set(headers);
+  return res.status(status).send();
+};
 
 export const setRoutes = (app: any) => {
   app.use((req, res, next) => {
@@ -72,18 +79,12 @@ export const setRoutes = (app: any) => {
       else {
         const [data] = await parseInvitationToken(token);
         const { userId, teamId, exp } = data;
-        const headers = {
-          Location: `${APP_URL}/verify-user?message=success&teamId=${teamId}`,
-        };
-
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return res.status(401).redirect(`${APP_URL}/verify-user?message=expired`);
+        if (expired) return redirect(res, `${APP_URL}/verify-user?message=expired`, 401);
         const verified = await verifyTeamMember(userId, teamId);
-        if (!verified) return res.status(422).redirect(`${APP_URL}/verify-user?message=not-found`);
-        if (isFunction(res.headers)) res.headers(headers);
-        else res.set(headers);
-        return res.status(200).send();
+        if (!verified) return redirect(res, `${APP_URL}/verify-user?message=not-found`, 422);
+        return redirect(res, `${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {
       console.log(err);
@@ -301,6 +302,20 @@ export const setRoutes = (app: any) => {
         return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
       const result = await getUsersOnTeam(id);
       res.status(200).json(result);
+    } catch (err) {
+      console.log(err);
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.post(`${BASE_PATH}/teams/:id/invite`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const authorized = await userCanEditTeam(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
+      await inviteTeamMembers([req.body], id);
+      res.status(200).send();
     } catch (err) {
       console.log(err);
       res.status(422).json({ success: false, message: err.message || err });

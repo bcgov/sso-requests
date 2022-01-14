@@ -111,6 +111,7 @@ export const getUsersOnTeam = async (teamId: number) => {
         'idirEmail',
         [sequelize.col('usersTeams.role'), 'role'],
         [sequelize.col('usersTeams.pending'), 'pending'],
+        [sequelize.col('usersTeams.created_at'), 'createdAt'],
       ],
     })
     .then((res) => {

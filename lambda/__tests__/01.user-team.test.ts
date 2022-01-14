@@ -3,6 +3,7 @@ import { handler } from '../app/src/main';
 import baseEvent from './base-event.json';
 import { authenticate } from '../app/src/authenticate';
 import { TEST_IDIR_USERID, TEST_IDIR_USERID_2, TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2, AuthMock } from './00.db.test';
+import { sendEmail } from '../shared/utils/ches';
 
 jest.mock('../app/src/authenticate');
 jest.mock('../shared/utils/ches', () => {
@@ -31,6 +32,10 @@ const pendingAdminEmail = 'pendingAdmin@email.com';
 const userEmail = 'user@email.com';
 
 describe('User and Teams', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should find current user successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
     const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/me' };
@@ -211,6 +216,44 @@ describe('User and Teams', () => {
     const context: Context = {};
     const response = await handler(event, context);
     expect(response.statusCode).toEqual(200);
+  });
+
+  it('Should allow admins to resend invitations', async () => {
+    createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'POST',
+      path: `/app/teams/1/invite`,
+      body: JSON.stringify([
+        {
+          idirEmail: 'test2@email.com',
+          role: 'admin',
+        },
+      ]),
+    };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(200);
+    expect(sendEmail).toHaveBeenCalled();
+  });
+
+  it('Should not allow non-admins to resend invitations', async () => {
+    createMockAuth(TEST_IDIR_USERID_2, TEST_IDIR_EMAIL_2);
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'POST',
+      path: `/app/teams/1/invite`,
+      body: JSON.stringify([
+        {
+          idirEmail: 'test2@email.com',
+          role: 'admin',
+        },
+      ]),
+    };
+    const context: Context = {};
+    const response = await handler(event, context);
+    expect(response.statusCode).toEqual(401);
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it('should delete the first team successfully', async () => {

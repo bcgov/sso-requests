@@ -8,7 +8,7 @@ import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
 import { User } from 'interfaces/team';
 import { useState, useEffect, useContext } from 'react';
-import { addTeamMembers, getTeamMembers, deleteTeamMember } from 'services/team';
+import { addTeamMembers, getTeamMembers, deleteTeamMember, inviteTeamMember } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,9 +19,12 @@ import {
   faClock,
   faTimesCircle,
   faCheckCircle,
+  faShare,
 } from '@fortawesome/free-solid-svg-icons';
 import { canDeleteMember } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
+
+const INVITATION_EXPIRY_DAYS = 2;
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -113,6 +116,7 @@ const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Functi
 };
 
 const ButtonIcon = styled(FontAwesomeIcon)`
+  margin-right: 10px;
   &:hover {
     cursor: pointer;
   }
@@ -137,6 +141,29 @@ const RequestStatusIcon = ({ status }: { status?: Status }) => {
     icon = faCheckCircle;
   }
   return <FontAwesomeIcon icon={icon} title={status} style={{ color }} />;
+};
+
+const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; invitationSendTime?: string }) => {
+  if (!invitationSendTime) return null;
+  const invitationAgeMilliseconds = new Date().getTime() - new Date(invitationSendTime).getTime();
+  const invitationAgeDays = invitationAgeMilliseconds / (60 * 60 * 24 * 1000);
+  let icon;
+  let color;
+  let title;
+  if (pending && invitationAgeDays > INVITATION_EXPIRY_DAYS) {
+    icon = faExclamationCircle;
+    color = '#ff0303';
+    title = 'Invitation Expired';
+  } else if (pending) {
+    icon = faClock;
+    color = '#fcba19';
+    title = 'Invitation Sent';
+  } else {
+    color = '#2e8540';
+    icon = faCheckCircle;
+    title = 'Active Member';
+  }
+  return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
 };
 
 function TeamInfoTabs({ alert }: Props) {
@@ -185,7 +212,7 @@ function TeamInfoTabs({ alert }: Props) {
   const onConfirmAdd = async () => {
     const errors = validateMembers(tempMembers, setErrors);
     if (errors) return;
-    const [result, err] = await addTeamMembers({ members: tempMembers, id: activeTeamId });
+    const [, err] = await addTeamMembers({ members: tempMembers, id: activeTeamId });
     if (err) {
       console.log(err);
       alert.show({
@@ -230,6 +257,26 @@ function TeamInfoTabs({ alert }: Props) {
     }
   };
 
+  const inviteMember = async (member: User) => {
+    if (!activeTeamId) return;
+    const [, err] = await inviteTeamMember(member, activeTeamId);
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        fadeOut: 10000,
+        closable: true,
+        content: `Failed to resend invitation.`,
+      });
+    } else {
+      alert.show({
+        variant: 'success',
+        fadeOut: 10000,
+        closable: true,
+        content: `Sent new invitation for team member ${member.idirEmail}`,
+      });
+    }
+  };
+
   if (!selectedTeam) return null;
 
   return (
@@ -245,20 +292,35 @@ function TeamInfoTabs({ alert }: Props) {
               <Table variant="mini" readOnly>
                 <thead>
                   <tr>
+                    <th>Status</th>
                     <th>Email</th>
                     <th>Role</th>
-                    <th>Status</th>
-                    <th></th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {members.map((member) => (
                     <tr key={member.id}>
+                      <td>
+                        <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
+                      </td>
                       <td>{member.idirEmail}</td>
                       <td>{member.role}</td>
-                      <td>{member.pending ? 'pending' : 'active'}</td>
                       <td>
-                        <ButtonIcon icon={faTrash} onClick={() => handleDeleteClick(member.id)} size="lg" />
+                        {member.pending && (
+                          <ButtonIcon
+                            icon={faShare}
+                            size="lg"
+                            title="Resend Invitation"
+                            onClick={() => inviteMember(member)}
+                          />
+                        )}
+                        <ButtonIcon
+                          icon={faTrash}
+                          onClick={() => handleDeleteClick(member.id)}
+                          size="lg"
+                          title="Delete User"
+                        />
                       </td>
                     </tr>
                   ))}
