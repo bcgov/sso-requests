@@ -24,7 +24,7 @@ import {
 import { canDeleteMember } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
 
-const INVITATION_EXPIRY_DAYS = 0.01;
+const INVITATION_EXPIRY_DAYS = 2;
 
 const TabWrapper = styled.div`
   padding-left: 1rem;

@@ -40,6 +40,13 @@ const responseHeaders = {
 
 const BASE_PATH = '/app';
 
+const redirect = (res, url, status = 301) => {
+  const headers = { Location: url };
+  if (isFunction(res.headers)) res.headers(headers);
+  else res.set(headers);
+  return res.status(status).send();
+};
+
 export const setRoutes = (app: any) => {
   app.use((req, res, next) => {
     try {
@@ -72,18 +79,12 @@ export const setRoutes = (app: any) => {
       else {
         const [data] = await parseInvitationToken(token);
         const { userId, teamId, exp } = data;
-        const headers = {
-          Location: `${APP_URL}/verify-user?message=success&teamId=${teamId}`,
-        };
-
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return res.status(401).redirect(`${APP_URL}/verify-user?message=expired`);
+        if (expired) return redirect(res, `${APP_URL}/verify-user?message=expired`, 401);
         const verified = await verifyTeamMember(userId, teamId);
-        if (!verified) return res.status(422).redirect(`${APP_URL}/verify-user?message=not-found`);
-        if (isFunction(res.headers)) res.headers(headers);
-        else res.set(headers);
-        return res.status(301).send();
+        if (!verified) return redirect(res, `${APP_URL}/verify-user?message=not-found`, 422);
+        return redirect(res, `${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {
       console.log(err);
