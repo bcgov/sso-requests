@@ -66,7 +66,7 @@ function RequestsPage({ currentUser }: PageProps) {
   const getData = async () => {
     setLoading(true);
     dispatch($setActiveRequestId());
-    const [requestsResponse, teamsResponse] = await Promise.all([getRequests('all'), getTeams()]);
+    const [requestsResponse, teamsResponse] = await Promise.all([getRequests(), getTeams()]);
     const hasError = requestsResponse[1] || teamsResponse[1];
     if (hasError) {
       $setDownloadError(true);
