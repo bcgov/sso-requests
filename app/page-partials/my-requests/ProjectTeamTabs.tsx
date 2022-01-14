@@ -59,7 +59,6 @@ const ActionButtonContainer = styled.div`
 const UnpaddedButton = styled(Button)`
   &&& {
     margin: 0;
-    padding: 0;
   }
 `;
 
@@ -88,7 +87,7 @@ const NewEntityButton = ({
 }) => {
   if (tableTab === 'activeTeams')
     return (
-      <UnpaddedButton size="large" onClick={handleNewTeamClick} variant="plainText">
+      <UnpaddedButton size="large" onClick={handleNewTeamClick} variant="callout">
         + Create a new Team
       </UnpaddedButton>
     );
@@ -106,7 +105,6 @@ export default function ProjectTeamTabs() {
   const { state, dispatch } = useContext(RequestsContext);
   const { requests, teams, activeRequestId, tableTab, downloadError, activeTeamId } = state;
 
-  const hasArchivedRequest = requests && requests.find((request) => request.archived);
   const selectedRequest = requests?.find((request) => request.id === activeRequestId);
   const selectedTeam = teams?.find((team) => team.id === activeTeamId);
 
@@ -134,11 +132,10 @@ export default function ProjectTeamTabs() {
   }, []);
 
   const getTableContents = (tableTab?: string) => {
-    const viewArchived = tableTab === 'archivedProjects';
     if (downloadError) return SystemUnavailableMessage;
     if (tableTab === 'activeProjects' && requests?.length === 0)
       return <NoEntitiesMessage message="No Requests Submitted" />;
-    if (tableTab === 'activeProjects' || tableTab === 'archivedProjects')
+    if (tableTab === 'activeProjects')
       return (
         <Table>
           <thead>
@@ -150,24 +147,22 @@ export default function ProjectTeamTabs() {
             </tr>
           </thead>
           <tbody>
-            {requests
-              ?.filter((request: Request) => viewArchived === request.archived)
-              .map((request: Request) => {
-                return (
-                  <tr
-                    className={selectedRequest?.id === request.id ? 'active' : ''}
-                    key={request.id}
-                    onClick={() => handleProjectSelection(request)}
-                  >
-                    <td>{padStart(String(request.id), 8, '0')}</td>
-                    <td>{request.projectName}</td>
-                    <td>{getStatusDisplayName(request.status || 'draft')}</td>
-                    <td>
-                      <ActionButtons request={request} />
-                    </td>
-                  </tr>
-                );
-              })}
+            {requests?.map((request: Request) => {
+              return (
+                <tr
+                  className={selectedRequest?.id === request.id ? 'active' : ''}
+                  key={request.id}
+                  onClick={() => handleProjectSelection(request)}
+                >
+                  <td>{padStart(String(request.id), 8, '0')}</td>
+                  <td>{request.projectName}</td>
+                  <td>{getStatusDisplayName(request.status || 'draft')}</td>
+                  <td>
+                    <ActionButtons request={request} />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </Table>
       );
@@ -188,7 +183,7 @@ export default function ProjectTeamTabs() {
                 return (
                   <tr
                     className={selectedTeam?.id === team.id ? 'active' : ''}
-                    key={team.name}
+                    key={team.id}
                     onClick={() => handleTeamSelection(team)}
                   >
                     <td>{team.name}</td>
@@ -213,7 +208,6 @@ export default function ProjectTeamTabs() {
     <>
       <RequestTabs onSelect={(key: string) => dispatch($setTableTab(key))}>
         <Tab eventKey="activeProjects" title="My Projects" />
-        {hasArchivedRequest && <Tab eventKey="archivedProjects" title="Archived" />}
         <Tab eventKey="activeTeams" title="My Teams" />
       </RequestTabs>
       <br />
