@@ -6,7 +6,9 @@ import { inviteTeamMembers } from '../utils/helpers';
 export const listTeams = async (user: User) => {
   const result = await models.team.findAll({
     where: {
-      id: { [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}')`) },
+      id: {
+        [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}' and pending = false)`),
+      },
     },
   });
 
