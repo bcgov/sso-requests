@@ -210,7 +210,7 @@ export async function parseInvitationToken(token) {
 
 export const getWhereClauseForRequest = (session: Session, user: User, requestId: number) => {
   const where: any = { id: requestId };
-  const { idir_userid: idirUserid } = session;
+  const { idirUserid } = user;
   const userIsAdmin = isAdmin(session);
   if (!userIsAdmin) {
     where[Op.or] = [
@@ -229,8 +229,8 @@ export const getWhereClauseForRequest = (session: Session, user: User, requestId
   return where;
 };
 
-export const getWhereClauseForRequests = (session: Session, user: User) => {
-  const { idir_userid: idirUserid } = session;
+export const getWhereClauseForRequests = (user: User) => {
+  const { idirUserid } = user;
   return {
     [Op.or]: [
       {

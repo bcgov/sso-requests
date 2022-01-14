@@ -256,7 +256,7 @@ export const getRequestAll = async (
 };
 
 export const getRequests = async (session: Session, user: User, include: string = 'active') => {
-  const where: any = getWhereClauseForRequests(session, user);
+  const where: any = getWhereClauseForRequests(user);
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
