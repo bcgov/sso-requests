@@ -83,6 +83,11 @@ For the backend application, run:
 
 ## Committing
 
+Our repository enforces signed commits. This will need to be configured both on your local git setup and in your GitHub account. See the following documentation:
+
+- [Singing Commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+- [Setting up GPG private key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)
+
 Our repository uses commit linting. If pre-commit is installed it will tell you if your commit message is valid.
 In general, commits should have the format `<type>:name` followed by a descriptive lower-case message, e.g:
 
