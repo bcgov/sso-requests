@@ -132,7 +132,7 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
               </div>
               <Dropdown label="Role" onChange={(e: any) => handleRoleChange(i, e)} value={member.role}>
                 <option value="user">User</option>
-                <option value="admin">dmin</option>
+                <option value="admin">Admin</option>
               </Dropdown>
               {i !== 0 && allowDelete && (
                 <Icon icon={faMinusCircle} onClick={() => handleMemberDelete(i)} title="Delete" />
