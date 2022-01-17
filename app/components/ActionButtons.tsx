@@ -8,7 +8,7 @@ import { Request } from 'interfaces/Request';
 import { $setActiveRequestId, $setEditingRequest, $setPanelTab } from 'dispatchers/requestDispatcher';
 import { PRIMARY_RED } from 'styles/theme';
 
-export const Container = styled.div`
+export const ActionButtonContainer = styled.div`
   height: 100%;
   display: flex;
   justify-content: flex-end;
@@ -64,7 +64,7 @@ export default function Actionbuttons({ request }: Props) {
 
   return (
     <>
-      <Container>
+      <ActionButtonContainer>
         <ActionButton
           disabled={!canEdit}
           icon={faEdit}
@@ -84,7 +84,7 @@ export default function Actionbuttons({ request }: Props) {
           title="Delete"
           size="lg"
         />
-      </Container>
+      </ActionButtonContainer>
     </>
   );
 }

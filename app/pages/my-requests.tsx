@@ -130,7 +130,7 @@ function RequestsPage({ currentUser }: PageProps) {
           <Grid.Row collapse="1100" gutter={[15, 2]}>
             <Grid.Col span={6}>
               <OverflowAuto>
-                <ProjectTeamTabs />
+                <ProjectTeamTabs currentUser={currentUser} />
               </OverflowAuto>
             </Grid.Col>
             {selectedRequest && (
@@ -140,7 +140,7 @@ function RequestsPage({ currentUser }: PageProps) {
             )}
             {selectedTeam && (
               <Grid.Col span={4}>
-                <TeamInfoTabs />
+                <TeamInfoTabs currentUser={currentUser} />
               </Grid.Col>
             )}
           </Grid.Row>
