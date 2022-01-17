@@ -61,7 +61,13 @@ make server
 
 ## Code style and Linting
 
-We use pre-commit to run local linting when committing changes. To install this as a hook, run
+We use pre-commit to run local linting when committing changes. To install this as a hook, install the pyhton requirements:
+
+```sh
+pip install -r requirements.txt
+```
+
+run
 
 ```sh
  pre-commit install

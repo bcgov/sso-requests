@@ -5,3 +5,4 @@ postgres 11.4
 terraform 0.15.3
 terraform-docs 0.12.1
 tflint 0.28.1
+gitlint 0.17.0
