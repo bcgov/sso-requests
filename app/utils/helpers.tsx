@@ -297,3 +297,5 @@ export function canDeleteMember(members: User[], memberId?: string) {
   if (memberIsLastAdmin) return false;
   return true;
 }
+
+export const capitalize = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);

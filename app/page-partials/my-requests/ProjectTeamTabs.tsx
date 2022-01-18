@@ -20,11 +20,12 @@ import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faExclamationCircle, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Team } from 'interfaces/team';
-import ActionButtons, { ActionButton } from 'components/ActionButtons';
+import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import { getTeams } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import CenteredModal from 'components/CenteredModal';
 import { createTeamModalId } from 'utils/constants';
+import { UserSession } from 'interfaces/props';
 
 const CenteredHeader = styled.th`
   text-align: center;
@@ -49,11 +50,6 @@ const NoProjects = styled.div`
   padding-bottom: 22px;
   weight: 700;
   background-color: #f8f8f8;
-`;
-
-const ActionButtonContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
 `;
 
 const UnpaddedButton = styled(Button)`
@@ -100,7 +96,7 @@ const NewEntityButton = ({
   return null;
 };
 
-export default function ProjectTeamTabs() {
+export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSession }) {
   const router = useRouter();
   const { state, dispatch } = useContext(RequestsContext);
   const { requests, teams, activeRequestId, tableTab, downloadError, activeTeamId } = state;
@@ -167,7 +163,7 @@ export default function ProjectTeamTabs() {
         </Table>
       );
     if (tableTab === 'activeTeams' && teams?.length === 0)
-      return <NoEntitiesMessage message="You don't belong to a team" />;
+      return <NoEntitiesMessage message="You have not been added to any teams yet." />;
     else
       return (
         <Table>
@@ -188,9 +184,8 @@ export default function ProjectTeamTabs() {
                   >
                     <td>{team.name}</td>
                     <td>
-                      <ActionButtonContainer style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <ActionButtonContainer>
                         <ActionButton icon={faEdit} role="button" aria-label="edit" title="Edit" size="lg" />
-                        <div style={{ width: '20px' }} />
                         <ActionButton icon={faTrash} role="button" aria-label="edit" title="Edit" size="lg" />
                       </ActionButtonContainer>
                     </td>
@@ -224,7 +219,7 @@ export default function ProjectTeamTabs() {
         icon={null}
         onConfirm={() => console.log('confirm')}
         id={createTeamModalId}
-        content={<TeamForm onSubmit={loadTeams} />}
+        content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
         showCancel={false}
         showConfirm={false}
         closable

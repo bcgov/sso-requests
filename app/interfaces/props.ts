@@ -1,9 +1,9 @@
-interface User {
+export interface UserSession {
   email: string;
 }
 
 export interface PageProps {
-  currentUser: User;
+  currentUser: UserSession;
   onLoginClick: Function;
   onLogoutClick: Function;
 }

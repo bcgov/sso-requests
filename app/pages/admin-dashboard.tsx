@@ -8,7 +8,7 @@ import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Request, Option } from 'interfaces/Request';
-import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
+import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
 import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
@@ -237,7 +237,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                       <td>{startCase(row.status)}</td>
                       <td>{row.archived ? 'Deleted' : 'Active'}</td>
                       <td>
-                        <Container>
+                        <ActionButtonContainer>
                           <ActionButton
                             icon={faEye}
                             role="button"
@@ -268,7 +268,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                             activeColor={PRIMARY_RED}
                             title="Delete"
                           />
-                        </Container>
+                        </ActionButtonContainer>
                       </td>
                     </tr>
                   );

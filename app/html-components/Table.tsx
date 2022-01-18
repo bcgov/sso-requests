@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING, TABLE_ROW_HEIGHT_MINI } from 'styles/theme';
+import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING, TABLE_ROW_HEIGHT_MINI, TABLE_ACTIVE_BLUE } from 'styles/theme';
 
 const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   width: 100%;
@@ -27,11 +27,11 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
         !props.readOnly &&
         `
         &:hover {
-          background-color: #f0f8fe;
+          background-color: ${TABLE_ACTIVE_BLUE};
           cursor: pointer;
         }
         &.active {
-          background-color: #f0f8fe;
+          background-color: ${TABLE_ACTIVE_BLUE};
           font-weight: bold;
           border: 2px solid #9fadc0 !important;
         }
@@ -52,6 +52,10 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   & td {
     border: none;
     padding: 0;
+  }
+
+  & td {
+    ${(props) => props.variant === 'mini' && `background-color: ${TABLE_ACTIVE_BLUE};`}
   }
 `;
 

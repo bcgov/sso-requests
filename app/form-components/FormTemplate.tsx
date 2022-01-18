@@ -44,7 +44,7 @@ interface Props {
   alert: TopAlert;
 }
 
-function FormTemplate({ currentUser = {}, request, alert }: Props) {
+function FormTemplate({ currentUser, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 1 : 0);
   const [loading, setLoading] = useState(false);
@@ -256,7 +256,7 @@ function FormTemplate({ currentUser = {}, request, alert }: Props) {
             title="Create a new team"
             icon={null}
             id={createTeamModalId}
-            content={<TeamForm onSubmit={loadTeams} />}
+            content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
             showCancel={false}
             showConfirm={false}
             closable

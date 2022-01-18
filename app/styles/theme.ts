@@ -13,6 +13,7 @@ export const PRIMARY_RED = '#D8292F';
 export const FORM_BUTTON_MIN_WIDTH = '190px';
 export const LANDING_HEADER_FONT = '22px';
 export const LARGE_BUTTON_FONT_SIZE = '22px';
+export const TABLE_ACTIVE_BLUE = '#f0f8fe';
 // In px
 export const TABLE_ROW_HEIGHT = 60;
 export const TABLE_ROW_HEIGHT_MINI = 40;
