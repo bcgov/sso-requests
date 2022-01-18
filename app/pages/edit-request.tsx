@@ -4,14 +4,12 @@ import FormTemplate from 'form-components/FormTemplate';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { getRequest } from 'services/request';
 import PageLoader from 'components/PageLoader';
+import { LoggedInUser } from 'interfaces/team';
 
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 interface Props {
-  currentUser: {
-    email?: string;
-    client_roles?: string[];
-  };
+  currentUser: LoggedInUser;
 }
 
 function Request({ currentUser }: Props) {
@@ -19,7 +17,6 @@ function Request({ currentUser }: Props) {
   const [loading, setLoading] = useState<boolean>(false);
   const [request, setRequest] = useState<Request | null>(null);
   const { id } = router.query;
-  const isAdmin = currentUser?.client_roles?.includes('sso-admin');
 
   useEffect(() => {
     const getData = async () => {
@@ -32,14 +29,14 @@ function Request({ currentUser }: Props) {
     getData();
   }, [id]);
 
-  if (!isAdmin) {
+  if (!currentUser.isAdmin) {
     router.push('/');
     return null;
   }
 
   return (
     <ResponsiveContainer rules={requestPageRules}>
-      {loading ? <PageLoader /> : <FormTemplate currentUser={currentUser || {}} request={request} isAdmin={isAdmin} />}
+      {loading ? <PageLoader /> : <FormTemplate currentUser={currentUser || {}} request={request} />}
     </ResponsiveContainer>
   );
 }

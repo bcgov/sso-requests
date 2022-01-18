@@ -1,7 +1,6 @@
 import { Request } from 'interfaces/Request';
 import { realmToIDP } from 'utils/helpers';
 import styled from 'styled-components';
-import MetadataEditModal from 'page-partials/admin-dashboard/MetadataEditModal';
 
 const Table = styled.table`
   font-size: unset;
@@ -74,8 +73,7 @@ const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
 interface Props {
   request: Request;
   hasBceid: boolean;
-  isAdmin?: boolean;
-  onUpdate: Function;
+  children?: React.ReactNode;
 }
 
 const hasUris = (uris: string[] | undefined) => {
@@ -85,7 +83,7 @@ const hasUris = (uris: string[] | undefined) => {
   return true;
 };
 
-function RequestPreview({ request, onUpdate }: Props) {
+function RequestPreview({ children, request }: Props) {
   if (!request) return null;
 
   return (
@@ -127,8 +125,7 @@ function RequestPreview({ request, onUpdate }: Props) {
           {hasUris(request?.prodValidRedirectUris) && (
             <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />
           )}
-          <br />
-          <MetadataEditModal request={request} onUpdate={onUpdate} />
+          {children}
         </tbody>
       </Table>
     </>

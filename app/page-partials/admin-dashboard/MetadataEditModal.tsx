@@ -11,7 +11,7 @@ import { updateRequestMetadata } from 'services/request';
 
 interface Props {
   request: Request;
-  onUpdate: Function;
+  onUpdate?: Function;
 }
 
 const StyledDropdown = styled(Dropdown)`
@@ -28,8 +28,8 @@ function MetadataEditModal({ request, onUpdate }: Props) {
   const modalId = 'edit-metadata';
 
   const handleMetadataModalConfirm = async () => {
-    const [result, error] = await updateRequestMetadata({ id: request.id, idirUserid: uuid, status });
-    await onUpdate();
+    await updateRequestMetadata({ id: request.id, idirUserid: uuid, status });
+    if (onUpdate) await onUpdate();
     window.location.hash = '#';
   };
 

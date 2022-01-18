@@ -283,6 +283,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
           <Grid.Col span={4}>
             {selectedRequest && (
               <AdminTabs
+                currentUser={currentUser}
                 selectedRequest={selectedRequest}
                 defaultTabKey={'details'}
                 setActiveKey={setActivePanel}

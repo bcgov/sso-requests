@@ -18,7 +18,7 @@ import { customValidate } from 'utils/shared/customValidate';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
-import { Team } from 'interfaces/team';
+import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 
@@ -39,15 +39,12 @@ const ErrorText = styled.p`
 `;
 
 interface Props {
-  currentUser: {
-    email?: string;
-  };
+  currentUser: LoggedInUser;
   request?: any;
   alert: TopAlert;
-  isAdmin: boolean;
 }
 
-function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
+function FormTemplate({ currentUser = {}, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 1 : 0);
   const [loading, setLoading] = useState(false);
@@ -58,6 +55,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [showAccountableError, setShowAccountableError] = useState(false);
   const router = useRouter();
+  const isAdmin: boolean = currentUser.isAdmin || false;
 
   const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isAdmin, formStage, teams });
   const showFormButtons = !isAdmin && (formStage !== 0 || formData.usesTeam || formData.projectLead);
