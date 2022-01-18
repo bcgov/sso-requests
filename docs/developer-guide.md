@@ -3,15 +3,12 @@
 ## Setting up the local development environment
 
 - [`asdf`](https://asdf-vm.com/#/core-manage-asdf) is a tool to manage the required packages with specific versions.
-- All the packages are defined in `tool-versions`:
-  - nodejs 12.18.3
-  - yarn 1.22.4
-  - python 3.8.6
-  - postgres 11.4
-  - terraform 0.14.4
+- All the packages are defined in `tool-versions`
 
 ### Installation
 
+1. If running ubuntu, make sure that you have the package `libsqlite3-dev` and `bzip2` installed.
+   - `sudo apt-get install libsqlite3-dev bzip2`
 1. Install `asdf` according to the `asdf` installation guide.
    - https://asdf-vm.com/#/core-manage-asdf?id=install
 1. Install `asdf` packages defined in `.tool-versions`.
@@ -21,6 +18,10 @@
       asdf install
       asdf reshim
    ```
+1. Run `pip install -r requirements.txt` to install python packages
+   - _**Note:** If running into as asdf error, try running `asdf reshim`_
+1. Run `pre-commit install`
+1. Run `gitlint install hook`
 
 ### Setup
 
