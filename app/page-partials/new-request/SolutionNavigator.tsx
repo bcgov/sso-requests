@@ -93,23 +93,31 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
             <br />
             <>
               {useSecret ? (
-                <span>
-                  Based on your response, we recommend that you use a <strong>confidential client.</strong> Confidential
-                  clients have back-end components that securely store an application's secret and use a secure OAuth
-                  flow called PKCE, or Proof Key for Code Exchange.
-                </span>
+                <>
+                  <h2>Recommendation: Confidential Client</h2>
+                  <span>
+                    Based on your response, we recommend that you use a <strong>confidential client.</strong>{' '}
+                    Confidential clients have back-end components that securely store an application's secret and use a
+                    secure OAuth flow called PKCE, or Proof Key for Code Exchange.
+                  </span>
+                </>
               ) : (
-                <span>
-                  Based on your response, we recommend that you use a <strong>public client.</strong> Public clients do
-                  not use back-end secrets, but may support your application's architecture better.
-                </span>
+                <>
+                  <h2>Recommendation: Public Client</h2>
+                  <span>
+                    Public clients do not use back-end secrets, but use a secure OAuth flow called PKCE, or Proof Key
+                    for Code Exchange. Based on your responses, the public client may better support your application's
+                    architecture.
+                  </span>
+                </>
               )}
             </>
+            <br />
             <>
               <span>
                 {` `}
-                To learn more about the difference between confidential and public clients and understand what a PKCE
-                is, visit our{' '}
+                To learn more about the difference between confidential and public clients, and to understand what PKCEs
+                better, visit our{' '}
                 <Link
                   external
                   href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client#confidential-vs-private-client"
