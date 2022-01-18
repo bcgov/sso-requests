@@ -42,6 +42,7 @@ export default function Actionbuttons({ request }: Props) {
   const { editingRequest, activeRequestId } = state;
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
+  const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
 
   const handleEdit = async (event: MouseEvent) => {
     if (request.status === 'draft') return router.push(`/request/${request.id}`);
@@ -59,8 +60,6 @@ export default function Actionbuttons({ request }: Props) {
     if (!request.id || !canDelete) return;
     window.location.hash = 'delete-modal';
   };
-
-  const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
 
   return (
     <>

@@ -81,9 +81,9 @@ export const setRoutes = (app: any) => {
         const { userId, teamId, exp } = data;
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return redirect(res, `${APP_URL}/verify-user?message=expired`, 401);
+        if (expired) return redirect(res, `${APP_URL}/verify-user?message=This%20link%20has%20expired`, 401);
         const verified = await verifyTeamMember(userId, teamId);
-        if (!verified) return redirect(res, `${APP_URL}/verify-user?message=not-found`, 422);
+        if (!verified) return redirect(res, `${APP_URL}/verify-user?message=User%20not%20found`, 422);
         return redirect(res, `${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {

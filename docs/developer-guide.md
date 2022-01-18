@@ -88,3 +88,39 @@ Our repository uses commit linting. If pre-commit is installed it will tell you 
 In general, commits should have the format `<type>:name` followed by a descriptive lower-case message, e.g:
 
 `git commit -m "feat: button" -m "add a button to the landing page"`.
+
+## Team Conventions
+
+### Frontend
+
+1. When adding functions to call out to APIs (including our backend), those should be included in `app/services`. To prevent
+   application errors when using these services, we add error handling in the service function, and return and array
+   `[data, error]` where `data` wil be null if there was an error, and `error` will be null if the request succeeded. e.g:
+
+```javascript
+export const getTeamMembers = async (id?: number) => {
+  try {
+    const result = await instance.get(`teams/${id}/members`).then((res) => res.data);
+    return [result, null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};
+```
+
+2. When adding new react components, if they are sections specific to a page that won't be reused,
+   include them in the `app/page-partials/<page-name>` directory. If they are a reusable component across
+   pages add them to the `components` folder.
+
+3. For resources shared between the frontend and backend, e.g common interfaces, or form schemas (for validation),
+   include them into a shared folder. e.g `app/schemas/shared` for shared form schemas.
+
+### Backend
+
+1. Any shared resources from the frontend should be included in the makefile for that lambda function. See the
+   steps in `lambda/app/makefile` for commands to copy over front-end resources. This helps to keep interfaces
+   and form-data in sync between the frontend and backend.
+
+2. Most error handling can be done at the route level with `try` and `catch`, see `lambda/app/src/routes.ts`.
+   Controllers will then be caught. More custom error-handling in controller or helper functions should only
+   be added if the specific function failing should still return a 200 status.

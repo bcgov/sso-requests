@@ -45,7 +45,11 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   }
 
   th:last-child {
-    text-align: ${(props) => (props.variant === 'mini' ? `left` : `right`)};
+    text-align: right;
+  }
+
+  td:last-child {
+    text-align: right;
   }
 
   & th,
