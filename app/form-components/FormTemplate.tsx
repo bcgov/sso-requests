@@ -21,6 +21,7 @@ import { SaveMessage } from 'interfaces/form';
 import { Team } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
+import { UserSession } from 'interfaces/props';
 
 const Description = styled.p`
   margin: 0;
@@ -39,15 +40,13 @@ const ErrorText = styled.p`
 `;
 
 interface Props {
-  currentUser: {
-    email?: string;
-  };
+  currentUser: UserSession;
   request?: any;
   alert: TopAlert;
   isAdmin: boolean;
 }
 
-function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
+function FormTemplate({ currentUser, request, alert, isAdmin }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 1 : 0);
   const [loading, setLoading] = useState(false);
@@ -258,7 +257,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
             title="Create a new team"
             icon={null}
             id={createTeamModalId}
-            content={<TeamForm onSubmit={loadTeams} />}
+            content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
             showCancel={false}
             showConfirm={false}
             closable

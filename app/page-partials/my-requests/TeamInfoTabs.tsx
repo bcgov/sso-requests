@@ -7,6 +7,7 @@ import { Button } from '@bcgov-sso/common-react-components';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
 import { User } from 'interfaces/team';
+import { UserSession } from 'interfaces/props';
 import { useState, useEffect, useContext } from 'react';
 import { addTeamMembers, getTeamMembers, deleteTeamMember, inviteTeamMember } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
@@ -21,7 +22,7 @@ import {
   faCheckCircle,
   faShare,
 } from '@fortawesome/free-solid-svg-icons';
-import { canDeleteMember } from 'utils/helpers';
+import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
 
 const INVITATION_EXPIRY_DAYS = 2;
@@ -31,11 +32,16 @@ const TabWrapper = styled.div`
   padding-right: 1rem;
 `;
 
-const UnpaddedButton = styled(Button)`
+const PaddedButton = styled(Button)`
   &&& {
     padding: 0;
-    margin: 0;
+    margin: 20px 0;
   }
+`;
+
+const Container = styled.div`
+  border: 3px solid #a6b1c4;
+  padding: 10px;
 `;
 
 const addMemberModalId = 'add-member-modal';
@@ -64,6 +70,7 @@ const validateMembers = (members: User[], setErrors: Function) => {
 const emptyMember: User = { idirEmail: '', role: 'user', pending: true };
 interface Props {
   alert: any;
+  currentUser: UserSession;
 }
 
 const RedIcon = styled(FontAwesomeIcon)`
@@ -166,7 +173,7 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
   return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
 };
 
-function TeamInfoTabs({ alert }: Props) {
+function TeamInfoTabs({ alert, currentUser }: Props) {
   const { state } = useContext(RequestsContext);
   const { teams, activeTeamId, requests } = state;
   const [members, setMembers] = useState<User[]>([]);
@@ -280,14 +287,13 @@ function TeamInfoTabs({ alert }: Props) {
   if (!selectedTeam) return null;
 
   return (
-    <>
+    <Container>
       <RequestTabs defaultActiveKey={'members'}>
         <Tab eventKey="members" title="Members">
           <TabWrapper>
-            <br />
-            <UnpaddedButton variant="plainText" onClick={openModal}>
+            <PaddedButton variant="plainText" onClick={openModal}>
               + Add new team members
-            </UnpaddedButton>
+            </PaddedButton>
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
               <Table variant="mini" readOnly>
                 <thead>
@@ -305,7 +311,7 @@ function TeamInfoTabs({ alert }: Props) {
                         <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
                       </td>
                       <td>{member.idirEmail}</td>
-                      <td>{member.role}</td>
+                      <td>{capitalize(member.role)}</td>
                       <td>
                         {member.pending && (
                           <ButtonIcon
@@ -359,7 +365,13 @@ function TeamInfoTabs({ alert }: Props) {
         icon={null}
         id={addMemberModalId}
         content={
-          <TeamMembersForm members={tempMembers} setMembers={setTempMembers} allowDelete={false} errors={errors} />
+          <TeamMembersForm
+            members={tempMembers}
+            setMembers={setTempMembers}
+            allowDelete={false}
+            errors={errors}
+            currentUser={currentUser}
+          />
         }
         onConfirm={onConfirmAdd}
         skipCloseOnConfirm={true}
@@ -367,7 +379,7 @@ function TeamInfoTabs({ alert }: Props) {
         closable
       />
       <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
-    </>
+    </Container>
   );
 }
 

@@ -8,6 +8,7 @@ import Loader from 'react-loader-spinner';
 import { User } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import TeamMembersForm from './TeamMembersForm';
+import { UserSession } from 'interfaces/props';
 
 const ButtonsContainer = styled.div`
   display: flex;
@@ -20,6 +21,7 @@ const ButtonsContainer = styled.div`
 
 interface Props {
   onSubmit: Function;
+  currentUser: UserSession;
 }
 
 export interface Errors {
@@ -33,7 +35,7 @@ const emptyUser: User = {
   id: String(uuidv4()),
 };
 
-export default function TeamForm({ onSubmit }: Props) {
+export default function TeamForm({ onSubmit, currentUser }: Props) {
   const [members, setMembers] = useState<User[]>([emptyUser]);
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,7 +89,7 @@ export default function TeamForm({ onSubmit }: Props) {
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <strong>Team Members</strong>
-      <TeamMembersForm errors={errors} members={members} setMembers={setMembers} />
+      <TeamMembersForm errors={errors} members={members} setMembers={setMembers} currentUser={currentUser} />
       <ButtonsContainer>
         <Button variant="secondary" onClick={handleCancel}>
           Cancel

@@ -8,13 +8,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { User } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import { Errors } from './CreateTeamForm';
+import { UserSession } from 'interfaces/props';
 
 const Container = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: end;
-  margin-bottom: 20px;
-  grid-gap: 1em;
+  margin-bottom: 10px;
+  grid-gap: 0 1em;
 `;
 
 const Dropdown = styled(DefaultDropdown)`
@@ -60,9 +61,10 @@ interface Props {
   members: User[];
   setMembers: Function;
   allowDelete?: boolean;
+  currentUser: UserSession | null;
 }
 
-export default function TeamForm({ errors, members, setMembers, allowDelete = true }: Props) {
+export default function TeamForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
   const handleAddMember = () => {
     setMembers([
       ...members,
@@ -109,6 +111,14 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
           <strong>Role</strong>
           <Divider />
         </Container>
+        {currentUser && (
+          <MemberContainer>
+            <Input value={currentUser?.email || ''} readOnly />
+            <Dropdown label="Role" disabled value={'admin'}>
+              <option value="admin">Admin</option>
+            </Dropdown>
+          </MemberContainer>
+        )}
         {members.map((member, i) => (
           <>
             <MemberContainer key={member.id}>
@@ -121,8 +131,8 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
                 {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
               </div>
               <Dropdown label="Role" onChange={(e: any) => handleRoleChange(i, e)} value={member.role}>
-                <option value="user">user</option>
-                <option value="admin">admin</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
               </Dropdown>
               {i !== 0 && allowDelete && (
                 <Icon icon={faMinusCircle} onClick={() => handleMemberDelete(i)} title="Delete" />
