@@ -59,7 +59,10 @@ export default function VerifyUser({ currentUser }: Props) {
   const { message, teamId } = router.query;
   const validated = message === 'success';
 
-  if (currentUser && validated) router.push('/my-requests');
+  if (currentUser && validated) {
+    router.push('/my-requests');
+    return null;
+  }
 
   const handleLogin = async () => {
     sessionStorage.setItem('team_id', (teamId || '') as string);

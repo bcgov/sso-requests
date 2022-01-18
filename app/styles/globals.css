@@ -106,6 +106,17 @@ textarea#root_bceidBody {
   padding-right: 30px;
 }
 
+.pg-input-input:read-only {
+  background-color: #eaeaea;
+  cursor: not-allowed;
+}
+
+.pg-select-input:disabled {
+  cursor: not-allowed;
+  background-color: #eaeaea;
+  margin: -5px;
+}
+
 .pg-footer-footer {
   height: unset !important;
 }
