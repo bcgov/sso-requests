@@ -108,11 +108,14 @@ export const getTeamMembers = async (id?: number) => {
 };
 ```
 
-2. When adding new react components, if they are sections specific to a page that won't be reused,
-   include them in the `app/page-partials/<page-name>` directory. If they are a reusable component across
-   pages add them to the `components` folder.
+2. To help with organization when adding new react components, we have broken them into the following folders:
 
-3. For resources shared between the frontend and backend, e.g common interfaces, or form schemas (for validation),
+   - `app/page-partials/<page-name>`: Include a component here if it is specific to a page and won't be reused
+   - `html-components`: Include a component here if it is a styled html component, e.g `table` or `button`
+   - `form-components`: Components specific to the form flow should be included here`
+   - `components`: Include other components here
+
+3. For resources shared between the frontend and backend (e.g shared interfaces or form schemas)
    include them into a shared folder. e.g `app/schemas/shared` for shared form schemas.
 
 ### Backend
