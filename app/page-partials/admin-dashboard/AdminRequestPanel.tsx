@@ -10,15 +10,16 @@ const EventContent = styled.div`
 
 interface Props {
   request: Request | undefined;
+  onUpdate: Function;
 }
 
-export default function AdminRequestPanel({ request }: Props) {
+export default function AdminRequestPanel({ request, onUpdate }: Props) {
   if (!request) return null;
 
   return (
     <EventContent>
       <br />
-      <RequestPreview request={request} hasBceid={false} />
+      <RequestPreview request={request} hasBceid={false} onUpdate={onUpdate} />
     </EventContent>
   );
 }

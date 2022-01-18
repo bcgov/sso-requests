@@ -80,7 +80,7 @@ function AdminTabs({ selectedRequest, defaultTabKey, setActiveKey, setRows, acti
       <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
         <Tab eventKey="details" title="Details">
           <TabWrapper>
-            <AdminRequestPanel request={selectedRequest} />
+            <AdminRequestPanel request={selectedRequest} onUpdate={setRows} />
           </TabWrapper>
         </Tab>
         {hasBceid && (

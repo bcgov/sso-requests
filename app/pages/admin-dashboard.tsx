@@ -13,18 +13,7 @@ import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
 import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
-
-const workflowStatusOptions = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'submitted', label: 'Submitted' },
-  { value: 'pr', label: 'PR' },
-  { value: 'prFailed', label: 'PR Failed' },
-  { value: 'planned', label: 'Planned' },
-  { value: 'planFailed', label: 'Plan Failed' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'applied', label: 'Applied' },
-  { value: 'applyFailed', label: 'Apply Failed' },
-];
+import { workflowStatusOptions } from 'metadata/options';
 
 const idpOptions = [
   { value: ['onestopauth'], label: 'IDIR' },

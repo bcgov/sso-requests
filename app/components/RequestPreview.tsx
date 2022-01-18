@@ -1,6 +1,7 @@
 import { Request } from 'interfaces/Request';
 import { realmToIDP } from 'utils/helpers';
 import styled from 'styled-components';
+import MetadataEditModal from 'page-partials/admin-dashboard/MetadataEditModal';
 
 const Table = styled.table`
   font-size: unset;
@@ -74,6 +75,7 @@ interface Props {
   request: Request;
   hasBceid: boolean;
   isAdmin?: boolean;
+  onUpdate: Function;
 }
 
 const hasUris = (uris: string[] | undefined) => {
@@ -83,7 +85,7 @@ const hasUris = (uris: string[] | undefined) => {
   return true;
 };
 
-function RequestPreview({ request }: Props) {
+function RequestPreview({ request, onUpdate }: Props) {
   if (!request) return null;
 
   return (
@@ -125,6 +127,8 @@ function RequestPreview({ request }: Props) {
           {hasUris(request?.prodValidRedirectUris) && (
             <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />
           )}
+          <br />
+          <MetadataEditModal request={request} onUpdate={onUpdate} />
         </tbody>
       </Table>
     </>
