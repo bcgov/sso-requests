@@ -11,6 +11,10 @@ const H2 = styled.h2`
   margin: 0;
 `;
 
+const H3Large = styled.h3`
+  font-size: 20px;
+`;
+
 const JustifyContent = styled.div`
   display: flex;
   justify-content: space-between;
@@ -94,28 +98,26 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
             <>
               {useSecret ? (
                 <>
-                  <h2>Recommendation: Confidential Client</h2>
-                  <span>
+                  <H3Large>Recommendation: Confidential Client</H3Large>
+                  <p>
                     Based on your response, we recommend that you use a <strong>confidential client.</strong>{' '}
                     Confidential clients have back-end components that securely store an application's secret and use a
                     secure OAuth flow called PKCE, or Proof Key for Code Exchange.
-                  </span>
+                  </p>
                 </>
               ) : (
                 <>
-                  <h2>Recommendation: Public Client</h2>
-                  <span>
+                  <H3Large>Recommendation: Public Client</H3Large>
+                  <p>
                     Public clients do not use back-end secrets, but use a secure OAuth flow called PKCE, or Proof Key
                     for Code Exchange. Based on your responses, the public client may better support your application's
                     architecture.
-                  </span>
+                  </p>
                 </>
               )}
             </>
-            <br />
             <>
-              <span>
-                {` `}
+              <p>
                 To learn more about the difference between confidential and public clients, and to understand what PKCEs
                 better, visit our{' '}
                 <Link
@@ -124,9 +126,8 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
                 >
                   wiki page.
                 </Link>
-              </span>
+              </p>
             </>
-            <br />
           </>
         )}
 
