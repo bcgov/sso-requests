@@ -141,22 +141,20 @@ export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSess
             </tr>
           </thead>
           <tbody>
-            {requests?.map((request: Request) => {
-              return (
-                <tr
-                  className={selectedRequest?.id === request.id ? 'active' : ''}
-                  key={request.id}
-                  onClick={() => handleProjectSelection(request)}
-                >
-                  <td>{padStart(String(request.id), 8, '0')}</td>
-                  <td>{request.projectName}</td>
-                  <td>{getStatusDisplayName(request.status || 'draft')}</td>
-                  <td>
-                    <ActionButtons request={request} />
-                  </td>
-                </tr>
-              );
-            })}
+            {requests?.map((request: Request) => (
+              <tr
+                className={selectedRequest?.id === request.id ? 'active' : ''}
+                key={request.id}
+                onClick={() => handleProjectSelection(request)}
+              >
+                <td>{padStart(String(request.id), 8, '0')}</td>
+                <td>{request.projectName}</td>
+                <td>{getStatusDisplayName(request.status || 'draft')}</td>
+                <td>
+                  <ActionButtons request={request} />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </Table>
       );

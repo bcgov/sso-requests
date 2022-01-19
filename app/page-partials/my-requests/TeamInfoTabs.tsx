@@ -21,10 +21,12 @@ import {
   faTimesCircle,
   faCheckCircle,
   faShare,
+  faEye,
 } from '@fortawesome/free-solid-svg-icons';
 import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
-import ActionButtons from 'components/ActionButtons';
+import ActionButtons, { ActionButton } from 'components/ActionButtons';
+import { $setActiveRequestId, $setTableTab } from 'dispatchers/requestDispatcher';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -175,7 +177,7 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
 };
 
 function TeamInfoTabs({ alert, currentUser }: Props) {
-  const { state } = useContext(RequestsContext);
+  const { state, dispatch } = useContext(RequestsContext);
   const { teams, activeTeamId, requests } = state;
   const [members, setMembers] = useState<User[]>([]);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
@@ -263,6 +265,11 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
         content: `${memberEmail} has successfully been deleted.`,
       });
     }
+  };
+
+  const viewProject = (requestId?: number) => {
+    dispatch($setActiveRequestId(requestId));
+    dispatch($setTableTab('activeProjects'));
   };
 
   const inviteMember = async (member: User) => {
@@ -356,7 +363,9 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
                     <td>{request.id}</td>
                     <td>{request.projectName}</td>
                     <td>
-                      <ActionButtons request={request} />
+                      <ActionButtons request={request}>
+                        <ActionButton icon={faEye} onClick={() => viewProject(request.id)} size="lg" />
+                      </ActionButtons>
                     </td>
                   </tr>
                 ))}

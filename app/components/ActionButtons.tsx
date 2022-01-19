@@ -33,9 +33,10 @@ export const VerticalLine = styled.div`
 
 interface Props {
   request: Request;
+  children?: any;
 }
 
-export default function Actionbuttons({ request }: Props) {
+export default function Actionbuttons({ request, children }: Props) {
   const { state, dispatch } = useContext(RequestsContext);
 
   const router = useRouter();
@@ -44,12 +45,12 @@ export default function Actionbuttons({ request }: Props) {
   const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
 
   const handleEdit = async (event: MouseEvent) => {
-    if (!canEdit) return;
     event.stopPropagation();
+    if (!canEdit) return;
     await router.push(`/request/${request.id}`);
   };
 
-  const handleDelete = async (event: MouseEvent) => {
+  const handleDelete = async () => {
     if (!request.id || !canDelete) return;
     dispatch($setRequestToDelete(request.id));
     window.location.hash = 'delete-modal';
@@ -77,6 +78,7 @@ export default function Actionbuttons({ request }: Props) {
           title="Delete"
           size="lg"
         />
+        {children}
       </ActionButtonContainer>
     </>
   );

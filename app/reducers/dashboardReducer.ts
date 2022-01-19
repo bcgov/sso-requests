@@ -57,7 +57,7 @@ const reducer = (state: DashboardReducerState, action: Action) => {
       return { ...state, teams: action.payload };
     }
     case 'setTableTab': {
-      return { ...state, tableTab: action.payload, activeTeamId: undefined, activeRequestId: undefined };
+      return { ...state, tableTab: action.payload };
     }
     case 'setPanelTab': {
       return { ...state, panelTab: action.payload };
