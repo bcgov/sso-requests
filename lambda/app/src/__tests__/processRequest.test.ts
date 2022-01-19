@@ -25,16 +25,21 @@ const data: any = {
 };
 
 it('should order the URIs', () => {
-  const processedData = processRequest(data);
+  const processedData = processRequest(data, false);
   expect(processedData.devValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
   expect(processedData.testValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
   expect(processedData.prodValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
 });
 
 it('should process the environments', () => {
-  const processedData = processRequest(data);
+  const processedData = processRequest(data, false);
   expect(processedData.environments).toEqual(['dev', 'test']);
 
   const allEnvs = { ...data, prod: true };
-  expect(processRequest(allEnvs).environments).toEqual(['dev', 'test', 'prod']);
+  expect(processRequest(allEnvs, false).environments).toEqual(['dev', 'test', 'prod']);
+});
+
+it('should omit the realm for merged requests', () => {
+  const processedData = processRequest(data, true);
+  expect(processedData.realm).toBeUndefined();
 });

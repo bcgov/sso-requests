@@ -24,6 +24,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
+import ActionButtons from 'components/ActionButtons';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -343,6 +344,7 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
                   <th>Status</th>
                   <th>Request ID</th>
                   <th>Project Name</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -353,6 +355,9 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
                     </td>
                     <td>{request.id}</td>
                     <td>{request.projectName}</td>
+                    <td>
+                      <ActionButtons request={request} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

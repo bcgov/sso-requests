@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-requests';
 import { Request } from 'interfaces/Request';
-import { $setActiveRequestId, $setEditingRequest, $setPanelTab } from 'dispatchers/requestDispatcher';
+import { $setRequestToDelete } from 'dispatchers/requestDispatcher';
 import { PRIMARY_RED } from 'styles/theme';
 
 export const ActionButtonContainer = styled.div`
@@ -39,25 +39,19 @@ export default function Actionbuttons({ request }: Props) {
   const { state, dispatch } = useContext(RequestsContext);
 
   const router = useRouter();
-  const { editingRequest, activeRequestId } = state;
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
   const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
 
   const handleEdit = async (event: MouseEvent) => {
-    if (request.status === 'draft') return router.push(`/request/${request.id}`);
-    dispatch($setPanelTab('configuration-url'));
+    if (!canEdit) return;
     event.stopPropagation();
-    if (activeRequestId === request.id) {
-      dispatch($setEditingRequest(!editingRequest));
-    } else {
-      dispatch($setEditingRequest(true));
-      dispatch($setActiveRequestId(request.id));
-    }
+    await router.push(`/request/${request.id}`);
   };
 
   const handleDelete = async (event: MouseEvent) => {
     if (!request.id || !canDelete) return;
+    dispatch($setRequestToDelete(request.id));
     window.location.hash = 'delete-modal';
   };
 

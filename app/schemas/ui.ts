@@ -40,6 +40,7 @@ const getUISchema = (created: boolean) => {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
       'ui:default': 'onestopauth',
+      'ui:readonly': created,
     },
     bceidTo: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
