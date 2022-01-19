@@ -73,7 +73,7 @@ const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
 interface Props {
   request: Request;
   hasBceid: boolean;
-  isAdmin?: boolean;
+  children?: React.ReactNode;
 }
 
 const hasUris = (uris: string[] | undefined) => {
@@ -83,7 +83,7 @@ const hasUris = (uris: string[] | undefined) => {
   return true;
 };
 
-function RequestPreview({ request }: Props) {
+function RequestPreview({ children, request }: Props) {
   if (!request) return null;
 
   return (
@@ -125,6 +125,7 @@ function RequestPreview({ request }: Props) {
           {hasUris(request?.prodValidRedirectUris) && (
             <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />
           )}
+          {children}
         </tbody>
       </Table>
     </>

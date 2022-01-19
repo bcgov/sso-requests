@@ -358,3 +358,29 @@ const hasRequestWithFailedApplyStatus = async () => {
     return [null, err];
   }
 };
+
+export const updateRequestMetadata = async (
+  session: Session,
+  user: User,
+  data: { id: number; idirUserid: string; status: string },
+) => {
+  if (!session.client_roles?.includes('sso-admin')) {
+    throw Error('not allowed');
+  }
+
+  const { id, idirUserid, status } = data;
+  const result = await models.request.update(
+    { idirUserid, status },
+    {
+      where: { id },
+      returning: true,
+      plain: true,
+    },
+  );
+
+  if (result.length < 2) {
+    throw Error('update failed');
+  }
+
+  return result[1].dataValues;
+};

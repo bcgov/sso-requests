@@ -221,10 +221,10 @@ function Table({
             </Grid.Col>
             <Grid.Col span={8} style={{ textAlign: 'right' }}>
               <FiltersContainer itemsLength={filters.length}>
-                {filters.map((filter) => (
-                  <>
+                {filters.map((filter, index) => (
+                  <Label key={index}>
                     {filter.multiselect ? (
-                      <Label>
+                      <>
                         {filter.label}
                         <StyledMultiSelect
                           className="multiselect"
@@ -234,9 +234,9 @@ function Table({
                           labelledBy="Select"
                           hasSelectAll={false}
                         />
-                      </Label>
+                      </>
                     ) : (
-                      <Label>
+                      <>
                         {filter.label}
                         <Dropdown
                           onChange={filter.onChange}
@@ -251,9 +251,9 @@ function Table({
                             </option>
                           ))}
                         </Dropdown>
-                      </Label>
+                      </>
                     )}
-                  </>
+                  </Label>
                 ))}
               </FiltersContainer>
             </Grid.Col>

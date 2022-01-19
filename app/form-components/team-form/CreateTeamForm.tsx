@@ -5,10 +5,9 @@ import { Button } from '@bcgov-sso/common-react-components';
 import { v4 as uuidv4 } from 'uuid';
 import { createTeam } from 'services/team';
 import Loader from 'react-loader-spinner';
-import { User } from 'interfaces/team';
+import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import TeamMembersForm from './TeamMembersForm';
-import { UserSession } from 'interfaces/props';
 
 const ButtonsContainer = styled.div`
   display: flex;
@@ -21,7 +20,7 @@ const ButtonsContainer = styled.div`
 
 interface Props {
   onSubmit: Function;
-  currentUser: UserSession;
+  currentUser: LoggedInUser;
 }
 
 export interface Errors {

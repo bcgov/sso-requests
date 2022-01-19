@@ -10,6 +10,7 @@ import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';
 import { updateRequest } from 'services/request';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
+import { LoggedInUser } from 'interfaces/team';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -19,6 +20,7 @@ const TabWrapper = styled.div`
 export type TabKey = 'details' | 'configuration-url' | 'events';
 
 interface Props {
+  currentUser: LoggedInUser;
   selectedRequest?: Request;
   defaultTabKey: TabKey;
   setActiveKey: Function;
@@ -26,7 +28,14 @@ interface Props {
   setRows: Function;
 }
 
-function AdminTabs({ selectedRequest, defaultTabKey, setActiveKey, setRows, activeKey = defaultTabKey }: Props) {
+function AdminTabs({
+  currentUser,
+  selectedRequest,
+  defaultTabKey,
+  setActiveKey,
+  setRows,
+  activeKey = defaultTabKey,
+}: Props) {
   if (!selectedRequest) return null;
   const { realm, prod, status, bceidApproved } = selectedRequest;
   const hasBceid = usesBceid(realm);
@@ -80,7 +89,7 @@ function AdminTabs({ selectedRequest, defaultTabKey, setActiveKey, setRows, acti
       <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
         <Tab eventKey="details" title="Details">
           <TabWrapper>
-            <AdminRequestPanel request={selectedRequest} />
+            <AdminRequestPanel currentUser={currentUser} request={selectedRequest} onUpdate={setRows} />
           </TabWrapper>
         </Tab>
         {hasBceid && (

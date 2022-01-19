@@ -5,10 +5,9 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from 'interfaces/team';
+import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import { Errors } from './CreateTeamForm';
-import { UserSession } from 'interfaces/props';
 
 const Container = styled.div`
   display: grid;
@@ -61,7 +60,7 @@ interface Props {
   members: User[];
   setMembers: Function;
   allowDelete?: boolean;
-  currentUser: UserSession | null;
+  currentUser: LoggedInUser | null;
 }
 
 export default function TeamForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
