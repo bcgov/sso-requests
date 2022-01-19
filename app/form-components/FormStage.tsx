@@ -8,7 +8,7 @@ interface Props {
   setFormStage: Function;
   errors: any;
   visited: any;
-  creatingNewForm: Function;
+  creatingNewForm: boolean;
   stages: Stage[];
 }
 
@@ -20,7 +20,7 @@ const Container = styled.div`
 export default function Formstage({ currentStage, setFormStage, errors, creatingNewForm, visited, stages }: Props) {
   const handleClick = (stage: number) => {
     // Disable navigation if record is not yet created
-    if (creatingNewForm()) return;
+    if (creatingNewForm) return;
     setFormStage(stage);
   };
 
