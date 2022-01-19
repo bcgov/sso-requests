@@ -99,7 +99,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }:
   return (
     <div>
       <NumberedContents title="Please review your information to make sure it is correct." number={1}>
-        <RequestPreview request={formData} hasBceid={hasBceid || false} isAdmin={isAdmin} />
+        <RequestPreview request={formData} hasBceid={hasBceid || false} />
       </NumberedContents>
 
       <NumberedContents

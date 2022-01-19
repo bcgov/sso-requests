@@ -15,4 +15,6 @@ export interface User {
 export interface LoggedInUser {
   email?: string;
   client_roles?: string[];
+  roles?: string[];
+  isAdmin?: boolean;
 }

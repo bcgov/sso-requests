@@ -21,6 +21,7 @@ import {
   getRequest,
   updateRequest,
   deleteRequest,
+  updateRequestMetadata,
 } from './controllers/requests';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
@@ -184,6 +185,17 @@ export const setRoutes = (app: any) => {
       const session = await authenticate(req.headers);
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
       const result = await getRequest(session as Session, req.user, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.put(`${BASE_PATH}/request-metadata`, async (req, res) => {
+    try {
+      const session = await authenticate(req.headers);
+      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+      const result = await updateRequestMetadata(session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });

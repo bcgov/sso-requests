@@ -83,3 +83,12 @@ export const deleteRequest = async (id?: number): Promise<[Request[], null] | [n
     return handleAxiosError(err);
   }
 };
+
+export const updateRequestMetadata = async (data: Request): Promise<[Request, null] | [null, AxiosError]> => {
+  try {
+    const result = await instance.put('request-metadata', data).then((res) => res.data);
+    return [processRequest(result), null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};
