@@ -9,7 +9,7 @@ export const nonBceidSchemas = (teams: Team[]) => [
   providersSchema,
   termsAndConditionsSchema,
 ];
-export const adminNonBceidSchemas = (teams: Team[]) => [
+export const appliedNonBceidSchemas = (teams: Team[]) => [
   getRequesterInfoSchema(teams),
   providersSchema,
   adminCommentSchema,

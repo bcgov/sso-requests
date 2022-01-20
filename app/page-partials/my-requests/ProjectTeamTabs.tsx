@@ -8,7 +8,6 @@ import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import {
-  $setEditingRequest,
   $setActiveRequestId,
   $setTableTab,
   $setActiveTeamId,
@@ -107,7 +106,6 @@ export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSess
   const handleProjectSelection = async (request: Request) => {
     if (activeRequestId === request.id) return;
     dispatch($setActiveRequestId(request.id));
-    dispatch($setEditingRequest(false));
   };
 
   const handleTeamSelection = async (team: Team) => dispatch($setActiveTeamId(team?.id));
@@ -143,22 +141,20 @@ export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSess
             </tr>
           </thead>
           <tbody>
-            {requests?.map((request: Request) => {
-              return (
-                <tr
-                  className={selectedRequest?.id === request.id ? 'active' : ''}
-                  key={request.id}
-                  onClick={() => handleProjectSelection(request)}
-                >
-                  <td>{padStart(String(request.id), 8, '0')}</td>
-                  <td>{request.projectName}</td>
-                  <td>{getStatusDisplayName(request.status || 'draft')}</td>
-                  <td>
-                    <ActionButtons request={request} />
-                  </td>
-                </tr>
-              );
-            })}
+            {requests?.map((request: Request) => (
+              <tr
+                className={selectedRequest?.id === request.id ? 'active' : ''}
+                key={request.id}
+                onClick={() => handleProjectSelection(request)}
+              >
+                <td>{padStart(String(request.id), 8, '0')}</td>
+                <td>{request.projectName}</td>
+                <td>{getStatusDisplayName(request.status || 'draft')}</td>
+                <td>
+                  <ActionButtons request={request} />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </Table>
       );
@@ -201,7 +197,7 @@ export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSess
 
   return (
     <>
-      <RequestTabs onSelect={(key: string) => dispatch($setTableTab(key))}>
+      <RequestTabs onSelect={(key: string) => dispatch($setTableTab(key))} activeKey={tableTab}>
         <Tab eventKey="activeProjects" title="My Projects" />
         <Tab eventKey="activeTeams" title="My Teams" />
       </RequestTabs>

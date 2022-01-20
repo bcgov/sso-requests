@@ -55,10 +55,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [showAccountableError, setShowAccountableError] = useState(false);
   const router = useRouter();
+  const isApplied: boolean = request?.status === 'applied';
   const isAdmin: boolean = currentUser.isAdmin || false;
 
-  const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isAdmin, formStage, teams });
-  const showFormButtons = !isAdmin && (formStage !== 0 || formData.usesTeam || formData.projectLead);
+  const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isApplied, formStage, teams });
+  const showFormButtons = !isApplied && (formStage !== 0 || formData.usesTeam || formData.projectLead);
 
   const handleChange = (e: any) => {
     const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
@@ -117,15 +118,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const creatingNewForm = () => router.route.endsWith('/request');
+  const creatingNewForm = router.route.endsWith('/request');
 
-  const uiSchema = getUiSchema(!creatingNewForm());
+  const uiSchema = getUiSchema(!creatingNewForm, isApplied);
 
   const handleFormSubmit = async () => {
     setLoading(true);
 
     try {
-      if (creatingNewForm()) {
+      if (creatingNewForm) {
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
 
@@ -148,7 +149,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const handleButtonSubmit = async () => {
     if (formStage === 0) {
-      if (creatingNewForm()) {
+      if (creatingNewForm) {
         visited[formStage] = true;
         setVisited(visited);
         return;
@@ -160,7 +161,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const handleBlur = async (id: string, value: any) => {
-    if (creatingNewForm() || isAdmin) return;
+    if (creatingNewForm || isApplied) return;
     if (request) {
       setSaving(true);
       const [, err] = await updateRequest({ ...formData, id: request.id });
@@ -218,7 +219,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
           onBlur={handleBlur}
-          liveValidate={visited[formStage] || isAdmin}
+          liveValidate={visited[formStage] || isApplied}
           validate={customValidate}
         >
           <FormButtons

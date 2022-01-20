@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
-import ConfigurationUrlPanel from 'components/ConfigurationUrlPanel';
+import SecretsPanel from 'page-partials/my-requests/SecretsPanel';
 import { getStatusDisplayName } from 'utils/status';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
@@ -87,9 +87,9 @@ function RequestInfoTabs() {
               <InstallationPanel selectedRequest={selectedRequest} />
             </TabWrapper>
           </Tab>
-          <Tab eventKey="configuration-url" title="URIs & Secrets">
+          <Tab eventKey="configuration-url" title="Secrets">
             <TabWrapper>
-              <ConfigurationUrlPanel selectedRequest={selectedRequest} />
+              <SecretsPanel selectedRequest={selectedRequest} />
             </TabWrapper>
           </Tab>
           <Tab eventKey="history" title="History">

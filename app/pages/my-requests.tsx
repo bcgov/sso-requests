@@ -7,7 +7,7 @@ import { getTeams } from 'services/team';
 import { Request } from 'interfaces/Request';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
-import RequestInfoTabs from 'components/RequestInfoTabs';
+import RequestInfoTabs from 'page-partials/my-requests/RequestInfoTabs';
 import TeamInfoTabs from 'page-partials/my-requests/TeamInfoTabs';
 import {
   $setRequests,
@@ -54,7 +54,7 @@ function RequestsPage({ currentUser }: PageProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { requests = [], activeRequestId, activeTeamId, teams } = state;
+  const { requests = [], activeRequestId, activeTeamId, teams, tableTab, requestIdToDelete } = state;
   const selectedRequest = requests?.find((request: Request) => request.id === Number(activeRequestId));
   const selectedTeam = teams?.find((team: Team) => team.id === Number(activeTeamId));
   const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
@@ -86,8 +86,8 @@ function RequestsPage({ currentUser }: PageProps) {
 
   const confirmDelete = async () => {
     if (!canDelete) return;
-    const [_deletedRequest, _err] = await deleteRequest(activeRequestId);
-    dispatch($deleteRequest(activeRequestId || null));
+    const [_deletedRequest, _err] = await deleteRequest(requestIdToDelete);
+    dispatch($deleteRequest(requestIdToDelete || null));
     getData();
     window.location.hash = '#';
   };
@@ -109,9 +109,7 @@ function RequestsPage({ currentUser }: PageProps) {
           clearInterval(interval);
         } else {
           let downloadedRequests = data || [];
-          if (!state.editingRequest) {
-            dispatch($setRequests(downloadedRequests));
-          }
+          dispatch($setRequests(downloadedRequests));
         }
       }, 1000 * 5);
     }
@@ -119,7 +117,7 @@ function RequestsPage({ currentUser }: PageProps) {
     return () => {
       interval && clearInterval(interval);
     };
-  }, [state.requests, state.editingRequest]);
+  }, [state.requests]);
 
   if (loading) return <PageLoader />;
 

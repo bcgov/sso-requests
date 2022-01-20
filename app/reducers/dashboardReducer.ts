@@ -5,18 +5,17 @@ export interface DashboardReducerState {
   requests?: Request[];
   loadingInstallation?: boolean;
   installation?: object;
-  editingRequest?: boolean;
   teams?: Team[];
   activeRequestId?: number;
   activeTeamId?: number;
   tableTab?: string;
   panelTab?: string;
   downloadError?: boolean;
+  requestIdToDelete?: number;
 }
 
 export type ActionTypes =
   | 'setRequests'
-  | 'setEditingRequest'
   | 'updateRequest'
   | 'deleteRequest'
   | 'setTeams'
@@ -25,7 +24,8 @@ export type ActionTypes =
   | 'setPanelTab'
   | 'setActiveRequestId'
   | 'setActiveTeamId'
-  | 'setDownloadError';
+  | 'setDownloadError'
+  | 'setRequestIdToDelete';
 
 export interface Action {
   type: ActionTypes;
@@ -40,8 +40,6 @@ const reducer = (state: DashboardReducerState, action: Action) => {
   switch (action.type) {
     case 'setRequests':
       return { ...state, requests: action.payload };
-    case 'setEditingRequest':
-      return { ...state, editingRequest: action.payload };
     case 'updateRequest': {
       const { requests } = state;
       const newRequests = requests?.map((request) => {
@@ -59,7 +57,7 @@ const reducer = (state: DashboardReducerState, action: Action) => {
       return { ...state, teams: action.payload };
     }
     case 'setTableTab': {
-      return { ...state, tableTab: action.payload, activeTeamId: undefined, activeRequestId: undefined };
+      return { ...state, tableTab: action.payload };
     }
     case 'setPanelTab': {
       return { ...state, panelTab: action.payload };
@@ -69,6 +67,9 @@ const reducer = (state: DashboardReducerState, action: Action) => {
     }
     case 'setActiveTeamId': {
       return { ...state, activeTeamId: action.payload, activeRequestId: undefined };
+    }
+    case 'setRequestIdToDelete': {
+      return { ...state, requestIdToDelete: action.payload };
     }
     default:
       return state;

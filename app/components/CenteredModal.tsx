@@ -11,7 +11,7 @@ const StyledModal = styled(Modal)`
   align-items: center;
 
   & .pg-modal-main {
-    max-width: 600px;
+    max-width: 700px;
     margin: auto;
     box-shadow: 5px 5px 10px black;
   }

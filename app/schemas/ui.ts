@@ -3,7 +3,7 @@ import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
 import AddTeamWidget from 'form-components/AddTeamWidget';
 import ClientTypeWidget from 'form-components/widgets/ClientTypeWidget';
 
-const getUISchema = (created: boolean) => {
+const getUISchema = (created: boolean, applied: boolean = false) => {
   return {
     identityProviders: {
       'ui:widget': 'checkboxes',
@@ -40,6 +40,7 @@ const getUISchema = (created: boolean) => {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
       'ui:default': 'onestopauth',
+      'ui:readonly': applied,
     },
     bceidTo: {
       'ui:FieldTemplate': FieldTemplateNoTitle,

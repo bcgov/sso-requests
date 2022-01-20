@@ -89,7 +89,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = session.given_name + ' ' + session.family_name;
   const { id, comment, bceidEmailDetails, ...rest } = data;
-  const [isUpdate] = await requestHasBeenMerged(id);
+  const [isMerged] = await requestHasBeenMerged(id);
 
   try {
     const where = getWhereClauseForRequest(session, user, data.id);
@@ -100,7 +100,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       throw Error('unauthorized request');
     }
 
-    const allowedRequest = processRequest(rest);
+    const allowedRequest = processRequest(rest, isMerged);
     const mergedRequest = { ...original.dataValues, ...allowedRequest };
 
     const isApprovingBceid = !original.dataValues.bceidApproved && mergedRequest.bceidApproved;
@@ -108,7 +108,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
     const usersTeams = await getUsersTeams(user);
 
     if (submit) {
-      const isValid = validateRequest(mergedRequest, original.dataValues, isUpdate, usersTeams);
+      const isValid = validateRequest(mergedRequest, original.dataValues, isMerged, usersTeams);
       if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedRequest }));
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
@@ -143,17 +143,17 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
 
       let emailCode: EmailMessage;
       let cc = [];
-      if (isUpdate && isApprovingBceid) {
+      if (isMerged && isApprovingBceid) {
         emailCode = 'bceid-request-approved';
         cc.push(IDIM_EMAIL_ADDRESS);
-      } else if (isUpdate) emailCode = 'uri-change-request-submitted';
+      } else if (isMerged) emailCode = 'uri-change-request-submitted';
       else if (hasBceidProd) {
         emailCode = 'bceid-user-prod-submitted';
         cc.push(IDIM_EMAIL_ADDRESS);
       } else emailCode = 'create-request-submitted';
 
       const to = getEmailList(original);
-      const event = isUpdate ? 'update' : 'submission';
+      const event = isMerged ? 'update' : 'submission';
 
       await Promise.all([
         sendEmail({
@@ -188,7 +188,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
         idirUserDisplayName,
       };
 
-      if (isUpdate) {
+      if (isMerged) {
         const details: any = { changes: getDifferences(mergedRequest, original.dataValues) };
         if (userIsAdmin && comment) details.comment = comment;
 
@@ -203,7 +203,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
   } catch (err) {
     if (submit) {
       const eventData = {
-        eventCode: isUpdate ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
+        eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
         requestId: id,
         idirUserid: session.idir_userid,
         idirUserDisplayName,

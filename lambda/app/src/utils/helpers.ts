@@ -73,8 +73,9 @@ const sortURIFields = (data: any) => {
   return sortedData;
 };
 
-export const processRequest = (data: any) => {
+export const processRequest = (data: any, isMerged: boolean) => {
   const immutableFields = ['idirUserid', 'projectLead', 'clientName', 'status'];
+  if (isMerged) immutableFields.push('realm');
   const allowedRequest = omit(data, immutableFields);
   const sortedRequest = sortURIFields(allowedRequest);
   sortedRequest.environments = processEnvironments(sortedRequest);

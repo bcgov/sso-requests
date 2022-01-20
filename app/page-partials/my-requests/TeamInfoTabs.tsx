@@ -21,9 +21,12 @@ import {
   faTimesCircle,
   faCheckCircle,
   faShare,
+  faEye,
 } from '@fortawesome/free-solid-svg-icons';
 import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
+import ActionButtons, { ActionButton } from 'components/ActionButtons';
+import { $setActiveRequestId, $setTableTab } from 'dispatchers/requestDispatcher';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -174,7 +177,7 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
 };
 
 function TeamInfoTabs({ alert, currentUser }: Props) {
-  const { state } = useContext(RequestsContext);
+  const { state, dispatch } = useContext(RequestsContext);
   const { teams, activeTeamId, requests } = state;
   const [members, setMembers] = useState<User[]>([]);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
@@ -264,6 +267,11 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
     }
   };
 
+  const viewProject = (requestId?: number) => {
+    dispatch($setActiveRequestId(requestId));
+    dispatch($setTableTab('activeProjects'));
+  };
+
   const inviteMember = async (member: User) => {
     if (!activeTeamId) return;
     const [, err] = await inviteTeamMember(member, activeTeamId);
@@ -343,6 +351,7 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
                   <th>Status</th>
                   <th>Request ID</th>
                   <th>Project Name</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -353,6 +362,11 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
                     </td>
                     <td>{request.id}</td>
                     <td>{request.projectName}</td>
+                    <td>
+                      <ActionButtons request={request}>
+                        <ActionButton icon={faEye} onClick={() => viewProject(request.id)} size="lg" />
+                      </ActionButtons>
+                    </td>
                   </tr>
                 ))}
               </tbody>
