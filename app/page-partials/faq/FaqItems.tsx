@@ -12,7 +12,6 @@ export default function FaqItems({ children }: Props) {
       <h2>Frequently Asked Questions</h2>
       <Accordion>
         {children ? children : <></>}
-
         <Accordion.Panel title="Q. Which Identity Provider Should I Use?">
           <p>
             <ul>
@@ -70,7 +69,6 @@ export default function FaqItems({ children }: Props) {
             </ul>
           </p>
         </Accordion.Panel>
-
         <Accordion.Panel title="Q. What is the difference between confidential and public client types?">
           <p>
             The short answer is that <b>confidential clients</b> can keep a secret while <b>public clients</b> do not
