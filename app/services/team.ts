@@ -57,3 +57,12 @@ export const inviteTeamMember = async (user: User, teamId: number) => {
     return handleAxiosError(err);
   }
 };
+
+export const deleteTeam = async (teamId?: number) => {
+  try {
+    const result = await instance.delete(`teams/${teamId}`).then((res) => res.data);
+    return [result, null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};

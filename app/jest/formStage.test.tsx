@@ -24,7 +24,6 @@ describe('Form Stage', () => {
     );
     fireEvent.click(screen.getByText('Providers and URIs'));
     expect(setFormStage).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByText('Terms and conditions'));
   });
 
   it('Displays error states correctly', () => {

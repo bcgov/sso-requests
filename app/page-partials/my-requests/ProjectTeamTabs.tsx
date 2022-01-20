@@ -13,6 +13,7 @@ import {
   $setActiveTeamId,
   $setTeams,
   $setDownloadError,
+  $setTeamIdToDelete,
 } from 'dispatchers/requestDispatcher';
 import { Button } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
@@ -20,11 +21,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faExclamationCircle, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Team } from 'interfaces/team';
 import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import { getTeams } from 'services/team';
+import { getTeams, deleteTeam } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import CenteredModal from 'components/CenteredModal';
 import { createTeamModalId } from 'utils/constants';
 import { UserSession } from 'interfaces/props';
+import WarningModalContents from 'components/WarningModalContents';
+
+const deleteTeamModalId = 'delete-team-modal';
 
 const CenteredHeader = styled.th`
   text-align: center;
@@ -95,13 +99,23 @@ const NewEntityButton = ({
   return null;
 };
 
-export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSession }) {
+const teamHasIntegrationsMessage =
+  'Before you delete this team, you will need to delete the integration(s) the team is responsible for.';
+const teamHasNoIntegrationsMessage = 'Once you delete this team, this action cannot be undone.';
+
+interface Props {
+  currentUser: UserSession;
+}
+
+export default function ProjectTeamTabs({ currentUser }: Props) {
   const router = useRouter();
   const { state, dispatch } = useContext(RequestsContext);
-  const { requests, teams, activeRequestId, tableTab, downloadError, activeTeamId } = state;
+  const { requests, teams, activeRequestId, tableTab, downloadError, activeTeamId, teamIdToDelete } = state;
 
   const selectedRequest = requests?.find((request) => request.id === activeRequestId);
   const selectedTeam = teams?.find((team) => team.id === activeTeamId);
+  const teamRequests = requests?.filter((request) => Number(request.teamId) === activeTeamId);
+  const teamHasIntegrations = teamRequests && teamRequests.length > 0;
 
   const handleProjectSelection = async (request: Request) => {
     if (activeRequestId === request.id) return;
@@ -124,6 +138,11 @@ export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSess
   useEffect(() => {
     loadTeams();
   }, []);
+
+  const showDeleteModal = async (teamId: number) => {
+    window.location.hash = deleteTeamModalId;
+    dispatch($setTeamIdToDelete(teamId));
+  };
 
   const getTableContents = (tableTab?: string) => {
     if (downloadError) return SystemUnavailableMessage;
@@ -182,7 +201,14 @@ export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSess
                     <td>
                       <ActionButtonContainer>
                         <ActionButton icon={faEdit} role="button" aria-label="edit" title="Edit" size="lg" />
-                        <ActionButton icon={faTrash} role="button" aria-label="edit" title="Edit" size="lg" />
+                        <ActionButton
+                          icon={faTrash}
+                          role="button"
+                          aria-label="edit"
+                          title="Edit"
+                          size="lg"
+                          onClick={() => showDeleteModal(team.id)}
+                        />
                       </ActionButtonContainer>
                     </td>
                   </tr>
@@ -194,6 +220,12 @@ export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSess
   };
 
   const content = getTableContents(tableTab);
+
+  const handleDeleteTeam = async () => {
+    if (teamHasIntegrations) return;
+    await deleteTeam(teamIdToDelete);
+    await loadTeams();
+  };
 
   return (
     <>
@@ -218,6 +250,21 @@ export default function ProjectTeamTabs({ currentUser }: { currentUser: UserSess
         content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
         showCancel={false}
         showConfirm={false}
+        closable
+      />
+      <CenteredModal
+        title="Delete team"
+        icon={null}
+        onConfirm={handleDeleteTeam}
+        id={deleteTeamModalId}
+        content={
+          <WarningModalContents
+            title="Are you sure that you want to delete this team?"
+            content={teamHasIntegrations ? teamHasIntegrationsMessage : teamHasNoIntegrationsMessage}
+          />
+        }
+        buttonStyle={teamHasIntegrations ? 'custom' : 'danger'}
+        confirmText={teamHasIntegrations ? 'Okay' : 'Delete Team'}
         closable
       />
     </>

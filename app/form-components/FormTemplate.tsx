@@ -134,7 +134,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           setLoading(false);
           return;
         }
-        const redirectUrl = isAdmin ? '/admin-dashboard' : `/request/${id}`;
+        const redirectUrl = isAdmin && isApplied ? '/admin-dashboard' : `/request/${id}`;
         await router.push({ pathname: redirectUrl });
         setFormData({ ...formData, id });
       } else {

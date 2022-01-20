@@ -27,6 +27,7 @@ import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import { $setActiveRequestId, $setTableTab } from 'dispatchers/requestDispatcher';
+import ModalContents from 'components/WarningModalContents';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -75,25 +76,6 @@ interface Props {
   alert: any;
   currentUser: UserSession;
 }
-
-const RedIcon = styled(FontAwesomeIcon)`
-  color: #ff0303;
-`;
-
-const ModalContentContainer = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 6fr;
-`;
-
-const ModalContents = ({ title, content }: { title?: string; content?: string }) => (
-  <ModalContentContainer>
-    <RedIcon icon={faExclamationCircle} size="3x" />
-    <div>
-      {title && <strong>{title}</strong>}
-      {content && <p>{content}</p>}
-    </div>
-  </ModalContentContainer>
-);
 
 const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Function; type: string }) => {
   let props: { confirmText: string; buttonStyle: ButtonStyle; onConfirm?: Function } = {

@@ -73,6 +73,17 @@ export const updateTeam = async (user: User, id: string, data: { name: string })
 };
 
 export const deleteTeam = async (user: User, id: string) => {
+  // Clear fkey from teams archived requests
+  await models.request.update(
+    { teamId: null },
+    {
+      where: {
+        teamId: id,
+        archived: true,
+      },
+    },
+  );
+
   const result = await models.team.destroy({
     where: {
       id,
@@ -121,7 +132,7 @@ export const getUsersOnTeam = async (teamId: number) => {
     });
 };
 
-export const userCanEditTeam = async (user: User, teamId: number) => {
+export const userIsTeamAdmin = async (user: User, teamId: number) => {
   const { id } = user;
   return models.usersTeam.findOne({
     where: {

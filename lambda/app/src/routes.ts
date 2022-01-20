@@ -9,7 +9,7 @@ import {
   verifyTeamMember,
   getUsersOnTeam,
   updateTeam,
-  userCanEditTeam,
+  userIsTeamAdmin,
   userCanReadTeam,
   removeUserFromTeam,
 } from './controllers/team';
@@ -284,7 +284,7 @@ export const setRoutes = (app: any) => {
   app.post(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userCanEditTeam(req.user, id);
+      const authorized = await userIsTeamAdmin(req.user, id);
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await addUsersToTeam(id, req.body);
@@ -297,7 +297,7 @@ export const setRoutes = (app: any) => {
   app.delete(`${BASE_PATH}/teams/:id/members/:memberId`, async (req, res) => {
     try {
       const { id, memberId } = req.params;
-      const authorized = await userCanEditTeam(req.user, id);
+      const authorized = await userIsTeamAdmin(req.user, id);
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await removeUserFromTeam(memberId, id);
@@ -324,7 +324,7 @@ export const setRoutes = (app: any) => {
   app.post(`${BASE_PATH}/teams/:id/invite`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userCanEditTeam(req.user, id);
+      const authorized = await userIsTeamAdmin(req.user, id);
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
       await inviteTeamMembers([req.body], id);
@@ -338,6 +338,9 @@ export const setRoutes = (app: any) => {
   app.delete(`${BASE_PATH}/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to delete this team' });
       const result = await deleteTeam(req.user, id);
       res.status(200).json(result);
     } catch (err) {

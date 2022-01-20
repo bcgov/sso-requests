@@ -18,6 +18,10 @@ export const $setRequestToDelete = (payload: number | null): Action => {
   return { type: 'setRequestIdToDelete', payload };
 };
 
+export const $setTeamIdToDelete = (payload: number | null): Action => {
+  return { type: 'setTeamIdToDelete', payload };
+};
+
 export const $setTeams = (payload: Team[] | null): Action => {
   return { type: 'setTeams', payload };
 };
