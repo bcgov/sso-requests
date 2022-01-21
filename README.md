@@ -172,4 +172,7 @@ select events.created_at from events join requests on requests.id = events.reque
 
 -- (initial )time request was fulfilled (dev, test, and prod)
 select events.created_at from events join requests on requests.id = events.request_id where requests.id=1 and events.event_code = 'request-apply-success';
+
+-- get all clients. note the null are those that have not submittted request (zs)
+select client_name, preferred_email from requests where archived = false;
 ```

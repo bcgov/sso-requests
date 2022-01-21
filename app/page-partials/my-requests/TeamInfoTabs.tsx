@@ -327,6 +327,7 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
         </Tab>
         <Tab eventKey="integrations" title="Integrations">
           <TabWrapper>
+            <br />
             <Table variant="mini" readOnly>
               <thead>
                 <tr>
