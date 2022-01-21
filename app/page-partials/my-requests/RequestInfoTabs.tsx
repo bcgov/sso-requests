@@ -87,11 +87,13 @@ function RequestInfoTabs() {
               <InstallationPanel selectedRequest={selectedRequest} />
             </TabWrapper>
           </Tab>
-          <Tab eventKey="configuration-url" title="Secrets">
-            <TabWrapper>
-              <SecretsPanel selectedRequest={selectedRequest} />
-            </TabWrapper>
-          </Tab>
+          {!selectedRequest.publicAccess && (
+            <Tab eventKey="configuration-url" title="Secrets">
+              <TabWrapper>
+                <SecretsPanel selectedRequest={selectedRequest} />
+              </TabWrapper>
+            </Tab>
+          )}
           <Tab eventKey="history" title="History">
             <TabWrapper>
               <UserEventPanel requestId={selectedRequest.id} />
