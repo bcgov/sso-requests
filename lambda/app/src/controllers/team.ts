@@ -74,7 +74,7 @@ export const updateTeam = async (user: User, id: string, data: { name: string })
 
 export const deleteTeam = async (user: User, id: string) => {
   // Clear fkey from teams archived requests
-  const requestUpdate = await models.request.update(
+  await models.request.update(
     { teamId: null },
     {
       where: {
@@ -82,10 +82,9 @@ export const deleteTeam = async (user: User, id: string) => {
         archived: true,
       },
       returning: true,
+      omitNull: false,
     },
   );
-
-  console.info(requestUpdate, JSON.stringify(requestUpdate, null, 2));
 
   const result = await models.team.destroy({
     where: {

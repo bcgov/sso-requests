@@ -51,7 +51,7 @@ export const RequestsContext = React.createContext({} as { dispatch: Function; s
 
 function RequestsPage({ currentUser }: PageProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const { requests = [], activeRequestId, activeTeamId, teams, tableTab, requestIdToDelete } = state;
