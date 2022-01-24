@@ -14,6 +14,7 @@ import {
   $setTeams,
   $setDownloadError,
   $setTeamIdToDelete,
+  $setTeamIdToEdit,
 } from 'dispatchers/requestDispatcher';
 import { Button } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
@@ -29,6 +30,7 @@ import { UserSession } from 'interfaces/props';
 import WarningModalContents from 'components/WarningModalContents';
 
 const deleteTeamModalId = 'delete-team-modal';
+const editTeamNameModalId = 'edit-team-name-modal';
 
 const CenteredHeader = styled.th`
   text-align: center;
@@ -144,6 +146,12 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
     dispatch($setTeamIdToDelete(teamId));
   };
 
+  const showEditTeamNameModal = async (teamId: number) => {
+    // TODO: figure out what's going on with this location hash
+    window.location.hash = editTeamNameModalId;
+    dispatch($setTeamIdToEdit(teamId));
+  };
+
   const getTableContents = (tableTab?: string) => {
     if (downloadError) return SystemUnavailableMessage;
     if (tableTab === 'activeProjects' && requests?.length === 0)
@@ -200,7 +208,14 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
                     <td>{team.name}</td>
                     <td>
                       <ActionButtonContainer>
-                        <ActionButton icon={faEdit} role="button" aria-label="edit" title="Edit" size="lg" />
+                        <ActionButton
+                          icon={faEdit}
+                          role="button"
+                          aria-label="edit"
+                          title="Edit"
+                          size="lg"
+                          onClick={() => showEditTeamNameModal(team.id)}
+                        />
                         <ActionButton
                           icon={faTrash}
                           role="button"

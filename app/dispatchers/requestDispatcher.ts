@@ -21,6 +21,10 @@ export const $setRequestToDelete = (payload: number | null): Action => {
 export const $setTeamIdToDelete = (payload: number | null): Action => {
   return { type: 'setTeamIdToDelete', payload };
 };
+// TODO FIX THIS TO INCLUDE THE CORRECT PAYLOAD
+export const $setTeamIdToEdit = (payload: number | null): Action => {
+  return { type: 'setTeamIdToEdit', payload };
+};
 
 export const $setTeams = (payload: Team[] | null): Action => {
   return { type: 'setTeams', payload };

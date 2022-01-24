@@ -27,7 +27,8 @@ export type ActionTypes =
   | 'setActiveTeamId'
   | 'setDownloadError'
   | 'setRequestIdToDelete'
-  | 'setTeamIdToDelete';
+  | 'setTeamIdToDelete'
+  | 'setTeamIdToEdit';
 
 export interface Action {
   type: ActionTypes;
@@ -75,6 +76,10 @@ const reducer = (state: DashboardReducerState, action: Action) => {
     }
     case 'setTeamIdToDelete': {
       return { ...state, teamIdToDelete: action.payload };
+    }
+    // TODO FIX THIS TO SEND THE CORRECT PAYLOAD
+    case 'setTeamIdToEdit': {
+      return { ...state, teamIdToEdit: action.payload };
     }
     default:
       return state;
