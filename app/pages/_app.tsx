@@ -18,12 +18,7 @@ import 'styles/globals.css';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path } = publicRuntimeConfig;
 
-const authenticatedUris = [
-  `${base_path}/my-requests`,
-  `${base_path}/request`,
-  `${base_path}/admin-dashboard`,
-  `${base_path}/edit-request`,
-];
+const authenticatedUris = [`${base_path}/my-requests`, `${base_path}/request`, `${base_path}/admin-dashboard`];
 
 const proccessSession = (session: LoggedInUser | null) => {
   if (!session) return null;

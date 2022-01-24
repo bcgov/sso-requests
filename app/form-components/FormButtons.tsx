@@ -7,8 +7,8 @@ import { SaveMessage as SaveMessageInterface } from 'interfaces/form';
 import SaveMessage from 'form-components/SaveMessage';
 
 interface Props {
-  show: boolean | undefined;
   loading?: boolean;
+  backButton?: React.ReactNode;
   text: {
     continue: string;
     back: string;
@@ -30,8 +30,8 @@ const Container = styled.div`
 `;
 
 export default function FormButtons({
-  show,
   loading,
+  backButton,
   text,
   handleSubmit,
   handleBackClick,
@@ -41,24 +41,24 @@ export default function FormButtons({
 }: Props) {
   return (
     <>
-      {show && (
-        <>
-          <Container data-test-id="form-btns">
-            <CancelButton variant="secondary" size="medium" type="button" onClick={handleBackClick}>
-              {text.back}
-            </CancelButton>
-            <PaddedButton
-              variant="primary"
-              size="medium"
-              onClick={handleSubmit}
-              type={formSubmission ? 'submit' : 'button'}
-            >
-              {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
-            </PaddedButton>
-          </Container>
-          {(saving || saveMessage) && <SaveMessage saving={saving} saveMessage={saveMessage}></SaveMessage>}
-        </>
-      )}
+      <Container data-test-id="form-btns">
+        {backButton ? (
+          backButton
+        ) : (
+          <CancelButton variant="secondary" size="medium" type="button" onClick={handleBackClick}>
+            {text.back}
+          </CancelButton>
+        )}
+        <PaddedButton
+          variant="primary"
+          size="medium"
+          onClick={handleSubmit}
+          type={formSubmission ? 'submit' : 'button'}
+        >
+          {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
+        </PaddedButton>
+      </Container>
+      {(saving || saveMessage) && <SaveMessage saving={saving} saveMessage={saveMessage}></SaveMessage>}
     </>
   );
 }

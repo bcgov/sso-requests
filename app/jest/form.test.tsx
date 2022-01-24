@@ -31,7 +31,7 @@ const setUpRender = (request: Request | object | null, currentUser = {}) => {
   sandbox.secondStageBox = screen.queryByText('Providers and URIs')?.closest('div') as HTMLElement;
   sandbox.thirdStageBox = screen.queryByText('Terms and conditions')?.closest('div') as HTMLElement;
   sandbox.fourthStageBox = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
-  sandbox.adminReview = screen.queryByText('Comment & Submit')?.closest('div') as HTMLElement;
+  sandbox.adminReview = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
   return debug;
 };
 
