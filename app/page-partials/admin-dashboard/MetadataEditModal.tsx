@@ -47,7 +47,7 @@ function MetadataEditModal({ request, onUpdate }: Props) {
       />
       <br />
       <StyledDropdown
-        label="Owner IDIR UUID"
+        label="Integration Status"
         onChange={(event: any) => {
           setStatus(event.target.value);
         }}
