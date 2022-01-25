@@ -36,6 +36,7 @@ const setUpRender = (request: Request | object | null, currentUser = {}) => {
 };
 
 export const sampleRequest: Request = {
+  id: 0,
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
@@ -52,6 +53,7 @@ export const sampleRequest: Request = {
 };
 
 const samplePage3Request = {
+  id: 0,
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
@@ -65,7 +67,7 @@ describe('Form Template Saving and Navigation', () => {
 
   beforeEach(() => {
     setUpRouter('/', sandbox);
-    setUpRender({});
+    setUpRender({ id: 0 });
   });
 
   it('Should save data and triggers spinner on blur events', async () => {
@@ -174,7 +176,7 @@ describe('Error messages', () => {
 
   it('Should display the expected page 2 errors', () => {
     setUpRouter('/', sandbox);
-    setUpRender({});
+    setUpRender({ id: 0 });
 
     // Navigate away and back to page
     fireEvent.click(sandbox.thirdStageBox);

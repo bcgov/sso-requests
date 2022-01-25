@@ -14,7 +14,7 @@ describe('Form Stage', () => {
   it('Only allows navigation once a request is created', () => {
     render(
       <FormStage
-        creatingNewForm={true}
+        isNew={true}
         currentStage={0}
         setFormStage={setFormStage}
         errors={{}}
@@ -29,7 +29,7 @@ describe('Form Stage', () => {
   it('Displays error states correctly', () => {
     render(
       <FormStage
-        creatingNewForm={false}
+        isNew={false}
         currentStage={0}
         setFormStage={setFormStage}
         errors={errors}
@@ -46,7 +46,7 @@ describe('Form Stage', () => {
   it('Shows the passed in stages correctly', () => {
     render(
       <FormStage
-        creatingNewForm={false}
+        isNew={false}
         currentStage={0}
         setFormStage={setFormStage}
         errors={errors}
