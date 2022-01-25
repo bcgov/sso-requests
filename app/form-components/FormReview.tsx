@@ -17,6 +17,7 @@ import { appliedNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schem
 import BceidEmailTemplate from 'form-components/BceidEmailTemplate';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import { Team } from 'interfaces/team';
+import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 
 interface Props {
   formData: Request;
@@ -95,8 +96,9 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }:
     router.push(url);
   };
 
-  const backText = isAdmin ? 'Cancel' : 'Save and Close';
-  const submitText = isAdmin ? 'Update' : 'Submit';
+  const backText = isApplied ? 'Cancel' : 'Save and Close';
+  const submitText = isApplied ? 'Update' : 'Submit';
+  const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
 
   return (
     <div>
@@ -119,16 +121,16 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }:
         <NumberedContents number={3} title="Your Prod environment will be provided by the BCeID Team" showLine={false}>
           <BceidEmailTemplate bceidEmailDetails={bceidEmailDetails} setBceidEmailDetails={setBceidEmailDetails} />
           <FormButtons
+            backButton={backButton}
             text={{ continue: submitText, back: backText }}
-            show={true}
             handleSubmit={openModal}
             handleBackClick={handleBackClick}
           />
         </NumberedContents>
       ) : (
         <FormButtons
+          backButton={backButton}
           text={{ continue: submitText, back: backText }}
-          show={true}
           handleSubmit={openModal}
           handleBackClick={handleBackClick}
         />

@@ -6,7 +6,6 @@ import '@testing-library/jest-dom/extend-expect';
 import LandingPage from 'pages/index';
 import AdminDashboard from 'pages/admin-dashboard';
 import ApplicationError from 'pages/application-error';
-import EditRequest from 'pages/edit-request';
 import MyRequests from 'pages/my-requests';
 import TermsAndConditions from 'pages/terms-conditions';
 import RequestPage from 'pages/request/index';
@@ -58,14 +57,6 @@ describe('Admin Dashboard', () => {
 describe('Error Page', () => {
   it('Should have no accessibility violations', async () => {
     const { container } = render(<ApplicationError />);
-    const results = await axe(container);
-    expect(results).toHaveNoViolations();
-  });
-});
-
-describe('Edit Page', () => {
-  it('Should have no accessibility violations', async () => {
-    const { container } = render(<EditRequest currentUser={sampleSession} />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });

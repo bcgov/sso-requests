@@ -1,5 +1,5 @@
 import { instance } from './axios';
-import { orderBy } from 'lodash';
+import { orderBy, isString } from 'lodash';
 import { Request } from 'interfaces/Request';
 import { processRequest } from 'utils/helpers';
 import { handleAxiosError } from 'services/axios';
@@ -14,9 +14,12 @@ export const createRequest = async (data: Request): Promise<[Request, null] | [n
   }
 };
 
-export const getRequest = async (requestId: number): Promise<[Request, null] | [null, AxiosError]> => {
+export const getRequest = async (requestId: number | string): Promise<[Request, null] | [null, AxiosError]> => {
   try {
-    const result: Request = await instance.post('request', { requestId }).then((res) => res.data);
+    const result: Request = await instance
+      .post('request', { requestId: isString(requestId) ? parseInt(requestId) : requestId })
+      .then((res) => res.data);
+
     return [processRequest(result), null];
   } catch (err) {
     return handleAxiosError(err);

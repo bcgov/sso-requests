@@ -12,6 +12,7 @@ import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
+import { isNil } from 'lodash';
 import { validateForm, getFormStageInfo } from 'utils/helpers';
 import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';
@@ -40,7 +41,7 @@ const ErrorText = styled.p`
 
 interface Props {
   currentUser: LoggedInUser;
-  request?: any;
+  request?: Request | undefined;
   alert: TopAlert;
 }
 
@@ -55,11 +56,12 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [showAccountableError, setShowAccountableError] = useState(false);
   const router = useRouter();
+  const isNew = isNil(request?.id);
   const isApplied: boolean = request?.status === 'applied';
   const isAdmin: boolean = currentUser.isAdmin || false;
 
   const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isApplied, formStage, teams });
-  const showFormButtons = !isApplied && (formStage !== 0 || formData.usesTeam || formData.projectLead);
+  const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
 
   const handleChange = (e: any) => {
     const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
@@ -118,15 +120,13 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const creatingNewForm = router.route.endsWith('/request');
-
-  const uiSchema = getUiSchema(!creatingNewForm, isApplied);
+  const uiSchema = getUiSchema(!isNew, isApplied);
 
   const handleFormSubmit = async () => {
     setLoading(true);
 
     try {
-      if (creatingNewForm) {
+      if (isNew) {
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
 
@@ -149,7 +149,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const handleButtonSubmit = async () => {
     if (formStage === 0) {
-      if (creatingNewForm) {
+      if (isNew) {
         visited[formStage] = true;
         setVisited(visited);
         return;
@@ -161,7 +161,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const handleBlur = async (id: string, value: any) => {
-    if (creatingNewForm || isApplied) return;
+    if (isNew || isApplied) return;
     if (request) {
       setSaving(true);
       const [, err] = await updateRequest({ ...formData, id: request.id });
@@ -174,7 +174,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     window.location.hash = '#';
   };
 
-  const backButtonText = request ? 'Save and Close' : 'Cancel';
+  const backButtonText = isApplied ? 'Cancel' : 'Save and Close';
 
   return (
     <>
@@ -184,7 +184,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           currentStage={formStage}
           setFormStage={changeStep}
           errors={errors}
-          creatingNewForm={creatingNewForm}
+          isNew={isNew}
           visited={visited}
           stages={stages}
         />
@@ -222,16 +222,19 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           liveValidate={visited[formStage] || isApplied}
           validate={customValidate}
         >
-          <FormButtons
-            formSubmission={formStage === 0}
-            text={{ continue: 'Next', back: backButtonText }}
-            show={showFormButtons}
-            loading={loading}
-            handleSubmit={handleButtonSubmit}
-            handleBackClick={handleBackClick}
-            saving={saving}
-            saveMessage={saveMessage}
-          />
+          {showFormButtons ? (
+            <FormButtons
+              formSubmission={formStage === 0}
+              text={{ continue: 'Next', back: backButtonText }}
+              loading={loading}
+              handleSubmit={handleButtonSubmit}
+              handleBackClick={handleBackClick}
+              saving={saving}
+              saveMessage={saveMessage}
+            />
+          ) : (
+            <></>
+          )}
         </Form>
       )}
       {stageTitle === 'Requester Info' && (

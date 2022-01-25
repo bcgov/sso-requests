@@ -31,11 +31,12 @@ const setUpRender = (request: Request | object | null, currentUser = {}) => {
   sandbox.secondStageBox = screen.queryByText('Providers and URIs')?.closest('div') as HTMLElement;
   sandbox.thirdStageBox = screen.queryByText('Terms and conditions')?.closest('div') as HTMLElement;
   sandbox.fourthStageBox = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
-  sandbox.adminReview = screen.queryByText('Comment & Submit')?.closest('div') as HTMLElement;
+  sandbox.adminReview = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
   return debug;
 };
 
 export const sampleRequest: Request = {
+  id: 0,
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
@@ -52,6 +53,7 @@ export const sampleRequest: Request = {
 };
 
 const samplePage3Request = {
+  id: 0,
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
@@ -65,7 +67,7 @@ describe('Form Template Saving and Navigation', () => {
 
   beforeEach(() => {
     setUpRouter('/', sandbox);
-    setUpRender({});
+    setUpRender({ id: 0 });
   });
 
   it('Should save data and triggers spinner on blur events', async () => {
@@ -174,7 +176,7 @@ describe('Error messages', () => {
 
   it('Should display the expected page 2 errors', () => {
     setUpRouter('/', sandbox);
-    setUpRender({});
+    setUpRender({ id: 0 });
 
     // Navigate away and back to page
     fireEvent.click(sandbox.thirdStageBox);
