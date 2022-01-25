@@ -31,7 +31,7 @@ function CancelConfirmModal({ onConfirm }: Props) {
   return (
     <>
       <CancelButton variant="secondary" size="medium" type="button" onClick={openModal}>
-        Cancels
+        Cancel
       </CancelButton>
       <CenteredModal
         id={modalId}
