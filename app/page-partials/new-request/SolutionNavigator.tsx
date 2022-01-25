@@ -118,7 +118,7 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
             </>
             <>
               <p>
-                To learn more about the difference between confidential and public clients, and to understand what PKCEs
+                To learn more about the difference between confidential and public clients, and to understand PKCEs
                 better, visit our{' '}
                 <Link
                   external
