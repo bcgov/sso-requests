@@ -38,7 +38,7 @@ function CancelConfirmModal({ onConfirm }: Props) {
         content={modalContents}
         onConfirm={handleConfirm}
         icon={faExclamationTriangle}
-        title=""
+        title="Canceling request submission"
         closable
       />
     </>
