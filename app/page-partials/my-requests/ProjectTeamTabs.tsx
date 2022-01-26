@@ -24,6 +24,7 @@ import { Team } from 'interfaces/team';
 import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import { getTeams, deleteTeam } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
+import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
 import { createTeamModalId } from 'utils/constants';
 import { UserSession } from 'interfaces/props';
@@ -148,6 +149,7 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
 
   const showEditTeamNameModal = async (teamId: number) => {
     // TODO: figure out what's going on with this location hash
+    console.log('Edit team name clicked');
     window.location.hash = editTeamNameModalId;
     dispatch($setTeamIdToEdit(teamId));
   };
@@ -263,6 +265,16 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
         onConfirm={() => console.log('confirm')}
         id={createTeamModalId}
         content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
+        showCancel={false}
+        showConfirm={false}
+        closable
+      />
+      <CenteredModal
+        title="Edit Team Name"
+        icon={null}
+        onConfirm={() => console.log('confirm')}
+        id={editTeamNameModalId}
+        content={<EditTeamNameForm onSubmit={loadTeams} currentUser={currentUser} />}
         showCancel={false}
         showConfirm={false}
         closable

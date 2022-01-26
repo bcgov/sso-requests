@@ -34,7 +34,7 @@ const emptyUser: User = {
   id: String(uuidv4()),
 };
 
-export default function TeamForm({ onSubmit, currentUser }: Props) {
+export default function EditTeamNameForm({ onSubmit, currentUser }: Props) {
   const [members, setMembers] = useState<User[]>([emptyUser]);
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -82,17 +82,34 @@ export default function TeamForm({ onSubmit, currentUser }: Props) {
     window.location.hash = '#';
   };
 
+  const handleEditName = async () => {
+    // must gut this funtion to edit the name
+    const team = { name: teamName, members };
+    const errors = validateTeam(team);
+    if (errors) return setErrors(errors);
+    setLoading(true);
+    const [, err] = await createTeam(team);
+    if (err) {
+      console.error(err);
+    }
+    await onSubmit();
+    setMembers([emptyUser]);
+    setTeamName('');
+    setLoading(false);
+    window.location.hash = '#';
+  };
+
   return (
     <div>
-      <Input label="Team Name" onChange={handleNameChange} value={teamName} />
+      <Input label="New Team Name" onChange={handleNameChange} value={teamName} />
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <ButtonsContainer>
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
         </Button>
-        <Button type="button" onClick={handleCreate}>
-          {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
+        <Button type="button" onClick={handleEditName}>
+          {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : 'Save'}
         </Button>
       </ButtonsContainer>
     </div>
