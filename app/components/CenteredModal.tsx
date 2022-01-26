@@ -114,11 +114,11 @@ const CenteredModal = ({
         {showButtons && (
           <ButtonContainer buttonAlign={buttonAlign}>
             {showCancel && (
-              <Button variant={cancelButtonVariant} onClick={handleCancel}>
+              <Button variant={cancelButtonVariant} onClick={handleCancel} type="button">
                 Cancel
               </Button>
             )}
-            <Button onClick={handleConfirm} variant={confirmButtonVariant}>
+            <Button onClick={handleConfirm} variant={confirmButtonVariant} type="button">
               {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : confirmText}
             </Button>
           </ButtonContainer>

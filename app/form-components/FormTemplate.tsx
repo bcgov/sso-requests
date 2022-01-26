@@ -22,6 +22,7 @@ import { SaveMessage } from 'interfaces/form';
 import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
+import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 
 const Description = styled.p`
   margin: 0;
@@ -174,6 +175,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     window.location.hash = '#';
   };
 
+  const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
   const backButtonText = isApplied ? 'Cancel' : 'Save and Close';
 
   return (
@@ -225,6 +227,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           {showFormButtons ? (
             <FormButtons
               formSubmission={formStage === 0}
+              backButton={backButton}
               text={{ continue: 'Next', back: backButtonText }}
               loading={loading}
               handleSubmit={handleButtonSubmit}
