@@ -151,6 +151,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }:
             )}
           </>
         }
+        title="Submitting Request"
         onConfirm={handleSubmit}
       />
     </div>
