@@ -104,6 +104,17 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
         <strong>2 business days</strong>.
       </p>
       <br />
+
+      <p>
+        <strong>Roles:</strong>
+      </p>
+      <p>
+        <u>Admin</u>: can manage integrations <strong>and</strong> teams
+      </p>
+      <p>
+        <u>Members</u>: can <strong>only</strong> manage integrations
+      </p>
+
       <MembersSection>
         <Container>
           <strong>Member</strong>
