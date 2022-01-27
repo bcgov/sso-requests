@@ -269,6 +269,5 @@ export const getInvitationEmail = (teamId: number, invitationLink: string) => `<
     </a>
     or reply to this email
   </p>
-
   <p>Thank you,</p>
   <p>SSO Pathfinder Team</p>`;
