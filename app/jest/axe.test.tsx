@@ -6,11 +6,17 @@ import '@testing-library/jest-dom/extend-expect';
 import LandingPage from 'pages/index';
 import AdminDashboard from 'pages/admin-dashboard';
 import ApplicationError from 'pages/application-error';
-import EditRequest from 'pages/edit-request';
 import MyRequests from 'pages/my-requests';
 import TermsAndConditions from 'pages/terms-conditions';
 import RequestPage from 'pages/request/index';
 import FormTemplate from 'form-components/FormTemplate';
+
+const sampleSession = {
+  email: '',
+  client_roles: [],
+  roles: [],
+  isAdmin: false,
+};
 
 expect.extend(toHaveNoViolations);
 
@@ -31,7 +37,7 @@ jest.mock('services/request', () => {
 describe('Landing Page', () => {
   it('Should have no accessibility violations', async () => {
     const { container } = render(
-      <LandingPage currentUser={{ email: '' }} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
+      <LandingPage currentUser={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
     );
     const results = await axe(container);
     expect(results).toHaveNoViolations();
@@ -41,7 +47,7 @@ describe('Landing Page', () => {
 describe('Admin Dashboard', () => {
   it('Should have no accessibility violations', async () => {
     const { container } = render(
-      <AdminDashboard currentUser={{ email: '' }} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
+      <AdminDashboard currentUser={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
     );
     const results = await axe(container);
     expect(results).toHaveNoViolations();
@@ -56,18 +62,10 @@ describe('Error Page', () => {
   });
 });
 
-describe('Edit Page', () => {
-  it('Should have no accessibility violations', async () => {
-    const { container } = render(<EditRequest currentUser={{ email: '' }} />);
-    const results = await axe(container);
-    expect(results).toHaveNoViolations();
-  });
-});
-
 describe('Requests Page', () => {
   it('Should have no accessibility violations', async () => {
     const { container } = render(
-      <MyRequests currentUser={{ email: '' }} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
+      <MyRequests currentUser={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
     );
     const results = await axe(container);
     expect(results).toHaveNoViolations();
@@ -77,7 +75,7 @@ describe('Requests Page', () => {
 describe('Terms and Conditions', () => {
   it('Should have no accessibility violations', async () => {
     const { container } = render(
-      <TermsAndConditions currentUser={{ email: '' }} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
+      <TermsAndConditions currentUser={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
     );
     const results = await axe(container);
     expect(results).toHaveNoViolations();
@@ -86,7 +84,7 @@ describe('Terms and Conditions', () => {
 
 describe('Request Page', () => {
   it('Should have no accessibility violations', async () => {
-    const { container } = render(<RequestPage currentUser={{ email: '' }} />);
+    const { container } = render(<RequestPage currentUser={sampleSession} />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -94,7 +92,7 @@ describe('Request Page', () => {
 
 describe('Form Template', () => {
   it('Should have no accessibility violations with the form open', async () => {
-    const { container } = render(<FormTemplate currentUser={{ email: '' }} request={{ projectLead: true }} />);
+    const { container } = render(<FormTemplate currentUser={sampleSession} request={{ projectLead: true }} />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });

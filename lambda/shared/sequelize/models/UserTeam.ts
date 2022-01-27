@@ -16,6 +16,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      pending: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+      },
     },
     {
       underscored: true,

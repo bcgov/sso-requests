@@ -9,6 +9,7 @@ import { wakeItUp } from 'services/auth';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
 import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
+import { LoggedInUser } from 'interfaces/team';
 import Head from 'next/head';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,16 +18,19 @@ import 'styles/globals.css';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path } = publicRuntimeConfig;
 
-const authenticatedUris = [
-  `${base_path}/my-requests`,
-  `${base_path}/request`,
-  `${base_path}/admin-dashboard`,
-  `${base_path}/edit-request`,
-];
+const authenticatedUris = [`${base_path}/my-requests`, `${base_path}/request`, `${base_path}/admin-dashboard`];
+
+const proccessSession = (session: LoggedInUser | null) => {
+  if (!session) return null;
+
+  session.roles = session.client_roles;
+  session.isAdmin = session?.client_roles?.includes('sso-admin');
+  return session;
+};
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<LoggedInUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<any>(null);
 
@@ -39,10 +43,10 @@ function MyApp({ Component, pageProps }: AppProps) {
           setTokens(tokens);
           await router.push('/my-requests');
         }
-        setCurrentUser(verifiedIdToken);
+        setCurrentUser(proccessSession(verifiedIdToken));
       } else {
         removeTokens();
-        setCurrentUser(null);
+        setCurrentUser(proccessSession(null));
         if (loginWorkflow) {
           router.push({
             pathname: '/application-error',
@@ -78,7 +82,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       } catch (err) {
         console.log(err);
         removeTokens();
-        setCurrentUser(null);
+        setCurrentUser(proccessSession(null));
         setLoading(false);
         setError(err);
       }

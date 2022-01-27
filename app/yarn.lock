@@ -357,10 +357,10 @@
     "@babel/helper-validator-identifier" "^7.14.5"
     to-fast-properties "^2.0.0"
 
-"@bcgov-sso/common-react-components@1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@bcgov-sso/common-react-components/-/common-react-components-1.7.0.tgz#cd16db1cf18725cff4888be03fb150eb3e2797b0"
-  integrity sha512-OCSNrXmA4J24kL8qMAvYQEpJsM8rP8VZBIJg5sSV0jAIlR2rMXOY1C1kRcC7I2x8CMfdZxdN0BRexmp5bH/0lQ==
+"@bcgov-sso/common-react-components@1.18.0":
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/@bcgov-sso/common-react-components/-/common-react-components-1.18.0.tgz#b6f0569a66f2272cf13646d0fe69c7069129ca11"
+  integrity sha512-ikaRWDQ2e/tnFphASSsZxb3c52yU3cBr86h9lI62eH4TTeuBTubpn3URuhhey/5TVf/uVARrWCfKaABBcCHQMw==
   dependencies:
     "@button-inc/component-library" "^1.0.1"
     "@fortawesome/fontawesome-svg-core" "^1.2.36"
@@ -1522,6 +1522,11 @@
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/@types/unist/-/unist-2.0.3.tgz#9c088679876f374eb5983f150d4787aa6fb32d7e"
   integrity sha512-FvUupuM3rlRsRtCN+fDudtmytGO6iHJuuRKS1Ss0pG5z8oX0diNEw94UEL7hgDbpN94rgaK5R7sWm6RrSkZuAQ==
+
+"@types/uuid@^8.3.3":
+  version "8.3.3"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.3.tgz#c6a60686d953dbd1b1d45e66f4ecdbd5d471b4d0"
+  integrity sha512-0LbEEx1zxrYB3pgpd1M5lEhLcXjKJnYghvhTRgaBeUivLHMDM1TzF3IJ6hXU2+8uA4Xz+5BA63mtZo5DjVT8iA==
 
 "@types/warning@^3.0.0":
   version "3.0.0"

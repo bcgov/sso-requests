@@ -1,8 +1,9 @@
 import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
 import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
+import AddTeamWidget from 'form-components/AddTeamWidget';
 import ClientTypeWidget from 'form-components/widgets/ClientTypeWidget';
 
-const getUISchema = (created: boolean) => {
+const getUISchema = (created: boolean, applied: boolean = false) => {
   return {
     identityProviders: {
       'ui:widget': 'checkboxes',
@@ -30,11 +31,16 @@ const getUISchema = (created: boolean) => {
       'ui:FieldTemplate': FieldTemplateNoTitle,
       'ui:placeholder': 'Project Name',
     },
+    usesTeam: {
+      'ui:widget': 'radio',
+      'ui:FieldTemplate': FieldTemplateWithTitle,
+      'ui:readonly': created,
+    },
     realm: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
-      // 'ui:enumDisabled': ['bceidbasic', 'bceidbusiness', 'bceidboth'],
       'ui:default': 'onestopauth',
+      'ui:readonly': applied,
     },
     bceidTo: {
       'ui:FieldTemplate': FieldTemplateNoTitle,
@@ -49,6 +55,9 @@ const getUISchema = (created: boolean) => {
     dev: {
       'ui:readonly': true,
       'ui:FieldTemplate': FieldTemplateWithTitle,
+    },
+    createTeam: {
+      'ui:FieldTemplate': AddTeamWidget,
     },
   };
 };

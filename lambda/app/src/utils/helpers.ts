@@ -6,13 +6,16 @@ import termsAndConditionsSchema from '../schemas/terms-and-conditions';
 import { isObject, omit, sortBy } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
-import { Session, Data } from '../../../shared/interfaces';
+import { Session, Data, User } from '../../../shared/interfaces';
 import { Op } from 'sequelize';
-import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
+import { getEmailBody, getEmailSubject, EmailMessage, getInvitationEmail } from '../../../shared/utils/templates';
 import { sendEmail } from '../../../shared/utils/ches';
+import { sequelize, models } from '../../../shared/sequelize/models/models';
+import { verify, sign } from 'jsonwebtoken';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
+const VERIFY_USER_SECRET = process.env.VERIFY_USER_SECRET || 'asdf';
 
 export const omitNonFormFields = (data: Request) =>
   omit(data, [
@@ -38,9 +41,10 @@ export const usesBceid = (realm: string | undefined) => {
 
 export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
   const { realm, id, preferredEmail, additionalEmails, environments } = request;
-  if (!usesBceid(realm) || bceidEvent === 'update') return;
-  const usesProd = environments.includes('prod');
+  const skipNotification = !usesBceid(realm) || bceidEvent === 'update';
+  if (skipNotification) return;
 
+  const usesProd = environments.includes('prod');
   // Only cc user for production requests
   let cc = usesProd ? [preferredEmail] : [];
   if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
@@ -69,8 +73,9 @@ const sortURIFields = (data: any) => {
   return sortedData;
 };
 
-export const processRequest = (data: any) => {
+export const processRequest = (data: any, isMerged: boolean) => {
   const immutableFields = ['idirUserid', 'projectLead', 'clientName', 'status'];
+  if (isMerged) immutableFields.push('realm');
   const allowedRequest = omit(data, immutableFields);
   const sortedRequest = sortURIFields(allowedRequest);
   sortedRequest.environments = processEnvironments(sortedRequest);
@@ -90,13 +95,13 @@ export const getDifferences = (newData: any, originalData: Request) => {
   return diff(omitNonFormFields(originalData), omitNonFormFields(sortedNewData));
 };
 
-export const validateRequest = (formData: any, original: Request, isUpdate = false) => {
+export const validateRequest = (formData: any, original: Request, isUpdate = false, teams: any[]) => {
   if (isUpdate) {
     const differences = getDifferences(formData, original);
     if (!differences) return { message: errorMessage };
   }
 
-  const { errors: firstPageErrors } = validate(formData, requesterSchema);
+  const { errors: firstPageErrors } = validate(formData, requesterSchema(teams));
   const { errors: secondPageErrors } = validate(formData, providerSchema, customValidate);
   const { errors: thirdPageErrors } = validate(formData, termsAndConditionsSchema);
   const allValid = firstPageErrors.length === 0 && secondPageErrors.length === 0 && thirdPageErrors.length === 0;
@@ -168,4 +173,77 @@ export const getWhereClauseForAllRequests = (data: {
     };
 
   return where;
+};
+
+export async function getUsersTeams(user) {
+  return models.team
+    .findAll({
+      where: {
+        id: { [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}')`) },
+      },
+    })
+    .then((res) => res.map((res) => res.dataValues));
+}
+
+export async function inviteTeamMembers(users: User[], teamId: number) {
+  return Promise.all(
+    users.map((user) => {
+      const invitationLink = generateInvitationToken(user, teamId);
+      const { idirEmail } = user;
+      const args = {
+        body: getInvitationEmail(teamId, invitationLink),
+        subject: `Invitation for pathfinder SSO team #${teamId}`,
+        to: [idirEmail],
+      };
+      return sendEmail(args);
+    }),
+  );
+}
+
+function generateInvitationToken(user: User, teamId: number) {
+  return sign({ userId: user.id, teamId }, VERIFY_USER_SECRET, { expiresIn: '2d' });
+}
+
+export async function parseInvitationToken(token) {
+  const data = (verify(token, VERIFY_USER_SECRET) as any) || {};
+  return [data, null];
+}
+
+export const getWhereClauseForRequest = (session: Session, user: User, requestId: number) => {
+  const where: any = { id: requestId };
+  const { idirUserid } = user;
+  const userIsAdmin = isAdmin(session);
+  if (!userIsAdmin) {
+    where[Op.or] = [
+      {
+        idirUserid,
+      },
+      {
+        teamId: {
+          [Op.in]: sequelize.literal(
+            `(select team_id from users_teams where user_id='${user.id}' and pending = false)`,
+          ),
+        },
+      },
+    ];
+  }
+  return where;
+};
+
+export const getWhereClauseForRequests = (user: User) => {
+  const { idirUserid } = user;
+  return {
+    [Op.or]: [
+      {
+        idirUserid,
+      },
+      {
+        teamId: {
+          [Op.in]: sequelize.literal(
+            `(select team_id from users_teams where user_id='${user.id}' and pending = false )`,
+          ),
+        },
+      },
+    ],
+  };
 };

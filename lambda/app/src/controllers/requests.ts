@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { Session, Data } from '../../../shared/interfaces';
+import { Session, Data, User } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
 import {
   validateRequest,
@@ -10,6 +10,9 @@ import {
   usesBceid,
   notifyIdim,
   getWhereClauseForAllRequests,
+  getUsersTeams,
+  getWhereClauseForRequest,
+  getWhereClauseForRequests,
   IDIM_EMAIL_ADDRESS,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
@@ -20,13 +23,6 @@ import { EVENTS } from '../../../shared/enums';
 
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const NEW_REQUEST_DAY_LIMIT = 10;
-
-const getWhereClauseForAdmin = (session: Session, id: number) => {
-  const where: any = { id };
-  const userIsAdmin = isAdmin(session);
-  if (!userIsAdmin) where.idirUserid = session.idir_userid;
-  return where;
-};
 
 const createEvent = async (data) => {
   try {
@@ -72,8 +68,7 @@ export const createRequest = async (session: Session, data: Data) => {
     throw Error('reached the day limit');
   }
 
-  const { projectName, projectLead, preferredEmail, additionalEmails } = data;
-
+  const { projectName, projectLead, preferredEmail, additionalEmails, usesTeam, teamId } = data;
   const result = await models.request.create({
     idirUserid: session.idir_userid,
     projectName,
@@ -81,22 +76,23 @@ export const createRequest = async (session: Session, data: Data) => {
     preferredEmail,
     additionalEmails,
     idirUserDisplayName,
+    usesTeam,
+    teamId,
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
 };
 
-export const updateRequest = async (session: Session, data: Data, submit: string | undefined) => {
+export const updateRequest = async (session: Session, data: Data, user: User, submit: string | undefined) => {
   const [, error] = await hasRequestWithFailedApplyStatus();
   if (error) throw Error(error);
-
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = session.given_name + ' ' + session.family_name;
   const { id, comment, bceidEmailDetails, ...rest } = data;
-  const [isUpdate] = await requestHasBeenMerged(id);
+  const [isMerged] = await requestHasBeenMerged(id);
 
   try {
-    const where = getWhereClauseForAdmin(session, id);
+    const where = getWhereClauseForRequest(session, user, data.id);
     const original = await models.request.findOne({ where });
     const hasAllowedStatus = ['draft', 'applied'].includes(original.dataValues.status);
 
@@ -104,14 +100,15 @@ export const updateRequest = async (session: Session, data: Data, submit: string
       throw Error('unauthorized request');
     }
 
-    const allowedRequest = processRequest(rest);
+    const allowedRequest = processRequest(rest, isMerged);
     const mergedRequest = { ...original.dataValues, ...allowedRequest };
 
     const isApprovingBceid = !original.dataValues.bceidApproved && mergedRequest.bceidApproved;
     if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
+    const usersTeams = await getUsersTeams(user);
 
     if (submit) {
-      const isValid = validateRequest(mergedRequest, original.dataValues, isUpdate);
+      const isValid = validateRequest(mergedRequest, original.dataValues, isMerged, usersTeams);
       if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedRequest }));
       allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
       allowedRequest.status = 'submitted';
@@ -146,15 +143,17 @@ export const updateRequest = async (session: Session, data: Data, submit: string
 
       let emailCode: EmailMessage;
       let cc = [];
-      if (isUpdate && isApprovingBceid) emailCode = 'bceid-request-approved';
-      else if (isUpdate) emailCode = 'uri-change-request-submitted';
+      if (isMerged && isApprovingBceid) {
+        emailCode = 'bceid-request-approved';
+        cc.push(IDIM_EMAIL_ADDRESS);
+      } else if (isMerged) emailCode = 'uri-change-request-submitted';
       else if (hasBceidProd) {
         emailCode = 'bceid-user-prod-submitted';
         cc.push(IDIM_EMAIL_ADDRESS);
       } else emailCode = 'create-request-submitted';
 
       const to = getEmailList(original);
-      const event = isUpdate ? 'update' : 'submission';
+      const event = isMerged ? 'update' : 'submission';
 
       await Promise.all([
         sendEmail({
@@ -189,7 +188,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
         idirUserDisplayName,
       };
 
-      if (isUpdate) {
+      if (isMerged) {
         const details: any = { changes: getDifferences(mergedRequest, original.dataValues) };
         if (userIsAdmin && comment) details.comment = comment;
 
@@ -204,7 +203,7 @@ export const updateRequest = async (session: Session, data: Data, submit: string
   } catch (err) {
     if (submit) {
       const eventData = {
-        eventCode: isUpdate ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
+        eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
         requestId: id,
         idirUserid: session.idir_userid,
         idirUserDisplayName,
@@ -217,9 +216,9 @@ export const updateRequest = async (session: Session, data: Data, submit: string
   }
 };
 
-export const getRequest = async (session: Session, data: { requestId: number }) => {
+export const getRequest = async (session: Session, user: User, data: { requestId: number }) => {
   const { requestId } = data;
-  const where = getWhereClauseForAdmin(session, requestId);
+  const where = getWhereClauseForRequest(session, user, requestId);
   const request = await models.request.findOne({ where });
   return request;
 };
@@ -256,8 +255,8 @@ export const getRequestAll = async (
   return result;
 };
 
-export const getRequests = async (session: Session, include: string = 'active') => {
-  const where: { archived?: boolean; idirUserid: string } = { idirUserid: session.idir_userid };
+export const getRequests = async (session: Session, user: User, include: string = 'active') => {
+  const where: any = getWhereClauseForRequests(user);
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
@@ -278,9 +277,9 @@ const requestHasBeenMerged = async (id: number) => {
   }
 };
 
-export const deleteRequest = async (session: Session, id: number) => {
+export const deleteRequest = async (session: Session, user: User, id: number) => {
   try {
-    const where = getWhereClauseForAdmin(session, id);
+    const where = getWhereClauseForRequest(session, user, id);
     const original = await models.request.findOne({ where });
 
     if (!original) {
@@ -358,4 +357,30 @@ const hasRequestWithFailedApplyStatus = async () => {
   } catch (err) {
     return [null, err];
   }
+};
+
+export const updateRequestMetadata = async (
+  session: Session,
+  user: User,
+  data: { id: number; idirUserid: string; status: string },
+) => {
+  if (!session.client_roles?.includes('sso-admin')) {
+    throw Error('not allowed');
+  }
+
+  const { id, idirUserid, status } = data;
+  const result = await models.request.update(
+    { idirUserid, status },
+    {
+      where: { id },
+      returning: true,
+      plain: true,
+    },
+  );
+
+  if (result.length < 2) {
+    throw Error('update failed');
+  }
+
+  return result[1].dataValues;
 };

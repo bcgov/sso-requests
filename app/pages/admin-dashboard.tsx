@@ -8,23 +8,12 @@ import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Request, Option } from 'interfaces/Request';
-import { Container, ActionButton, VerticalLine } from 'components/ActionButtons';
+import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
 import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
-
-const workflowStatusOptions = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'submitted', label: 'Submitted' },
-  { value: 'pr', label: 'PR' },
-  { value: 'prFailed', label: 'PR Failed' },
-  { value: 'planned', label: 'Planned' },
-  { value: 'planFailed', label: 'Plan Failed' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'applied', label: 'Applied' },
-  { value: 'applyFailed', label: 'Apply Failed' },
-];
+import { workflowStatusOptions } from 'metadata/options';
 
 const idpOptions = [
   { value: ['onestopauth'], label: 'IDIR' },
@@ -151,7 +140,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
 
   const handleEdit = async (request: Request) => {
     if (!request.id || !canEdit(request)) return;
-    await router.push(`/edit-request?id=${request.id}`);
+    await router.push(`/request/${request.id}?status=${request.status}`);
   };
 
   const handleDelete = async (request: Request) => {
@@ -248,7 +237,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                       <td>{startCase(row.status)}</td>
                       <td>{row.archived ? 'Deleted' : 'Active'}</td>
                       <td>
-                        <Container>
+                        <ActionButtonContainer>
                           <ActionButton
                             icon={faEye}
                             role="button"
@@ -279,7 +268,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                             activeColor={PRIMARY_RED}
                             title="Delete"
                           />
-                        </Container>
+                        </ActionButtonContainer>
                       </td>
                     </tr>
                   );
@@ -294,6 +283,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
           <Grid.Col span={4}>
             {selectedRequest && (
               <AdminTabs
+                currentUser={currentUser}
                 selectedRequest={selectedRequest}
                 defaultTabKey={'details'}
                 setActiveKey={setActivePanel}

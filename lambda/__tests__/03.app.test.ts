@@ -6,6 +6,7 @@ import { models } from '../shared/sequelize/models/models';
 import { validRequest, bceidRequest } from './validRequest.js';
 import { sendEmail } from '../shared/utils/ches';
 import { dispatchRequestWorkflow } from '../app/src/github';
+import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, AuthMock } from './00.db.test';
 
 // see https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
 
@@ -22,23 +23,21 @@ jest.mock('../app/src/github', () => {
   };
 });
 
+jest.mock('../app/src/utils/helpers', () => {
+  const actual = jest.requireActual('../app/src/utils/helpers');
+  return {
+    ...actual,
+    getUsersTeams: jest.fn(() => []),
+  };
+});
+
 jest.mock('../app/src/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
   };
 });
 
-const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
-
-const mockedAuthenticate = authenticate as jest.Mock<
-  Promise<{
-    idir_userid: string | null;
-    email?: string;
-    client_roles: string[];
-    given_name: string;
-    family_name: string;
-  }>
->;
+const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 
 describe('/heartbeat endpoints', () => {
   it('should response heartbeat endpoint successfully', async () => {
@@ -54,6 +53,18 @@ describe('/heartbeat endpoints', () => {
 describe('requests endpoints', () => {
   let requestId;
 
+  beforeEach(() => {
+    mockedAuthenticate.mockImplementation(() => {
+      return Promise.resolve({
+        idir_userid: TEST_IDIR_USERID,
+        email: TEST_IDIR_EMAIL,
+        client_roles: [],
+        given_name: '',
+        family_name: '',
+      });
+    });
+  });
+
   it('should reject the requests without valid auth token', async () => {
     mockedAuthenticate.mockImplementation(() => {
       return Promise.resolve(null);
@@ -67,10 +78,6 @@ describe('requests endpoints', () => {
   });
 
   it('should create a request successfully', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: TEST_IDIR_USERID, client_roles: [], given_name: '', family_name: '' });
-    });
-
     const sampleRequestPayload = {
       preferredEmail: 'testuser@example.com',
       projectLead: true,
@@ -93,10 +100,6 @@ describe('requests endpoints', () => {
   });
 
   it('should send all requests successfully', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: TEST_IDIR_USERID, client_roles: [], given_name: '', family_name: '' });
-    });
-
     const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/requests' };
     const context: Context = {};
 
@@ -111,10 +114,6 @@ describe('requests endpoints', () => {
   });
 
   it('should send the target request successfully', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: TEST_IDIR_USERID, client_roles: [], given_name: '', family_name: '' });
-    });
-
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/request',
@@ -131,10 +130,6 @@ describe('requests endpoints', () => {
   });
 
   it('should update the target request successfully', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: TEST_IDIR_USERID, client_roles: [], given_name: '', family_name: '' });
-    });
-
     const projectName = new Date().getDate() + '';
 
     const event: APIGatewayProxyEvent = {
@@ -156,12 +151,23 @@ describe('Updating', () => {
   const testUser = 'user';
   const testProjectId = 20;
   beforeEach(() => {
+    mockedAuthenticate.mockImplementation(() => {
+      return Promise.resolve({
+        idir_userid: TEST_IDIR_USERID,
+        email: TEST_IDIR_EMAIL,
+        client_roles: [],
+        given_name: '',
+        family_name: '',
+      });
+    });
+
     return Promise.all([
       models.request.create({
         id: testProjectId,
-        idirUserid: testUser,
+        idirUserid: TEST_IDIR_USERID,
         projectName: 'test',
         status: 'draft',
+        projectLead: true,
       }),
     ]);
   });
@@ -180,16 +186,6 @@ describe('Updating', () => {
   });
 
   it('should submit updates to the target request successfully if owned by the user', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({
-        idir_userid: testUser,
-        email: 'testuser',
-        client_roles: [],
-        given_name: '',
-        family_name: '',
-      });
-    });
-
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
@@ -205,10 +201,6 @@ describe('Updating', () => {
   });
 
   it('should allow updates to the target request if requester is admin', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: 'random', client_roles: ['sso-admin'], given_name: '', family_name: '' });
-    });
-
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
@@ -224,10 +216,6 @@ describe('Updating', () => {
   });
 
   it('should create all requested environments for idir only requests', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
-    });
-
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
@@ -257,10 +245,6 @@ describe('Updating', () => {
   });
 
   it('should not create bceid prod if it is not approved', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
-    });
-
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',
@@ -289,10 +273,6 @@ describe('Updating', () => {
   });
 
   it('should include browser flow override in dispatch', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({ idir_userid: testUser, client_roles: [], given_name: '', family_name: '' });
-    });
-
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: '/app/requests',

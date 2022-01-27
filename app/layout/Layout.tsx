@@ -5,10 +5,10 @@ import { faCommentDots, faEnvelope, faFileAlt } from '@fortawesome/free-solid-sv
 import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
-import { startCase } from 'lodash';
+import { startCase, isFunction } from 'lodash';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
-import BottomAlertProvider from './BottomAlert';
+import TopAlertProvider from './TopAlert';
 
 const headerPlusFooterHeight = '152px';
 
@@ -90,7 +90,7 @@ const Beta = styled.span`
 
 interface Route {
   path: string;
-  label: string;
+  label: string | ((query: any) => string);
   hide?: boolean;
   roles: string[];
 }
@@ -100,14 +100,17 @@ const routes: Route[] = [
   { path: '/terms-conditions', label: 'Terms and Conditions', roles: ['guest'] },
   { path: '/my-requests', label: 'My Dashboard', roles: ['user', 'sso-admin'] },
   { path: '/admin-dashboard', label: 'SSO Dashboard', roles: ['sso-admin'] },
-  { path: '/request', label: 'New Request', roles: ['user', 'sso-admin'], hide: true },
-  { path: '/edit-request', label: 'Edit Request', roles: ['sso-admin'], hide: true },
+  {
+    path: '/request',
+    label: (query) => (query?.status === 'applied' ? 'Edit Request' : 'New Request'),
+    roles: ['user', 'sso-admin'],
+    hide: true,
+  },
   { path: '/faq', label: 'FAQ', roles: ['guest', 'user', 'sso-admin'] },
 ];
 
-const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; currentPath: string }) => {
+const LeftMenuItems = ({ currentUser, currentPath, query }: { currentUser: any; currentPath: string; query: any }) => {
   let roles = ['guest'];
-
   if (currentUser) {
     roles = currentUser?.client_roles?.length > 0 ? currentUser.client_roles : ['user'];
   }
@@ -122,7 +125,9 @@ const LeftMenuItems = ({ currentUser, currentPath }: { currentUser: any; current
           return (
             <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
               <Link href={route.path}>
-                <a className={isCurrent(route.path) ? 'current' : ''}>{route.label}</a>
+                <a className={isCurrent(route.path) ? 'current' : ''}>
+                  {isFunction(route.label) ? route.label(query) : route.label}
+                </a>
               </Link>
             </li>
           );
@@ -176,7 +181,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
 
   const MobileMenu = () => (
     <MobileSubMenu>
-      <LeftMenuItems currentUser={currentUser} currentPath={pathname} />
+      <LeftMenuItems currentUser={currentUser} currentPath={pathname} query={router.query} />
 
       <li>
         Need help?&nbsp;&nbsp;
@@ -221,7 +226,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
       >
         <SubMenu>
           <SubLeftMenu>
-            <LeftMenuItems currentUser={currentUser} currentPath={pathname} />
+            <LeftMenuItems currentUser={currentUser} currentPath={pathname} query={router.query} />
           </SubLeftMenu>
           <SubRightMenu>
             <RightMenuItems />
@@ -229,7 +234,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
         </SubMenu>
       </Navigation>
       <MainContent>
-        <BottomAlertProvider>{children}</BottomAlertProvider>
+        <TopAlertProvider>{children}</TopAlertProvider>
       </MainContent>
       <Footer>
         <FooterMenu>

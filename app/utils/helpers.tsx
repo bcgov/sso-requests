@@ -8,6 +8,9 @@ import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
 import { customValidate } from './shared/customValidate';
+import { bceidStages, adminBceidStages } from 'utils/constants';
+import { nonBceidSchemas, appliedNonBceidSchemas } from 'schemas/non-bceid-schemas';
+import { Team, User } from 'interfaces/team';
 
 const URIS_SCHEMA_INDEX = 1;
 
@@ -54,6 +57,7 @@ export const getRequestedEnvironments = (request: Request) => {
 
 export const parseError = (err: any) => {
   try {
+    if (typeof err === 'object') return err;
     return JSON.parse(err);
   } catch (e) {
     return { message: err };
@@ -166,6 +170,7 @@ export const processRequest = (request: Request): Request => {
   if (requestedEnvironments.includes('test')) request.test = true;
   if (requestedEnvironments.includes('prod')) request.prod = true;
   delete request.environments;
+  if (request.teamId) request.teamId = String(request.teamId);
   return changeNullToUndefined(request);
 };
 
@@ -263,3 +268,34 @@ export const hasAnyPendingStatus = (requests: Request[]) => {
     ].includes(request.status || '');
   });
 };
+
+interface Args {
+  isApplied: boolean;
+  formStage: number;
+  teams: Team[];
+}
+
+export function getFormStageInfo({ isApplied, formStage, teams }: Args) {
+  const stages = isApplied ? adminBceidStages : bceidStages;
+  const schemas = isApplied ? appliedNonBceidSchemas(teams) : nonBceidSchemas(teams);
+  const stageTitle = stages.find((stage) => stage.number === formStage)?.title || '';
+  const schema = schemas[formStage] || {};
+
+  return {
+    stages,
+    stageTitle,
+    schema,
+    schemas,
+  };
+}
+
+export function canDeleteMember(members: User[], memberId?: string) {
+  if (members.length === 1) return false;
+  const memberToDelete = members.find((member) => member.id === memberId);
+  const memberIsLastAdmin =
+    members.filter((member) => member.role === 'admin').length === 1 && memberToDelete?.role === 'admin';
+  if (memberIsLastAdmin) return false;
+  return true;
+}
+
+export const capitalize = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);

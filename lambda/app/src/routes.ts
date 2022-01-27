@@ -1,7 +1,18 @@
 import { isFunction } from 'lodash';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
-import { listTeams, createTeam, updateTeam, deleteTeam } from './controllers/team';
+import {
+  listTeams,
+  createTeam,
+  addUsersToTeam,
+  deleteTeam,
+  verifyTeamMember,
+  getUsersOnTeam,
+  updateTeam,
+  userIsTeamAdmin,
+  userCanReadTeam,
+  removeUserFromTeam,
+} from './controllers/team';
 import { findOrCreateUser } from './controllers/user';
 import {
   createRequest,
@@ -10,12 +21,16 @@ import {
   getRequest,
   updateRequest,
   deleteRequest,
+  updateRequestMetadata,
 } from './controllers/requests';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
 import { Session } from '../../shared/interfaces';
+import { parseInvitationToken, inviteTeamMembers } from '../src/utils/helpers';
+import encodeUrl from 'encodeurl';
 
+const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
 
 const responseHeaders = {
@@ -26,6 +41,13 @@ const responseHeaders = {
 };
 
 const BASE_PATH = '/app';
+
+const redirect = (res, url, status = 301) => {
+  const headers = { Location: url };
+  if (isFunction(res.headers)) res.headers(headers);
+  else res.set(headers);
+  return res.status(status).send();
+};
 
 export const setRoutes = (app: any) => {
   app.use((req, res, next) => {
@@ -48,6 +70,26 @@ export const setRoutes = (app: any) => {
       const result = await wakeUpAll();
       res.status(200).json(result);
     } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
+    try {
+      const token = req.query.token;
+      if (!req.query.token) return res.status(401).redirect(`${APP_URL}/verify-user?message=no-token`);
+      else {
+        const [data] = await parseInvitationToken(token);
+        const { userId, teamId, exp } = data;
+        // exp returns seconds not milliseconds
+        const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
+        if (expired) return redirect(res, `${APP_URL}/verify-user?message=${encodeUrl('This link has expired')}`, 401);
+        const verified = await verifyTeamMember(userId, teamId);
+        if (!verified) return redirect(res, `${APP_URL}/verify-user?message=${encodeUrl('User not found')}`, 422);
+        return redirect(res, `${APP_URL}/verify-user?message=success&teamId=${teamId}`);
+      }
+    } catch (err) {
+      console.log(err);
       res.status(422).json({ success: false, message: err.message || err });
     }
   });
@@ -92,8 +134,8 @@ export const setRoutes = (app: any) => {
       const session = await authenticate(req.headers);
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
 
-      const { include } = req.query;
-      const result = await getRequests(session as Session, include);
+      const { include } = req.query || {};
+      const result = await getRequests(session as Session, req.user, include);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -117,8 +159,8 @@ export const setRoutes = (app: any) => {
       const session = await authenticate(req.headers);
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
 
-      const { submit } = req.query;
-      const result = await updateRequest(session as Session, req.body, submit);
+      const { submit } = req.query || {};
+      const result = await updateRequest(session as Session, req.body, req.user, submit);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -130,8 +172,8 @@ export const setRoutes = (app: any) => {
       const session = await authenticate(req.headers);
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
 
-      const { id } = req.query;
-      const result = await deleteRequest(session as Session, Number(id));
+      const { id } = req.query || {};
+      const result = await deleteRequest(session as Session, req.user, Number(id));
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -142,8 +184,18 @@ export const setRoutes = (app: any) => {
     try {
       const session = await authenticate(req.headers);
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+      const result = await getRequest(session as Session, req.user, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
 
-      const result = await getRequest(session as Session, req.body);
+  app.put(`${BASE_PATH}/request-metadata`, async (req, res) => {
+    try {
+      const session = await authenticate(req.headers);
+      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
+      const result = await updateRequestMetadata(session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -229,9 +281,66 @@ export const setRoutes = (app: any) => {
     }
   });
 
+  app.post(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
+      const result = await addUsersToTeam(id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.delete(`${BASE_PATH}/teams/:id/members/:memberId`, async (req, res) => {
+    try {
+      const { id, memberId } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
+      const result = await removeUserFromTeam(memberId, id);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.get(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const authorized = await userCanReadTeam(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
+      const result = await getUsersOnTeam(id);
+      res.status(200).json(result);
+    } catch (err) {
+      console.log(err);
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.post(`${BASE_PATH}/teams/:id/invite`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
+      await inviteTeamMembers([req.body], id);
+      res.status(200).send();
+    } catch (err) {
+      console.log(err);
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
   app.delete(`${BASE_PATH}/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to delete this team' });
       const result = await deleteTeam(req.user, id);
       res.status(200).json(result);
     } catch (err) {

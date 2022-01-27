@@ -4,6 +4,7 @@ import styled from 'styled-components';
 interface Props {
   message: string;
   children: React.ReactNode;
+  isError?: boolean;
 }
 
 const SVG = styled.svg.attrs({
@@ -22,7 +23,7 @@ const SVG = styled.svg.attrs({
   }
 `;
 
-const ErrorImage = ({ message, children }: Props) => {
+const ErrorImage = ({ message, children, isError = true }: Props) => {
   return (
     <SVG>
       <defs>
@@ -1136,7 +1137,8 @@ const ErrorImage = ({ message, children }: Props) => {
                 fontWeight="600"
               >
                 <tspan x="0" y="0">
-                  An error has occurred{message ? `: ${message}` : '.'}{' '}
+                  {isError && 'An error has occurred:'}
+                  {message ? ` ${message}` : '.'}{' '}
                 </tspan>
               </text>
               {children}

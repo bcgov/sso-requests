@@ -113,6 +113,16 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         field: 'browser_flow_override',
       },
+      usesTeam: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        field: 'uses_team',
+      },
+      teamId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'team_id',
+      },
     },
     {
       underscored: true,

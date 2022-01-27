@@ -12,14 +12,17 @@ import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import { nonBceidSchemas, adminNonBceidSchemas } from 'schemas/non-bceid-schemas';
-import { validateForm } from 'utils/helpers';
-import { bceidStages, adminBceidStages, stageTitlesUsingForms, stageTitlesReviewing } from 'utils/constants';
+import { isNil } from 'lodash';
+import { validateForm, getFormStageInfo } from 'utils/helpers';
+import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
 import { customValidate } from 'utils/shared/customValidate';
-import { withBottomAlert, BottomAlert } from 'layout/BottomAlert';
+import { withTopAlert, TopAlert } from 'layout/TopAlert';
+import { getTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
+import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
+import TeamForm from 'form-components/team-form/CreateTeamForm';
+import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 
 const Description = styled.p`
   margin: 0;
@@ -32,16 +35,18 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
+const ErrorText = styled.p`
+  color: #d94532;
+  font-weight: bold;
+`;
+
 interface Props {
-  currentUser: {
-    email?: string;
-  };
-  request?: any;
-  alert: BottomAlert;
-  isAdmin: boolean;
+  currentUser: LoggedInUser;
+  request?: Request | undefined;
+  alert: TopAlert;
 }
 
-function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
+function FormTemplate({ currentUser, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(request ? 1 : 0);
   const [loading, setLoading] = useState(false);
@@ -49,15 +54,29 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [showAccountableError, setShowAccountableError] = useState(false);
   const router = useRouter();
-  const schemas = isAdmin ? adminNonBceidSchemas : nonBceidSchemas;
-  const stages = isAdmin ? adminBceidStages : bceidStages;
-  const stageTitle = stages.find((stage) => stage.number === formStage)?.title || '';
+  const isNew = isNil(request?.id);
+  const isApplied: boolean = request?.status === 'applied';
+  const isAdmin: boolean = currentUser.isAdmin || false;
+
+  const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isApplied, formStage, teams });
+  const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
 
   const handleChange = (e: any) => {
-    setFormData(e.formData);
-    if (e.formData.projectLead === false) {
+    const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
+    const togglingTeamToTrue = formData.usesTeam === false && e.formData.usesTeam === true;
+    if (togglingTeamToTrue) {
+      setFormData({ ...e.formData, projectLead: undefined });
+    } else {
+      setFormData(e.formData);
+    }
+    if (showModal) {
       window.location.hash = 'info-modal';
+      setShowAccountableError(true);
+    } else {
+      setShowAccountableError(false);
     }
   };
 
@@ -66,6 +85,20 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
       setFormData({ ...formData, preferredEmail: currentUser.email || '' });
     }
   }, [currentUser]);
+
+  const loadTeams = async () => {
+    const [teams, err] = await getTeams();
+    if (err) {
+      // add err handling
+      console.error(err);
+    } else {
+      setTeams(teams || []);
+    }
+  };
+
+  useEffect(() => {
+    loadTeams();
+  }, []);
 
   const changeStep = (newStage: number) => {
     visited[formStage] = true;
@@ -88,15 +121,13 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const creatingNewForm = () => router.route.endsWith('/request');
-
-  const uiSchema = getUiSchema(!creatingNewForm());
+  const uiSchema = getUiSchema(!isNew, isApplied);
 
   const handleFormSubmit = async () => {
     setLoading(true);
 
     try {
-      if (creatingNewForm()) {
+      if (isNew) {
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
 
@@ -104,7 +135,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           setLoading(false);
           return;
         }
-        const redirectUrl = isAdmin ? '/admin-dashboard' : `/request/${id}`;
+        const redirectUrl = isAdmin && isApplied ? '/admin-dashboard' : `/request/${id}`;
         await router.push({ pathname: redirectUrl });
         setFormData({ ...formData, id });
       } else {
@@ -119,7 +150,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
 
   const handleButtonSubmit = async () => {
     if (formStage === 0) {
-      if (creatingNewForm()) {
+      if (isNew) {
         visited[formStage] = true;
         setVisited(visited);
         return;
@@ -131,7 +162,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
   };
 
   const handleBlur = async (id: string, value: any) => {
-    if (creatingNewForm() || isAdmin) return;
+    if (isNew || isApplied) return;
     if (request) {
       setSaving(true);
       const [, err] = await updateRequest({ ...formData, id: request.id });
@@ -144,7 +175,8 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
     window.location.hash = '#';
   };
 
-  const backButtonText = request ? 'Save and Close' : 'Cancel';
+  const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
+  const backButtonText = isApplied ? 'Cancel' : 'Save and Close';
 
   return (
     <>
@@ -154,7 +186,7 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           currentStage={formStage}
           setFormStage={changeStep}
           errors={errors}
-          creatingNewForm={creatingNewForm}
+          isNew={isNew}
           visited={visited}
           stages={stages}
         />
@@ -177,49 +209,75 @@ function FormTemplate({ currentUser = {}, request, alert, isAdmin }: Props) {
           saveMessage={saveMessage}
           isAdmin={isAdmin}
           setFormData={setFormData}
+          teams={teams}
         />
       )}
       {stageTitlesUsingForms.includes(stageTitle) && (
         <Form
-          schema={schemas[formStage] || {}}
+          schema={schema}
           uiSchema={uiSchema}
           onChange={handleChange}
           onSubmit={handleFormSubmit}
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
           onBlur={handleBlur}
-          liveValidate={visited[formStage] || isAdmin}
+          liveValidate={visited[formStage] || isApplied}
           validate={customValidate}
         >
-          <FormButtons
-            formSubmission={formStage === 0}
-            text={{ continue: 'Next', back: backButtonText }}
-            show={!isAdmin && (formStage !== 0 || formData.projectLead)}
-            loading={loading}
-            handleSubmit={handleButtonSubmit}
-            handleBackClick={handleBackClick}
-            saving={saving}
-            saveMessage={saveMessage}
-          />
+          {showFormButtons ? (
+            <FormButtons
+              formSubmission={formStage === 0}
+              backButton={backButton}
+              text={{ continue: 'Next', back: backButtonText }}
+              loading={loading}
+              handleSubmit={handleButtonSubmit}
+              handleBackClick={handleBackClick}
+              saving={saving}
+              saveMessage={saveMessage}
+            />
+          ) : (
+            <></>
+          )}
         </Form>
       )}
       {stageTitle === 'Requester Info' && (
-        <CenteredModal
-          id="info-modal"
-          content={
-            <>
-              <p>If you are not accountable for this project, please refer this request to someone who is.</p>
-              <p> Only the person who is responsible for this project can submit the intergration request.</p>
-            </>
-          }
-          icon={faInfoCircle}
-          onConfirm={handleModalClose}
-          confirmText="Okay"
-          showCancel={false}
-        />
+        <>
+          <CenteredModal
+            id="info-modal"
+            content={
+              <>
+                <p>If you are not accountable for this project, please refer this request to someone who is.</p>
+                <p> Only the person who is responsible for this project can submit the intergration request.</p>
+              </>
+            }
+            icon={false}
+            onConfirm={handleModalClose}
+            confirmText="Close"
+            showCancel={false}
+            title="Project Accountability"
+            buttonStyle="custom"
+            buttonAlign="center"
+            closable
+          />
+          <CenteredModal
+            title="Create a new team"
+            icon={null}
+            id={createTeamModalId}
+            content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
+            showCancel={false}
+            showConfirm={false}
+            closable
+          />
+          {showAccountableError && (
+            <ErrorText>
+              If you are not accountable for this request, please refer this request to someone who is. Only the
+              responsible person can submit the integration request.
+            </ErrorText>
+          )}
+        </>
       )}
     </>
   );
 }
 
-export default withBottomAlert(FormTemplate);
+export default withTopAlert(FormTemplate);

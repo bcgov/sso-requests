@@ -34,6 +34,8 @@ export interface Data {
   agreeWithTerms?: boolean;
   status?: string;
   archived?: boolean;
+  usesTeam?: boolean;
+  teamId?: string;
 }
 
 export interface FormattedData {
@@ -69,11 +71,22 @@ export interface EmailOptions {
   priority?: 'normal' | 'low' | 'high';
   subject?: string;
   tag?: string;
-  event: EmailEvent;
+  event?: EmailEvent;
 }
 
 export interface BceidEmailDetails {
   bceidTo?: string;
   bceidCc?: string;
   bceidBody?: string;
+}
+
+export interface User {
+  email: string;
+  role: 'admin' | 'user' | '';
+  id: string;
+}
+
+export interface Team {
+  name: string;
+  members: User[];
 }

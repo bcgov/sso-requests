@@ -25,7 +25,9 @@ export interface Request {
   archived?: boolean;
   additionalEmails?: string[];
   hasUnreadNotifications?: boolean;
+  usesTeam?: boolean;
   bceidApproved?: boolean;
+  teamId?: string | number;
 }
 
 export interface Option {

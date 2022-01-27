@@ -13,7 +13,7 @@ describe('Notify BCeID', () => {
     jest.clearAllMocks();
   });
 
-  it('Should not send an email to IDIM if updating', () => {
+  it('Should not send an email to IDIM if updating and not approving', () => {
     notifyIdim(formDataBceid, 'update');
     expect(sendEmail).not.toHaveBeenCalled();
   });

@@ -3,7 +3,6 @@ import { render, screen, fireEvent, within } from '@testing-library/react';
 import FormStage from 'form-components/FormStage';
 import { bceidStages } from 'utils/constants';
 
-const creatingNewForm = jest.fn().mockReturnValueOnce(true).mockReturnValueOnce(false);
 const setFormStage = jest.fn();
 const errors = {
   '0': [{}],
@@ -15,7 +14,7 @@ describe('Form Stage', () => {
   it('Only allows navigation once a request is created', () => {
     render(
       <FormStage
-        creatingNewForm={creatingNewForm}
+        isNew={true}
         currentStage={0}
         setFormStage={setFormStage}
         errors={{}}
@@ -25,14 +24,12 @@ describe('Form Stage', () => {
     );
     fireEvent.click(screen.getByText('Providers and URIs'));
     expect(setFormStage).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByText('Terms and conditions'));
-    expect(setFormStage).toHaveBeenCalledWith(2);
   });
 
   it('Displays error states correctly', () => {
     render(
       <FormStage
-        creatingNewForm={creatingNewForm}
+        isNew={false}
         currentStage={0}
         setFormStage={setFormStage}
         errors={errors}
@@ -49,7 +46,7 @@ describe('Form Stage', () => {
   it('Shows the passed in stages correctly', () => {
     render(
       <FormStage
-        creatingNewForm={creatingNewForm}
+        isNew={false}
         currentStage={0}
         setFormStage={setFormStage}
         errors={errors}

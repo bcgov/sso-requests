@@ -32,6 +32,7 @@ fieldset {
 /* RJSF overrides */
 
 #root_newToSso > .radio,
+#root_usesTeam > .radio,
 #root_projectLead > .radio {
   display: inline;
   margin-right: 10px;
@@ -103,6 +104,17 @@ textarea#root_bceidBody {
 .field-string .pg-input .pg-input-input {
   width: 100%;
   padding-right: 30px;
+}
+
+.pg-input-input:read-only {
+  background-color: #eaeaea;
+  cursor: not-allowed;
+}
+
+.pg-select-input:disabled {
+  cursor: not-allowed;
+  background-color: #eaeaea;
+  margin: -5px;
 }
 
 .pg-footer-footer {

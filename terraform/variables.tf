@@ -78,6 +78,10 @@ variable "app_url" {
   default     = "https://bcgov.github.io/sso-terraform-dev"
 }
 
+variable "api_url" {
+  description = "the api base url"
+}
+
 variable "app_env" {
   description = "the application environment; development, test, production"
   default     = "development"

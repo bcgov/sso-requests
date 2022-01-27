@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Alert from 'html-components/Alert';
+import { Alert } from '@bcgov-sso/common-react-components';
 
 interface Props {
-  variant?: string;
+  variant?: any;
   size?: string;
   closable?: boolean;
   content?: string;

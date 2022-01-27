@@ -1,5 +1,7 @@
 import type { EnvironmentOption, ErrorMessages, Stage } from 'interfaces/form';
 
+export const createTeamModalId = `create-team-modal`;
+
 export const environments: EnvironmentOption[] = [
   {
     name: 'dev',
@@ -24,6 +26,7 @@ export const errorMessages: ErrorMessages = {
   newToSso: 'Please select an answer',
   projectName: 'Please enter a project name',
   additionalEmails: 'Please fill in any additional emails.',
+  teamId: 'Please select an existing team',
 };
 
 export const firstFormPageTitle = 'Requester Info';
@@ -38,11 +41,11 @@ export const bceidStages: Stage[] = [
 export const adminBceidStages: Stage[] = [
   { title: firstFormPageTitle, number: 0 },
   { title: 'Providers and URIs', number: 1 },
-  { title: 'Comment & Submit', number: 2 },
+  { title: 'Review & Submit', number: 2 },
 ];
 
 export const stageTitlesUsingForms = [firstFormPageTitle, 'Providers and URIs', 'Terms and conditions'];
-export const stageTitlesReviewing = ['Comment & Submit', 'Review & Submit'];
+export const stageTitlesReviewing = ['Review & Submit', 'Review & Submit'];
 
 export const bceidBody = `Organization Details (Organization/Division/Branch/Program): \n
 Exectutive Sponsor Name, Title, & Email:\n

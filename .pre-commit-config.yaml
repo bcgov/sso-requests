@@ -21,7 +21,7 @@ repos:
   #   rev: v7.29.0
   #   hooks:
   #     - id: eslint
-  - repo: git://github.com/antonbabenko/pre-commit-terraform
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.50.0
     hooks:
       - id: terraform_fmt

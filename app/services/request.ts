@@ -1,23 +1,9 @@
 import { instance } from './axios';
-import { AxiosError } from 'axios';
-import { orderBy } from 'lodash';
+import { orderBy, isString } from 'lodash';
 import { Request } from 'interfaces/Request';
 import { processRequest } from 'utils/helpers';
-import Router from 'next/router';
-
-const applicationBlockingErrors = ['E01'];
-
-const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
-  const errorMessage = err?.response?.data || 'Unhandled Exception';
-  if (applicationBlockingErrors.includes(errorMessage))
-    Router.push({
-      pathname: '/application-error',
-      query: {
-        error: errorMessage,
-      },
-    });
-  return [null, errorMessage as AxiosError];
-};
+import { handleAxiosError } from 'services/axios';
+import { AxiosError } from 'axios';
 
 export const createRequest = async (data: Request): Promise<[Request, null] | [null, AxiosError]> => {
   try {
@@ -28,9 +14,12 @@ export const createRequest = async (data: Request): Promise<[Request, null] | [n
   }
 };
 
-export const getRequest = async (requestId: number): Promise<[Request, null] | [null, AxiosError]> => {
+export const getRequest = async (requestId: number | string): Promise<[Request, null] | [null, AxiosError]> => {
   try {
-    const result: Request = await instance.post('request', { requestId }).then((res) => res.data);
+    const result: Request = await instance
+      .post('request', { requestId: isString(requestId) ? parseInt(requestId) : requestId })
+      .then((res) => res.data);
+
     return [processRequest(result), null];
   } catch (err) {
     return handleAxiosError(err);
@@ -93,6 +82,15 @@ export const deleteRequest = async (id?: number): Promise<[Request[], null] | [n
   try {
     const result: Request[] = await instance.delete('requests', { params: { id } }).then((res) => res.data);
     return [result, null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};
+
+export const updateRequestMetadata = async (data: Request): Promise<[Request, null] | [null, AxiosError]> => {
+  try {
+    const result = await instance.put('request-metadata', data).then((res) => res.data);
+    return [processRequest(result), null];
   } catch (err) {
     return handleAxiosError(err);
   }

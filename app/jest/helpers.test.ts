@@ -1,4 +1,4 @@
-import { idpToRealm, getRequestedEnvironments } from 'utils/helpers';
+import { idpToRealm, getRequestedEnvironments, canDeleteMember } from 'utils/helpers';
 import { isValidKeycloakURI } from 'utils/shared/customValidate';
 
 describe('idp to realm', () => {
@@ -125,5 +125,46 @@ describe('Get Requested Environments', () => {
         bceidApproved: true,
       }),
     ).toEqual(dev.concat(test).concat(prod));
+  });
+});
+
+describe('Can Delete Member', () => {
+  it('Should return false if the user is the last admin', () => {
+    expect(
+      canDeleteMember(
+        [
+          {
+            role: 'admin',
+            id: '1',
+            idirEmail: '',
+          },
+          {
+            role: 'user',
+            id: '2',
+            idirEmail: '',
+          },
+        ],
+        '1',
+      ),
+    ).toBe(false);
+  });
+  it('Should return true if the user is not an admin', () => {
+    expect(
+      canDeleteMember(
+        [
+          {
+            role: 'admin',
+            id: '1',
+            idirEmail: '',
+          },
+          {
+            role: 'user',
+            id: '2',
+            idirEmail: '',
+          },
+        ],
+        '2',
+      ),
+    ).toBe(true);
   });
 });
