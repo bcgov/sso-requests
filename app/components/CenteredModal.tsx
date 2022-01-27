@@ -28,7 +28,8 @@ const Header = styled(Modal.Header)`
 `;
 
 const PaddedIcon = styled(FontAwesomeIcon)`
-  margin-right: 20px;
+  margin-right: 5px;
+  height: 30px;
 `;
 
 const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
