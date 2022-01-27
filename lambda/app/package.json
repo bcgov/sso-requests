@@ -9,6 +9,7 @@
   "devDependencies": {
     "@octokit/types": "^6.18.1",
     "@types/aws-lambda": "^8.10.51",
+    "@types/encodeurl": "^1.0.0",
     "@types/jest": "^26.0.23",
     "@types/jsonwebtoken": "^8.5.2",
     "@types/jwk-to-pem": "^2.0.0",

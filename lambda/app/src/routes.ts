@@ -28,7 +28,7 @@ import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
 import { Session } from '../../shared/interfaces';
 import { parseInvitationToken, inviteTeamMembers } from '../src/utils/helpers';
-import encodeUrl from 'encodeurl';
+import encodeurl = require('encodeurl');
 
 const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -83,9 +83,9 @@ export const setRoutes = (app: any) => {
         const { userId, teamId, exp } = data;
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return redirect(res, `${APP_URL}/verify-user?message=${encodeUrl('This link has expired')}`, 401);
+        if (expired) return redirect(res, `${APP_URL}/verify-user?message=${encodeurl('This link has expired')}`, 401);
         const verified = await verifyTeamMember(userId, teamId);
-        if (!verified) return redirect(res, `${APP_URL}/verify-user?message=${encodeUrl('User not found')}`, 422);
+        if (!verified) return redirect(res, `${APP_URL}/verify-user?message=${encodeurl('User not found')}`, 422);
         return redirect(res, `${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {
