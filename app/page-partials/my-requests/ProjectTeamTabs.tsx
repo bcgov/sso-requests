@@ -113,12 +113,21 @@ interface Props {
 export default function ProjectTeamTabs({ currentUser }: Props) {
   const router = useRouter();
   const { state, dispatch } = useContext(RequestsContext);
-  const { requests, teams, activeRequestId, tableTab, downloadError, activeTeamId, teamIdToDelete } = state;
+  const { requests, teams, activeRequestId, tableTab, downloadError, activeTeamId, teamIdToDelete, teamIdToEdit } =
+    state;
 
   const selectedRequest = requests?.find((request) => request.id === activeRequestId);
   const selectedTeam = teams?.find((team) => team.id === activeTeamId);
   const teamRequests = requests?.filter((request) => Number(request.teamId) === activeTeamId);
   const teamHasIntegrations = teamRequests && teamRequests.length > 0;
+
+  // console.log(teams)
+  // console.log(`teamIDToEdit=${teamIdToEdit}`)
+  const teamNameToEdit = teamIdToEdit
+    ? teams?.reduce((teamName, team) => (team.id == teamIdToEdit && teamName.push(team.name), teamName), [])[0]
+    : ' ';
+  // console.log(teamNameToEdit)
+  // const [teamNameEditing, setTeamNameEditing] = useState(teamNameToEdit);
 
   const handleProjectSelection = async (request: Request) => {
     if (activeRequestId === request.id) return;
@@ -149,7 +158,8 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
 
   const showEditTeamNameModal = async (teamId: number) => {
     // TODO: figure out what's going on with this location hash
-    console.log('Edit team name clicked');
+    // console.log('Edit team name clicked');
+    // console.log(`The team id is ${teamId}`)
     window.location.hash = editTeamNameModalId;
     dispatch($setTeamIdToEdit(teamId));
   };
@@ -274,7 +284,14 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
         icon={null}
         onConfirm={() => console.log('confirm')}
         id={editTeamNameModalId}
-        content={<EditTeamNameForm onSubmit={loadTeams} currentUser={currentUser} />}
+        content={
+          <EditTeamNameForm
+            onSubmit={loadTeams}
+            currentUser={currentUser}
+            teamId={teamIdToEdit}
+            initialTeamName={teamNameToEdit}
+          />
+        }
         showCancel={false}
         showConfirm={false}
         closable

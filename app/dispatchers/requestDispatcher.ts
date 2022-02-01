@@ -23,6 +23,7 @@ export const $setTeamIdToDelete = (payload: number | null): Action => {
 };
 // TODO FIX THIS TO INCLUDE THE CORRECT PAYLOAD
 export const $setTeamIdToEdit = (payload: number | null): Action => {
+  // console.log(`Edit dispatch called with payload: ${payload}`)
   return { type: 'setTeamIdToEdit', payload };
 };
 

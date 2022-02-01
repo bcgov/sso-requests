@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
 import { Button } from '@bcgov-sso/common-react-components';
 import { v4 as uuidv4 } from 'uuid';
-import { createTeam } from 'services/team';
+import { RequestsContext } from 'pages/my-requests';
+
+import { editTeamName } from 'services/team';
 import Loader from 'react-loader-spinner';
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
-import TeamMembersForm from './TeamMembersForm';
 
 const ButtonsContainer = styled.div`
   display: flex;
@@ -21,6 +22,7 @@ const ButtonsContainer = styled.div`
 interface Props {
   onSubmit: Function;
   currentUser: LoggedInUser;
+  initialTeamName: string;
 }
 
 export interface Errors {
@@ -34,11 +36,17 @@ const emptyUser: User = {
   id: String(uuidv4()),
 };
 
-export default function EditTeamNameForm({ onSubmit, currentUser }: Props) {
-  const [members, setMembers] = useState<User[]>([emptyUser]);
+export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamName }: Props) {
+  const { state, dispatch } = useContext(RequestsContext);
+  const { teamIdToEdit } = state;
+
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>();
+
+  useEffect(() => {
+    setTeamName(initialTeamName);
+  }, [initialTeamName]);
 
   const validateTeam = (team: any) => {
     const errors: any = { members: [] };
@@ -47,12 +55,6 @@ export default function EditTeamNameForm({ onSubmit, currentUser }: Props) {
       errors.name = 'Please enter a name';
       hasError = true;
     }
-    team.members.forEach((member: User, i: number) => {
-      if (!member.idirEmail) {
-        errors.members[i] = 'Please enter an email';
-        hasError = true;
-      }
-    });
     if (hasError) return errors;
     setErrors(undefined);
     return null;
@@ -66,35 +68,16 @@ export default function EditTeamNameForm({ onSubmit, currentUser }: Props) {
     window.location.hash = '#';
   };
 
-  const handleCreate = async () => {
-    const team = { name: teamName, members };
-    const errors = validateTeam(team);
-    if (errors) return setErrors(errors);
-    setLoading(true);
-    const [, err] = await createTeam(team);
-    if (err) {
-      console.error(err);
-    }
-    await onSubmit();
-    setMembers([emptyUser]);
-    setTeamName('');
-    setLoading(false);
-    window.location.hash = '#';
-  };
-
   const handleEditName = async () => {
-    // must gut this funtion to edit the name
-    const team = { name: teamName, members };
+    const team = { name: teamName, id: teamIdToEdit };
     const errors = validateTeam(team);
     if (errors) return setErrors(errors);
     setLoading(true);
-    const [, err] = await createTeam(team);
+    const [, err] = await editTeamName(team);
     if (err) {
       console.error(err);
     }
     await onSubmit();
-    setMembers([emptyUser]);
-    setTeamName('');
     setLoading(false);
     window.location.hash = '#';
   };

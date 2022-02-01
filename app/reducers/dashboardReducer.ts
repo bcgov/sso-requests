@@ -13,6 +13,7 @@ export interface DashboardReducerState {
   downloadError?: boolean;
   requestIdToDelete?: number;
   teamIdToDelete?: number;
+  teamIdToEdit?: number;
 }
 
 export type ActionTypes =
@@ -69,6 +70,8 @@ const reducer = (state: DashboardReducerState, action: Action) => {
       return { ...state, activeRequestId: action.payload, activeTeamId: undefined };
     }
     case 'setActiveTeamId': {
+      // console.log(`the active team id is triggered with action.payload: ${action.payload}`)
+      //TODO Is this already usede for determining the team being worked on?
       return { ...state, activeTeamId: action.payload, activeRequestId: undefined };
     }
     case 'setRequestIdToDelete': {
@@ -79,6 +82,7 @@ const reducer = (state: DashboardReducerState, action: Action) => {
     }
     // TODO FIX THIS TO SEND THE CORRECT PAYLOAD
     case 'setTeamIdToEdit': {
+      // console.log(`the teamIDToEdit is triggered with action.payload: ${action.payload}`)
       return { ...state, teamIdToEdit: action.payload };
     }
     default:
