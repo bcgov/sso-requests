@@ -82,6 +82,8 @@ export const deleteTeam = async (user: User, id: string) => {
         teamId: id,
         archived: true,
       },
+      returning: true,
+      omitNull: false,
     },
   );
 

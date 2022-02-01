@@ -5,14 +5,13 @@ import FormTemplate from 'form-components/FormTemplate';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { getRequest } from 'services/request';
 import { Request } from 'interfaces/Request';
+import { LoggedInUser } from 'interfaces/team';
 import PageLoader from 'components/PageLoader';
 
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 interface Props {
-  currentUser: {
-    email?: string;
-  };
+  currentUser: LoggedInUser;
 }
 
 function RequestEdit({ currentUser }: Props) {
@@ -24,7 +23,7 @@ function RequestEdit({ currentUser }: Props) {
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
-      const [data] = await getRequest(parseInt(rid as string));
+      const [data] = await getRequest(rid as string);
       if (isNil(data)) {
         setRequest(null);
       } else {

@@ -2,7 +2,9 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2017",
+    "moduleResolution": "node",
     "preserveConstEnums": true,
+    "esModuleInterop": true,
     "outDir": "./build",
     "sourceMap": true,
     "sourceRoot": "./src/",

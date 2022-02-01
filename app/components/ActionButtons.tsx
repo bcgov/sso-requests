@@ -47,7 +47,7 @@ export default function Actionbuttons({ request, children }: Props) {
   const handleEdit = async (event: MouseEvent) => {
     event.stopPropagation();
     if (!canEdit) return;
-    await router.push(`/request/${request.id}`);
+    await router.push(`/request/${request.id}?status=${request.status}`);
   };
 
   const handleDelete = async () => {
@@ -59,6 +59,7 @@ export default function Actionbuttons({ request, children }: Props) {
   return (
     <>
       <ActionButtonContainer>
+        {children}
         <ActionButton
           disabled={!canEdit}
           icon={faEdit}
@@ -78,7 +79,6 @@ export default function Actionbuttons({ request, children }: Props) {
           title="Delete"
           size="lg"
         />
-        {children}
       </ActionButtonContainer>
     </>
   );
