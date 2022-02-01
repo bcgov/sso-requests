@@ -23,7 +23,6 @@ export const createTeam = async (data: any): Promise<[Team, null] | [null, Axios
 
 export const editTeamName = async (data: { name: string; id?: number }): Promise<[Team, null] | [null, AxiosError]> => {
   try {
-    // this has just been copied from the createTeam service
     const { name, id } = data;
     const body = { name: name };
     const result = await instance.put(`teams/${id}`, body).then((res) => res.data);

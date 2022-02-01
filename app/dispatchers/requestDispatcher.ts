@@ -21,9 +21,8 @@ export const $setRequestToDelete = (payload: number | null): Action => {
 export const $setTeamIdToDelete = (payload: number | null): Action => {
   return { type: 'setTeamIdToDelete', payload };
 };
-// TODO FIX THIS TO INCLUDE THE CORRECT PAYLOAD
+
 export const $setTeamIdToEdit = (payload: number | null): Action => {
-  // console.log(`Edit dispatch called with payload: ${payload}`)
   return { type: 'setTeamIdToEdit', payload };
 };
 
