@@ -122,7 +122,10 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
   const teamHasIntegrations = teamRequests && teamRequests.length > 0;
 
   const teamNameToEdit = teamIdToEdit
-    ? teams?.reduce((teamName, team) => (team.id == teamIdToEdit && teamName.push(team.name), teamName), [])[0]
+    ? teams?.reduce(
+        (teamName: string[], team: Team) => (team.id == teamIdToEdit && teamName.push(team.name), teamName),
+        [],
+      )[0]
     : ' ';
 
   const handleProjectSelection = async (request: Request) => {
