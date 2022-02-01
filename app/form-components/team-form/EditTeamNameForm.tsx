@@ -88,7 +88,7 @@ export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamNam
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <ButtonsContainer>
-        <Button variant="secondary" onClick={handleCancel}>
+        <Button variant="secondary" onClick={handleCancel} style={{ marginRight: '20px' }}>
           Cancel
         </Button>
         <Button type="button" onClick={handleEditName}>
