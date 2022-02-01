@@ -64,6 +64,7 @@ export const updateTeam = async (user: User, id: string, data: { name: string })
       plain: true,
     },
   );
+
   if (updated.length < 2) {
     throw Error('update failed');
   }
