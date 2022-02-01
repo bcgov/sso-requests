@@ -273,6 +273,9 @@ export const setRoutes = (app: any) => {
   app.put(`${BASE_PATH}/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await updateTeam(req.user, id, req.body);
       res.status(200).json(result);
     } catch (err) {
