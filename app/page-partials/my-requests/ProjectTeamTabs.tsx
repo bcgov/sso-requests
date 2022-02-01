@@ -277,7 +277,13 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
         icon={null}
         onConfirm={() => console.log('confirm')}
         id={editTeamNameModalId}
-        content={<EditTeamNameForm onSubmit={loadTeams} currentUser={currentUser} initialTeamName={teamNameToEdit} />}
+        content={
+          <EditTeamNameForm
+            onSubmit={loadTeams}
+            currentUser={currentUser}
+            initialTeamName={teamNameToEdit ? teamNameToEdit : ''}
+          />
+        }
         showCancel={false}
         showConfirm={false}
         closable

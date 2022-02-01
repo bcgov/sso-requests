@@ -22,7 +22,7 @@ const ButtonsContainer = styled.div`
 interface Props {
   onSubmit: Function;
   currentUser: LoggedInUser;
-  initialTeamName: string | undefined;
+  initialTeamName: string;
 }
 
 export interface Errors {
@@ -51,7 +51,7 @@ export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamNam
   const validateTeam = (team: any) => {
     const errors: any = { members: [] };
     let hasError = false;
-    if (!team.name) {
+    if (!team.name.trim()) {
       errors.name = 'Please enter a name';
       hasError = true;
     }
@@ -69,7 +69,7 @@ export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamNam
   };
 
   const handleEditName = async () => {
-    const team = { name: teamName, id: teamIdToEdit };
+    const team = { name: teamName.trim(), id: teamIdToEdit };
     const errors = validateTeam(team);
     if (errors) return setErrors(errors);
     setLoading(true);
