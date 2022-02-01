@@ -270,7 +270,6 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  // Needs authentication for this to work. see the following post command
   app.put(`${BASE_PATH}/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;

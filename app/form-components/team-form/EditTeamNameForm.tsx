@@ -22,7 +22,7 @@ const ButtonsContainer = styled.div`
 interface Props {
   onSubmit: Function;
   currentUser: LoggedInUser;
-  initialTeamName: string;
+  initialTeamName: string | undefined;
 }
 
 export interface Errors {
