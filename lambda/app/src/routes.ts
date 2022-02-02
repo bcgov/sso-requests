@@ -207,7 +207,7 @@ export const setRoutes = (app: any) => {
       const session = await authenticate(req.headers);
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
 
-      const result = await getInstallation(session as Session, req.body);
+      const result = await getInstallation(session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
