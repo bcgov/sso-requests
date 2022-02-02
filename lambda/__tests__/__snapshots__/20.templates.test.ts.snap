@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Email template snapshots Should return the expeted email for IDIM deletions 1`] = `"New BCeID Integration Request ID 1"`;
+
+exports[`Email template snapshots Should return the expeted email for IDIM deletions 2`] = `
+"<h1>Hello IDIM Team,</h1>
+<p>
+  We are notifying you that the client for the following integration request has requested a deletion. The request
+  details are below:
+</p>
+
+<ul>
+  <li><strong>Project name:</strong> test</li>
+  <li><strong>Accountable person:</strong> test user</li>
+  <li>
+    <strong>URIs:</strong>
+    <ul>
+      <li> Development: https://b </li>  
+    </ul>
+  </li>
+  <li><strong>Identity Providers Required:</strong> idir</li>
+</ul>
+
+<p>Thank you,</p>
+
+<p>Pathfinder SSO team.</p>
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for created requests 1`] = `"Pathfinder SSO request submitted"`;
+
+exports[`Email template snapshots Should return the expeted email for created requests 2`] = `
+"<h1>Hello IDIM Team,</h1>
+<p>
+  We are notifying you that a new dev and/or test integration request has been submitted. The request details are below:
+</p>
+
+<ul>
+  <li><strong>Project name:</strong> test</li>
+  <li><strong>Accountable person:</strong> test user</li>
+  <li>
+    <strong>URIs:</strong>
+    <ul>
+      <li> Development: https://b </li> 
+    </ul>
+  </li>
+  <li><strong>Identity Providers Required:</strong> idir</li>
+</ul>
+
+<p>Thank you,</p>
+
+<p>Pathfinder SSO team.</p>
+"
+`;
