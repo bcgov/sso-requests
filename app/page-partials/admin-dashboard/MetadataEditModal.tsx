@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Button from '@button-inc/bcgov-theme/Button';
 import Input from '@button-inc/bcgov-theme/Input';
@@ -32,6 +32,11 @@ function MetadataEditModal({ request, onUpdate }: Props) {
     if (onUpdate) await onUpdate();
     window.location.hash = '#';
   };
+
+  useEffect(() => {
+    setUuid(request.idirUserid);
+    setStatus(request.status);
+  }, [request]);
 
   const openModal = () => (window.location.hash = modalId);
 
