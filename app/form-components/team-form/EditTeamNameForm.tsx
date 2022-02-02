@@ -65,6 +65,7 @@ export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamNam
   };
 
   const handleCancel = () => {
+    setTeamName(initialTeamName);
     window.location.hash = '#';
   };
 
