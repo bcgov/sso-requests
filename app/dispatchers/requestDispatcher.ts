@@ -22,6 +22,10 @@ export const $setTeamIdToDelete = (payload: number | null): Action => {
   return { type: 'setTeamIdToDelete', payload };
 };
 
+export const $setTeamIdToEdit = (payload: number | null): Action => {
+  return { type: 'setTeamIdToEdit', payload };
+};
+
 export const $setTeams = (payload: Team[] | null): Action => {
   return { type: 'setTeams', payload };
 };

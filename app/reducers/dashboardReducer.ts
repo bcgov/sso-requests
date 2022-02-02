@@ -13,6 +13,7 @@ export interface DashboardReducerState {
   downloadError?: boolean;
   requestIdToDelete?: number;
   teamIdToDelete?: number;
+  teamIdToEdit?: number;
 }
 
 export type ActionTypes =
@@ -27,7 +28,8 @@ export type ActionTypes =
   | 'setActiveTeamId'
   | 'setDownloadError'
   | 'setRequestIdToDelete'
-  | 'setTeamIdToDelete';
+  | 'setTeamIdToDelete'
+  | 'setTeamIdToEdit';
 
 export interface Action {
   type: ActionTypes;
@@ -75,6 +77,9 @@ const reducer = (state: DashboardReducerState, action: Action) => {
     }
     case 'setTeamIdToDelete': {
       return { ...state, teamIdToDelete: action.payload };
+    }
+    case 'setTeamIdToEdit': {
+      return { ...state, teamIdToEdit: action.payload };
     }
     default:
       return state;

@@ -207,7 +207,7 @@ export const setRoutes = (app: any) => {
       const session = await authenticate(req.headers);
       if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
 
-      const result = await getInstallation(session as Session, req.body);
+      const result = await getInstallation(session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -273,6 +273,9 @@ export const setRoutes = (app: any) => {
   app.put(`${BASE_PATH}/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await updateTeam(req.user, id, req.body);
       res.status(200).json(result);
     } catch (err) {

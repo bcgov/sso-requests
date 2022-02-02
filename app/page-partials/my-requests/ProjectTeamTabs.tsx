@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, forwardRef, useRef, useImperativeHandle } from 'react';
 import { RequestTabs } from 'components/RequestTabs';
 import Tab from 'react-bootstrap/Tab';
 import { Request } from 'interfaces/Request';
@@ -14,6 +14,7 @@ import {
   $setTeams,
   $setDownloadError,
   $setTeamIdToDelete,
+  $setTeamIdToEdit,
 } from 'dispatchers/requestDispatcher';
 import { Button } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
@@ -23,12 +24,14 @@ import { Team } from 'interfaces/team';
 import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import { getTeams, deleteTeam } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
+import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
 import { createTeamModalId } from 'utils/constants';
 import { UserSession } from 'interfaces/props';
 import WarningModalContents from 'components/WarningModalContents';
 
 const deleteTeamModalId = 'delete-team-modal';
+const editTeamNameModalId = 'edit-team-name-modal';
 
 const CenteredHeader = styled.th`
   text-align: center;
@@ -110,12 +113,20 @@ interface Props {
 export default function ProjectTeamTabs({ currentUser }: Props) {
   const router = useRouter();
   const { state, dispatch } = useContext(RequestsContext);
-  const { requests, teams, activeRequestId, tableTab, downloadError, activeTeamId, teamIdToDelete } = state;
+  const { requests, teams, activeRequestId, tableTab, downloadError, activeTeamId, teamIdToDelete, teamIdToEdit } =
+    state;
 
   const selectedRequest = requests?.find((request) => request.id === activeRequestId);
   const selectedTeam = teams?.find((team) => team.id === activeTeamId);
   const teamRequests = requests?.filter((request) => Number(request.teamId) === activeTeamId);
   const teamHasIntegrations = teamRequests && teamRequests.length > 0;
+
+  const teamNameToEdit = teamIdToEdit
+    ? teams?.reduce(
+        (teamName: string[], team: Team) => (team.id == teamIdToEdit && teamName.push(team.name), teamName),
+        [],
+      )[0]
+    : ' ';
 
   const handleProjectSelection = async (request: Request) => {
     if (activeRequestId === request.id) return;
@@ -142,6 +153,11 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
   const showDeleteModal = async (teamId: number) => {
     window.location.hash = deleteTeamModalId;
     dispatch($setTeamIdToDelete(teamId));
+  };
+
+  const showEditTeamNameModal = async (teamId: number) => {
+    window.location.hash = editTeamNameModalId;
+    dispatch($setTeamIdToEdit(teamId));
   };
 
   const getTableContents = (tableTab?: string) => {
@@ -200,7 +216,14 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
                     <td>{team.name}</td>
                     <td>
                       <ActionButtonContainer>
-                        <ActionButton icon={faEdit} role="button" aria-label="edit" title="Edit" size="lg" />
+                        <ActionButton
+                          icon={faEdit}
+                          role="button"
+                          aria-label="edit"
+                          title="Edit"
+                          size="lg"
+                          onClick={() => showEditTeamNameModal(team.id)}
+                        />
                         <ActionButton
                           icon={faTrash}
                           role="button"
@@ -248,6 +271,22 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
         onConfirm={() => console.log('confirm')}
         id={createTeamModalId}
         content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
+        showCancel={false}
+        showConfirm={false}
+        closable
+      />
+      <CenteredModal
+        title="Edit Team Name"
+        icon={null}
+        onConfirm={() => console.log('confirm')}
+        id={editTeamNameModalId}
+        content={
+          <EditTeamNameForm
+            onSubmit={loadTeams}
+            currentUser={currentUser}
+            initialTeamName={teamNameToEdit ? teamNameToEdit : ''}
+          />
+        }
         showCancel={false}
         showConfirm={false}
         closable
