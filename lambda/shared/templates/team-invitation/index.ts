@@ -1,5 +1,5 @@
-import fs from 'fs';
-import Handlebars from 'handlebars';
+import * as fs from 'fs';
+import Handlebars = require('handlebars');
 
 const SUBJECT_TEMPLATE = `Invitation for pathfinder SSO team #{{teamId}}`;
 const template = fs.readFileSync(__dirname + '/template.html', 'utf8');

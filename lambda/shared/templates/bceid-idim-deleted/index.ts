@@ -1,5 +1,5 @@
-import fs from 'fs';
-import Handlebars from 'handlebars';
+import * as fs from 'fs';
+import Handlebars = require('handlebars');
 import { processRequest } from '../helpers';
 
 const SUBJECT_TEMPLATE = `BCeID Integration Request ID {{request.id}} Deleted`;

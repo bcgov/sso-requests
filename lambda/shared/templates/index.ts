@@ -1,5 +1,5 @@
-import fs from 'fs';
-import Handlebars from 'handlebars';
+import * as fs from 'fs';
+import Handlebars = require('handlebars');
 import bceidIdimDeleted from './bceid-idim-deleted';
 import bceidIdimDevSubmitted from './bceid-idim-dev-submitted';
 import bceidRequestApproved from './bceid-request-approved';
