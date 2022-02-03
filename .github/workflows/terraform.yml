@@ -84,6 +84,11 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-yarn-
 
+      - name: Install dependencies for shared module
+        run: |
+          yarn
+        working-directory: ./lambda/shared
+
       - name: zip lambda functions - app
         run: |
           yarn

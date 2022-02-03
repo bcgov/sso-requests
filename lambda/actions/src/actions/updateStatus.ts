@@ -2,7 +2,7 @@ import { models } from '../../../shared/sequelize/models/models';
 import { mergePR } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
-import { getEmailBody, getEmailSubject } from '../../../shared/utils/templates';
+import { renderTemplate } from '../../../shared/templates';
 import { EVENTS } from '../../../shared/enums';
 
 const createEvent = async (data) => {
@@ -75,8 +75,7 @@ export default async function updateStatus(event) {
 
         await sendEmail({
           to,
-          body: getEmailBody(emailCode, request),
-          subject: getEmailSubject(emailCode),
+          ...renderTemplate(emailCode, { request }),
           event: { emailCode, requestId },
         });
       }
