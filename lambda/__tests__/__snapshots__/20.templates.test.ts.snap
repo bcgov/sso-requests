@@ -164,10 +164,7 @@ exports[`Email template snapshots Should return the expeted email for created re
 
 exports[`Email template snapshots Should return the expeted email for created requests 4`] = `
 "<h1>Your Pathfinder SSO request #1 is successfully submitted.</h1>
-<p>
-  <strong>Project name: </strong>test<br /><strong>Submitted by: </strong
-  >test user
-</p>
+<p><strong>Project name: </strong>test<br /><strong>Submitted by: </strong></p>
 <p>
   <strong>The expected processing time is 20 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
@@ -225,10 +222,11 @@ exports[`Email template snapshots Should return the expeted email for exceeding 
 exports[`Email template snapshots Should return the expeted email for team invitations 1`] = `"[DEV] Invitation for pathfinder SSO team #1"`;
 
 exports[`Email template snapshots Should return the expeted email for team invitations 2`] = `
-"<p>You are invited to join team #1</p>
+"<h1>Hello Pathfinder SSO friend,</h1>
+<p>You are invited to join team #1</p>
 <p>
-  To accept this invitation, please follow this <a href=\\"http://localhost:8080/api/teams/verify?token=https://mysite.com/invitation-link\\">link</a> to
-  view the project in your dashboard. This link will expire in <strong>2 business days.</strong>
+  Please follow this <a href=\\"http://localhost:8080/api/teams/verify?token=https://mysite.com/invitation-link\\">link</a> to view your invitation in the
+  dashboard. This link will expire in <strong>2 business days.</strong>
 </p>
 <p>
   If you think you're receiving this invitation by accident, or have any questions, please contact the SSO Pathfinder
@@ -238,7 +236,6 @@ exports[`Email template snapshots Should return the expeted email for team invit
   </a>
   or reply to this email
 </p>
-
 <p>Thank you,</p>
 <p>SSO Pathfinder Team</p>
 "
