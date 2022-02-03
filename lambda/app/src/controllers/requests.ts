@@ -157,7 +157,10 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       await Promise.all([
         sendEmail({
           to,
-          ...renderTemplate(emailCode, { request: mergedRequest }),
+          ...renderTemplate(emailCode, {
+            request: mergedRequest,
+            requester: isAdmin(session) ? 'SSO Admin' : mergedRequest.idirUserDisplayName,
+          }),
           event: { emailCode, requestId: id },
           cc,
         }),

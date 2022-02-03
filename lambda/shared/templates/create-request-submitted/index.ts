@@ -10,7 +10,7 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 export const render = (originalData) => {
   const { request } = originalData;
-  const data = { request: processRequest(request) };
+  const data = { ...originalData, request: processRequest(request) };
   return {
     subject: subjectHandler(data),
     body: bodyHandler(data),
