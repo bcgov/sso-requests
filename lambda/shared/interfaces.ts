@@ -36,6 +36,7 @@ export interface Data {
   archived?: boolean;
   usesTeam?: boolean;
   teamId?: string;
+  requester?: string;
 }
 
 export interface FormattedData {

@@ -31,10 +31,7 @@ exports[`Email template snapshots Should return the expeted email for approved 1
 
 exports[`Email template snapshots Should return the expeted email for approved 2`] = `
 "<h1>Your Pathfinder SSO request #1 is approved.</h1>
-<p>
-  <strong>Project name: </strong>test<br /><strong>Submitted by: </strong
-  >test user
-</p>
+<p><strong>Project name: </strong>test<br /><strong>Submitted by: </strong>SSO Admin</p>
 <p>
   test user, please
   <a href=\\"http://localhost:3000/my-requests\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
@@ -65,7 +62,7 @@ exports[`Email template snapshots Should return the expeted email for bceid appr
   Your resources will be available in the next 20 minutes or so, please log in to your dashboard to see the progress.
 </p>
 <p><strong>Project Name: </strong> test</p>
-<p><strong>Submitted By: </strong> test user</p>
+<p><strong>Submitted By: </strong> SSO Admin</p>
 
 <p>If you are not the requester, this email serves only to notify you of the request status.</p>
 <p>
@@ -164,7 +161,7 @@ exports[`Email template snapshots Should return the expeted email for created re
 
 exports[`Email template snapshots Should return the expeted email for created requests 4`] = `
 "<h1>Your Pathfinder SSO request #1 is successfully submitted.</h1>
-<p><strong>Project name: </strong>test<br /><strong>Submitted by: </strong></p>
+<p><strong>Project name: </strong>test<br /><strong>Submitted by: </strong>SSO Admin</p>
 <p>
   <strong>The expected processing time is 20 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
@@ -245,10 +242,7 @@ exports[`Email template snapshots Should return the expeted email for updated ap
 
 exports[`Email template snapshots Should return the expeted email for updated approvals 2`] = `
 "<h1>Your Pathfinder SSO change for request #1 is approved.</h1>
-<p>
-  <strong>Project name: </strong>test<br /><strong>Submitted by: </strong
-  >test user
-</p>
+<p><strong>Project name: </strong>test<br /><strong>Submitted by: </strong>SSO Admin</p>
 <p>
   test user, please
   <a href=\\"http://localhost:3000/my-requests\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
@@ -271,10 +265,7 @@ exports[`Email template snapshots Should return the expeted email for updated su
 
 exports[`Email template snapshots Should return the expeted email for updated submissions 2`] = `
 "<h1>Your Pathfinder SSO change for request #1 is successfully submitted.</h1>
-<p>
-  <strong>Project name: </strong>test<br /><strong>Submitted by: </strong
-  >test user
-</p>
+<p><strong>Project name: </strong>test<br /><strong>Submitted by: </strong>SSO Admin</p>
 <p>
   <strong>The expected processing time is 20 minutes</strong><br />
   Once the request is approved, you will receive another email once your JSON Client Installation is ready. If you are
