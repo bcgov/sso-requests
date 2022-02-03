@@ -18,7 +18,7 @@ import {
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
-import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
+import { renderTemplate, EmailTemplate } from '../../../shared/templates';
 import { EVENTS } from '../../../shared/enums';
 
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
@@ -60,8 +60,7 @@ export const createRequest = async (session: Session, data: Data) => {
     const emailCode = 'request-limit-exceeded';
     await sendEmail({
       to: [SSO_EMAIL_ADDRESS],
-      body: getEmailBody(emailCode, data),
-      subject: getEmailSubject(emailCode),
+      ...renderTemplate(emailCode, { request: data }),
       event: { emailCode },
     });
     createEvent(eventData);
@@ -141,7 +140,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
         throw Error('failed to create a workflow dispatch event');
       }
 
-      let emailCode: EmailMessage;
+      let emailCode: EmailTemplate;
       let cc = [];
       if (isMerged && isApprovingBceid) {
         emailCode = 'bceid-request-approved';
@@ -158,8 +157,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       await Promise.all([
         sendEmail({
           to,
-          body: getEmailBody(emailCode, mergedRequest),
-          subject: getEmailSubject(emailCode, id),
+          ...renderTemplate(emailCode, { request: mergedRequest }),
           event: { emailCode, requestId: id },
           cc,
         }),
@@ -319,18 +317,19 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     const result = await models.request.update({ archived: true }, { where });
     const to = getEmailList(original);
 
+    const emailCodeAdmin = 'request-deleted-notification-to-admin';
+    const emailCodeUser = 'request-deleted';
+
     Promise.all([
       sendEmail({
         to: [SSO_EMAIL_ADDRESS],
-        body: getEmailBody('request-deleted-notification-to-admin', original),
-        subject: getEmailSubject('request-deleted-notification-to-admin'),
-        event: { emailCode: 'request-deleted-notification-to-admin', requestId: id },
+        ...renderTemplate(emailCodeAdmin, { request: original }),
+        event: { emailCode: emailCodeAdmin, requestId: id },
       }),
       sendEmail({
         to,
-        body: getEmailBody('request-deleted', original),
-        subject: getEmailSubject('request-deleted'),
-        event: { emailCode: 'request-deleted', requestId: id },
+        ...renderTemplate(emailCodeUser, { request: original }),
+        event: { emailCode: emailCodeUser, requestId: id },
       }),
       notifyIdim(original, 'deletion'),
     ]);

@@ -13,6 +13,20 @@ import teamInvitation from './team-invitation';
 import uriChangeRequestApproved from './uri-change-request-approved';
 import uriChangeRequestSubmitted from './uri-change-request-submitted';
 
+export type EmailTemplate =
+  | 'bceid-idim-deleted'
+  | 'bceid-idim-dev-submitted'
+  | 'bceid-request-approved'
+  | 'bceid-user-prod-submitted'
+  | 'create-request-approved'
+  | 'create-request-submitted'
+  | 'request-deleted'
+  | 'request-deleted-notification-to-admin'
+  | 'request-limit-exceeded'
+  | 'team-invitation'
+  | 'uri-change-request-approved'
+  | 'uri-change-request-submitted';
+
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/api';
 const APP_ENV = process.env.APP_ENV || 'development';
@@ -20,7 +34,7 @@ const footer = fs.readFileSync(__dirname + '/footer.html', 'utf8');
 
 Handlebars.registerPartial('footer', footer);
 
-export const renderTemplate = (key: string, data: any) => {
+export const renderTemplate = (key: EmailTemplate, data: any) => {
   data.appUrl = APP_URL;
   data.apiUrl = API_URL;
 
