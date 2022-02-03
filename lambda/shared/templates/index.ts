@@ -13,39 +13,62 @@ import teamInvitation from './team-invitation';
 import uriChangeRequestApproved from './uri-change-request-approved';
 import uriChangeRequestSubmitted from './uri-change-request-submitted';
 
+const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://localhost:8080/api';
+const APP_ENV = process.env.APP_ENV || 'development';
 const footer = fs.readFileSync(__dirname + '/footer.html', 'utf8');
 
 Handlebars.registerPartial('footer', footer);
 
 export const renderTemplate = (key: string, data: any) => {
+  data.appUrl = APP_URL;
+  data.apiUrl = API_URL;
+
+  const prefix = APP_ENV === 'development' ? '[DEV] ' : '';
+  let result = { subject: '', body: '' };
   switch (key) {
     case 'bceid-idim-deleted':
-      return bceidIdimDeleted.render(data);
+      result = bceidIdimDeleted.render(data);
+      break;
     case 'bceid-idim-dev-submitted':
-      return bceidIdimDevSubmitted.render(data);
+      result = bceidIdimDevSubmitted.render(data);
+      break;
     case 'bceid-request-approved':
-      return bceidRequestApproved.render(data);
+      result = bceidRequestApproved.render(data);
+      break;
     case 'bceid-user-prod-submitted':
-      return bceidUserProdSubmitted.render(data);
+      result = bceidUserProdSubmitted.render(data);
+      break;
     case 'create-request-approved':
-      return createRequestApproved.render(data);
+      result = createRequestApproved.render(data);
+      break;
     case 'create-request-submitted':
-      return createRequestSubmitted.render(data);
+      result = createRequestSubmitted.render(data);
+      break;
     case 'request-deleted':
-      return requestDeleted.render(data);
+      result = requestDeleted.render(data);
+      break;
     case 'request-deleted-notification-to-admin':
-      return requestDeletedNotificationToAdmin.render(data);
+      result = requestDeletedNotificationToAdmin.render(data);
+      break;
     case 'request-limit-exceeded':
-      return requestLimitExceeded.render(data);
+      result = requestLimitExceeded.render(data);
+      break;
     case 'team-invitation':
-      return teamInvitation.render(data);
+      result = teamInvitation.render(data);
+      break;
     case 'uri-change-request-approved':
-      return uriChangeRequestApproved.render(data);
+      result = uriChangeRequestApproved.render(data);
+      break;
     case 'uri-change-request-submitted':
-      return uriChangeRequestSubmitted.render(data);
+      result = uriChangeRequestSubmitted.render(data);
+      break;
     default:
-      return { subject: '', body: '' };
+      break;
   }
+
+  if (prefix) result.subject = `${prefix}${result.subject}`;
+  return result;
 };
 
 export default { renderTemplate };

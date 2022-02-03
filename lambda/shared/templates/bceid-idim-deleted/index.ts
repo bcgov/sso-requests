@@ -2,7 +2,7 @@ import fs from 'fs';
 import Handlebars from 'handlebars';
 import { processRequest } from '../helpers';
 
-const SUBJECT_TEMPLATE = `New BCeID Integration Request ID {{request.id}}`;
+const SUBJECT_TEMPLATE = `BCeID Integration Request ID {{request.id}} Deleted`;
 const template = fs.readFileSync(__dirname + '/template.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
