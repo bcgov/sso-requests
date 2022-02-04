@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data, User } from '../../../shared/interfaces';
-import { kebabCase } from 'lodash';
+import { kebabCase, compact } from 'lodash';
 import {
   validateRequest,
   processRequest,
@@ -20,6 +20,7 @@ import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
 import { renderTemplate, EmailTemplate } from '../../../shared/templates';
 import { EVENTS } from '../../../shared/enums';
+import { getAllowedRequest } from '../queries/request';
 
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const NEW_REQUEST_DAY_LIMIT = 10;
@@ -154,12 +155,18 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       const to = getEmailList(original);
       const event = isMerged ? 'update' : 'submission';
 
+      let requester = compact([session.given_name, session.family_name]).join(' ');
+      const isMyOrTeamRequest = await getAllowedRequest(session, user, mergedRequest.id);
+      if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
+
+      allowedRequest.requester = requester;
+      mergedRequest.requester = requester;
+
       await Promise.all([
         sendEmail({
           to,
           ...renderTemplate(emailCode, {
             request: mergedRequest,
-            requester: isAdmin(session) ? 'SSO Admin' : mergedRequest.idirUserDisplayName,
           }),
           event: { emailCode, requestId: id },
           cc,

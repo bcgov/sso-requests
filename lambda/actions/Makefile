@@ -7,6 +7,7 @@ lambda:
 	@rm -rf build
 	@yarn install
 	@yarn tsc
+	@rm -rf bundle
 	@mkdir -p bundle
 	@cp package.json bundle
 	@cp -r build/* bundle
@@ -14,4 +15,5 @@ lambda:
 	@rm bundle/yarn.lock bundle/package.json
 	@rm -f $(TARGET)
 	@cd bundle; zip -rq $(TARGET) *
+	@yarn copy-templates # copy html templates as typescript does not import them
 	@rm -rf bundle

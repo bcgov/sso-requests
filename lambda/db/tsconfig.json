@@ -4,10 +4,9 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "outDir": "./build",
-    "sourceRoot": "./src/",
-    "rootDir": "../",
-    "sourceMap": true
+    "sourceMap": false,
+    "rootDir": "../"
   },
-  "include": ["src/**/*", "../shared/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }
