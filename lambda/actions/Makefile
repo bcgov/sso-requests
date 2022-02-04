@@ -14,6 +14,6 @@ lambda:
 	@cd bundle; yarn --production > /dev/null 2>&1
 	@rm bundle/yarn.lock bundle/package.json
 	@rm -f $(TARGET)
-	@cd bundle; zip -rq $(TARGET) *
 	@yarn copy-templates # copy html templates as typescript does not import them
+	@cd bundle; zip -rq $(TARGET) *
 	@rm -rf bundle
