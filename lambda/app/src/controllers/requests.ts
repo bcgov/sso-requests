@@ -7,6 +7,7 @@ import {
   processRequest,
   getDifferences,
   isAdmin,
+  getDisplayName,
   usesBceid,
   notifyIdim,
   getWhereClauseForAllRequests,
@@ -31,6 +32,13 @@ const createEvent = async (data) => {
   } catch (err) {
     console.error(err);
   }
+};
+
+const getRequester = async (session: Session, user: User, requestId: number) => {
+  let requester = getDisplayName(session);
+  const isMyOrTeamRequest = await getAllowedRequest(session, user, requestId);
+  if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
+  return requester;
 };
 
 export const createRequest = async (session: Session, data: Data) => {
@@ -155,10 +163,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       const to = getEmailList(original);
       const event = isMerged ? 'update' : 'submission';
 
-      let requester = compact([session.given_name, session.family_name]).join(' ');
-      const isMyOrTeamRequest = await getAllowedRequest(session, user, mergedRequest.id);
-      if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
-
+      const requester = await getRequester(session, user, mergedRequest.id);
       allowedRequest.requester = requester;
       mergedRequest.requester = requester;
 
@@ -288,7 +293,7 @@ const requestHasBeenMerged = async (id: number) => {
 export const deleteRequest = async (session: Session, user: User, id: number) => {
   try {
     const where = getWhereClauseForRequest(session, user, id);
-    const original = await models.request.findOne({ where });
+    const original = await models.request.findOne({ where, raw: true });
 
     if (!original) {
       throw Error('unauthorized request');
@@ -297,6 +302,9 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     // Check if an applied/apply-failed event exists for the client
     const [isMerged, err] = await requestHasBeenMerged(id);
     if (err) throw err;
+
+    const requester = await getRequester(session, user, original.id);
+    original.requester = requester;
 
     if (isMerged) {
       const payload = {
@@ -324,7 +332,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     const [, prError] = await closeOpenPullRequests(id);
     if (prError) throw prError;
 
-    const result = await models.request.update({ archived: true }, { where });
+    const result = await models.request.update({ archived: true, requester }, { where });
     const to = getEmailList(original);
 
     const emailCodeAdmin = 'request-deleted-notification-to-admin';
