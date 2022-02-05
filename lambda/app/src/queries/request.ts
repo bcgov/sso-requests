@@ -19,5 +19,5 @@ export const getAllowedRequest = async (session: Session, user: User, requestId:
     },
   ];
 
-  return models.request.findOne({ where });
+  return models.request.findOne({ where, raw: true });
 };

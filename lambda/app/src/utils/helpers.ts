@@ -3,7 +3,7 @@ import validate from 'react-jsonschema-form/lib/validate';
 import requesterSchema from '../schemas/requester-info';
 import providerSchema from '../schemas/providers';
 import termsAndConditionsSchema from '../schemas/terms-and-conditions';
-import { isObject, omit, sortBy } from 'lodash';
+import { isObject, omit, sortBy, compact } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
 import { Session, Data, User } from '../../../shared/interfaces';
@@ -127,6 +127,7 @@ export const stringifyGithubInputs = (inputs: any) => {
 };
 
 export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
+export const getDisplayName = (session: Session) => compact([session.given_name, session.family_name]).join(' ');
 
 export const getWhereClauseForAllRequests = (data: {
   searchField: string[];
