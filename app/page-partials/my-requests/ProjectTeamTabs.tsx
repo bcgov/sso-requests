@@ -3,6 +3,7 @@ import { RequestTabs } from 'components/RequestTabs';
 import Tab from 'react-bootstrap/Tab';
 import { Request } from 'interfaces/Request';
 import { padStart } from 'lodash';
+import Grid from '@button-inc/bcgov-theme/Grid';
 import Table from 'html-components/Table';
 import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
@@ -36,6 +37,10 @@ const editTeamNameModalId = 'edit-team-name-modal';
 const CenteredHeader = styled.th`
   text-align: center;
   min-width: 100px;
+`;
+
+const PNoMargin = styled.p`
+  margin: 0;
 `;
 
 const NotAvailable = styled.div`
@@ -95,9 +100,35 @@ const NewEntityButton = ({
     );
   if (tableTab === 'activeProjects')
     return (
-      <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
-        + Request Integration
-      </Button>
+      <div style={{ background: '#D9EDFD', textAlign: 'center', padding: '16px' }}>
+        <Grid cols={2} style={{ textAlign: 'left' }}>
+          <Grid.Row collapse="992" gutter={[]} align="center">
+            <Grid.Col span={1}>
+              <p>
+                <b>Project Information</b>
+              </p>
+              <PNoMargin>Project Name</PNoMargin>
+              <PNoMargin>Project Team Members (Optional)</PNoMargin>
+              <PNoMargin>Product Owner or Technical Contact</PNoMargin>
+            </Grid.Col>
+            <Grid.Col span={1}>
+              <p>
+                <b>Technical Info</b>
+              </p>
+              <PNoMargin>Client type (Public or Confidential, learn more)</PNoMargin>
+              <PNoMargin>Identity Provider (IDIR, Azure, BCeID or Basic)</PNoMargin>
+              <PNoMargin>Environments (Development, Test, Production)</PNoMargin>
+              <PNoMargin>Redirect URIs for selected environments</PNoMargin>
+            </Grid.Col>
+          </Grid.Row>
+          <Grid.Row>
+            *You’ll be able to save and return your integration request, anytime throughout the request form.
+          </Grid.Row>
+        </Grid>
+        <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
+          + Request SSO Integration
+        </Button>
+      </div>
     );
   return null;
 };
