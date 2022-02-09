@@ -145,7 +145,7 @@ const RightMenuItems = () => (
       </a>
     </HoverItem>
     <HoverItem>
-      <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Documentation">
+      <a href="https://github.com/bcgov/sso-keycloak/wiki" target="_blank" title="Documentation">
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </HoverItem>
@@ -188,7 +188,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
           <FontAwesomeIcon size="2x" icon={faEnvelope} />
         </a>
         &nbsp;&nbsp;
-        <a href="https://github.com/bcgov/ocp-sso/wiki" target="_blank" title="Wiki">
+        <a href="https://github.com/bcgov/sso-keycloak/wiki" target="_blank" title="Wiki">
           <FontAwesomeIcon size="2x" icon={faFileAlt} />
         </a>
       </li>

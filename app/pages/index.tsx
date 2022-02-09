@@ -96,7 +96,7 @@ export default function Home({ onLoginClick }: PageProps) {
                   To learn more about Pathfinder SSO
                   <br />
                   visit the{' '}
-                  <Link size="large" href="https://github.com/bcgov/ocp-sso/wiki" external>
+                  <Link size="large" href="https://github.com/bcgov/sso-keycloak/wiki" external>
                     SSO Pathfinder Knowledge Base
                   </Link>
                 </Paragraph>
@@ -157,7 +157,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     </ul>
                     If you would like to learn more about IM IT Standards,{' '}
                     <Link
-                      href="https://github.com/bcgov/ocp-sso/wiki/Useful-References#imit-identity-standards"
+                      href="https://https://github.com/bcgov/sso-keycloak/wiki/Useful-References#imit-identity-standards"
                       external
                     >
                       learn more here
@@ -180,7 +180,7 @@ export default function Home({ onLoginClick }: PageProps) {
               </Link>
               <br />
               Review our{' '}
-              <Link href="https://github.com/bcgov/ocp-sso/wiki" external>
+              <Link href="https://github.com/bcgov/sso-keycloak/wiki" external>
                 helpful documentation
               </Link>
               <br />
