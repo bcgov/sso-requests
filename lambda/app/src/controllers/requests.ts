@@ -1,12 +1,13 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data, User } from '../../../shared/interfaces';
-import { kebabCase } from 'lodash';
+import { kebabCase, compact } from 'lodash';
 import {
   validateRequest,
   processRequest,
   getDifferences,
   isAdmin,
+  getDisplayName,
   usesBceid,
   notifyIdim,
   getWhereClauseForAllRequests,
@@ -18,8 +19,9 @@ import {
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
-import { getEmailBody, getEmailSubject, EmailMessage } from '../../../shared/utils/templates';
+import { renderTemplate, EmailTemplate } from '../../../shared/templates';
 import { EVENTS } from '../../../shared/enums';
+import { getAllowedRequest } from '../queries/request';
 
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const NEW_REQUEST_DAY_LIMIT = 10;
@@ -30,6 +32,13 @@ const createEvent = async (data) => {
   } catch (err) {
     console.error(err);
   }
+};
+
+const getRequester = async (session: Session, user: User, requestId: number) => {
+  let requester = getDisplayName(session);
+  const isMyOrTeamRequest = await getAllowedRequest(session, user, requestId);
+  if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
+  return requester;
 };
 
 export const createRequest = async (session: Session, data: Data) => {
@@ -60,8 +69,7 @@ export const createRequest = async (session: Session, data: Data) => {
     const emailCode = 'request-limit-exceeded';
     await sendEmail({
       to: [SSO_EMAIL_ADDRESS],
-      body: getEmailBody(emailCode, data),
-      subject: getEmailSubject(emailCode),
+      ...renderTemplate(emailCode, { request: data }),
       event: { emailCode },
     });
     createEvent(eventData);
@@ -141,7 +149,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
         throw Error('failed to create a workflow dispatch event');
       }
 
-      let emailCode: EmailMessage;
+      let emailCode: EmailTemplate;
       let cc = [];
       if (isMerged && isApprovingBceid) {
         emailCode = 'bceid-request-approved';
@@ -155,11 +163,16 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       const to = getEmailList(original);
       const event = isMerged ? 'update' : 'submission';
 
+      const requester = await getRequester(session, user, mergedRequest.id);
+      allowedRequest.requester = requester;
+      mergedRequest.requester = requester;
+
       await Promise.all([
         sendEmail({
           to,
-          body: getEmailBody(emailCode, mergedRequest),
-          subject: getEmailSubject(emailCode, id),
+          ...renderTemplate(emailCode, {
+            request: mergedRequest,
+          }),
           event: { emailCode, requestId: id },
           cc,
         }),
@@ -280,7 +293,7 @@ const requestHasBeenMerged = async (id: number) => {
 export const deleteRequest = async (session: Session, user: User, id: number) => {
   try {
     const where = getWhereClauseForRequest(session, user, id);
-    const original = await models.request.findOne({ where });
+    const original = await models.request.findOne({ where, raw: true });
 
     if (!original) {
       throw Error('unauthorized request');
@@ -289,6 +302,9 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     // Check if an applied/apply-failed event exists for the client
     const [isMerged, err] = await requestHasBeenMerged(id);
     if (err) throw err;
+
+    const requester = await getRequester(session, user, original.id);
+    original.requester = requester;
 
     if (isMerged) {
       const payload = {
@@ -316,21 +332,22 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     const [, prError] = await closeOpenPullRequests(id);
     if (prError) throw prError;
 
-    const result = await models.request.update({ archived: true }, { where });
+    const result = await models.request.update({ archived: true, requester }, { where });
     const to = getEmailList(original);
+
+    const emailCodeAdmin = 'request-deleted-notification-to-admin';
+    const emailCodeUser = 'request-deleted';
 
     Promise.all([
       sendEmail({
         to: [SSO_EMAIL_ADDRESS],
-        body: getEmailBody('request-deleted-notification-to-admin', original),
-        subject: getEmailSubject('request-deleted-notification-to-admin'),
-        event: { emailCode: 'request-deleted-notification-to-admin', requestId: id },
+        ...renderTemplate(emailCodeAdmin, { request: original }),
+        event: { emailCode: emailCodeAdmin, requestId: id },
       }),
       sendEmail({
         to,
-        body: getEmailBody('request-deleted', original),
-        subject: getEmailSubject('request-deleted'),
-        event: { emailCode: 'request-deleted', requestId: id },
+        ...renderTemplate(emailCodeUser, { request: original }),
+        event: { emailCode: emailCodeUser, requestId: id },
       }),
       notifyIdim(original, 'deletion'),
     ]);

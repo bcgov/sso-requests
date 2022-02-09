@@ -123,6 +123,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         field: 'team_id',
       },
+      requester: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
     {
       underscored: true,

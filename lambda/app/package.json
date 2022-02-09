@@ -4,7 +4,8 @@
   "description": "lambda functions for backend",
   "scripts": {
     "compile": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle"
   },
   "devDependencies": {
     "@octokit/types": "^6.18.1",
@@ -16,6 +17,7 @@
     "@types/jws": "^3.2.3",
     "@types/node": "^13.13.5",
     "aws-sdk": "^2.655.0",
+    "copyfiles": "^2.4.1",
     "jest": "^27.0.5",
     "ts-jest": "^27.0.3",
     "typescript": "^3.8.3"
@@ -26,6 +28,7 @@
     "axios": "^0.21.1",
     "deep-diff": "^1.0.2",
     "encodeurl": "^1.0.2",
+    "handlebars": "^4.7.7",
     "json-schema": "^0.3.0",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",

@@ -2,4 +2,5 @@ db.sqlite
 app/src/schemas
 app/src/utils/customValidate.ts
 app/src/interfaces
+bundle
 .env
