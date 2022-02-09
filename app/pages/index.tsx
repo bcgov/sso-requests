@@ -157,7 +157,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     </ul>
                     If you would like to learn more about IM IT Standards,{' '}
                     <Link
-                      href="https://https://github.com/bcgov/sso-keycloak/wiki/Useful-References#imit-identity-standards"
+                      href="https://github.com/bcgov/sso-keycloak/wiki/Useful-References#imit-identity-standards"
                       external
                     >
                       learn more here
