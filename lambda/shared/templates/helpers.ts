@@ -1,7 +1,11 @@
-import { Data } from '../interfaces';
+import { models } from '../../shared/sequelize/models/models';
 import { formatUrisForEmail, realmToIDP } from '../utils/helpers';
 
-export const processRequest = (request: Data) => {
+export const processRequest = (request: any) => {
+  if (request instanceof models.request) {
+    request = request.get({ plain: true });
+  }
+
   const { realm, devValidRedirectUris = [], testValidRedirectUris = [], prodValidRedirectUris = [] } = request;
   const devUris = formatUrisForEmail(devValidRedirectUris, 'Development');
   const testUris = formatUrisForEmail(testValidRedirectUris, 'Test');
