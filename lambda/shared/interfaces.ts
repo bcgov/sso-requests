@@ -1,15 +1,15 @@
+export interface User {
+  id: string;
+  idirUserid: string;
+  idirEmail: string;
+}
 export interface Session {
   idir_userid: string;
   email?: string;
   client_roles: string[];
   given_name: string;
   family_name: string;
-}
-
-export interface User {
-  id: string;
-  idirUserid: string;
-  idirEmail: string;
+  user?: User;
 }
 
 export interface Data {
