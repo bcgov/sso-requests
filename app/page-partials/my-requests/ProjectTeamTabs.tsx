@@ -93,7 +93,7 @@ const NewEntityButton = ({
   tableTab?: string;
   handleNewTeamClick: Function;
   handleNewIntegrationClick: Function;
-  requests: Request[];
+  requests?: Request[];
 }) => {
   if (tableTab === 'activeTeams')
     return (
