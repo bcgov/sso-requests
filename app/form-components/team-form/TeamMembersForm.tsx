@@ -69,7 +69,7 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
       ...members,
       {
         idirEmail: '',
-        role: 'user',
+        role: 'member',
         id: String(uuidv4()),
         pending: true,
       },
@@ -103,7 +103,15 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
         the invitation, they will have access to your project. Their invitation will expire in{' '}
         <strong>2 business days</strong>.
       </p>
-      <br />
+
+      <p>
+        <span className="strong">Roles:</span>
+        <br />
+        <span className="underline">Admin</span>: can manage integrations <span className="strong">and</span> teams
+        <br />
+        <span className="underline">Members</span>: can <span className="strong">only</span> manage integrations
+      </p>
+
       <MembersSection>
         <Container>
           <strong>Member</strong>
@@ -130,7 +138,7 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
                 {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
               </div>
               <Dropdown label="Role" onChange={(e: any) => handleRoleChange(i, e)} value={member.role}>
-                <option value="user">User</option>
+                <option value="member">Member</option>
                 <option value="admin">Admin</option>
               </Dropdown>
               {i !== 0 && allowDelete && (
