@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data, User } from '../../../shared/interfaces';
-import { kebabCase, compact } from 'lodash';
+import { kebabCase, assign } from 'lodash';
 import {
   validateRequest,
   processRequest,
@@ -41,9 +41,22 @@ const getRequester = async (session: Session, user: User, requestId: number) => 
   return requester;
 };
 
+const checkIfHasFailedRequests = async () => {
+  const numOfFailedRequests = await models.request.count({ where: { status: 'applyFailed' } });
+  if (numOfFailedRequests > 0) throw Error('E01');
+};
+
+// Check if an applied/apply-failed event exists for the client
+const checkIfRequestMerged = async (id: number) => {
+  const request = await models.event.findOne({
+    where: { requestId: id, eventCode: { [Op.in]: [EVENTS.REQUEST_APPLY_SUCCESS, EVENTS.REQUEST_APPLY_FAILURE] } },
+  });
+
+  return !!request;
+};
+
 export const createRequest = async (session: Session, data: Data) => {
-  const [, error] = await hasRequestWithFailedApplyStatus();
-  if (error) throw Error(error);
+  await checkIfHasFailedRequests();
 
   const idirUserDisplayName = session.given_name + ' ' + session.family_name;
   const now = new Date();
@@ -92,59 +105,64 @@ export const createRequest = async (session: Session, data: Data) => {
 };
 
 export const updateRequest = async (session: Session, data: Data, user: User, submit: string | undefined) => {
-  const [, error] = await hasRequestWithFailedApplyStatus();
-  if (error) throw Error(error);
+  await checkIfHasFailedRequests();
+
   const userIsAdmin = isAdmin(session);
-  const idirUserDisplayName = session.given_name + ' ' + session.family_name;
+  const idirUserDisplayName = getDisplayName(session);
   const { id, comment, bceidEmailDetails, ...rest } = data;
-  const [isMerged] = await requestHasBeenMerged(id);
+  const isMerged = await checkIfRequestMerged(id);
 
   try {
     const where = getWhereClauseForRequest(session, user, data.id);
-    const original = await models.request.findOne({ where });
-    const hasAllowedStatus = ['draft', 'applied'].includes(original.dataValues.status);
+    const current = await models.request.findOne({ where });
+    const getCurrentValue = () => current.get({ plain: true, clone: true });
+    const originalData = getCurrentValue();
+    const isAllowedStatus = ['draft', 'applied'].includes(current.status);
 
-    if (!original || !hasAllowedStatus) {
+    if (!current || !isAllowedStatus) {
       throw Error('unauthorized request');
     }
 
-    const allowedRequest = processRequest(rest, isMerged);
-    const mergedRequest = { ...original.dataValues, ...allowedRequest };
+    const allowedData = processRequest(rest, isMerged);
+    assign(current, allowedData);
+    const mergedData = getCurrentValue();
 
-    const isApprovingBceid = !original.dataValues.bceidApproved && mergedRequest.bceidApproved;
+    const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
     if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
     const usersTeams = await getUsersTeams(user);
 
+    current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
+    let finalData = getCurrentValue();
+
     if (submit) {
-      const isValid = validateRequest(mergedRequest, original.dataValues, isMerged, usersTeams);
-      if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedRequest }));
-      allowedRequest.clientName = `${kebabCase(allowedRequest.projectName)}-${id}`;
-      allowedRequest.status = 'submitted';
-      let { environments, realm } = mergedRequest;
+      const isValid = validateRequest(mergedData, originalData, isMerged, usersTeams);
+      if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedData }));
+      current.clientName = `${kebabCase(current.projectName)}-${id}`;
+      current.status = 'submitted';
+      let { environments, realm } = current;
+
       const hasBceid = usesBceid(realm);
       const hasBceidProd = hasBceid && environments.includes('prod');
 
-      if (!mergedRequest.bceidApproved && hasBceid)
+      if (!current.bceidApproved && hasBceid)
         environments = environments.filter((environment) => environment !== 'prod');
 
       // trigger GitHub workflow before updating the record
       const payload = {
-        requestId: mergedRequest.id,
-        clientName: allowedRequest.clientName,
-        realmName: mergedRequest.realm,
+        requestId: current.id,
+        clientName: current.clientName,
+        realmName: current.realm,
         validRedirectUris: {
-          dev: mergedRequest.devValidRedirectUris,
-          test: mergedRequest.testValidRedirectUris,
-          prod: mergedRequest.prodValidRedirectUris,
+          dev: current.devValidRedirectUris,
+          test: current.testValidRedirectUris,
+          prod: current.prodValidRedirectUris,
         },
         environments,
-        publicAccess: mergedRequest.publicAccess,
-        browserFlowOverride: mergedRequest.browserFlowOverride,
+        publicAccess: current.publicAccess,
+        browserFlowOverride: current.browserFlowOverride,
       };
 
       const ghResult = await dispatchRequestWorkflow(payload);
-      console.log(JSON.stringify(ghResult));
-
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
@@ -160,38 +178,33 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
         cc.push(IDIM_EMAIL_ADDRESS);
       } else emailCode = 'create-request-submitted';
 
-      const to = getEmailList(original);
+      const to = getEmailList(finalData);
       const event = isMerged ? 'update' : 'submission';
 
-      const requester = await getRequester(session, user, mergedRequest.id);
-      allowedRequest.requester = requester;
-      mergedRequest.requester = requester;
+      const requester = await getRequester(session, user, current.id);
+      allowedData.requester = requester;
+      current.requester = requester;
+
+      finalData = getCurrentValue();
 
       await Promise.all([
         sendEmail({
           to,
           ...renderTemplate(emailCode, {
-            request: mergedRequest,
+            request: finalData,
           }),
           event: { emailCode, requestId: id },
           cc,
         }),
-        notifyIdim(mergedRequest, event),
+        notifyIdim(finalData, event),
       ]);
     }
 
-    allowedRequest.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    const result = await models.request.update(allowedRequest, {
-      where: { id },
-      returning: true,
-      plain: true,
-    });
+    const updated = await current.save();
 
-    if (result.length < 2) {
+    if (!updated) {
       throw Error('update failed');
     }
-
-    const updatedRequest = result[1].dataValues;
 
     if (submit) {
       const eventData: any = {
@@ -202,7 +215,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       };
 
       if (isMerged) {
-        const details: any = { changes: getDifferences(mergedRequest, original.dataValues) };
+        const details: any = { changes: getDifferences(finalData, originalData) };
         if (userIsAdmin && comment) details.comment = comment;
 
         eventData.eventCode = EVENTS.REQUEST_UPDATE_SUCCESS;
@@ -212,7 +225,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       await createEvent(eventData);
     }
 
-    return updatedRequest;
+    return updated.get({ plain: true });
   } catch (err) {
     if (submit) {
       const eventData = {
@@ -278,47 +291,33 @@ export const getRequests = async (session: Session, user: User, include: string 
   return requests;
 };
 
-const requestHasBeenMerged = async (id: number) => {
-  try {
-    const request = await models.event.findOne({
-      where: { requestId: id, eventCode: { [Op.in]: [EVENTS.REQUEST_APPLY_SUCCESS, EVENTS.REQUEST_APPLY_FAILURE] } },
-    });
-    if (request) return [true, null];
-    return [false, null];
-  } catch (err) {
-    return [null, err];
-  }
-};
-
 export const deleteRequest = async (session: Session, user: User, id: number) => {
   try {
     const where = getWhereClauseForRequest(session, user, id);
-    const original = await models.request.findOne({ where, raw: true });
+    const current = await models.request.findOne({ where });
 
-    if (!original) {
+    if (!current) {
       throw Error('unauthorized request');
     }
 
-    // Check if an applied/apply-failed event exists for the client
-    const [isMerged, err] = await requestHasBeenMerged(id);
-    if (err) throw err;
-
-    const requester = await getRequester(session, user, original.id);
-    original.requester = requester;
+    const isMerged = await checkIfRequestMerged(id);
+    const requester = await getRequester(session, user, current.id);
+    current.requester = requester;
+    current.archived = true;
 
     if (isMerged) {
       const payload = {
-        requestId: original.id,
-        clientName: original.clientName,
-        realmName: original.realm,
+        requestId: current.id,
+        clientName: current.clientName,
+        realmName: current.realm,
         validRedirectUris: {
-          dev: original.devValidRedirectUris,
-          test: original.testValidRedirectUris,
-          prod: original.prodValidRedirectUris,
+          dev: current.devValidRedirectUris,
+          test: current.testValidRedirectUris,
+          prod: current.prodValidRedirectUris,
         },
         environments: [],
-        publicAccess: original.publicAccess,
-        browserFlowOverride: original.browserFlowOverride,
+        publicAccess: current.publicAccess,
+        browserFlowOverride: current.browserFlowOverride,
       };
 
       // Trigger workflow with empty environments to delete client
@@ -332,8 +331,8 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     const [, prError] = await closeOpenPullRequests(id);
     if (prError) throw prError;
 
-    const result = await models.request.update({ archived: true, requester }, { where });
-    const to = getEmailList(original);
+    const result = await current.save();
+    const to = getEmailList(current);
 
     const emailCodeAdmin = 'request-deleted-notification-to-admin';
     const emailCodeUser = 'request-deleted';
@@ -341,38 +340,23 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     Promise.all([
       sendEmail({
         to: [SSO_EMAIL_ADDRESS],
-        ...renderTemplate(emailCodeAdmin, { request: original }),
+        ...renderTemplate(emailCodeAdmin, { request: current }),
         event: { emailCode: emailCodeAdmin, requestId: id },
       }),
       sendEmail({
         to,
-        ...renderTemplate(emailCodeUser, { request: original }),
+        ...renderTemplate(emailCodeUser, { request: current }),
         event: { emailCode: emailCodeUser, requestId: id },
       }),
-      notifyIdim(original, 'deletion'),
+      notifyIdim(current, 'deletion'),
     ]);
 
     createEvent({ eventCode: EVENTS.REQUEST_DELETE_SUCCESS, requestId: id, idirUserId: session.idir_userid });
 
-    return result;
+    return result.get({ plain: true });
   } catch (err) {
     createEvent({ eventCode: EVENTS.REQUEST_DELETE_FAILURE, requestId: id, idirUserId: session.idir_userid });
     throw Error(err.message || err);
-  }
-};
-
-const hasRequestWithFailedApplyStatus = async () => {
-  try {
-    const applyFailedRequests = await models.request.findAll({
-      where: {
-        status: 'applyFailed',
-      },
-    });
-
-    if (applyFailedRequests.length > 0) return [null, 'E01'];
-    return [false, null];
-  } catch (err) {
-    return [null, err];
   }
 };
 
