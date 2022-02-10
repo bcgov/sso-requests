@@ -102,7 +102,7 @@ const NewEntityButton = ({
       </UnpaddedButton>
     );
   if (tableTab === 'activeProjects') {
-    if (requests.length == 0) {
+    if (!requests || requests?.length == 0) {
       return (
         <div style={{ background: '#D9EDFD', textAlign: 'center', padding: '16px' }}>
           <Grid cols={2} style={{ textAlign: 'left' }}>
