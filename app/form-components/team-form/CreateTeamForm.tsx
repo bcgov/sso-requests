@@ -68,9 +68,6 @@ export default function TeamForm({ onSubmit, currentUser }: Props) {
 
   const handleCreate = async () => {
     const team = { name: teamName, members };
-    console.log('------------handleCreate->member value');
-    console.log(members);
-    console.log('---------END HERE');
     const errors = validateTeam(team);
     if (errors) return setErrors(errors);
     setLoading(true);

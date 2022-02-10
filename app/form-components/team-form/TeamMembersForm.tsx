@@ -103,7 +103,6 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
         the invitation, they will have access to your project. Their invitation will expire in{' '}
         <strong>2 business days</strong>.
       </p>
-
       <p>
         <span className="strong">Roles:</span>
         <br />
@@ -111,7 +110,6 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
         <br />
         <span className="underline">Members</span>: can <span className="strong">only</span> manage integrations
       </p>
-
       <MembersSection>
         <Container>
           <strong>Member</strong>
