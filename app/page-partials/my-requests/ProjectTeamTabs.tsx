@@ -104,49 +104,54 @@ const NewEntityButton = ({
   if (tableTab === 'activeProjects') {
     if (!requests || requests?.length == 0) {
       return (
-        <div style={{ background: '#D9EDFD', textAlign: 'center', padding: '16px' }}>
-          <Grid cols={2} style={{ textAlign: 'left' }}>
-            <Grid.Row collapse="992" gutter={[]} align="top">
-              <Grid.Col span={1}>
-                <NumberedContents number={1} title="Project Information" children={null} />
-                <PNoMargin>
-                  <FontAwesomeIcon icon={faCheck} /> Project Name
-                </PNoMargin>
-                <PNoMargin>
-                  <FontAwesomeIcon icon={faCheck} /> Project Team Members (Optional)
-                </PNoMargin>
-                <PNoMargin>
-                  <FontAwesomeIcon icon={faCheck} /> Product Owner or Technical Contact
-                </PNoMargin>
-              </Grid.Col>
-              <Grid.Col span={1}>
-                <NumberedContents number={2} title="Technical Info" children={null} />
-                <PNoMargin>
-                  <FontAwesomeIcon icon={faCheck} /> Client type (
-                  <Link href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client#confidential-vs-private-client">
-                    Public or Confidential, learn more
-                  </Link>
-                  )
-                </PNoMargin>
-                <PNoMargin>
-                  <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, Azure, BCeID or Basic)
-                </PNoMargin>
-                <PNoMargin>
-                  <FontAwesomeIcon icon={faCheck} /> Environments (Development, Test, Production)
-                </PNoMargin>
-                <PNoMargin>
-                  <FontAwesomeIcon icon={faCheck} /> Redirect URIs for selected environments
-                </PNoMargin>
-              </Grid.Col>
-            </Grid.Row>
-            <p style={{ marginTop: '1.25rem' }}>
-              *You’ll be able to save and return your integration request, anytime throughout the request form.
-            </p>
-          </Grid>
-          <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
-            + Request SSO Integration
-          </Button>
-        </div>
+        <>
+          <p>
+            <b>To request an integration for a Standard Realm, you’ll need the following information:</b>
+          </p>
+          <div style={{ background: '#D9EDFD', textAlign: 'center', padding: '16px' }}>
+            <Grid cols={2} style={{ textAlign: 'left' }}>
+              <Grid.Row collapse="992" gutter={[]} align="top">
+                <Grid.Col span={1}>
+                  <NumberedContents number={1} title="Project Information" children={null} />
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Project Name
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Project Team Members (Optional)
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Product Owner or Technical Contact
+                  </PNoMargin>
+                </Grid.Col>
+                <Grid.Col span={1}>
+                  <NumberedContents number={2} title="Technical Info" children={null} />
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Client type (
+                    <Link href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client#confidential-vs-private-client">
+                      Public or Confidential, learn more
+                    </Link>
+                    )
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, Azure, BCeID or Basic)
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Environments (Development, Test, Production)
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Redirect URIs for selected environments
+                  </PNoMargin>
+                </Grid.Col>
+              </Grid.Row>
+              <p style={{ marginTop: '1.25rem' }}>
+                *You’ll be able to save and return your integration request, anytime throughout the request form.
+              </p>
+            </Grid>
+            <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
+              + Request SSO Integration
+            </Button>
+          </div>
+        </>
       );
     } else {
       return (
