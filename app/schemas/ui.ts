@@ -12,7 +12,6 @@ const getUISchema = (created: boolean, applied: boolean = false) => {
     },
     projectLead: {
       'ui:widget': 'radio',
-      'ui:readonly': created,
       'ui:FieldTemplate': FieldTemplateWithTitle,
     },
     newToSso: {
@@ -34,7 +33,6 @@ const getUISchema = (created: boolean, applied: boolean = false) => {
     usesTeam: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
-      'ui:readonly': created,
     },
     realm: {
       'ui:widget': 'radio',

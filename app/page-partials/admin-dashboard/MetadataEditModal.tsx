@@ -36,7 +36,7 @@ function MetadataEditModal({ request, onUpdate }: Props) {
   useEffect(() => {
     setUuid(request.idirUserid);
     setStatus(request.status);
-  }, [request]);
+  }, [request.id]);
 
   const openModal = () => (window.location.hash = modalId);
 

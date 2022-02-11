@@ -53,7 +53,7 @@ export default function getSchema(teams: any[] = []) {
               ...(hasTeams && {
                 teamId: {
                   type: 'string',
-                  title: 'Project Member(s)',
+                  title: 'Project Team',
                   enum: teamValues,
                   enumNames: teamNames,
                   default: teamValues[0],

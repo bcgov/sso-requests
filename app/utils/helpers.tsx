@@ -171,6 +171,7 @@ export const processRequest = (request: Request): Request => {
   if (requestedEnvironments.includes('prod')) request.prod = true;
   delete request.environments;
   if (request.teamId) request.teamId = String(request.teamId);
+  else request.usesTeam = false;
   return changeNullToUndefined(request);
 };
 

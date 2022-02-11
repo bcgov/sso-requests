@@ -28,6 +28,7 @@ export interface Request {
   usesTeam?: boolean;
   bceidApproved?: boolean;
   teamId?: string | number;
+  team?: any;
 }
 
 export interface Option {
