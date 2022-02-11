@@ -52,7 +52,7 @@ jobs:
           pg_ctl start
           createdb runner || true
           chmod +x ./setup.sh
-          ./setup.sh ssorequests
+          ./setup.sh ssorequests_test
         working-directory: ./db
 
       - name: Install dependencies - lambda app
@@ -78,8 +78,6 @@ jobs:
         working-directory: ./lambda/shared
 
       - name: Run backend integration tests
-        env:
-          DATABASE_URL: postgresql://localhost:5432/ssorequests
         run: |
           yarn
           yarn test

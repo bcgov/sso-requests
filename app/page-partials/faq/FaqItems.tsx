@@ -29,7 +29,7 @@ export default function FaqItems({ children }: Props) {
               </li>
               <li>
                 To learn more about which identity provider to use, review the{' '}
-                <Link external href="https://github.com/bcgov/ocp-sso/wiki/SSO-Onboarding">
+                <Link external href="https://github.com/bcgov/sso-keycloak/wiki/SSO-Onboarding">
                   SSO Onboarding section
                 </Link>{' '}
                 in our Knowledge base
@@ -61,7 +61,7 @@ export default function FaqItems({ children }: Props) {
               <li>
                 A decision if you want a public of confidential client. To learn more, review the Technical Details
                 under the{' '}
-                <Link external href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client">
+                <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client">
                   Using Your SSO Client
                 </Link>{' '}
                 in our SSO Pathfinder Knowledge Base
@@ -111,7 +111,7 @@ export default function FaqItems({ children }: Props) {
             <b>Provider Configuration Endpoint</b> can be used.
           </p>
           <Link
-            href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client#setting-up-your-keycloak-client"
+            href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#setting-up-your-keycloak-client"
             external
           >
             Please see the wiki for accessing your provider endpoint information

@@ -95,13 +95,16 @@ export const setRoutes = (app: any) => {
   });
 
   app.use(async (req, res, next) => {
-    const session = await authenticate(req.headers);
+    const session = (await authenticate(req.headers)) as Session;
     if (!session) {
       return res.status(401).json({ success: false });
     }
 
     try {
-      req.user = await findOrCreateUser(session);
+      const user = await findOrCreateUser(session);
+      session.user = user;
+      req.user = user;
+      req.session = session;
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
     }

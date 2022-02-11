@@ -1,8 +1,10 @@
-import React, { useContext, useEffect, forwardRef, useRef, useImperativeHandle } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { RequestTabs } from 'components/RequestTabs';
+import Link from '@button-inc/bcgov-theme/Link';
 import Tab from 'react-bootstrap/Tab';
 import { Request } from 'interfaces/Request';
 import { padStart } from 'lodash';
+import Grid from '@button-inc/bcgov-theme/Grid';
 import Table from 'html-components/Table';
 import { RequestsContext } from 'pages/my-requests';
 import { getStatusDisplayName } from 'utils/status';
@@ -16,10 +18,10 @@ import {
   $setTeamIdToDelete,
   $setTeamIdToEdit,
 } from 'dispatchers/requestDispatcher';
-import { Button } from '@bcgov-sso/common-react-components';
+import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faExclamationCircle, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faExclamationCircle, faTrash, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { Team } from 'interfaces/team';
 import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import { getTeams, deleteTeam } from 'services/team';
@@ -36,6 +38,10 @@ const editTeamNameModalId = 'edit-team-name-modal';
 const CenteredHeader = styled.th`
   text-align: center;
   min-width: 100px;
+`;
+
+const PNoMargin = styled.p`
+  margin: 0;
 `;
 
 const NotAvailable = styled.div`
@@ -82,10 +88,12 @@ const NewEntityButton = ({
   tableTab,
   handleNewIntegrationClick,
   handleNewTeamClick,
+  requests,
 }: {
   tableTab?: string;
   handleNewTeamClick: Function;
   handleNewIntegrationClick: Function;
+  requests?: Request[];
 }) => {
   if (tableTab === 'activeTeams')
     return (
@@ -93,12 +101,66 @@ const NewEntityButton = ({
         + Create a new Team
       </UnpaddedButton>
     );
-  if (tableTab === 'activeProjects')
-    return (
-      <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
-        + Request Integration
-      </Button>
-    );
+  if (tableTab === 'activeProjects') {
+    if (!requests || requests?.length == 0) {
+      return (
+        <>
+          <p>
+            <b>To request an integration for a Standard Realm, you’ll need the following information:</b>
+          </p>
+          <div style={{ background: '#D9EDFD', textAlign: 'center', padding: '16px' }}>
+            <Grid cols={2} style={{ textAlign: 'left' }}>
+              <Grid.Row collapse="992" gutter={[]} align="top">
+                <Grid.Col span={1}>
+                  <NumberedContents number={1} title="Project Information" children={null} />
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Project Name
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Project Team Members (Optional)
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Product Owner or Technical Contact
+                  </PNoMargin>
+                </Grid.Col>
+                <Grid.Col span={1}>
+                  <NumberedContents number={2} title="Technical Info" children={null} />
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Client type (
+                    <Link href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client#confidential-vs-private-client">
+                      Public or Confidential, learn more
+                    </Link>
+                    )
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, Azure, BCeID or Basic)
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Environments (Development, Test, Production)
+                  </PNoMargin>
+                  <PNoMargin>
+                    <FontAwesomeIcon icon={faCheck} /> Redirect URIs for selected environments
+                  </PNoMargin>
+                </Grid.Col>
+              </Grid.Row>
+              <p style={{ marginTop: '1.25rem' }}>
+                *You’ll be able to save and return your integration request, anytime throughout the request form.
+              </p>
+            </Grid>
+            <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
+              + Request SSO Integration
+            </Button>
+          </div>
+        </>
+      );
+    } else {
+      return (
+        <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
+          + Request SSO Integration
+        </Button>
+      );
+    }
+  }
   return null;
 };
 
@@ -261,6 +323,7 @@ export default function ProjectTeamTabs({ currentUser }: Props) {
         tableTab={tableTab}
         handleNewIntegrationClick={handleNewIntegrationClick}
         handleNewTeamClick={handleNewTeamClick}
+        requests={requests}
       />
       <br />
       <br />

@@ -9,6 +9,7 @@ lambda:
 	@rm -rf build
 	@yarn install
 	@yarn tsc
+	@rm -rf bundle
 	@mkdir -p bundle
 	@cp package.json bundle
 	@cp -r build/* bundle

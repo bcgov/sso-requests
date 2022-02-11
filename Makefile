@@ -34,5 +34,5 @@ server:
 
 .PHONY: local_db
 local_db:
-	pushd db && bash ./setup.sh && popd
+	pushd db && bash ./setup.sh && bash ./setup.sh ssorequests_test && popd
 	yarn --cwd ./localserver migrate-db

@@ -3,12 +3,12 @@ import validate from 'react-jsonschema-form/lib/validate';
 import requesterSchema from '../schemas/requester-info';
 import providerSchema from '../schemas/providers';
 import termsAndConditionsSchema from '../schemas/terms-and-conditions';
-import { isObject, omit, sortBy } from 'lodash';
+import { isObject, omit, sortBy, compact } from 'lodash';
 import { customValidate } from './customValidate';
 import { diff } from 'deep-diff';
 import { Session, Data, User } from '../../../shared/interfaces';
 import { Op } from 'sequelize';
-import { getEmailBody, getEmailSubject, EmailMessage, getInvitationEmail } from '../../../shared/utils/templates';
+import { renderTemplate, EmailTemplate } from '../../../shared/templates';
 import { sendEmail } from '../../../shared/utils/ches';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { verify, sign } from 'jsonwebtoken';
@@ -49,7 +49,7 @@ export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
   let cc = usesProd ? [preferredEmail] : [];
   if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
 
-  let emailCode: EmailMessage;
+  let emailCode: EmailTemplate;
   if (bceidEvent === 'submission' && !usesProd) emailCode = 'bceid-idim-dev-submitted';
   else if (bceidEvent === 'deletion') emailCode = 'bceid-idim-deleted';
   else return;
@@ -58,8 +58,7 @@ export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
   return sendEmail({
     to,
     cc,
-    body: getEmailBody(emailCode, request),
-    subject: getEmailSubject(emailCode, id),
+    ...renderTemplate(emailCode, { request }),
     event: { emailCode, requestId: id },
   });
 };
@@ -128,6 +127,7 @@ export const stringifyGithubInputs = (inputs: any) => {
 };
 
 export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
+export const getDisplayName = (session: Session) => compact([session.given_name, session.family_name]).join(' ');
 
 export const getWhereClauseForAllRequests = (data: {
   searchField: string[];
@@ -191,9 +191,8 @@ export async function inviteTeamMembers(users: User[], teamId: number) {
       const invitationLink = generateInvitationToken(user, teamId);
       const { idirEmail } = user;
       const args = {
-        body: getInvitationEmail(teamId, invitationLink),
-        subject: `Invitation for pathfinder SSO team #${teamId}`,
         to: [idirEmail],
+        ...renderTemplate('team-invitation', { teamId, invitationLink }),
       };
       return sendEmail(args);
     }),
