@@ -39,17 +39,6 @@ jest.mock('../app/src/github', () => {
 
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 
-describe('/heartbeat endpoints', () => {
-  it('should response heartbeat endpoint successfully', async () => {
-    const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/heartbeat' };
-    const context: Context = {};
-
-    const response = await handler(event, context);
-    expect(JSON.parse(response.body).length).toEqual(1);
-    expect(response.statusCode).toEqual(200);
-  });
-});
-
 describe('requests endpoints', () => {
   let requestId;
 
