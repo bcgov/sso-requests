@@ -121,7 +121,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUiSchema(!isNew, isApplied);
+  const uiSchema = getUiSchema(request as Request);
 
   const handleFormSubmit = async () => {
     setLoading(true);
