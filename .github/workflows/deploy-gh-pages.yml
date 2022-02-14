@@ -48,6 +48,7 @@ jobs:
           API_URL: ${{ env.API_URL }}
           SSO_URL: ${{ env.SSO_URL }}
           SSO_CLIENT_ID: ${{ env.SSO_CLIENT_ID }}
+          KC_IDP_HINT: idir
         run: |
           yarn
           yarn build
