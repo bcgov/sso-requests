@@ -140,3 +140,11 @@ ul.error-detail {
   position: relative;
   outline: none;
 }
+
+.underline {
+  text-decoration: underline;
+}
+
+.strong {
+  font-weight: bold;
+}

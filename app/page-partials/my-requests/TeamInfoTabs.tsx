@@ -71,7 +71,7 @@ const validateMembers = (members: User[], setErrors: Function) => {
   }
 };
 
-const emptyMember: User = { idirEmail: '', role: 'user', pending: true };
+const emptyMember: User = { idirEmail: '', role: 'member', pending: true };
 interface Props {
   alert: any;
   currentUser: UserSession;
