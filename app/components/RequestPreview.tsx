@@ -90,6 +90,14 @@ function RequestPreview({ children, request }: Props) {
     <>
       <Table>
         <tbody>
+          {request?.team && (
+            <tr>
+              <td>Associated Team:</td>
+              <td>
+                <SemiBold>{request.team.name}</SemiBold>
+              </td>
+            </tr>
+          )}
           <tr>
             <td>Are you accountable for this project?</td>
             <td>

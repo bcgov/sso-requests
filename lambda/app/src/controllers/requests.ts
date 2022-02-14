@@ -21,7 +21,7 @@ import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
 import { renderTemplate, EmailTemplate } from '../../../shared/templates';
 import { EVENTS } from '../../../shared/enums';
-import { getAllowedRequest } from '../queries/request';
+import { getMyOrTeamRequest, getAllowedRequest } from '../queries/request';
 
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const NEW_REQUEST_DAY_LIMIT = 10;
@@ -34,9 +34,9 @@ const createEvent = async (data) => {
   }
 };
 
-const getRequester = async (session: Session, user: User, requestId: number) => {
+const getRequester = async (session: Session, requestId: number) => {
   let requester = getDisplayName(session);
-  const isMyOrTeamRequest = await getAllowedRequest(session, user, requestId);
+  const isMyOrTeamRequest = await getMyOrTeamRequest(session, requestId);
   if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
   return requester;
 };
@@ -181,7 +181,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       const to = getEmailList(finalData);
       const event = isMerged ? 'update' : 'submission';
 
-      const requester = await getRequester(session, user, current.id);
+      const requester = await getRequester(session, current.id);
       allowedData.requester = requester;
       current.requester = requester;
 
@@ -244,9 +244,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
 
 export const getRequest = async (session: Session, user: User, data: { requestId: number }) => {
   const { requestId } = data;
-  const where = getWhereClauseForRequest(session, user, requestId);
-  const request = await models.request.findOne({ where });
-  return request;
+  return getAllowedRequest(session, requestId);
 };
 
 // see https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
@@ -276,6 +274,12 @@ export const getRequestAll = async (
     limit,
     offset: page > 0 ? (page - 1) * limit : 0,
     order,
+    include: [
+      {
+        model: models.team,
+        required: false,
+      },
+    ],
   });
 
   return result;
@@ -286,7 +290,15 @@ export const getRequests = async (session: Session, user: User, include: string 
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
-  const requests = await models.request.findAll({ where });
+  const requests = await models.request.findAll({
+    where,
+    include: [
+      {
+        model: models.team,
+        required: false,
+      },
+    ],
+  });
 
   return requests;
 };
@@ -301,7 +313,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     }
 
     const isMerged = await checkIfRequestMerged(id);
-    const requester = await getRequester(session, user, current.id);
+    const requester = await getRequester(session, current.id);
     current.requester = requester;
     current.archived = true;
 

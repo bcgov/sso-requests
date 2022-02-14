@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define(
+  const Request = sequelize.define(
     'request',
     {
       idirUserid: {
@@ -130,6 +130,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       underscored: true,
+      associate: function (models) {
+        Request.belongsTo(models.team);
+      },
     },
   );
+
+  return Request;
 };
