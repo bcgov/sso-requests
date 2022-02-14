@@ -181,7 +181,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   return (
     <>
       <HeaderContainer>
-        <FormHeader formStage={formStage} id={formData.id} />
+        <FormHeader formStage={formStage} requestId={formData.id} editing={isApplied} />
         <FormStage
           currentStage={formStage}
           setFormStage={changeStep}
