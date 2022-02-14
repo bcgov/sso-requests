@@ -16,7 +16,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { base_path } = publicRuntimeConfig;
+const { base_path, kc_idp_hint } = publicRuntimeConfig;
 
 const authenticatedUris = [`${base_path}/my-requests`, `${base_path}/request`, `${base_path}/admin-dashboard`];
 
@@ -93,7 +93,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   const handleLogin = async () => {
-    const authUrl = await getAuthorizationUrl({ kc_idp_hint: 'idir' });
+    const authUrl = await getAuthorizationUrl({ kc_idp_hint });
     window.location.href = authUrl;
   };
 
