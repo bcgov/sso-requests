@@ -30,7 +30,7 @@ export interface Errors {
 
 const emptyUser: User = {
   idirEmail: '',
-  role: 'user',
+  role: 'member',
   id: String(uuidv4()),
 };
 
