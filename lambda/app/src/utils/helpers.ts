@@ -75,10 +75,11 @@ const sortURIFields = (data: any) => {
 export const processRequest = (data: any, isMerged: boolean) => {
   const immutableFields = ['idirUserid', 'clientName', 'projectLead', 'status'];
   if (isMerged) immutableFields.push('realm');
-  const allowedRequest = omit(data, immutableFields);
-  const sortedRequest = sortURIFields(allowedRequest);
-  sortedRequest.environments = processEnvironments(sortedRequest);
-  return sortedRequest;
+  data = omit(data, immutableFields);
+  data = sortURIFields(data);
+  data.environments = processEnvironments(data);
+
+  return data;
 };
 
 const processEnvironments = (data: any) => {
@@ -90,8 +91,9 @@ const processEnvironments = (data: any) => {
 };
 
 export const getDifferences = (newData: any, originalData: Request) => {
-  const sortedNewData = sortURIFields(newData);
-  return diff(omitNonFormFields(originalData), omitNonFormFields(sortedNewData));
+  newData = sortURIFields(newData);
+  if (newData.usesTeam === true) newData.teamId = parseInt(newData.teamId);
+  return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };
 
 export const validateRequest = (formData: any, original: Request, isUpdate = false, teams: any[]) => {
