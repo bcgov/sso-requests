@@ -72,7 +72,8 @@ describe('Form Template Saving and Navigation', () => {
 
   it('Should save data and triggers spinner on blur events', async () => {
     const uriInput = document.querySelector('#root_devValidRedirectUris_0') as HTMLElement;
-    fireEvent.blur(uriInput);
+    fireEvent.change(uriInput, { target: { value: 'http://localhost:8080' } });
+    await new Promise((r) => setTimeout(r, 3000));
     expect(updateRequest).toHaveBeenCalled();
     const savingLoader = document.querySelector("svg[aria-label='request-saving']");
     expect(savingLoader).not.toBeNull();
