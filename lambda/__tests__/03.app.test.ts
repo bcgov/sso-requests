@@ -8,6 +8,8 @@ import { sendEmail } from '../shared/utils/ches';
 import { dispatchRequestWorkflow } from '../app/src/github';
 import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, AuthMock } from './00.db.test';
 
+const { path: baseUrl } = baseEvent;
+
 // see https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
 
 jest.mock('../app/src/authenticate');
@@ -59,7 +61,7 @@ describe('requests endpoints', () => {
       return Promise.resolve(null);
     });
 
-    const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/requests' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/requests` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -76,7 +78,7 @@ describe('requests endpoints', () => {
 
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       httpMethod: 'POST',
       body: JSON.stringify(sampleRequestPayload),
     };
@@ -89,7 +91,7 @@ describe('requests endpoints', () => {
   });
 
   it('should send all requests successfully', async () => {
-    const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/requests' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/requests` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -105,7 +107,7 @@ describe('requests endpoints', () => {
   it('should send the target request successfully', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/request',
+      path: `${baseUrl}/request`,
       httpMethod: 'POST',
       body: JSON.stringify({ requestId }),
     };
@@ -123,7 +125,7 @@ describe('requests endpoints', () => {
 
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: requestId, projectName }),
     };
@@ -177,7 +179,7 @@ describe('Updating', () => {
   it('should submit updates to the target request successfully if owned by the user', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
       queryStringParameters: { submit: true },
@@ -192,7 +194,7 @@ describe('Updating', () => {
   it('should allow updates to the target request if requester is admin', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
       queryStringParameters: { submit: true },
@@ -207,7 +209,7 @@ describe('Updating', () => {
   it('should create all requested environments for idir only requests', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
       queryStringParameters: { submit: true },
@@ -236,7 +238,7 @@ describe('Updating', () => {
   it('should not create bceid prod if it is not approved', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...bceidRequest }),
       queryStringParameters: { submit: true },
@@ -264,7 +266,7 @@ describe('Updating', () => {
   it('should include browser flow override in dispatch', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest, browserFlowOverride: 'asdf' }),
       queryStringParameters: { submit: true },

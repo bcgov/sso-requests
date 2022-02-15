@@ -4,6 +4,8 @@ import baseEvent from './base-event.json';
 import { models } from '../shared/sequelize/models/models';
 import { mergePR } from '../actions/src/github';
 
+const { path: baseUrl } = baseEvent;
+
 jest.mock('../actions/src/github', () => {
   return {
     mergePR: jest.fn(),
@@ -19,7 +21,7 @@ jest.mock('../shared/utils/ches', () => {
 let id;
 let wakeUpEvent: APIGatewayProxyEvent = {
   ...baseEvent,
-  path: '/app/actions',
+  path: `${baseUrl}/actions`,
   queryStringParameters: { status: 'create' },
   body: JSON.stringify({
     prNumber: 1,
@@ -76,7 +78,7 @@ describe('actions endpoints', () => {
   const context: Context = {};
 
   it('should successfully wake up the API on GET requests', async () => {
-    const event: APIGatewayProxyEvent = { ...wakeUpEvent, path: '/app/actions' };
+    const event: APIGatewayProxyEvent = { ...wakeUpEvent, path: `${baseUrl}/actions` };
 
     return await new Promise((resolve, reject) => {
       handler(event, context, (error, response) => {
