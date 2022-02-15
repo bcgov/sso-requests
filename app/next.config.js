@@ -25,8 +25,8 @@ module.exports = {
   async rewrites() {
     return [
       {
-        source: '/app/:path*',
-        destination: 'http://localhost:8080/app/:path*', // Proxy to Backend
+        source: '/lambda/app/:path*',
+        destination: 'http://localhost:8080/lambda/app/:path*', // Proxy to Backend
       },
     ];
   },

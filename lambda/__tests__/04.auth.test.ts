@@ -4,12 +4,14 @@ import baseEvent from './base-event.json';
 import { authenticate } from '../app/src/authenticate';
 import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, AuthMock } from './00.db.test';
 
+const { path: baseUrl } = baseEvent;
+
 jest.mock('../app/src/authenticate');
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 
 describe('/non-logged in user endpoints', () => {
   it('should response heartbeat endpoint successfully', async () => {
-    const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/heartbeat' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/heartbeat` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -18,7 +20,7 @@ describe('/non-logged in user endpoints', () => {
   });
 
   it('should be redirected without team token to validate', async () => {
-    const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/teams/verify' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/teams/verify` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -30,7 +32,7 @@ describe('/non-logged in user endpoints', () => {
   it('should have an error with invalid team invitation token', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: '/app/teams/verify',
+      path: `${baseUrl}/teams/verify`,
       queryStringParameters: { token: 'qerasdf' },
     };
     const context: Context = {};
@@ -47,7 +49,7 @@ describe('/logged-in endpoints', () => {
       return Promise.resolve(null);
     });
 
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: '/app/requests-all' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: `${baseUrl}/requests-all` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -66,7 +68,7 @@ describe('/logged-in endpoints', () => {
       });
     });
 
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: '/app/requests' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/requests` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -79,7 +81,7 @@ describe('/logged-in endpoints', () => {
       return Promise.resolve(null);
     });
 
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: '/app/requests' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: `${baseUrl}/requests` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -98,7 +100,7 @@ describe('/logged-in endpoints', () => {
       });
     });
 
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: '/app/requests' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: `${baseUrl}/requests` };
     const context: Context = {};
 
     const response = await handler(event, context);
