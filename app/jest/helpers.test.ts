@@ -1,5 +1,5 @@
 import { idpToRealm, getRequestedEnvironments, canDeleteMember } from 'utils/helpers';
-import { isValidKeycloakURI } from 'utils/shared/customValidate';
+import { isValidKeycloakURI } from 'utils/customValidate';
 
 describe('idp to realm', () => {
   it('gives the correct realm for different orders', () => {

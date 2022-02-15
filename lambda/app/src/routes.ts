@@ -40,7 +40,7 @@ const responseHeaders = {
   'Access-Control-Allow-Credentials': 'true',
 };
 
-const BASE_PATH = '/app';
+const BASE_PATH = '/lambda/app';
 
 const handleError = (res, err) => {
   console.error(err);

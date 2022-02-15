@@ -15,7 +15,7 @@ import styled from 'styled-components';
 import { isNil } from 'lodash';
 import { validateForm, getFormStageInfo } from 'utils/helpers';
 import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
-import { customValidate } from 'utils/shared/customValidate';
+import { customValidate } from 'utils/customValidate';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';

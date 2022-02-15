@@ -5,7 +5,7 @@
   "scripts": {
     "compile": "tsc",
     "test": "jest",
-    "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle"
+    "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle/lambda"
   },
   "devDependencies": {
     "@octokit/types": "^6.18.1",

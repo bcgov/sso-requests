@@ -7,7 +7,7 @@ import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
-import { customValidate } from './shared/customValidate';
+import { customValidate } from './customValidate';
 import { bceidStages, adminBceidStages } from 'utils/constants';
 import { nonBceidSchemas, appliedNonBceidSchemas } from 'schemas/non-bceid-schemas';
 import { Team, User } from 'interfaces/team';

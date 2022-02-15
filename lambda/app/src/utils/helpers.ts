@@ -1,17 +1,17 @@
-import { Request } from '../interfaces/Request';
-import validate from 'react-jsonschema-form/lib/validate';
-import requesterSchema from '../schemas/requester-info';
-import providerSchema from '../schemas/providers';
-import termsAndConditionsSchema from '../schemas/terms-and-conditions';
 import { isObject, omit, sortBy, compact } from 'lodash';
-import { customValidate } from './customValidate';
-import { diff } from 'deep-diff';
-import { Session, Data, User } from '../../../shared/interfaces';
 import { Op } from 'sequelize';
+import { verify, sign } from 'jsonwebtoken';
+import { diff } from 'deep-diff';
+import validate from 'react-jsonschema-form/lib/validate';
+import { Request } from '@app/interfaces/Request';
+import providerSchema from '@app/schemas/shared/providers';
+import requesterSchema from '@app/schemas/shared/requester-info';
+import termsAndConditionsSchema from '@app/schemas/shared/terms-and-conditions';
+import { customValidate } from '@app/utils/customValidate';
+import { Session, Data, User } from '../../../shared/interfaces';
 import { renderTemplate, EmailTemplate } from '../../../shared/templates';
 import { sendEmail } from '../../../shared/utils/ches';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { verify, sign } from 'jsonwebtoken';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
