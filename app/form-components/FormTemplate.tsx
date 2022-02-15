@@ -161,7 +161,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     changeStep(newStage);
   };
 
-  const handleBlur = async (id: string, value: any) => {
+  const handleBlur = async () => {
     if (isNew || isApplied) return;
     if (request) {
       setSaving(true);

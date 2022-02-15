@@ -73,7 +73,7 @@ const sortURIFields = (data: any) => {
 };
 
 export const processRequest = (data: any, isMerged: boolean) => {
-  const immutableFields = ['idirUserid', 'clientName', 'status'];
+  const immutableFields = ['idirUserid', 'clientName', 'projectLead', 'status'];
   if (isMerged) immutableFields.push('realm');
   const allowedRequest = omit(data, immutableFields);
   const sortedRequest = sortURIFields(allowedRequest);
