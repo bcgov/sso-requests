@@ -5,6 +5,8 @@ import { authenticate } from '../app/src/authenticate';
 import { TEST_IDIR_USERID, TEST_IDIR_USERID_2, TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2, AuthMock } from './00.db.test';
 import { sendEmail } from '../shared/utils/ches';
 
+const { path: baseUrl } = baseEvent;
+
 jest.mock('../app/src/authenticate');
 jest.mock('../shared/utils/ches', () => {
   return {
@@ -38,7 +40,7 @@ describe('User and Teams', () => {
 
   it('should find current user successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
-    const event: APIGatewayProxyEvent = { ...baseEvent, path: '/app/me' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/me` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -50,7 +52,7 @@ describe('User and Teams', () => {
 
   it('should find empty team list successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: '/app/teams' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -64,7 +66,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/teams',
+      path: `${baseUrl}/teams`,
       body: JSON.stringify({
         name: 'ssoteam',
         members: [],
@@ -82,7 +84,7 @@ describe('User and Teams', () => {
 
   it('should find one team list successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: '/app/teams' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -93,7 +95,7 @@ describe('User and Teams', () => {
 
   it('should find empty team list for the second user successfully', async () => {
     createMockAuth(TEST_IDIR_USERID_2, TEST_IDIR_EMAIL_2);
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: '/app/teams' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams` };
     const context: Context = {};
 
     const response = await handler(event, context);
@@ -107,7 +109,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'PUT',
-      path: '/app/teams/1',
+      path: `${baseUrl}/teams/1`,
       body: JSON.stringify({
         name: 'ssoteam2',
       }),
@@ -125,7 +127,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/teams/1/members',
+      path: `${baseUrl}/teams/1/members`,
       body: JSON.stringify([
         {
           idirEmail: userEmail,
@@ -153,7 +155,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/teams/1/members',
+      path: `${baseUrl}/teams/1/members`,
       body: JSON.stringify([
         {
           idirEmail: 'test2@email.com',
@@ -168,7 +170,7 @@ describe('User and Teams', () => {
 
   it('Should allow team members to read team membership', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: '/app/teams/1/members' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams/1/members` };
     const context: Context = {};
     const response = await handler(event, context);
     expect(response.statusCode).toEqual(200);
@@ -176,7 +178,7 @@ describe('User and Teams', () => {
 
   it('Should block non-team members from reading team membership', async () => {
     createMockAuth(TEST_IDIR_USERID_2, TEST_IDIR_EMAIL_2);
-    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: '/app/teams/1/members' };
+    const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams/1/members` };
     const context: Context = {};
     const response = await handler(event, context);
     expect(response.statusCode).toEqual(401);
@@ -187,7 +189,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'DELETE',
-      path: `/app/teams/1/members/${testUserId}`,
+      path: `${baseUrl}/teams/1/members/${testUserId}`,
     };
     const context: Context = {};
     const response = await handler(event, context);
@@ -199,7 +201,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'DELETE',
-      path: `/app/teams/1/members/${testUserId}`,
+      path: `${baseUrl}/teams/1/members/${testUserId}`,
     };
     const context: Context = {};
     const response = await handler(event, context);
@@ -211,7 +213,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'DELETE',
-      path: `/app/teams/1/members/${testUserId}`,
+      path: `${baseUrl}/teams/1/members/${testUserId}`,
     };
     const context: Context = {};
     const response = await handler(event, context);
@@ -223,7 +225,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: `/app/teams/1/invite`,
+      path: `${baseUrl}/teams/1/invite`,
       body: JSON.stringify([
         {
           idirEmail: 'test2@email.com',
@@ -242,7 +244,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: `/app/teams/1/invite`,
+      path: `${baseUrl}/teams/1/invite`,
       body: JSON.stringify([
         {
           idirEmail: 'test2@email.com',
@@ -261,7 +263,7 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'DELETE',
-      path: '/app/teams/1',
+      path: `${baseUrl}/teams/1`,
     };
     const context: Context = {};
 

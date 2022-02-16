@@ -1,7 +1,8 @@
+import React from 'react';
+import styled from 'styled-components';
+import { isFunction } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
-import styled from 'styled-components';
-import React from 'react';
 import { MAX_STRING_FIELD_WIDTH } from 'styles/theme';
 import InfoOverlay from 'components/InfoOverlay';
 
@@ -46,8 +47,9 @@ const Title = styled.legend`
 `;
 
 export default function ArrayFieldTemplate(props: any) {
-  const { title } = props;
+  const { title, items } = props;
   const { description, tooltipTitle, tooltipContent, deletableIndex = 1, hide = 250, addItemText } = props.schema;
+  const delIndex = isFunction(deletableIndex) ? deletableIndex(items) : parseInt(deletableIndex);
 
   return (
     <div>
@@ -58,13 +60,13 @@ export default function ArrayFieldTemplate(props: any) {
         </Title>
       )}
       {description && <Description>{description}</Description>}
-      {props.items.map((element: any) => {
+      {items.map((element: any) => {
         return (
           <React.Fragment key={element.index}>
             {element.hasRemove && (
               <FieldContainer>
                 {element.children}
-                {element.index >= deletableIndex && (
+                {element.index >= delIndex && (
                   <RemoveContainer onClick={element.onDropIndexClick(element.index)}>
                     <FontAwesomeIcon style={{ color: 'red' }} icon={faMinusCircle} title="Remove Item" />
                   </RemoveContainer>

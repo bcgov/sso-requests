@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import FormHeader from 'form-components/FormHeader';
 import FormStage from 'form-components/FormStage';
 import Form from 'form-components/GovForm';
@@ -12,10 +12,10 @@ import FormReview from 'form-components/FormReview';
 import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { isNil } from 'lodash';
+import { isNil, throttle } from 'lodash';
 import { validateForm, getFormStageInfo } from 'utils/helpers';
 import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
-import { customValidate } from 'utils/shared/customValidate';
+import { customValidate } from 'utils/customValidate';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
@@ -64,6 +64,23 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isApplied, formStage, teams });
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
 
+  const throttleUpdate = useCallback(
+    throttle(
+      async (event: any) => {
+        if (isNew || isApplied) return;
+        if (request) {
+          setSaving(true);
+          const [, err] = await updateRequest({ ...event.formData, id: request.id });
+          if (!err) setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
+          setSaving(false);
+        }
+      },
+      2000,
+      { trailing: true },
+    ),
+    [request?.id],
+  );
+
   const handleChange = (e: any) => {
     const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
     const togglingTeamToTrue = formData.usesTeam === false && e.formData.usesTeam === true;
@@ -78,6 +95,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     } else {
       setShowAccountableError(false);
     }
+
+    throttleUpdate(e);
   };
 
   useEffect(() => {
@@ -121,7 +140,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUiSchema(!isNew, isApplied);
+  const uiSchema = getUiSchema(request as Request);
 
   const handleFormSubmit = async () => {
     setLoading(true);
@@ -161,16 +180,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     changeStep(newStage);
   };
 
-  const handleBlur = async (id: string, value: any) => {
-    if (isNew || isApplied) return;
-    if (request) {
-      setSaving(true);
-      const [, err] = await updateRequest({ ...formData, id: request.id });
-      if (!err) setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
-      setSaving(false);
-    }
-  };
-
   const handleModalClose = () => {
     window.location.hash = '#';
   };
@@ -181,7 +190,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   return (
     <>
       <HeaderContainer>
-        <FormHeader formStage={formStage} id={formData.id} />
+        <FormHeader formStage={formStage} requestId={formData.id} editing={isApplied} />
         <FormStage
           currentStage={formStage}
           setFormStage={changeStep}
@@ -220,7 +229,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           onSubmit={handleFormSubmit}
           formData={formData}
           ArrayFieldTemplate={ArrayFieldTemplate}
-          onBlur={handleBlur}
           liveValidate={visited[formStage] || isApplied}
           validate={customValidate}
         >

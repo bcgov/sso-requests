@@ -120,10 +120,6 @@ export const getTeamMembers = async (id?: number) => {
 
 ### Backend
 
-1. Any shared resources from the frontend should be included in the makefile for that lambda function. See the
-   steps in `lambda/app/makefile` for commands to copy over front-end resources. This helps to keep interfaces
-   and form-data in sync between the frontend and backend.
-
-2. Most error handling can be done at the route level with `try` and `catch`, see `lambda/app/src/routes.ts`.
+1. Most error handling can be done at the route level with `try` and `catch`, see `lambda/app/src/routes.ts`.
    Controllers will then be caught. More custom error-handling in controller or helper functions should only
    be added if the specific function failing should still return a 200 status.

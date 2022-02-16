@@ -5,7 +5,7 @@ export interface Team {
 
 export interface User {
   idirEmail: string;
-  role: 'admin' | 'user' | '';
+  role: 'admin' | 'member' | '';
   id?: string;
   status?: string;
   pending?: boolean;

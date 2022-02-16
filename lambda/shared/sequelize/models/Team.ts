@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
       associate: function (models) {
         Team.hasMany(models.usersTeam, { foreignKey: 'teamId', onDelete: 'cascade', hooks: true });
+        Team.hasMany(models.request, { foreignKey: 'teamId' });
       },
     },
   );

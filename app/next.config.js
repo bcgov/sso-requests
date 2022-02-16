@@ -15,6 +15,7 @@ module.exports = {
     sso_authorization_response_type: process.env.SSO_AUTHORIZATION_RESPONSE_TYPE || 'code',
     sso_authorization_scope: process.env.SSO_AUTHORIZATION_SCOPE || 'openid',
     sso_token_grant_type: process.env.SSO_TOKEN_GRANT_TYPE || 'authorization_code',
+    kc_idp_hint: process.env.KC_IDP_HINT || '',
   },
   env: {},
   assetPrefix: APP_URL,

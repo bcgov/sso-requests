@@ -7,4 +7,7 @@ module.exports = {
   setupFilesAfterEnv: ['./__tests__/jest.setup.js'],
   testSequencer: './testSequencer.js',
   testPathIgnorePatterns: ['/node_modules/', '/build/'],
+  moduleNameMapper: {
+    '^@app/(.*)$': '<rootDir>/../app/$1',
+  },
 };

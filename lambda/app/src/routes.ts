@@ -42,22 +42,14 @@ const responseHeaders = {
 
 const BASE_PATH = '/app';
 
-const redirect = (res, url, status = 301) => {
-  const headers = { Location: url };
-  if (isFunction(res.headers)) res.headers(headers);
-  else res.set(headers);
-  return res.status(status).send();
+const handleError = (res, err) => {
+  console.error(err);
+  res.status(422).json({ success: false, message: err.message || err });
 };
 
 export const setRoutes = (app: any) => {
   app.use((req, res, next) => {
-    try {
-      req.body = JSON.parse(req.body);
-    } catch {}
-
-    if (isFunction(res.headers)) res.headers(responseHeaders);
-    else res.set(responseHeaders);
-
+    res.set(responseHeaders);
     if (next) next();
   });
 
@@ -70,34 +62,34 @@ export const setRoutes = (app: any) => {
       const result = await wakeUpAll();
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
   app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
     try {
       const token = req.query.token;
-      if (!req.query.token) return res.status(401).redirect(`${APP_URL}/verify-user?message=no-token`);
+      if (!req.query.token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
       else {
         const [data] = await parseInvitationToken(token);
         const { userId, teamId, exp } = data;
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return redirect(res, `${APP_URL}/verify-user?message=${encodeurl('This link has expired')}`, 401);
+        if (expired) return res.redirect(`${APP_URL}/verify-user?message=${encodeurl('This link has expired')}`);
         const verified = await verifyTeamMember(userId, teamId);
-        if (!verified) return redirect(res, `${APP_URL}/verify-user?message=${encodeurl('User not found')}`, 422);
-        return redirect(res, `${APP_URL}/verify-user?message=success&teamId=${teamId}`);
+        if (!verified) return res.redirect(`${APP_URL}/verify-user?message=${encodeurl('User not found')}`);
+        return res.redirect(`${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {
-      console.log(err);
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
   app.use(async (req, res, next) => {
     const session = (await authenticate(req.headers)) as Session;
     if (!session) {
-      return res.status(401).json({ success: false });
+      res.status(401).json({ success: false, message: 'not authorized' });
+      return false;
     }
 
     try {
@@ -122,10 +114,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/requests-all`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
-      const result = await getRequestAll(session as Session, req.body);
+      const result = await getRequestAll(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -134,11 +123,8 @@ export const setRoutes = (app: any) => {
 
   app.get(`${BASE_PATH}/requests`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
       const { include } = req.query || {};
-      const result = await getRequests(session as Session, req.user, include);
+      const result = await getRequests(req.session as Session, req.user, include);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -147,10 +133,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/requests`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
-      const result = await createRequest(session as Session, req.body);
+      const result = await createRequest(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -159,11 +142,8 @@ export const setRoutes = (app: any) => {
 
   app.put(`${BASE_PATH}/requests`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
       const { submit } = req.query || {};
-      const result = await updateRequest(session as Session, req.body, req.user, submit);
+      const result = await updateRequest(req.session as Session, req.body, req.user, submit);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -172,11 +152,8 @@ export const setRoutes = (app: any) => {
 
   app.delete(`${BASE_PATH}/requests`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
       const { id } = req.query || {};
-      const result = await deleteRequest(session as Session, req.user, Number(id));
+      const result = await deleteRequest(req.session as Session, req.user, Number(id));
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -185,9 +162,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/request`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-      const result = await getRequest(session as Session, req.user, req.body);
+      const result = await getRequest(req.session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -196,9 +171,7 @@ export const setRoutes = (app: any) => {
 
   app.put(`${BASE_PATH}/request-metadata`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-      const result = await updateRequestMetadata(session as Session, req.user, req.body);
+      const result = await updateRequestMetadata(req.session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -207,10 +180,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/installation`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
-      const result = await getInstallation(session as Session, req.user, req.body);
+      const result = await getInstallation(req.session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -219,10 +189,7 @@ export const setRoutes = (app: any) => {
 
   app.put(`${BASE_PATH}/installation`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
-      const result = await changeSecret(session as Session, req.body);
+      const result = await changeSecret(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -231,10 +198,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/client`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
-      const result = await getClient(session as Session, req.body);
+      const result = await getClient(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -243,10 +207,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/events`, async (req, res) => {
     try {
-      const session = await authenticate(req.headers);
-      if (!session) return res.status(401).json({ success: false, message: 'not authorized' });
-
-      const result = await getEvents(session as Session, req.body);
+      const result = await getEvents(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -258,8 +219,7 @@ export const setRoutes = (app: any) => {
       const result = await listTeams(req.user);
       res.status(200).json(result);
     } catch (err) {
-      console.log(err);
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -268,8 +228,7 @@ export const setRoutes = (app: any) => {
       const result = await createTeam(req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
-      console.log(err);
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -282,8 +241,7 @@ export const setRoutes = (app: any) => {
       const result = await updateTeam(req.user, id, req.body);
       res.status(200).json(result);
     } catch (err) {
-      console.log(err);
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -322,8 +280,7 @@ export const setRoutes = (app: any) => {
       const result = await getUsersOnTeam(id);
       res.status(200).json(result);
     } catch (err) {
-      console.log(err);
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -336,8 +293,7 @@ export const setRoutes = (app: any) => {
       await inviteTeamMembers([req.body], id);
       res.status(200).send();
     } catch (err) {
-      console.log(err);
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -350,8 +306,7 @@ export const setRoutes = (app: any) => {
       const result = await deleteTeam(req.user, id);
       res.status(200).json(result);
     } catch (err) {
-      console.log(err);
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 };

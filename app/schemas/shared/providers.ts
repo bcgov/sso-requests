@@ -8,11 +8,14 @@ export const redirectUriTooltipInfo = {
 
 export const redirectUriItems = { type: 'string', maxLength: 250, placeholder: 'e.g. https://example.com' };
 
+const allowDeleteFirstIfHasMoreThanOneItems = (arr: string[]) => (arr.length > 1 ? 0 : 1);
+
 const testValidRedirectUris = {
   type: 'array',
   title: 'Test Redirect URIs',
   items: redirectUriItems,
   additionalItems: redirectUriItems,
+  deletableIndex: allowDeleteFirstIfHasMoreThanOneItems,
   default: [''],
   addItemText: 'Add another URI',
 };
@@ -22,6 +25,7 @@ const prodValidRedirectUris = {
   title: 'Prod Redirect URIs',
   items: redirectUriItems,
   additionalItems: redirectUriItems,
+  deletableIndex: allowDeleteFirstIfHasMoreThanOneItems,
   default: [''],
   addItemText: 'Add another URI',
 };
@@ -32,6 +36,7 @@ const devValidRedirectUris = {
   title: 'Dev Redirect URIs',
   items: redirectUriItems,
   additionalItems: redirectUriItems,
+  deletableIndex: allowDeleteFirstIfHasMoreThanOneItems,
   default: [''],
   addItemText: 'Add another URI',
   ...redirectUriTooltipInfo,

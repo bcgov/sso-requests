@@ -7,7 +7,12 @@
     "esModuleInterop": true,
     "outDir": "./build",
     "sourceMap": false,
-    "rootDir": "../"
+    "rootDir": "../../",
+    "baseUrl": "./",
+    "paths": {
+      "*": ["../../*"],
+      "@app/*": ["../../app/*"]
+    }
   },
   "include": ["src/**/*", "../shared/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]

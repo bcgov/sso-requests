@@ -1,7 +1,7 @@
 {
   "watch": ["./", "../lambda"],
   "ext": "ts,json",
-  "exec": "ts-node ./server.ts",
+  "exec": "ts-node -r tsconfig-paths/register ./server.ts",
   "env": {
     "PORT": "8080",
     "APP_URL": "http://localhost:3000",

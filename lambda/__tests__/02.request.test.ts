@@ -6,6 +6,8 @@ import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, AuthMock } from './00.db.test';
 import { models } from '../shared/sequelize/models/models';
 import { sendEmail } from '../shared/utils/ches';
 
+const { path: baseUrl } = baseEvent;
+
 jest.mock('../app/src/authenticate');
 jest.mock('../shared/utils/ches', () => {
   return {
@@ -41,7 +43,7 @@ describe('Requests', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       body: JSON.stringify({
         projectName: 'test',
         projectLead: true,
@@ -73,7 +75,7 @@ describe('Creating Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/teams',
+      path: `${baseUrl}/teams`,
       body: JSON.stringify({
         name: 'test',
         members: [],
@@ -101,7 +103,7 @@ describe('Creating Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/teams',
+      path: `${baseUrl}/teams`,
       body: JSON.stringify({
         name: 'test-2',
         members: [
@@ -136,7 +138,7 @@ describe('Creating Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/teams',
+      path: `${baseUrl}/teams`,
       body: JSON.stringify({
         name: 'test-2',
         members: [
@@ -162,7 +164,7 @@ describe('Creating Teams', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       body: JSON.stringify({
         projectName: 'test project',
         projectLead: true,
@@ -203,7 +205,7 @@ describe('Team member permissions', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
-      path: '/app/request',
+      path: `${baseUrl}/request`,
       body: JSON.stringify({
         requestId: teamRequest.id,
       }),
@@ -218,7 +220,7 @@ describe('Team member permissions', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'PUT',
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       body: JSON.stringify({
         id: teamRequest.id,
         publicAccess: true,
@@ -235,7 +237,7 @@ describe('Team member permissions', () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'DELETE',
-      path: '/app/requests',
+      path: `${baseUrl}/requests`,
       queryStringParameters: { id: teamRequest.id },
     };
 

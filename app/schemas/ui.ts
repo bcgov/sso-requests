@@ -1,9 +1,14 @@
+import { isNil } from 'lodash';
 import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
 import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
 import AddTeamWidget from 'form-components/AddTeamWidget';
 import ClientTypeWidget from 'form-components/widgets/ClientTypeWidget';
+import { Request } from 'interfaces/Request';
 
-const getUISchema = (created: boolean, applied: boolean = false) => {
+const getUISchema = (request: Request) => {
+  const isNew = isNil(request?.id);
+  const isApplied = request?.status === 'applied';
+
   return {
     identityProviders: {
       'ui:widget': 'checkboxes',
@@ -12,8 +17,8 @@ const getUISchema = (created: boolean, applied: boolean = false) => {
     },
     projectLead: {
       'ui:widget': 'radio',
-      'ui:readonly': created,
       'ui:FieldTemplate': FieldTemplateWithTitle,
+      'ui:readonly': !isNew,
     },
     newToSso: {
       'ui:widget': 'radio',
@@ -34,13 +39,13 @@ const getUISchema = (created: boolean, applied: boolean = false) => {
     usesTeam: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
-      'ui:readonly': created,
+      'ui:readonly': isApplied && request?.usesTeam,
     },
     realm: {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
       'ui:default': 'onestopauth',
-      'ui:readonly': applied,
+      'ui:readonly': isApplied,
     },
     bceidTo: {
       'ui:FieldTemplate': FieldTemplateNoTitle,

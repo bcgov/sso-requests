@@ -7,7 +7,7 @@ import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
 import { errorMessages, environments } from './constants';
-import { customValidate } from './shared/customValidate';
+import { customValidate } from './customValidate';
 import { bceidStages, adminBceidStages } from 'utils/constants';
 import { nonBceidSchemas, appliedNonBceidSchemas } from 'schemas/non-bceid-schemas';
 import { Team, User } from 'interfaces/team';
@@ -171,6 +171,7 @@ export const processRequest = (request: Request): Request => {
   if (requestedEnvironments.includes('prod')) request.prod = true;
   delete request.environments;
   if (request.teamId) request.teamId = String(request.teamId);
+  else request.usesTeam = false;
   return changeNullToUndefined(request);
 };
 
