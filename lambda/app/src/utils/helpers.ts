@@ -34,6 +34,7 @@ export const omitNonFormFields = (data: Request) =>
 
 export type BceidEvent = 'submission' | 'deletion' | 'update';
 const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
+
 export const usesBceid = (realm: string | undefined) => {
   if (!realm) return false;
   return bceidRealms.includes(realm);
