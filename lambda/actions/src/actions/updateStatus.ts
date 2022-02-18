@@ -29,9 +29,12 @@ export default async function updateStatus(event) {
   } = JSON.parse(body);
   const { status: githubActionsStage } = queryStringParameters || {};
 
+  // empty PR
   if (githubActionsStage === 'empty') {
     await models.request.update({ prNumber, status: 'applied', actionNumber }, { where: { id } });
-  } else if (githubActionsStage === 'create') {
+  }
+  // PR created
+  else if (githubActionsStage === 'create') {
     const success = String(prSuccess) === 'true';
     const requestStatus = success ? 'pr' : 'prFailed';
     await Promise.all([
@@ -44,8 +47,10 @@ export default async function updateStatus(event) {
     if (!request) throw Error(`request associated with pr number ${prNumber} not found`);
 
     const { id: requestId, status: currentStatus } = request;
-    const isAlreadyApplied = currentStatus === 'applied';
+
+    // TF plan stage
     if (githubActionsStage === 'plan') {
+      const isAlreadyApplied = currentStatus === 'applied';
       const success = String(planSuccess) === 'true';
       const planStatus = success ? 'planned' : 'planFailed';
       await Promise.all([
@@ -56,9 +61,11 @@ export default async function updateStatus(event) {
           details: { planDetails },
         }),
       ]);
-    }
 
-    if (githubActionsStage === 'apply') {
+      if (isAllowedToMerge) await mergePR({ owner: repoOwner, repo: repoName, prNumber });
+    }
+    // TF apply stage
+    else if (githubActionsStage === 'apply') {
       const isUpdate = !!(await models.event.findOne({
         where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId },
       }));
@@ -83,8 +90,6 @@ export default async function updateStatus(event) {
       }
     }
   }
-
-  if (isAllowedToMerge) await mergePR({ owner: repoOwner, repo: repoName, prNumber });
 
   return {};
 }
