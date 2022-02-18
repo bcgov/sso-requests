@@ -29,7 +29,9 @@ export default async function updateStatus(event) {
   } = JSON.parse(body);
   const { status: githubActionsStage } = queryStringParameters || {};
 
-  if (githubActionsStage === 'create') {
+  if (githubActionsStage === 'empty') {
+    await models.request.update({ prNumber, status: 'applied', actionNumber }, { where: { id } });
+  } else if (githubActionsStage === 'create') {
     const success = String(prSuccess) === 'true';
     const requestStatus = success ? 'pr' : 'prFailed';
     await Promise.all([
