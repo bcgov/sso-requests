@@ -9,5 +9,6 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/', '/build/'],
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/../app/$1',
+    '^@lambda-app/(.*)$': '<rootDir>/app/src/$1',
   },
 };
