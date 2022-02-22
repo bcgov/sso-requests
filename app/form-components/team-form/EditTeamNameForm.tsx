@@ -30,12 +30,6 @@ export interface Errors {
   members?: string[];
 }
 
-const emptyUser: User = {
-  idirEmail: '',
-  role: 'member',
-  id: String(uuidv4()),
-};
-
 export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamName }: Props) {
   const { state, dispatch } = useContext(RequestsContext);
   const { teamIdToEdit } = state;
