@@ -2,7 +2,7 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { User, Team } from '../../../shared/interfaces';
 import { inviteTeamMembers } from '../utils/helpers';
-import { getMmberOnTeam } from '@lambda-app/queries/team';
+import { getMemberOnTeam } from '@lambda-app/queries/team';
 
 export const listTeams = async (user: User) => {
   const result = await models.team.findAll({
@@ -189,5 +189,5 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
     },
   );
 
-  return getMmberOnTeam(teamId, userId, { raw: true });
+  return getMemberOnTeam(teamId, userId, { raw: true });
 };

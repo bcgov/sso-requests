@@ -1,6 +1,6 @@
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 
-export const getMmberOnTeam = async (teamId: number, userId: number, options: { raw: boolean }) => {
+export const getMemberOnTeam = async (teamId: number, userId: number, options: { raw: boolean }) => {
   return models.user.findOne({
     where: { id: userId },
     include: [
