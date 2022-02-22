@@ -51,6 +51,15 @@ export const getTeamMembers = async (id?: number) => {
   }
 };
 
+export const updateTeamMember = async (teamId: number, memberId: number, data: { role: string }) => {
+  try {
+    const result = await instance.put(`teams/${teamId}/members/${memberId}`, data).then((res) => res.data);
+    return [result, null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};
+
 export const deleteTeamMember = async (userId: number, teamId: number) => {
   try {
     const result = await instance.delete(`teams/${teamId}/members/${userId}`).then((res) => res.data);

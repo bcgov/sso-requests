@@ -12,6 +12,7 @@ import {
   userIsTeamAdmin,
   userCanReadTeam,
   removeUserFromTeam,
+  updateMemberInTeam,
 } from './controllers/team';
 import { findOrCreateUser } from './controllers/user';
 import {
@@ -252,6 +253,20 @@ export const setRoutes = (app: any) => {
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await addUsersToTeam(id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.put(`${BASE_PATH}/teams/:id/members/:memberId`, async (req, res) => {
+    try {
+      const { id, memberId } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
+
+      const result = await updateMemberInTeam(id, memberId, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });

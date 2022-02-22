@@ -2,14 +2,15 @@ import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import { RequestTabs } from 'components/RequestTabs';
 import Table from 'html-components/Table';
-import { RequestsContext } from 'pages/my-requests';
+import { RequestsContext } from 'pages/my-dashboard';
 import { Button } from '@bcgov-sso/common-react-components';
+import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
 import { User } from 'interfaces/team';
 import { UserSession } from 'interfaces/props';
 import { useState, useEffect, useContext } from 'react';
-import { addTeamMembers, getTeamMembers, deleteTeamMember, inviteTeamMember } from 'services/team';
+import { addTeamMembers, getTeamMembers, updateTeamMember, deleteTeamMember, inviteTeamMember } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -162,10 +163,11 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
   const { state, dispatch } = useContext(RequestsContext);
   const { teams, activeTeamId, requests } = state;
   const [members, setMembers] = useState<User[]>([]);
+  const [myself, setMyself] = useState<User | null>(null);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
   const [loading, setLoading] = useState(false);
-  const [deleteMemberId, setDeleteMemberId] = useState<string>();
+  const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
 
   const selectedTeam = teams?.find((team) => team.id === activeTeamId);
@@ -175,12 +177,12 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
 
   const getMembers = async (id?: number) => {
     setLoading(true);
-    const result = await getTeamMembers(id);
-    const [members, err] = result;
+    const [members, err] = await getTeamMembers(id);
     if (err) {
       console.error(err);
     } else {
       setMembers(members);
+      setMyself(members.find((member: { idirEmail: string }) => member.idirEmail === currentUser.email));
     }
     setLoading(false);
   };
@@ -189,7 +191,7 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
     getMembers(activeTeamId);
   }, [activeTeamId]);
 
-  const handleDeleteClick = (memberId?: string) => {
+  const handleDeleteClick = (memberId?: number) => {
     if (!memberId) return;
     const canDelete = canDeleteMember(members, memberId);
     if (!canDelete) {
@@ -206,7 +208,6 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
     if (errors) return;
     const [, err] = await addTeamMembers({ members: tempMembers, id: activeTeamId });
     if (err) {
-      console.log(err);
       alert.show({
         variant: 'danger',
         fadeOut: 10000,
@@ -274,7 +275,29 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
     }
   };
 
-  if (!selectedTeam) return null;
+  const handleMemberRoleChange = async (memberId: number, role: string) => {
+    const [data, err] = await updateTeamMember(activeTeamId as number, memberId, { role });
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    const newMembers = members.map((member: User) => {
+      if (member.id === memberId) return data;
+      return member;
+    });
+
+    setMembers(newMembers);
+
+    alert.show({
+      variant: 'success',
+      fadeOut: 10000,
+      closable: true,
+      content: `Member role updated successfully`,
+    });
+  };
+
+  if (!selectedTeam || !myself) return null;
 
   return (
     <Container>
@@ -301,7 +324,21 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
                         <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
                       </td>
                       <td>{member.idirEmail}</td>
-                      <td>{capitalize(member.role)}</td>
+                      <td>
+                        {myself.role === 'admin' && myself.id !== member.id && !member.pending ? (
+                          <Dropdown
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                              handleMemberRoleChange(member.id as number, event.target.value)
+                            }
+                            value={member.role}
+                          >
+                            <option value="member">Member</option>
+                            <option value="admin">Admin</option>
+                          </Dropdown>
+                        ) : (
+                          capitalize(member.role)
+                        )}
+                      </td>
                       <td>
                         {member.pending && (
                           <ButtonIcon

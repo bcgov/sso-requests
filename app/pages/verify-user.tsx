@@ -24,7 +24,7 @@ const content = (
       You may still
     </tspan>
     <tspan y="52" x="120" fill="#006fc4">
-      <Link href="/my-requests">
+      <Link href="/my-dashboard">
         <a>login to your dashboard</a>
       </Link>
     </tspan>
@@ -60,7 +60,7 @@ export default function VerifyUser({ currentUser }: Props) {
   const validated = message === 'success';
 
   if (currentUser && validated) {
-    router.push('/my-requests');
+    router.push('/my-dashboard');
     return null;
   }
 
