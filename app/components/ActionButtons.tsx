@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
-import { RequestsContext } from 'pages/my-requests';
+import { RequestsContext } from 'pages/my-dashboard';
 import { Request } from 'interfaces/Request';
 import { $setRequestToDelete } from 'dispatchers/requestDispatcher';
 import { PRIMARY_RED } from 'styles/theme';

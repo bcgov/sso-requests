@@ -6,7 +6,7 @@ import '@testing-library/jest-dom/extend-expect';
 import LandingPage from 'pages/index';
 import AdminDashboard from 'pages/admin-dashboard';
 import ApplicationError from 'pages/application-error';
-import MyRequests from 'pages/my-requests';
+import MyRequests from 'pages/my-dashboard';
 import TermsAndConditions from 'pages/terms-conditions';
 import RequestPage from 'pages/request/index';
 import FormTemplate from 'form-components/FormTemplate';

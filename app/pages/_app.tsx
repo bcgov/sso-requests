@@ -18,7 +18,7 @@ import 'styles/globals.css';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path, kc_idp_hint } = publicRuntimeConfig;
 
-const authenticatedUris = [`${base_path}/my-requests`, `${base_path}/request`, `${base_path}/admin-dashboard`];
+const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, `${base_path}/admin-dashboard`];
 
 const proccessSession = (session: LoggedInUser | null) => {
   if (!session) return null;
@@ -41,7 +41,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       if (verifiedIdToken) {
         if (loginWorkflow) {
           setTokens(tokens);
-          await router.push('/my-requests');
+          await router.push('/my-dashboard');
         }
         setCurrentUser(proccessSession(verifiedIdToken));
       } else {

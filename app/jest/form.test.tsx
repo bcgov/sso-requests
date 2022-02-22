@@ -86,12 +86,12 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => screen.getByText("We're a Community"));
   });
 
-  it('Should redirect to my-requests on cancel', () => {
+  it('Should redirect to my-dashboard on cancel', () => {
     const cancelButton = within(
       document.querySelector("form.rjsf [data-test-id='form-btns']") as HTMLElement,
     ).getByText('Save and Close');
     fireEvent.click(cancelButton);
-    expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-requests' });
+    expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' });
   });
 
   it('Should show failed state in stepper after submission and clear only after filling correct data', () => {

@@ -136,7 +136,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const handleBackClick = () => {
-    const redirectUrl = isAdmin ? '/admin-dashboard' : '/my-requests';
+    const redirectUrl = isAdmin ? '/admin-dashboard' : '/my-dashboard';
     router.push({ pathname: redirectUrl });
   };
 

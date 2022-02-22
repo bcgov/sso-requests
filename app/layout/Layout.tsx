@@ -98,7 +98,7 @@ interface Route {
 const routes: Route[] = [
   { path: '/', label: 'Home', roles: ['guest', 'user', 'sso-admin'] },
   { path: '/terms-conditions', label: 'Terms and Conditions', roles: ['guest'] },
-  { path: '/my-requests', label: 'My Dashboard', roles: ['user', 'sso-admin'] },
+  { path: '/my-dashboard', label: 'My Dashboard', roles: ['user', 'sso-admin'] },
   { path: '/admin-dashboard', label: 'SSO Dashboard', roles: ['sso-admin'] },
   { path: '/request', label: 'Request Details', roles: ['user', 'sso-admin'], hide: true },
   { path: '/faq', label: 'FAQ', roles: ['guest', 'user', 'sso-admin'] },

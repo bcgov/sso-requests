@@ -3,7 +3,7 @@ import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
 import { Button } from '@bcgov-sso/common-react-components';
 import { v4 as uuidv4 } from 'uuid';
-import { RequestsContext } from 'pages/my-requests';
+import { RequestsContext } from 'pages/my-dashboard';
 
 import { editTeamName } from 'services/team';
 import Loader from 'react-loader-spinner';
@@ -29,12 +29,6 @@ export interface Errors {
   name?: string;
   members?: string[];
 }
-
-const emptyUser: User = {
-  idirEmail: '',
-  role: 'member',
-  id: String(uuidv4()),
-};
 
 export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamName }: Props) {
   const { state, dispatch } = useContext(RequestsContext);

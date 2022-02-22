@@ -290,7 +290,7 @@ export function getFormStageInfo({ isApplied, formStage, teams }: Args) {
   };
 }
 
-export function canDeleteMember(members: User[], memberId?: string) {
+export function canDeleteMember(members: User[], memberId?: number) {
   if (members.length === 1) return false;
   const memberToDelete = members.find((member) => member.id === memberId);
   const memberIsLastAdmin =

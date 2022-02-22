@@ -7,8 +7,8 @@ import { getTeams } from 'services/team';
 import { Request } from 'interfaces/Request';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
-import RequestInfoTabs from 'page-partials/my-requests/RequestInfoTabs';
-import TeamInfoTabs from 'page-partials/my-requests/TeamInfoTabs';
+import RequestInfoTabs from 'page-partials/my-dashboard/RequestInfoTabs';
+import TeamInfoTabs from 'page-partials/my-dashboard/TeamInfoTabs';
 import {
   $setRequests,
   $deleteRequest,
@@ -20,7 +20,7 @@ import { PageProps } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import CenteredModal from 'components/CenteredModal';
 import { hasAnyPendingStatus } from 'utils/helpers';
-import ProjectTeamTabs from 'page-partials/my-requests/ProjectTeamTabs';
+import ProjectTeamTabs from 'page-partials/my-dashboard/ProjectTeamTabs';
 import { Team } from 'interfaces/team';
 
 const mediaRules: MediaRule[] = [

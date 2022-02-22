@@ -31,7 +31,7 @@ export interface Errors {
 const emptyUser: User = {
   idirEmail: '',
   role: 'member',
-  id: String(uuidv4()),
+  id: new Date().getTime(),
 };
 
 export default function TeamForm({ onSubmit, currentUser }: Props) {

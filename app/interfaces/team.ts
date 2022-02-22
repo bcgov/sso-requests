@@ -6,7 +6,7 @@ export interface Team {
 export interface User {
   idirEmail: string;
   role: 'admin' | 'member' | '';
-  id?: string;
+  id?: number;
   status?: string;
   pending?: boolean;
   createdAt?: string;

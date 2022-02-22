@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
-import SecretsPanel from 'page-partials/my-requests/SecretsPanel';
+import SecretsPanel from 'page-partials/my-dashboard/SecretsPanel';
 import { getStatusDisplayName } from 'utils/status';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
@@ -12,7 +12,7 @@ import { NumberedContents } from '@bcgov-sso/common-react-components';
 import BceidStatus from 'components/BceidStatus';
 import DefaultTitle from 'components/SHeader3';
 import { useContext } from 'react';
-import { RequestsContext } from 'pages/my-requests';
+import { RequestsContext } from 'pages/my-dashboard';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
 
 const Title = styled(DefaultTitle)`

@@ -1,5 +1,6 @@
 export interface UserSession {
   email: string;
+  isAdmin: boolean;
 }
 
 export interface PageProps {

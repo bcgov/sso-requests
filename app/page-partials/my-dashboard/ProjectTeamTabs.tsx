@@ -6,7 +6,7 @@ import { Request } from 'interfaces/Request';
 import { padStart } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Table from 'html-components/Table';
-import { RequestsContext } from 'pages/my-requests';
+import { RequestsContext } from 'pages/my-dashboard';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import {
