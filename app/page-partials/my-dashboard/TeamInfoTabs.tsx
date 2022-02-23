@@ -1,15 +1,17 @@
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import { RequestTabs } from 'components/RequestTabs';
 import Table from 'html-components/Table';
-import { RequestsContext } from 'pages/my-dashboard';
 import { Button } from '@bcgov-sso/common-react-components';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
-import { User } from 'interfaces/team';
+import { User, Team } from 'interfaces/team';
+import { Request } from 'interfaces/Request';
 import { UserSession } from 'interfaces/props';
-import { useState, useEffect, useContext } from 'react';
+import { getTeamIntegrations } from 'services/request';
 import { addTeamMembers, getTeamMembers, updateTeamMember, deleteTeamMember, inviteTeamMember } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
@@ -27,7 +29,6 @@ import {
 import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
-import { $setActiveRequestId, $setTableTab } from 'dispatchers/requestDispatcher';
 import ModalContents from 'components/WarningModalContents';
 
 const INVITATION_EXPIRY_DAYS = 2;
@@ -47,6 +48,10 @@ const PaddedButton = styled(Button)`
 const Container = styled.div`
   border: 3px solid #a6b1c4;
   padding: 10px;
+`;
+
+const CenteredTD = styled.td`
+  text-align: center !important;
 `;
 
 const addMemberModalId = 'add-member-modal';
@@ -76,6 +81,7 @@ const emptyMember: User = { idirEmail: '', role: 'member', pending: true };
 interface Props {
   alert: any;
   currentUser: UserSession;
+  team: Team;
 }
 
 const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Function; type: string }) => {
@@ -159,10 +165,10 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
   return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
 };
 
-function TeamInfoTabs({ alert, currentUser }: Props) {
-  const { state, dispatch } = useContext(RequestsContext);
-  const { teams, activeTeamId, requests } = state;
+function TeamInfoTabs({ alert, currentUser, team }: Props) {
+  const router = useRouter();
   const [members, setMembers] = useState<User[]>([]);
+  const [integrations, setIntegrations] = useState<Request[]>([]);
   const [myself, setMyself] = useState<User | null>(null);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
@@ -170,26 +176,28 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
 
-  const selectedTeam = teams?.find((team) => team.id === activeTeamId);
-  const teamRequests = requests?.filter((request) => Number(request.teamId) === activeTeamId);
-
   const openModal = () => (window.location.hash = addMemberModalId);
 
-  const getMembers = async (id?: number) => {
+  const getData = async (teamId: number) => {
     setLoading(true);
-    const [members, err] = await getTeamMembers(id);
-    if (err) {
-      console.error(err);
+    const [membersRes, integrationRes] = await Promise.all([getTeamMembers(teamId), getTeamIntegrations(teamId)]);
+
+    const [members, err1] = membersRes;
+    const [integrations, err2] = integrationRes;
+
+    if (err1 || err2) {
+      console.error(err1 || err2);
     } else {
       setMembers(members);
       setMyself(members.find((member: { idirEmail: string }) => member.idirEmail === currentUser.email));
+      setIntegrations(integrations || []);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    getMembers(activeTeamId);
-  }, [activeTeamId]);
+    getData(team.id);
+  }, [team?.id]);
 
   const handleDeleteClick = (memberId?: number) => {
     if (!memberId) return;
@@ -206,7 +214,7 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
   const onConfirmAdd = async () => {
     const errors = validateMembers(tempMembers, setErrors);
     if (errors) return;
-    const [, err] = await addTeamMembers({ members: tempMembers, id: activeTeamId });
+    const [, err] = await addTeamMembers({ members: tempMembers, id: team.id });
     if (err) {
       alert.show({
         variant: 'danger',
@@ -216,7 +224,7 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
         and reach out to the SSO team if the problem persists`,
       });
     } else {
-      await getMembers(activeTeamId);
+      await getData(team.id);
       setTempMembers([emptyMember]);
       window.location.hash = '';
       alert.show({
@@ -229,8 +237,8 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
   };
 
   const onConfirmDelete = async () => {
-    if (!deleteMemberId || !activeTeamId) return;
-    const [, err] = await deleteTeamMember(Number(deleteMemberId), activeTeamId);
+    if (!deleteMemberId || !team.id) return;
+    const [, err] = await deleteTeamMember(Number(deleteMemberId), team.id);
     if (err) {
       alert.show({
         variant: 'danger',
@@ -250,14 +258,13 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
     }
   };
 
-  const viewProject = (requestId?: number) => {
-    dispatch($setActiveRequestId(requestId));
-    dispatch($setTableTab('activeProjects'));
+  const viewProject = (integrationId?: number) => {
+    window.location.href = `/my-dashboard?tab=activeProjects&integr=${integrationId}`;
   };
 
   const inviteMember = async (member: User) => {
-    if (!activeTeamId) return;
-    const [, err] = await inviteTeamMember(member, activeTeamId);
+    if (!team.id) return;
+    const [, err] = await inviteTeamMember(member, team.id);
     if (err) {
       alert.show({
         variant: 'danger',
@@ -276,7 +283,7 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
   };
 
   const handleMemberRoleChange = async (memberId: number, role: string) => {
-    const [data, err] = await updateTeamMember(activeTeamId as number, memberId, { role });
+    const [data, err] = await updateTeamMember(team.id as number, memberId, { role });
     if (err) {
       console.error(err);
       return;
@@ -297,7 +304,7 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
     });
   };
 
-  if (!selectedTeam || !myself) return null;
+  if (!team || !myself) return null;
 
   return (
     <Container>
@@ -364,33 +371,45 @@ function TeamInfoTabs({ alert, currentUser }: Props) {
         </Tab>
         <Tab eventKey="integrations" title="Integrations">
           <TabWrapper>
-            <br />
-            <Table variant="mini" readOnly>
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Request ID</th>
-                  <th>Project Name</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teamRequests?.map((request) => (
-                  <tr key={request.id}>
-                    <td>
-                      <RequestStatusIcon status={request?.status} />
-                    </td>
-                    <td>{request.id}</td>
-                    <td>{request.projectName}</td>
-                    <td>
-                      <ActionButtons request={request}>
-                        <ActionButton icon={faEye} onClick={() => viewProject(request.id)} size="lg" />
-                      </ActionButtons>
-                    </td>
+            <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
+              <Table variant="mini" readOnly>
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Request ID</th>
+                    <th>Project Name</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {integrations?.length > 0 ? (
+                    integrations?.map((integration) => (
+                      <tr key={integration.id}>
+                        <td>
+                          <RequestStatusIcon status={integration?.status} />
+                        </td>
+                        <td>{integration.id}</td>
+                        <td>{integration.projectName}</td>
+                        <td>
+                          <ActionButtons
+                            request={integration}
+                            onDelete={() => {
+                              getData(team?.id);
+                            }}
+                          >
+                            <ActionButton icon={faEye} onClick={() => viewProject(integration.id)} size="lg" />
+                          </ActionButtons>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <CenteredTD colSpan={5}>No integrations found</CenteredTD>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </ReactPlaceholder>
           </TabWrapper>
         </Tab>
       </RequestTabs>

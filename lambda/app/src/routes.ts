@@ -24,6 +24,7 @@ import {
   deleteRequest,
   updateRequestMetadata,
 } from './controllers/requests';
+import { listIntegrationsForTeam } from './queries/request';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
@@ -126,6 +127,16 @@ export const setRoutes = (app: any) => {
     try {
       const { include } = req.query || {};
       const result = await getRequests(req.session as Session, req.user, include);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.get(`${BASE_PATH}/team-integrations/:teamId`, async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const result = await listIntegrationsForTeam(req.session as Session, teamId);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });

@@ -37,6 +37,16 @@ export const getRequests = async (include: string = 'active'): Promise<[Request[
   }
 };
 
+export const getTeamIntegrations = async (teamId: number): Promise<[Request[], null] | [null, Error]> => {
+  try {
+    let results: Request[] = await instance.get(`team-integrations/${teamId}`).then((res) => res.data);
+    results = orderBy(results, ['createdAt'], ['desc']);
+    return [results.map(processRequest), null];
+  } catch (err) {
+    return handleAxiosError(err);
+  }
+};
+
 interface RequestAllData {
   searchField: string[];
   searchKey: string;

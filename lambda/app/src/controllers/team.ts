@@ -2,17 +2,10 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { User, Team } from '../../../shared/interfaces';
 import { inviteTeamMembers } from '../utils/helpers';
-import { getMemberOnTeam } from '@lambda-app/queries/team';
+import { listTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
 
 export const listTeams = async (user: User) => {
-  const result = await models.team.findAll({
-    where: {
-      id: {
-        [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}' and pending = false)`),
-      },
-    },
-  });
-
+  const result = await listTeamsForUser(Number(user.id), { raw: true });
   return result;
 };
 
