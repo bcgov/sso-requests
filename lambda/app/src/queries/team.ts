@@ -1,5 +1,27 @@
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 
+export const listTeamsForUser = async (userId: number, options?: { raw: boolean }) => {
+  return models.team.findAll({
+    include: [
+      {
+        model: models.usersTeam,
+        where: { userId },
+        required: true,
+        attributes: [],
+      },
+    ],
+    attributes: [
+      'id',
+      'name',
+      'createdAt',
+      'updatedAt',
+      [sequelize.col('usersTeams.role'), 'role'],
+      [sequelize.literal('(select count(*) FROM requests WHERE "requests"."team_id"="team"."id")'), 'integrationCount'],
+    ],
+    ...options,
+  });
+};
+
 export const getMemberOnTeam = async (teamId: number, userId: number, options: { raw: boolean }) => {
   return models.user.findOne({
     where: { id: userId },

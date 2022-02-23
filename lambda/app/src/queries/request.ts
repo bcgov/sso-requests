@@ -57,3 +57,25 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
 
   return getMyOrTeamRequest(session, requestId, roles);
 };
+
+export const listIntegrationsForTeam = async (session: Session, teamId: number, options?: { raw: boolean }) => {
+  if (isAdmin(session)) {
+    return models.request.findAll({
+      where: { teamId, archived: false },
+      ...options,
+    });
+  }
+
+  const { user } = session;
+
+  return models.request.findAll({
+    where: { teamId },
+    include: [
+      {
+        model: models.usersTeam,
+        where: { teamId, userId: user.id, archived: false },
+        required: true,
+      },
+    ],
+  });
+};

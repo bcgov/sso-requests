@@ -2,26 +2,17 @@ import React, { useState, useEffect, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import styled from 'styled-components';
-import { getRequests, deleteRequest } from 'services/request';
-import { getTeams } from 'services/team';
+import Tab from 'react-bootstrap/Tab';
 import { Request } from 'interfaces/Request';
+import { Team } from 'interfaces/team';
+import { RequestTabs } from 'components/RequestTabs';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
 import RequestInfoTabs from 'page-partials/my-dashboard/RequestInfoTabs';
 import TeamInfoTabs from 'page-partials/my-dashboard/TeamInfoTabs';
-import {
-  $setRequests,
-  $deleteRequest,
-  $setDownloadError,
-  $setActiveRequestId,
-  $setTeams,
-} from 'dispatchers/requestDispatcher';
 import { PageProps } from 'interfaces/props';
-import PageLoader from 'components/PageLoader';
-import CenteredModal from 'components/CenteredModal';
-import { hasAnyPendingStatus } from 'utils/helpers';
-import ProjectTeamTabs from 'page-partials/my-dashboard/ProjectTeamTabs';
-import { Team } from 'interfaces/team';
+import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
+import TeamList from 'page-partials/my-dashboard/TeamList';
 
 const mediaRules: MediaRule[] = [
   {
@@ -49,77 +40,23 @@ const OverflowAuto = styled.div`
 
 export const RequestsContext = React.createContext({} as { dispatch: Function; state: DashboardReducerState });
 
-function RequestsPage({ currentUser }: PageProps) {
+function MyDashboard({ currentUser }: PageProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [state, dispatch] = useReducer(reducer, initialState);
+  let { tab } = router.query;
 
-  const { requests = [], activeRequestId, activeTeamId, teams, tableTab, requestIdToDelete } = state;
-  const selectedRequest = requests?.find((request: Request) => request.id === Number(activeRequestId));
-  const selectedTeam = teams?.find((team: Team) => team.id === Number(activeTeamId));
-  const canDelete = !['pr', 'planned', 'submitted'].includes(selectedRequest?.status || '');
+  const [tabKey, setTabKey] = useState<string>((tab && String(tab)) || 'activeProjects');
+  const [integration, setIntegration] = useState<Request | null>(null);
+  const [team, setTeam] = useState<Team | null>(null);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const contextValue = useMemo(() => {
     return { state, dispatch };
   }, [state, dispatch]);
 
-  const getData = async () => {
-    setLoading(true);
-    dispatch($setActiveRequestId());
-    const [requestsResponse, teamsResponse] = await Promise.all([getRequests(), getTeams()]);
-    const hasError = requestsResponse[1] || teamsResponse[1];
-    if (hasError) {
-      $setDownloadError(true);
-    } else {
-      const downloadedRequests = requestsResponse[0] || [];
-      const downloadedTeams = teamsResponse[0] || [];
-      dispatch($setRequests(downloadedRequests));
-      dispatch($setTeams(downloadedTeams));
-      const { id } = router.query;
-      if (id) {
-        $setActiveRequestId(Number(id));
-      }
-    }
-
-    setLoading(false);
+  const updateTabKey = (key: string) => {
+    setTabKey(key);
+    router.replace('/my-dashboard');
   };
-
-  const confirmDelete = async () => {
-    if (!canDelete) return;
-    const [_deletedRequest, _err] = await deleteRequest(requestIdToDelete);
-    dispatch($deleteRequest(requestIdToDelete || null));
-    getData();
-    window.location.hash = '#';
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
-  let interval: any;
-
-  useEffect(() => {
-    if (hasAnyPendingStatus(state.requests || [])) {
-      clearInterval(interval);
-
-      interval = setInterval(async () => {
-        const [data, err] = await getRequests();
-
-        if (err) {
-          clearInterval(interval);
-        } else {
-          let downloadedRequests = data || [];
-          dispatch($setRequests(downloadedRequests));
-        }
-      }, 1000 * 5);
-    }
-
-    return () => {
-      interval && clearInterval(interval);
-    };
-  }, [state.requests]);
-
-  if (loading) return <PageLoader />;
 
   return (
     <ResponsiveContainer rules={mediaRules}>
@@ -128,31 +65,27 @@ function RequestsPage({ currentUser }: PageProps) {
           <Grid.Row collapse="1100" gutter={[15, 2]}>
             <Grid.Col span={6}>
               <OverflowAuto>
-                <ProjectTeamTabs currentUser={currentUser} />
+                <RequestTabs onSelect={(key: string) => updateTabKey(key)} activeKey={tabKey}>
+                  <Tab eventKey="activeProjects" title="My Projects" />
+                  <Tab eventKey="activeTeams" title="My Teams" />
+                </RequestTabs>
+                {tabKey === 'activeProjects' ? (
+                  <IntegrationList setIntegration={setIntegration} />
+                ) : (
+                  <TeamList currentUser={currentUser} setTeam={setTeam} />
+                )}
               </OverflowAuto>
             </Grid.Col>
-            {selectedRequest && (
-              <Grid.Col span={4}>
-                <RequestInfoTabs />
-              </Grid.Col>
-            )}
-            {selectedTeam && (
-              <Grid.Col span={4}>
-                <TeamInfoTabs currentUser={currentUser} />
-              </Grid.Col>
-            )}
+            <Grid.Col span={4}>
+              {tabKey === 'activeProjects'
+                ? integration && <RequestInfoTabs integration={integration} />
+                : team && <TeamInfoTabs team={team} currentUser={currentUser} />}
+            </Grid.Col>
           </Grid.Row>
         </Grid>
-        <CenteredModal
-          id={'delete-modal'}
-          content="You are about to delete this integration request. This action cannot be undone."
-          onConfirm={confirmDelete}
-          title="Confirm Deletion"
-          confirmText="Delete"
-        />
       </RequestsContext.Provider>
     </ResponsiveContainer>
   );
 }
 
-export default RequestsPage;
+export default MyDashboard;

@@ -5,7 +5,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { RequestsContext } from 'pages/my-dashboard';
 import { Request } from 'interfaces/Request';
-import { $setRequestToDelete } from 'dispatchers/requestDispatcher';
+import CenteredModal from 'components/CenteredModal';
+import { getRequests, deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
 
 export const ActionButtonContainer = styled.div`
@@ -33,12 +34,11 @@ export const VerticalLine = styled.div`
 
 interface Props {
   request: Request;
+  onDelete?: Function;
   children?: any;
 }
 
-export default function Actionbuttons({ request, children }: Props) {
-  const { state, dispatch } = useContext(RequestsContext);
-
+export default function Actionbuttons({ request, onDelete, children }: Props) {
   const router = useRouter();
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
@@ -52,8 +52,16 @@ export default function Actionbuttons({ request, children }: Props) {
 
   const handleDelete = async () => {
     if (!request.id || !canDelete) return;
-    dispatch($setRequestToDelete(request.id));
     window.location.hash = 'delete-modal';
+  };
+
+  const confirmDelete = async () => {
+    const canDelete = !['pr', 'planned', 'submitted'].includes(request?.status || '');
+    if (!canDelete) return;
+
+    await deleteRequest(request.id);
+    window.location.hash = '#';
+    if (onDelete) onDelete(request);
   };
 
   return (
@@ -80,6 +88,13 @@ export default function Actionbuttons({ request, children }: Props) {
           size="lg"
         />
       </ActionButtonContainer>
+      <CenteredModal
+        id={'delete-modal'}
+        content="You are about to delete this integration request. This action cannot be undone."
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        confirmText="Delete"
+      />
     </>
   );
 }

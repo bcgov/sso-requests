@@ -14,6 +14,7 @@ import DefaultTitle from 'components/SHeader3';
 import { useContext } from 'react';
 import { RequestsContext } from 'pages/my-dashboard';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
+import { Request } from 'interfaces/Request';
 
 const Title = styled(DefaultTitle)`
   margin-top: 10px;
@@ -26,15 +27,18 @@ const TabWrapper = styled.div`
 
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
 
-function RequestInfoTabs() {
-  const { state, dispatch } = useContext(RequestsContext);
-  const { requests, activeRequestId, panelTab } = state;
-  const selectedRequest = requests?.find((request) => request.id === activeRequestId);
-  if (!selectedRequest) return null;
+interface Props {
+  integration: Request;
+}
 
-  const { status, bceidApproved } = selectedRequest;
+function RequestInfoTabs({ integration }: Props) {
+  const { state, dispatch } = useContext(RequestsContext);
+  const { panelTab } = state;
+  if (!integration) return null;
+
+  const { status, bceidApproved } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
-  const awaitingBceidProd = usesBceid(selectedRequest?.realm) && selectedRequest.prod && !bceidApproved;
+  const awaitingBceidProd = usesBceid(integration?.realm) && integration.prod && !bceidApproved;
   let panel = null;
 
   if (displayStatus === 'In Draft') {
@@ -61,16 +65,16 @@ function RequestInfoTabs() {
                   title="Access to Dev and/or Test environment(s) - approx 20 mins"
                   variant="secondary"
                 >
-                  <SubmittedStatusIndicator selectedRequest={selectedRequest} />
+                  <SubmittedStatusIndicator selectedRequest={integration} />
                   <br />
                 </NumberedContents>
                 <NumberedContents number={2} title="Access to Prod environment - (TBD)" variant="secondary">
-                  <BceidStatus request={selectedRequest} />
+                  <BceidStatus request={integration} />
                 </NumberedContents>
               </>
             ) : (
               <SubmittedStatusIndicator
-                selectedRequest={selectedRequest}
+                selectedRequest={integration}
                 title="Access to environment(s) - approx 20 mins"
               />
             )}
@@ -84,26 +88,26 @@ function RequestInfoTabs() {
         <RequestTabs activeKey={panelTab} onSelect={(k: TabKey) => dispatch($setPanelTab(k))}>
           <Tab eventKey="installation-json" title="Installation JSON">
             <TabWrapper>
-              <InstallationPanel selectedRequest={selectedRequest} />
+              <InstallationPanel selectedRequest={integration} />
             </TabWrapper>
           </Tab>
-          {!selectedRequest.publicAccess && (
+          {!integration.publicAccess && (
             <Tab eventKey="configuration-url" title="Secrets">
               <TabWrapper>
-                <SecretsPanel selectedRequest={selectedRequest} />
+                <SecretsPanel selectedRequest={integration} />
               </TabWrapper>
             </Tab>
           )}
           <Tab eventKey="history" title="History">
             <TabWrapper>
-              <UserEventPanel requestId={selectedRequest.id} />
+              <UserEventPanel requestId={integration.id} />
             </TabWrapper>
           </Tab>
         </RequestTabs>
         {awaitingBceidProd && (
           <>
             <Title>Production Status</Title>
-            <BceidStatus request={selectedRequest} />
+            <BceidStatus request={integration} />
           </>
         )}
       </>
