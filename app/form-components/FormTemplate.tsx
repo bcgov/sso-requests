@@ -150,6 +150,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
 
+        if (err) {
+          alert.show({
+            variant: 'danger',
+            fadeOut: 5000,
+            closable: true,
+            content: err,
+          });
+        }
+
         if (err || !id) {
           setLoading(false);
           return;

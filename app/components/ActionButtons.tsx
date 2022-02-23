@@ -43,6 +43,7 @@ export default function Actionbuttons({ request, onDelete, children }: Props) {
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
   const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
+  const deleteModalId = `delete-modal-${request?.id}`;
 
   const handleEdit = async (event: MouseEvent) => {
     event.stopPropagation();
@@ -50,9 +51,9 @@ export default function Actionbuttons({ request, onDelete, children }: Props) {
     await router.push(`/request/${request.id}?status=${request.status}`);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!request.id || !canDelete) return;
-    window.location.hash = 'delete-modal';
+    window.location.hash = deleteModalId;
   };
 
   const confirmDelete = async () => {
@@ -89,7 +90,7 @@ export default function Actionbuttons({ request, onDelete, children }: Props) {
         />
       </ActionButtonContainer>
       <CenteredModal
-        id={'delete-modal'}
+        id={deleteModalId}
         content="You are about to delete this integration request. This action cannot be undone."
         onConfirm={confirmDelete}
         title="Confirm Deletion"
