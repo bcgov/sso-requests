@@ -61,6 +61,8 @@ export type TabKey = 'members';
 
 interface Errors {
   members: string[];
+  state: any;
+  dispatch: any;
 }
 
 const validateMembers = (members: User[], setErrors: Function) => {
@@ -259,7 +261,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
   };
 
   const viewProject = (integrationId?: number) => {
-    window.location.href = `/my-dashboard?tab=activeProjects&integr=${integrationId}`;
+    router.push({ pathname: '/my-dashboard/integrations', query: { integr: integrationId } });
   };
 
   const inviteMember = async (member: User) => {

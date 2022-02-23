@@ -1,10 +1,9 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Request } from 'interfaces/Request';
 import { padStart } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Table from 'html-components/Table';
-import { RequestsContext } from 'pages/my-dashboard';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { $setDownloadError } from 'dispatchers/requestDispatcher';
@@ -16,6 +15,7 @@ import PageLoader from 'components/PageLoader';
 import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import { getRequests, deleteRequest } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
+import { DashboardReducerState } from 'reducers/dashboardReducer';
 
 const CenteredHeader = styled.th`
   text-align: center;
@@ -129,9 +129,11 @@ const NewEntityButton = ({
 
 interface Props {
   setIntegration: Function;
+  state: DashboardReducerState;
+  dispatch: Dispatch<SetStateAction<any>>;
 }
 
-export default function IntegrationList({ setIntegration }: Props) {
+export default function IntegrationList({ setIntegration, state, dispatch }: Props) {
   const router = useRouter();
   let { integr } = router.query;
 
@@ -141,7 +143,6 @@ export default function IntegrationList({ setIntegration }: Props) {
   const [activeIntegrationId, setActiveIntegrationId] = useState<number | undefined>(
     (integr && Number(integr)) || undefined,
   );
-  const { state, dispatch } = useContext(RequestsContext);
   const { downloadError } = state;
 
   const handleNewIntegrationClick = async () => {
@@ -173,7 +174,7 @@ export default function IntegrationList({ setIntegration }: Props) {
 
   useEffect(() => {
     loadIntegrations();
-    router.replace('/my-dashboard');
+    router.replace('/my-dashboard/integrations');
   }, []);
 
   let interval: any;
