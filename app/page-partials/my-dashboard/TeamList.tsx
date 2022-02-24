@@ -1,6 +1,5 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Table from 'html-components/Table';
-import { RequestsContext } from 'pages/my-dashboard';
 import styled from 'styled-components';
 import { $setDownloadError } from 'dispatchers/requestDispatcher';
 import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
@@ -17,6 +16,7 @@ import { createTeamModalId } from 'utils/constants';
 import { UserSession } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import WarningModalContents from 'components/WarningModalContents';
+import { DashboardReducerState } from 'reducers/dashboardReducer';
 
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
@@ -81,15 +81,16 @@ const teamHasNoIntegrationsMessage = 'Once you delete this team, this action can
 interface Props {
   currentUser: UserSession;
   setTeam: Function;
+  state: DashboardReducerState;
+  dispatch: Dispatch<SetStateAction<any>>;
 }
 
-export default function TeamList({ currentUser, setTeam }: Props) {
+export default function TeamList({ currentUser, setTeam, state, dispatch }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   const [teams, setTeams] = useState<Team[]>([]);
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
-  const { state, dispatch } = useContext(RequestsContext);
   const { downloadError } = state;
 
   const canDelete = activeTeam && Number(activeTeam.integrationCount) === 0;

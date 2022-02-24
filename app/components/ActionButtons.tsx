@@ -1,9 +1,8 @@
-import { useContext, MouseEvent } from 'react';
+import { MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
-import { RequestsContext } from 'pages/my-dashboard';
 import { Request } from 'interfaces/Request';
 import CenteredModal from 'components/CenteredModal';
 import { getRequests, deleteRequest } from 'services/request';

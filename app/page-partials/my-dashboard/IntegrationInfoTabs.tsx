@@ -1,3 +1,4 @@
+import React, { Dispatch, SetStateAction } from 'react';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
@@ -11,10 +12,9 @@ import { usesBceid } from 'utils/helpers';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import BceidStatus from 'components/BceidStatus';
 import DefaultTitle from 'components/SHeader3';
-import { useContext } from 'react';
-import { RequestsContext } from 'pages/my-dashboard';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
 import { Request } from 'interfaces/Request';
+import { DashboardReducerState } from 'reducers/dashboardReducer';
 
 const Title = styled(DefaultTitle)`
   margin-top: 10px;
@@ -29,10 +29,11 @@ export type TabKey = 'installation-json' | 'configuration-url' | 'history';
 
 interface Props {
   integration: Request;
+  state: DashboardReducerState;
+  dispatch: Dispatch<SetStateAction<any>>;
 }
 
-function RequestInfoTabs({ integration }: Props) {
-  const { state, dispatch } = useContext(RequestsContext);
+function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   const { panelTab } = state;
   if (!integration) return null;
 
@@ -117,4 +118,4 @@ function RequestInfoTabs({ integration }: Props) {
   return panel;
 }
 
-export default RequestInfoTabs;
+export default IntegrationInfoTabs;
