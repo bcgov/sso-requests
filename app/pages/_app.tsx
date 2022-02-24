@@ -28,6 +28,12 @@ const proccessSession = (session: LoggedInUser | null) => {
   return session;
 };
 
+export interface SessionContextInterface {
+  session: LoggedInUser | null;
+}
+
+export const SessionContext = React.createContext<SessionContextInterface | null>(null);
+
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<LoggedInUser | null>(null);
@@ -109,13 +115,15 @@ function MyApp({ Component, pageProps }: AppProps) {
     return null;
   }
   return (
-    <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
-      <Head>
-        <html lang="en" />
-        <title>Common Hosted Single Sign-on (CSS)</title>
-      </Head>
-      <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
-    </Layout>
+    <SessionContext.Provider value={{ session: currentUser }}>
+      <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
+        <Head>
+          <html lang="en" />
+          <title>Common Hosted Single Sign-on (CSS)</title>
+        </Head>
+        <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+      </Layout>
+    </SessionContext.Provider>
   );
 }
 export default MyApp;

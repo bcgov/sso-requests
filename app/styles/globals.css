@@ -148,3 +148,7 @@ ul.error-detail {
 .strong {
   font-weight: bold;
 }
+
+.pg-modal-container {
+  z-index: 1000;
+}
