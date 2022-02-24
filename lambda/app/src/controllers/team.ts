@@ -1,11 +1,11 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { User, Team } from '../../../shared/interfaces';
+import { User, Team, Member } from '../../../shared/interfaces';
 import { inviteTeamMembers } from '../utils/helpers';
 import { listTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
 
 export const listTeams = async (user: User) => {
-  const result = await listTeamsForUser(Number(user.id), { raw: true });
+  const result = await listTeamsForUser(user.id, { raw: true });
   return result;
 };
 
@@ -19,7 +19,7 @@ export const createTeam = async (user: User, data: Team) => {
   return team;
 };
 
-export const addUsersToTeam = async (teamId: number, members: User[]) => {
+export const addUsersToTeam = async (teamId: number, members: Member[]) => {
   const usersEmailsAlreadyOnTeam = await getUsersOnTeam(teamId).then((result) =>
     result.map((member) => member.idirEmail),
   );
