@@ -92,10 +92,8 @@ export default function Home({ onLoginClick }: PageProps) {
             <Grid.Col>
               <Panel marginLeft>
                 {main}
-                <Paragraph>
-                  To learn more about Pathfinder SSO
-                  <br />
-                  visit the{' '}
+                <Paragraph style={{ paddingLeft: '0px' }}>
+                  To learn more about Pathfinder SSO visit the{' '}
                   <Link size="large" href="https://github.com/bcgov/sso-keycloak/wiki" external>
                     SSO Pathfinder Knowledge Base
                   </Link>
