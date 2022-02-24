@@ -61,15 +61,15 @@ export type TabKey = 'members';
 
 interface Errors {
   members: string[];
-  state: any;
-  dispatch: any;
 }
 
 const validateMembers = (members: User[], setErrors: Function) => {
   let errors: Errors = { members: [] };
+
   members.forEach((member, i) => {
     if (!member.idirEmail) errors.members[i] = 'Please enter an email';
   });
+
   if (errors.members.length === 0) {
     setErrors(null);
     return null;
@@ -216,6 +216,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
   const onConfirmAdd = async () => {
     const errors = validateMembers(tempMembers, setErrors);
     if (errors) return;
+
     const [, err] = await addTeamMembers({ members: tempMembers, id: team.id });
     if (err) {
       alert.show({
@@ -327,45 +328,50 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {members.map((member) => (
-                    <tr key={member.id}>
-                      <td>
-                        <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
-                      </td>
-                      <td>{member.idirEmail}</td>
-                      <td>
-                        {myself.role === 'admin' && myself.id !== member.id && !member.pending ? (
-                          <Dropdown
-                            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                              handleMemberRoleChange(member.id as number, event.target.value)
-                            }
-                            value={member.role}
-                          >
-                            <option value="member">Member</option>
-                            <option value="admin">Admin</option>
-                          </Dropdown>
-                        ) : (
-                          capitalize(member.role)
-                        )}
-                      </td>
-                      <td>
-                        {member.pending && (
-                          <ButtonIcon
-                            icon={faShare}
-                            size="lg"
-                            title="Resend Invitation"
-                            onClick={() => inviteMember(member)}
-                          />
-                        )}
-                        <ButtonIcon
-                          icon={faTrash}
-                          onClick={() => handleDeleteClick(member.id)}
-                          size="lg"
-                          title="Delete User"
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                  {members.map((member) => {
+                    const adminActionsAllowed = myself.role === 'admin' && myself.id !== member.id;
+                    return (
+                      <tr key={member.id}>
+                        <td>
+                          <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
+                        </td>
+                        <td>{member.idirEmail}</td>
+                        <td>
+                          {adminActionsAllowed && !member.pending ? (
+                            <Dropdown
+                              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                                handleMemberRoleChange(member.id as number, event.target.value)
+                              }
+                              value={member.role}
+                            >
+                              <option value="member">Member</option>
+                              <option value="admin">Admin</option>
+                            </Dropdown>
+                          ) : (
+                            capitalize(member.role)
+                          )}
+                        </td>
+                        <td>
+                          {adminActionsAllowed && member.pending && (
+                            <ButtonIcon
+                              icon={faShare}
+                              size="lg"
+                              onClick={() => inviteMember(member)}
+                              title="Resend Invitation"
+                            />
+                          )}
+                          {adminActionsAllowed && (
+                            <ButtonIcon
+                              icon={faTrash}
+                              onClick={() => handleDeleteClick(member.id)}
+                              size="lg"
+                              title="Delete User"
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </Table>
             </ReactPlaceholder>
