@@ -6,6 +6,7 @@ import CenteredModal from 'components/CenteredModal';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { getProfile, updateProfile } from 'services/user';
+import validator from 'validator';
 
 interface Props {
   children: any;
@@ -16,7 +17,12 @@ const Content = styled.div`
   color: #000;
 `;
 
+const ErrorMessage = styled.div`
+  color: #ff0000;
+`;
+
 function UserProfileModal({ children, alert }: Props): any {
+  const [emailError, setEmailError] = useState('');
   const context = useContext<SessionContextInterface | null>(SessionContext);
   const session = context?.session;
   if (!session) return null;
@@ -58,6 +64,11 @@ function UserProfileModal({ children, alert }: Props): any {
   }, []);
 
   const handleConfirm = async () => {
+    if (!validator.isEmail(addiEmail)) {
+      setEmailError('Please provide a valid email address');
+      return;
+    }
+
     const [data, err] = await updateProfile({ additionalEmail: addiEmail });
     if (err) {
       console.error(err);
@@ -65,11 +76,17 @@ function UserProfileModal({ children, alert }: Props): any {
     } else if (data) {
       showSuccess();
     }
+
+    window.location.hash = '#';
   };
 
   const openModal = () => (window.location.hash = modalId);
 
   const handleAddiEmail = (event: ChangeEvent<HTMLInputElement>) => {
+    if (validator.isEmail(event.target.value)) {
+      setEmailError('');
+    }
+
     setAddiEmail(event.target.value);
   };
 
@@ -88,6 +105,7 @@ function UserProfileModal({ children, alert }: Props): any {
         value={addiEmail}
         onChange={handleAddiEmail}
       />
+      {emailError && <ErrorMessage>{emailError}</ErrorMessage>}
     </Content>
   );
 
