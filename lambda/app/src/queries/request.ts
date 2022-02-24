@@ -5,19 +5,23 @@ import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, User } from '../../../shared/interfaces';
 import { isAdmin } from '../utils/helpers';
 
-export const getMyOrTeamRequest = async (session: Session, requestId: number, roles: string[] = ['user', 'admin']) => {
-  const { idir_userid: idirUserid, user } = session;
-  const where: any = { id: requestId };
-
-  const teamIdsLiteral = format(
+const getMyTeamsLiteral = (userId: number, roles: string[] = ['user', 'admin']) => {
+  return format(
     `
   select team_id
   from users_teams
   where user_id=%L and pending=false and role in (%L)
   `,
-    user.id,
+    userId,
     castArray(roles),
   );
+};
+
+export const getMyOrTeamRequest = async (session: Session, requestId: number, roles: string[] = ['user', 'admin']) => {
+  const { idir_userid: idirUserid, user } = session;
+  const where: any = { id: requestId };
+
+  const teamIdsLiteral = getMyTeamsLiteral(user.id, roles);
 
   where[Op.or] = [
     {
@@ -67,15 +71,21 @@ export const listIntegrationsForTeam = async (session: Session, teamId: number, 
   }
 
   const { user } = session;
+  const where: any = { archived: false };
+
+  const teamIdsLiteral = getMyTeamsLiteral(user.id);
+
+  where[Op.and] = [
+    {
+      teamId,
+    },
+    {
+      teamId: { [Op.in]: sequelize.literal(`(${teamIdsLiteral})`) },
+    },
+  ];
 
   return models.request.findAll({
-    where: { teamId },
-    include: [
-      {
-        model: models.usersTeam,
-        where: { teamId, userId: user.id, archived: false },
-        required: true,
-      },
-    ],
+    where,
+    ...options,
   });
 };
