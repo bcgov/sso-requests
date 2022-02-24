@@ -2,6 +2,7 @@ import React, { createContext, useReducer, useMemo } from 'react';
 import { isBoolean } from 'lodash';
 import FadingAlert from 'html-components/FadingAlert';
 import TopAlertWrapper from 'components/TopAlertWrapper';
+import FloatingAlert from 'components/FloatingAlert';
 
 const defaultContextValue = { state: '', dispatch: () => null } as any;
 const TopAlertContext = createContext(defaultContextValue);
@@ -13,6 +14,7 @@ interface ReducerState {
   faceOut?: boolean;
   closable?: boolean;
   content?: string;
+  floating?: boolean;
 }
 
 interface Props {
@@ -30,17 +32,19 @@ export default function TopAlertProvider({ children }: Props) {
     return { state, dispatch };
   }, [state, dispatch]);
 
+  const Alert = state.floating ? FloatingAlert : TopAlertWrapper;
+
   return (
     <TopAlertContext.Provider value={contextValue}>
       {state.show && (
-        <TopAlertWrapper key={state.key}>
+        <Alert key={state.key}>
           <FadingAlert
             variant={state.variant || 'success'}
             fadeOut={state.fadeOut || 10000}
             closable={isBoolean(state.closable) ? state.closable : true}
             content={state.content || ``}
           />
-        </TopAlertWrapper>
+        </Alert>
       )}
       {children}
     </TopAlertContext.Provider>

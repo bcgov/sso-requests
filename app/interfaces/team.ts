@@ -5,17 +5,22 @@ export interface Team {
 }
 
 export interface User {
-  idirEmail: string;
-  role: 'admin' | 'member' | '';
   id?: number;
+  idirUserid?: string;
+  idirEmail: string;
+  additionalEmail?: string;
+  role: 'admin' | 'member' | '';
   status?: string;
   pending?: boolean;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoggedInUser {
   email?: string;
   client_roles?: string[];
   roles?: string[];
+  given_name?: string;
+  family_name?: string;
   isAdmin?: boolean;
 }

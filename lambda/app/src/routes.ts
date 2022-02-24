@@ -14,7 +14,7 @@ import {
   removeUserFromTeam,
   updateMemberInTeam,
 } from './controllers/team';
-import { findOrCreateUser } from './controllers/user';
+import { findOrCreateUser, updateProfile } from './controllers/user';
 import {
   createRequest,
   getRequests,
@@ -109,6 +109,15 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/me`, async (req, res) => {
     try {
       res.status(200).json(req.user);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.post(`${BASE_PATH}/me`, async (req, res) => {
+    try {
+      const result = await updateProfile(req.session, req.body);
+      res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
     }

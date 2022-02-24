@@ -1,6 +1,8 @@
 import { models } from '../../../shared/sequelize/models/models';
 import { Session } from '../../../shared/interfaces';
+import { trim, toLower } from 'lodash';
 
+// TODO: refactor here
 export const findOrCreateUser = async (session: Session) => {
   const { idir_userid, email } = session;
   const userFromId = await models.user.findOne({ where: { idirUserid: idir_userid } });
@@ -29,4 +31,18 @@ export const findOrCreateUser = async (session: Session) => {
 
   const newuser = await models.user.create({ idirUserid: idir_userid, idirEmail: email });
   return newuser.dataValues;
+};
+
+export const updateProfile = async (session: Session, data: { additionalEmail: string }) => {
+  const { user } = session;
+  const myself = await models.user.findOne({ where: { id: user.id } });
+
+  myself.additionalEmail = toLower(trim(data.additionalEmail));
+  const updated = await myself.save();
+
+  if (!updated) {
+    throw Error('update failed');
+  }
+
+  return updated.get({ plain: true });
 };

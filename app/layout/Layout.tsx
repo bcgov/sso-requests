@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCommentDots, faEnvelope, faFileAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCommentDots, faEnvelope, faFileAlt, faUserAlt } from '@fortawesome/free-solid-svg-icons';
 import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
@@ -9,6 +9,7 @@ import { startCase, isFunction } from 'lodash';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
 import TopAlertProvider from './TopAlert';
+import UserProfileModal from './UserProfileModal';
 
 const headerPlusFooterHeight = '152px';
 
@@ -132,8 +133,19 @@ const LeftMenuItems = ({ currentUser, currentPath, query }: { currentUser: any; 
 };
 
 const RightMenuItems = () => (
-  <>
-    <li>Need help?</li>
+  <TopAlertProvider>
+    <UserProfileModal>
+      {(modalId: string, openModal: any) => {
+        return (
+          <HoverItem>
+            <a href={`#${modalId}`} title="My Profile">
+              <FontAwesomeIcon size="2x" icon={faUserAlt} />
+            </a>
+          </HoverItem>
+        );
+      }}
+    </UserProfileModal>
+
     <HoverItem>
       <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
         <FontAwesomeIcon size="2x" icon={faCommentDots} />
@@ -149,7 +161,7 @@ const RightMenuItems = () => (
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </HoverItem>
-  </>
+  </TopAlertProvider>
 );
 
 function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
