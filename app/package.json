@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "homepage": "https://bcgov.github.io/sso-requests",
+  "license": "Apache-2.0",
+  "author": "SSO Team",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
