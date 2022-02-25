@@ -1,7 +1,9 @@
 {
   "name": "sso-requests-localserver",
   "version": "0.1.0",
-  "description": "",
+  "description": "Express server for running lambda functions in local dev environment",
+  "license": "Apache-2.0",
+  "author": "SSO Team",
   "scripts": {
     "dev": "nodemon --trace-warnings",
     "migrate-db": "nodemon --config nodemon-db.json"

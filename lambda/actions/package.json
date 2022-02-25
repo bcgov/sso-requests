@@ -2,12 +2,12 @@
   "name": "actions",
   "version": "1.0.0",
   "description": "Lambda function for receiving github actions requests",
+  "license": "Apache-2.0",
+  "author": "SSO Team",
   "scripts": {
     "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle"
   },
   "main": "index.js",
-  "author": "Jonathan Langlois",
-  "license": "ISC",
   "devDependencies": {
     "@octokit/types": "^6.23.0",
     "@types/aws-lambda": "^8.10.77",

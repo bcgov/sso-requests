@@ -5,7 +5,11 @@
     "preserveConstEnums": true,
     "outDir": "./build",
     "sourceMap": false,
-    "rootDir": "../"
+    "rootDir": "../",
+    "baseUrl": "./",
+    "paths": {
+      "@lambda-app/*": ["../app/src/*"]
+    }
   },
   "include": ["src/**/*", "../shared/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]

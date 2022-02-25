@@ -1,8 +1,10 @@
 import { Op } from 'sequelize';
+import { trim, toLower } from 'lodash';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { User, Team, Member } from '../../../shared/interfaces';
 import { inviteTeamMembers } from '../utils/helpers';
 import { listTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
+import { lowcase } from '@lambda-app/helpers/string';
 
 export const listTeams = async (user: User) => {
   const result = await listTeamsForUser(user.id, { raw: true });
@@ -10,8 +12,8 @@ export const listTeams = async (user: User) => {
 };
 
 export const createTeam = async (user: User, data: Team) => {
-  const { members } = data;
-  const team = await models.team.create({ name: data.name });
+  const { name, members } = data;
+  const team = await models.team.create({ name });
   await Promise.all([
     addUsersToTeam(team.id, members),
     models.usersTeam.create({ teamId: team.id, userId: user.id, role: 'admin', pending: false }),
@@ -20,6 +22,8 @@ export const createTeam = async (user: User, data: Team) => {
 };
 
 export const addUsersToTeam = async (teamId: number, members: Member[]) => {
+  members = members.map((member) => ({ ...member, idirEmail: lowcase(member.idirEmail) }));
+
   const usersEmailsAlreadyOnTeam = await getUsersOnTeam(teamId).then((result) =>
     result.map((member) => member.idirEmail),
   );

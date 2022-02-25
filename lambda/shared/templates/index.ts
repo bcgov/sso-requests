@@ -28,7 +28,7 @@ export type EmailTemplate =
   | 'uri-change-request-submitted';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
-const API_URL = process.env.API_URL || 'http://localhost:8080/api';
+const API_URL = process.env.API_URL || 'http://localhost:8080/app';
 const APP_ENV = process.env.APP_ENV || 'development';
 const footer = fs.readFileSync(__dirname + '/footer.html', 'utf8');
 
