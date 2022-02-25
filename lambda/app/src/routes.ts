@@ -71,7 +71,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
     try {
       const token = req.query.token;
-      if (!req.query.token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
+      if (!token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
       else {
         const [data] = await parseInvitationToken(token);
         const { userId, teamId, exp } = data;

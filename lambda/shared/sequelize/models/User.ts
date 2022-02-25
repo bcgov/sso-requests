@@ -1,4 +1,4 @@
-import { trim, toLower } from 'lodash';
+import { lowcase } from '@lambda-app/helpers/string';
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
@@ -11,12 +11,15 @@ module.exports = (sequelize, DataTypes) => {
       idirEmail: {
         type: DataTypes.STRING,
         allowNull: false,
+        set(value) {
+          this.setDataValue('idirEmail', lowcase(value));
+        },
       },
       additionalEmail: {
         type: DataTypes.STRING,
         allowNull: true,
         set(value) {
-          this.setDataValue('additionalEmail', toLower(trim(value)));
+          this.setDataValue('additionalEmail', lowcase(value));
         },
       },
     },
