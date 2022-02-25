@@ -5,6 +5,7 @@
   "license": "Apache-2.0",
   "author": "SSO Team",
   "scripts": {
+    "compile": "tsc && tsc-alias",
     "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle"
   },
   "main": "index.js",
@@ -13,7 +14,8 @@
     "@types/aws-lambda": "^8.10.77",
     "@types/node": "^16.0.0",
     "aws-sdk": "^2.655.0",
-    "copyfiles": "^2.4.1"
+    "copyfiles": "^2.4.1",
+    "tsc-alias": "^1.6.3"
   },
   "dependencies": {
     "axios": "^0.21.1",

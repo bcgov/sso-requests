@@ -8,7 +8,7 @@ TARGET := ../../../terraform/lambda-db.zip
 lambda:
 	@rm -rf build
 	@yarn install
-	@yarn tsc
+	@yarn compile
 	@rm -rf bundle
 	@mkdir -p bundle
 	@cp package.json bundle
