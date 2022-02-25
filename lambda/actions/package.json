@@ -8,7 +8,6 @@
     "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle"
   },
   "main": "index.js",
-  "author": "Jonathan Langlois",
   "devDependencies": {
     "@octokit/types": "^6.23.0",
     "@types/aws-lambda": "^8.10.77",
