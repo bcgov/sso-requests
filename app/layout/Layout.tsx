@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import { startCase, isFunction } from 'lodash';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
-import TopAlertProvider from './TopAlert';
+import TopAlertProvider, { TopAlert } from './TopAlert';
 import UserProfileModal from './UserProfileModal';
 
 const headerPlusFooterHeight = '152px';
@@ -133,7 +133,7 @@ const LeftMenuItems = ({ currentUser, currentPath, query }: { currentUser: any; 
 };
 
 const RightMenuItems = () => (
-  <TopAlertProvider>
+  <>
     <UserProfileModal>
       {(modalId: string, openModal: any) => {
         return (
@@ -161,7 +161,7 @@ const RightMenuItems = () => (
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </HoverItem>
-  </TopAlertProvider>
+  </>
 );
 
 function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
@@ -219,7 +219,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
   );
 
   return (
-    <>
+    <TopAlertProvider>
       <BCSans />
       <Navigation
         title={() => (
@@ -241,7 +241,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
         </SubMenu>
       </Navigation>
       <MainContent>
-        <TopAlertProvider>{children}</TopAlertProvider>
+        <TopAlert>{children}</TopAlert>
       </MainContent>
       <Footer>
         <FooterMenu>
@@ -272,7 +272,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
           </ul>
         </FooterMenu>
       </Footer>
-    </>
+    </TopAlertProvider>
   );
 }
 export default Layout;

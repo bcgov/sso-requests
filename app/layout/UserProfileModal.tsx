@@ -36,7 +36,6 @@ function UserProfileModal({ children, alert }: Props): any {
       variant: 'danger',
       fadeOut: 2500,
       closable: true,
-      floating: true,
       content: err,
     });
 
@@ -45,8 +44,7 @@ function UserProfileModal({ children, alert }: Props): any {
       variant: 'success',
       fadeOut: 2500,
       closable: true,
-      floating: true,
-      content: 'Profile updated successfully',
+      content: `Your additional email has successfully been added`,
     });
 
   const getData = async () => {

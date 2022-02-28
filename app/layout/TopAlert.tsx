@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useMemo } from 'react';
 import { isBoolean } from 'lodash';
 import FadingAlert from 'html-components/FadingAlert';
 import TopAlertWrapper from 'components/TopAlertWrapper';
@@ -32,10 +32,15 @@ export default function TopAlertProvider({ children }: Props) {
     return { state, dispatch };
   }, [state, dispatch]);
 
+  return <TopAlertContext.Provider value={contextValue}>{children}</TopAlertContext.Provider>;
+}
+
+export const TopAlert = ({ children }: Props) => {
+  const { state } = useContext<any>(TopAlertContext);
   const Alert = state.floating ? FloatingAlert : TopAlertWrapper;
 
   return (
-    <TopAlertContext.Provider value={contextValue}>
+    <>
       {state.show && (
         <Alert key={state.key}>
           <FadingAlert
@@ -47,9 +52,9 @@ export default function TopAlertProvider({ children }: Props) {
         </Alert>
       )}
       {children}
-    </TopAlertContext.Provider>
+    </>
   );
-}
+};
 
 export const withTopAlert = (Component: any) => (props: any) =>
   (
