@@ -62,7 +62,7 @@ function UserProfileModal({ children, alert }: Props): any {
   }, []);
 
   const handleConfirm = async () => {
-    if (!validator.isEmail(addiEmail)) {
+    if (addiEmail.length > 0 && !validator.isEmail(addiEmail)) {
       setEmailError('Please provide a valid email address');
       return;
     }
