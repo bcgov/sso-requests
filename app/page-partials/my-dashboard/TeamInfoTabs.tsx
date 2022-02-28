@@ -33,16 +33,20 @@ import ModalContents from 'components/WarningModalContents';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
-const TabWrapper = styled.div`
+const TabWrapper = styled.div<{ marginTop?: string; marginBottom?: string; marginLeft?: string; marginRight?: string }>`
   padding-left: 1rem;
   padding-right: 1rem;
+  ${(props) => `
+  margin-top: ${props.marginTop || '0'};
+  margin-bottom: ${props.marginBottom || '0'};
+  margin-left: ${props.marginLeft || '0'};
+  margin-right: ${props.marginRight || '0'};
+  `}
 `;
 
 const PaddedButton = styled(Button)`
-  &&& {
-    padding: 0;
-    margin: 20px 0;
-  }
+  padding: 0 !important;
+  margin: 20px 0 !important;
 `;
 
 const Container = styled.div`
@@ -318,13 +322,13 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
               + Add new team members
             </PaddedButton>
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table variant="mini" readOnly>
+              <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th>Status</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Actions</th>
+                    <th style={{ width: '8%' }}>Status</th>
+                    <th style={{ width: '52%' }}>Email</th>
+                    <th style={{ width: '20%' }}>Role</th>
+                    <th style={{ width: '20%' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -378,15 +382,15 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
           </TabWrapper>
         </Tab>
         <Tab eventKey="integrations" title="Integrations">
-          <TabWrapper>
+          <TabWrapper marginTop="20px">
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table variant="mini" readOnly>
+              <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th>Status</th>
-                    <th>Request ID</th>
-                    <th>Project Name</th>
-                    <th>Actions</th>
+                    <th style={{ width: '10%' }}>Status</th>
+                    <th style={{ width: '50%' }}>Request ID</th>
+                    <th style={{ width: '20%' }}>Project Name</th>
+                    <th style={{ width: '20%' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
