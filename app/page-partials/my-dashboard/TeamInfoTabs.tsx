@@ -325,10 +325,10 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th style={{ width: '8%' }}>Status</th>
-                    <th style={{ width: '52%' }}>Email</th>
-                    <th style={{ width: '20%' }}>Role</th>
-                    <th style={{ width: '20%' }}>Actions</th>
+                    <th>Status</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -387,10 +387,10 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th style={{ width: '10%' }}>Status</th>
-                    <th style={{ width: '50%' }}>Request ID</th>
-                    <th style={{ width: '20%' }}>Project Name</th>
-                    <th style={{ width: '20%' }}>Actions</th>
+                    <th>Status</th>
+                    <th>Request ID</th>
+                    <th>Project Name</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -416,7 +416,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
                     ))
                   ) : (
                     <tr>
-                      <CenteredTD colSpan={5}>No integrations found</CenteredTD>
+                      <CenteredTD colSpan={5}>There are no integrations for this team yet</CenteredTD>
                     </tr>
                   )}
                 </tbody>
