@@ -12,8 +12,9 @@ import {
   userIsTeamAdmin,
   userCanReadTeam,
   removeUserFromTeam,
+  updateMemberInTeam,
 } from './controllers/team';
-import { findOrCreateUser } from './controllers/user';
+import { findOrCreateUser, updateProfile } from './controllers/user';
 import {
   createRequest,
   getRequests,
@@ -23,6 +24,7 @@ import {
   deleteRequest,
   updateRequestMetadata,
 } from './controllers/requests';
+import { listIntegrationsForTeam } from './queries/request';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
@@ -69,7 +71,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
     try {
       const token = req.query.token;
-      if (!req.query.token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
+      if (!token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
       else {
         const [data] = await parseInvitationToken(token);
         const { userId, teamId, exp } = data;
@@ -112,6 +114,15 @@ export const setRoutes = (app: any) => {
     }
   });
 
+  app.post(`${BASE_PATH}/me`, async (req, res) => {
+    try {
+      const result = await updateProfile(req.session, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
   app.post(`${BASE_PATH}/requests-all`, async (req, res) => {
     try {
       const result = await getRequestAll(req.session as Session, req.body);
@@ -125,6 +136,16 @@ export const setRoutes = (app: any) => {
     try {
       const { include } = req.query || {};
       const result = await getRequests(req.session as Session, req.user, include);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.get(`${BASE_PATH}/team-integrations/:teamId`, async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const result = await listIntegrationsForTeam(req.session as Session, teamId);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });
@@ -252,6 +273,20 @@ export const setRoutes = (app: any) => {
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
       const result = await addUsersToTeam(id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      res.status(422).json({ success: false, message: err.message || err });
+    }
+  });
+
+  app.put(`${BASE_PATH}/teams/:id/members/:memberId`, async (req, res) => {
+    try {
+      const { id, memberId } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, id);
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
+
+      const result = await updateMemberInTeam(id, memberId, req.body);
       res.status(200).json(result);
     } catch (err) {
       res.status(422).json({ success: false, message: err.message || err });

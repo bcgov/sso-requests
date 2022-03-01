@@ -136,7 +136,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const handleBackClick = () => {
-    const redirectUrl = isAdmin ? '/admin-dashboard' : '/my-requests';
+    const redirectUrl = isAdmin ? '/admin-dashboard' : '/my-dashboard';
     router.push({ pathname: redirectUrl });
   };
 
@@ -149,6 +149,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       if (isNew) {
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
+
+        if (err) {
+          alert.show({
+            variant: 'danger',
+            fadeOut: 5000,
+            closable: true,
+            content: err,
+          });
+        }
 
         if (err || !id) {
           setLoading(false);

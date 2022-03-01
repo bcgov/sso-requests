@@ -1,23 +1,19 @@
 import { Op } from 'sequelize';
+import { trim, toLower } from 'lodash';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { User, Team } from '../../../shared/interfaces';
+import { User, Team, Member } from '../../../shared/interfaces';
 import { inviteTeamMembers } from '../utils/helpers';
+import { listTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
+import { lowcase } from '@lambda-app/helpers/string';
 
 export const listTeams = async (user: User) => {
-  const result = await models.team.findAll({
-    where: {
-      id: {
-        [Op.in]: sequelize.literal(`(select team_id from users_teams where user_id='${user.id}' and pending = false)`),
-      },
-    },
-  });
-
+  const result = await listTeamsForUser(user.id, { raw: true });
   return result;
 };
 
 export const createTeam = async (user: User, data: Team) => {
-  const { members } = data;
-  const team = await models.team.create({ name: data.name });
+  const { name, members } = data;
+  const team = await models.team.create({ name });
   await Promise.all([
     addUsersToTeam(team.id, members),
     models.usersTeam.create({ teamId: team.id, userId: user.id, role: 'admin', pending: false }),
@@ -25,7 +21,9 @@ export const createTeam = async (user: User, data: Team) => {
   return team;
 };
 
-export const addUsersToTeam = async (teamId: number, members: User[]) => {
+export const addUsersToTeam = async (teamId: number, members: Member[]) => {
+  members = members.map((member) => ({ ...member, idirEmail: lowcase(member.idirEmail) }));
+
   const usersEmailsAlreadyOnTeam = await getUsersOnTeam(teamId).then((result) =>
     result.map((member) => member.idirEmail),
   );
@@ -173,4 +171,20 @@ export const removeUserFromTeam = async (userId: number, teamId: number) => {
       teamId,
     },
   });
+};
+
+export const updateMemberInTeam = async (teamId: number, userId: number, data: { role: string }) => {
+  await models.usersTeam.update(
+    { role: data.role },
+    {
+      where: {
+        userId,
+        teamId,
+      },
+      returning: true,
+      plain: true,
+    },
+  );
+
+  return getMemberOnTeam(teamId, userId, { raw: true });
 };

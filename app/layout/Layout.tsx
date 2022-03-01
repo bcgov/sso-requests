@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCommentDots, faEnvelope, faFileAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCommentDots, faEnvelope, faFileAlt, faUserAlt } from '@fortawesome/free-solid-svg-icons';
 import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
 import { startCase, isFunction } from 'lodash';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
-import TopAlertProvider from './TopAlert';
+import TopAlertProvider, { TopAlert } from './TopAlert';
+import UserProfileModal from './UserProfileModal';
 
 const headerPlusFooterHeight = '152px';
 
@@ -98,7 +99,7 @@ interface Route {
 const routes: Route[] = [
   { path: '/', label: 'Home', roles: ['guest', 'user', 'sso-admin'] },
   { path: '/terms-conditions', label: 'Terms and Conditions', roles: ['guest'] },
-  { path: '/my-requests', label: 'My Dashboard', roles: ['user', 'sso-admin'] },
+  { path: '/my-dashboard', label: 'My Dashboard', roles: ['user', 'sso-admin'] },
   { path: '/admin-dashboard', label: 'SSO Dashboard', roles: ['sso-admin'] },
   { path: '/request', label: 'Request Details', roles: ['user', 'sso-admin'], hide: true },
   { path: '/faq', label: 'FAQ', roles: ['guest', 'user', 'sso-admin'] },
@@ -133,7 +134,18 @@ const LeftMenuItems = ({ currentUser, currentPath, query }: { currentUser: any; 
 
 const RightMenuItems = () => (
   <>
-    <li>Need help?</li>
+    <UserProfileModal>
+      {(modalId: string, openModal: any) => {
+        return (
+          <HoverItem>
+            <a href={`#${modalId}`} title="My Profile">
+              <FontAwesomeIcon size="2x" icon={faUserAlt} />
+            </a>
+          </HoverItem>
+        );
+      }}
+    </UserProfileModal>
+
     <HoverItem>
       <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
         <FontAwesomeIcon size="2x" icon={faCommentDots} />
@@ -207,7 +219,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
   );
 
   return (
-    <>
+    <TopAlertProvider>
       <BCSans />
       <Navigation
         title={() => (
@@ -229,7 +241,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
         </SubMenu>
       </Navigation>
       <MainContent>
-        <TopAlertProvider>{children}</TopAlertProvider>
+        <TopAlert>{children}</TopAlert>
       </MainContent>
       <Footer>
         <FooterMenu>
@@ -260,7 +272,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
           </ul>
         </FooterMenu>
       </Footer>
-    </>
+    </TopAlertProvider>
   );
 }
 export default Layout;

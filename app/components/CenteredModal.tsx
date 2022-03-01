@@ -9,6 +9,7 @@ import { Button } from '@bcgov-sso/common-react-components';
 const StyledModal = styled(Modal)`
   display: flex;
   align-items: center;
+  text-align: left !important;
 
   & .pg-modal-main {
     max-width: 700px;

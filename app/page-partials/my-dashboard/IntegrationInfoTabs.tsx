@@ -1,8 +1,9 @@
+import React, { Dispatch, SetStateAction } from 'react';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
-import SecretsPanel from 'page-partials/my-requests/SecretsPanel';
+import SecretsPanel from 'page-partials/my-dashboard/SecretsPanel';
 import { getStatusDisplayName } from 'utils/status';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
@@ -11,9 +12,9 @@ import { usesBceid } from 'utils/helpers';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import BceidStatus from 'components/BceidStatus';
 import DefaultTitle from 'components/SHeader3';
-import { useContext } from 'react';
-import { RequestsContext } from 'pages/my-requests';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
+import { Request } from 'interfaces/Request';
+import { DashboardReducerState } from 'reducers/dashboardReducer';
 
 const Title = styled(DefaultTitle)`
   margin-top: 10px;
@@ -26,15 +27,19 @@ const TabWrapper = styled.div`
 
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
 
-function RequestInfoTabs() {
-  const { state, dispatch } = useContext(RequestsContext);
-  const { requests, activeRequestId, panelTab } = state;
-  const selectedRequest = requests?.find((request) => request.id === activeRequestId);
-  if (!selectedRequest) return null;
+interface Props {
+  integration: Request;
+  state: DashboardReducerState;
+  dispatch: Dispatch<SetStateAction<any>>;
+}
 
-  const { status, bceidApproved } = selectedRequest;
+function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
+  const { panelTab } = state;
+  if (!integration) return null;
+
+  const { status, bceidApproved } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
-  const awaitingBceidProd = usesBceid(selectedRequest?.realm) && selectedRequest.prod && !bceidApproved;
+  const awaitingBceidProd = usesBceid(integration?.realm) && integration.prod && !bceidApproved;
   let panel = null;
 
   if (displayStatus === 'In Draft') {
@@ -61,16 +66,16 @@ function RequestInfoTabs() {
                   title="Access to Dev and/or Test environment(s) - approx 20 mins"
                   variant="secondary"
                 >
-                  <SubmittedStatusIndicator selectedRequest={selectedRequest} />
+                  <SubmittedStatusIndicator selectedRequest={integration} />
                   <br />
                 </NumberedContents>
                 <NumberedContents number={2} title="Access to Prod environment - (TBD)" variant="secondary">
-                  <BceidStatus request={selectedRequest} />
+                  <BceidStatus request={integration} />
                 </NumberedContents>
               </>
             ) : (
               <SubmittedStatusIndicator
-                selectedRequest={selectedRequest}
+                selectedRequest={integration}
                 title="Access to environment(s) - approx 20 mins"
               />
             )}
@@ -84,26 +89,26 @@ function RequestInfoTabs() {
         <RequestTabs activeKey={panelTab} onSelect={(k: TabKey) => dispatch($setPanelTab(k))}>
           <Tab eventKey="installation-json" title="Installation JSON">
             <TabWrapper>
-              <InstallationPanel selectedRequest={selectedRequest} />
+              <InstallationPanel selectedRequest={integration} />
             </TabWrapper>
           </Tab>
-          {!selectedRequest.publicAccess && (
+          {!integration.publicAccess && (
             <Tab eventKey="configuration-url" title="Secrets">
               <TabWrapper>
-                <SecretsPanel selectedRequest={selectedRequest} />
+                <SecretsPanel selectedRequest={integration} />
               </TabWrapper>
             </Tab>
           )}
           <Tab eventKey="history" title="History">
             <TabWrapper>
-              <UserEventPanel requestId={selectedRequest.id} />
+              <UserEventPanel requestId={integration.id} />
             </TabWrapper>
           </Tab>
         </RequestTabs>
         {awaitingBceidProd && (
           <>
             <Title>Production Status</Title>
-            <BceidStatus request={selectedRequest} />
+            <BceidStatus request={integration} />
           </>
         )}
       </>
@@ -113,4 +118,4 @@ function RequestInfoTabs() {
   return panel;
 }
 
-export default RequestInfoTabs;
+export default IntegrationInfoTabs;

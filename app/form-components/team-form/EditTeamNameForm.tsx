@@ -1,13 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
 import { Button } from '@bcgov-sso/common-react-components';
-import { v4 as uuidv4 } from 'uuid';
-import { RequestsContext } from 'pages/my-requests';
-
 import { editTeamName } from 'services/team';
 import Loader from 'react-loader-spinner';
-import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 
 const ButtonsContainer = styled.div`
@@ -21,7 +17,7 @@ const ButtonsContainer = styled.div`
 
 interface Props {
   onSubmit: Function;
-  currentUser: LoggedInUser;
+  teamId: number;
   initialTeamName: string;
 }
 
@@ -30,16 +26,7 @@ export interface Errors {
   members?: string[];
 }
 
-const emptyUser: User = {
-  idirEmail: '',
-  role: 'member',
-  id: String(uuidv4()),
-};
-
-export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamName }: Props) {
-  const { state, dispatch } = useContext(RequestsContext);
-  const { teamIdToEdit } = state;
-
+export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: Props) {
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>();
@@ -70,7 +57,7 @@ export default function EditTeamNameForm({ onSubmit, currentUser, initialTeamNam
   };
 
   const handleEditName = async () => {
-    const team = { name: teamName.trim(), id: teamIdToEdit };
+    const team = { name: teamName.trim(), id: teamId };
     const errors = validateTeam(team);
     if (errors) return setErrors(errors);
     setLoading(true);

@@ -1,5 +1,5 @@
 export interface User {
-  id: string;
+  id: number;
   idirUserid: string;
   idirEmail: string;
 }
@@ -81,13 +81,14 @@ export interface BceidEmailDetails {
   bceidBody?: string;
 }
 
-export interface User {
+export interface Member {
   email: string;
   role: 'admin' | 'user' | '';
-  id: string;
+  idirEmail?: string;
+  id: number;
 }
 
 export interface Team {
   name: string;
-  members: User[];
+  members: Member[];
 }

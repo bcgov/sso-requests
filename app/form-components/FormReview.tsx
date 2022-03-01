@@ -60,7 +60,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }:
         });
 
         router.push({
-          pathname: isAdmin ? '/admin-dashboard' : '/my-requests',
+          pathname: isAdmin ? '/admin-dashboard' : '/my-dashboard',
           query: { id: formData.id },
         });
       }
@@ -92,7 +92,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }:
   };
 
   const handleBackClick = () => {
-    const url = isAdmin ? '/admin-dashboard' : '/my-requests';
+    const url = isAdmin ? '/admin-dashboard' : '/my-dashboard';
     router.push(url);
   };
 

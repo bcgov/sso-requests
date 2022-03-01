@@ -4,7 +4,6 @@ import DefaultDropdown from '@button-inc/bcgov-theme/Dropdown';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
-import { v4 as uuidv4 } from 'uuid';
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import { Errors } from './CreateTeamForm';
@@ -69,7 +68,7 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
       {
         idirEmail: '',
         role: 'member',
-        id: String(uuidv4()),
+        id: new Date().getTime(),
         pending: true,
       },
     ]);

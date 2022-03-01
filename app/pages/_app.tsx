@@ -18,7 +18,7 @@ import 'styles/globals.css';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path, kc_idp_hint } = publicRuntimeConfig;
 
-const authenticatedUris = [`${base_path}/my-requests`, `${base_path}/request`, `${base_path}/admin-dashboard`];
+const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, `${base_path}/admin-dashboard`];
 
 const proccessSession = (session: LoggedInUser | null) => {
   if (!session) return null;
@@ -27,6 +27,12 @@ const proccessSession = (session: LoggedInUser | null) => {
   session.isAdmin = session?.client_roles?.includes('sso-admin');
   return session;
 };
+
+export interface SessionContextInterface {
+  session: LoggedInUser | null;
+}
+
+export const SessionContext = React.createContext<SessionContextInterface | null>(null);
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -41,7 +47,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       if (verifiedIdToken) {
         if (loginWorkflow) {
           setTokens(tokens);
-          await router.push('/my-requests');
+          await router.push('/my-dashboard');
         }
         setCurrentUser(proccessSession(verifiedIdToken));
       } else {
@@ -109,13 +115,15 @@ function MyApp({ Component, pageProps }: AppProps) {
     return null;
   }
   return (
-    <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
-      <Head>
-        <html lang="en" />
-        <title>Common Hosted Single Sign-on (CSS)</title>
-      </Head>
-      <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
-    </Layout>
+    <SessionContext.Provider value={{ session: currentUser }}>
+      <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
+        <Head>
+          <html lang="en" />
+          <title>Common Hosted Single Sign-on (CSS)</title>
+        </Head>
+        <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+      </Layout>
+    </SessionContext.Provider>
   );
 }
 export default MyApp;

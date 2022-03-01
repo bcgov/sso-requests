@@ -1,11 +1,11 @@
-import { useContext, MouseEvent } from 'react';
+import { MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
-import { RequestsContext } from 'pages/my-requests';
 import { Request } from 'interfaces/Request';
-import { $setRequestToDelete } from 'dispatchers/requestDispatcher';
+import CenteredModal from 'components/CenteredModal';
+import { getRequests, deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
 
 export const ActionButtonContainer = styled.div`
@@ -33,16 +33,16 @@ export const VerticalLine = styled.div`
 
 interface Props {
   request: Request;
+  onDelete?: Function;
   children?: any;
 }
 
-export default function Actionbuttons({ request, children }: Props) {
-  const { state, dispatch } = useContext(RequestsContext);
-
+export default function Actionbuttons({ request, onDelete, children }: Props) {
   const router = useRouter();
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
   const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
+  const deleteModalId = `delete-modal-${request?.id}`;
 
   const handleEdit = async (event: MouseEvent) => {
     event.stopPropagation();
@@ -50,10 +50,18 @@ export default function Actionbuttons({ request, children }: Props) {
     await router.push(`/request/${request.id}?status=${request.status}`);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!request.id || !canDelete) return;
-    dispatch($setRequestToDelete(request.id));
-    window.location.hash = 'delete-modal';
+    window.location.hash = deleteModalId;
+  };
+
+  const confirmDelete = async () => {
+    const canDelete = !['pr', 'planned', 'submitted'].includes(request?.status || '');
+    if (!canDelete) return;
+
+    await deleteRequest(request.id);
+    window.location.hash = '#';
+    if (onDelete) onDelete(request);
   };
 
   return (
@@ -80,6 +88,13 @@ export default function Actionbuttons({ request, children }: Props) {
           size="lg"
         />
       </ActionButtonContainer>
+      <CenteredModal
+        id={deleteModalId}
+        content="You are about to delete this integration request. This action cannot be undone."
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        confirmText="Delete"
+      />
     </>
   );
 }

@@ -2,18 +2,19 @@
   "name": "lambda-db",
   "version": "1.0.0",
   "description": "lambda functions for db setup",
+  "license": "Apache-2.0",
+  "author": "SSO Team",
   "scripts": {
     "dev": "tsc --watch",
-    "compile": "tsc"
+    "compile": "tsc && tsc-alias"
   },
   "devDependencies": {
     "@types/node": "^15.12.5",
     "@types/validator": "^13.1.4",
     "sqlite3": "^5.0.2",
+    "tsc-alias": "^1.6.3",
     "typescript": "^3.8.3"
   },
-  "author": "Button Inc.",
-  "license": "Apache-2.0",
   "dependencies": {
     "@types/aws-lambda": "^8.10.77",
     "aws-lambda": "^1.0.6",
