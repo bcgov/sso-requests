@@ -28,8 +28,10 @@ import { listIntegrationsForTeam } from './queries/request';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
-import { Session } from '../../shared/interfaces';
+import { Session, User } from '../../shared/interfaces';
 import { parseInvitationToken, inviteTeamMembers } from '../src/utils/helpers';
+import { getAllowedTeams } from '@lambda-app/queries/team';
+import { isAdmin } from './utils/helpers';
 import encodeurl = require('encodeurl');
 
 const APP_URL = process.env.APP_URL || '';
@@ -95,7 +97,8 @@ export const setRoutes = (app: any) => {
     }
 
     try {
-      const user = await findOrCreateUser(session);
+      const user: User = await findOrCreateUser(session);
+      user.isAdmin = isAdmin(session);
       session.user = user;
       req.user = user;
       req.session = session;
@@ -238,6 +241,15 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/teams`, async (req, res) => {
     try {
       const result = await listTeams(req.user);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/allowed-teams`, async (req, res) => {
+    try {
+      const result = await getAllowedTeams(req.user, { raw: true });
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

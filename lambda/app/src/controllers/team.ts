@@ -1,13 +1,12 @@
 import { Op } from 'sequelize';
-import { trim, toLower } from 'lodash';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { User, Team, Member } from '../../../shared/interfaces';
 import { inviteTeamMembers } from '../utils/helpers';
-import { listTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
+import { getTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
 import { lowcase } from '@lambda-app/helpers/string';
 
 export const listTeams = async (user: User) => {
-  const result = await listTeamsForUser(user.id, { raw: true });
+  const result = await getTeamsForUser(user.id, { raw: true });
   return result;
 };
 

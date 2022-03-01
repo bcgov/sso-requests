@@ -2,6 +2,7 @@ export interface User {
   id: number;
   idirUserid: string;
   idirEmail: string;
+  isAdmin?: boolean;
 }
 export interface Session {
   idir_userid: string;
