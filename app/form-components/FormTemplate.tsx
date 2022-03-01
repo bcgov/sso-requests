@@ -17,7 +17,7 @@ import { validateForm, getFormStageInfo } from 'utils/helpers';
 import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
 import { customValidate } from 'utils/customValidate';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { getTeams } from 'services/team';
+import { getMyTeams, getAllowedTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
 import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
@@ -106,6 +106,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   }, [currentUser]);
 
   const loadTeams = async () => {
+    const getTeams = isNew ? getMyTeams : getAllowedTeams;
     const [teams, err] = await getTeams();
     if (err) {
       // add err handling
