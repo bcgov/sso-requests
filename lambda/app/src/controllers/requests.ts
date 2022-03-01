@@ -21,7 +21,8 @@ import { sendEmail } from '../../../shared/utils/ches';
 import { getEmailList } from '../../../shared/utils/helpers';
 import { renderTemplate, EmailTemplate } from '../../../shared/templates';
 import { EVENTS } from '../../../shared/enums';
-import { getMyOrTeamRequest, getAllowedRequest } from '../queries/request';
+import { getAllowedTeams } from '@lambda-app/queries/team';
+import { getMyOrTeamRequest, getAllowedRequest } from '@lambda-app/queries/request';
 
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const NEW_REQUEST_DAY_LIMIT = 10;
@@ -129,13 +130,13 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
     if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
-    const usersTeams = await getUsersTeams(user);
+    const allowedTeams = await getAllowedTeams(user, { raw: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
 
     if (submit) {
-      const isValid = validateRequest(mergedData, originalData, isMerged, usersTeams);
+      const isValid = validateRequest(mergedData, originalData, isMerged, allowedTeams);
       if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedData }));
       current.clientName = `${kebabCase(current.projectName)}-${id}`;
       current.status = 'submitted';

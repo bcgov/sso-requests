@@ -1,6 +1,9 @@
+import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
+import { User } from '../../../shared/interfaces';
+import { getMyTeamsLiteral } from './literals';
 
-export const listTeamsForUser = async (userId: number, options?: { raw: boolean }) => {
+export const getTeamsForUser = async (userId: number, options?: { raw: boolean }) => {
   return models.team.findAll({
     include: [
       {
@@ -16,6 +19,26 @@ export const listTeamsForUser = async (userId: number, options?: { raw: boolean 
       'createdAt',
       'updatedAt',
       [sequelize.col('usersTeams.role'), 'role'],
+      [sequelize.literal('(select count(*) FROM requests WHERE "requests"."team_id"="team"."id")'), 'integrationCount'],
+    ],
+    ...options,
+  });
+};
+
+export const getAllowedTeams = async (user: User, options?: { raw: boolean }) => {
+  const where: any = {};
+  if (!user.isAdmin) {
+    const teamIdsLiteral = getMyTeamsLiteral(user.id);
+    where.id = { [Op.in]: sequelize.literal(`(${teamIdsLiteral})`) };
+  }
+
+  return models.team.findAll({
+    where,
+    attributes: [
+      'id',
+      'name',
+      'createdAt',
+      'updatedAt',
       [sequelize.literal('(select count(*) FROM requests WHERE "requests"."team_id"="team"."id")'), 'integrationCount'],
     ],
     ...options,
