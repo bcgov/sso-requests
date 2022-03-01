@@ -325,10 +325,10 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th>Status</th>
+                    <th className="w60">Status</th>
                     <th>Email</th>
-                    <th>Role</th>
-                    <th>Actions</th>
+                    <th className="w120">Role</th>
+                    <th className="w120">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -336,11 +336,11 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
                     const adminActionsAllowed = myself.role === 'admin' && myself.id !== member.id;
                     return (
                       <tr key={member.id}>
-                        <td>
+                        <td className="w60">
                           <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
                         </td>
                         <td>{member.idirEmail}</td>
-                        <td>
+                        <td className="w120">
                           {adminActionsAllowed && !member.pending ? (
                             <Dropdown
                               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
@@ -355,7 +355,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
                             capitalize(member.role)
                           )}
                         </td>
-                        <td>
+                        <td className="w120">
                           {adminActionsAllowed && member.pending && (
                             <ButtonIcon
                               icon={faShare}
@@ -387,7 +387,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th>Status</th>
+                    <th className="w60">Status</th>
                     <th>Request ID</th>
                     <th>Project Name</th>
                     <th>Actions</th>
@@ -397,7 +397,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
                   {integrations?.length > 0 ? (
                     integrations?.map((integration) => (
                       <tr key={integration.id}>
-                        <td>
+                        <td className="w60">
                           <RequestStatusIcon status={integration?.status} />
                         </td>
                         <td>{integration.id}</td>
