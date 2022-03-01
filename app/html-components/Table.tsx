@@ -8,6 +8,7 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   text-align: left;
   border-collapse: separate;
   border-spacing: 0 ${TABLE_ROW_SPACING}px;
+  table-layout: fixed;
 
   & thead {
     font-size: 16px;
@@ -56,6 +57,17 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   & td {
     border: none;
     padding: 0;
+    overflow: hidden;
+  }
+
+  & th.w60,
+  & td.w60 {
+    width: 60px;
+  }
+
+  & th.w120,
+  & td.w120 {
+    width: 120px;
   }
 
   & td {
