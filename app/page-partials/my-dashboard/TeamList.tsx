@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faExclamationCircle, faTrash, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { Team } from 'interfaces/team';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import { getTeams, deleteTeam } from 'services/team';
+import { getMyTeams, deleteTeam } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
@@ -108,7 +108,7 @@ export default function TeamList({ currentUser, setTeam, state, dispatch }: Prop
 
   const loadTeams = async () => {
     setLoading(true);
-    const [teams, err] = await getTeams();
+    const [teams, err] = await getMyTeams();
     if (err) dispatch($setDownloadError(true));
     else updateTeams(teams || []);
     setLoading(false);
