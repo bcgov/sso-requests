@@ -18,16 +18,15 @@ export interface Request {
   createdAt?: string;
   updatedAt?: string;
   projectLead?: boolean;
-  preferredEmail?: string;
   newToSso?: boolean;
   agreeWithTerms?: boolean;
   status?: Status;
   archived?: boolean;
-  additionalEmails?: string[];
   hasUnreadNotifications?: boolean;
   usesTeam?: boolean;
   bceidApproved?: boolean;
-  teamId?: string | number;
+  teamId?: number | string;
+  userId?: number;
   team?: any;
 }
 

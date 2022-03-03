@@ -116,13 +116,6 @@ function RequestPreview({ children, request }: Props) {
               <SemiBold>{request?.projectName}</SemiBold>
             </td>
           </tr>
-          <tr>
-            <td>Default email address:</td>
-            <td>
-              <SemiBold>{request?.preferredEmail}</SemiBold>
-            </td>
-          </tr>
-          <FormattedList list={request?.additionalEmails} title="Additional Emails:" />
           <FormattedList list={realmToIDP(request?.realm)} title="Identity Providers Required:" inline />
           {hasUris(request?.devValidRedirectUris) && (
             <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />

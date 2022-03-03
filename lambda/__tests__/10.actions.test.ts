@@ -56,7 +56,6 @@ beforeAll(async () => {
     idirUserid: 'A1',
     projectName: 'test',
     projectLead: true,
-    preferredEmail: 'me@me.com',
     publicAccess: 'yes',
   });
   id = request.dataValues.id;

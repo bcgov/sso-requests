@@ -80,7 +80,7 @@ export default async function updateStatus(event) {
 
       if (success && !request.archived) {
         const emailCode = isUpdate ? 'uri-change-request-approved' : 'create-request-approved';
-        const to = getEmailList(request);
+        const to = await getEmailList(request);
 
         await sendEmail({
           to,

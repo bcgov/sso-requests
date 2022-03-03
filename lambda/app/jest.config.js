@@ -4,4 +4,5 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   testPathIgnorePatterns: ['fixtures.ts'],
+  bail: true,
 };

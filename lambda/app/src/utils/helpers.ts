@@ -27,6 +27,7 @@ export const omitNonFormFields = (data: Request) =>
     'actionNumber',
     'prNumber',
     'clientName',
+    'userId',
     'idirUserid',
     'idirUserDisplayName',
     'id',
@@ -40,15 +41,16 @@ export const usesBceid = (realm: string | undefined) => {
   return bceidRealms.includes(realm);
 };
 
-export const notifyIdim = async (request: Data, bceidEvent: BceidEvent) => {
-  const { realm, id, preferredEmail, additionalEmails, environments } = request;
+export const notifyIdim = async (request: Data, bceidEvent: BceidEvent, email: string) => {
+  const { realm, id, environments } = request;
   const skipNotification = !usesBceid(realm) || bceidEvent === 'update';
   if (skipNotification) return;
 
   const usesProd = environments.includes('prod');
   // Only cc user for production requests
-  let cc = usesProd ? [preferredEmail] : [];
-  if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
+  let cc = usesProd ? [email] : [];
+  // TODO: revisit here when going through email templates
+  // if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
 
   let emailCode: EmailTemplate;
   if (bceidEvent === 'submission' && !usesProd) emailCode = 'bceid-idim-dev-submitted';
@@ -74,7 +76,7 @@ const sortURIFields = (data: any) => {
 };
 
 export const processRequest = (data: any, isMerged: boolean) => {
-  const immutableFields = ['idirUserid', 'clientName', 'projectLead', 'status'];
+  const immutableFields = ['userId', 'idirUserid', 'clientName', 'projectLead', 'status'];
   if (isMerged) immutableFields.push('realm');
   data = omit(data, immutableFields);
   data = sortURIFields(data);
@@ -210,42 +212,3 @@ export async function parseInvitationToken(token) {
   const data = (verify(token, VERIFY_USER_SECRET) as any) || {};
   return [data, null];
 }
-
-export const getWhereClauseForRequest = (session: Session, user: User, requestId: number) => {
-  const where: any = { id: requestId };
-  const { idirUserid } = user;
-  const userIsAdmin = isAdmin(session);
-  if (!userIsAdmin) {
-    where[Op.or] = [
-      {
-        idirUserid,
-      },
-      {
-        teamId: {
-          [Op.in]: sequelize.literal(
-            `(select team_id from users_teams where user_id='${user.id}' and pending = false)`,
-          ),
-        },
-      },
-    ];
-  }
-  return where;
-};
-
-export const getWhereClauseForRequests = (user: User) => {
-  const { idirUserid } = user;
-  return {
-    [Op.or]: [
-      {
-        idirUserid,
-      },
-      {
-        teamId: {
-          [Op.in]: sequelize.literal(
-            `(select team_id from users_teams where user_id='${user.id}' and pending = false )`,
-          ),
-        },
-      },
-    ],
-  };
-};

@@ -40,14 +40,14 @@ let teamRequest;
 
 describe('Requests', () => {
   it('should create a request successfully', async () => {
+    const projectName = new Date().getTime().toString();
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
       path: `${baseUrl}/requests`,
       body: JSON.stringify({
-        projectName: 'test',
+        projectName,
         projectLead: true,
-        preferredEmail: 'me@me.com',
         publicAccess: 'yes',
       }),
     };
@@ -56,7 +56,7 @@ describe('Requests', () => {
 
     const response = await handler(event, context);
     const result = JSON.parse(response.body);
-    expect(result.idirUserid).toEqual(TEST_IDIR_USERID);
+    expect(result.projectName).toEqual(projectName);
     expect(response.statusCode).toEqual(200);
   });
 });
@@ -68,7 +68,7 @@ describe('Creating Teams', () => {
 
   let user;
   beforeAll(async () => {
-    user = await models.user.findOne({ where: { idir_userid: TEST_IDIR_USERID } });
+    user = await models.user.findOne({ where: { id: 1 } });
   });
 
   it('Should allow users to create a team and default them to admin', async () => {
@@ -168,7 +168,6 @@ describe('Creating Teams', () => {
       body: JSON.stringify({
         projectName: 'test project',
         projectLead: true,
-        preferredEmail: TEST_IDIR_EMAIL,
         usesTeam: true,
         teamId: teamWithMember.id,
       }),

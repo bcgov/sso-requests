@@ -6,7 +6,6 @@ export interface Request {
   testValidRedirectUris: string[];
   prodValidRedirectUris: string[];
   projectName: string;
-  preferredEmail?: string;
   projectLead?: boolean;
   id?: number;
   newToSso?: boolean;
@@ -25,7 +24,6 @@ export interface EnvironmentOption {
 
 export interface ErrorMessages {
   agreeWithTerms: string;
-  preferredEmail: string;
   realm: string;
   redirectUris: string;
   publicAccess: string;

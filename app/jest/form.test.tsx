@@ -43,12 +43,10 @@ export const sampleRequest: Request = {
   publicAccess: true,
   realm: 'onestopauth',
   projectName: 'test project',
-  preferredEmail: 'test@email.com',
   projectLead: true,
   agreeWithTerms: true,
   environments: ['dev', 'test', 'prod'],
   archived: false,
-  additionalEmails: [],
   usesTeam: false,
 };
 
@@ -142,7 +140,6 @@ describe('Form Template Loading Data', () => {
     fireEvent.click(firstStageBox);
     expect(document.querySelector('#root_projectLead input[value="true"]')).toHaveAttribute('checked', '');
     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
-    expect(screen.getByDisplayValue(sampleRequest.preferredEmail || ''));
 
     // Third Page Data
     fireEvent.click(thirdStageBox);
@@ -169,7 +166,6 @@ describe('Error messages', () => {
     fireEvent.click(nextButton);
     fireEvent.click(sandbox.firstStageBox);
 
-    screen.getByText(errorMessages.preferredEmail);
     screen.getByText(errorMessages.projectName);
   });
 

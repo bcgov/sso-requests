@@ -1,15 +1,10 @@
-import { models } from '../../../shared/sequelize/models/models';
 import { Session } from '../../../shared/interfaces';
 import { kebabCase } from 'lodash';
 import { fetchClient } from '../keycloak/client';
+import { getMyOrTeamRequest } from '@lambda-app/queries/request';
 
 export const getClient = async (session: Session, data: { requestId: number }) => {
-  const request = await models.request.findOne({
-    where: {
-      idirUserid: session.idir_userid,
-      id: data.requestId,
-    },
-  });
+  const request = await getMyOrTeamRequest(session.user.id, data.requestId);
 
   const proms = [];
   request.environments.forEach((env) => {
