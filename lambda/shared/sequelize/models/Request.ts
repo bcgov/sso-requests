@@ -2,10 +2,6 @@ module.exports = (sequelize, DataTypes) => {
   const Request = sequelize.define(
     'request',
     {
-      idirUserid: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
       projectName: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -93,11 +89,6 @@ module.exports = (sequelize, DataTypes) => {
       idirUserDisplayName: {
         type: DataTypes.STRING,
         field: 'idir_user_display_name',
-      },
-      additionalEmails: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        allowNull: true,
-        field: 'additional_emails',
       },
       hasUnreadNotifications: {
         type: DataTypes.BOOLEAN,
