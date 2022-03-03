@@ -103,7 +103,7 @@ export const setRoutes = (app: any) => {
       req.user = user;
       req.session = session;
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
 
     if (next) next();
@@ -113,7 +113,7 @@ export const setRoutes = (app: any) => {
     try {
       res.status(200).json(req.user);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -122,7 +122,7 @@ export const setRoutes = (app: any) => {
       const result = await updateProfile(req.session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -131,7 +131,7 @@ export const setRoutes = (app: any) => {
       const result = await getRequestAll(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -141,7 +141,7 @@ export const setRoutes = (app: any) => {
       const result = await getRequests(req.session as Session, req.user, include);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -151,7 +151,7 @@ export const setRoutes = (app: any) => {
       const result = await listIntegrationsForTeam(req.session as Session, teamId);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -160,7 +160,7 @@ export const setRoutes = (app: any) => {
       const result = await createRequest(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -170,7 +170,7 @@ export const setRoutes = (app: any) => {
       const result = await updateRequest(req.session as Session, req.body, req.user, submit);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -180,7 +180,7 @@ export const setRoutes = (app: any) => {
       const result = await deleteRequest(req.session as Session, req.user, Number(id));
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -189,7 +189,7 @@ export const setRoutes = (app: any) => {
       const result = await getRequest(req.session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -198,16 +198,16 @@ export const setRoutes = (app: any) => {
       const result = await updateRequestMetadata(req.session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
   app.post(`${BASE_PATH}/installation`, async (req, res) => {
     try {
-      const result = await getInstallation(req.session as Session, req.user, req.body);
+      const result = await getInstallation(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -216,7 +216,7 @@ export const setRoutes = (app: any) => {
       const result = await changeSecret(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -225,7 +225,7 @@ export const setRoutes = (app: any) => {
       const result = await getClient(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -234,7 +234,7 @@ export const setRoutes = (app: any) => {
       const result = await getEvents(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 

@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, Data, User } from '../../../shared/interfaces';
-import { kebabCase, assign } from 'lodash';
+import { kebabCase, assign, isNil } from 'lodash';
 import {
   validateRequest,
   processRequest,
@@ -12,8 +12,6 @@ import {
   notifyIdim,
   getWhereClauseForAllRequests,
   getUsersTeams,
-  getWhereClauseForRequest,
-  getWhereClauseForRequests,
   IDIM_EMAIL_ADDRESS,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
@@ -22,7 +20,11 @@ import { getEmailList } from '../../../shared/utils/helpers';
 import { renderTemplate, EmailTemplate } from '../../../shared/templates';
 import { EVENTS } from '../../../shared/enums';
 import { getAllowedTeams } from '@lambda-app/queries/team';
-import { getMyOrTeamRequest, getAllowedRequest } from '@lambda-app/queries/request';
+import {
+  getMyOrTeamRequest,
+  getAllowedRequest,
+  getBaseWhereForMyOrTeamIntegrations,
+} from '@lambda-app/queries/request';
 
 const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 const NEW_REQUEST_DAY_LIMIT = 10;
@@ -37,7 +39,7 @@ const createEvent = async (data) => {
 
 const getRequester = async (session: Session, requestId: number) => {
   let requester = getDisplayName(session);
-  const isMyOrTeamRequest = await getMyOrTeamRequest(session, requestId);
+  const isMyOrTeamRequest = await getMyOrTeamRequest(session.user.id, requestId);
   if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
   return requester;
 };
@@ -66,7 +68,7 @@ export const createRequest = async (session: Session, data: Data) => {
 
   const numOfRequestsForToday = await models.request.count({
     where: {
-      idirUserid: session.idir_userid,
+      userId: session.user.id,
       createdAt: {
         [Op.gt]: oneDayAgo,
         [Op.lt]: now,
@@ -77,7 +79,7 @@ export const createRequest = async (session: Session, data: Data) => {
   if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
     const eventData = {
       eventCode: EVENTS.REQUEST_LIMIT_REACHED,
-      idirUserid: session.idir_userid,
+      userId: session.user.id,
       idirUserDisplayName,
     };
     const emailCode = 'request-limit-exceeded';
@@ -90,16 +92,14 @@ export const createRequest = async (session: Session, data: Data) => {
     throw Error('reached the day limit');
   }
 
-  const { projectName, projectLead, preferredEmail, additionalEmails, usesTeam, teamId } = data;
+  const { projectName, projectLead, usesTeam, teamId } = data;
   const result = await models.request.create({
-    idirUserid: session.idir_userid,
     projectName,
     projectLead,
-    preferredEmail,
-    additionalEmails,
     idirUserDisplayName,
     usesTeam,
     teamId,
+    userId: session.user?.id,
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
@@ -114,8 +114,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
   const isMerged = await checkIfRequestMerged(id);
 
   try {
-    const where = getWhereClauseForRequest(session, user, data.id);
-    const current = await models.request.findOne({ where });
+    const current = await getAllowedRequest(session, data.id);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
     const originalData = getCurrentValue();
     const isAllowedStatus = ['draft', 'applied'].includes(current.status);
@@ -179,7 +178,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
         cc.push(IDIM_EMAIL_ADDRESS);
       } else emailCode = 'create-request-submitted';
 
-      const to = getEmailList(finalData);
+      const to = await getEmailList(finalData);
       const event = isMerged ? 'update' : 'submission';
 
       const requester = await getRequester(session, current.id);
@@ -197,7 +196,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
           event: { emailCode, requestId: id },
           cc,
         }),
-        notifyIdim(finalData, event),
+        notifyIdim(finalData, event, current.user.idirEmail),
       ]);
     }
 
@@ -211,7 +210,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       const eventData: any = {
         eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
         requestId: id,
-        idirUserid: session.idir_userid,
+        userId: session.user.id,
         idirUserDisplayName,
       };
 
@@ -228,11 +227,12 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
 
     return updated.get({ plain: true });
   } catch (err) {
+    console.error(err);
     if (submit) {
       const eventData = {
         eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
         requestId: id,
-        idirUserid: session.idir_userid,
+        userId: session.user.id,
         idirUserDisplayName,
       };
 
@@ -287,7 +287,7 @@ export const getRequestAll = async (
 };
 
 export const getRequests = async (session: Session, user: User, include: string = 'active') => {
-  const where: any = getWhereClauseForRequests(user);
+  const where: any = getBaseWhereForMyOrTeamIntegrations(session.user.id);
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
@@ -306,8 +306,7 @@ export const getRequests = async (session: Session, user: User, include: string 
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {
   try {
-    const where = getWhereClauseForRequest(session, user, id);
-    const current = await models.request.findOne({ where });
+    const current = await getAllowedRequest(session, id);
 
     if (!current) {
       throw Error('unauthorized request');
@@ -345,7 +344,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     if (prError) throw prError;
 
     const result = await current.save();
-    const to = getEmailList(current);
+    const to = await getEmailList(current);
 
     const emailCodeAdmin = 'request-deleted-notification-to-admin';
     const emailCodeUser = 'request-deleted';
@@ -361,14 +360,22 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
         ...renderTemplate(emailCodeUser, { request: current }),
         event: { emailCode: emailCodeUser, requestId: id },
       }),
-      notifyIdim(current, 'deletion'),
+      notifyIdim(current, 'deletion', current.user.idirEmail),
     ]);
 
-    createEvent({ eventCode: EVENTS.REQUEST_DELETE_SUCCESS, requestId: id, idirUserId: session.idir_userid });
+    createEvent({
+      eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
+      requestId: id,
+      userId: session.user.id,
+    });
 
     return result.get({ plain: true });
   } catch (err) {
-    createEvent({ eventCode: EVENTS.REQUEST_DELETE_FAILURE, requestId: id, idirUserId: session.idir_userid });
+    createEvent({
+      eventCode: EVENTS.REQUEST_DELETE_FAILURE,
+      requestId: id,
+      userId: session.user.id,
+    });
     throw Error(err.message || err);
   }
 };

@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       idirUserid: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       projectName: {
         type: DataTypes.STRING,
@@ -54,10 +54,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: true,
         defaultValue: false,
-      },
-      preferredEmail: {
-        type: DataTypes.STRING,
-        allowNull: true,
       },
       newToSso: {
         type: DataTypes.BOOLEAN,
@@ -118,6 +114,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         field: 'uses_team',
       },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'user_id',
+      },
       teamId: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -132,6 +133,7 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
       associate: function (models) {
         Request.belongsTo(models.team);
+        Request.belongsTo(models.user);
       },
     },
   );

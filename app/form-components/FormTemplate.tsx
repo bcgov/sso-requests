@@ -99,12 +99,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     throttleUpdate(e);
   };
 
-  useEffect(() => {
-    if (!formData.preferredEmail) {
-      setFormData({ ...formData, preferredEmail: currentUser.email || '' });
-    }
-  }, [currentUser]);
-
   const loadTeams = async () => {
     const getTeams = isNew ? getMyTeams : getAllowedTeams;
     const [teams, err] = await getTeams();

@@ -11,16 +11,6 @@ const projectLead = {
 };
 
 const projectName = { type: 'string', title: 'Project Name', maxLength: 50 };
-const preferredEmail = { type: 'string', title: 'Default Email Address', format: 'email', maxLength: 250 };
-const additionalEmails = {
-  type: ['array', 'null'],
-  title: 'Additional Emails',
-  items: { type: 'string', maxLength: 250, format: 'email' },
-  additionalItems: { type: 'string', maxLength: 250, format: 'email' },
-  deletableIndex: 0,
-  maxItems: 2,
-  addItemText: 'Add Email Address',
-};
 
 export default function getSchema(teams: any[] = []) {
   const teamNames = teams.map((team) => team.name);
@@ -37,7 +27,7 @@ export default function getSchema(teams: any[] = []) {
         description: 'Would you like to allow multiple members to manage this integration?',
       },
     },
-    required: ['projectName', 'preferredEmail'],
+    required: ['projectName'],
     dependencies: {
       usesTeam: {
         oneOf: [
@@ -62,8 +52,6 @@ export default function getSchema(teams: any[] = []) {
               createTeam: {
                 type: 'string',
               },
-              preferredEmail,
-              additionalEmails,
             },
           },
         ],
@@ -73,8 +61,6 @@ export default function getSchema(teams: any[] = []) {
           {
             properties: {
               projectLead: { enum: [true] },
-              preferredEmail,
-              additionalEmails,
             },
             required: ['projectLead'],
           },

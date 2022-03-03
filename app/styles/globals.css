@@ -97,10 +97,6 @@ textarea#root_bceidBody {
   width: 600px;
 }
 
-.control-label[for='root_additionalEmails'] {
-  display: none;
-}
-
 .field-string .pg-input .pg-input-input {
   width: 100%;
   padding-right: 30px;

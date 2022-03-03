@@ -2,6 +2,7 @@ export interface User {
   id: number;
   idirUserid: string;
   idirEmail: string;
+  additionalEmail: string;
   isAdmin?: boolean;
 }
 export interface Session {
@@ -16,7 +17,6 @@ export interface Session {
 export interface Data {
   realm?: string;
   projectName: string;
-  preferredEmail: string;
   projectLead: boolean;
   devValidRedirectUris?: string[];
   testValidRedirectUris?: string[];
@@ -25,7 +25,6 @@ export interface Data {
   publicAccess?: boolean;
   id?: number;
   comment?: string;
-  additionalEmails: string[];
   bceidEmailDetails?: object;
   environments?: string[];
   idirUserDisplayName?: string;
@@ -37,6 +36,7 @@ export interface Data {
   archived?: boolean;
   usesTeam?: boolean;
   teamId?: string;
+  userId?: string;
   requester?: string;
 }
 
@@ -51,7 +51,6 @@ export interface FormattedData {
   };
   id?: number;
   projectLead: boolean;
-  preferredEmail: string;
   agreeWithTC?: boolean;
   publicAccess?: boolean;
 }

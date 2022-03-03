@@ -2,7 +2,6 @@ import { processRequest } from '../utils/helpers';
 
 const data: any = {
   id: 1,
-  idirUserid: 'TEST',
   projectName: 'test',
   clientName: 'test-two',
   realm: 'onestopauth',
@@ -18,7 +17,6 @@ const data: any = {
   createdAt: 'test2',
   updatedAt: '11-12-2015',
   projectLead: true,
-  preferredEmail: 'test',
   agreeWithTerms: true,
   status: 'submitted',
   archived: true,

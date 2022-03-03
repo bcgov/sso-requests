@@ -4,11 +4,21 @@ import { Session, User } from '../../../shared/interfaces';
 import { isAdmin } from '../utils/helpers';
 import { getMyTeamsLiteral } from './literals';
 
-export const getMyOrTeamRequest = async (session: Session, requestId: number, roles: string[] = ['user', 'admin']) => {
-  const { idir_userid: idirUserid, user } = session;
-  const where: any = { id: requestId };
+const commonPopulation = [
+  {
+    model: models.user,
+    required: false,
+  },
+  {
+    model: models.team,
+    required: false,
+  },
+];
 
-  const teamIdsLiteral = getMyTeamsLiteral(user.id, roles);
+export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: string[]) => {
+  const where: any = {};
+
+  const teamIdsLiteral = getMyTeamsLiteral(userId, roles);
 
   where[Op.or] = [
     {
@@ -18,18 +28,20 @@ export const getMyOrTeamRequest = async (session: Session, requestId: number, ro
       },
     },
     {
-      idirUserid,
+      userId,
     },
   ];
 
+  return where;
+};
+
+export const getMyOrTeamRequest = async (userId: number, requestId: number, roles: string[] = ['user', 'admin']) => {
+  const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
+  where.id = requestId;
+
   return models.request.findOne({
     where,
-    include: [
-      {
-        model: models.team,
-        required: false,
-      },
-    ],
+    include: commonPopulation,
   });
 };
 
@@ -37,16 +49,11 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
   if (isAdmin(session)) {
     return models.request.findOne({
       where: { id: requestId },
-      include: [
-        {
-          model: models.team,
-          required: false,
-        },
-      ],
+      include: commonPopulation,
     });
   }
 
-  return getMyOrTeamRequest(session, requestId, roles);
+  return getMyOrTeamRequest(session.user.id, requestId, roles);
 };
 
 export const listIntegrationsForTeam = async (session: Session, teamId: number, options?: { raw: boolean }) => {

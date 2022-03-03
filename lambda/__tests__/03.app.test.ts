@@ -70,7 +70,6 @@ describe('requests endpoints', () => {
 
   it('should create a request successfully', async () => {
     const sampleRequestPayload = {
-      preferredEmail: 'testuser@example.com',
       projectLead: true,
       projectName: 'sampleprojectname',
       publicAccess: false,
@@ -155,6 +154,7 @@ describe('Updating', () => {
     return Promise.all([
       models.request.create({
         id: testProjectId,
+        userId: 1,
         idirUserid: TEST_IDIR_USERID,
         projectName: 'test',
         status: 'draft',
