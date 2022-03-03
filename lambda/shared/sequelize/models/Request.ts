@@ -2,6 +2,10 @@ module.exports = (sequelize, DataTypes) => {
   const Request = sequelize.define(
     'request',
     {
+      idirUserid: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       projectName: {
         type: DataTypes.STRING,
         allowNull: false,
