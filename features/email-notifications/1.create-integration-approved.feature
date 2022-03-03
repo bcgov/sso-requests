@@ -17,4 +17,4 @@ Feature: New Integration Approved
         Given the integration is associated with a team
         When the integration request is approved
         Then all team admins/members receive emails (id: create-integration-approved)
-        And SSO admin is cc'd on one of the emails sent to the team
+        And SSO admin is cc'd on the email sent to the team

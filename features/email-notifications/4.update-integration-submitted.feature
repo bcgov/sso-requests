@@ -20,7 +20,7 @@ Feature: Submit Integration Update
         And the changes does not include BCeID in prod
         When the integration request is submitted
         Then all team admins/members receive emails (id: update-integration-submitted)
-        And SSO admin is cc'd on one of the emails sent to the team
+        And SSO admin is cc'd on the email sent to the team
         And the email content includes the requester name
 
     Scenario: User notification with BCeID prod
@@ -29,14 +29,12 @@ Feature: Submit Integration Update
         When the integration update request is submitted
         Then the integration owner receives an email (id: create-integration-submitted-bceid-prod)
         And SSO admin and IDIM consulting are cc'd on the email sent to the integration owner
-
-    Note: what if SSO Admin checks the BCeID production
+        And the email content includes the requester name
 
     Scenario: Team notification without BCeID prod
         Given the integration is associated with a team
         And the changes include BCeID in prod
         When the integration request is submitted
         Then all team admins/members receive emails (id: create-integration-submitted-bceid-prod)
-        And SSO admin and IDIM consulting are cc'd on one of the emails sent to the team
-
-    Note: what if SSO Admin checks the BCeID production
+        And SSO admin and IDIM consulting are cc'd on the email sent to the team
+        And the email content includes the requester name

@@ -19,7 +19,7 @@ Feature: Submit New Integration
         And the integration does not include BCeID IDP
         When the integration request is submitted
         Then all team admins/members receive emails (id: create-integration-submitted)
-        And SSO admin is cc'd on one of the emails sent to the team
+        And SSO admin is cc'd on the email sent to the team
 
     Scenario: User notification for BCeID in non-Prod
         Given the integration is not associated with a team
@@ -55,4 +55,4 @@ Feature: Submit New Integration
         And the integration include production environment
         When the integration request is submitted
         Then all team admins/members receive emails (id: create-integration-submitted-bceid-prod)
-        And SSO admin and IDIM consulting are cc'd on one of the emails sent to the team
+        And SSO admin and IDIM consulting are cc'd on the email sent to the team
