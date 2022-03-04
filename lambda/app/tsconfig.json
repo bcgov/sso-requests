@@ -11,8 +11,9 @@
     "baseUrl": "./",
     "paths": {
       "*": ["../../*"],
+      "@app/*": ["../../app/*"],
       "@lambda-app/*": ["./src/*"],
-      "@app/*": ["../../app/*"]
+      "@lambda-shared/*": ["../shared/*"]
     }
   },
   "include": ["src/**/*", "../shared/**/*"],

@@ -1,19 +1,33 @@
-import { models } from '../../shared/sequelize/models/models';
-import { formatUrisForEmail, realmToIDP } from '../utils/helpers';
+import { map, compact, flatten } from 'lodash';
+import { models } from '@lambda-shared/sequelize/models/models';
+import { formatUrisForEmail, realmToIDP } from '@lambda-shared/utils/helpers';
+import { Data } from '@lambda-shared/interfaces';
+import { getTeamById } from '@lambda-app/queries/team';
+import { getUserById } from '@lambda-app/queries/user';
 
-export const processRequest = (request: any) => {
-  if (request instanceof models.request) {
-    request = request.get({ plain: true });
+export const processRequest = async (integration: any) => {
+  if (integration instanceof models.request) {
+    integration = integration.get({ plain: true });
   }
 
-  const { realm, devValidRedirectUris = [], testValidRedirectUris = [], prodValidRedirectUris = [] } = request;
+  let accountableEntity = '';
+
+  if (integration.usesTeam === true) {
+    const team = integration.team ? integration.team : await getTeamById(integration.teamId);
+    accountableEntity = team.name;
+  } else {
+    const user = integration.user ? integration.user : await getUserById(integration.userId);
+    accountableEntity = user.displayName;
+  }
+
+  const { realm, devValidRedirectUris = [], testValidRedirectUris = [], prodValidRedirectUris = [] } = integration;
   const devUris = formatUrisForEmail(devValidRedirectUris, 'Development');
   const testUris = formatUrisForEmail(testValidRedirectUris, 'Test');
   const prodUris = formatUrisForEmail(prodValidRedirectUris, 'Production');
   const idps = realmToIDP(realm);
 
   return {
-    ...request,
+    ...integration,
     devValidRedirectUris,
     testValidRedirectUris,
     prodValidRedirectUris,
@@ -21,5 +35,43 @@ export const processRequest = (request: any) => {
     testUris,
     prodUris,
     idps,
+    accountableEntity,
   };
+};
+
+export const getUserEmails = (user) => compact([user.idirEmail, user.additionalEmail]);
+
+export const getTeamEmails = async (teamId: number, roles: string[] = ['user', 'admin']) => {
+  const users = await models.user.findAll({
+    where: {},
+    include: [
+      {
+        model: models.usersTeam,
+        where: { teamId, roles, pending: false },
+        required: true,
+      },
+    ],
+    attributes: ['id', 'idirEmail', 'additionalEmail'],
+    raw: true,
+  });
+
+  return flatten(map(users, getUserEmails));
+};
+
+export const getIntegrationEmails = async (integration: Data) => {
+  if (integration.usesTeam === true) {
+    return getTeamEmails(Number(integration.teamId));
+  } else if (integration.user) {
+    return getUserEmails(integration.user);
+  } else if (integration.userId) {
+    const user = await models.user.findOne({
+      where: { userId: integration.userId },
+      attributes: ['id', 'idirEmail', 'additionalEmail'],
+      raw: true,
+    });
+
+    return getUserEmails(user);
+  }
+
+  return [];
 };

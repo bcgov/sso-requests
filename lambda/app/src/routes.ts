@@ -1,4 +1,3 @@
-import { isFunction } from 'lodash';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
 import {

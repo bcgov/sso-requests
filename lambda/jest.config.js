@@ -10,5 +10,6 @@ module.exports = {
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/../app/$1',
     '^@lambda-app/(.*)$': '<rootDir>/app/src/$1',
+    '^@lambda-shared/(.*)$': '<rootDir>/shared/$1',
   },
 };

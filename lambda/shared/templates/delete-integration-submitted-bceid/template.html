@@ -1,0 +1,19 @@
+<h1>Hello IDIM Team,</h1>
+<p>We are notifying you that we have received a request to delete an integration. The request details are below:</p>
+<ul>
+  <li><strong>Requester:</strong> {{integration.requester}}</li>
+  <li><strong>Project name:</strong> {{integration.projectName}} #({{integration.id}})</li>
+  <li><strong>Accountable person:</strong> {{integration.accountableEntity}}</li>
+  <li>
+    <strong>URIs:</strong>
+    <ul>
+      {{integration.devUris}} {{integration.testUris}} {{integration.prodUris}}
+    </ul>
+  </li>
+  <li><strong>Identity Providers Required:</strong> {{integration.idps}}</li>
+</ul>
+<p>
+  To view your integrations please
+  <a href="{{appUrl}}/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>.
+</p>
+{{> footer }}

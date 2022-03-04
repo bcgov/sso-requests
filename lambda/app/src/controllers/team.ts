@@ -1,9 +1,13 @@
 import { Op } from 'sequelize';
-import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { User, Team, Member } from '../../../shared/interfaces';
-import { inviteTeamMembers } from '../utils/helpers';
 import { getTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
+import { inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
+import { sequelize, models } from '@lambda-shared/sequelize/models/models';
+import { sendTemplate } from '@lambda-shared/templates';
+import { EMAILS } from '@lambda-shared/enums';
+import { User, Team, Member } from '@lambda-shared/interfaces';
+import { getTeamById } from '../queries/team';
+import { getUserById } from '../queries/user';
 
 export const listTeams = async (user: User) => {
   const result = await getTeamsForUser(user.id, { raw: true });
@@ -83,14 +87,10 @@ export const deleteTeam = async (user: User, id: string) => {
     },
   );
 
-  const result = await models.team.destroy({
-    where: {
-      id,
-    },
-  });
-
-  // it returns the number of deleted rows
-  return result === 1;
+  const team = await models.team.findOne({ where: { id } });
+  sendTemplate(EMAILS.TEAM_DELETED, { team });
+  await team.destroy();
+  return team.get({ plain: true });
 };
 
 export const verifyTeamMember = async (userId: number, teamId: number) => {
@@ -164,12 +164,14 @@ const canRemoveUser = async (userId: number, teamId: number) => {
 export const removeUserFromTeam = async (userId: number, teamId: number) => {
   const canRemove = canRemoveUser(userId, teamId);
   if (!canRemove) throw new Error('Not allowed');
-  return models.usersTeam.destroy({
-    where: {
-      userId,
-      teamId,
-    },
-  });
+
+  await models.usersTeam.destroy({ where: { userId, teamId } });
+
+  const [user, team] = await Promise.all([getUserById(userId), getTeamById(teamId)]);
+  return Promise.all([
+    sendTemplate(EMAILS.TEAM_MEMBER_DELETED_ADMINS, { user, team }),
+    sendTemplate(EMAILS.TEAM_MEMBER_DELETED_USER_REMOVED, { user, team }),
+  ]);
 };
 
 export const updateMemberInTeam = async (teamId: number, userId: number, data: { role: string }) => {

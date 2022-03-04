@@ -8,7 +8,8 @@
     "rootDir": "../",
     "baseUrl": "./",
     "paths": {
-      "@lambda-app/*": ["../app/src/*"]
+      "@lambda-app/*": ["../app/src/*"],
+      "@lambda-shared/*": ["../shared/*"]
     }
   },
   "include": ["src/**/*", "../shared/**/*"],

@@ -1,9 +1,7 @@
-import { models } from '../../../shared/sequelize/models/models';
+import { models } from '@lambda-shared/sequelize/models/models';
+import { sendTemplate } from '@lambda-shared/templates';
+import { EVENTS, EMAILS } from '@lambda-shared/enums';
 import { mergePR } from '../github';
-import { sendEmail } from '../../../shared/utils/ches';
-import { getEmailList } from '../../../shared/utils/helpers';
-import { renderTemplate } from '../../../shared/templates';
-import { EVENTS } from '../../../shared/enums';
 
 const createEvent = async (data) => {
   try {
@@ -79,14 +77,8 @@ export default async function updateStatus(event) {
       ]);
 
       if (success && !request.archived) {
-        const emailCode = isUpdate ? 'uri-change-request-approved' : 'create-request-approved';
-        const to = await getEmailList(request);
-
-        await sendEmail({
-          to,
-          ...renderTemplate(emailCode, { request }),
-          event: { emailCode, requestId },
-        });
+        const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;
+        await sendTemplate(emailCode, { integration: request });
       }
     }
   }

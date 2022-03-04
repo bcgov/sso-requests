@@ -3,6 +3,13 @@ import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { User } from '../../../shared/interfaces';
 import { getMyTeamsLiteral } from './literals';
 
+export const getTeamById = async (teamId: number, options?: { raw: boolean }) => {
+  return models.team.findOne({
+    where: { id: teamId },
+    ...options,
+  });
+};
+
 export const getTeamsForUser = async (userId: number, options?: { raw: boolean }) => {
   return models.team.findAll({
     include: [

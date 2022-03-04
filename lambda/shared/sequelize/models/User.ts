@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
           this.setDataValue('idirEmail', lowcase(value));
         },
       },
+      displayName: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       additionalEmail: {
         type: DataTypes.STRING,
         allowNull: true,

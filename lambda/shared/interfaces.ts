@@ -2,6 +2,7 @@ export interface User {
   id: number;
   idirUserid: string;
   idirEmail: string;
+  displayName: string;
   additionalEmail: string;
   isAdmin?: boolean;
 }
@@ -37,6 +38,8 @@ export interface Data {
   usesTeam?: boolean;
   teamId?: string;
   userId?: string;
+  team?: Team;
+  user?: User;
   requester?: string;
 }
 
@@ -89,6 +92,7 @@ export interface Member {
 }
 
 export interface Team {
+  id: number;
   name: string;
   members: Member[];
 }

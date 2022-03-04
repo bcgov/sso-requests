@@ -8,10 +8,11 @@ import providerSchema from '@app/schemas/shared/providers';
 import requesterSchema from '@app/schemas/shared/requester-info';
 import termsAndConditionsSchema from '@app/schemas/shared/terms-and-conditions';
 import { customValidate } from '@app/utils/customValidate';
-import { Session, Data, User } from '../../../shared/interfaces';
-import { renderTemplate, EmailTemplate } from '../../../shared/templates';
-import { sendEmail } from '../../../shared/utils/ches';
-import { sequelize, models } from '../../../shared/sequelize/models/models';
+import { Session, Data, User } from '@lambda-shared/interfaces';
+import { sendTemplate } from '@lambda-shared/templates';
+import { EMAILS } from '@lambda-shared/enums';
+import { sequelize, models } from '@lambda-shared/sequelize/models/models';
+import { getTeamById } from '../queries/team';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
@@ -39,31 +40,6 @@ const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-b
 export const usesBceid = (realm: string | undefined) => {
   if (!realm) return false;
   return bceidRealms.includes(realm);
-};
-
-export const notifyIdim = async (request: Data, bceidEvent: BceidEvent, email: string) => {
-  const { realm, id, environments } = request;
-  const skipNotification = !usesBceid(realm) || bceidEvent === 'update';
-  if (skipNotification) return;
-
-  const usesProd = environments.includes('prod');
-  // Only cc user for production requests
-  let cc = usesProd ? [email] : [];
-  // TODO: revisit here when going through email templates
-  // if (Array.isArray(additionalEmails) && usesProd) cc = cc.concat(additionalEmails);
-
-  let emailCode: EmailTemplate;
-  if (bceidEvent === 'submission' && !usesProd) emailCode = 'bceid-idim-dev-submitted';
-  else if (bceidEvent === 'deletion') emailCode = 'bceid-idim-deleted';
-  else return;
-  // const to = APP_ENV === 'production' ? [IDIM_EMAIL_ADDRESS, 'IDIM.Consulting@gov.bc.ca'] : [IDIM_EMAIL_ADDRESS];
-  const to = [IDIM_EMAIL_ADDRESS];
-  return sendEmail({
-    to,
-    cc,
-    ...renderTemplate(emailCode, { request }),
-    event: { emailCode, requestId: id },
-  });
 };
 
 const sortURIFields = (data: any) => {
@@ -191,15 +167,14 @@ export async function getUsersTeams(user) {
 }
 
 export async function inviteTeamMembers(users: User[], teamId: number) {
+  const team = await getTeamById(teamId);
+  if (!team) return;
+
   return Promise.all(
     users.map((user) => {
-      const invitationLink = generateInvitationToken(user, teamId);
-      const { idirEmail } = user;
-      const args = {
-        to: [idirEmail],
-        ...renderTemplate('team-invitation', { teamId, invitationLink }),
-      };
-      return sendEmail(args);
+      const invitationLink = generateInvitationToken(user, team.id);
+      const { idirEmail: email } = user;
+      return sendTemplate(EMAILS.TEAM_INVITATION, { email, team, invitationLink });
     }),
   );
 }

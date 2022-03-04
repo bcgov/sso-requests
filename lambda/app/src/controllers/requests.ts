@@ -1,6 +1,4 @@
 import { Op } from 'sequelize';
-import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { Session, Data, User } from '../../../shared/interfaces';
 import { kebabCase, assign, isNil } from 'lodash';
 import {
   validateRequest,
@@ -9,16 +7,14 @@ import {
   isAdmin,
   getDisplayName,
   usesBceid,
-  notifyIdim,
   getWhereClauseForAllRequests,
-  getUsersTeams,
-  IDIM_EMAIL_ADDRESS,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
-import { sendEmail } from '../../../shared/utils/ches';
-import { getEmailList } from '../../../shared/utils/helpers';
-import { renderTemplate, EmailTemplate } from '../../../shared/templates';
-import { EVENTS } from '../../../shared/enums';
+import { sequelize, models } from '@lambda-shared/sequelize/models/models';
+import { Session, Data, User } from '@lambda-shared/interfaces';
+import { EMAILS } from '@lambda-shared/enums';
+import { sendTemplate } from '@lambda-shared/templates';
+import { EVENTS } from '@lambda-shared/enums';
 import { getAllowedTeams } from '@lambda-app/queries/team';
 import {
   getMyOrTeamRequest,
@@ -61,7 +57,7 @@ const checkIfRequestMerged = async (id: number) => {
 export const createRequest = async (session: Session, data: Data) => {
   await checkIfHasFailedRequests();
 
-  const idirUserDisplayName = session.given_name + ' ' + session.family_name;
+  const idirUserDisplayName = session.user.displayName;
   const now = new Date();
   const oneDayAgo = new Date();
   oneDayAgo.setDate(oneDayAgo.getDate() - 1);
@@ -82,13 +78,9 @@ export const createRequest = async (session: Session, data: Data) => {
       userId: session.user.id,
       idirUserDisplayName,
     };
-    const emailCode = 'request-limit-exceeded';
-    await sendEmail({
-      to: [SSO_EMAIL_ADDRESS],
-      ...renderTemplate(emailCode, { request: data }),
-      event: { emailCode },
-    });
+
     createEvent(eventData);
+    sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session.user.displayName });
     throw Error('reached the day limit');
   }
 
@@ -142,6 +134,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       let { environments, realm } = current;
 
       const hasBceid = usesBceid(realm);
+      const hadBceidProd = hasBceid && originalData.environments.includes('prod');
       const hasBceidProd = hasBceid && environments.includes('prod');
 
       if (!current.bceidApproved && hasBceid)
@@ -167,37 +160,41 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
         throw Error('failed to create a workflow dispatch event');
       }
 
-      let emailCode: EmailTemplate;
-      let cc = [];
-      if (isMerged && isApprovingBceid) {
-        emailCode = 'bceid-request-approved';
-        cc.push(IDIM_EMAIL_ADDRESS);
-      } else if (isMerged) emailCode = 'uri-change-request-submitted';
-      else if (hasBceidProd) {
-        emailCode = 'bceid-user-prod-submitted';
-        cc.push(IDIM_EMAIL_ADDRESS);
-      } else emailCode = 'create-request-submitted';
-
-      const to = await getEmailList(finalData);
-      const event = isMerged ? 'update' : 'submission';
-
       const requester = await getRequester(session, current.id);
       allowedData.requester = requester;
       current.requester = requester;
 
       finalData = getCurrentValue();
 
-      await Promise.all([
-        sendEmail({
-          to,
-          ...renderTemplate(emailCode, {
-            request: finalData,
-          }),
-          event: { emailCode, requestId: id },
-          cc,
-        }),
-        notifyIdim(finalData, event, current.user.idirEmail),
-      ]);
+      let emailCode: string;
+      let emailData: any;
+
+      // updating...
+      if (isMerged) {
+        if (isApprovingBceid) {
+          emailCode = EMAILS.BCEID_PROD_APPROVED;
+          emailData = { integration: finalData };
+        } else if (!hadBceidProd && hasBceidProd) {
+          emailCode = EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD;
+          emailData = { integration: finalData };
+        } else {
+          emailCode = EMAILS.UPDATE_INTEGRATION_SUBMITTED;
+          emailData = { integration: finalData };
+        }
+      } else {
+        if (hasBceidProd) {
+          emailCode = EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD;
+          emailData = { integration: finalData };
+        } else if (hasBceid) {
+          emailCode = EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM;
+          emailData = { integration: finalData };
+        } else {
+          emailCode = EMAILS.CREATE_INTEGRATION_SUBMITTED;
+          emailData = { integration: finalData };
+        }
+      }
+
+      await sendTemplate(emailCode, emailData);
     }
 
     const updated = await current.save();
@@ -344,24 +341,22 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     if (prError) throw prError;
 
     const result = await current.save();
-    const to = await getEmailList(current);
+    const hasBceid = usesBceid(current.realm);
 
-    const emailCodeAdmin = 'request-deleted-notification-to-admin';
-    const emailCodeUser = 'request-deleted';
+    let emailCode: string;
+    let emailData: any;
 
-    Promise.all([
-      sendEmail({
-        to: [SSO_EMAIL_ADDRESS],
-        ...renderTemplate(emailCodeAdmin, { request: current }),
-        event: { emailCode: emailCodeAdmin, requestId: id },
-      }),
-      sendEmail({
-        to,
-        ...renderTemplate(emailCodeUser, { request: current }),
-        event: { emailCode: emailCodeUser, requestId: id },
-      }),
-      notifyIdim(current, 'deletion', current.user.idirEmail),
-    ]);
+    const integration = result.get({ plain: true });
+
+    if (hasBceid) {
+      emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED_BCEID;
+      emailData = { integration };
+    } else {
+      emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED;
+      emailData = { integration };
+    }
+
+    await sendTemplate(emailCode, emailData);
 
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
@@ -369,7 +364,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       userId: session.user.id,
     });
 
-    return result.get({ plain: true });
+    return integration;
   } catch (err) {
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
