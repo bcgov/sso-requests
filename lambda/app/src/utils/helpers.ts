@@ -171,10 +171,11 @@ export async function inviteTeamMembers(users: User[], teamId: number) {
   if (!team) return;
 
   return Promise.all(
-    users.map((user) => {
+    users.map(async (user) => {
       const invitationLink = generateInvitationToken(user, team.id);
       const { idirEmail: email } = user;
-      return sendTemplate(EMAILS.TEAM_INVITATION, { email, team, invitationLink });
+      await sendTemplate(EMAILS.TEAM_INVITATION, { email, team, invitationLink });
+      return true;
     }),
   );
 }

@@ -90,7 +90,7 @@ export const deleteTeam = async (user: User, id: string) => {
   const team = await models.team.findOne({ where: { id } });
   sendTemplate(EMAILS.TEAM_DELETED, { team });
   await team.destroy();
-  return team.get({ plain: true });
+  return true;
 };
 
 export const verifyTeamMember = async (userId: number, teamId: number) => {
@@ -168,10 +168,12 @@ export const removeUserFromTeam = async (userId: number, teamId: number) => {
   await models.usersTeam.destroy({ where: { userId, teamId } });
 
   const [user, team] = await Promise.all([getUserById(userId), getTeamById(teamId)]);
-  return Promise.all([
+  await Promise.all([
     sendTemplate(EMAILS.TEAM_MEMBER_DELETED_ADMINS, { user, team }),
     sendTemplate(EMAILS.TEAM_MEMBER_DELETED_USER_REMOVED, { user, team }),
   ]);
+
+  return true;
 };
 
 export const updateMemberInTeam = async (teamId: number, userId: number, data: { role: string }) => {

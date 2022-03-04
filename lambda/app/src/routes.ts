@@ -286,7 +286,7 @@ export const setRoutes = (app: any) => {
       const result = await addUsersToTeam(id, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -300,7 +300,7 @@ export const setRoutes = (app: any) => {
       const result = await updateMemberInTeam(id, memberId, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -313,7 +313,7 @@ export const setRoutes = (app: any) => {
       const result = await removeUserFromTeam(memberId, id);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 

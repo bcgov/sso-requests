@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { map, compact, flatten } from 'lodash';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { formatUrisForEmail, realmToIDP } from '@lambda-shared/utils/helpers';
@@ -14,10 +15,10 @@ export const processRequest = async (integration: any) => {
 
   if (integration.usesTeam === true) {
     const team = integration.team ? integration.team : await getTeamById(integration.teamId);
-    accountableEntity = team.name;
+    accountableEntity = team?.name || '';
   } else {
     const user = integration.user ? integration.user : await getUserById(integration.userId);
-    accountableEntity = user.displayName;
+    accountableEntity = user?.displayName || '';
   }
 
   const { realm, devValidRedirectUris = [], testValidRedirectUris = [], prodValidRedirectUris = [] } = integration;
@@ -47,8 +48,9 @@ export const getTeamEmails = async (teamId: number, roles: string[] = ['user', '
     include: [
       {
         model: models.usersTeam,
-        where: { teamId, roles, pending: false },
+        where: { teamId, role: { [Op.in]: roles }, pending: false },
         required: true,
+        attributes: [],
       },
     ],
     attributes: ['id', 'idirEmail', 'additionalEmail'],
