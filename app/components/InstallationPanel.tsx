@@ -108,10 +108,7 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
       </Grid>
       <InfoMessage>
         For more information on how to use these details, or for the public endpoints associated to your client, see{' '}
-        <Link
-          href="https://github.com/bcgov/sso-requests/blob/dev/docs/developer-guide.md#using-your-integration"
-          external
-        >
+        <Link href="https://github.com/bcgov/sso-requests/blob/dev/docs/user-guide.md#using-your-integration" external>
           here
         </Link>
         .
