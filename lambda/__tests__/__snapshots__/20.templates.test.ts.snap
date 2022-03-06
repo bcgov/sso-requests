@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Email template snapshots Should return the expeted email for BCEID_PROD_APPROVED 1`] = `"BCeID Request ID 1 approved and being processed"`;
+exports[`Email template snapshots Should return the expeted email for BCEID_PROD_APPROVED 1`] = `"[DEV] BCeID Request ID 1 approved and being processed"`;
 
 exports[`Email template snapshots Should return the expeted email for BCEID_PROD_APPROVED 2`] = `
 "<h1>Hello Pathfinder Friend,</h1>
@@ -26,7 +26,7 @@ exports[`Email template snapshots Should return the expeted email for BCEID_PROD
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPROVED 1`] = `"Pathfinder SSO request approved"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPROVED 1`] = `"[DEV] Pathfinder SSO request approved"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPROVED 2`] = `
 "<h1>Your Pathfinder SSO request ID 1 is approved.</h1>
@@ -51,7 +51,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 1`] = `"Pathfinder SSO request submitted"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO request submitted"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 2`] = `
 "<h1>Your Pathfinder SSO request ID 1 is successfully submitted.</h1>
@@ -76,7 +76,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM 1`] = `"New BCeID Request ID 1"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM 1`] = `"[DEV] New BCeID Request ID 1"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM 2`] = `
 "<h1>Hello IDIM Team,</h1>
@@ -106,7 +106,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_PROD 1`] = `"New BCeID Request ID 1"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_PROD 1`] = `"[DEV] New BCeID Request ID 1"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_PROD 2`] = `
 "<h1>Hello Pathfinder SSO friend,</h1>
@@ -163,7 +163,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 1`] = `"Pathfinder SSO integration ID 1 deleted"`;
+exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO integration ID 1 deleted"`;
 
 exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 2`] = `
 "<h1>Your Pathfinder SSO request ID 1 is deleted.</h1>
@@ -188,7 +188,7 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED_BCEID 1`] = `"BCeID Integration ID 1 deleted"`;
+exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED_BCEID 1`] = `"[DEV] BCeID Integration ID 1 deleted"`;
 
 exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED_BCEID 2`] = `
 "<h1>Hello IDIM Team,</h1>
@@ -221,7 +221,7 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for REQUEST_LIMIT_EXCEEDED 1`] = `"Pathfinder SSO request limit reached"`;
+exports[`Email template snapshots Should return the expeted email for REQUEST_LIMIT_EXCEEDED 1`] = `"[DEV] Pathfinder SSO request limit reached"`;
 
 exports[`Email template snapshots Should return the expeted email for REQUEST_LIMIT_EXCEEDED 2`] = `
 "<h1>Request Limit Exceeded</h1>
@@ -229,7 +229,7 @@ exports[`Email template snapshots Should return the expeted email for REQUEST_LI
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for TEAM_DELETED 1`] = `"Team testteam has been removed by a team admin"`;
+exports[`Email template snapshots Should return the expeted email for TEAM_DELETED 1`] = `"[DEV] Team testteam has been removed by a team admin"`;
 
 exports[`Email template snapshots Should return the expeted email for TEAM_DELETED 2`] = `
 "<p>testteam has been removed as well as your membership from the team.</p>
@@ -249,7 +249,7 @@ exports[`Email template snapshots Should return the expeted email for TEAM_DELET
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for TEAM_INVITATION 1`] = `"Invitation to join testteam"`;
+exports[`Email template snapshots Should return the expeted email for TEAM_INVITATION 1`] = `"[DEV] Invitation to join testteam"`;
 
 exports[`Email template snapshots Should return the expeted email for TEAM_INVITATION 2`] = `
 "<h1>Hello Pathfinder SSO friend,</h1>
@@ -278,7 +278,7 @@ exports[`Email template snapshots Should return the expeted email for TEAM_INVIT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_ADMINS 1`] = `"Team Admin has modified testteam"`;
+exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_ADMINS 1`] = `"[DEV] Team Admin has modified testteam"`;
 
 exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_ADMINS 2`] = `
 "<p>A team member <strong>()</strong> has been removed from <strong>testteam</strong>.</p>
@@ -298,7 +298,7 @@ exports[`Email template snapshots Should return the expeted email for TEAM_MEMBE
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_USER_REMOVED 1`] = `"Team Admin has modified testteam"`;
+exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_USER_REMOVED 1`] = `"[DEV] Team Admin has modified testteam"`;
 
 exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_USER_REMOVED 2`] = `
 "<p>A team admin from <strong>testteam</strong> has removed your membership.</p>
@@ -318,7 +318,7 @@ exports[`Email template snapshots Should return the expeted email for TEAM_MEMBE
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPROVED 1`] = `"Pathfinder SSO change request approved and can be downloaded"`;
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPROVED 1`] = `"[DEV] Pathfinder SSO change request approved and can be downloaded"`;
 
 exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPROVED 2`] = `
 "<h1>Your Pathfinder SSO change for integration ID 1 is approved.</h1>
@@ -344,7 +344,7 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED 1`] = `"Pathfinder SSO change request submitted"`;
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO change request submitted"`;
 
 exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED 2`] = `
 "<h1>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</h1>

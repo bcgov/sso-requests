@@ -83,13 +83,12 @@ export interface RenderResult {
   body: string;
 }
 
-export const renderTemplate = (code: string, data: any): Promise<RenderResult> => {
+export const renderTemplate = async (code: string, data: any): Promise<RenderResult> => {
   data.appUrl = APP_URL;
   data.apiUrl = API_URL;
-
-  const prefix = APP_ENV === 'development' ? '[DEV] ' : '';
+  const prefix = APP_ENV === 'production' ? '' : '[DEV] ';
   const builder = getBuilder(code);
-  const result = builder.render(data);
+  const result = await builder.render(data);
 
   if (prefix) result.subject = `${prefix}${result.subject}`;
   return result;
