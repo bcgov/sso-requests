@@ -6,6 +6,22 @@ import { Data } from '@lambda-shared/interfaces';
 import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
 
+export const processTeam = async (team: any) => {
+  if (team instanceof models.team) {
+    team = team.get({ plain: true, clone: true });
+  }
+
+  return team;
+};
+
+export const processUser = async (user: any) => {
+  if (user instanceof models.user) {
+    user = user.get({ plain: true, clone: true });
+  }
+
+  return user;
+};
+
 export const processRequest = async (integration: any) => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true });

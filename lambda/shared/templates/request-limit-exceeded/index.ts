@@ -3,6 +3,8 @@ import Handlebars = require('handlebars');
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { User } from '@lambda-shared/interfaces';
+import { processUser } from '../helpers';
+import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request limit reached`;
 const template = fs.readFileSync(__dirname + '/template.html', 'utf8');
@@ -14,17 +16,20 @@ interface DataProps {
   user: User;
 }
 
-export const render = (data: DataProps) => {
+export const render = async (originalData: DataProps): Promise<RenderResult> => {
+  const { user } = originalData;
+  const data = { ...originalData, user: await processUser(user) };
+
   return {
     subject: subjectHandler(data),
     body: bodyHandler(data),
   };
 };
 
-export const send = async (data: DataProps) => {
+export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
     to: [SSO_EMAIL_ADDRESS],
-    ...render(data),
+    ...rendered,
   });
 };
 

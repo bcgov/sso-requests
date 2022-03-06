@@ -1,18 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Email template snapshots Should return the expeted email for BCEID_PROD_APPROVED 1`] = `"[DEV] BCeID Request ID  approved and being processed"`;
+exports[`Email template snapshots Should return the expeted email for BCEID_PROD_APPROVED 1`] = `"BCeID Request ID 1 approved and being processed"`;
 
 exports[`Email template snapshots Should return the expeted email for BCEID_PROD_APPROVED 2`] = `
 "<h1>Hello Pathfinder Friend,</h1>
 <p>
-  Your Pathfinder SSO production environment for BCeID <strong>integration request ID </strong> has
+  Your Pathfinder SSO production environment for BCeID <strong>integration request ID 1</strong> has
   been approved.
 </p>
 <p>
   Your resources will be available in the next 20 minutes or so, please log in to your dashboard to see the progress.
 </p>
-<p><strong>Project Name: </strong> </p>
-<p><strong>Submitted By: </strong> </p>
+<p><strong>Project Name: </strong>test</p>
+<p><strong>Submitted By: </strong>SSO Admin</p>
 <p>If you are not the requester, this email serves only to notify you of the request status.</p>
 <p>
   If you have any questions, please contact us by
@@ -26,13 +26,13 @@ exports[`Email template snapshots Should return the expeted email for BCEID_PROD
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPROVED 1`] = `"[DEV] Pathfinder SSO request approved"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPROVED 1`] = `"Pathfinder SSO request approved"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPROVED 2`] = `
-"<h1>Your Pathfinder SSO request ID  is approved.</h1>
+"<h1>Your Pathfinder SSO request ID 1 is approved.</h1>
 <p>
-  <strong>Project name: </strong><br />
-  <strong>Submitted by: </strong>
+  <strong>Project name: </strong>test<br />
+  <strong>Submitted by: </strong>SSO Admin
 </p>
 <p>
   Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
@@ -51,13 +51,13 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO request submitted"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 1`] = `"Pathfinder SSO request submitted"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 2`] = `
-"<h1>Your Pathfinder SSO request ID  is successfully submitted.</h1>
+"<h1>Your Pathfinder SSO request ID 1 is successfully submitted.</h1>
 <p>
-  <strong>Project name: </strong><br />
-  <strong>Submitted by: </strong>
+  <strong>Project name: </strong>test<br />
+  <strong>Submitted by: </strong>SSO Admin
 </p>
 <p>
   <strong>The expected processing time is 20 minutes</strong><br />
@@ -76,7 +76,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM 1`] = `"[DEV] New BCeID Request ID "`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM 1`] = `"New BCeID Request ID 1"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM 2`] = `
 "<h1>Hello IDIM Team,</h1>
@@ -84,15 +84,15 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   We are notifying you that a new dev and/or test integration request has been submitted. The request details are below:
 </p>
 <ul>
-  <li><strong>Project name:</strong> </li>
-  <li><strong>Accountable person:</strong> </li>
+  <li><strong>Project name: </strong>test</li>
+  <li><strong>Accountable person: </strong>Test User</li>
   <li>
     <strong>URIs:</strong>
     <ul>
-       
+      <li> Development: https://b </li> 
     </ul>
   </li>
-  <li><strong>Identity Providers Required:</strong></li>
+  <li><strong>Identity Providers Required:</strong>idir</li>
 </ul>
 <p>
   If you have any questions, please contact us by
@@ -106,23 +106,23 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_PROD 1`] = `"[DEV] New BCeID Request ID "`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_PROD 1`] = `"New BCeID Request ID 1"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_PROD 2`] = `
 "<h1>Hello Pathfinder SSO friend,</h1>
 <p>Thank you for your integration request. Below is a summary of your integration request details.</p>
 <ul>
-  <li><strong>Project name:</strong> </li>
-  <li><strong>Accountable person:</strong> </li>
+  <li><strong>Project name: </strong>test</li>
+  <li><strong>Accountable person: </strong>Test User</li>
   <li>
     <strong>URIs:</strong>
     <ul>
-       
+      <li> Development: https://b </li> <li> Test: https://a </li>
     </ul>
   </li>
-  <li><strong>Identity Providers Required:</strong></li>
+  <li><strong>Identity Providers Required: </strong>idir</li>
 </ul>
-<p><strong>Submitted by: </strong></p>
+<p><strong>Submitted by: </strong>SSO Admin</p>
 <p>
   As you've requested an integration with BCeID, any production integration request requires you to work with the
   Identity and Information Management (IDIM) team.
@@ -131,7 +131,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   <li>
     <strong>URIs:</strong>
     <ul>
-      
+      <li> Production: https://a </li>
     </ul>
   </li>
 </ul>
@@ -163,13 +163,13 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO integration ID  deleted"`;
+exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 1`] = `"Pathfinder SSO integration ID 1 deleted"`;
 
 exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 2`] = `
-"<h1>Your Pathfinder SSO request ID  is deleted.</h1>
+"<h1>Your Pathfinder SSO request ID 1 is deleted.</h1>
 <p>
-  <strong>Project name: </strong><br />
-  <strong>Deleted by: </strong>
+  <strong>Project name: </strong>test<br />
+  <strong>Deleted by: </strong>SSO Admin
 </p>
 <p>This email serves only to notify you of the request status.</p>
 <p>
@@ -188,22 +188,22 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED_BCEID 1`] = `"[DEV] BCeID Integration ID  deleted"`;
+exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED_BCEID 1`] = `"BCeID Integration ID 1 deleted"`;
 
 exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED_BCEID 2`] = `
 "<h1>Hello IDIM Team,</h1>
 <p>We are notifying you that we have received a request to delete an integration. The request details are below:</p>
 <ul>
-  <li><strong>Requester:</strong> </li>
-  <li><strong>Project name:</strong>  #()</li>
-  <li><strong>Accountable person:</strong> </li>
+  <li><strong>Requester: </strong>SSO Admin</li>
+  <li><strong>Project name: </strong>test #(1)</li>
+  <li><strong>Accountable person: </strong>Test User</li>
   <li>
     <strong>URIs:</strong>
     <ul>
-        
+      <li> Development: https://b </li>  
     </ul>
   </li>
-  <li><strong>Identity Providers Required:</strong> </li>
+  <li><strong>Identity Providers Required: </strong>idir</li>
 </ul>
 <p>
   To view your integrations please
@@ -221,15 +221,15 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for REQUEST_LIMIT_EXCEEDED 1`] = `"[DEV] Pathfinder SSO request limit reached"`;
+exports[`Email template snapshots Should return the expeted email for REQUEST_LIMIT_EXCEEDED 1`] = `"Pathfinder SSO request limit reached"`;
 
 exports[`Email template snapshots Should return the expeted email for REQUEST_LIMIT_EXCEEDED 2`] = `
 "<h1>Request Limit Exceeded</h1>
-<p>Pathfinder SSO user test user has exceeded their daily limit</p>
+<p>Pathfinder SSO user <strong>test user (#1)</strong> has exceeded their daily limit</p>
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for TEAM_DELETED 1`] = `"[DEV] Team testteam has been removed by a team admin"`;
+exports[`Email template snapshots Should return the expeted email for TEAM_DELETED 1`] = `"Team testteam has been removed by a team admin"`;
 
 exports[`Email template snapshots Should return the expeted email for TEAM_DELETED 2`] = `
 "<p>testteam has been removed as well as your membership from the team.</p>
@@ -249,11 +249,11 @@ exports[`Email template snapshots Should return the expeted email for TEAM_DELET
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for TEAM_INVITATION 1`] = `"[DEV] Invitation to join testteam"`;
+exports[`Email template snapshots Should return the expeted email for TEAM_INVITATION 1`] = `"Invitation to join testteam"`;
 
 exports[`Email template snapshots Should return the expeted email for TEAM_INVITATION 2`] = `
 "<h1>Hello Pathfinder SSO friend,</h1>
-<p>You are invited to join <strong>testteam #(1)</strong></p>
+<p>You are invited to join <strong>testteam (#1)</strong></p>
 <p>
   Please follow this <a href=\\"http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link\\">link</a> to view your invitation in the
   dashboard. This link will expire in <strong>2 business days.</strong>
@@ -278,7 +278,7 @@ exports[`Email template snapshots Should return the expeted email for TEAM_INVIT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_ADMINS 1`] = `"[DEV] Team Admin has modified testteam"`;
+exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_ADMINS 1`] = `"Team Admin has modified testteam"`;
 
 exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_ADMINS 2`] = `
 "<p>A team member <strong>()</strong> has been removed from <strong>testteam</strong>.</p>
@@ -298,7 +298,7 @@ exports[`Email template snapshots Should return the expeted email for TEAM_MEMBE
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_USER_REMOVED 1`] = `"[DEV] Team Admin has modified testteam"`;
+exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_USER_REMOVED 1`] = `"Team Admin has modified testteam"`;
 
 exports[`Email template snapshots Should return the expeted email for TEAM_MEMBER_DELETED_USER_REMOVED 2`] = `
 "<p>A team admin from <strong>testteam</strong> has removed your membership.</p>
@@ -318,13 +318,13 @@ exports[`Email template snapshots Should return the expeted email for TEAM_MEMBE
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPROVED 1`] = `"[DEV] Pathfinder SSO change request approved and can be downloaded"`;
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPROVED 1`] = `"Pathfinder SSO change request approved and can be downloaded"`;
 
 exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPROVED 2`] = `
-"<h1>Your Pathfinder SSO change for integration ID  is approved.</h1>
+"<h1>Your Pathfinder SSO change for integration ID 1 is approved.</h1>
 <p>
-  <strong>Project name: </strong><br />
-  <strong>Submitted by: </strong>
+  <strong>Project name: </strong>test<br />
+  <strong>Submitted by: </strong>SSO Admin
 </p>
 <p>
   Please
@@ -344,13 +344,13 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO change request submitted"`;
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED 1`] = `"Pathfinder SSO change request submitted"`;
 
 exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED 2`] = `
-"<h1>Your Pathfinder SSO change request for integration ID  is successfully submitted.</h1>
+"<h1>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</h1>
 <p>
-  <strong>Project name: </strong><br />
-  <strong>Submitted by: </strong>
+  <strong>Project name: </strong>test<br />
+  <strong>Submitted by: </strong>SSO Admin
 </p>
 <p>
   <strong>The expected processing time is 20 minutes</strong><br />

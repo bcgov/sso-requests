@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
 import { noop } from 'lodash';
-import { EMAILS } from '../../shared/enums';
+import { models } from '@lambda-shared/sequelize/models/models';
+import { EVENTS, EMAILS } from '@lambda-shared/enums';
 import bceidProdApproved from './bceid-prod-approved';
 import createIntegrationApproved from './create-integration-approved';
 import createIntegrationSubmitted from './create-integration-submitted';
@@ -77,7 +78,12 @@ const getBuilder = (key: string) => {
   return builder;
 };
 
-export const renderTemplate = (code: string, data: any) => {
+export interface RenderResult {
+  subject: string;
+  body: string;
+}
+
+export const renderTemplate = (code: string, data: any): Promise<RenderResult> => {
   data.appUrl = APP_URL;
   data.apiUrl = API_URL;
 
@@ -89,9 +95,28 @@ export const renderTemplate = (code: string, data: any) => {
   return result;
 };
 
-export const sendTemplate = (code: string, data: any) => {
-  const builder = getBuilder(code);
-  return builder.send(data);
+const createEvent = async (data) => {
+  try {
+    await models.event.create(data);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const sendTemplate = async (code: string, data: any) => {
+  try {
+    const builder = getBuilder(code);
+    const rendered = await renderTemplate(code, data);
+    await builder.send(data, rendered);
+  } catch (err) {
+    if (data.integration) {
+      createEvent({
+        eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
+        requestId: data.integration.id,
+        details: { emailCode: code, error: err.message || err },
+      });
+    }
+  }
 };
 
 export default { renderTemplate, sendTemplate };

@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
 import { sendEmail } from '@lambda-shared/utils/ches';
+import { processTeam } from '../helpers';
+import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Invitation to join {{team.name}}`;
 const template = fs.readFileSync(__dirname + '/template.html', 'utf8');
@@ -15,19 +17,22 @@ interface DataProps {
   apiUrl: string;
 }
 
-export const render = (data: DataProps) => {
+export const render = async (originalData: DataProps): Promise<RenderResult> => {
+  const { team } = originalData;
+  const data = { ...originalData, team: await processTeam(team) };
+
   return {
     subject: subjectHandler(data),
     body: bodyHandler(data),
   };
 };
 
-export const send = async (data: DataProps) => {
+export const send = async (data: DataProps, rendered: RenderResult) => {
   const { email } = data;
 
   return sendEmail({
     to: [email],
-    ...render(data),
+    ...rendered,
   });
 };
 
