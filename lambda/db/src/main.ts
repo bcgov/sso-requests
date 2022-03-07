@@ -6,7 +6,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   const logger = {
     info: (...data) => {
       logs.push(JSON.stringify(data, null, 2));
-      console.info(...data);
+      // console.info(...data);
     },
   };
 
