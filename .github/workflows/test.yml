@@ -55,6 +55,11 @@ jobs:
           ./setup.sh ssorequests_test
         working-directory: ./db
 
+      - name: Install dependencies for parent lambda module
+        run: |
+          yarn
+        working-directory: ./lambda
+
       - name: Install dependencies - lambda app
         run: |
           yarn

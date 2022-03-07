@@ -89,6 +89,11 @@ jobs:
           yarn
         working-directory: ./app
 
+      - name: Install dependencies for parent lambda module
+        run: |
+          yarn
+        working-directory: ./lambda
+
       - name: Install dependencies for shared module
         run: |
           yarn
