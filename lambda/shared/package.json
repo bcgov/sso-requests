@@ -11,7 +11,6 @@
   "dependencies": {
     "axios": "^0.24.0",
     "handlebars": "^4.7.7",
-    "pg": "^8.7.1",
-    "sequelize": "^6.12.5"
+    "pg": "^8.7.1"
   }
 }
