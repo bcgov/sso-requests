@@ -108,6 +108,8 @@ export const sendTemplate = async (code: string, data: any) => {
     const rendered = await renderTemplate(code, data);
     await builder.send(data, rendered);
   } catch (err) {
+    console.error(err);
+
     if (data.integration) {
       createEvent({
         eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
@@ -116,6 +118,10 @@ export const sendTemplate = async (code: string, data: any) => {
       });
     }
   }
+};
+
+export const sendTemplates = async (emails: { code: string; data: any }[]) => {
+  await emails.map((email) => sendTemplate(email.code, email.data));
 };
 
 export default { renderTemplate, sendTemplate };

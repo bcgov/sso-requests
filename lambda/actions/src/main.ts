@@ -28,7 +28,7 @@ const unprocessableEntityError = (body = 'unable to process the request') => {
   return response({ statusCode: 422, body: JSON.stringify(body) });
 };
 
-export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
+export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback): Promise<any> => {
   // Sequelize waits ~10seconds to drop connection, delaying API response.
   // Use this to prevent, see https://forum.serverless.com/t/lambda-with-rds-using-vpc-works-slow/1261/7 for more
   context.callbackWaitsForEmptyEventLoop = false;

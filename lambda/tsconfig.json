@@ -12,6 +12,7 @@
       "*": ["../*"],
       "@app/*": ["../app/*"],
       "@lambda-app/*": ["./app/src/*"],
+      "@lambda-actions/*": ["./actions/src/*"],
       "@lambda-shared/*": ["./shared/*"]
     }
   }

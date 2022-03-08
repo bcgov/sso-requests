@@ -13,7 +13,7 @@ import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, Data, User } from '@lambda-shared/interfaces';
 import { EMAILS } from '@lambda-shared/enums';
-import { sendTemplate } from '@lambda-shared/templates';
+import { sendTemplate, sendTemplates } from '@lambda-shared/templates';
 import { EVENTS } from '@lambda-shared/enums';
 import { getAllowedTeams } from '@lambda-app/queries/team';
 import {
@@ -166,35 +166,52 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
 
       finalData = getCurrentValue();
 
-      let emailCode: string;
-      let emailData: any;
+      const emails: { code: string; data: any }[] = [];
 
       // updating...
       if (isMerged) {
         if (isApprovingBceid) {
-          emailCode = EMAILS.BCEID_PROD_APPROVED;
-          emailData = { integration: finalData };
+          emails.push({
+            code: EMAILS.BCEID_PROD_APPROVED,
+            data: { integration: finalData },
+          });
         } else if (!hadBceidProd && hasBceidProd) {
-          emailCode = EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD;
-          emailData = { integration: finalData };
+          emails.push({
+            code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD,
+            data: { integration: finalData },
+          });
         } else {
-          emailCode = EMAILS.UPDATE_INTEGRATION_SUBMITTED;
-          emailData = { integration: finalData };
+          emails.push({
+            code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
+            data: { integration: finalData },
+          });
         }
       } else {
         if (hasBceidProd) {
-          emailCode = EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD;
-          emailData = { integration: finalData };
+          emails.push({
+            code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD,
+            data: { integration: finalData },
+          });
         } else if (hasBceid) {
-          emailCode = EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM;
-          emailData = { integration: finalData };
+          emails.push(
+            {
+              code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
+              data: { integration: finalData },
+            },
+            {
+              code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM,
+              data: { integration: finalData },
+            },
+          );
         } else {
-          emailCode = EMAILS.CREATE_INTEGRATION_SUBMITTED;
-          emailData = { integration: finalData };
+          emails.push({
+            code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
+            data: { integration: finalData },
+          });
         }
       }
 
-      await sendTemplate(emailCode, emailData);
+      await sendTemplates(emails);
     }
 
     const updated = await current.save();

@@ -58,7 +58,7 @@ export const processRequest = async (integration: any) => {
 
 export const getUserEmails = (user) => compact([user.idirEmail, user.additionalEmail]);
 
-export const getTeamEmails = async (teamId: number, roles: string[] = ['user', 'admin']) => {
+export const getTeamEmails = async (teamId: number, roles: string[] = ['member', 'admin']) => {
   const users = await models.user.findAll({
     where: {},
     include: [
@@ -83,7 +83,7 @@ export const getIntegrationEmails = async (integration: Data) => {
     return getUserEmails(integration.user);
   } else if (integration.userId) {
     const user = await models.user.findOne({
-      where: { userId: integration.userId },
+      where: { id: integration.userId },
       attributes: ['id', 'idirEmail', 'additionalEmail'],
       raw: true,
     });
