@@ -41,7 +41,6 @@
     "pg": "^8.6.0",
     "pg-format": "^1.0.4",
     "react": "^17.0.2",
-    "react-jsonschema-form": "^1.8.1",
-    "sequelize": "^6.6.4"
+    "react-jsonschema-form": "^1.8.1"
   }
 }

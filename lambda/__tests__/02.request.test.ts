@@ -109,7 +109,7 @@ describe('Creating Teams', () => {
         members: [
           {
             idirEmail: newMemberEmail,
-            role: 'user',
+            role: 'member',
           },
         ],
       }),
@@ -128,7 +128,7 @@ describe('Creating Teams', () => {
     expect(userTeam.userId).toBe(newUser.id);
     expect(userTeam.teamId).toBe(team.id);
     expect(userTeam.pending).toBe(true);
-    expect(userTeam.role).toBe('user');
+    expect(userTeam.role).toBe('member');
     expect(sendEmail).toHaveBeenCalled();
 
     expect(response.statusCode).toEqual(200);

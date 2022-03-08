@@ -33,12 +33,6 @@ jest.mock('../app/src/utils/helpers', () => {
   };
 });
 
-jest.mock('../app/src/github', () => {
-  return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
-  };
-});
-
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 
 describe('requests endpoints', () => {

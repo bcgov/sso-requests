@@ -35,7 +35,7 @@ export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: stri
   return where;
 };
 
-export const getMyOrTeamRequest = async (userId: number, requestId: number, roles: string[] = ['user', 'admin']) => {
+export const getMyOrTeamRequest = async (userId: number, requestId: number, roles: string[] = ['member', 'admin']) => {
   const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
   where.id = requestId;
 
