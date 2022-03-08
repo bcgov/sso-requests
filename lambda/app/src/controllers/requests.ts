@@ -80,7 +80,7 @@ export const createRequest = async (session: Session, data: Data) => {
     };
 
     createEvent(eventData);
-    sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session.user.displayName });
+    await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session.user.displayName });
     throw Error('reached the day limit');
   }
 
@@ -354,8 +354,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     }
 
     // Close any pr's if they exist
-    const [, prError] = await closeOpenPullRequests(id);
-    if (prError) throw prError;
+    await closeOpenPullRequests(id);
 
     const result = await current.save();
     const hasBceid = usesBceid(current.realm);
@@ -383,6 +382,8 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     return integration;
   } catch (err) {
+    console.error(err);
+
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
       requestId: id,

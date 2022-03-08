@@ -3,6 +3,7 @@ import Handlebars = require('handlebars');
 import { Team, User } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { getUserEmails, processTeam, processUser } from '../helpers';
+import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Team Admin has modified {{team.name}}`;
@@ -31,7 +32,9 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getUserEmails(user);
 
   return sendEmail({
+    code: EMAILS.TEAM_MEMBER_DELETED_USER_REMOVED,
     to: emails,
+    cc: [],
     ...rendered,
   });
 };

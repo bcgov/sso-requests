@@ -30,6 +30,8 @@ const event: APIGatewayProxyEvent = {
 
 const context: Context = {};
 
+export const TEST_ADMIN_USERID = 'QWERASDFZXCV';
+export const TEST_ADMIN_EMAIL = 'ssoadmin@example.com';
 export const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
 export const TEST_IDIR_USERID_2 = 'AABBCCDDEEFFGGHH';
 export const TEST_IDIR_EMAIL = 'testuser@example.com';

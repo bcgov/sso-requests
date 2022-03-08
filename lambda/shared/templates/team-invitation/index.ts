@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import Handlebars = require('handlebars');
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { processTeam } from '../helpers';
+import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Invitation to join {{team.name}}`;
@@ -31,7 +32,9 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const { email } = data;
 
   return sendEmail({
+    code: EMAILS.TEAM_INVITATION,
     to: [email],
+    cc: [],
     ...rendered,
   });
 };

@@ -4,6 +4,7 @@ import { processRequest } from '../helpers';
 import { Data } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS } from '@lambda-shared/local';
+import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `New BCeID Request ID {{integration.id}}`;
@@ -29,6 +30,7 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
+    code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM,
     to: [IDIM_EMAIL_ADDRESS],
     cc: [SSO_EMAIL_ADDRESS],
     ...rendered,
