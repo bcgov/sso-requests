@@ -135,16 +135,16 @@ describe('Can Delete Member', () => {
         [
           {
             role: 'admin',
-            id: '1',
+            id: 1,
             idirEmail: '',
           },
           {
-            role: 'user',
-            id: '2',
+            role: 'member',
+            id: 2,
             idirEmail: '',
           },
         ],
-        '1',
+        1,
       ),
     ).toBe(false);
   });
@@ -154,16 +154,16 @@ describe('Can Delete Member', () => {
         [
           {
             role: 'admin',
-            id: '1',
+            id: 1,
             idirEmail: '',
           },
           {
-            role: 'user',
-            id: '2',
+            role: 'member',
+            id: 2,
             idirEmail: '',
           },
         ],
-        '2',
+        2,
       ),
     ).toBe(true);
   });
