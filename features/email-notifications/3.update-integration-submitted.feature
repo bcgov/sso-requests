@@ -31,7 +31,7 @@ Feature: Submit Integration Update
         And SSO admin and IDIM consulting are cc'd on the email sent to the integration owner
         And the email content includes the requester name
 
-    Scenario: Team notification without BCeID prod
+    Scenario: Team notification with BCeID prod
         Given the integration is associated with a team
         And the changes include BCeID in prod
         When the integration request is submitted
