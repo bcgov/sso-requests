@@ -70,6 +70,16 @@ export const setRoutes = (app: any) => {
     }
   });
 
+  app.get(`${BASE_PATH}/verify-token`, async (req, res) => {
+    try {
+      const session = (await authenticate(req.headers)) as Session;
+      res.status(200).json(session);
+      return session;
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
   app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
     try {
       const token = req.query.token;
