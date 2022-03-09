@@ -7,6 +7,8 @@ const { sso_client_id } = publicRuntimeConfig;
 import { meta } from './provider';
 import { parseJWTPayload, parseJWTHeader } from './helpers';
 
+const h8 = 8 * 60 * 60;
+
 export const verifyToken = async (token: string) => {
   if (!token) return false;
 
@@ -33,7 +35,7 @@ export const verifyToken = async (token: string) => {
 
   // verify JWT Signature
   const keyObj: any = rs.KEYUTIL.getKey(key);
-  const isValid = rs.KJUR.jws.JWS.verifyJWT(token, keyObj, { alg: ['RS256'] });
+  const isValid = rs.KJUR.jws.JWS.verifyJWT(token, keyObj, { alg: ['RS256'], gracePeriod: h8 });
   if (!isValid) {
     console.error('signature verification failed');
     return false;
