@@ -38,8 +38,8 @@ _**Note:** The defaults will get you up and running, but actual credentials are 
 2. Install dependencies
 
    ```sh
-    make server_install
     make app_install
+    make server_install
    ```
 
    _**Note:** Installing all dependencies the first time will take a while._
