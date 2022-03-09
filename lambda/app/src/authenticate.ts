@@ -40,7 +40,7 @@ const validateJWTSignature = async (token) => {
     const { identity_provider, idir_userid, email, client_roles, family_name, given_name } = jwt.verify(token, pem, {
       audience,
       issuer,
-      maxAge: '24h',
+      maxAge: '8h',
       ignoreExpiration: true,
     });
     if (identity_provider !== 'idir' || !idir_userid) {
