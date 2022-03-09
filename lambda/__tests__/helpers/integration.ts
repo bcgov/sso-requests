@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { sequelize, models, modelNames } from '@lambda-shared/sequelize/models/models';
 import { handler as appHandler } from '@lambda-app/main';
+import { getMembersOnTeam } from '@lambda-app/queries/team';
 import { handler as actionsHandler } from '@lambda-actions/main';
 import baseEvent from '../base-event.json';
 
@@ -30,6 +31,11 @@ export class Integration {
   createResponse: Response;
   teamResponse: Response;
   submitResponse: Response;
+  deleteResponse: Response;
+
+  team: any;
+  teamUsers: any[];
+  firstTeamMember: any;
 
   async create(args: { bceid?: boolean; prod?: boolean; usesTeam?: boolean }) {
     const { bceid = false, prod = false, usesTeam = false } = args;
@@ -63,10 +69,15 @@ export class Integration {
     return this.createResponse;
   }
 
+  set(data: any) {
+    Object.assign(this.current, data);
+    return this.current;
+  }
+
   async createTeam() {
     const teamData: any = {
       name: 'mytestteam',
-      members: [{ idirEmail: [TEST_IDIR_EMAIL_2], role: 'member' }],
+      members: [{ idirEmail: TEST_IDIR_EMAIL_2, role: 'member' }],
     };
 
     const event: APIGatewayProxyEvent = {
@@ -78,12 +89,37 @@ export class Integration {
 
     const { statusCode, body } = await appHandler(event, context);
     this.teamResponse = { statusCode, data: JSON.parse(body) };
-    this.current.teamId = String(this.teamResponse.data.id);
+    this.team = this.teamResponse.data;
+    this.current.teamId = String(this.team.id);
     this.current.usesTeam = true;
 
     await sequelize.query(`UPDATE users_teams SET pending=false`);
+    this.teamUsers = await getMembersOnTeam(this.current.teamId, { raw: true });
+    this.firstTeamMember = this.teamUsers.find((member) => member.role === 'member');
 
     return this.teamResponse;
+  }
+
+  async removeMember() {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      path: `${baseUrl}/teams/${this.current.teamId}/members/${this.firstTeamMember.id}`,
+      httpMethod: 'DELETE',
+    };
+
+    const { statusCode, body } = await appHandler(event, context);
+    return { statusCode, data: JSON.parse(body) };
+  }
+
+  async removeTeam() {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      path: `${baseUrl}/teams/${this.current.teamId}`,
+      httpMethod: 'DELETE',
+    };
+
+    const { statusCode, body } = await appHandler(event, context);
+    return { statusCode, data: JSON.parse(body) };
   }
 
   async submit() {
@@ -101,6 +137,20 @@ export class Integration {
     this.submitResponse = { statusCode, data: JSON.parse(body) };
 
     return this.submitResponse;
+  }
+
+  async delete() {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      path: `${baseUrl}/requests`,
+      httpMethod: 'DELETE',
+      queryStringParameters: { id: this.current.id },
+    };
+
+    const { statusCode, body } = await appHandler(event, context);
+    this.deleteResponse = { statusCode, data: JSON.parse(body) };
+
+    return this.deleteResponse;
   }
 
   async prSuccess(prNumber: number) {

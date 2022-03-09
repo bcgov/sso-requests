@@ -4,6 +4,7 @@ import { Team } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { getTeamEmails } from '../helpers';
 import { processTeam } from '../helpers';
+import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Team {{team.name}} has been removed by a team admin`;
@@ -29,10 +30,12 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { team } = data;
-  const emails = await getTeamEmails(team.id, ['admin']);
+  const emails = await getTeamEmails(team.id);
 
   return sendEmail({
+    code: EMAILS.TEAM_DELETED,
     to: emails,
+    cc: [],
     ...rendered,
   });
 };

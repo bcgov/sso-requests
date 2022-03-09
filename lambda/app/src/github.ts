@@ -61,29 +61,24 @@ export const dispatchRequestWorkflow = async (formData: GitHubRequestDispatchInp
 };
 
 export const closeOpenPullRequests = async (id: number) => {
-  try {
-    const labels = ['auto_generated', 'request', String(id)];
+  const labels = ['auto_generated', 'request', String(id)];
 
-    // delete all open issues with the target client
-    const issuesRes = await octokit.rest.issues.listForRepo({
-      owner: process.env.GH_OWNER,
-      repo: process.env.GH_REPO,
-      state: 'open',
-      labels: labels.join(','),
-    });
+  // delete all open issues with the target client
+  const issuesRes = await octokit.rest.issues.listForRepo({
+    owner: process.env.GH_OWNER,
+    repo: process.env.GH_REPO,
+    state: 'open',
+    labels: labels.join(','),
+  });
 
-    await Promise.all(
-      issuesRes.data.map((issue) => {
-        return octokit.rest.issues.update({
-          owner: process.env.GH_OWNER,
-          repo: process.env.GH_REPO,
-          issue_number: issue.number,
-          state: 'closed',
-        });
-      }),
-    );
-    return [true, null];
-  } catch (err) {
-    return [null, err];
-  }
+  return Promise.all(
+    issuesRes.data.map((issue) => {
+      return octokit.rest.issues.update({
+        owner: process.env.GH_OWNER,
+        repo: process.env.GH_REPO,
+        issue_number: issue.number,
+        state: 'closed',
+      });
+    }),
+  );
 };

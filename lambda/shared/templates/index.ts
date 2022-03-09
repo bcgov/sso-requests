@@ -79,6 +79,7 @@ const getBuilder = (key: string) => {
 };
 
 export interface RenderResult {
+  code?: string;
   subject: string;
   body: string;
 }
@@ -91,6 +92,7 @@ export const renderTemplate = async (code: string, data: any): Promise<RenderRes
   const result = await builder.render(data);
 
   if (prefix) result.subject = `${prefix}${result.subject}`;
+  result.code = code;
   return result;
 };
 

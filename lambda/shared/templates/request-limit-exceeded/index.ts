@@ -4,6 +4,7 @@ import { sendEmail } from '@lambda-shared/utils/ches';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { User } from '@lambda-shared/interfaces';
 import { processUser } from '../helpers';
+import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request limit reached`;
@@ -28,7 +29,9 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
+    code: EMAILS.REQUEST_LIMIT_EXCEEDED,
     to: [SSO_EMAIL_ADDRESS],
+    cc: [],
     ...rendered,
   });
 };

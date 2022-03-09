@@ -88,7 +88,7 @@ export const deleteTeam = async (user: User, id: string) => {
   );
 
   const team = await models.team.findOne({ where: { id } });
-  sendTemplate(EMAILS.TEAM_DELETED, { team });
+  await sendTemplate(EMAILS.TEAM_DELETED, { team });
   await team.destroy();
   return true;
 };

@@ -28,8 +28,9 @@ import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
 import { Session, User } from '../../shared/interfaces';
-import { parseInvitationToken, inviteTeamMembers } from '../src/utils/helpers';
+import { inviteTeamMembers } from '../src/utils/helpers';
 import { getAllowedTeams } from '@lambda-app/queries/team';
+import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { isAdmin } from './utils/helpers';
 import encodeurl = require('encodeurl');
 
@@ -74,7 +75,7 @@ export const setRoutes = (app: any) => {
       const token = req.query.token;
       if (!token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
       else {
-        const [data] = await parseInvitationToken(token);
+        const data = parseInvitationToken(token);
         const { userId, teamId, exp } = data;
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;

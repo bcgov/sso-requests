@@ -20,7 +20,7 @@ const fetchChesToken = async (username, password) => {
   }
 };
 
-export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, ...rest }: EmailOptions) => {
+export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, body, ...rest }: EmailOptions) => {
   const { CHES_USERNAME: username, CHES_PASSWORD: password, CHES_API_ENDPOINT: chesAPIEndpoint } = process.env;
   const [accessToken, error] = await fetchChesToken(username, password);
   if (error) throw Error(error);

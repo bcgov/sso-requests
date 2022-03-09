@@ -1,6 +1,5 @@
 import { isObject, omit, sortBy, compact } from 'lodash';
 import { Op } from 'sequelize';
-import { verify, sign } from 'jsonwebtoken';
 import { diff } from 'deep-diff';
 import validate from 'react-jsonschema-form/lib/validate';
 import { Request } from '@app/interfaces/Request';
@@ -13,10 +12,10 @@ import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { getTeamById } from '../queries/team';
+import { generateInvitationToken } from '@lambda-app/helpers/token';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
-const VERIFY_USER_SECRET = process.env.VERIFY_USER_SECRET || 'asdf';
 
 export const omitNonFormFields = (data: Request) =>
   omit(data, [
@@ -178,13 +177,4 @@ export async function inviteTeamMembers(users: User[], teamId: number) {
       return true;
     }),
   );
-}
-
-function generateInvitationToken(user: User, teamId: number) {
-  return sign({ userId: user.id, teamId }, VERIFY_USER_SECRET, { expiresIn: '2d' });
-}
-
-export async function parseInvitationToken(token) {
-  const data = (verify(token, VERIFY_USER_SECRET) as any) || {};
-  return [data, null];
 }

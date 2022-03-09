@@ -64,6 +64,7 @@ interface EmailEvent {
 }
 
 export interface EmailOptions {
+  code?: string;
   from?: string;
   to: string[];
   body: string;
