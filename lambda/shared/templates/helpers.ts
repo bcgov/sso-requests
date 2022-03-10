@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { map, compact, flatten } from 'lodash';
+import { map, compact, flatten, uniq } from 'lodash';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { formatUrisForEmail, realmToIDP } from '@lambda-shared/utils/helpers';
 import { Data } from '@lambda-shared/interfaces';
@@ -73,7 +73,7 @@ export const getTeamEmails = async (teamId: number, roles: string[] = ['member',
     raw: true,
   });
 
-  return flatten(map(users, getUserEmails));
+  return uniq(flatten(map(users, getUserEmails)));
 };
 
 export const getIntegrationEmails = async (integration: Data) => {
