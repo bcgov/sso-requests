@@ -2,7 +2,7 @@
 
 SHELL := /usr/bin/env bash
 
-TARGET := ../../../terraform/lambda-schedular.zip
+TARGET := ../../../terraform/lambda-scheduler.zip
 
 .PHONY: install
 install:

@@ -1,5 +1,5 @@
 {
-  "name": "lambda-schedular",
+  "name": "lambda-scheduler",
   "version": "1.0.0",
   "description": "lambda functions for scheduling",
   "license": "Apache-2.0",
