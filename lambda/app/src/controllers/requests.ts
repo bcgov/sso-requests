@@ -55,7 +55,8 @@ const checkIfRequestMerged = async (id: number) => {
 };
 
 export const createRequest = async (session: Session, data: Data) => {
-  await checkIfHasFailedRequests();
+  // let's skip this logic for now and see if we might need it back later
+  // await checkIfHasFailedRequests();
 
   const idirUserDisplayName = session.user.displayName;
   const now = new Date();
