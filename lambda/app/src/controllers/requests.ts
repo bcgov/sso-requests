@@ -99,7 +99,8 @@ export const createRequest = async (session: Session, data: Data) => {
 };
 
 export const updateRequest = async (session: Session, data: Data, user: User, submit: string | undefined) => {
-  await checkIfHasFailedRequests();
+  // let's skip this logic for now and see if we might need it back later
+  // await checkIfHasFailedRequests();
 
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = getDisplayName(session);

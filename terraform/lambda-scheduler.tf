@@ -19,11 +19,12 @@ resource "aws_lambda_function" "scheduler" {
 
   environment {
     variables = {
-      NODE_ENV       = "production"
-      GH_REPO        = var.gh_repo
-      GH_BRANCH      = var.gh_branch
-      GH_OWNER       = var.gh_owner
-      GH_WORKFLOW_ID = var.gh_apply_workflow_id
+      NODE_ENV        = "production"
+      GH_REPO         = var.gh_repo
+      GH_BRANCH       = var.gh_branch
+      GH_OWNER        = var.gh_owner
+      GH_WORKFLOW_ID  = var.gh_apply_workflow_id
+      GH_ACCESS_TOKEN = var.gh_access_token
     }
   }
 
