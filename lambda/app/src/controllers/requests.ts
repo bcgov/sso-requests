@@ -22,8 +22,8 @@ import {
   getBaseWhereForMyOrTeamIntegrations,
 } from '@lambda-app/queries/request';
 
-const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
-const NEW_REQUEST_DAY_LIMIT = 10;
+const APP_ENV = process.env.APP_ENV || 'development';
+const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
 
 const createEvent = async (data) => {
   try {
