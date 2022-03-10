@@ -6,7 +6,6 @@ const responseHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
   'Access-Control-Allow-Origin': 'https://bcgov.github.io',
   'Access-Control-Allow-Methods': 'OPTIONS,PUT,GET',
-  'Access-Control-Allow-Credentials': 'true',
 };
 
 const BASE_PATH = '/actions';
