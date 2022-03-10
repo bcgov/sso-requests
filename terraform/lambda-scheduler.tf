@@ -23,7 +23,7 @@ resource "aws_lambda_function" "scheduler" {
       GH_REPO        = var.gh_repo
       GH_BRANCH      = var.gh_branch
       GH_OWNER       = var.gh_owner
-      GH_WORKFLOW_ID = var.gh_workflow_id
+      GH_WORKFLOW_ID = var.gh_apply_workflow_id
     }
   }
 
