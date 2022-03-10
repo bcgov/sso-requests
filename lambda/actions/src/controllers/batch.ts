@@ -13,7 +13,7 @@ const createEvent = async (data) => {
 };
 
 export const handlePRstage = async (data) => {
-  console.log(data);
+  console.log('handlePRstage', data);
   const { id, actionNumber, prNumber, success, changes, isEmpty, isAllowedToMerge, repoOwner, repoName } = data;
   if (isEmpty) {
     await models.request.update({ prNumber, status: 'applied', actionNumber }, { where: { id } });
@@ -47,7 +47,7 @@ export const handlePRstage = async (data) => {
 
 export const getPlannedIds = async () => {
   const integrations = await models.request.findAll({
-    where: { status: 'planned' },
+    where: { status: 'planned', archived: false },
     attributes: ['id'],
     raw: true,
   });
@@ -56,30 +56,30 @@ export const getPlannedIds = async () => {
 };
 
 export const updatePlannedItems = async (data) => {
+  console.log('updatePlannedItems', data);
   let { ids, success } = data;
   success = String(success) === 'true';
 
   const newStatus = success ? 'applied' : 'applyFailed';
   const eventCode = success ? EVENTS.REQUEST_APPLY_SUCCESS : EVENTS.REQUEST_APPLY_FAILURE;
+  const where = { [Op.or]: [{ id: { [Op.in]: ids } }, { status: 'applyFailed', archived: false }] };
 
-  const integrations = await models.request.update(
-    { status: newStatus },
-    { where: { [Op.or]: [{ id: { [Op.in]: ids } }, { status: 'applyFailed' }] }, returning: true, plain: true },
-  );
-
-  console.log(integrations);
-
-  await models.event.bulkCreate(integrations.map((intg) => ({ eventCode, requestId: intg.id })));
+  const integrations = await models.request.findAll({
+    where,
+    attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId'],
+    raw: true,
+  });
+  const integrationIds = integrations.map((intg) => intg.id);
+  await models.request.update({ status: newStatus }, { where: { id: { [Op.in]: integrationIds } } });
+  await models.event.bulkCreate(integrationIds.map((requestId) => ({ eventCode, requestId })));
 
   if (!success) return false;
 
   await Promise.all(
     integrations.map(async (integration) => {
-      if (integration.archived) return;
-
       const isUpdate =
         (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) >
-        0;
+        1;
 
       const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;
       await sendTemplate(emailCode, { integration });

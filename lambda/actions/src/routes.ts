@@ -70,7 +70,7 @@ export const setRoutes = (app: any) => {
 
   app.put(`${BASE_PATH}/batch/items`, async (req, res) => {
     try {
-      const result = await updatePlannedItems(req.data);
+      const result = await updatePlannedItems(req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
