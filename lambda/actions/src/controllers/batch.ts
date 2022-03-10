@@ -47,7 +47,7 @@ export const handlePRstage = async (data) => {
 
 export const getPlannedIds = async () => {
   const integrations = await models.request.findAll({
-    where: { status: 'planned', archived: false },
+    where: { status: { [Op.in]: ['planned', 'applyFailed'] }, archived: false },
     attributes: ['id'],
     raw: true,
   });
