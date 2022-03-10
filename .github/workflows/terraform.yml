@@ -111,6 +111,11 @@ jobs:
           make lambda
         working-directory: ./lambda/db
 
+      - name: zip lambda functions - scheduler
+        run: |
+          make build
+        working-directory: ./lambda/scheduler
+
       - name: zip lambda functions - actions
         run: |
           yarn

@@ -58,14 +58,19 @@ variable "gh_repo" {
   default     = "sso-terraform-dev"
 }
 
+variable "gh_branch" {
+  description = "default branch in the gh_repo"
+  default     = "main"
+}
+
 variable "gh_workflow_id" {
   description = "workflow id or filename to trigger when saving requests"
   default     = "request.yml"
 }
 
-variable "gh_branch" {
-  description = "default branch in the gh_repo"
-  default     = "main"
+variable "gh_apply_workflow_id" {
+  description = "workflow id or filename to trigger when Terraform Apply"
+  default     = "terraform-apply.yml"
 }
 
 variable "gh_secret" {

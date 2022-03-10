@@ -1,22 +1,16 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "ES2017",
+    "target": "es2015",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "sourceMap": false,
     "removeComments": true,
     "preserveConstEnums": true,
     "outDir": "./build",
-    "rootDir": "../../",
-    "baseUrl": "./",
-    "paths": {
-      "*": ["../../*"],
-      "@app/*": ["../../app/*"],
-      "@lambda-app/*": ["./src/*"],
-      "@lambda-shared/*": ["../shared/*"]
-    }
+    "rootDir": "./",
+    "baseUrl": "./"
   },
-  "include": ["src/**/*", "../shared/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }
