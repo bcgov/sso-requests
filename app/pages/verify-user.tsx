@@ -11,19 +11,19 @@ interface Props {
   currentUser: LoggedInUser;
 }
 
-const content = (
+const content = (lines: string[]) => (
   <text transform="translate(240 238)" fill="#777" fontSize="16" fontFamily="OpenSans, Open Sans">
     <tspan x="0" y="0">
-      If you know the team admin, please reach out to them so they
+      {lines[0]}
     </tspan>
     <tspan x="0" y="26">
-      can re-send the invitation.
+      {lines[1]}
     </tspan>
 
     <tspan x="0" y="52">
       You may still
     </tspan>
-    <tspan y="52" x="120" fill="#006fc4">
+    <tspan y="52" x="95" fill="#006fc4">
       <Link href="/my-dashboard">
         <a>login to your dashboard</a>
       </Link>
@@ -70,10 +70,21 @@ export default function VerifyUser({ currentUser }: Props) {
     window.location.href = authUrl;
   };
 
+  let errorTitle = '';
+  let errorContents = ['If you know the team admin, please reach out them, so they'];
+  if (!validated) {
+    if (message === 'expired') {
+      errorTitle = 'This link has expired.';
+      errorContents.push('can re-send the invitation.');
+    } else {
+      errorTitle = 'This link is no longer active.';
+      errorContents.push('can invite you back to the team.');
+    }
+  }
+
   return (
     <>
       <ResponsiveContainer rules={defaultRules}>
-        <h1>{message}</h1>
         {validated ? (
           <>
             <p>You have successfully joined team # {teamId}. Please click below to login and view your dashboard.</p>
@@ -82,8 +93,8 @@ export default function VerifyUser({ currentUser }: Props) {
             </Button>
           </>
         ) : (
-          <ErrorImage message="This link has expired" isError={false}>
-            {content}
+          <ErrorImage message={errorTitle} isError={false}>
+            {content(errorContents)}
           </ErrorImage>
         )}
       </ResponsiveContainer>

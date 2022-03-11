@@ -31,7 +31,6 @@ import { inviteTeamMembers } from '../src/utils/helpers';
 import { getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { isAdmin } from './utils/helpers';
-import encodeurl = require('encodeurl');
 
 const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -82,15 +81,18 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
     try {
       const token = req.query.token;
-      if (!token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
+      if (!token) return res.redirect(`${APP_URL}/verify-user?message=notoken`);
       else {
         const data = parseInvitationToken(token);
         const { userId, teamId, exp } = data;
+
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return res.redirect(`${APP_URL}/verify-user?message=${encodeurl('This link has expired')}`);
+        if (expired) return res.redirect(`${APP_URL}/verify-user?message=expired`);
+
         const verified = await verifyTeamMember(userId, teamId);
-        if (!verified) return res.redirect(`${APP_URL}/verify-user?message=${encodeurl('User not found')}`);
+        if (!verified) return res.redirect(`${APP_URL}/verify-user?message=notfound`);
+
         return res.redirect(`${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {

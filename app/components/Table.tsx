@@ -262,22 +262,20 @@ function Table({
       </SectionHeader>
 
       <StyledTable>
-        <thead>
-          <tr>
-            {headers.map((header, index) => {
-              return (
-                <th key={index} style={header.style || {}}>
-                  {header.name}
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
-            {children}
-          </ReactPlaceholder>
-        </tbody>
+        <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
+          <thead>
+            <tr>
+              {headers.map((header, index) => {
+                return (
+                  <th key={index} style={header.style || {}}>
+                    {header.name}
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>{children}</tbody>
+        </ReactPlaceholder>
       </StyledTable>
       {pageLimits && (
         <Grid cols={12}>
