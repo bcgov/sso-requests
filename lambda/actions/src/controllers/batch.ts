@@ -68,7 +68,7 @@ export const updatePlannedItems = async (data) => {
 
   const integrations = await models.request.findAll({
     where,
-    attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId'],
+    attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId', 'archived'],
     raw: true,
   });
   const integrationIds = integrations.map((intg) => intg.id);
@@ -79,6 +79,8 @@ export const updatePlannedItems = async (data) => {
 
   await Promise.all(
     integrations.map(async (integration) => {
+      if (integration.archived) return;
+
       const isUpdate =
         (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) >
         1;
