@@ -26,7 +26,7 @@ describe('/non-logged in user endpoints', () => {
     const response = await handler(event, context);
 
     expect(response.statusCode).toEqual(301);
-    expect(response.headers.Location).toEqual('/verify-user?message=no-token');
+    expect(response.headers.Location).toEqual('/verify-user?message=notoken');
   });
 
   it('should have an error with invalid team invitation token', async () => {
