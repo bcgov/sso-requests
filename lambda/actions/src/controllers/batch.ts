@@ -38,6 +38,8 @@ export const handlePRstage = async (data) => {
       }
     }
 
+    integration.prNumber = prNumber;
+    integration.actionNumber = actionNumber;
     integration.status = newStatus;
     await Promise.all([integration.save(), createEvent({ eventCode, requestId: id, details: { changes } })]);
   }
