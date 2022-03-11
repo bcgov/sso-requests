@@ -331,6 +331,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     const isMerged = await checkIfRequestMerged(id);
     const requester = await getRequester(session, current.id);
     current.requester = requester;
+    current.status = 'submitted';
     current.archived = true;
 
     if (isMerged) {
