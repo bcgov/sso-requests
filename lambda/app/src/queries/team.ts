@@ -10,6 +10,19 @@ export const getTeamById = async (teamId: number, options = { raw: true }) => {
   });
 };
 
+const teamAttributes = [
+  'id',
+  'name',
+  'createdAt',
+  'updatedAt',
+  [
+    sequelize.literal(
+      '(select count(*) FROM requests WHERE "requests"."team_id"="team"."id" AND "requests"."archived"=false)',
+    ),
+    'integrationCount',
+  ],
+];
+
 export const findTeamsForUser = async (userId: number, options = { raw: true }) => {
   return models.team.findAll({
     include: [
@@ -20,14 +33,7 @@ export const findTeamsForUser = async (userId: number, options = { raw: true }) 
         attributes: [],
       },
     ],
-    attributes: [
-      'id',
-      'name',
-      'createdAt',
-      'updatedAt',
-      [sequelize.col('usersTeams.role'), 'role'],
-      [sequelize.literal('(select count(*) FROM requests WHERE "requests"."team_id"="team"."id")'), 'integrationCount'],
-    ],
+    attributes: [...teamAttributes, [sequelize.col('usersTeams.role'), 'role']],
     ...options,
   });
 };
@@ -41,13 +47,7 @@ export const getAllowedTeams = async (user: User, options = { raw: true }) => {
 
   return models.team.findAll({
     where,
-    attributes: [
-      'id',
-      'name',
-      'createdAt',
-      'updatedAt',
-      [sequelize.literal('(select count(*) FROM requests WHERE "requests"."team_id"="team"."id")'), 'integrationCount'],
-    ],
+    attributes: teamAttributes,
     ...options,
   });
 };

@@ -88,6 +88,7 @@ interface Props {
   alert: any;
   currentUser: UserSession;
   team: Team;
+  loadTeams: () => void;
 }
 
 const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Function; type: string }) => {
@@ -171,7 +172,7 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
   return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
 };
 
-function TeamInfoTabs({ alert, currentUser, team }: Props) {
+function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState<User[]>([]);
   const [integrations, setIntegrations] = useState<Request[]>([]);
@@ -187,7 +188,6 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
   const getData = async (teamId: number) => {
     setLoading(true);
     const [membersRes, integrationRes] = await Promise.all([getTeamMembers(teamId), getTeamIntegrations(teamId)]);
-
     const [members, err1] = membersRes;
     const [integrations, err2] = integrationRes;
 
@@ -409,6 +409,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
                           <ActionButtons
                             request={integration}
                             onDelete={() => {
+                              loadTeams();
                               getData(team?.id);
                             }}
                           >
