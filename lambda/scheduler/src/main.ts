@@ -3,7 +3,7 @@ import { Octokit } from '@octokit/rest';
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
   try {
-    const octokit = new Octokit();
+    const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
     const data = await octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
       owner: process.env.GH_OWNER,

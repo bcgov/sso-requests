@@ -52,7 +52,7 @@ jobs:
           pg_ctl start
           createdb runner || true
           chmod +x ./setup.sh
-          ./setup.sh ssorequests_test
+          ./setup.sh ${{ github.event.workflow_run.id }}
         working-directory: ./db
 
       - name: Install dependencies for parent lambda module
