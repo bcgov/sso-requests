@@ -6,10 +6,8 @@ import {
   addUsersToTeam,
   deleteTeam,
   verifyTeamMember,
-  getUsersOnTeam,
   updateTeam,
   userIsTeamAdmin,
-  userCanReadTeam,
   removeUserFromTeam,
   updateMemberInTeam,
 } from './controllers/team';
@@ -27,6 +25,7 @@ import { listIntegrationsForTeam } from './queries/request';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
+import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
 import { getAllowedTeams } from '@lambda-app/queries/team';
@@ -294,7 +293,7 @@ export const setRoutes = (app: any) => {
       const authorized = await userIsTeamAdmin(req.user, id);
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
-      const result = await addUsersToTeam(id, req.body);
+      const result = await addUsersToTeam(id, req.user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -331,10 +330,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userCanReadTeam(req.user, id);
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
-      const result = await getUsersOnTeam(id);
+      const result = await findAllowedTeamUsers(id, req.user.id);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

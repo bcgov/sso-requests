@@ -3,19 +3,19 @@ import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { User } from '../../../shared/interfaces';
 import { getMyTeamsLiteral } from './literals';
 
-export const getTeamById = async (teamId: number, options?: { raw: boolean }) => {
+export const getTeamById = async (teamId: number, options = { raw: true }) => {
   return models.team.findOne({
     where: { id: teamId },
     ...options,
   });
 };
 
-export const getTeamsForUser = async (userId: number, options?: { raw: boolean }) => {
+export const findTeamsForUser = async (userId: number, options = { raw: true }) => {
   return models.team.findAll({
     include: [
       {
         model: models.usersTeam,
-        where: { userId },
+        where: { userId, pending: false },
         required: true,
         attributes: [],
       },
@@ -32,7 +32,7 @@ export const getTeamsForUser = async (userId: number, options?: { raw: boolean }
   });
 };
 
-export const getAllowedTeams = async (user: User, options?: { raw: boolean }) => {
+export const getAllowedTeams = async (user: User, options = { raw: true }) => {
   const where: any = {};
   if (!user.isAdmin) {
     const teamIdsLiteral = getMyTeamsLiteral(user.id);
@@ -52,7 +52,17 @@ export const getAllowedTeams = async (user: User, options?: { raw: boolean }) =>
   });
 };
 
-export const getMemberOnTeam = async (teamId: number, userId: number, options: { raw: boolean }) => {
+const userTeamAttributes = [
+  'id',
+  'idirUserid',
+  'idirEmail',
+  [sequelize.col('usersTeams.role'), 'role'],
+  [sequelize.col('usersTeams.pending'), 'pending'],
+  [sequelize.col('usersTeams.created_at'), 'createdAt'],
+  [sequelize.col('usersTeams.updated_at'), 'updatedAt'],
+];
+
+export const getMemberOnTeam = async (teamId: number, userId: number, options = { raw: true }) => {
   return models.user.findOne({
     where: { id: userId },
     include: [
@@ -63,20 +73,12 @@ export const getMemberOnTeam = async (teamId: number, userId: number, options: {
         attributes: [],
       },
     ],
-    attributes: [
-      'id',
-      'idirUserid',
-      'idirEmail',
-      [sequelize.col('usersTeams.role'), 'role'],
-      [sequelize.col('usersTeams.pending'), 'pending'],
-      [sequelize.col('usersTeams.created_at'), 'createdAt'],
-      [sequelize.col('usersTeams.updated_at'), 'updatedAt'],
-    ],
+    attributes: userTeamAttributes,
     ...options,
   });
 };
 
-export const getMembersOnTeam = async (teamId: number, options: { raw: boolean }) => {
+export const getMembersOnTeam = async (teamId: number, options = { raw: true }) => {
   return models.user.findAll({
     where: {},
     include: [
@@ -87,15 +89,35 @@ export const getMembersOnTeam = async (teamId: number, options: { raw: boolean }
         attributes: [],
       },
     ],
-    attributes: [
-      'id',
-      'idirUserid',
-      'idirEmail',
-      [sequelize.col('usersTeams.role'), 'role'],
-      [sequelize.col('usersTeams.pending'), 'pending'],
-      [sequelize.col('usersTeams.created_at'), 'createdAt'],
-      [sequelize.col('usersTeams.updated_at'), 'updatedAt'],
+    attributes: userTeamAttributes,
+    ...options,
+  });
+};
+
+export const findAllowedTeamUsers = async (teamId: number, userId: number, options = { raw: true }) => {
+  const teamIdsLiteral = getMyTeamsLiteral(userId);
+
+  const where = {
+    [Op.and]: [
+      {
+        teamId,
+      },
+      {
+        teamId: { [Op.in]: sequelize.literal(`(${teamIdsLiteral})`) },
+      },
     ],
+  };
+
+  return models.user.findAll({
+    include: [
+      {
+        model: models.usersTeam,
+        where,
+        required: true,
+        attributes: [],
+      },
+    ],
+    attributes: userTeamAttributes,
     ...options,
   });
 };

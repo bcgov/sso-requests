@@ -181,7 +181,9 @@ describe('User and Teams', () => {
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams/1/members` };
     const context: Context = {};
     const response = await handler(event, context);
-    expect(response.statusCode).toEqual(401);
+    const ressult = JSON.parse(response.body);
+    expect(response.statusCode).toEqual(200);
+    expect(ressult).toEqual([]);
   });
 
   it('Should block pending admins from removing team members', async () => {

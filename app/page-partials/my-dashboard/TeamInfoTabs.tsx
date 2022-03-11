@@ -192,7 +192,10 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
     const [integrations, err2] = integrationRes;
 
     if (err1 || err2) {
-      console.error(err1 || err2);
+      console.error(err1, err2);
+      setMembers([]);
+      setMyself(null);
+      setIntegrations([]);
     } else {
       setMembers(members);
       setMyself(members.find((member: { idirEmail: string }) => member.idirEmail === currentUser.email));
