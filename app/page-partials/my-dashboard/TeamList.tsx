@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Table from 'html-components/Table';
 import styled from 'styled-components';
+import { noop } from 'lodash';
 import { $setDownloadError } from 'dispatchers/requestDispatcher';
 import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
@@ -146,6 +147,7 @@ export default function TeamList({ currentUser, setTeam, state, dispatch }: Prop
         <tbody>
           {teams &&
             teams.map((team: Team) => {
+              const canDelete = Number(team.integrationCount) === 0;
               return (
                 <tr
                   className={activeTeamId === team.id ? 'active' : ''}
@@ -164,13 +166,13 @@ export default function TeamList({ currentUser, setTeam, state, dispatch }: Prop
                         onClick={() => showEditTeamNameModal(team)}
                       />
                       <ActionButton
-                        disabled={Number(team.integrationCount) > 0}
+                        disabled={!canDelete}
                         icon={faTrash}
                         role="button"
                         aria-label="delete"
                         title="Delete"
                         size="lg"
-                        onClick={() => showDeleteModal(team)}
+                        onClick={() => (canDelete ? showDeleteModal(team) : noop)}
                       />
                     </ActionButtonContainer>
                   </td>
