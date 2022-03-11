@@ -316,14 +316,20 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   if (!team || !myself) return null;
 
+  const isAdmin = myself.role === 'admin';
+
   return (
     <Container>
       <RequestTabs defaultActiveKey={'members'}>
         <Tab eventKey="members" title="Members">
           <TabWrapper>
-            <PaddedButton variant="plainText" onClick={openModal}>
-              + Add new team members
-            </PaddedButton>
+            {isAdmin ? (
+              <PaddedButton variant="plainText" onClick={openModal}>
+                + Add new team members
+              </PaddedButton>
+            ) : (
+              <br />
+            )}
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
               <Table variant="medium" readOnly>
                 <thead>
@@ -336,7 +342,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 </thead>
                 <tbody>
                   {members.map((member) => {
-                    const adminActionsAllowed = myself.role === 'admin' && myself.id !== member.id;
+                    const adminActionsAllowed = isAdmin && myself.id !== member.id;
                     return (
                       <tr key={member.id}>
                         <td className="w60">
