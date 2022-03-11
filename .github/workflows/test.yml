@@ -81,6 +81,8 @@ jobs:
         working-directory: ./lambda/shared
 
       - name: Run backend integration tests
+        env:
+          DATABASE_URL: 'postgresql://localhost:5432/${{ github.event.workflow_run.id }}'
         run: |
           yarn
           yarn test
