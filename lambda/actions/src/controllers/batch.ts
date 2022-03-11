@@ -49,7 +49,7 @@ export const handlePRstage = async (data) => {
 
 export const getPlannedIds = async () => {
   const integrations = await models.request.findAll({
-    where: { status: { [Op.in]: ['planned', 'applyFailed'] }, archived: false },
+    where: { status: { [Op.in]: ['planned', 'applyFailed'] } },
     attributes: ['id'],
     raw: true,
   });
@@ -64,7 +64,7 @@ export const updatePlannedItems = async (data) => {
 
   const newStatus = success ? 'applied' : 'applyFailed';
   const eventCode = success ? EVENTS.REQUEST_APPLY_SUCCESS : EVENTS.REQUEST_APPLY_FAILURE;
-  const where = { [Op.or]: [{ id: { [Op.in]: ids } }, { status: 'applyFailed', archived: false }] };
+  const where = { [Op.or]: [{ id: { [Op.in]: ids } }, { status: 'applyFailed' }] };
 
   const integrations = await models.request.findAll({
     where,
