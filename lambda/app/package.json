@@ -7,6 +7,7 @@
   "scripts": {
     "compile": "tsc && tsc-alias",
     "test": "jest",
+    "build": "ncc build src/main.ts -o dist -m",
     "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle/lambda"
   },
   "devDependencies": {
@@ -18,6 +19,7 @@
     "@types/jwk-to-pem": "^2.0.0",
     "@types/jws": "^3.2.3",
     "@types/node": "^16.0.0",
+    "@vercel/ncc": "^0.33.3",
     "aws-sdk": "^2.655.0",
     "copyfiles": "^2.4.1",
     "jest": "^27.0.5",

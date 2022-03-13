@@ -1,4 +1,6 @@
-const { DataTypes } = require('sequelize');
+import { DataTypes } from 'sequelize';
+
+export const name = '2022.03.02T10.00.00.allow-idir-userid-null-in-requests-table.ts';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {
@@ -16,3 +18,5 @@ export const down = async ({ context: sequelize }) => {
     allowNull: false,
   });
 };
+
+export default { name, up, down };

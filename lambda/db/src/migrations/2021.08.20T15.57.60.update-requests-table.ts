@@ -1,4 +1,6 @@
-const { DataTypes } = require('sequelize');
+import { DataTypes } from 'sequelize';
+
+export const name = '2021.08.20T15.57.60.update-requests-table.ts';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {
@@ -24,3 +26,5 @@ export const down = async ({ context: sequelize }) => {
     defaultValue: false,
   });
 };
+
+export default { name, up, down };

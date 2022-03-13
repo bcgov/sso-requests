@@ -6,19 +6,23 @@
   "author": "SSO Team",
   "scripts": {
     "dev": "tsc --watch",
-    "compile": "tsc && tsc-alias"
+    "compile": "tsc src/migrations/*.ts && tsc-alias",
+    "build": "ncc build src/main.ts -o dist -m",
+    "build2": "ncc build src/migrations/2021.07.01T15.57.60.create-requests-table.ts -o dist/aa.js -m"
   },
   "devDependencies": {
     "@types/node": "^16.0.0",
+    "@types/pg-format": "^1.0.2",
+    "@vercel/ncc": "^0.33.3",
     "sqlite3": "^5.0.2",
     "tsc-alias": "^1.6.3",
-    "typescript": "^3.8.3"
+    "typescript": "^4.6.2"
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.77",
     "aws-lambda": "^1.0.6",
     "pg": "^8.6.0",
     "sequelize": "~6.6.5",
-    "umzug": "3.0.0-beta.16"
+    "umzug": "^3.0.0"
   }
 }
