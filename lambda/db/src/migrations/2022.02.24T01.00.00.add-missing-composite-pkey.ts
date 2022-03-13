@@ -1,4 +1,4 @@
-export const name = '2022.02.24T01.00.00.add-missing-composite-pkey.ts';
+export const name = '2022.02.24T01.00.00.add-missing-composite-pkey.js';
 
 // see https://sequelize.org/master/class/src/dialects/abstract/query-interface.js~QueryInterface.html#instance-method-addIndex
 // see https://sequelize.org/master/class/src/dialects/abstract/query-interface.js~QueryInterface.html#instance-method-addConstraint

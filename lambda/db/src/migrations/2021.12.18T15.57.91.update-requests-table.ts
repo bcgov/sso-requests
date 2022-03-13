@@ -1,6 +1,6 @@
 import { Op, DataTypes } from 'sequelize';
 
-export const name = '2021.12.18T15.57.91.update-requests-table.ts';
+export const name = '2021.12.18T15.57.91.update-requests-table.js';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {

@@ -59,12 +59,12 @@ jobs:
           pg_ctl start
           createdb runner || true
           chmod +x ./setup.sh
-          ./setup.sh ${{ github.event.workflow_run.id }}
+          ./setup.sh ${{ github.sha }}
         working-directory: ./db
 
       - name: Run backend integration tests
         env:
-          DATABASE_URL: 'postgresql://localhost:5432/${{ github.event.workflow_run.id }}'
+          DATABASE_URL: 'postgresql://localhost:5432/${{ github.sha }}'
         run: |
           yarn test
         working-directory: ./lambda

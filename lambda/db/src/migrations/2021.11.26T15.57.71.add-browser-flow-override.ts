@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 
-export const name = '2021.11.26T15.57.71.add-browser-flow-override.ts';
+export const name = '2021.11.26T15.57.71.add-browser-flow-override.js';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {

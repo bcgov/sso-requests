@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 
-export const name = '2021.09.14T15.57.70.add-additional-emails.ts';
+export const name = '2021.09.14T15.57.70.add-additional-emails.js';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {
