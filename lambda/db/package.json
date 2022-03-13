@@ -5,22 +5,13 @@
   "license": "Apache-2.0",
   "author": "SSO Team",
   "scripts": {
-    "dev": "tsc --watch",
-    "compile": "tsc src/migrations/*.ts && tsc-alias",
+    "compile": "../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias",
     "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m"
   },
   "devDependencies": {
-    "@types/node": "^16.0.0",
-    "@types/pg-format": "^1.0.2",
-    "sqlite3": "^5.0.2",
-    "tsc-alias": "^1.6.3",
-    "typescript": "^4.6.2"
+    "sqlite3": "^5.0.2"
   },
   "dependencies": {
-    "@types/aws-lambda": "^8.10.77",
-    "aws-lambda": "^1.0.6",
-    "pg": "^8.6.0",
-    "sequelize": "~6.6.5",
     "umzug": "^3.0.0"
   }
 }

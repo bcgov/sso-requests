@@ -1,7 +1,6 @@
 #!make
 
 SHELL := /usr/bin/env bash
-
 TARGET := ../../../terraform/lambda-scheduler.zip
 
 .PHONY: install
@@ -16,5 +15,6 @@ uninstall:
 .PHONY: build
 build: install
 build:
+	@rm -rf dist
 	@yarn build
 	@cd dist; rm -f $(TARGET); zip -rq $(TARGET) *
