@@ -7,12 +7,11 @@
   "scripts": {
     "dev": "tsc --watch",
     "compile": "tsc",
-    "build": "ncc build src/main.ts -o dist -m"
+    "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.93",
     "@types/node": "^17.0.21",
-    "@vercel/ncc": "^0.33.3",
     "typescript": "^4.6.2"
   },
   "dependencies": {

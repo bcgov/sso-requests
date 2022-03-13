@@ -12,6 +12,7 @@
   "devDependencies": {
     "@jest/test-sequencer": "^27.4.2",
     "@types/jest": "^26.0.24",
+    "@vercel/ncc": "^0.33.3",
     "aws-lambda": "^1.0.6",
     "jest": "^27.0.6",
     "octokit": "^1.2.0",

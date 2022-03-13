@@ -7,13 +7,11 @@
   "scripts": {
     "dev": "tsc --watch",
     "compile": "tsc src/migrations/*.ts && tsc-alias",
-    "build": "ncc build src/main.ts -o dist -m",
-    "build2": "ncc build src/migrations/2021.07.01T15.57.60.create-requests-table.ts -o dist/aa.js -m"
+    "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m"
   },
   "devDependencies": {
     "@types/node": "^16.0.0",
     "@types/pg-format": "^1.0.2",
-    "@vercel/ncc": "^0.33.3",
     "sqlite3": "^5.0.2",
     "tsc-alias": "^1.6.3",
     "typescript": "^4.6.2"

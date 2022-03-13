@@ -6,7 +6,8 @@
   "author": "SSO Team",
   "scripts": {
     "compile": "tsc && tsc-alias",
-    "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle"
+    "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m",
+    "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html dist --flat"
   },
   "main": "index.js",
   "devDependencies": {

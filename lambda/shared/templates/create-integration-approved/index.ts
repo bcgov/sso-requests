@@ -9,7 +9,7 @@ import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request approved`;
-const template = fs.readFileSync(__dirname + '/template.html', 'utf8');
+const template = fs.readFileSync(__dirname + '/create-integration-approved.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
