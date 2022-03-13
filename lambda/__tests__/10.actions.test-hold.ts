@@ -40,7 +40,6 @@ let wakeUpEvent: APIGatewayProxyEvent = {
 
 let updateEvent: APIGatewayProxyEvent = {
   ...wakeUpEvent,
-  requestContext: { httpMethod: 'PUT' },
 };
 
 let planEvent: APIGatewayProxyEvent = { ...updateEvent, queryStringParameters: { status: 'plan' } };
@@ -74,13 +73,11 @@ describe('actions endpoints', () => {
     jest.clearAllMocks();
   });
 
-  const context: Context = {};
-
   it('should successfully wake up the API on GET requests', async () => {
     const event: APIGatewayProxyEvent = { ...wakeUpEvent, path: `${baseUrl}/actions` };
 
     return await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
+      handler(event, null, (error, response) => {
         expect(response.statusCode).toEqual(200);
         resolve(true);
       });
@@ -89,7 +86,7 @@ describe('actions endpoints', () => {
 
   it('should update the pr number and status of a request after creating a pull request and save the event', async () => {
     await new Promise((resolve, reject) => {
-      handler(updateEvent, context, (error, response) => {
+      handler(updateEvent, null, (error, response) => {
         expect(response.statusCode).toEqual(200);
         resolve(true);
       });
@@ -114,7 +111,7 @@ describe('actions endpoints', () => {
     );
 
     await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
+      handler(event, null, (error, response) => {
         expect(response.statusCode).toEqual(200);
         resolve(true);
       });
@@ -127,7 +124,7 @@ describe('actions endpoints', () => {
   it('should update the status when terraform plan is successful, save the event, and merge the PR', async () => {
     const mergablePlanEvent = changeBody(planEvent, 'isAllowedToMerge', true);
     await new Promise((resolve, reject) => {
-      handler(mergablePlanEvent, context, (error, response) => {
+      handler(mergablePlanEvent, null, (error, response) => {
         expect(response.statusCode).toEqual(200);
         resolve(true);
       });
@@ -145,7 +142,7 @@ describe('actions endpoints', () => {
     const event: APIGatewayProxyEvent = changeBody(planEvent, 'planSuccess', false);
 
     await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
+      handler(event, null, (error, response) => {
         expect(response.statusCode).toEqual(200);
         resolve(true);
       });
@@ -157,7 +154,7 @@ describe('actions endpoints', () => {
 
   it('should update the status when terraform apply is successful and save the event', async () => {
     await new Promise((resolve, reject) => {
-      handler(applyEvent, context, (error, response) => {
+      handler(applyEvent, null, (error, response) => {
         expect(response.statusCode).toEqual(200);
         resolve(true);
       });
@@ -174,7 +171,7 @@ describe('actions endpoints', () => {
     const event: APIGatewayProxyEvent = changeBody(applyEvent, 'applySuccess', false);
 
     await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
+      handler(event, null, (error, response) => {
         expect(response.statusCode).toEqual(200);
         resolve(true);
       });
@@ -187,7 +184,7 @@ describe('actions endpoints', () => {
     const unauthorizedEvent: APIGatewayProxyEvent = { ...baseEvent, headers: { Authorization: 'wrong' } };
 
     await new Promise((resolve, reject) => {
-      handler(unauthorizedEvent, context, (error, response) => {
+      handler(unauthorizedEvent, null, (error, response) => {
         expect(response.statusCode).toEqual(401);
         resolve(true);
       });

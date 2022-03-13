@@ -56,9 +56,8 @@ describe('requests endpoints', () => {
     });
 
     const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/requests` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(401);
   });
 
@@ -75,9 +74,8 @@ describe('requests endpoints', () => {
       httpMethod: 'POST',
       body: JSON.stringify(sampleRequestPayload),
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const request = JSON.parse(response.body);
     expect(request.projectName).toEqual(sampleRequestPayload.projectName);
     expect(response.statusCode).toEqual(200);
@@ -85,9 +83,8 @@ describe('requests endpoints', () => {
 
   it('should send all requests successfully', async () => {
     const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/requests` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const requests = JSON.parse(response.body);
 
     // it should be more than one as one just got created by the previous test
@@ -104,9 +101,8 @@ describe('requests endpoints', () => {
       httpMethod: 'POST',
       body: JSON.stringify({ requestId }),
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const request = JSON.parse(response.body);
 
     expect(request.id).toBe(requestId);
@@ -122,9 +118,8 @@ describe('requests endpoints', () => {
       httpMethod: 'PUT',
       body: JSON.stringify({ id: requestId, projectName }),
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const request = JSON.parse(response.body);
     expect(request.projectName).toBe(projectName);
     expect(response.statusCode).toEqual(200);
@@ -176,11 +171,10 @@ describe('Updating', () => {
       path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
-      queryStringParameters: { submit: true },
+      queryStringParameters: { submit: 'true' },
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     expect(sendEmail).toHaveBeenCalledTimes(1);
   });
@@ -191,11 +185,10 @@ describe('Updating', () => {
       path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
-      queryStringParameters: { submit: true },
+      queryStringParameters: { submit: 'true' },
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     expect(sendEmail).toHaveBeenCalledTimes(1);
   });
@@ -206,11 +199,10 @@ describe('Updating', () => {
       path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest }),
-      queryStringParameters: { submit: true },
+      queryStringParameters: { submit: 'true' },
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const request = JSON.parse(response.body);
     expect(response.statusCode).toEqual(200);
     expect(sendEmail).toHaveBeenCalledTimes(1);
@@ -235,11 +227,10 @@ describe('Updating', () => {
       path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...bceidRequest }),
-      queryStringParameters: { submit: true },
+      queryStringParameters: { submit: 'true' },
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const request = JSON.parse(response.body);
     expect(response.statusCode).toEqual(200);
     expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
@@ -263,11 +254,10 @@ describe('Updating', () => {
       path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify({ id: testProjectId, ...validRequest, browserFlowOverride: 'asdf' }),
-      queryStringParameters: { submit: true },
+      queryStringParameters: { submit: 'true' },
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const request = JSON.parse(response.body);
     expect(response.statusCode).toEqual(200);
     expect(dispatchRequestWorkflow).toHaveBeenCalledWith({

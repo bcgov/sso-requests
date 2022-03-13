@@ -7,7 +7,7 @@ import baseEvent from '../base-event.json';
 
 const { path: baseUrl } = baseEvent;
 const actionsBaseUrl = '/actions';
-const context: Context = {};
+const context = null;
 
 export const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
 export const TEST_IDIR_USERID_2 = 'AABBCCDDEEFFGGHH';
@@ -130,7 +130,7 @@ export class Integration {
       path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify(this.current),
-      queryStringParameters: { submit: true },
+      queryStringParameters: { submit: 'true' },
     };
 
     const { statusCode, body } = await appHandler(event, context);
