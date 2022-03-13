@@ -1,3 +1,4 @@
+import * as pg from 'pg';
 import { wakeUpAll } from './controllers/heartbeat';
 import { handlePRstage, getPlannedIds, updatePlannedItems } from './controllers/batch';
 
@@ -7,6 +8,8 @@ const responseHeaders = {
   'Access-Control-Allow-Origin': 'https://bcgov.github.io',
   'Access-Control-Allow-Methods': 'OPTIONS,PUT,GET',
 };
+
+console.log(!!pg);
 
 const BASE_PATH = '/actions';
 
