@@ -1,9 +1,12 @@
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const basename = path.basename(__filename);
+import { Sequelize, DataTypes } from 'sequelize';
+import configs from '../config/config';
+import Event from './Event';
+import Request from './Request';
+import Team from './Team';
+import User from './User';
+import UserTeam from './UserTeam';
 const env = process.env.NODE_ENV || 'development';
-const config = require('../config/config')[env];
+const config = configs[env];
 
 export const models: any = {};
 export const modelNames: string[] = [];
@@ -17,13 +20,11 @@ if (config.databaseUrl) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-fs.readdirSync(__dirname)
-  .filter((file) => file.indexOf('.') !== 0 && file !== basename && ['.js', '.ts'].includes(file.slice(-3)))
-  .forEach((file) => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    models[model.name] = model;
-    modelNames.push(model.name);
-  });
+[Event, Request, Team, User, UserTeam].forEach((init) => {
+  const model = init(sequelize, DataTypes);
+  models[model.name] = model;
+  modelNames.push(model.name);
+});
 
 Object.keys(models).forEach((modelName) => {
   if (models[modelName]?.options.associate) {

@@ -8,7 +8,7 @@ expressyApiRouter(app);
 setRoutes(app);
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context) => {
-  context.callbackWaitsForEmptyEventLoop = false;
+  if (context) context.callbackWaitsForEmptyEventLoop = false;
 
   return app.listen(event, context);
 };

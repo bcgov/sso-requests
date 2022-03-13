@@ -1,7 +1,7 @@
 import { models } from './models';
 import { User } from '../../interfaces';
 
-module.exports = (sequelize, DataTypes) => {
+const init = (sequelize, DataTypes) => {
   const Team = sequelize.define(
     'team',
     {
@@ -27,3 +27,5 @@ module.exports = (sequelize, DataTypes) => {
 
   return Team;
 };
+
+export default init;

@@ -10,7 +10,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   };
 
   try {
-    const migrator = createMigrator(logger);
+    const migrator = await createMigrator(logger);
     await migrator.up();
 
     const response = {

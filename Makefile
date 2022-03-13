@@ -17,7 +17,6 @@ app_test:
 server_test:
 	yarn --cwd ./lambda test
 
-
 .PHONY: app
 app:
 	yarn --cwd ./app dev
@@ -25,7 +24,7 @@ app:
 .PHONY: server_install
 server_install:
 	yarn install
-	@cd lambda; make lambda-all
+	@cd lambda; make install_all
 	yarn --cwd ./localserver install
 
 .PHONY: server

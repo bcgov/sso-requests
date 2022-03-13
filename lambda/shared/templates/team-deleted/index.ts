@@ -8,7 +8,7 @@ import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Team {{team.name}} has been removed by a team admin`;
-const template = fs.readFileSync(__dirname + '/template.html', 'utf8');
+const template = fs.readFileSync(__dirname + '/team-deleted.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

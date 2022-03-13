@@ -12,18 +12,16 @@ const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 describe('/non-logged in user endpoints', () => {
   it('should response heartbeat endpoint successfully', async () => {
     const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/heartbeat` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(JSON.parse(response.body).length).toEqual(1);
     expect(response.statusCode).toEqual(200);
   });
 
   it('should be redirected without team token to validate', async () => {
     const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/teams/verify` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
 
     expect(response.statusCode).toEqual(301);
     expect(response.headers.Location).toEqual('/verify-user?message=notoken');
@@ -35,9 +33,8 @@ describe('/non-logged in user endpoints', () => {
       path: `${baseUrl}/teams/verify`,
       queryStringParameters: { token: 'qerasdf' },
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(422);
     expect(response.body).toContain('jwt malformed');
   });
@@ -50,9 +47,8 @@ describe('/logged-in endpoints', () => {
     });
 
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: `${baseUrl}/requests-all` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(401);
     expect(response.body).toContain('not authorized');
   });
@@ -69,9 +65,8 @@ describe('/logged-in endpoints', () => {
     });
 
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/requests` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     expect(response.body).toContain('[');
   });
@@ -82,9 +77,8 @@ describe('/logged-in endpoints', () => {
     });
 
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: `${baseUrl}/requests` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(401);
     expect(response.body).toContain('not authorized');
   });
@@ -101,9 +95,8 @@ describe('/logged-in endpoints', () => {
     });
 
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'POST', path: `${baseUrl}/requests` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(422);
     expect(response.body).toContain('notNull Violation');
   });

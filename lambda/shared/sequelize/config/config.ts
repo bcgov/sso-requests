@@ -1,4 +1,4 @@
-module.exports = {
+const config = {
   development: {
     dialect: 'postgres',
     use_env_variable: 'DATABASE_URL',
@@ -31,3 +31,5 @@ module.exports = {
     use_env_variable: 'DATABASE_URL',
   },
 };
+
+export default config;

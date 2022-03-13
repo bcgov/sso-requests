@@ -1,4 +1,6 @@
-const { DataTypes } = require('sequelize');
+import { DataTypes } from 'sequelize';
+
+export const name = '2021.07.01T15.57.60.create-requests-table.ts';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {
@@ -130,3 +132,5 @@ export const up = async ({ context: sequelize }) => {
 export const down = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().dropTable('requests');
 };
+
+export default { name, up, down };

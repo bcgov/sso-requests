@@ -1,4 +1,4 @@
-module.exports = (sequelize, DataTypes) => {
+const init = (sequelize, DataTypes) => {
   const Request = sequelize.define(
     'request',
     {
@@ -135,3 +135,5 @@ module.exports = (sequelize, DataTypes) => {
 
   return Request;
 };
+
+export default init;

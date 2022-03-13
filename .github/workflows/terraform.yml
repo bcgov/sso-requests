@@ -84,43 +84,16 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-yarn-
 
-      - name: Install dependencies for frontend app
-        run: |
-          yarn
-        working-directory: ./app
+      - name: Install dependencies for frontend
+        run: make app_install
 
-      - name: Install dependencies for parent lambda module
+      - name: Install dependencies for backend
+        run: make server_install
+
+      - name: Build lambda artifacts
         run: |
-          yarn
+          make build_all
         working-directory: ./lambda
-
-      - name: Install dependencies for shared module
-        run: |
-          yarn
-        working-directory: ./lambda/shared
-
-      - name: zip lambda functions - app
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/app
-
-      - name: zip lambda functions - db
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/db
-
-      - name: zip lambda functions - scheduler
-        run: |
-          make build
-        working-directory: ./lambda/scheduler
-
-      - name: zip lambda functions - actions
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/actions
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1

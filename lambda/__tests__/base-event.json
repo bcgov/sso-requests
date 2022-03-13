@@ -13,8 +13,14 @@
     "Authorization": "test"
   },
   "httpMethod": "GET",
-  "requestContext": { "httpMethod": "GET" },
+  "isBase64Encoded": false,
+  "pathParameters": null,
+  "requestContext": null,
   "body": "",
   "path": "/app",
-  "queryStringParameters": {}
+  "queryStringParameters": {},
+  "multiValueQueryStringParameters": null,
+  "multiValueHeaders": {},
+  "stageVariables": null,
+  "resource": ""
 }

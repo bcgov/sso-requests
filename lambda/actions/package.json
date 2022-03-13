@@ -5,27 +5,16 @@
   "license": "Apache-2.0",
   "author": "SSO Team",
   "scripts": {
-    "compile": "tsc && tsc-alias",
-    "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle"
+    "compile": "../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias",
+    "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m",
+    "copy-templates": "../node_modules/.bin/copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html dist --flat"
   },
   "main": "index.js",
   "devDependencies": {
-    "@octokit/types": "^6.23.0",
-    "@types/aws-lambda": "^8.10.77",
-    "@types/node": "^16.0.0",
-    "aws-sdk": "^2.655.0",
-    "copyfiles": "^2.4.1",
-    "tsc-alias": "^1.6.3",
-    "typescript": "^3.8.3"
+    "@octokit/types": "^6.23.0"
   },
   "dependencies": {
-    "axios": "^0.21.1",
-    "handlebars": "^4.7.7",
     "lambda-api-router": "^1.0.6",
-    "lodash": "^4.17.21",
-    "octokit": "^1.2.0",
-    "pg": "^8.6.0",
-    "pg-format": "^1.0.4",
-    "sequelize": "~6.6.5"
+    "octokit": "^1.2.0"
   }
 }

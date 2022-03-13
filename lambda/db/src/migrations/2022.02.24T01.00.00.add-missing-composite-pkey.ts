@@ -1,3 +1,5 @@
+export const name = '2022.02.24T01.00.00.add-missing-composite-pkey.ts';
+
 // see https://sequelize.org/master/class/src/dialects/abstract/query-interface.js~QueryInterface.html#instance-method-addIndex
 // see https://sequelize.org/master/class/src/dialects/abstract/query-interface.js~QueryInterface.html#instance-method-addConstraint
 export const up = async ({ context: sequelize }) => {
@@ -23,3 +25,5 @@ export const up = async ({ context: sequelize }) => {
 export const down = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().removeConstraint('users_teams', 'users_teams_pkey');
 };
+
+export default { name, up, down };
