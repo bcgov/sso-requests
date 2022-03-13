@@ -1,4 +1,3 @@
-import * as pg from 'pg';
 import { Sequelize, DataTypes } from 'sequelize';
 import configs from '../config/config';
 import Event from './Event';
@@ -8,7 +7,6 @@ import User from './User';
 import UserTeam from './UserTeam';
 const env = process.env.NODE_ENV || 'development';
 const config = configs[env];
-console.log(!!pg);
 
 export const models: any = {};
 export const modelNames: string[] = [];
