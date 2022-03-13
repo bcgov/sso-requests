@@ -1,8 +1,5 @@
-import * as pg from 'pg';
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 import { createMigrator } from './umzug';
-
-console.log(!!pg);
 
 export const handler = async (event: APIGatewayProxyEvent, context?: Context, callback?: Callback) => {
   const logs = [];

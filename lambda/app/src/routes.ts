@@ -1,4 +1,3 @@
-import * as pg from 'pg';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
 import {
@@ -35,7 +34,6 @@ import { isAdmin } from './utils/helpers';
 
 const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
-console.log(!!pg);
 
 const responseHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
