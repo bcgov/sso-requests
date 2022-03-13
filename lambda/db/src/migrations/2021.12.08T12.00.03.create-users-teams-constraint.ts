@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 
-export const name = '2021.12.08T12.00.03.create-users-teams-constraint.ts';
+export const name = '2021.12.08T12.00.03.create-users-teams-constraint.js';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {

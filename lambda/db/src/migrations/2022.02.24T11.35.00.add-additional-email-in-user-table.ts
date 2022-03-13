@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 
-export const name = '2022.02.24T11.35.00.add-additional-email-in-user-table.ts';
+export const name = '2022.02.24T11.35.00.add-additional-email-in-user-table.js';
 
 export const up = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().addColumn('users', 'additional_email', {
