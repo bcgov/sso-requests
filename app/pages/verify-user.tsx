@@ -34,12 +34,9 @@ const content = (lines: string[]) => (
     </tspan>
     <tspan y="26">.</tspan>
     <tspan x="120" y="104">
-      If the problem persists for 24 hours,
+      If you need help, contact our SSO support team by
     </tspan>
-    <tspan x="120" y="130">
-      contact the team by{' '}
-    </tspan>
-    <tspan y="130" fill="#006fc4">
+    <tspan x="120" y="130" fill="#006fc4">
       <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
         Rocket.Chat
       </a>
