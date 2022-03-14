@@ -27,6 +27,25 @@ const TabWrapper = styled.div`
 
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
 
+const joinEnvs = (integration: Request) => {
+  const envs = [];
+  if (integration.dev) envs.push('Dev');
+  if (integration.test) envs.push('Test');
+  if (integration.prod) envs.push('Prod');
+
+  let result = '';
+  envs.forEach((env, index) => {
+    result += env;
+    if (envs.length - index === 2) {
+      result += ' and ';
+    } else if (envs.length - index >= 2) {
+      result += ', ';
+    }
+  });
+
+  return `${result} environment${envs.length > 1 ? 's' : ''}`;
+};
+
 interface Props {
   integration: Request;
   state: DashboardReducerState;
@@ -76,7 +95,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
             ) : (
               <SubmittedStatusIndicator
                 selectedRequest={integration}
-                title="Access to environment(s) - approx 20 mins"
+                title={`Access to ${joinEnvs(integration)} - approx 20 mins`}
               />
             )}
           </TabWrapper>
