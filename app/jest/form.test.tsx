@@ -69,6 +69,7 @@ describe('Form Template Saving and Navigation', () => {
   });
 
   it('Should save data and triggers spinner on blur events', async () => {
+    fireEvent.click(sandbox.secondStageBox);
     const uriInput = document.querySelector('#root_devValidRedirectUris_0') as HTMLElement;
     fireEvent.change(uriInput, { target: { value: 'http://localhost:8080' } });
     expect(updateRequest).toHaveBeenCalled();
@@ -79,12 +80,14 @@ describe('Form Template Saving and Navigation', () => {
 
   it('Should advance the form when clicking next', async () => {
     setUpRouter('/', sandbox);
+    fireEvent.click(sandbox.secondStageBox);
     const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
     await waitFor(() => screen.getByText("We're a Community"));
   });
 
   it('Should redirect to my-dashboard on cancel', () => {
+    fireEvent.click(sandbox.secondStageBox);
     const cancelButton = within(
       document.querySelector("form.rjsf [data-test-id='form-btns']") as HTMLElement,
     ).getByText('Save and Close');
@@ -123,6 +126,7 @@ describe('Form Template Loading Data', () => {
   it('Should pre-load data if a request exists', async () => {
     setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
+    fireEvent.click(sandbox.secondStageBox);
     const { firstStageBox, thirdStageBox } = sandbox;
 
     // Second page data
@@ -174,6 +178,7 @@ describe('Error messages', () => {
     setUpRender({ id: 0 });
 
     // Navigate away and back to page
+    fireEvent.click(sandbox.secondStageBox);
     fireEvent.click(sandbox.thirdStageBox);
     fireEvent.click(sandbox.secondStageBox);
 
@@ -206,6 +211,7 @@ describe('Redirect URIs', () => {
   it('Should show the appropriate URIS depending on selected environments', () => {
     setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
+    fireEvent.click(sandbox.secondStageBox);
     const devCheckbox = screen.getByLabelText('Development') as HTMLInputElement;
     const testCheckbox = screen.getByLabelText('Test') as HTMLInputElement;
     const prodCheckbox = screen.getByLabelText('Production') as HTMLInputElement;
