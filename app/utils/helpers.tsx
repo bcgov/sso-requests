@@ -2,7 +2,7 @@
 // Helper functions
 //
 
-import { isEqual } from 'lodash';
+import { isEqual, isNil } from 'lodash';
 import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import validate from 'react-jsonschema-form/lib/validate';
@@ -170,6 +170,7 @@ export const processRequest = (request: Request): Request => {
   if (requestedEnvironments.includes('test')) request.test = true;
   if (requestedEnvironments.includes('prod')) request.prod = true;
   delete request.environments;
+
   if (request.teamId) request.teamId = String(request.teamId);
   else request.usesTeam = false;
   return changeNullToUndefined(request);
@@ -184,9 +185,8 @@ export const transformErrors = (errors: any) => {
     } else if (error.property.includes('ValidRedirectUris')) {
       if (error.message === 'should be string') error.message = '';
       else error.message = errorMessages.redirectUris;
-    } else if (error.property.includes('additionalEmails')) {
-      error.message = errorMessages.additionalEmails;
     }
+
     return error;
   });
 };

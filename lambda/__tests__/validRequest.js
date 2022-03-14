@@ -1,7 +1,6 @@
 const validRequest = {
   realm: 'onestopauth',
   projectName: 'test',
-  preferredEmail: 'a@b.com',
   projectLead: true,
   devValidRedirectUris: ['https://a'],
   testValidRedirectUris: ['https://a'],

@@ -14,3 +14,20 @@ export const EVENTS = {
   EMAIL_SUBMISSION_FAILURE: 'email-submission-failure',
   REQUEST_LIMIT_REACHED: 'request-limit-reached',
 };
+
+export const EMAILS = {
+  CREATE_INTEGRATION_SUBMITTED: 'create-integration-submitted',
+  CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM: 'create-integration-submitted-bceid-nonprod-idim',
+  CREATE_INTEGRATION_SUBMITTED_BCEID_PROD: 'create-integration-submitted-bceid-prod',
+  CREATE_INTEGRATION_APPROVED: 'create-integration-approved',
+  UPDATE_INTEGRATION_SUBMITTED: 'update-integration-submitted',
+  UPDATE_INTEGRATION_APPROVED: 'update-integration-approved',
+  BCEID_PROD_APPROVED: 'bceid-prod-approved',
+  DELETE_INTEGRATION_SUBMITTED: 'delete-integration-submitted',
+  DELETE_INTEGRATION_SUBMITTED_BCEID: 'delete-integration-submitted-bceid',
+  TEAM_INVITATION: 'team-invitation',
+  TEAM_MEMBER_DELETED_ADMINS: 'team-member-deleted-admins',
+  TEAM_MEMBER_DELETED_USER_REMOVED: 'team-member-deleted-user-removed',
+  TEAM_DELETED: 'team-deleted',
+  REQUEST_LIMIT_EXCEEDED: 'request-limit-exceeded',
+};

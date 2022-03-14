@@ -1,4 +1,4 @@
-module.exports = (sequelize, DataTypes) => {
+const init = (sequelize, DataTypes) => {
   return sequelize.define(
     'event',
     {
@@ -29,3 +29,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 };
+
+export default init;

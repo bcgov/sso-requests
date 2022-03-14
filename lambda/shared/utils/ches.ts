@@ -1,16 +1,6 @@
 const axios = require('axios');
-import { EmailOptions } from '../interfaces';
-import { models } from '../sequelize/models/models';
-import { EVENTS } from '../enums';
 const url = require('url');
-
-const createEvent = async (data) => {
-  try {
-    await models.event.create(data);
-  } catch (err) {
-    console.error(err);
-  }
-};
+import { EmailOptions } from '../interfaces';
 
 const fetchChesToken = async (username, password) => {
   const tokenEndpoint = process.env.CHES_TOKEN_ENDPOINT;
@@ -30,40 +20,26 @@ const fetchChesToken = async (username, password) => {
   }
 };
 
-export const sendEmail = async ({ from = 'bcgov.sso@gov.bc.ca', to, body, event, ...rest }: EmailOptions) => {
-  try {
-    const { CHES_USERNAME: username, CHES_PASSWORD: password, CHES_API_ENDPOINT: chesAPIEndpoint } = process.env;
-    const [accessToken, error] = await fetchChesToken(username, password);
-    if (error) throw Error(error);
+export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, body, ...rest }: EmailOptions) => {
+  const { CHES_USERNAME: username, CHES_PASSWORD: password, CHES_API_ENDPOINT: chesAPIEndpoint } = process.env;
+  const [accessToken, error] = await fetchChesToken(username, password);
+  if (error) throw Error(error);
 
-    const res = await axios.post(
-      chesAPIEndpoint,
-      {
-        // see https://ches.nrs.gov.bc.ca/api/v1/docs#operation/postEmail for options
-        bodyType: 'html',
-        body,
-        encoding: 'utf-8',
-        from,
-        priority: 'normal',
-        subject: 'CHES Email Message',
-        to,
-        ...rest,
-      },
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      },
-    );
-    return res;
-  } catch (err) {
-    console.error(err);
-
-    if (event) {
-      createEvent({
-        eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
-        requestId: event.requestId,
-        details: { emailCode: event.emailCode, error: err.message || err },
-      });
-    }
-    throw err;
-  }
+  return axios.post(
+    chesAPIEndpoint,
+    {
+      // see https://ches.nrs.gov.bc.ca/api/v1/docs#operation/postEmail for options
+      bodyType: 'html',
+      body,
+      encoding: 'utf-8',
+      from,
+      priority: 'normal',
+      subject: 'CHES Email Message',
+      to,
+      ...rest,
+    },
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  );
 };

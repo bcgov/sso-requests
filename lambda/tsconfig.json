@@ -10,8 +10,10 @@
     "baseUrl": ".",
     "paths": {
       "*": ["../*"],
+      "@app/*": ["../app/*"],
       "@lambda-app/*": ["./app/src/*"],
-      "@app/*": ["../app/*"]
+      "@lambda-actions/*": ["./actions/src/*"],
+      "@lambda-shared/*": ["./shared/*"]
     }
   }
 }

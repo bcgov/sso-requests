@@ -1,12 +1,14 @@
+import { isNil, compact } from 'lodash';
+import { getUserById } from '@lambda-app/queries/user';
+import { User } from '../interfaces';
+
 interface Request {
-  preferredEmail: string;
-  additionalEmails: string[];
+  userId: number;
 }
 
-export const getEmailList = (request: Request) => {
-  const { preferredEmail, additionalEmails } = request;
-  if (!additionalEmails || !Array.isArray(additionalEmails)) return [preferredEmail];
-  return [preferredEmail, ...additionalEmails];
+export const getEmailList = async (request: Request) => {
+  const owner: User = !isNil(request.userId) && (await getUserById(request.userId));
+  return compact([owner.idirEmail, owner.additionalEmail]);
 };
 
 export const formatUrisForEmail = (uris: string[], prefix) => {

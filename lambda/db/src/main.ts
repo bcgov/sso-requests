@@ -6,12 +6,11 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   const logger = {
     info: (...data) => {
       logs.push(JSON.stringify(data, null, 2));
-      console.info(...data);
     },
   };
 
   try {
-    const migrator = createMigrator(logger);
+    const migrator = await createMigrator(logger);
     await migrator.up();
 
     const response = {

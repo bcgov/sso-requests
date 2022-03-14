@@ -1,3 +1,5 @@
 db.sqlite
 bundle
+build
+dist
 .env

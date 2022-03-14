@@ -10,15 +10,20 @@ export const formDataDev: Data = {
   devValidRedirectUris: ['https://b'],
   environments: ['dev'],
   projectLead: true,
-  preferredEmail: 'test',
   newToSso: true,
   agreeWithTerms: true,
   status: 'draft',
   archived: false,
-  additionalEmails: [],
   idirUserDisplayName: 'test user',
   usesTeam: false,
   requester: 'SSO Admin',
+  user: {
+    id: 0,
+    idirUserid: 'QWERASDF',
+    idirEmail: 'test@test.com',
+    displayName: 'Test User',
+    additionalEmail: '',
+  },
 };
 
 export const formDataProd: Data = {

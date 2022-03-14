@@ -3,7 +3,7 @@ resource "aws_lambda_function" "app" {
   function_name = "lambda-app"
   role          = aws_iam_role.iam_for_lambda.arn
   # has to have the form filename.functionname where filename is the file containing the export
-  handler = "lambda/app/src/main.handler"
+  handler = "index.handler"
 
   # The filebase64sha256() function is available in Terraform 0.11.12 and later
   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:

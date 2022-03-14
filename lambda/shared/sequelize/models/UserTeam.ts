@@ -1,4 +1,4 @@
-module.exports = (sequelize, DataTypes) => {
+const init = (sequelize, DataTypes) => {
   return sequelize.define(
     'usersTeam',
     {
@@ -26,3 +26,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 };
+
+export default init;

@@ -1,20 +1,20 @@
 #!make
 
 SHELL := /usr/bin/env bash
-
 TARGET := ../../../terraform/lambda-db.zip
 
-.PHONY: lambda
-lambda:
-	@rm -rf build
+.PHONY: install
+install:
 	@yarn install
-	@yarn compile
-	@rm -rf bundle
-	@mkdir -p bundle
-	@cp package.json bundle
-	@cp -r build/* bundle
-	@cd bundle; yarn --production > /dev/null 2>&1
-	@rm bundle/yarn.lock bundle/package.json
-	@rm -f $(TARGET)
-	@cd bundle; zip -rq $(TARGET) *
-	@rm -rf bundle
+
+.PHONY: uninstall
+uninstall:
+	@rm -rf node_modules
+	@rm -f yarn.lock
+
+.PHONY: build
+build: install
+build:
+	@rm -rf dist
+	@yarn build
+	@cd dist; rm -f $(TARGET); zip -rq $(TARGET) *

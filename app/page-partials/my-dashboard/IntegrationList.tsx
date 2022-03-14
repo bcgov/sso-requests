@@ -92,7 +92,7 @@ const NewEntityButton = ({
                 <NumberedContents number={2} title="Technical Info" children={null} />
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Client type (
-                  <Link href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client#confidential-vs-private-client">
+                  <Link href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#confidential-vs-private-client">
                     Public or Confidential, learn more
                   </Link>
                   )

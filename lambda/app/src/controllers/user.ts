@@ -1,38 +1,28 @@
+import { Op } from 'sequelize';
 import { models } from '../../../shared/sequelize/models/models';
 import { Session } from '../../../shared/interfaces';
 import { lowcase } from '@lambda-app/helpers/string';
+import { getDisplayName } from '../utils/helpers';
 
-// TODO: refactor here
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
+  const displayName = getDisplayName(session);
   email = lowcase(email);
 
-  const userFromId = await models.user.findOne({ where: { idirUserid: idir_userid } });
+  let user = await models.user.findOne({ where: { [Op.or]: [{ idirEmail: email }, { idirUserid: idir_userid }] } });
 
-  if (userFromId) {
+  if (user) {
     // make sure the idir email is up-to-date for the account
-    const updated = await models.user.update(
-      { idirEmail: email },
-      { where: { idirUserid: idir_userid }, returning: true, plain: true },
-    );
+    user.idirUserid = idir_userid;
+    user.idirEmail = email;
+    user.displayName = displayName;
 
-    if (updated.length < 2) throw Error('update failed');
-    return updated[1].dataValues;
+    await user.save();
+  } else {
+    user = await models.user.create({ idirUserid: idir_userid, idirEmail: email, displayName });
   }
 
-  const userFromEmail = await models.user.findOne({ where: { idirEmail: email } });
-  if (userFromEmail) {
-    const updated = await models.user.update(
-      { idirUserid: idir_userid },
-      { where: { idirEmail: email }, returning: true, plain: true },
-    );
-
-    if (updated.length < 2) throw Error('update failed');
-    return updated[1].dataValues;
-  }
-
-  const newuser = await models.user.create({ idirUserid: idir_userid, idirEmail: email });
-  return newuser.dataValues;
+  return user.get({ plain: true });
 };
 
 export const updateProfile = async (session: Session, data: { additionalEmail: string }) => {

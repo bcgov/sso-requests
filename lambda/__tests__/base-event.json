@@ -9,11 +9,18 @@
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
     "x-forwarded-port": "80",
     "x-forwarded-proto": "http",
-    "x-imforwards": "20"
+    "x-imforwards": "20",
+    "Authorization": "test"
   },
   "httpMethod": "GET",
-  "requestContext": { "httpMethod": "GET" },
+  "isBase64Encoded": false,
+  "pathParameters": null,
+  "requestContext": null,
   "body": "",
   "path": "/app",
-  "queryStringParameters": {}
+  "queryStringParameters": {},
+  "multiValueQueryStringParameters": null,
+  "multiValueHeaders": {},
+  "stageVariables": null,
+  "resource": ""
 }

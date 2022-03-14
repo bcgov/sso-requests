@@ -1,7 +1,7 @@
 import { castArray } from 'lodash';
 import format = require('pg-format');
 
-export const getMyTeamsLiteral = (userId: number, roles: string[] = ['user', 'admin']) => {
+export const getMyTeamsLiteral = (userId: number, roles: string[] = ['member', 'admin']) => {
   return format(
     `
   select team_id

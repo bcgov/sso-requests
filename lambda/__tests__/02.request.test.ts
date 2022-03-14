@@ -40,23 +40,21 @@ let teamRequest;
 
 describe('Requests', () => {
   it('should create a request successfully', async () => {
+    const projectName = new Date().getTime().toString();
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'POST',
       path: `${baseUrl}/requests`,
       body: JSON.stringify({
-        projectName: 'test',
+        projectName,
         projectLead: true,
-        preferredEmail: 'me@me.com',
         publicAccess: 'yes',
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     const result = JSON.parse(response.body);
-    expect(result.idirUserid).toEqual(TEST_IDIR_USERID);
+    expect(result.projectName).toEqual(projectName);
     expect(response.statusCode).toEqual(200);
   });
 });
@@ -68,7 +66,7 @@ describe('Creating Teams', () => {
 
   let user;
   beforeAll(async () => {
-    user = await models.user.findOne({ where: { idir_userid: TEST_IDIR_USERID } });
+    user = await models.user.findOne({ where: { id: 1 } });
   });
 
   it('Should allow users to create a team and default them to admin', async () => {
@@ -82,9 +80,7 @@ describe('Creating Teams', () => {
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
 
     const [userTeam, team] = await Promise.all([
@@ -109,15 +105,13 @@ describe('Creating Teams', () => {
         members: [
           {
             idirEmail: newMemberEmail,
-            role: 'user',
+            role: 'member',
           },
         ],
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     const newUser = await models.user.findOne({ where: { idirEmail: newMemberEmail } });
 
     const [userTeam, team] = await Promise.all([
@@ -128,7 +122,7 @@ describe('Creating Teams', () => {
     expect(userTeam.userId).toBe(newUser.id);
     expect(userTeam.teamId).toBe(team.id);
     expect(userTeam.pending).toBe(true);
-    expect(userTeam.role).toBe('user');
+    expect(userTeam.role).toBe('member');
     expect(sendEmail).toHaveBeenCalled();
 
     expect(response.statusCode).toEqual(200);
@@ -150,9 +144,7 @@ describe('Creating Teams', () => {
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     const newUsers = await models.user.findAll({ where: { idirEmail: memberEmail } });
 
     expect(newUsers.length).toBe(1);
@@ -168,14 +160,12 @@ describe('Creating Teams', () => {
       body: JSON.stringify({
         projectName: 'test project',
         projectLead: true,
-        preferredEmail: TEST_IDIR_EMAIL,
         usesTeam: true,
         teamId: teamWithMember.id,
       }),
     };
 
-    const context: Context = {};
-    const response = await handler(event, context);
+    const response = await handler(event);
     teamRequest = JSON.parse(response.body);
 
     expect(JSON.parse(response.body).teamId).toBe(teamWithMember.id);
@@ -211,8 +201,7 @@ describe('Team member permissions', () => {
       }),
     };
 
-    const context: Context = {};
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
   });
 
@@ -227,8 +216,7 @@ describe('Team member permissions', () => {
       }),
     };
 
-    const context: Context = {};
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     expect(JSON.parse(response.body).publicAccess).toBe(true);
   });
@@ -241,8 +229,7 @@ describe('Team member permissions', () => {
       queryStringParameters: { id: teamRequest.id },
     };
 
-    const context: Context = {};
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     const updatedRequest = await models.request.findOne({ where: { id: teamRequest.id } });
     expect(updatedRequest.archived).toBe(true);

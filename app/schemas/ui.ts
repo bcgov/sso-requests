@@ -24,10 +24,6 @@ const getUISchema = (request: Request) => {
       'ui:widget': 'radio',
       'ui:FieldTemplate': FieldTemplateWithTitle,
     },
-    preferredEmail: {
-      'ui:FieldTemplate': FieldTemplateNoTitle,
-      'ui:readonly': true,
-    },
     publicAccess: {
       'ui:widget': ClientTypeWidget,
       'ui:FieldTemplate': FieldTemplateWithTitle,

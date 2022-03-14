@@ -1,6 +1,5 @@
 export const formDataUpdated: any = {
   id: 1,
-  idirUserid: 'TEST',
   projectName: 'test',
   clientName: 'test',
   realm: 'onestopauth',
@@ -14,18 +13,15 @@ export const formDataUpdated: any = {
   createdAt: 'test',
   updatedAt: '10-11-2012',
   projectLead: true,
-  preferredEmail: 'test@test',
   newToSso: true,
   agreeWithTerms: true,
   status: 'draft',
   archived: false,
-  additionalEmails: [],
   usesTeam: false,
 };
 
 export const formDataOriginal: any = {
   id: 1,
-  idirUserid: 'TEST',
   projectName: 'test',
   clientName: 'test',
   realm: 'onestopauth',
@@ -39,18 +35,15 @@ export const formDataOriginal: any = {
   createdAt: 'test',
   updatedAt: '11-12-2013',
   projectLead: true,
-  preferredEmail: 'test@test',
   newToSso: true,
   agreeWithTerms: true,
   status: 'draft',
   archived: false,
-  additionalEmails: [],
   usesTeam: false,
 };
 
 export const formDataWithMutatedNonFormFields: any = {
   id: 1,
-  idirUserid: 'TEST',
   projectName: 'test',
   clientName: 'test-two',
   realm: 'onestopauth',
@@ -64,12 +57,10 @@ export const formDataWithMutatedNonFormFields: any = {
   createdAt: 'test2',
   updatedAt: '11-12-2015',
   projectLead: true,
-  preferredEmail: 'test@test',
   newToSso: true,
   agreeWithTerms: true,
   status: 'submitted',
   archived: true,
-  additionalEmails: [],
   usesTeam: false,
 };
 

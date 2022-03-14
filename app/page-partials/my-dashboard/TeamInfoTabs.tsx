@@ -88,6 +88,7 @@ interface Props {
   alert: any;
   currentUser: UserSession;
   team: Team;
+  loadTeams: () => void;
 }
 
 const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Function; type: string }) => {
@@ -171,7 +172,7 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
   return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
 };
 
-function TeamInfoTabs({ alert, currentUser, team }: Props) {
+function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState<User[]>([]);
   const [integrations, setIntegrations] = useState<Request[]>([]);
@@ -187,12 +188,14 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
   const getData = async (teamId: number) => {
     setLoading(true);
     const [membersRes, integrationRes] = await Promise.all([getTeamMembers(teamId), getTeamIntegrations(teamId)]);
-
     const [members, err1] = membersRes;
     const [integrations, err2] = integrationRes;
 
     if (err1 || err2) {
-      console.error(err1 || err2);
+      console.error(err1, err2);
+      setMembers([]);
+      setMyself(null);
+      setIntegrations([]);
     } else {
       setMembers(members);
       setMyself(members.find((member: { idirEmail: string }) => member.idirEmail === currentUser.email));
@@ -313,14 +316,20 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
 
   if (!team || !myself) return null;
 
+  const isAdmin = myself.role === 'admin';
+
   return (
     <Container>
       <RequestTabs defaultActiveKey={'members'}>
         <Tab eventKey="members" title="Members">
           <TabWrapper>
-            <PaddedButton variant="plainText" onClick={openModal}>
-              + Add new team members
-            </PaddedButton>
+            {isAdmin ? (
+              <PaddedButton variant="plainText" onClick={openModal}>
+                + Add new team members
+              </PaddedButton>
+            ) : (
+              <br />
+            )}
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
               <Table variant="medium" readOnly>
                 <thead>
@@ -333,7 +342,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
                 </thead>
                 <tbody>
                   {members.map((member) => {
-                    const adminActionsAllowed = myself.role === 'admin' && myself.id !== member.id;
+                    const adminActionsAllowed = isAdmin && myself.id !== member.id;
                     return (
                       <tr key={member.id}>
                         <td className="w60">
@@ -406,6 +415,7 @@ function TeamInfoTabs({ alert, currentUser, team }: Props) {
                           <ActionButtons
                             request={integration}
                             onDelete={() => {
+                              loadTeams();
                               getData(team?.id);
                             }}
                           >

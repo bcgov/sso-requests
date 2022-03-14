@@ -70,8 +70,8 @@ jobs:
           echo "CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}" >> $GITHUB_ENV
           echo "VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}" >> $GITHUB_ENV
 
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: hmarr/debug-action@v2
+      - uses: actions/checkout@v2
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -84,33 +84,16 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-yarn-
 
-      - name: Install dependencies for frontend app
-        run: |
-          yarn
-        working-directory: ./app
+      - name: Install dependencies for frontend
+        run: make app_install
 
-      - name: Install dependencies for shared module
-        run: |
-          yarn
-        working-directory: ./lambda/shared
+      - name: Install dependencies for backend
+        run: make server_install
 
-      - name: zip lambda functions - app
+      - name: Build lambda artifacts
         run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/app
-
-      - name: zip lambda functions - db
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/db
-
-      - name: zip lambda functions - actions
-        run: |
-          yarn
-          make lambda
-        working-directory: ./lambda/actions
+          make build_all
+        working-directory: ./lambda
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1

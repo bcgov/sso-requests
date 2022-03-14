@@ -1,4 +1,7 @@
-module.exports = (sequelize, DataTypes) => {
+import { models } from './models';
+import { User } from '../../interfaces';
+
+const init = (sequelize, DataTypes) => {
   const Team = sequelize.define(
     'team',
     {
@@ -16,5 +19,13 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 
+  Team.prototype.isTeamAdmin = async function (user: User) {
+    return (
+      (await models.usersTeam.count({ where: { teamId: this.id, userId: user.id, pending: false, role: 'admin' } })) > 0
+    );
+  };
+
   return Team;
 };
+
+export default init;

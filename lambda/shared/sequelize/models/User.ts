@@ -1,6 +1,6 @@
 import { lowcase } from '@lambda-app/helpers/string';
 
-module.exports = (sequelize, DataTypes) => {
+const init = (sequelize, DataTypes) => {
   const User = sequelize.define(
     'user',
     {
@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         set(value) {
           this.setDataValue('idirEmail', lowcase(value));
         },
+      },
+      displayName: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       additionalEmail: {
         type: DataTypes.STRING,
@@ -33,3 +37,5 @@ module.exports = (sequelize, DataTypes) => {
 
   return User;
 };
+
+export default init;

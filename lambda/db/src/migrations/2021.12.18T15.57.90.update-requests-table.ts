@@ -1,4 +1,6 @@
-const { DataTypes } = require('sequelize');
+import { DataTypes } from 'sequelize';
+
+export const name = '2021.12.18T15.57.90.update-requests-table.js';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {
@@ -17,3 +19,5 @@ export const down = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().removeColumn('requests', 'team_id');
   await sequelize.getQueryInterface().removeColumn('requests', 'uses_team');
 };
+
+export default { name, up, down };

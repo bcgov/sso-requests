@@ -41,9 +41,8 @@ describe('User and Teams', () => {
   it('should find current user successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
     const event: APIGatewayProxyEvent = { ...baseEvent, path: `${baseUrl}/me` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const user = JSON.parse(response.body);
     expect(user.idirUserid).toEqual(TEST_IDIR_USERID);
     expect(user.idirEmail).toEqual(TEST_IDIR_EMAIL);
@@ -53,9 +52,8 @@ describe('User and Teams', () => {
   it('should find empty team list successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const teams = JSON.parse(response.body);
     expect(teams.length).toEqual(0);
     expect(response.statusCode).toEqual(200);
@@ -73,9 +71,7 @@ describe('User and Teams', () => {
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     const team = JSON.parse(response.body);
     expect(team.name).toEqual('ssoteam');
 
@@ -85,9 +81,8 @@ describe('User and Teams', () => {
   it('should find one team list successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const teams = JSON.parse(response.body);
     expect(teams.length).toEqual(1);
     expect(response.statusCode).toEqual(200);
@@ -96,9 +91,8 @@ describe('User and Teams', () => {
   it('should find empty team list for the second user successfully', async () => {
     createMockAuth(TEST_IDIR_USERID_2, TEST_IDIR_EMAIL_2);
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams` };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const teams = JSON.parse(response.body);
     expect(teams.length).toEqual(0);
     expect(response.statusCode).toEqual(200);
@@ -114,9 +108,8 @@ describe('User and Teams', () => {
         name: 'ssoteam2',
       }),
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const team = JSON.parse(response.body);
     expect(team.name).toEqual('ssoteam2');
     expect(response.statusCode).toEqual(200);
@@ -143,8 +136,8 @@ describe('User and Teams', () => {
         },
       ]),
     };
-    const context: Context = {};
-    const response = await handler(event, context);
+
+    const response = await handler(event);
     const body = JSON.parse(response.body);
     testUserId = body[0];
     expect(response.statusCode).toEqual(200);
@@ -163,25 +156,27 @@ describe('User and Teams', () => {
         },
       ]),
     };
-    const context: Context = {};
-    const response = await handler(event, context);
+
+    const response = await handler(event);
     expect(response.statusCode).toEqual(401);
   });
 
   it('Should allow team members to read team membership', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams/1/members` };
-    const context: Context = {};
-    const response = await handler(event, context);
+
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
   });
 
   it('Should block non-team members from reading team membership', async () => {
     createMockAuth(TEST_IDIR_USERID_2, TEST_IDIR_EMAIL_2);
     const event: APIGatewayProxyEvent = { ...baseEvent, httpMethod: 'GET', path: `${baseUrl}/teams/1/members` };
-    const context: Context = {};
-    const response = await handler(event, context);
-    expect(response.statusCode).toEqual(401);
+
+    const response = await handler(event);
+    const ressult = JSON.parse(response.body);
+    expect(response.statusCode).toEqual(200);
+    expect(ressult).toEqual([]);
   });
 
   it('Should block pending admins from removing team members', async () => {
@@ -191,8 +186,8 @@ describe('User and Teams', () => {
       httpMethod: 'DELETE',
       path: `${baseUrl}/teams/1/members/${testUserId}`,
     };
-    const context: Context = {};
-    const response = await handler(event, context);
+
+    const response = await handler(event);
     expect(response.statusCode).toEqual(401);
   });
 
@@ -203,8 +198,8 @@ describe('User and Teams', () => {
       httpMethod: 'DELETE',
       path: `${baseUrl}/teams/1/members/${testUserId}`,
     };
-    const context: Context = {};
-    const response = await handler(event, context);
+
+    const response = await handler(event);
     expect(response.statusCode).toEqual(401);
   });
 
@@ -215,8 +210,8 @@ describe('User and Teams', () => {
       httpMethod: 'DELETE',
       path: `${baseUrl}/teams/1/members/${testUserId}`,
     };
-    const context: Context = {};
-    const response = await handler(event, context);
+
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
   });
 
@@ -233,8 +228,8 @@ describe('User and Teams', () => {
         },
       ]),
     };
-    const context: Context = {};
-    const response = await handler(event, context);
+
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     expect(sendEmail).toHaveBeenCalled();
   });
@@ -252,8 +247,8 @@ describe('User and Teams', () => {
         },
       ]),
     };
-    const context: Context = {};
-    const response = await handler(event, context);
+
+    const response = await handler(event);
     expect(response.statusCode).toEqual(401);
     expect(sendEmail).not.toHaveBeenCalled();
   });
@@ -265,9 +260,8 @@ describe('User and Teams', () => {
       httpMethod: 'DELETE',
       path: `${baseUrl}/teams/1`,
     };
-    const context: Context = {};
 
-    const response = await handler(event, context);
+    const response = await handler(event);
     const ressult = JSON.parse(response.body);
     expect(ressult).toEqual(true);
     expect(response.statusCode).toEqual(200);

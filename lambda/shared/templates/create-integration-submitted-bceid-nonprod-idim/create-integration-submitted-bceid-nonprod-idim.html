@@ -1,0 +1,16 @@
+<h1>Hello IDIM Team,</h1>
+<p>
+  We are notifying you that a new dev and/or test integration request has been submitted. The request details are below:
+</p>
+<ul>
+  <li><strong>Project name: </strong>{{integration.projectName}}</li>
+  <li><strong>Accountable person: </strong>{{integration.accountableEntity}}</li>
+  <li>
+    <strong>URIs:</strong>
+    <ul>
+      {{integration.devUris}} {{integration.testUris}}
+    </ul>
+  </li>
+  <li><strong>Identity Providers Required:</strong>{{integration.idps}}</li>
+</ul>
+{{> footer }}

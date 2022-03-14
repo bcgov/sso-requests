@@ -1,4 +1,6 @@
-const { DataTypes } = require('sequelize');
+import { DataTypes } from 'sequelize';
+
+export const name = '2021.07.02T15.57.60.create-events-table.js';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {
@@ -49,3 +51,5 @@ export const up = async ({ context: sequelize }) => {
 export const down = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().dropTable('events');
 };
+
+export default { name, up, down };

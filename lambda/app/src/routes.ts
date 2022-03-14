@@ -1,4 +1,3 @@
-import { isFunction } from 'lodash';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
 import {
@@ -7,10 +6,8 @@ import {
   addUsersToTeam,
   deleteTeam,
   verifyTeamMember,
-  getUsersOnTeam,
   updateTeam,
   userIsTeamAdmin,
-  userCanReadTeam,
   removeUserFromTeam,
   updateMemberInTeam,
 } from './controllers/team';
@@ -28,11 +25,12 @@ import { listIntegrationsForTeam } from './queries/request';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
+import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
-import { parseInvitationToken, inviteTeamMembers } from '../src/utils/helpers';
+import { inviteTeamMembers } from '../src/utils/helpers';
 import { getAllowedTeams } from '@lambda-app/queries/team';
+import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { isAdmin } from './utils/helpers';
-import encodeurl = require('encodeurl');
 
 const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -83,15 +81,15 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
     try {
       const token = req.query.token;
-      if (!token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
+      if (!token) return res.redirect(`${APP_URL}/verify-user?message=notoken`);
       else {
-        const [data] = await parseInvitationToken(token);
-        const { userId, teamId, exp } = data;
-        // exp returns seconds not milliseconds
-        const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return res.redirect(`${APP_URL}/verify-user?message=${encodeurl('This link has expired')}`);
+        const { error, message, userId, teamId } = parseInvitationToken(token);
+
+        if (error) return res.redirect(`${APP_URL}/verify-user?message=${message}`);
+
         const verified = await verifyTeamMember(userId, teamId);
-        if (!verified) return res.redirect(`${APP_URL}/verify-user?message=${encodeurl('User not found')}`);
+        if (!verified) return res.redirect(`${APP_URL}/verify-user?message=notfound`);
+
         return res.redirect(`${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {
@@ -113,7 +111,7 @@ export const setRoutes = (app: any) => {
       req.user = user;
       req.session = session;
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
 
     if (next) next();
@@ -123,7 +121,7 @@ export const setRoutes = (app: any) => {
     try {
       res.status(200).json(req.user);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -132,7 +130,7 @@ export const setRoutes = (app: any) => {
       const result = await updateProfile(req.session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -141,7 +139,7 @@ export const setRoutes = (app: any) => {
       const result = await getRequestAll(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -151,7 +149,7 @@ export const setRoutes = (app: any) => {
       const result = await getRequests(req.session as Session, req.user, include);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -161,7 +159,7 @@ export const setRoutes = (app: any) => {
       const result = await listIntegrationsForTeam(req.session as Session, teamId);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -170,7 +168,7 @@ export const setRoutes = (app: any) => {
       const result = await createRequest(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -180,7 +178,7 @@ export const setRoutes = (app: any) => {
       const result = await updateRequest(req.session as Session, req.body, req.user, submit);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -190,7 +188,7 @@ export const setRoutes = (app: any) => {
       const result = await deleteRequest(req.session as Session, req.user, Number(id));
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -199,7 +197,7 @@ export const setRoutes = (app: any) => {
       const result = await getRequest(req.session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -208,16 +206,16 @@ export const setRoutes = (app: any) => {
       const result = await updateRequestMetadata(req.session as Session, req.user, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
   app.post(`${BASE_PATH}/installation`, async (req, res) => {
     try {
-      const result = await getInstallation(req.session as Session, req.user, req.body);
+      const result = await getInstallation(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -226,7 +224,7 @@ export const setRoutes = (app: any) => {
       const result = await changeSecret(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -235,7 +233,7 @@ export const setRoutes = (app: any) => {
       const result = await getClient(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -244,7 +242,7 @@ export const setRoutes = (app: any) => {
       const result = await getEvents(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -294,10 +292,10 @@ export const setRoutes = (app: any) => {
       const authorized = await userIsTeamAdmin(req.user, id);
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
-      const result = await addUsersToTeam(id, req.body);
+      const result = await addUsersToTeam(id, req.user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -311,7 +309,7 @@ export const setRoutes = (app: any) => {
       const result = await updateMemberInTeam(id, memberId, req.body);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
@@ -324,17 +322,14 @@ export const setRoutes = (app: any) => {
       const result = await removeUserFromTeam(memberId, id);
       res.status(200).json(result);
     } catch (err) {
-      res.status(422).json({ success: false, message: err.message || err });
+      handleError(res, err);
     }
   });
 
   app.get(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userCanReadTeam(req.user, id);
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
-      const result = await getUsersOnTeam(id);
+      const result = await findAllowedTeamUsers(id, req.user.id);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
