@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "ES2017",
+    "target": "es2016",
     "moduleResolution": "node",
-    "preserveConstEnums": true,
     "esModuleInterop": true,
-    "outDir": "./build",
     "sourceMap": false,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outDir": "./build",
     "rootDir": "../../",
     "baseUrl": "./",
     "paths": {

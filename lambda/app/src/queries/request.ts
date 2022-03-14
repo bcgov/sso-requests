@@ -28,6 +28,7 @@ export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: stri
       },
     },
     {
+      usesTeam: false,
       userId,
     },
   ];

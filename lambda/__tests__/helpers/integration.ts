@@ -7,7 +7,7 @@ import baseEvent from '../base-event.json';
 
 const { path: baseUrl } = baseEvent;
 const actionsBaseUrl = '/actions';
-const context: Context = {};
+const context = null;
 
 export const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
 export const TEST_IDIR_USERID_2 = 'AABBCCDDEEFFGGHH';
@@ -130,7 +130,7 @@ export class Integration {
       path: `${baseUrl}/requests`,
       httpMethod: 'PUT',
       body: JSON.stringify(this.current),
-      queryStringParameters: { submit: true },
+      queryStringParameters: { submit: 'true' },
     };
 
     const { statusCode, body } = await appHandler(event, context);
@@ -156,43 +156,41 @@ export class Integration {
   async prSuccess(prNumber: number) {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: `${actionsBaseUrl}`,
+      path: `${actionsBaseUrl}/batch/pr`,
       httpMethod: 'PUT',
-      requestContext: { httpMethod: 'PUT' },
       body: JSON.stringify({
         id: this.current.id,
         actionNumber: prNumber,
         prNumber,
-        prSuccess: true,
+        success: true,
+        isEmpty: false,
+        isAllowedToMerge: false,
+        changes: {},
       }),
-      queryStringParameters: { status: 'create' },
     };
 
     // TBD: once actions lambda is wrapped within Expressy, add more checks
-    await actionsHandler(event, context, () => {});
+    await actionsHandler(event, context);
   }
 
-  async applySuccess(prNumber: number) {
+  async applySuccess() {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: `${actionsBaseUrl}`,
+      path: `${actionsBaseUrl}/batch/items`,
       httpMethod: 'PUT',
-      requestContext: { httpMethod: 'PUT' },
       body: JSON.stringify({
-        id: this.current.id,
-        prNumber,
-        applySuccess: true,
+        ids: [this.current.id],
+        success: true,
       }),
-      queryStringParameters: { status: 'apply' },
     };
 
     // TBD: once actions lambda is wrapped within Expressy, add more checks
-    await actionsHandler(event, context, () => {});
+    await actionsHandler(event, context);
   }
 
   async success() {
     prNumber = prNumber + 1;
     await this.prSuccess(prNumber);
-    await this.applySuccess(prNumber);
+    await this.applySuccess();
   }
 }

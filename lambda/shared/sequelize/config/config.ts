@@ -1,12 +1,16 @@
-module.exports = {
+import * as pg from 'pg';
+
+const config = {
   development: {
     dialect: 'postgres',
+    dialectModule: pg,
     use_env_variable: 'DATABASE_URL',
   },
   test: {
     dialect: 'postgres',
+    dialectModule: pg,
     logging: false,
-    databaseUrl: 'postgresql://localhost:5432/ssorequests_test',
+    databaseUrl: process.env.DATABASE_URL || 'postgresql://localhost:5432/ssorequests_test',
     pool: {
       max: 5,
       min: 0,
@@ -20,6 +24,7 @@ module.exports = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     dialect: 'postgres',
+    dialectModule: pg,
     omitNull: true,
     dialectOptions: {
       ssl: {
@@ -31,3 +36,5 @@ module.exports = {
     use_env_variable: 'DATABASE_URL',
   },
 };
+
+export default config;

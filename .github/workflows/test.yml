@@ -1,5 +1,7 @@
 name: Run Tests and Lints
+
 on: [push, pull_request]
+
 jobs:
   test_pre-commit:
     runs-on: ubuntu-18.04
@@ -40,9 +42,14 @@ jobs:
           asdf reshim
           pre-commit run --color=always --show-diff-on-failure --all-files
 
+      - name: Install dependencies for frontend
+        run: make app_install
+
+      - name: Install dependencies for backend
+        run: make server_install
+
       - name: Run frontend unit tests
         run: |
-          yarn
           yarn test
           yarn build
         working-directory: ./app
@@ -52,37 +59,13 @@ jobs:
           pg_ctl start
           createdb runner || true
           chmod +x ./setup.sh
-          ./setup.sh ssorequests_test
+          ./setup.sh ${{ github.sha }}
         working-directory: ./db
 
-      - name: Install dependencies for parent lambda module
-        run: |
-          yarn
-        working-directory: ./lambda
-
-      - name: Install dependencies - lambda app
-        run: |
-          yarn
-        working-directory: ./lambda/app
-
-      - name: Install dependencies - lambda db
-        run: |
-          yarn
-        working-directory: ./lambda/db
-
-      - name: Install dependencies - lambda actions
-        run: |
-          yarn
-        working-directory: ./lambda/actions
-
-      - name: Install dependencies - lambda shared
-        run: |
-          yarn
-        working-directory: ./lambda/shared
-
       - name: Run backend integration tests
+        env:
+          DATABASE_URL: 'postgresql://localhost:5432/${{ github.sha }}'
         run: |
-          yarn
           yarn test
         working-directory: ./lambda
 

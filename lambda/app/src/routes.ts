@@ -6,10 +6,8 @@ import {
   addUsersToTeam,
   deleteTeam,
   verifyTeamMember,
-  getUsersOnTeam,
   updateTeam,
   userIsTeamAdmin,
-  userCanReadTeam,
   removeUserFromTeam,
   updateMemberInTeam,
 } from './controllers/team';
@@ -27,12 +25,12 @@ import { listIntegrationsForTeam } from './queries/request';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { wakeUpAll } from './controllers/heartbeat';
+import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
 import { getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { isAdmin } from './utils/helpers';
-import encodeurl = require('encodeurl');
 
 const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -70,18 +68,31 @@ export const setRoutes = (app: any) => {
     }
   });
 
+  app.get(`${BASE_PATH}/verify-token`, async (req, res) => {
+    try {
+      const session = (await authenticate(req.headers)) as Session;
+      res.status(200).json(session);
+      return session;
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
   app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
     try {
       const token = req.query.token;
-      if (!token) return res.redirect(`${APP_URL}/verify-user?message=no-token`);
+      if (!token) return res.redirect(`${APP_URL}/verify-user?message=notoken`);
       else {
         const data = parseInvitationToken(token);
         const { userId, teamId, exp } = data;
+
         // exp returns seconds not milliseconds
         const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return res.redirect(`${APP_URL}/verify-user?message=${encodeurl('This link has expired')}`);
+        if (expired) return res.redirect(`${APP_URL}/verify-user?message=expired`);
+
         const verified = await verifyTeamMember(userId, teamId);
-        if (!verified) return res.redirect(`${APP_URL}/verify-user?message=${encodeurl('User not found')}`);
+        if (!verified) return res.redirect(`${APP_URL}/verify-user?message=notfound`);
+
         return res.redirect(`${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
     } catch (err) {
@@ -284,7 +295,7 @@ export const setRoutes = (app: any) => {
       const authorized = await userIsTeamAdmin(req.user, id);
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
-      const result = await addUsersToTeam(id, req.body);
+      const result = await addUsersToTeam(id, req.user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -321,10 +332,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userCanReadTeam(req.user, id);
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
-      const result = await getUsersOnTeam(id);
+      const result = await findAllowedTeamUsers(id, req.user.id);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

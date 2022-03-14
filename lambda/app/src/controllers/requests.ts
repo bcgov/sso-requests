@@ -22,8 +22,8 @@ import {
   getBaseWhereForMyOrTeamIntegrations,
 } from '@lambda-app/queries/request';
 
-const SSO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
-const NEW_REQUEST_DAY_LIMIT = 10;
+const APP_ENV = process.env.APP_ENV || 'development';
+const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
 
 const createEvent = async (data) => {
   try {
@@ -55,7 +55,8 @@ const checkIfRequestMerged = async (id: number) => {
 };
 
 export const createRequest = async (session: Session, data: Data) => {
-  await checkIfHasFailedRequests();
+  // let's skip this logic for now and see if we might need it back later
+  // await checkIfHasFailedRequests();
 
   const idirUserDisplayName = session.user.displayName;
   const now = new Date();
@@ -98,7 +99,8 @@ export const createRequest = async (session: Session, data: Data) => {
 };
 
 export const updateRequest = async (session: Session, data: Data, user: User, submit: string | undefined) => {
-  await checkIfHasFailedRequests();
+  // let's skip this logic for now and see if we might need it back later
+  // await checkIfHasFailedRequests();
 
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = getDisplayName(session);
@@ -329,6 +331,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     const isMerged = await checkIfRequestMerged(id);
     const requester = await getRequester(session, current.id);
     current.requester = requester;
+    current.status = 'submitted';
     current.archived = true;
 
     if (isMerged) {

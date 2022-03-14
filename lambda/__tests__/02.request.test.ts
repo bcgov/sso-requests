@@ -52,9 +52,7 @@ describe('Requests', () => {
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     const result = JSON.parse(response.body);
     expect(result.projectName).toEqual(projectName);
     expect(response.statusCode).toEqual(200);
@@ -82,9 +80,7 @@ describe('Creating Teams', () => {
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
 
     const [userTeam, team] = await Promise.all([
@@ -115,9 +111,7 @@ describe('Creating Teams', () => {
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     const newUser = await models.user.findOne({ where: { idirEmail: newMemberEmail } });
 
     const [userTeam, team] = await Promise.all([
@@ -150,9 +144,7 @@ describe('Creating Teams', () => {
       }),
     };
 
-    const context: Context = {};
-
-    const response = await handler(event, context);
+    const response = await handler(event);
     const newUsers = await models.user.findAll({ where: { idirEmail: memberEmail } });
 
     expect(newUsers.length).toBe(1);
@@ -173,8 +165,7 @@ describe('Creating Teams', () => {
       }),
     };
 
-    const context: Context = {};
-    const response = await handler(event, context);
+    const response = await handler(event);
     teamRequest = JSON.parse(response.body);
 
     expect(JSON.parse(response.body).teamId).toBe(teamWithMember.id);
@@ -210,8 +201,7 @@ describe('Team member permissions', () => {
       }),
     };
 
-    const context: Context = {};
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
   });
 
@@ -226,8 +216,7 @@ describe('Team member permissions', () => {
       }),
     };
 
-    const context: Context = {};
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     expect(JSON.parse(response.body).publicAccess).toBe(true);
   });
@@ -240,8 +229,7 @@ describe('Team member permissions', () => {
       queryStringParameters: { id: teamRequest.id },
     };
 
-    const context: Context = {};
-    const response = await handler(event, context);
+    const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     const updatedRequest = await models.request.findOne({ where: { id: teamRequest.id } });
     expect(updatedRequest.archived).toBe(true);

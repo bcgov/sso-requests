@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Table from 'html-components/Table';
 import styled from 'styled-components';
+import { noop } from 'lodash';
 import { $setDownloadError } from 'dispatchers/requestDispatcher';
 import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
@@ -81,42 +82,35 @@ const teamHasNoIntegrationsMessage = 'Once you delete this team, this action can
 interface Props {
   currentUser: UserSession;
   setTeam: Function;
+  loading: boolean;
+  teams: Team[];
+  loadTeams: () => void;
   state: DashboardReducerState;
   dispatch: Dispatch<SetStateAction<any>>;
 }
 
-export default function TeamList({ currentUser, setTeam, state, dispatch }: Props) {
-  const router = useRouter();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [teams, setTeams] = useState<Team[]>([]);
+export default function TeamList({ currentUser, setTeam, loading, teams, loadTeams, state, dispatch }: Props) {
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
   const { downloadError } = state;
 
   const canDelete = activeTeam && Number(activeTeam.integrationCount) === 0;
 
-  const updateActiveTeam = (team: Team) => {
+  const updateActiveTeam = (team: Team | null) => {
     setActiveTeam(team);
-    setActiveTeamId(team.id);
+    setActiveTeamId(team?.id);
     setTeam(team);
   };
 
-  const updateTeams = (teams: Team[]) => {
-    setTeams(teams || []);
-    if (teams?.length > 0) updateActiveTeam(teams[0]);
-  };
-
-  const loadTeams = async () => {
-    setLoading(true);
-    const [teams, err] = await getMyTeams();
-    if (err) dispatch($setDownloadError(true));
-    else updateTeams(teams || []);
-    setLoading(false);
-  };
-
   useEffect(() => {
-    loadTeams();
-  }, []);
+    if (teams?.length > 0) {
+      if (!activeTeamId || !teams.find((team) => team.id === activeTeamId)) {
+        updateActiveTeam(teams[0]);
+      }
+    } else {
+      updateActiveTeam(null);
+    }
+  }, [teams]);
 
   const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
 
@@ -146,6 +140,7 @@ export default function TeamList({ currentUser, setTeam, state, dispatch }: Prop
         <tbody>
           {teams &&
             teams.map((team: Team) => {
+              const canDelete = Number(team.integrationCount) === 0;
               return (
                 <tr
                   className={activeTeamId === team.id ? 'active' : ''}
@@ -164,13 +159,13 @@ export default function TeamList({ currentUser, setTeam, state, dispatch }: Prop
                         onClick={() => showEditTeamNameModal(team)}
                       />
                       <ActionButton
-                        disabled={Number(team.integrationCount) > 0}
+                        disabled={!canDelete}
                         icon={faTrash}
                         role="button"
                         aria-label="delete"
                         title="Delete"
                         size="lg"
-                        onClick={() => showDeleteModal(team)}
+                        onClick={() => (canDelete ? showDeleteModal(team) : noop)}
                       />
                     </ActionButtonContainer>
                   </td>

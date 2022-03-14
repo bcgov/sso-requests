@@ -44,17 +44,23 @@ resource "aws_api_gateway_resource" "actions" {
   path_part   = "actions"
 }
 
-resource "aws_api_gateway_method" "actions" {
+resource "aws_api_gateway_resource" "actions_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  parent_id   = aws_api_gateway_resource.actions.id
+  path_part   = "{proxy+}"
+}
+
+resource "aws_api_gateway_method" "actions_proxy" {
   rest_api_id   = aws_api_gateway_rest_api.sso_backend.id
-  resource_id   = aws_api_gateway_resource.actions.id
+  resource_id   = aws_api_gateway_resource.actions_proxy.id
   http_method   = "ANY"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "actions" {
   rest_api_id = aws_api_gateway_rest_api.sso_backend.id
-  resource_id = aws_api_gateway_method.actions.resource_id
-  http_method = aws_api_gateway_method.actions.http_method
+  resource_id = aws_api_gateway_method.actions_proxy.resource_id
+  http_method = aws_api_gateway_method.actions_proxy.http_method
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"

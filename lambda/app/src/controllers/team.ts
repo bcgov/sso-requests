@@ -1,16 +1,16 @@
 import { Op } from 'sequelize';
-import { getTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
+import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
 import { inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { User, Team, Member } from '@lambda-shared/interfaces';
-import { getTeamById } from '../queries/team';
+import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getUserById } from '../queries/user';
 
 export const listTeams = async (user: User) => {
-  const result = await getTeamsForUser(user.id, { raw: true });
+  const result = await findTeamsForUser(user.id, { raw: true });
   return result;
 };
 
@@ -18,16 +18,16 @@ export const createTeam = async (user: User, data: Team) => {
   const { name, members } = data;
   const team = await models.team.create({ name });
   await Promise.all([
-    addUsersToTeam(team.id, members),
+    addUsersToTeam(team.id, user.id, members),
     models.usersTeam.create({ teamId: team.id, userId: user.id, role: 'admin', pending: false }),
   ]);
   return team;
 };
 
-export const addUsersToTeam = async (teamId: number, members: Member[]) => {
+export const addUsersToTeam = async (teamId: number, userId: number, members: Member[]) => {
   members = members.map((member) => ({ ...member, idirEmail: lowcase(member.idirEmail) }));
 
-  const usersEmailsAlreadyOnTeam = await getUsersOnTeam(teamId).then((result) =>
+  const usersEmailsAlreadyOnTeam = await findAllowedTeamUsers(teamId, userId).then((result) =>
     result.map((member) => member.idirEmail),
   );
   const membersToAdd = members.filter((member) => !usersEmailsAlreadyOnTeam.includes(member.idirEmail));
@@ -106,31 +106,6 @@ export const verifyTeamMember = async (userId: number, teamId: number) => {
   return result[0] === 1;
 };
 
-export const getUsersOnTeam = async (teamId: number) => {
-  return models.user
-    .findAll({
-      include: [
-        {
-          model: models.usersTeam,
-          where: { teamId },
-          required: true,
-          attributes: [],
-        },
-      ],
-      attributes: [
-        'id',
-        'idirUserid',
-        'idirEmail',
-        [sequelize.col('usersTeams.role'), 'role'],
-        [sequelize.col('usersTeams.pending'), 'pending'],
-        [sequelize.col('usersTeams.created_at'), 'createdAt'],
-      ],
-    })
-    .then((res) => {
-      return res.map((user) => user.dataValues);
-    });
-};
-
 export const userIsTeamAdmin = async (user: User, teamId: number) => {
   const { id } = user;
   return models.usersTeam.findOne({
@@ -155,7 +130,7 @@ export const userCanReadTeam = async (user: User, teamId: number) => {
 };
 
 const canRemoveUser = async (userId: number, teamId: number) => {
-  const teamMembers = await getUsersOnTeam(teamId);
+  const teamMembers = await findAllowedTeamUsers(teamId, userId);
   const teamAdmins = teamMembers.filter((member) => member.role === 'admin');
   if (teamAdmins.length === 1 && teamAdmins.id === userId) return false;
   return true;

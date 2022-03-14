@@ -5,43 +5,27 @@
   "license": "Apache-2.0",
   "author": "SSO Team",
   "scripts": {
-    "compile": "tsc && tsc-alias",
     "test": "jest",
-    "copy-templates": "copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html bundle/lambda"
+    "compile": "../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias",
+    "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m",
+    "copy-templates": "../node_modules/.bin/copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html dist --flat"
   },
   "devDependencies": {
     "@octokit/types": "^6.18.1",
-    "@types/aws-lambda": "^8.10.51",
-    "@types/encodeurl": "^1.0.0",
-    "@types/jest": "^26.0.23",
     "@types/jsonwebtoken": "^8.5.2",
     "@types/jwk-to-pem": "^2.0.0",
-    "@types/jws": "^3.2.3",
-    "@types/node": "^16.0.0",
-    "aws-sdk": "^2.655.0",
-    "copyfiles": "^2.4.1",
-    "jest": "^27.0.5",
-    "ts-jest": "^27.0.3",
-    "tsc-alias": "^1.6.0",
-    "typescript": "^3.8.3"
+    "@types/jws": "^3.2.3"
   },
   "dependencies": {
-    "axios": "^0.21.1",
     "deep-diff": "^1.0.2",
-    "encodeurl": "^1.0.2",
-    "handlebars": "^4.7.7",
     "json-schema": "^0.3.0",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
     "jws": "^4.0.0",
     "keycloak-admin": "^1.14.18",
     "lambda-api-router": "^1.0.6",
-    "lodash": "^4.17.21",
     "octokit": "^1.1.0",
-    "pg": "^8.6.0",
-    "pg-format": "^1.0.4",
     "react": "^17.0.2",
-    "react-jsonschema-form": "^1.8.1",
-    "sequelize": "~6.6.5"
+    "react-jsonschema-form": "^1.8.1"
   }
 }

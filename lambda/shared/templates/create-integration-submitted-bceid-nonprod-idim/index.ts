@@ -8,7 +8,7 @@ import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `New BCeID Request ID {{integration.id}}`;
-const template = fs.readFileSync(__dirname + '/template.html', 'utf8');
+const template = fs.readFileSync(__dirname + '/create-integration-submitted-bceid-nonprod-idim.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

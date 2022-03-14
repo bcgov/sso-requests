@@ -19,6 +19,8 @@ const event: APIGatewayProxyEvent = {
     'x-forwarded-proto': 'http',
     'x-imforwards': '20',
   },
+  multiValueHeaders: {},
+  requestContext: null,
   body: null,
   isBase64Encoded: false,
   pathParameters: null,
@@ -28,7 +30,7 @@ const event: APIGatewayProxyEvent = {
   resource: '',
 };
 
-const context: Context = {};
+const context = null;
 
 export const TEST_ADMIN_USERID = 'QWERASDFZXCV';
 export const TEST_ADMIN_EMAIL = 'ssoadmin@example.com';
