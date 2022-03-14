@@ -47,8 +47,12 @@ interface Props {
 }
 
 function FormTemplate({ currentUser, request, alert }: Props) {
+  const router = useRouter();
+  const { step } = router.query;
+  const stage = step ? Number(step) : 0;
+
   const [formData, setFormData] = useState((request || {}) as Request);
-  const [formStage, setFormStage] = useState(request ? 1 : 0);
+  const [formStage, setFormStage] = useState(stage);
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState<SaveMessage | undefined>(undefined);
   const [saving, setSaving] = useState(false);
@@ -56,7 +60,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
   const [showAccountableError, setShowAccountableError] = useState(false);
-  const router = useRouter();
   const isNew = isNil(request?.id);
   const isApplied: boolean = request?.status === 'applied';
   const isAdmin: boolean = currentUser.isAdmin || false;
@@ -158,8 +161,18 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           setLoading(false);
           return;
         }
-        const redirectUrl = isAdmin && isApplied ? '/admin-dashboard' : `/request/${id}`;
-        await router.push({ pathname: redirectUrl });
+
+        let redirectUrl = '';
+        let query: any = {};
+
+        if (isAdmin && isApplied) {
+          redirectUrl = '/admin-dashboard';
+        } else {
+          redirectUrl = `/request/${id}`;
+          query.step = 1;
+        }
+
+        await router.push({ pathname: redirectUrl, query });
         setFormData({ ...formData, id });
       } else {
         await updateRequest(formData);

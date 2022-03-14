@@ -83,12 +83,9 @@ export const setRoutes = (app: any) => {
       const token = req.query.token;
       if (!token) return res.redirect(`${APP_URL}/verify-user?message=notoken`);
       else {
-        const data = parseInvitationToken(token);
-        const { userId, teamId, exp } = data;
+        const { error, message, userId, teamId } = parseInvitationToken(token);
 
-        // exp returns seconds not milliseconds
-        const expired = new Date(exp * 1000).getTime() - new Date().getTime() < 0;
-        if (expired) return res.redirect(`${APP_URL}/verify-user?message=expired`);
+        if (error) return res.redirect(`${APP_URL}/verify-user?message=${message}`);
 
         const verified = await verifyTeamMember(userId, teamId);
         if (!verified) return res.redirect(`${APP_URL}/verify-user?message=notfound`);
