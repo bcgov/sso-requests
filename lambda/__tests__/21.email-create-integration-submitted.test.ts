@@ -179,8 +179,8 @@ describe('Feature: Submit New Integration - Team notification for BCeID in non-P
 
       // CREATE_INTEGRATION_SUBMITTED
       if (x === 0) {
-        expect(email.subject).toContain(template.subject);
-        expect(email.body).toContain(template.body);
+        expect(email.subject).toEqual(template.subject);
+        expect(email.body).toEqual(template.body);
         expect(email.to.length).toEqual(2);
         expect(email.to).toEqual([TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2]);
         expect(email.cc.length).toEqual(1);
@@ -188,8 +188,10 @@ describe('Feature: Submit New Integration - Team notification for BCeID in non-P
       }
       // CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM
       else {
-        expect(email.subject).toContain(template.subject);
-        expect(email.body).toContain(template.body);
+        expect(email.subject).toEqual(template.subject);
+        expect(email.body).toEqual(template.body);
+        expect(email.body).toContain(TEST_IDIR_EMAIL);
+        expect(email.body).toContain(TEST_IDIR_EMAIL_2);
         expect(email.to.length).toEqual(1);
         expect(email.to).toEqual([IDIM_EMAIL_ADDRESS]);
         expect(email.cc.length).toEqual(1);

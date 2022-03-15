@@ -56,9 +56,14 @@ export const processRequest = async (integration: any) => {
   };
 };
 
-export const getUserEmails = (user) => compact([user.idirEmail, user.additionalEmail]);
+export const getUserEmails = (user, primaryEmailOnly = false) =>
+  compact(primaryEmailOnly ? [user.idirEmail] : [user.idirEmail, user.additionalEmail]);
 
-export const getTeamEmails = async (teamId: number, roles: string[] = ['member', 'admin']) => {
+export const getTeamEmails = async (
+  teamId: number,
+  roles: string[] = ['member', 'admin'],
+  primaryEmailOnly = false,
+) => {
   const users = await models.user.findAll({
     where: {},
     include: [
@@ -73,14 +78,14 @@ export const getTeamEmails = async (teamId: number, roles: string[] = ['member',
     raw: true,
   });
 
-  return uniq(flatten(map(users, getUserEmails)));
+  return uniq(flatten(map(users, (user) => getUserEmails(user, primaryEmailOnly))));
 };
 
-export const getIntegrationEmails = async (integration: Data) => {
+export const getIntegrationEmails = async (integration: Data, primaryEmailOnly = false) => {
   if (integration.usesTeam === true) {
-    return getTeamEmails(Number(integration.teamId));
+    return getTeamEmails(Number(integration.teamId), undefined, primaryEmailOnly);
   } else if (integration.user) {
-    return getUserEmails(integration.user);
+    return getUserEmails(integration.user, primaryEmailOnly);
   } else if (integration.userId) {
     const user = await models.user.findOne({
       where: { id: integration.userId },
@@ -88,7 +93,7 @@ export const getIntegrationEmails = async (integration: Data) => {
       raw: true,
     });
 
-    return getUserEmails(user);
+    return getUserEmails(user, primaryEmailOnly);
   }
 
   return [];
