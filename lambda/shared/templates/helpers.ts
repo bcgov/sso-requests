@@ -59,11 +59,7 @@ export const processRequest = async (integration: any) => {
 export const getUserEmails = (user, primaryEmailOnly = false) =>
   compact(primaryEmailOnly ? [user.idirEmail] : [user.idirEmail, user.additionalEmail]);
 
-export const getTeamEmails = async (
-  teamId: number,
-  roles: string[] = ['member', 'admin'],
-  primaryEmailOnly = false,
-) => {
+export const getTeamEmails = async (teamId: number, primaryEmailOnly = false, roles = ['member', 'admin']) => {
   const users = await models.user.findAll({
     where: {},
     include: [
@@ -83,7 +79,7 @@ export const getTeamEmails = async (
 
 export const getIntegrationEmails = async (integration: Data, primaryEmailOnly = false) => {
   if (integration.usesTeam === true) {
-    return getTeamEmails(Number(integration.teamId), undefined, primaryEmailOnly);
+    return getTeamEmails(Number(integration.teamId), primaryEmailOnly);
   } else if (integration.user) {
     return getUserEmails(integration.user, primaryEmailOnly);
   } else if (integration.userId) {
