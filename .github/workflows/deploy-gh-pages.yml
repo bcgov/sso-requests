@@ -59,7 +59,7 @@ jobs:
         working-directory: ./app
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.2.5
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           repository-name: ${{ env.DEPLOY_REPO_NAME }}
