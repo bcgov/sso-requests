@@ -85,7 +85,7 @@ function CreateTeamForm({ onSubmit, currentUser, alert }: Props) {
         variant: 'success',
         fadeOut: 10000,
         closable: true,
-        content: `Team ${teamName} has been created`,
+        content: `Team ${teamName} successfully created`,
       });
     }
     if (data) await onSubmit(data.id);
