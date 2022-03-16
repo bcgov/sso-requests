@@ -70,8 +70,8 @@ jobs:
           echo "CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}" >> $GITHUB_ENV
           echo "VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}" >> $GITHUB_ENV
 
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: hmarr/debug-action@v2
+      - uses: actions/checkout@v2
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path

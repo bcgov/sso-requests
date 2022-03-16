@@ -6,6 +6,7 @@ jobs:
   test_pre-commit:
     runs-on: ubuntu-18.04
     steps:
+      - uses: hmarr/debug-action@v2
       - uses: actions/checkout@v2
 
       - name: Get yarn cache directory path
