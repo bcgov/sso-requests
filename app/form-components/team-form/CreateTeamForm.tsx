@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
 import { Button } from '@bcgov-sso/common-react-components';
-import { v4 as uuidv4 } from 'uuid';
 import { createTeam } from 'services/team';
 import Loader from 'react-loader-spinner';
 import { User, LoggedInUser } from 'interfaces/team';
+import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import ErrorText from 'components/ErrorText';
 import TeamMembersForm from './TeamMembersForm';
 
@@ -19,8 +19,9 @@ const ButtonsContainer = styled.div`
 `;
 
 interface Props {
-  onSubmit: Function;
+  onSubmit: (teamId: number) => void;
   currentUser: LoggedInUser;
+  alert: TopAlert;
 }
 
 export interface Errors {
@@ -34,7 +35,7 @@ const emptyUser: User = {
   id: new Date().getTime(),
 };
 
-export default function TeamForm({ onSubmit, currentUser }: Props) {
+function CreateTeamForm({ onSubmit, currentUser, alert }: Props) {
   const [members, setMembers] = useState<User[]>([emptyUser]);
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,11 +72,23 @@ export default function TeamForm({ onSubmit, currentUser }: Props) {
     const errors = validateTeam(team);
     if (errors) return setErrors(errors);
     setLoading(true);
-    const [, err] = await createTeam(team);
+    const [data, err] = await createTeam(team);
     if (err) {
-      console.error(err);
+      alert.show({
+        variant: 'danger',
+        fadeOut: 10000,
+        closable: true,
+        content: err,
+      });
+    } else {
+      alert.show({
+        variant: 'success',
+        fadeOut: 10000,
+        closable: true,
+        content: `Team ${teamName} has been created`,
+      });
     }
-    await onSubmit();
+    if (data) await onSubmit(data.id);
     setMembers([emptyUser]);
     setTeamName('');
     setLoading(false);
@@ -100,3 +113,5 @@ export default function TeamForm({ onSubmit, currentUser }: Props) {
     </div>
   );
 }
+
+export default withTopAlert(CreateTeamForm);
