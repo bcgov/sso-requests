@@ -21,7 +21,7 @@ import { getMyTeams, getAllowedTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
 import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
-import TeamForm from 'form-components/team-form/CreateTeamForm';
+import CreateTeamForm from 'form-components/team-form/CreateTeamForm';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 
 const Description = styled.p`
@@ -197,6 +197,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     changeStep(newStage);
   };
 
+  const handleTeamCreate = async (teamId: number) => {
+    await loadTeams();
+    setFormData({ ...formData, usesTeam: true, teamId: String(teamId) });
+  };
+
   const handleModalClose = () => {
     window.location.hash = '#';
   };
@@ -288,7 +293,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
             title="Create a new team"
             icon={null}
             id={createTeamModalId}
-            content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
+            content={
+              <CreateTeamForm onSubmit={(teamId: number) => handleTeamCreate(teamId)} currentUser={currentUser} />
+            }
             showCancel={false}
             showConfirm={false}
             closable
