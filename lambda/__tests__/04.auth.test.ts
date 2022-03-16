@@ -35,8 +35,8 @@ describe('/non-logged in user endpoints', () => {
     };
 
     const response = await handler(event);
-    expect(response.statusCode).toEqual(422);
-    expect(response.body).toContain('jwt malformed');
+    expect(response.statusCode).toEqual(301);
+    expect(response.headers.Location).toEqual('/verify-user?message=malformed');
   });
 });
 

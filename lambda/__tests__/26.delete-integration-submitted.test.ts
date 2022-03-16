@@ -191,6 +191,8 @@ describe('Feature: Delete Integration - Team notification for BCeID', () => {
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
+    expect(emailList[0].body).toContain(TEST_IDIR_EMAIL);
+    expect(emailList[0].body).toContain(TEST_IDIR_EMAIL_2);
     expect(emailList[0].to.length).toEqual(2);
     expect(emailList[0].to).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS]);
     expect(emailList[0].cc.length).toEqual(2);
