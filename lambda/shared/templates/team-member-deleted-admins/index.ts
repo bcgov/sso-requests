@@ -29,7 +29,7 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { team, user } = data;
-  const emails = await getTeamEmails(team.id, ['admin']);
+  const emails = await getTeamEmails(team.id, false, ['admin']);
 
   return sendEmail({
     code: EMAILS.TEAM_MEMBER_DELETED_ADMINS,

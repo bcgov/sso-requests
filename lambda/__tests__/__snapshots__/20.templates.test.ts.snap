@@ -85,7 +85,8 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 </p>
 <ul>
   <li><strong>Project name: </strong>test</li>
-  <li><strong>Accountable person: </strong>Test User</li>
+  <li><strong>Accountable person(s): </strong>Test User</li>
+  <li><strong>Associated Email(s): </strong>test@test.com</li>
   <li>
     <strong>URIs:</strong>
     <ul>
@@ -113,7 +114,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 <p>Thank you for your integration request. Below is a summary of your integration request details.</p>
 <ul>
   <li><strong>Project name: </strong>test</li>
-  <li><strong>Accountable person: </strong>Test User</li>
+  <li><strong>Accountable person(s): </strong>Test User</li>
   <li>
     <strong>URIs:</strong>
     <ul>
@@ -196,7 +197,8 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
 <ul>
   <li><strong>Requester: </strong>SSO Admin</li>
   <li><strong>Project name: </strong>test #(1)</li>
-  <li><strong>Accountable person: </strong>Test User</li>
+  <li><strong>Accountable person(s): </strong>Test User</li>
+  <li><strong>Associated Email(s): </strong>test@test.com</li>
   <li>
     <strong>URIs:</strong>
     <ul>
