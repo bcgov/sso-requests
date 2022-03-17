@@ -121,7 +121,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   useEffect(() => {
     setSelectedId(undefined);
     loadData();
-  }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments, type]);
+  }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments, types]);
 
   useEffect(() => {
     let interval: any;
