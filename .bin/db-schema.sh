@@ -15,8 +15,7 @@ _psql() {
 
 describe_table() {
   _psql -d "$db" <<<"\d $1" >> "$docs/schema.md"
-  echo "\n" >> "$docs/schema.md"
-  echo "\n" >> "$docs/schema.md"
+  echo -e "\n\n" >> "$docs/schema.md"
 }
 
 echo "" > "$docs/schema.md"

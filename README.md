@@ -132,7 +132,7 @@ To run the backend integration tests, you willneed to have a local postgres data
 Ensure you have started the server with `pg_ctl start`.
 
 For the first time running the tests, the database will need to be created.
-Run `./setup.sh ssodb` from the `/db` directory to initialize it _Note: you may need to run `chmod +x` to give necessary permissions_.
+Run `./db-setup.sh ssorequests` from the `/.bin` directory to initialize it _Note: you may need to run `chmod +x` to give necessary permissions_.
 To provide the local database connection string, in your console run `export DATABASE_URL=postgresql://localhost:5432/ssodb`.
 Then running `yarn test` from the lambda directory will run the necessary migrations and test suites.
 
