@@ -256,7 +256,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                       <td>{row.projectName}</td>
                       <td>{startCase(row.status)}</td>
                       <td>{row.archived ? 'Deleted' : 'Active'}</td>
-                      <td>{row.type === 'gold' ? 'Gold' : 'Silver'}</td>
+                      <td>{row.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
                       <td>
                         <ActionButtonContainer>
                           <ActionButton

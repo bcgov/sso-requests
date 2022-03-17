@@ -51,7 +51,7 @@ const sortURIFields = (data: any) => {
 };
 
 export const processRequest = (data: any, isMerged: boolean) => {
-  const immutableFields = ['userId', 'idirUserid', 'clientName', 'projectLead', 'status'];
+  const immutableFields = ['userId', 'idirUserid', 'clientName', 'projectLead', 'status', 'serviceType'];
   if (isMerged) immutableFields.push('realm');
   data = omit(data, immutableFields);
   data = sortURIFields(data);
@@ -154,7 +154,7 @@ export const getWhereClauseForAllRequests = (data: {
     };
 
   if (types?.length > 0)
-    where.type = {
+    where.serviceType = {
       [Op.in]: types,
     };
 

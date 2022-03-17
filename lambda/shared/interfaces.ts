@@ -41,6 +41,7 @@ export interface Data {
   team?: Team;
   user?: User;
   requester?: string;
+  serviceType?: string;
 }
 
 export interface FormattedData {

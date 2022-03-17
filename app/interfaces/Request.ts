@@ -28,7 +28,7 @@ export interface Request {
   teamId?: number | string;
   userId?: number;
   team?: any;
-  type?: string;
+  serviceType?: string;
   devIdps?: string[];
   testIdps?: string[];
   prodIdps?: string[];

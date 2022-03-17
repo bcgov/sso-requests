@@ -100,6 +100,16 @@ variable "local_dev" {
   default     = "false"
 }
 
+variable "allow_silver" {
+  description = "whether to run lambda functions in local dev environment"
+  default     = "true"
+}
+
+variable "allow_gold" {
+  description = "whether to run lambda functions in local dev environment"
+  default     = "true"
+}
+
 variable "ches_password" {
   description = "password for ches service"
   sensitive   = true
