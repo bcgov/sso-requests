@@ -28,6 +28,10 @@ export interface Request {
   teamId?: number | string;
   userId?: number;
   team?: any;
+  type?: string;
+  devIdps?: string[];
+  testIdps?: string[];
+  prodIdps?: string[];
 }
 
 export interface Option {

@@ -93,6 +93,7 @@ export const createRequest = async (session: Session, data: Data) => {
     usesTeam,
     teamId,
     userId: session.user?.id,
+    type: 'silver',
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
@@ -277,6 +278,7 @@ export const getRequestAll = async (
     archiveStatus?: string;
     realms?: string[];
     environments?: string[];
+    types?: string[];
   },
 ) => {
   if (!isAdmin(session)) {

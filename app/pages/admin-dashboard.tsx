@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import { padStart, startCase } from 'lodash';
 import { faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
@@ -15,6 +16,10 @@ import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 
+const RightAlign = styled.div`
+  text-align: center;
+`;
+
 const idpOptions = [
   { value: ['onestopauth'], label: 'IDIR' },
   { value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'], label: 'BCeID' },
@@ -29,6 +34,11 @@ const environmentOptions = [
   { value: 'dev', label: 'Dev' },
   { value: 'test', label: 'Test' },
   { value: 'prod', label: 'Prod' },
+];
+
+const typeOptions = [
+  { value: 'silver', label: 'Silver' },
+  { value: 'gold', label: 'Gold' },
 ];
 
 const pageLimits = [
@@ -73,6 +83,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
   const [archiveStatus, setArchiveStatus] = useState<Option[]>([]);
+  const [types, setTypes] = useState<Option[]>([]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
@@ -91,6 +102,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
       archiveStatus: archiveStatus.map((v) => v.value) as string[],
       realms,
       environments,
+      types: types.map((v) => v.value) as string[],
     });
   };
 
@@ -109,7 +121,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
   useEffect(() => {
     setSelectedId(undefined);
     loadData();
-  }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
+  }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments, type]);
 
   useEffect(() => {
     let interval: any;
@@ -191,12 +203,20 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                   options: archiveStatusOptions,
                   label: 'Archive Status',
                 },
+                {
+                  value: types,
+                  multiselect: true,
+                  onChange: setTypes,
+                  options: typeOptions,
+                  label: 'Service Type',
+                },
               ]}
               headers={[
                 { name: 'Request ID' },
                 { name: 'Project Name' },
                 { name: 'Request Status' },
                 { name: 'File Status' },
+                { name: 'Service Type' },
                 { name: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
               ]}
               pageLimits={pageLimits}
@@ -236,6 +256,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                       <td>{row.projectName}</td>
                       <td>{startCase(row.status)}</td>
                       <td>{row.archived ? 'Deleted' : 'Active'}</td>
+                      <td>{row.type === 'gold' ? 'Gold' : 'Silver'}</td>
                       <td>
                         <ActionButtonContainer>
                           <ActionButton
@@ -275,7 +296,9 @@ export default function AdminDashboard({ currentUser }: PageProps) {
                 })
               ) : (
                 <tr>
-                  <td colSpan={10}>No clients found.</td>
+                  <td colSpan={10}>
+                    <RightAlign>No clients found.</RightAlign>
+                  </td>
                 </tr>
               )}
             </Table>

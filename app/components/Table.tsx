@@ -89,6 +89,11 @@ interface Props {
   loading?: boolean;
 }
 
+const overrideStrings = {
+  allItemsAreSelected: 'All',
+  selectSomeItems: '',
+};
+
 const generateOptions = (items: FilterItem[]) => (
   <>
     {items.map((item) => (
@@ -203,7 +208,7 @@ function Table({
   return (
     <>
       <SectionHeader>
-        <Grid cols={12}>
+        <Grid cols={14}>
           <Grid.Row collapse="1160" gutter={[]} align="center">
             <Grid.Col span={4}>
               <Input
@@ -219,7 +224,7 @@ function Table({
                 Search
               </Button>
             </Grid.Col>
-            <Grid.Col span={8} style={{ textAlign: 'right' }}>
+            <Grid.Col span={10} style={{ textAlign: 'right' }}>
               <FiltersContainer itemsLength={filters.length}>
                 {filters.map((filter, index) => (
                   <Label key={index}>
@@ -233,6 +238,7 @@ function Table({
                           onChange={filter.onChange}
                           labelledBy="Select"
                           hasSelectAll={false}
+                          overrideStrings={overrideStrings}
                         />
                       </>
                     ) : (

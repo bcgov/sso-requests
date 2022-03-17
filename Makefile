@@ -35,3 +35,7 @@ server:
 local_db:
 	pushd .bin && bash ./db-setup.sh && bash ./db-setup.sh ssorequests_test && popd
 	yarn --cwd ./localserver migrate-db
+
+.PHONY: schema
+schema:
+	bash ./.bin/db-schema.sh
