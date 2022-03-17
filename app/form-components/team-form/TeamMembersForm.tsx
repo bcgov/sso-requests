@@ -61,7 +61,7 @@ interface Props {
   currentUser: LoggedInUser | null;
 }
 
-export default function TeamForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
+function TeamMembersForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
   const handleAddMember = () => {
     setMembers([
       ...members,
@@ -151,3 +151,5 @@ export default function TeamForm({ errors, members, setMembers, allowDelete = tr
     </div>
   );
 }
+
+export default TeamMembersForm;
