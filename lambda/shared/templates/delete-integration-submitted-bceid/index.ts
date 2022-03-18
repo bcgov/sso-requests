@@ -21,7 +21,11 @@ interface DataProps {
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration, appUrl } = originalData;
-  const data = { integration: await processRequest(integration), appUrl };
+  const data = {
+    integration: await processRequest(integration),
+    emails: (await getIntegrationEmails(integration, true)).join(', '),
+    appUrl,
+  };
 
   return {
     subject: subjectHandler(data),

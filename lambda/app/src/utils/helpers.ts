@@ -51,7 +51,7 @@ const sortURIFields = (data: any) => {
 };
 
 export const processRequest = (data: any, isMerged: boolean) => {
-  const immutableFields = ['userId', 'idirUserid', 'clientName', 'projectLead', 'status'];
+  const immutableFields = ['userId', 'idirUserid', 'clientName', 'projectLead', 'status', 'serviceType'];
   if (isMerged) immutableFields.push('realm');
   data = omit(data, immutableFields);
   data = sortURIFields(data);
@@ -116,9 +116,10 @@ export const getWhereClauseForAllRequests = (data: {
   archiveStatus?: string;
   realms?: string[];
   environments?: string[];
+  types?: string[];
 }) => {
   const where: any = {};
-  const { searchField, searchKey, status = [], archiveStatus = [], realms, environments } = data;
+  const { searchField, searchKey, status = [], archiveStatus = [], realms, environments, types } = data;
 
   if (searchKey && searchField && searchField.length > 0) {
     where[Op.or] = [];
@@ -150,6 +151,11 @@ export const getWhereClauseForAllRequests = (data: {
   if (environments)
     where.environments = {
       [Op.overlap]: environments,
+    };
+
+  if (types?.length > 0)
+    where.serviceType = {
+      [Op.in]: types,
     };
 
   return where;

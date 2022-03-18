@@ -23,6 +23,8 @@ resource "aws_lambda_function" "app" {
       API_URL                     = var.api_url
       APP_ENV                     = var.app_env
       NODE_ENV                    = "production"
+      ALLOW_SILVER                = var.allow_silver
+      ALLOW_GOLD                  = var.allow_gold
       LOCAL_DEV                   = var.local_dev
       DB_HOSTNAME                 = module.db.this_rds_cluster_endpoint
       DB_USERNAME                 = var.db_username

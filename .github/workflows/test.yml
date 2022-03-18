@@ -59,13 +59,13 @@ jobs:
         run: |
           pg_ctl start
           createdb runner || true
-          chmod +x ./setup.sh
-          ./setup.sh ${{ github.sha }}
-        working-directory: ./db
+          chmod +x ./db-setup.sh
+          ./db-setup.sh ssorequests_test
+        working-directory: ./.bin
 
       - name: Run backend integration tests
         env:
-          DATABASE_URL: 'postgresql://localhost:5432/${{ github.sha }}'
+          DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
         run: |
           yarn test
         working-directory: ./lambda

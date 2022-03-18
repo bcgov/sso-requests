@@ -31,6 +31,7 @@ variable "sso_client_id" {
   description = "The required audience for authentication"
   type        = string
   default     = "sso-requests"
+  sensitive   = true
 }
 
 variable "subnet_a" {
@@ -46,6 +47,7 @@ variable "subnet_b" {
 variable "gh_access_token" {
   description = "access token for github workflows"
   default     = ""
+  sensitive   = true
 }
 
 variable "gh_owner" {
@@ -76,11 +78,12 @@ variable "gh_apply_workflow_id" {
 variable "gh_secret" {
   description = "secret for comms with gh actions"
   default     = "secret"
+  sensitive   = true
 }
 
 variable "app_url" {
   description = "the frontend app base url"
-  default     = "https://bcgov.github.io/sso-terraform-dev"
+  default     = "https://bcgov.github.io/sso-requests-dev"
 }
 
 variable "api_url" {
@@ -97,12 +100,24 @@ variable "local_dev" {
   default     = "false"
 }
 
+variable "allow_silver" {
+  description = "whether to run lambda functions in local dev environment"
+  default     = "true"
+}
+
+variable "allow_gold" {
+  description = "whether to run lambda functions in local dev environment"
+  default     = "true"
+}
+
 variable "ches_password" {
   description = "password for ches service"
+  sensitive   = true
 }
 
 variable "ches_username" {
   description = "username for ches service"
+  sensitive   = true
 }
 
 variable "ches_api_endpoint" {
