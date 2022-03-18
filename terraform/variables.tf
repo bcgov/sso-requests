@@ -83,7 +83,7 @@ variable "gh_secret" {
 
 variable "app_url" {
   description = "the frontend app base url"
-  default     = "https://bcgov.github.io/sso-terraform-dev"
+  default     = "https://bcgov.github.io/sso-requests-dev"
 }
 
 variable "api_url" {

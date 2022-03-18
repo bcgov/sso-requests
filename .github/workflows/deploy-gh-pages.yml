@@ -31,7 +31,7 @@ jobs:
           SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth
           DEPLOY_REPO_NAME=bcgov/sso-requests-dev
           EOF
-      - name: Set env to development
+      - name: Set env to test
         if: endsWith(github.ref, '/dev') && matrix.env == 'test'
         run: |
           cat >> $GITHUB_ENV <<EOF

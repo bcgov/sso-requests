@@ -10,7 +10,7 @@ jobs:
   e2e:
     runs-on: ubuntu-18.04
     env:
-      APP_URL: https://bcgov.github.io/sso-terraform-dev/
+      APP_URL: https://bcgov.github.io/sso-requests-dev/
     steps:
       - uses: actions/checkout@v2
 
