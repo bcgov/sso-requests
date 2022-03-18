@@ -22,6 +22,8 @@ import {
   getBaseWhereForMyOrTeamIntegrations,
 } from '@lambda-app/queries/request';
 
+const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
+const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
 
@@ -85,7 +87,12 @@ export const createRequest = async (session: Session, data: Data) => {
     throw Error('reached the day limit');
   }
 
-  const { projectName, projectLead, usesTeam, teamId } = data;
+  let { projectName, projectLead, usesTeam, teamId, serviceType } = data;
+  if (!serviceType) serviceType = 'silver';
+  if (!['silver', 'gold'].includes(serviceType)) throw Error('invalid service type');
+  if (serviceType === 'silver' && !ALLOW_SILVER) throw Error('invalid service type');
+  if (serviceType === 'gold' && !ALLOW_GOLD) throw Error('invalid service type');
+
   const result = await models.request.create({
     projectName,
     projectLead,
@@ -93,6 +100,7 @@ export const createRequest = async (session: Session, data: Data) => {
     usesTeam,
     teamId,
     userId: session.user?.id,
+    serviceType,
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
@@ -277,6 +285,7 @@ export const getRequestAll = async (
     archiveStatus?: string;
     realms?: string[];
     environments?: string[];
+    types?: string[];
   },
 ) => {
   if (!isAdmin(session)) {
