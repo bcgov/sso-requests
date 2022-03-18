@@ -59,9 +59,9 @@ jobs:
         run: |
           pg_ctl start
           createdb runner || true
-          chmod +x ./setup.sh
-          ./setup.sh ssorequests_test
-        working-directory: ./db
+          chmod +x ./db-setup.sh
+          ./db-setup.sh ssorequests_test
+        working-directory: ./.bin
 
       - name: Run backend integration tests
         env:

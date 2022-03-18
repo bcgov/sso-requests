@@ -27,49 +27,55 @@ jobs:
       - name: Set env to development
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
-          echo "APP_URL=https://bcgov.github.io/sso-terraform-dev" >> $GITHUB_ENV
-          echo "API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app" >> $GITHUB_ENV
-          echo "APP_ENV=development" >> $GITHUB_ENV
-          echo "TFC_WORKSPACE=xgr00q-dev-sso-requests" >> $GITHUB_ENV
-          echo "SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
-          echo "SUBNET_A=App_Dev_aza_net" >> $GITHUB_ENV
-          echo "SUBNET_B=App_Dev_azb_net" >> $GITHUB_ENV
-          echo "GITHUB_REPO=sso-terraform-dev" >> $GITHUB_ENV
-          echo "KEYCLOAK_DEV_URL=https://sso-keycloak-3d5c3f-dev.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
-          echo "KEYCLOAK_TEST_URL=https://sso-keycloak-3d5c3f-test.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
-          echo "KEYCLOAK_PROD_URL=https://sso-keycloak-3d5c3f-prod.apps.silver.devops.gov.bc.ca" >> $GITHUB_ENV
-          echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "CHES_TOKEN_ENDPOINT=https://dev.oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token" >> $GITHUB_ENV
-          echo "CHES_API_ENDPOINT=https://ches-dev.apps.silver.devops.gov.bc.ca/api/v1/email" >> $GITHUB_ENV
-          echo "CHES_USERNAME=${{secrets.CHES_USERNAME_DEV}}" >> $GITHUB_ENV
-          echo "CHES_PASSWORD=${{secrets.CHES_PASSWORD_DEV}}" >> $GITHUB_ENV
-          echo "VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}" >> $GITHUB_ENV
-
+          cat >> $GITHUB_ENV <<EOF
+          APP_URL=https://bcgov.github.io/sso-requests-dev
+          API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app
+          APP_ENV=development
+          ALLOW_SILVER=true
+          ALLOW_GOLD=true
+          TFC_WORKSPACE=xgr00q-dev-sso-requests
+          SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
+          SUBNET_A=App_Dev_aza_net
+          SUBNET_B=App_Dev_azb_net
+          GITHUB_REPO=sso-terraform-dev
+          KEYCLOAK_DEV_URL=https://sso-keycloak-3d5c3f-dev.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_TEST_URL=https://sso-keycloak-3d5c3f-test.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_PROD_URL=https://sso-keycloak-3d5c3f-prod.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}
+          KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}
+          KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}
+          CHES_TOKEN_ENDPOINT=https://dev.oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token
+          CHES_API_ENDPOINT=https://ches-dev.apps.silver.devops.gov.bc.ca/api/v1/email
+          CHES_USERNAME=${{secrets.CHES_USERNAME_DEV}}
+          CHES_PASSWORD=${{secrets.CHES_PASSWORD_DEV}}
+          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          EOF
       - name: Set env to production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
-          echo "APP_URL=https://bcgov.github.io/sso-requests" >> $GITHUB_ENV
-          echo "API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app" >> $GITHUB_ENV
-          echo "APP_ENV=production" >> $GITHUB_ENV
-          echo "TFC_WORKSPACE=xgr00q-prod-sso-requests" >> $GITHUB_ENV
-          echo "SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration" >> $GITHUB_ENV
-          echo "SUBNET_A=App_Prod_aza_net" >> $GITHUB_ENV
-          echo "SUBNET_B=App_Prod_azb_net" >> $GITHUB_ENV
-          echo "GITHUB_REPO=sso_terraform" >> $GITHUB_ENV
-          echo "KEYCLOAK_DEV_URL=https://dev.oidc.gov.bc.ca" >> $GITHUB_ENV
-          echo "KEYCLOAK_TEST_URL=https://test.oidc.gov.bc.ca" >> $GITHUB_ENV
-          echo "KEYCLOAK_PROD_URL=https://oidc.gov.bc.ca" >> $GITHUB_ENV
-          echo "KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_TEST_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "CHES_TOKEN_ENDPOINT=https://oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token" >> $GITHUB_ENV
-          echo "CHES_API_ENDPOINT=https://ches.nrs.gov.bc.ca/api/v1/email" >> $GITHUB_ENV
-          echo "CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}" >> $GITHUB_ENV
-          echo "CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}" >> $GITHUB_ENV
-          echo "VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}" >> $GITHUB_ENV
-
+          cat >> $GITHUB_ENV <<EOF
+          APP_URL=https://bcgov.github.io/sso-requests
+          API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app
+          APP_ENV=production
+          ALLOW_SILVER=true
+          ALLOW_GOLD=false
+          TFC_WORKSPACE=xgr00q-prod-sso-requests
+          SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
+          SUBNET_A=App_Prod_aza_net
+          SUBNET_B=App_Prod_azb_net
+          GITHUB_REPO=sso_terraform
+          KEYCLOAK_DEV_URL=https://dev.oidc.gov.bc.ca
+          KEYCLOAK_TEST_URL=https://test.oidc.gov.bc.ca
+          KEYCLOAK_PROD_URL=https://oidc.gov.bc.ca
+          KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_DEV_CLIENT_SECRET }}
+          KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_TEST_CLIENT_SECRET }}
+          KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_PROD_CLIENT_SECRET }}
+          CHES_TOKEN_ENDPOINT=https://oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token
+          CHES_API_ENDPOINT=https://ches.nrs.gov.bc.ca/api/v1/email
+          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
+          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
+          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          EOF
       - uses: hmarr/debug-action@v2
       - uses: actions/checkout@v2
 
@@ -133,6 +139,8 @@ jobs:
           app_url="${{ env.APP_URL }}"
           api_url="${{ env.API_URL }}"
           app_env="${{ env.APP_ENV }}"
+          allow_silver="${{ env.ALLOW_SILVER }}"
+          allow_gold="${{ env.ALLOW_GOLD }}"
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
           gh_secret="${{ secrets.GH_SECRET }}"
           configuration_endpoint="${{ env.SSO_ISSUER_URL }}"

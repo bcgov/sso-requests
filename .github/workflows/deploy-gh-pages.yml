@@ -16,20 +16,34 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        env: ['dev', 'test', 'prod']
     steps:
       - name: Set env to development
-        if: endsWith(github.ref, '/dev')
+        if: endsWith(github.ref, '/dev') && matrix.env == 'dev'
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=develop
-          APP_URL=https://bcgov.github.io/sso-terraform-dev
-          APP_BASE_PATH=/sso-terraform-dev
+          APP_URL=https://bcgov.github.io/sso-requests-dev
+          APP_BASE_PATH=/sso-requests-dev
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
           SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth
-          DEPLOY_REPO_NAME=bcgov/sso-terraform-dev
+          DEPLOY_REPO_NAME=bcgov/sso-requests-dev
+          EOF
+      - name: Set env to test
+        if: endsWith(github.ref, '/dev') && matrix.env == 'test'
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          APP_ENV=develop
+          APP_URL=https://bcgov.github.io/sso-requests-test
+          APP_BASE_PATH=/sso-requests-test
+          API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
+          SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth
+          DEPLOY_REPO_NAME=bcgov/sso-requests-test
           EOF
       - name: Set env to production
-        if: endsWith(github.ref, '/main')
+        if: endsWith(github.ref, '/main') && matrix.env == 'prod'
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=production
@@ -39,10 +53,13 @@ jobs:
           SSO_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth
           DEPLOY_REPO_NAME=bcgov/sso-requests
           EOF
+
       - name: Checkout 🛎️
+        if: env.APP_ENV != ''
         uses: actions/checkout@v2.3.1
 
       - name: Install and Build
+        if: env.APP_ENV != ''
         env:
           APP_ENV: ${{ env.APP_ENV }}
           APP_URL: ${{ env.APP_URL }}
@@ -59,6 +76,7 @@ jobs:
         working-directory: ./app
 
       - name: Deploy 🚀
+        if: env.APP_ENV != ''
         uses: JamesIves/github-pages-deploy-action@v4.2.5
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}

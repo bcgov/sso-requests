@@ -123,6 +123,26 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      serviceType: {
+        type: DataTypes.STRING,
+        defaultValue: 'silver',
+        allowNull: false,
+      },
+      devIdps: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+        allowNull: false,
+      },
+      testIdps: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+        allowNull: false,
+      },
+      prodIdps: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+        allowNull: false,
+      },
     },
     {
       underscored: true,

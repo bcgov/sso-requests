@@ -9,7 +9,7 @@ export const createRequest = async (data: Request): Promise<[Request, null] | [n
   try {
     const result = await instance.post('requests', data).then((res) => res.data);
     return [processRequest(result), null];
-  } catch (err) {
+  } catch (err: any) {
     return handleAxiosError(err);
   }
 };
@@ -21,7 +21,7 @@ export const getRequest = async (requestId: number | string): Promise<[Request, 
       .then((res) => res.data);
 
     return [processRequest(result), null];
-  } catch (err) {
+  } catch (err: any) {
     return handleAxiosError(err);
   }
 };
@@ -32,7 +32,7 @@ export const getRequests = async (include: string = 'active'): Promise<[Request[
     let results: Request[] = await instance.get('requests', config).then((res) => res.data);
     results = orderBy(results, ['createdAt'], ['desc']);
     return [results.map(processRequest), null];
-  } catch (err) {
+  } catch (err: any) {
     return handleAxiosError(err);
   }
 };
@@ -42,7 +42,7 @@ export const getTeamIntegrations = async (teamId: number): Promise<[Request[], n
     let results: Request[] = await instance.get(`team-integrations/${teamId}`).then((res) => res.data);
     results = orderBy(results, ['createdAt'], ['desc']);
     return [results.map(processRequest), null];
-  } catch (err) {
+  } catch (err: any) {
     return handleAxiosError(err);
   }
 };
@@ -57,6 +57,7 @@ interface RequestAllData {
   archiveStatus: string[];
   realms: string[] | null;
   environments: string[] | null;
+  types: string[] | null;
 }
 
 interface RequestAllResult {
@@ -68,7 +69,7 @@ export const getRequestAll = async (data: RequestAllData): Promise<[RequestAllRe
   try {
     const result: RequestAllResult = await instance.post('requests-all', data).then((res) => res.data);
     return [{ count: result.count, rows: result.rows.map(processRequest) }, null];
-  } catch (err) {
+  } catch (err: any) {
     return handleAxiosError(err);
   }
 };
@@ -83,7 +84,7 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
 
     const result = await instance.put(url, data).then((res) => res.data);
     return [processRequest(result), null];
-  } catch (err) {
+  } catch (err: any) {
     return handleAxiosError(err);
   }
 };
@@ -92,7 +93,7 @@ export const deleteRequest = async (id?: number): Promise<[Request[], null] | [n
   try {
     const result: Request[] = await instance.delete('requests', { params: { id } }).then((res) => res.data);
     return [result, null];
-  } catch (err) {
+  } catch (err: any) {
     return handleAxiosError(err);
   }
 };
@@ -101,7 +102,7 @@ export const updateRequestMetadata = async (data: Request): Promise<[Request, nu
   try {
     const result = await instance.put('request-metadata', data).then((res) => res.data);
     return [processRequest(result), null];
-  } catch (err) {
+  } catch (err: any) {
     return handleAxiosError(err);
   }
 };

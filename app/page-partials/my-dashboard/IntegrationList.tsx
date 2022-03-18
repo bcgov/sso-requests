@@ -211,6 +211,7 @@ export default function IntegrationList({ setIntegration, state, dispatch }: Pro
             <th>Request ID</th>
             <th>Project Name</th>
             <th>Status</th>
+            <th>Service Type</th>
             <CenteredHeader>Actions</CenteredHeader>
           </tr>
         </thead>
@@ -224,6 +225,7 @@ export default function IntegrationList({ setIntegration, state, dispatch }: Pro
               <td>{padStart(String(integration.id), 8, '0')}</td>
               <td>{integration.projectName}</td>
               <td>{getStatusDisplayName(integration.status || 'draft')}</td>
+              <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
               <td>
                 <ActionButtons
                   request={integration}
