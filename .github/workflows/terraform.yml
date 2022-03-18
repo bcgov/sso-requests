@@ -28,7 +28,7 @@ jobs:
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
           cat >> $GITHUB_ENV <<EOF
-          APP_URL=https://bcgov.github.io/sso-terraform-dev
+          APP_URL=https://bcgov.github.io/sso-requests-dev
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app
           APP_ENV=development
           ALLOW_SILVER=true
