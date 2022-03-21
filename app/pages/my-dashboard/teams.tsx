@@ -6,7 +6,7 @@ import { getMyTeams, deleteTeam } from 'services/team';
 import { PageProps } from 'interfaces/props';
 import { Team } from 'interfaces/team';
 
-function MyTeams({ currentUser }: PageProps) {
+function MyTeams({ session }: PageProps) {
   const [loading, setLoading] = useState<boolean>(true);
   const [team, setTeam] = useState<Team | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -27,7 +27,7 @@ function MyTeams({ currentUser }: PageProps) {
       tab="teams"
       leftPanel={(state: any, dispatch: any) => (
         <TeamList
-          currentUser={currentUser}
+          currentUser={session}
           setTeam={setTeam}
           loading={loading}
           teams={teams}
@@ -38,7 +38,7 @@ function MyTeams({ currentUser }: PageProps) {
       )}
       rightPanel={(state: any, dispatch: any) =>
         team && (
-          <TeamInfoTabs team={team} currentUser={currentUser} loadTeams={loadTeams} state={state} dispatch={dispatch} />
+          <TeamInfoTabs team={team} currentUser={session} loadTeams={loadTeams} state={state} dispatch={dispatch} />
         )
       }
     />

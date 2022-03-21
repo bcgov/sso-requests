@@ -1,4 +1,5 @@
 import { Op } from 'sequelize';
+import isNil from 'lodash/isNil';
 import { models } from '../../../shared/sequelize/models/models';
 import { Session } from '../../../shared/interfaces';
 import { lowcase } from '@lambda-app/helpers/string';
@@ -25,11 +26,15 @@ export const findOrCreateUser = async (session: Session) => {
   return user.get({ plain: true });
 };
 
-export const updateProfile = async (session: Session, data: { additionalEmail: string }) => {
+export const updateProfile = async (
+  session: Session,
+  data: { additionalEmail?: string; hasReadGoldNotification?: boolean },
+) => {
   const { user } = session;
   const myself = await models.user.findOne({ where: { id: user.id } });
 
-  myself.additionalEmail = lowcase(data.additionalEmail);
+  if (!isNil(data.additionalEmail)) myself.additionalEmail = lowcase(data.additionalEmail);
+  if (!isNil(data.hasReadGoldNotification)) myself.hasReadGoldNotification = data.hasReadGoldNotification;
   const updated = await myself.save();
 
   if (!updated) {
