@@ -31,11 +31,11 @@ function MyIntegrations() {
         <ul>
           <li>
             Visit out{' '}
-            <a href="https://github.com/bcgov/sso-keycloak/wiki" target="_blank" title="Wiki">
+            <a href="https://github.com/bcgov/sso-keycloak/wiki" target="_blank" rel="noreferrer" title="Wiki">
               wiki
             </a>{' '}
             and our{' '}
-            <a href="https://github.com/bcgov/sso-keycloak/wiki" target="_blank" title="How to Docs">
+            <a href="https://github.com/bcgov/sso-keycloak/wiki" target="_blank" rel="noreferrer" title="How to Docs">
               How to Docs
             </a>
           </li>
@@ -44,6 +44,7 @@ function MyIntegrations() {
             <a
               href="https://docs.google.com/forms/d/1MMPeMB0A2076xkXIZRaErAwZe9QDsSwSAWqe-uvm3ys"
               target="_blank"
+              rel="noreferrer"
               title="Change Impact Assessment"
             >
               Change Impact Assessment
