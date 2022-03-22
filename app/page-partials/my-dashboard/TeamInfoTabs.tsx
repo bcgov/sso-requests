@@ -91,8 +91,8 @@ interface Props {
   loadTeams: () => void;
 }
 
-const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Function; type: string }) => {
-  let props: { confirmText: string; buttonStyle: ButtonStyle; onConfirm?: Function } = {
+const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: () => void; type: string }) => {
+  let props: { confirmText: string; buttonStyle: ButtonStyle; onConfirm?: () => void } = {
     confirmText: 'Delete',
     buttonStyle: 'danger',
   };
