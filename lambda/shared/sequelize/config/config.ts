@@ -5,6 +5,7 @@ const config = {
     dialect: 'postgres',
     dialectModule: pg,
     use_env_variable: 'DATABASE_URL',
+    logging: true,
   },
   test: {
     dialect: 'postgres',
@@ -34,6 +35,7 @@ const config = {
       },
     },
     use_env_variable: 'DATABASE_URL',
+    logging: false,
   },
 };
 
