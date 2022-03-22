@@ -23,7 +23,7 @@ export default function getSchema(teams: any[] = []) {
       projectName,
       usesTeam: {
         type: 'boolean',
-        title: 'Project Member(s)',
+        title: 'Project Team',
         description: 'Would you like to allow multiple members to manage this integration?',
       },
     },

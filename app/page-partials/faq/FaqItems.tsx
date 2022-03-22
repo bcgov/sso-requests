@@ -59,7 +59,7 @@ export default function FaqItems({ children }: Props) {
               <li>Your project name</li>
               <li>Your redirect URIs for dev, test and prod</li>
               <li>
-                A decision if you want a public of confidential client. To learn more, review the Technical Details
+                A decision if you want a public or confidential client. To learn more, review the Technical Details
                 under the{' '}
                 <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client">
                   Using Your SSO Client
