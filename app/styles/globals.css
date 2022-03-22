@@ -145,6 +145,10 @@ ul.error-detail {
   font-weight: bold;
 }
 
+.normal {
+  font-weight: 400;
+}
+
 .pg-modal-container {
   z-index: 1000;
 }

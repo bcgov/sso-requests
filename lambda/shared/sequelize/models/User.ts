@@ -26,6 +26,12 @@ const init = (sequelize, DataTypes) => {
           this.setDataValue('additionalEmail', lowcase(value));
         },
       },
+      hasReadGoldNotification: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        field: 'has_read_gold_notification',
+      },
     },
     {
       underscored: true,

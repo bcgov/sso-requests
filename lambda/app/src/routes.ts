@@ -30,6 +30,7 @@ import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
 import { getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
+import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
 
 const APP_URL = process.env.APP_URL || '';
@@ -119,7 +120,8 @@ export const setRoutes = (app: any) => {
 
   app.get(`${BASE_PATH}/me`, async (req, res) => {
     try {
-      res.status(200).json(req.user);
+      const integrations = await findMyOrTeamIntegrationsByService(req.user.id);
+      res.status(200).json({ ...req.user, integrations });
     } catch (err) {
       handleError(res, err);
     }

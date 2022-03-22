@@ -36,6 +36,16 @@ export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: stri
   return where;
 };
 
+export const findMyOrTeamIntegrationsByService = async (userId: number, options = { raw: true }) => {
+  const where = getBaseWhereForMyOrTeamIntegrations(userId);
+
+  return models.request.findAll({
+    where,
+    attributes: ['id', 'serviceType'],
+    ...options,
+  });
+};
+
 export const getMyOrTeamRequest = async (userId: number, requestId: number, roles: string[] = ['member', 'admin']) => {
   const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
   where.id = requestId;
