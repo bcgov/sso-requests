@@ -337,7 +337,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   <tr>
                     <th className="w60">Status</th>
                     <th>Email</th>
-                    <th>
+                    <th className="w120">
                       Role&nbsp;
                       <InfoOverlay
                         tooltipTitle={''}
