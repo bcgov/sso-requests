@@ -133,7 +133,7 @@ export default function Home({ onLoginClick }: PageProps) {
                       Our service is available 24/7, with questions and answers addressed during business hours only.
                     </li>
                     <li>
-                      Please resch out to us on{' '}
+                      Please reach out to us on{' '}
                       <Link href="https://chat.developer.gov.bc.ca/channel/sso" external title="Rocket Chat">
                         Rocket.Chat
                       </Link>{' '}
