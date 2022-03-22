@@ -21,7 +21,7 @@
     "KEYCLOAK_TEST_CLIENT_ID": "terraform-cli",
     "KEYCLOAK_TEST_CLIENT_SECRET": "",
     "KEYCLOAK_TEST_URL": "https://sso-test-3d5c3f-test.apps.silver.devops.gov.bc.ca",
-    "GH_ACCESS_TOKEN": "",
+    "GH_ACCESS_TOKEN": "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",
     "GH_BRANCH": "main",
     "GH_OWNER": "bcgov",
     "GH_REPO": "sso-terraform-dev",
