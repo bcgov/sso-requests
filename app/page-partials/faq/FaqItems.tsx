@@ -3,7 +3,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
 
 interface Props {
-  children?: any;
+  children?: React.ReactNode;
 }
 
 export default function FaqItems({ children }: Props) {
@@ -55,12 +55,18 @@ export default function FaqItems({ children }: Props) {
             <br />
             <br />
             <ul>
-              <li>A decision around which identity provider you would like to use</li>
+              <li>
+                <Link href="#q-which-identity-provider-should-i-use">
+                  A decision around which identity provider you would like to use
+                </Link>
+              </li>
               <li>Your project name</li>
               <li>Your redirect URIs for dev, test and prod</li>
               <li>
-                A decision if you want a public or confidential client. To learn more, review the Technical Details
-                under the{' '}
+                <Link href="#q-what-is-the-difference-between-confidential-and-public-client-types">
+                  A decision if you want a public of confidential client.
+                </Link>{' '}
+                To learn more, review the Technical Details under the{' '}
                 <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client">
                   Using Your SSO Client
                 </Link>{' '}
