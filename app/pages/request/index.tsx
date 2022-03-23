@@ -5,13 +5,13 @@ import { LoggedInUser } from 'interfaces/team';
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 interface Props {
-  currentUser: LoggedInUser;
+  session: LoggedInUser;
 }
 
-function Request({ currentUser }: Props) {
+function Request({ session }: Props) {
   return (
     <ResponsiveContainer rules={requestPageRules}>
-      <FormTemplate currentUser={currentUser || {}} />
+      <FormTemplate currentUser={session || {}} />
     </ResponsiveContainer>
   );
 }

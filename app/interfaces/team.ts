@@ -14,6 +14,8 @@ export interface User {
   pending?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  integrations?: any[];
+  hasReadGoldNotification?: boolean;
 }
 
 export interface LoggedInUser {

@@ -6,17 +6,18 @@ import { fetchIssuerConfiguration } from 'utils/provider';
 import { getAuthorizationUrl, getAccessToken, getEndSessionUrl } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
+import { getProfile, updateProfile } from 'services/user';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
 import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
-import { LoggedInUser } from 'interfaces/team';
+import { LoggedInUser, User } from 'interfaces/team';
 import Head from 'next/head';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { base_path, kc_idp_hint } = publicRuntimeConfig;
+const { base_path, kc_idp_hint, enable_gold } = publicRuntimeConfig;
 
 const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, `${base_path}/admin-dashboard`];
 
@@ -30,13 +31,16 @@ const proccessSession = (session: LoggedInUser | null) => {
 
 export interface SessionContextInterface {
   session: LoggedInUser | null;
+  user: User | null;
+  enableGold: boolean;
 }
 
 export const SessionContext = React.createContext<SessionContextInterface | null>(null);
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<LoggedInUser | null>(null);
+  const [session, setSession] = useState<LoggedInUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<any>(null);
 
@@ -49,10 +53,10 @@ function MyApp({ Component, pageProps }: AppProps) {
           setTokens(tokens);
           await router.push('/my-dashboard');
         }
-        setCurrentUser(proccessSession(verifiedIdToken));
+        setSession(proccessSession(verifiedIdToken));
       } else {
         removeTokens();
-        setCurrentUser(proccessSession(null));
+        setSession(proccessSession(null));
         if (loginWorkflow) {
           router.push({
             pathname: '/application-error',
@@ -88,7 +92,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       } catch (err) {
         console.log(err);
         removeTokens();
-        setCurrentUser(proccessSession(null));
+        setSession(proccessSession(null));
         setLoading(false);
         setError(err);
       }
@@ -97,6 +101,15 @@ function MyApp({ Component, pageProps }: AppProps) {
     wakeItUp();
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const [data, err] = await getProfile();
+      setUser(data);
+    };
+
+    if (session) getUser();
+  }, [session]);
 
   const handleLogin = async () => {
     const authUrl = await getAuthorizationUrl({ kc_idp_hint });
@@ -110,18 +123,25 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   if (loading) return <PageLoader />;
 
-  if (authenticatedUris.some((url) => window.location.pathname.startsWith(url)) && !currentUser) {
+  if (authenticatedUris.some((url) => window.location.pathname.startsWith(url)) && !session) {
     router.push('/');
     return null;
   }
+
   return (
-    <SessionContext.Provider value={{ session: currentUser }}>
-      <Layout currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
+    <SessionContext.Provider value={{ session, user, enableGold: enable_gold }}>
+      <Layout
+        session={session}
+        user={user}
+        enableGold={enable_gold}
+        onLoginClick={handleLogin}
+        onLogoutClick={handleLogout}
+      >
         <Head>
           <html lang="en" />
           <title>Common Hosted Single Sign-on (CSS)</title>
         </Head>
-        <Component {...pageProps} currentUser={currentUser} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+        <Component {...pageProps} session={session} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
       </Layout>
     </SessionContext.Provider>
   );

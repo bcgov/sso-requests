@@ -11,10 +11,10 @@ import PageLoader from 'components/PageLoader';
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 interface Props {
-  currentUser: LoggedInUser;
+  session: LoggedInUser;
 }
 
-function RequestEdit({ currentUser }: Props) {
+function RequestEdit({ session }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [request, setRequest] = useState<Request | null>(null);
@@ -36,7 +36,7 @@ function RequestEdit({ currentUser }: Props) {
 
   return (
     <ResponsiveContainer rules={requestPageRules}>
-      {loading ? <PageLoader /> : <FormTemplate currentUser={currentUser || {}} request={request} />}
+      {loading ? <PageLoader /> : <FormTemplate currentUser={session || {}} request={request} />}
     </ResponsiveContainer>
   );
 }

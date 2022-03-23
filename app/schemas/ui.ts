@@ -57,6 +57,12 @@ const getUISchema = (request: Request) => {
       'ui:readonly': true,
       'ui:FieldTemplate': FieldTemplateWithTitle,
     },
+    test: {
+      'ui:readonly': isApplied && request?.test === true,
+    },
+    prod: {
+      'ui:readonly': isApplied && request?.prod === true,
+    },
     createTeam: {
       'ui:FieldTemplate': AddTeamWidget,
     },
