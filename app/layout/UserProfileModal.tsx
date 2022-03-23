@@ -7,7 +7,6 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { getProfile, updateProfile } from 'services/user';
 import validator from 'validator';
-import InfoOverlay from 'components/InfoOverlay';
 
 interface Props {
   children: any;
@@ -104,7 +103,6 @@ function UserProfileModal({ children, alert }: Props): any {
         value={addiEmail}
         onChange={handleAddiEmail}
       />
-      <InfoOverlay tooltipTitle={''} tooltipContent={'info here'} hide={200} />
       {emailError && <ErrorMessage>{emailError}</ErrorMessage>}
     </Content>
   );
