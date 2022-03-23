@@ -94,7 +94,7 @@ function UserProfileModal({ children, alert }: Props): any {
     <Content>
       <Input label="Name" fullWidth={true} value={displayName} disabled={true} />
       <br />
-      <Input label="Default Emai" fullWidth={true} value={session?.email} disabled={true} />
+      <Input label="Default Email" fullWidth={true} value={session?.email} disabled={true} />
       <br />
       <Input
         type="email"
