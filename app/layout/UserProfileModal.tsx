@@ -6,8 +6,8 @@ import CenteredModal from 'components/CenteredModal';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { getProfile, updateProfile } from 'services/user';
-import validator from 'validator';
 import InfoOverlay from 'components/InfoOverlay';
+import validator from 'validator';
 
 interface Props {
   children: any;
