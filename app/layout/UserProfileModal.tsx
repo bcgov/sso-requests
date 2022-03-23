@@ -101,7 +101,7 @@ function UserProfileModal({ children, alert }: Props): any {
         <InfoOverlay
           tooltipTitle={''}
           tooltipContent={
-            'You can add a work email address in addition to your <span class="underline">gov.bc.ca</span> to keep you informed of your integration progress. Note IDIR login/authentication is required to access the CSS App.'
+            'You can add a work email address in addition to your @gov.bc.ca to keep you informed of your integration progress. Note IDIR login/authentication is required to access the CSS App.'
           }
           hide={200}
         />
