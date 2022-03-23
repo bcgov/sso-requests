@@ -64,7 +64,7 @@ export default function FaqItems({ children }: Props) {
               <li>Your redirect URIs for dev, test and prod</li>
               <li>
                 <Link href="#q-what-is-the-difference-between-confidential-and-public-client-types">
-                  A decision if you want a public of confidential client.
+                  A decision if you want a public or confidential client.
                 </Link>{' '}
                 To learn more, review the Technical Details under the{' '}
                 <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client">
