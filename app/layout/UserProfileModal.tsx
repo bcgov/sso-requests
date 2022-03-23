@@ -7,6 +7,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { getProfile, updateProfile } from 'services/user';
 import validator from 'validator';
+import InfoOverlay from 'components/InfoOverlay';
 
 interface Props {
   children: any;
@@ -93,7 +94,7 @@ function UserProfileModal({ children, alert }: Props): any {
     <Content>
       <Input label="Name" fullWidth={true} value={displayName} disabled={true} />
       <br />
-      <Input label="Default Email" fullWidth={true} value={session?.email} disabled={true} />
+      <Input label="Default Emai" fullWidth={true} value={session?.email} disabled={true} />
       <br />
       <Input
         type="email"
@@ -103,6 +104,7 @@ function UserProfileModal({ children, alert }: Props): any {
         value={addiEmail}
         onChange={handleAddiEmail}
       />
+      <InfoOverlay tooltipTitle={''} tooltipContent={'info here'} hide={200} />
       {emailError && <ErrorMessage>{emailError}</ErrorMessage>}
     </Content>
   );
