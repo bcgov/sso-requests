@@ -106,14 +106,7 @@ function UserProfileModal({ children, alert }: Props): any {
           hide={200}
         />
       </div>
-      <Input
-        type={undefined}
-        label={undefined}
-        fullWidth={true}
-        maxLength="100"
-        value={addiEmail}
-        onChange={handleAddiEmail}
-      />
+      <Input type="email" fullWidth={true} maxLength="100" value={addiEmail} onChange={handleAddiEmail} />
       {emailError && <ErrorMessage>{emailError}</ErrorMessage>}
     </Content>
   );
