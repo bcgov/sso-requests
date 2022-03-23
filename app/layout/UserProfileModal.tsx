@@ -94,17 +94,26 @@ function UserProfileModal({ children, alert }: Props): any {
     <Content>
       <Input label="Name" fullWidth={true} value={displayName} disabled={true} />
       <br />
-      <Input label="Default Emai" fullWidth={true} value={session?.email} disabled={true} />
+      <Input label="Default Email" fullWidth={true} value={session?.email} disabled={true} />
       <br />
+      <div>
+        <span className="strong">Additional Email</span> &nbsp;
+        <InfoOverlay
+          tooltipTitle={''}
+          tooltipContent={
+            'You can add a work email address in addition to your <span class="underline">gov.bc.ca</span> to keep you informed of your integration progress. Note IDIR login/authentication is required to access the CSS App.'
+          }
+          hide={200}
+        />
+      </div>
       <Input
-        type="email"
-        label="Additional Email"
+        type={undefined}
+        label={undefined}
         fullWidth={true}
         maxLength="100"
         value={addiEmail}
         onChange={handleAddiEmail}
       />
-      <InfoOverlay tooltipTitle={''} tooltipContent={'info here'} hide={200} />
       {emailError && <ErrorMessage>{emailError}</ErrorMessage>}
     </Content>
   );
