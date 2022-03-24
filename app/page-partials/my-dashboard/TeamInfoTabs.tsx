@@ -437,33 +437,38 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   ) : (
                     <tr>
                       <CenteredTD colSpan={5}>
+                        <br />
                         There are no integrations for this team yet.
                         <br />
                         <br />
-                        To add this team to an <span className="strong">existing integration</span>:<br />
-                        &nbsp;1. Go to your{' '}
-                        <span className="fontBlue">
-                          <span className="strong">Projects</span>
-                        </span>{' '}
-                        tab
+                        To add this team to an <span className="strong">existing integration</span>:
+                        <span className="lineHeight"></span>
+                        <ol>
+                          <li>
+                            Go to your{' '}
+                            <span className="fontBlue">
+                              <span className="strong">Projects</span>
+                            </span>{' '}
+                            tab
+                          </li>
+                          <li>Select the "pencil" icon to edit the integration</li>
+                          <li>Select this team from the "Project Team" drop down</li>
+                        </ol>
                         <br />
-                        &nbsp;2. Select the "pencil" icon to edit the integration
-                        <br />
-                        &nbsp;3. Select this team from the "Project Team" drop down
-                        <br />
-                        <br />
-                        To add this team to a <span className="strong">new integration</span>:<br />
-                        &nbsp;1. Go to your{' '}
-                        <span className="fontBlue">
-                          <span className="strong">Projects</span>
-                        </span>{' '}
-                        tab
-                        <br />
-                        &nbsp;2. Select "+ Request SSO Integration"
-                        <br />
-                        &nbsp;3. Select "Yes" to allow multiple team members to manage the integration
-                        <br />
-                        &nbsp;4. Select this team from the "Project Team" drop down
+                        To add this team to a <span className="strong">new integration</span>:
+                        <span className="lineHeight"></span>
+                        <ol>
+                          <li>
+                            Go to your{' '}
+                            <span className="fontBlue">
+                              <span className="strong">Projects</span>
+                            </span>{' '}
+                            tab
+                          </li>
+                          <li>Select "+ Request SSO Integration"</li>
+                          <li>Select "Yes" to allow multiple team members to manage the integration</li>
+                          <li>Select this team from the "Project Team" drop down</li>
+                        </ol>
                       </CenteredTD>
                     </tr>
                   )}

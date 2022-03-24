@@ -156,3 +156,7 @@ ul.error-detail {
 .fontBlue {
   color: blue;
 }
+
+.lineHeight {
+  line-height: 200%;
+}
