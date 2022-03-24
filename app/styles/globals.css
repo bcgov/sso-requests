@@ -152,3 +152,7 @@ ul.error-detail {
 .pg-modal-container {
   z-index: 1000;
 }
+
+.fontBlue {
+  color: blue;
+}

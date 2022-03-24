@@ -56,7 +56,7 @@ const Container = styled.div`
 `;
 
 const CenteredTD = styled.td`
-  text-align: center !important;
+  text-align: left !important;
 `;
 
 const addMemberModalId = 'add-member-modal';
@@ -436,7 +436,35 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     ))
                   ) : (
                     <tr>
-                      <CenteredTD colSpan={5}>There are no integrations for this team yet</CenteredTD>
+                      <CenteredTD colSpan={5}>
+                        There are no integrations for this team yet.
+                        <br />
+                        <br />
+                        To add this team to an <span className="strong">existing integration</span>:<br />
+                        &nbsp;1. Go to your{' '}
+                        <span className="fontBlue">
+                          <span className="strong">Projects</span>
+                        </span>{' '}
+                        tab
+                        <br />
+                        &nbsp;2. Select the "pencil" icon to edit the integration
+                        <br />
+                        &nbsp;3. Select this team from the "Project Team" drop down
+                        <br />
+                        <br />
+                        To add this team to a <span className="strong">new integration</span>:<br />
+                        &nbsp;1. Go to your{' '}
+                        <span className="fontBlue">
+                          <span className="strong">Projects</span>
+                        </span>{' '}
+                        tab
+                        <br />
+                        &nbsp;2. Select "+ Request SSO Integration"
+                        <br />
+                        &nbsp;3. Select "Yes" to allow multiple team members to manage the integration
+                        <br />
+                        &nbsp;4. Select this team from the "Project Team" drop down
+                      </CenteredTD>
                     </tr>
                   )}
                 </tbody>
