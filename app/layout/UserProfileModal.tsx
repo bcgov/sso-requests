@@ -6,6 +6,7 @@ import CenteredModal from 'components/CenteredModal';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { getProfile, updateProfile } from 'services/user';
+import InfoOverlay from 'components/InfoOverlay';
 import validator from 'validator';
 
 interface Props {
@@ -95,14 +96,17 @@ function UserProfileModal({ children, alert }: Props): any {
       <br />
       <Input label="Default Email" fullWidth={true} value={session?.email} disabled={true} />
       <br />
-      <Input
-        type="email"
-        label="Additional Email"
-        fullWidth={true}
-        maxLength="100"
-        value={addiEmail}
-        onChange={handleAddiEmail}
-      />
+      <div>
+        <span className="strong">Additional Email</span> &nbsp;
+        <InfoOverlay
+          tooltipTitle={''}
+          tooltipContent={
+            'You can add a work email address in addition to your @gov.bc.ca to keep you informed of your integration progress. Note IDIR login/authentication is required to access the CSS App.'
+          }
+          hide={200}
+        />
+      </div>
+      <Input type="email" fullWidth={true} maxLength="100" value={addiEmail} onChange={handleAddiEmail} />
       {emailError && <ErrorMessage>{emailError}</ErrorMessage>}
     </Content>
   );

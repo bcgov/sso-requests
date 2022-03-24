@@ -30,6 +30,7 @@ import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
+import InfoOverlay from 'components/InfoOverlay';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -91,8 +92,8 @@ interface Props {
   loadTeams: () => void;
 }
 
-const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: Function; type: string }) => {
-  let props: { confirmText: string; buttonStyle: ButtonStyle; onConfirm?: Function } = {
+const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: () => void; type: string }) => {
+  let props: { confirmText: string; buttonStyle: ButtonStyle; onConfirm?: () => void } = {
     confirmText: 'Delete',
     buttonStyle: 'danger',
   };
@@ -336,7 +337,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   <tr>
                     <th className="w60">Status</th>
                     <th>Email</th>
-                    <th className="w120">Role</th>
+                    <th className="w120">
+                      Role&nbsp;
+                      <InfoOverlay
+                        tooltipTitle={''}
+                        tooltipContent={
+                          'Admin: can manage integrations <span class="strong">and</span> teams. <br> Members: can <span class="strong">only</span> manage integrations.'
+                        }
+                        hide={200}
+                      />
+                    </th>
                     <th className="w120">Actions</th>
                   </tr>
                 </thead>

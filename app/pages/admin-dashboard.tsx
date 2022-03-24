@@ -69,7 +69,7 @@ const mediaRules: MediaRule[] = [
   },
 ];
 
-export default function AdminDashboard({ currentUser }: PageProps) {
+export default function AdminDashboard({ session }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
@@ -306,7 +306,7 @@ export default function AdminDashboard({ currentUser }: PageProps) {
           <Grid.Col span={4}>
             {selectedRequest && (
               <AdminTabs
-                currentUser={currentUser}
+                currentUser={session}
                 selectedRequest={selectedRequest}
                 defaultTabKey={'details'}
                 setActiveKey={setActivePanel}

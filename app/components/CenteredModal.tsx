@@ -46,7 +46,8 @@ const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
 export type ButtonStyle = 'bcgov' | 'custom' | 'danger';
 
 interface Props {
-  onConfirm?: Function;
+  onConfirm?: () => void;
+  onClose?: () => void;
   content: any;
   icon?: any;
   id: string;
@@ -62,6 +63,7 @@ interface Props {
 
 const CenteredModal = ({
   onConfirm,
+  onClose,
   content,
   id,
   title,
@@ -75,7 +77,6 @@ const CenteredModal = ({
   skipCloseOnConfirm = false,
 }: Props) => {
   const [loading, setLoading] = useState(false);
-  const handleCancel = () => (window.location.hash = '#');
   const showButtons = showCancel || showConfirm;
   let cancelButtonVariant = 'bcSecondary';
   let confirmButtonVariant = 'bcPrimary';
@@ -98,6 +99,11 @@ const CenteredModal = ({
     if (onConfirm) await onConfirm();
     setLoading(false);
     if (!skipCloseOnConfirm) window.location.hash = '#';
+  };
+
+  const handleCancel = async () => {
+    if (onClose) onClose();
+    window.location.hash = '#';
   };
 
   return (
