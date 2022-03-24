@@ -56,7 +56,7 @@ const Container = styled.div`
 `;
 
 const CenteredTD = styled.td`
-  text-align: center !important;
+  text-align: left !important;
 `;
 
 const addMemberModalId = 'add-member-modal';
@@ -436,7 +436,40 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     ))
                   ) : (
                     <tr>
-                      <CenteredTD colSpan={5}>There are no integrations for this team yet</CenteredTD>
+                      <CenteredTD colSpan={5}>
+                        <br />
+                        There are no integrations for this team yet.
+                        <br />
+                        <br />
+                        To add this team to an <span className="strong">existing integration</span>:
+                        <span className="line-height-200"></span>
+                        <ol>
+                          <li>
+                            Go to your{' '}
+                            <span className="text-blue">
+                              <span className="strong">Projects</span>
+                            </span>{' '}
+                            tab
+                          </li>
+                          <li>Select the "pencil" icon to edit the integration</li>
+                          <li>Select this team from the "Project Team" drop down</li>
+                        </ol>
+                        <br />
+                        To add this team to a <span className="strong">new integration</span>:
+                        <span className="line-height-200"></span>
+                        <ol>
+                          <li>
+                            Go to your{' '}
+                            <span className="text-blue">
+                              <span className="strong">Projects</span>
+                            </span>{' '}
+                            tab
+                          </li>
+                          <li>Select "+ Request SSO Integration"</li>
+                          <li>Select "Yes" to allow multiple team members to manage the integration</li>
+                          <li>Select this team from the "Project Team" drop down</li>
+                        </ol>
+                      </CenteredTD>
                     </tr>
                   )}
                 </tbody>
