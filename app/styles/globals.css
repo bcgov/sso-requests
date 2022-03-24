@@ -153,10 +153,10 @@ ul.error-detail {
   z-index: 1000;
 }
 
-.fontBlue {
+.text-blue {
   color: blue;
 }
 
-.lineHeight {
+.line-height-200 {
   line-height: 200%;
 }

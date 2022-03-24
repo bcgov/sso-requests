@@ -442,11 +442,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         <br />
                         <br />
                         To add this team to an <span className="strong">existing integration</span>:
-                        <span className="lineHeight"></span>
+                        <span className="line-height-200"></span>
                         <ol>
                           <li>
                             Go to your{' '}
-                            <span className="fontBlue">
+                            <span className="text-blue">
                               <span className="strong">Projects</span>
                             </span>{' '}
                             tab
@@ -456,11 +456,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         </ol>
                         <br />
                         To add this team to a <span className="strong">new integration</span>:
-                        <span className="lineHeight"></span>
+                        <span className="line-height-200"></span>
                         <ol>
                           <li>
                             Go to your{' '}
-                            <span className="fontBlue">
+                            <span className="text-blue">
                               <span className="strong">Projects</span>
                             </span>{' '}
                             tab
