@@ -12,7 +12,10 @@ export const getProfile = async (): Promise<[User, null] | [null, AxiosError]> =
   }
 };
 
-export const updateProfile = async (data: { additionalEmail: string }): Promise<[User, null] | [null, AxiosError]> => {
+export const updateProfile = async (data: {
+  additionalEmail?: string;
+  hasReadGoldNotification?: boolean;
+}): Promise<[User, null] | [null, AxiosError]> => {
   try {
     const result = await instance.post('me', data).then((res) => res.data);
     return [result, null];

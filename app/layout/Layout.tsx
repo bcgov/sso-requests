@@ -9,7 +9,10 @@ import { startCase, isFunction } from 'lodash';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';
+import { Alert } from '@bcgov-sso/common-react-components';
+import TopAlertWrapper from 'components/TopAlertWrapper';
 import UserProfileModal from './UserProfileModal';
+import GoldNotificationModal from './GoldNotificationModal';
 
 const headerPlusFooterHeight = '152px';
 
@@ -105,10 +108,10 @@ const routes: Route[] = [
   { path: '/faq', label: 'FAQ', roles: ['guest', 'user', 'sso-admin'] },
 ];
 
-const LeftMenuItems = ({ currentUser, currentPath, query }: { currentUser: any; currentPath: string; query: any }) => {
+const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentPath: string; query: any }) => {
   let roles = ['guest'];
-  if (currentUser) {
-    roles = currentUser?.client_roles?.length > 0 ? currentUser.client_roles : ['user'];
+  if (session) {
+    roles = session?.client_roles?.length > 0 ? session.client_roles : ['user'];
   }
 
   const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
@@ -164,15 +167,15 @@ const RightMenuItems = () => (
   </>
 );
 
-function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
+function Layout({ children, session, user, enableGold, onLoginClick, onLogoutClick }: any) {
   const router = useRouter();
   const pathname = router.pathname;
 
-  const rightSide = currentUser ? (
+  const rightSide = session ? (
     <LoggedUser>
       <div className="welcome">
-        Welcome {`${currentUser.given_name} ${currentUser.family_name}`}&nbsp;
-        {currentUser?.client_roles && <span className="small">({startCase(currentUser?.client_roles[0])})</span>}
+        Welcome {`${session.given_name} ${session.family_name}`}&nbsp;
+        {session?.client_roles && <span className="small">({startCase(session?.client_roles[0])})</span>}
       </div>
       &nbsp;&nbsp;
       {/* <FontAwesomeIcon style={{ paddingLeft: '5px', height: '25px' }} icon={faUserCircle} /> */}
@@ -188,7 +191,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
 
   const MobileMenu = () => (
     <MobileSubMenu>
-      <LeftMenuItems currentUser={currentUser} currentPath={pathname} query={router.query} />
+      <LeftMenuItems session={session} currentPath={pathname} query={router.query} />
 
       <li>
         Need help?&nbsp;&nbsp;
@@ -205,7 +208,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
         </a>
       </li>
       <li>
-        {currentUser ? (
+        {session ? (
           <Button variant="secondary-inverse" size="small" onClick={onLogoutClick}>
             Logout
           </Button>
@@ -217,6 +220,9 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
       </li>
     </MobileSubMenu>
   );
+
+  const isMyDashboard = String(router.pathname).startsWith('/my-dashboard');
+  const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
 
   return (
     <TopAlertProvider>
@@ -233,7 +239,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
       >
         <SubMenu>
           <SubLeftMenu>
-            <LeftMenuItems currentUser={currentUser} currentPath={pathname} query={router.query} />
+            <LeftMenuItems session={session} currentPath={pathname} query={router.query} />
           </SubLeftMenu>
           <SubRightMenu>
             <RightMenuItems />
@@ -241,6 +247,27 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
         </SubMenu>
       </Navigation>
       <MainContent>
+        {enableGold && isMyDashboard && hasSilverIntegration && (
+          <TopAlertWrapper>
+            <Alert variant="info" closable={true}>
+              <span className="normal">
+                Please complete a{' '}
+                <a
+                  href="https://docs.google.com/forms/d/1MMPeMB0A2076xkXIZRaErAwZe9QDsSwSAWqe-uvm3ys"
+                  target="_blank"
+                  title="Change Impact Assessment"
+                  className="strong"
+                >
+                  Change Impact Assessment
+                </a>
+                , for each of your projects in the{' '}
+                <span className="strong">
+                  Silver realms. At this time, Silver realms will not be supported as of Jan. 30 2023.
+                </span>
+              </span>
+            </Alert>
+          </TopAlertWrapper>
+        )}
         <TopAlert>{children}</TopAlert>
       </MainContent>
       <Footer>
@@ -272,6 +299,7 @@ function Layout({ children, currentUser, onLoginClick, onLogoutClick }: any) {
           </ul>
         </FooterMenu>
       </Footer>
+      <GoldNotificationModal />
     </TopAlertProvider>
   );
 }

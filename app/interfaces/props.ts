@@ -4,7 +4,7 @@ export interface UserSession {
 }
 
 export interface PageProps {
-  currentUser: UserSession;
+  session: UserSession;
   onLoginClick: Function;
   onLogoutClick: Function;
 }

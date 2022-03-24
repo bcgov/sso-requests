@@ -6,7 +6,7 @@ import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { PageProps } from 'interfaces/props';
 import { Request } from 'interfaces/Request';
 
-function MyIntegrations({ currentUser }: PageProps) {
+function MyIntegrations() {
   const [integration, setIntegration] = useState<Request | null>(null);
 
   return (
