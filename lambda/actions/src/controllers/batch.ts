@@ -13,7 +13,6 @@ const createEvent = async (data) => {
 };
 
 export const handlePRstage = async (data) => {
-  console.log('handlePRstage', data);
   const { id, actionNumber, prNumber, success, changes, isEmpty, isAllowedToMerge, repoOwner, repoName } = data;
   if (isEmpty) {
     await models.request.update({ prNumber, status: 'applied', actionNumber }, { where: { id } });
@@ -58,7 +57,6 @@ export const getPlannedIds = async () => {
 };
 
 export const updatePlannedItems = async (data) => {
-  console.log('updatePlannedItems', data);
   let { ids, success } = data;
   success = String(success) === 'true';
 

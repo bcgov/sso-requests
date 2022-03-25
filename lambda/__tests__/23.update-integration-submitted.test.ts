@@ -132,7 +132,7 @@ describe('Feature: Submit Integration Update - User notification with BCeID prod
 
   it('should update the integration with BCeID prod change', async () => {
     emailList = setMockedSendEmail();
-    integration.set({ prod: true, prodValidRedirectUris: ['https://a'] });
+    integration.set({ environments: ['dev', 'test', 'prod'], prodValidRedirectUris: ['https://a'] });
     const res = await integration.submit();
     expect(res.statusCode).toEqual(200);
   });
@@ -172,7 +172,7 @@ describe('Feature: Submit Integration Update - Team notification without BCeID p
 
   it('should update the integration with BCeID prod change', async () => {
     emailList = setMockedSendEmail();
-    integration.set({ prod: true, prodValidRedirectUris: ['https://a'] });
+    integration.set({ environments: ['dev', 'test', 'prod'], prodValidRedirectUris: ['https://a'] });
     const res = await integration.submit();
     expect(res.statusCode).toEqual(200);
   });

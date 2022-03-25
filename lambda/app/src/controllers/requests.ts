@@ -143,7 +143,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
 
       current.clientName = `${kebabCase(current.projectName)}-${id}`;
       current.status = 'submitted';
-      let { environments } = current;
+      let environments = current.environments.concat();
 
       const hasBceid = usesBceid(current);
       const hadBceidProd = hasBceid && originalData.environments.includes('prod');
