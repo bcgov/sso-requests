@@ -1,4 +1,4 @@
-import { redirectUriItems, redirectUriTooltipInfo } from './shared/providers';
+import { redirectUriItems, redirectUriTooltipInfo } from './providers';
 import { EnvironmentOption } from 'interfaces/form';
 
 export default function getSchema(envs: EnvironmentOption[]) {
