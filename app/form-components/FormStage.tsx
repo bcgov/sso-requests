@@ -1,6 +1,6 @@
-import FormStageBox from 'form-components/FormStageBox';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import styled from 'styled-components';
+import Grid from '@button-inc/bcgov-theme/Grid';
+import FormStageBox from 'form-components/FormStageBox';
 import { Stage } from 'interfaces/form';
 
 interface Props {

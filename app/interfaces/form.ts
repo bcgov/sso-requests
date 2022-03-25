@@ -39,6 +39,7 @@ export interface SaveMessage {
 
 export interface Stage {
   title: string;
+  header: string;
   number: number;
 }
 

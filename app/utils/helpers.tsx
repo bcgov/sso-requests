@@ -1,29 +1,9 @@
-//
-// Helper functions
-//
-
 import { isEqual, isNil } from 'lodash';
+import { errorMessages, getStages, environmentOptions } from 'utils/constants';
+import { getSchemas } from 'schemas';
+import { Team, User } from 'interfaces/team';
 import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
-import validate from 'react-jsonschema-form/lib/validate';
-import { errorMessages, environments } from './constants';
-import { customValidate } from './customValidate';
-import { bceidStages, adminBceidStages } from 'utils/constants';
-import { nonBceidSchemas, appliedNonBceidSchemas } from 'schemas/non-bceid-schemas';
-import { Team, User } from 'interfaces/team';
-
-const URIS_SCHEMA_INDEX = 1;
-
-export const validateForm = (formData: Request, schemas: any[], visited?: any) => {
-  const errors: any = {};
-  schemas.forEach((schema, i) => {
-    if (visited && !visited[i]) return;
-    const validateUris = i === URIS_SCHEMA_INDEX;
-    const { errors: err } = validate(formData, schema, validateUris ? customValidate : undefined);
-    if (err.length > 0) errors[i] = err;
-  });
-  return errors;
-};
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   let realms: string[] | null = [];
@@ -36,23 +16,24 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
 };
 
 const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
-export const usesBceid = (realm: string | undefined) => {
-  if (!realm) return false;
-  return bceidRealms.includes(realm);
+export const usesBceid = (integration: any) => {
+  if (!integration) return false;
+
+  if (integration.serviceType === 'gold') {
+    return integration.devIdps.some((idp: string) => idp.startsWith('bceid'));
+  } else {
+    return bceidRealms.includes(integration.realm);
+  }
 };
 
 export const getRequestedEnvironments = (request: Request) => {
-  const requestEnvironments: string[] = [];
-  const { realm, bceidApproved, dev, test, prod } = request;
-  const hasBceid = usesBceid(realm);
-  if (dev) requestEnvironments.push('dev');
-  if (test) requestEnvironments.push('test');
-  if (hasBceid) {
-    if (bceidApproved && prod) requestEnvironments.push('prod');
-  } else {
-    if (prod) requestEnvironments.push('prod');
-  }
-  return environments.filter((env) => requestEnvironments.includes(env.name));
+  const { bceidApproved, environments } = request;
+  const hasBceid = usesBceid(request);
+
+  const allowedEnvs = environments?.concat() || [];
+  if (hasBceid && !bceidApproved) allowedEnvs.filter((env) => env !== 'prod');
+
+  return environmentOptions.filter((env) => allowedEnvs.includes(env.name));
 };
 
 export const parseError = (err: any) => {
@@ -153,7 +134,6 @@ const changeNullToUndefined = (data: any) => {
 };
 
 export const processRequest = (request: Request): Request => {
-  const requestedEnvironments = request.environments as string[];
   if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
     request.devValidRedirectUris = [''];
   }
@@ -166,13 +146,9 @@ export const processRequest = (request: Request): Request => {
     request.prodValidRedirectUris = [''];
   }
 
-  if (requestedEnvironments.includes('dev')) request.dev = true;
-  if (requestedEnvironments.includes('test')) request.test = true;
-  if (requestedEnvironments.includes('prod')) request.prod = true;
-  delete request.environments;
-
   if (request.teamId) request.teamId = String(request.teamId);
   else request.usesTeam = false;
+
   return changeNullToUndefined(request);
 };
 
@@ -271,14 +247,15 @@ export const hasAnyPendingStatus = (requests: Request[]) => {
 };
 
 interface Args {
-  isApplied: boolean;
+  integration: Request | undefined;
+  formData: Request;
   formStage: number;
   teams: Team[];
 }
 
-export function getFormStageInfo({ isApplied, formStage, teams }: Args) {
-  const stages = isApplied ? adminBceidStages : bceidStages;
-  const schemas = isApplied ? appliedNonBceidSchemas(teams) : nonBceidSchemas(teams);
+export function getFormStageInfo({ integration, formData, formStage, teams }: Args) {
+  const stages = getStages({ integration, formData });
+  const schemas = getSchemas({ integration, formData, teams });
   const stageTitle = stages.find((stage) => stage.number === formStage)?.title || '';
   const schema = schemas[formStage] || {};
 

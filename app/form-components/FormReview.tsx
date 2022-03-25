@@ -4,16 +4,16 @@ import FormButtons from 'form-components/FormButtons';
 import { padStart } from 'lodash';
 import { updateRequest } from 'services/request';
 import { useRouter } from 'next/router';
-import { validateForm, parseError, usesBceid } from 'utils/helpers';
+import { validateForm } from 'utils/validate';
+import { parseError, usesBceid } from 'utils/helpers';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import CenteredModal from 'components/CenteredModal';
 import Link from '@button-inc/bcgov-theme/Link';
 import RequestPreview from 'components/RequestPreview';
-import { SaveMessage } from 'interfaces/form';
 import Form from 'form-components/GovForm';
 import commentSchema from 'schemas/admin-comment';
 import uiSchema from 'schemas/commentUi';
-import { appliedNonBceidSchemas, nonBceidSchemas } from 'schemas/non-bceid-schemas';
+import { getSchemas } from 'schemas';
 import BceidEmailTemplate from 'form-components/BceidEmailTemplate';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import { Team } from 'interfaces/team';
@@ -21,22 +21,18 @@ import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 
 interface Props {
   formData: Request;
-  setErrors: Function;
-  errors: any;
-  visited: any;
-  alert: TopAlert;
-  saving?: boolean;
-  saveMessage?: SaveMessage;
-  isAdmin?: boolean;
   setFormData: Function;
+  setErrors: Function;
+  alert: TopAlert;
+  isAdmin?: boolean;
   teams: Team[];
 }
 
 function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }: Props) {
   const [bceidEmailDetails, setBceidEmailDetails] = useState({});
   const router = useRouter();
-  const hasBceid = usesBceid(formData.realm);
-  const hasBceidProd = hasBceid && formData.prod;
+  const hasBceid = usesBceid(formData);
+  const hasBceidProd = hasBceid && formData.environments?.includes('prod');
   const isApplied = formData.status === 'applied';
   const includeComment = isApplied && isAdmin;
 
@@ -74,7 +70,7 @@ function FormReview({ formData, setFormData, setErrors, alert, isAdmin, teams }:
   };
 
   const openModal = () => {
-    const validationSchemas = isApplied ? appliedNonBceidSchemas(teams) : nonBceidSchemas(teams);
+    const validationSchemas = getSchemas({ formData, teams });
     const formErrors = validateForm(formData, validationSchemas);
     if (Object.keys(formErrors).length > 0) {
       alert.show({

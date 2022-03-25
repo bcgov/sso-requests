@@ -22,10 +22,10 @@ const Box = styled.div<BoxProps>`
   width: 200px;
   background-color: #ebf7ff;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   border-radius: 5px;
-  padding: 20px;
+  padding: 15px;
   cursor: pointer;
   margin: 3px 0;
   font-weight: ${(props: BoxProps) => props.active && 'bold'};
@@ -46,8 +46,7 @@ const Circle = styled.div`
 `;
 
 const Text = styled.p`
-  width: 100px;
-  margin: 0;
+  margin: 0 0 0 5px;
 `;
 
 export default function FormStagebox({ stageNumber, title, active, visited, handleClick, hasError }: FormStageBox) {

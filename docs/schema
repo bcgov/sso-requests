@@ -1,28 +1,118 @@
 
-psql: could not connect to server: Connection refused
-	Is the server running on host "localhost" (127.0.0.1) and accepting
-	TCP/IP connections on port 5432?
+                                                        Table "public.requests"
+          Column          |           Type           | Collation | Nullable |                         Default
+--------------------------+--------------------------+-----------+----------+----------------------------------------------------------
+ id                       | integer                  |           | not null | nextval('requests_id_seq'::regclass)
+ idir_userid              | character varying(255)   |           |          |
+ project_name             | character varying(255)   |           | not null |
+ client_name              | character varying(255)   |           |          |
+ realm                    | character varying(255)   |           |          |
+ public_access            | boolean                  |           |          |
+ dev_valid_redirect_uris  | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ test_valid_redirect_uris | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ prod_valid_redirect_uris | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ environments             | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ pr_number                | integer                  |           |          |
+ action_number            | integer                  |           |          |
+ created_at               | timestamp with time zone |           | not null |
+ updated_at               | timestamp with time zone |           | not null |
+ project_lead             | boolean                  |           |          | false
+ preferred_email          | character varying(255)   |           |          |
+ new_to_sso               | boolean                  |           |          | false
+ agree_with_terms         | boolean                  |           |          | false
+ bceid_approved           | boolean                  |           |          | false
+ status                   | enum_requests_status     |           | not null | 'draft'::enum_requests_status
+ archived                 | boolean                  |           | not null | false
+ idir_user_display_name   | character varying(255)   |           |          |
+ additional_emails        | character varying(255)[] |           |          |
+ has_unread_notifications | boolean                  |           |          |
+ browser_flow_override    | character varying(255)   |           |          |
+ team_id                  | integer                  |           |          |
+ uses_team                | boolean                  |           | not null | false
+ requester                | character varying(255)   |           |          |
+ user_id                  | integer                  |           |          |
+ service_type             | character varying(255)   |           | not null | 'silver'::character varying
+ dev_idps                 | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ test_idps                | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ prod_idps                | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+Indexes:
+    "requests_pkey" PRIMARY KEY, btree (id)
+Foreign-key constraints:
+    "requests_team_id_fkey" FOREIGN KEY (team_id) REFERENCES teams(id)
+    "requests_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+Referenced by:
+    TABLE "events" CONSTRAINT "events_request_id_fkey" FOREIGN KEY (request_id) REFERENCES requests(id)
 
 
 
-psql: could not connect to server: Connection refused
-	Is the server running on host "localhost" (127.0.0.1) and accepting
-	TCP/IP connections on port 5432?
+
+                                               Table "public.users"
+           Column           |           Type           | Collation | Nullable |              Default
+----------------------------+--------------------------+-----------+----------+-----------------------------------
+ id                         | integer                  |           | not null | nextval('users_id_seq'::regclass)
+ idir_userid                | character varying(255)   |           |          |
+ idir_email                 | character varying(255)   |           | not null |
+ created_at                 | timestamp with time zone |           | not null |
+ updated_at                 | timestamp with time zone |           | not null |
+ additional_email           | character varying(255)   |           |          |
+ display_name               | character varying(255)   |           |          |
+ has_read_gold_notification | boolean                  |           | not null | false
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (id)
+    "users_idir_email_key" UNIQUE CONSTRAINT, btree (idir_email)
+Referenced by:
+    TABLE "requests" CONSTRAINT "requests_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id)
+    TABLE "users_teams" CONSTRAINT "users_teams_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 
 
 
-psql: could not connect to server: Connection refused
-	Is the server running on host "localhost" (127.0.0.1) and accepting
-	TCP/IP connections on port 5432?
+
+                                       Table "public.teams"
+   Column   |           Type           | Collation | Nullable |              Default
+------------+--------------------------+-----------+----------+-----------------------------------
+ id         | integer                  |           | not null | nextval('teams_id_seq'::regclass)
+ name       | character varying(255)   |           | not null |
+ created_at | timestamp with time zone |           | not null |
+ updated_at | timestamp with time zone |           | not null |
+Indexes:
+    "teams_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "requests" CONSTRAINT "requests_team_id_fkey" FOREIGN KEY (team_id) REFERENCES teams(id)
+    TABLE "users_teams" CONSTRAINT "users_teams_team_id_fkey" FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
 
 
 
-psql: could not connect to server: Connection refused
-	Is the server running on host "localhost" (127.0.0.1) and accepting
-	TCP/IP connections on port 5432?
+
+                       Table "public.users_teams"
+   Column   |           Type           | Collation | Nullable | Default
+------------+--------------------------+-----------+----------+---------
+ role       | character varying(255)   |           | not null |
+ created_at | timestamp with time zone |           | not null |
+ updated_at | timestamp with time zone |           | not null |
+ user_id    | integer                  |           | not null |
+ team_id    | integer                  |           | not null |
+ pending    | boolean                  |           | not null | true
+Indexes:
+    "users_teams_pkey" PRIMARY KEY, btree (user_id, team_id)
+Foreign-key constraints:
+    "users_teams_team_id_fkey" FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+    "users_teams_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 
 
 
-psql: could not connect to server: Connection refused
-	Is the server running on host "localhost" (127.0.0.1) and accepting
-	TCP/IP connections on port 5432?
+
+                                             Table "public.events"
+         Column         |           Type           | Collation | Nullable |              Default
+------------------------+--------------------------+-----------+----------+------------------------------------
+ id                     | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ created_at             | timestamp with time zone |           | not null |
+ updated_at             | timestamp with time zone |           | not null |
+ request_id             | integer                  |           |          |
+ event_code             | character varying(255)   |           | not null |
+ idir_userid            | character varying(255)   |           |          |
+ details                | jsonb                    |           |          |
+ idir_user_display_name | character varying(255)   |           |          |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+Foreign-key constraints:
+    "events_request_id_fkey" FOREIGN KEY (request_id) REFERENCES requests(id)

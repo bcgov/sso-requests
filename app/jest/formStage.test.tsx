@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import FormStage from 'form-components/FormStage';
-import { bceidStages } from 'utils/constants';
+import { newIntegrationStages } from 'utils/constants';
 
 const setFormStage = jest.fn();
 const errors = {
@@ -19,7 +19,7 @@ describe('Form Stage', () => {
         setFormStage={setFormStage}
         errors={{}}
         visited={{}}
-        stages={bceidStages}
+        stages={newIntegrationStages}
       />,
     );
     fireEvent.click(screen.getByText('Providers and URIs'));
@@ -34,7 +34,7 @@ describe('Form Stage', () => {
         setFormStage={setFormStage}
         errors={errors}
         visited={{}}
-        stages={bceidStages}
+        stages={newIntegrationStages}
       />,
     );
     const firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
@@ -51,10 +51,10 @@ describe('Form Stage', () => {
         setFormStage={setFormStage}
         errors={errors}
         visited={{}}
-        stages={bceidStages}
+        stages={newIntegrationStages}
       />,
     );
-    const bceidTitles = bceidStages.map((stage) => stage.title);
+    const bceidTitles = newIntegrationStages.map((stage) => stage.title);
     bceidTitles.forEach((title) => {
       expect(screen.getByText(title)).toBeInTheDocument();
     });

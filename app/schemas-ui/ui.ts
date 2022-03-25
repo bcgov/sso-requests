@@ -1,19 +1,25 @@
 import { isNil } from 'lodash';
-import FieldTemplateNoTitle from 'form-components/FieldTemplateNoTitle';
-import FieldTemplateWithTitle from 'form-components/FieldTemplateWithTitle';
-import AddTeamWidget from 'form-components/AddTeamWidget';
-import ClientTypeWidget from 'form-components/widgets/ClientTypeWidget';
-import { Request } from 'interfaces/Request';
+import FieldTemplateNoTitle from '@app/form-components/FieldTemplateNoTitle';
+import FieldTemplateWithTitle from '@app/form-components/FieldTemplateWithTitle';
+import AddTeamWidget from '@app/form-components/AddTeamWidget';
+import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
+import { Request } from '@app/interfaces/Request';
 
 const getUISchema = (request: Request) => {
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
 
+  const envDisabled = isApplied ? request?.environments?.concat() || [] : ['dev'];
+
   return {
-    identityProviders: {
-      'ui:widget': 'checkboxes',
-      'ui:disabled': 'true',
-      'ui:help': 'Currently we only support the onestopauth realm and IDPs cant be changed.',
+    projectName: {
+      'ui:FieldTemplate': FieldTemplateNoTitle,
+      'ui:placeholder': 'Project Name',
+    },
+    usesTeam: {
+      'ui:widget': 'radio',
+      'ui:FieldTemplate': FieldTemplateWithTitle,
+      'ui:readonly': isApplied && request?.usesTeam,
     },
     projectLead: {
       'ui:widget': 'radio',
@@ -27,15 +33,6 @@ const getUISchema = (request: Request) => {
     publicAccess: {
       'ui:widget': ClientTypeWidget,
       'ui:FieldTemplate': FieldTemplateWithTitle,
-    },
-    projectName: {
-      'ui:FieldTemplate': FieldTemplateNoTitle,
-      'ui:placeholder': 'Project Name',
-    },
-    usesTeam: {
-      'ui:widget': 'radio',
-      'ui:FieldTemplate': FieldTemplateWithTitle,
-      'ui:readonly': isApplied && request?.usesTeam,
     },
     realm: {
       'ui:widget': 'radio',
@@ -53,15 +50,10 @@ const getUISchema = (request: Request) => {
     bceidBody: {
       'ui:widget': 'textarea',
     },
-    dev: {
-      'ui:readonly': true,
+    environments: {
+      'ui:widget': 'checkboxes',
       'ui:FieldTemplate': FieldTemplateWithTitle,
-    },
-    test: {
-      'ui:readonly': isApplied && request?.test === true,
-    },
-    prod: {
-      'ui:readonly': isApplied && request?.prod === true,
+      'ui:enumDisabled': envDisabled,
     },
     createTeam: {
       'ui:FieldTemplate': AddTeamWidget,

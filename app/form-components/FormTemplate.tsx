@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import FormHeader from 'form-components/FormHeader';
 import FormStage from 'form-components/FormStage';
 import Form from 'form-components/GovForm';
-import getUiSchema from 'schemas/ui';
+import { getUISchema } from 'schemas-ui';
 import FormButtons from 'form-components/FormButtons';
 import { Request } from 'interfaces/Request';
 import CenteredModal from 'components/CenteredModal';
@@ -13,9 +13,9 @@ import TermsAndConditions from 'components/TermsAndConditions';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { isNil, throttle } from 'lodash';
-import { validateForm, getFormStageInfo } from 'utils/helpers';
+import { validateForm, customValidate } from 'utils/validate';
+import { getFormStageInfo } from 'utils/helpers';
 import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
-import { customValidate } from 'utils/customValidate';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
 import { SaveMessage } from 'interfaces/form';
@@ -23,6 +23,9 @@ import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import CreateTeamForm from 'form-components/team-form/CreateTeamForm';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
+import getConfig from 'next/config';
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { enable_gold } = publicRuntimeConfig;
 
 const Description = styled.p`
   margin: 0;
@@ -60,11 +63,14 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
   const [showAccountableError, setShowAccountableError] = useState(false);
+  const [schemas, setSchemas] = useState<any>();
+  const [schema, setSchema] = useState<any>();
+  const [stageTitle, setStageTitle] = useState<any>();
+  const [stages, setStages] = useState<any>();
   const isNew = isNil(request?.id);
-  const isApplied: boolean = request?.status === 'applied';
-  const isAdmin: boolean = currentUser.isAdmin || false;
+  const isApplied = request?.status === 'applied';
+  const isAdmin = currentUser.isAdmin || false;
 
-  const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isApplied, formStage, teams });
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
 
   const throttleUpdate = useCallback(
@@ -113,17 +119,33 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     }
   };
 
+  const updateInfo = () => {
+    const { stages, stageTitle, schema, schemas } = getFormStageInfo({
+      integration: request,
+      formData,
+      formStage,
+      teams,
+    });
+
+    setStages(stages);
+    setStageTitle(stageTitle);
+    setSchema(schema);
+    setSchemas(schemas);
+  };
+
   useEffect(() => {
     loadTeams();
   }, []);
 
+  useEffect(() => {
+    updateInfo();
+  }, [formData, formStage, teams]);
+
   const changeStep = (newStage: number) => {
     visited[formStage] = true;
 
-    if (newStage === 3) {
-      visited['0'] = true;
-      visited['1'] = true;
-      visited['2'] = true;
+    if (newStage === stages.length - 1) {
+      for (let x = 0; x < stages.length; x++) visited[x] = true;
     }
 
     const formErrors = validateForm(formData, schemas, visited);
@@ -138,13 +160,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUiSchema(request as Request);
+  const uiSchema = getUISchema(request as Request);
 
   const handleFormSubmit = async () => {
     setLoading(true);
 
     try {
       if (isNew) {
+        formData.serviceType = enable_gold ? 'gold' : 'silver';
+        formData.environments = ['dev'];
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
 
@@ -209,10 +233,12 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
   const backButtonText = isApplied ? 'Cancel' : 'Save and Close';
 
+  if (!schemas) return null;
+
   return (
     <>
       <HeaderContainer>
-        <FormHeader formStage={formStage} requestId={formData.id} editing={isApplied} />
+        <FormHeader formStage={formStage} stages={stages} requestId={formData.id} editing={isApplied} />
         <FormStage
           currentStage={formStage}
           setFormStage={changeStep}
@@ -233,13 +259,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       {stageTitlesReviewing.includes(stageTitle) && (
         <FormReview
           formData={formData}
-          setErrors={setErrors}
-          errors={errors}
-          visited={visited}
-          saving={saving}
-          saveMessage={saveMessage}
-          isAdmin={isAdmin}
           setFormData={setFormData}
+          setErrors={setErrors}
+          isAdmin={isAdmin}
           teams={teams}
         />
       )}
@@ -250,6 +272,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           onChange={handleChange}
           onSubmit={handleFormSubmit}
           formData={formData}
+          formContext={{ isAdmin, teams }}
           ArrayFieldTemplate={ArrayFieldTemplate}
           liveValidate={visited[formStage] || isApplied}
           validate={customValidate}
