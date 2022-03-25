@@ -30,8 +30,8 @@ export const getRequestedEnvironments = (request: Request) => {
   const { bceidApproved, environments } = request;
   const hasBceid = usesBceid(request);
 
-  const allowedEnvs = environments?.concat() || [];
-  if (hasBceid && !bceidApproved) allowedEnvs.filter((env) => env !== 'prod');
+  let allowedEnvs = environments?.concat() || [];
+  if (hasBceid && !bceidApproved) allowedEnvs = allowedEnvs.filter((env) => env !== 'prod');
 
   return environmentOptions.filter((env) => allowedEnvs.includes(env.name));
 };

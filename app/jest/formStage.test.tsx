@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import FormStage from 'form-components/FormStage';
-import { newIntegrationStages } from 'utils/constants';
+import { getStages } from 'utils/constants';
 
 const setFormStage = jest.fn();
 const errors = {
@@ -9,6 +9,7 @@ const errors = {
 };
 
 const STEPPER_ERROR = 'Some additional fields require your attention.';
+const newIntegrationStages = getStages({ integration: {}, formData: {} });
 
 describe('Form Stage', () => {
   it('Only allows navigation once a request is created', () => {

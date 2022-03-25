@@ -45,9 +45,10 @@ export const sampleRequest: Request = {
   projectName: 'test project',
   projectLead: true,
   agreeWithTerms: true,
-  environments: ['dev', 'test', 'prod'],
+  environments: ['dev'],
   archived: false,
   usesTeam: false,
+  serviceType: 'silver',
 };
 
 const samplePage3Request = {

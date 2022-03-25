@@ -70,13 +70,7 @@ export const getStages = ({ integration, formData }: { integration?: Request; fo
       addStage(stages, ...environments);
       addStage(stages, 'Terms and conditions', 'Review & Submit');
     } else {
-      addStage(
-        stages,
-        firstFormPageTitle,
-        'Choose providers and provide URIs',
-        'Terms and conditions',
-        'Review & Submit',
-      );
+      addStage(stages, firstFormPageTitle, 'Providers and URIs', 'Terms and conditions', 'Review & Submit');
     }
   } else {
     if (integration?.serviceType === 'gold') {
@@ -91,15 +85,9 @@ export const getStages = ({ integration, formData }: { integration?: Request; fo
       }
     } else {
       if (isApplied) {
-        addStage(stages, firstFormPageTitle, 'Choose providers and provide URIs', 'Review & Submit');
+        addStage(stages, firstFormPageTitle, 'Providers and URIs', 'Review & Submit');
       } else {
-        addStage(
-          stages,
-          firstFormPageTitle,
-          'Choose providers and provide URIs',
-          'Terms and conditions',
-          'Review & Submit',
-        );
+        addStage(stages, firstFormPageTitle, 'Providers and URIs', 'Terms and conditions', 'Review & Submit');
       }
     }
   }
