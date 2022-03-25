@@ -75,6 +75,11 @@ variable "gh_apply_workflow_id" {
   default     = "terraform-apply.yml"
 }
 
+variable "gh_apply_workflow_v2_id" {
+  description = "workflow id or filename to trigger when Terraform Apply"
+  default     = "terraform-v2-apply.yml"
+}
+
 variable "gh_secret" {
   description = "secret for comms with gh actions"
   default     = "secret"

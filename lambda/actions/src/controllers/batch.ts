@@ -46,9 +46,11 @@ export const handlePRstage = async (data) => {
   return true;
 };
 
-export const getPlannedIds = async () => {
+export const getPlannedIds = async (serviceType: string) => {
+  serviceType = serviceType === 'gold' ? 'gold' : 'silver';
+
   const integrations = await models.request.findAll({
-    where: { status: { [Op.in]: ['planned', 'applyFailed'] } },
+    where: { status: { [Op.in]: ['planned', 'applyFailed'] }, serviceType },
     attributes: ['id'],
     raw: true,
   });
