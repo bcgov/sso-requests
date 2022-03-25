@@ -152,3 +152,11 @@ ul.error-detail {
 .pg-modal-container {
   z-index: 1000;
 }
+
+.text-blue {
+  color: blue;
+}
+
+.line-height-200 {
+  line-height: 200%;
+}
