@@ -1,6 +1,9 @@
+import React from 'react';
 import styled from 'styled-components';
-import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
+import { FieldTemplateProps } from 'react-jsonschema-form';
 import Link from '@button-inc/bcgov-theme/Link';
+import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
+import FieldTemplate from './FieldTemplate';
 
 const Title = styled.h2`
   text-transform: uppercase;
@@ -24,8 +27,8 @@ const Container = styled.div`
   margin-top: ${FORM_TOP_SPACING};
 `;
 
-function TermsAndConditions() {
-  return (
+export default function FieldTermsAndConditions(props: FieldTemplateProps) {
+  const top = (
     <Container>
       <Title>Requirements</Title>
       <StyledList>
@@ -92,6 +95,6 @@ function TermsAndConditions() {
       </StyledList>
     </Container>
   );
-}
 
-export default TermsAndConditions;
+  return <FieldTemplate {...props} top={top} />;
+}

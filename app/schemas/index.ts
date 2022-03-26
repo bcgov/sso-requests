@@ -4,8 +4,9 @@ import termsAndConditionsSchema from '@app/schemas/terms-and-conditions';
 import getProvidersSchema from '@app/schemas/providers';
 import getProvidersGoldSchema from '@app/schemas/providers-gold';
 import getEnvironmentGoldSchemas from '@app/schemas/environment-gold';
+import getReviewSubmitSchema from '@app/schemas/review-submit';
 import { Team } from '@app/interfaces/team';
-import { Request, Option } from '@app/interfaces/Request';
+import { Request } from '@app/interfaces/Request';
 import getConfig from 'next/config';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
@@ -46,6 +47,8 @@ export const getSchemas = ({
       if (!isApplied) schemas.push(termsAndConditionsSchema);
     }
   }
+
+  schemas.push(getReviewSubmitSchema());
 
   return schemas;
 };

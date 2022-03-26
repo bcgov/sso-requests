@@ -6,20 +6,26 @@ import getConfig from 'next/config';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
-export const getUISchema = (integration: Request) => {
+interface Props {
+  integration: Request;
+  isAdmin: boolean;
+}
+
+export const getUISchema = (props: Props) => {
+  const { integration } = props;
   const isNew = isNil(integration?.id);
 
   if (isNew) {
     if (enable_gold) {
-      return getGoldUISchema(integration as Request);
+      return getGoldUISchema(props);
     } else {
-      return getSilverUISchema(integration as Request);
+      return getSilverUISchema(props);
     }
   } else {
     if (integration?.serviceType === 'gold') {
-      return getGoldUISchema(integration as Request);
+      return getGoldUISchema(props);
     } else {
-      return getSilverUISchema(integration as Request);
+      return getSilverUISchema(props);
     }
   }
 };

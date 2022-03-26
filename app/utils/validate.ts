@@ -1,3 +1,4 @@
+import { FormValidation } from 'react-jsonschema-form';
 import validate from 'react-jsonschema-form/lib/validate';
 import { Request } from '@app/interfaces/Request';
 
@@ -16,7 +17,7 @@ export const isValidKeycloakURI = (uri: string) => {
 
 const validationMessage = 'Please enter a valid URI, including an http:// or https:// prefix';
 
-export const customValidate = (formData: any, errors: any, fields: string[]) => {
+export const customValidate = (formData: any, errors: FormValidation, fields?: string[]) => {
   const {
     devValidRedirectUris = [],
     testValidRedirectUris = [],

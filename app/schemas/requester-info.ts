@@ -10,8 +10,6 @@ const projectLead = {
 </p>`,
 };
 
-const projectName = { type: 'string', title: 'Project Name', maxLength: 50 };
-
 export default function getSchema(teams: any[] = []) {
   const teamNames = teams.map((team) => team.name);
   const teamValues = teams.map((team) => String(team.id));
@@ -21,7 +19,7 @@ export default function getSchema(teams: any[] = []) {
     type: 'object',
     customValidation: ['createTeam'],
     properties: {
-      projectName,
+      projectName: { type: 'string', title: 'Project Name', maxLength: 50 },
       usesTeam: {
         type: 'boolean',
         title: 'Project Team',

@@ -37,6 +37,7 @@ const Box = styled.div<BoxProps>`
 const Circle = styled.div`
   height: 40px;
   width: 40px;
+  min-width: 40px;
   text-align: center;
   line-height: 40px;
   border-radius: 40px;
