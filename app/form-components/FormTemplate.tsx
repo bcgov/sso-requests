@@ -10,10 +10,11 @@ import FieldTemplate from 'form-components/FieldTemplate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import CenteredModal from 'components/CenteredModal';
 import { validateForm, customValidate } from 'utils/validate';
-import { parseError, getFormStageInfo } from 'utils/helpers';
+import { parseError } from 'utils/helpers';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
 import { getUISchema } from 'schemas-ui';
+import { getSchemas } from 'schemas';
 import { Request } from 'interfaces/Request';
 import { SaveMessage } from 'interfaces/form';
 import { Team, LoggedInUser } from 'interfaces/team';
@@ -54,15 +55,13 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
   const [schemas, setSchemas] = useState<any[]>([]);
-  const [schema, setSchema] = useState<any>();
-  const [stageTitle, setStageTitle] = useState<any>();
-  const [stages, setStages] = useState<any>();
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
   const isAdmin = currentUser.isAdmin || false;
 
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
   const isLastStage = formStage === schemas.length - 1;
+  const schema = schemas[formStage] || {};
 
   const throttleUpdate = useCallback(
     throttle(
@@ -108,16 +107,12 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const updateInfo = () => {
-    const { stages, stageTitle, schema, schemas } = getFormStageInfo({
+    const schemas = getSchemas({
       integration: request,
       formData,
-      formStage,
       teams,
     });
 
-    setStages(stages);
-    setStageTitle(stageTitle);
-    setSchema(schema);
     setSchemas(schemas);
   };
 
@@ -132,8 +127,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const changeStep = (newStage: number) => {
     visited[formStage] = true;
 
-    if (newStage === stages.length - 1) {
-      for (let x = 0; x < stages.length; x++) visited[x] = true;
+    if (newStage === schemas.length - 1) {
+      for (let x = 0; x < schemas.length; x++) visited[x] = true;
     }
 
     const formErrors = validateForm(formData, schemas, visited);
@@ -272,14 +267,14 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   return (
     <>
       <HeaderContainer>
-        <FormHeader formStage={formStage} stages={stages} requestId={formData.id} editing={isApplied} />
+        <FormHeader schema={schema} requestId={formData.id} editing={isApplied} />
         <FormStage
           currentStage={formStage}
           setFormStage={changeStep}
           errors={errors}
           isNew={isNew}
           visited={visited}
-          stages={stages}
+          schemas={schemas}
         />
         <Description>
           If new to SSO, please visit{' '}

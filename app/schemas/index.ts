@@ -1,4 +1,5 @@
 import { isNil } from 'lodash';
+import { JSONSchema6 } from 'json-schema';
 import getRequesterInfoSchema from '@app/schemas/requester-info';
 import termsAndConditionsSchema from '@app/schemas/terms-and-conditions';
 import getProvidersSchema from '@app/schemas/providers';
@@ -10,6 +11,12 @@ import { Request } from '@app/interfaces/Request';
 import getConfig from 'next/config';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
+
+export interface Schema extends JSONSchema6 {
+  customValidation?: string[];
+  headerText: string;
+  stepText: string;
+}
 
 export const getSchemas = ({
   integration,

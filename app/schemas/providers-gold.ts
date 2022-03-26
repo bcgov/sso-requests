@@ -1,10 +1,12 @@
-import { JSONSchema6 } from 'json-schema';
 import { Request } from '../interfaces/Request';
+import { Schema } from './index';
 
 export default function getSchema(integration: Request) {
   return {
     type: 'object',
     required: ['publicAccess'],
+    headerText: 'Choose providers',
+    stepText: 'Providers',
     properties: {
       publicAccess: {
         type: 'boolean',
@@ -35,5 +37,5 @@ export default function getSchema(integration: Request) {
         uniqueItems: true,
       },
     },
-  } as JSONSchema6;
+  } as Schema;
 }

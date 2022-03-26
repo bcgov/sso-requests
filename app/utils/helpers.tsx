@@ -1,5 +1,5 @@
 import { isEqual, isNil } from 'lodash';
-import { errorMessages, getStages, environmentOptions } from 'utils/constants';
+import { errorMessages, environmentOptions } from 'utils/constants';
 import { getSchemas } from 'schemas';
 import { Team, User } from 'interfaces/team';
 import { Request, Option } from 'interfaces/Request';
@@ -116,13 +116,6 @@ export const realmToIDP = (realm?: string) => {
   if (realm === 'onestopauth-business') idps = ['idir', 'bceid-business'];
   if (realm === 'onestopauth-both') idps = ['idir', 'bceid-business', 'bceid-basic'];
   return idps;
-};
-
-export const getRedirectUrlPropertyNameByEnv = (env: string | undefined) => {
-  if (env === 'dev') return 'devValidRedirectUris';
-  if (env === 'test') return 'testValidRedirectUris';
-  if (env === 'prod') return 'prodValidRedirectUris';
-  return 'devValidRedirectUris';
 };
 
 const changeNullToUndefined = (data: any) => {
@@ -251,20 +244,6 @@ interface Args {
   formData: Request;
   formStage: number;
   teams: Team[];
-}
-
-export function getFormStageInfo({ integration, formData, formStage, teams }: Args) {
-  const stages = getStages({ integration, formData });
-  const schemas = getSchemas({ integration, formData, teams });
-  const stageTitle = stages.find((stage) => stage.number === formStage)?.title || '';
-  const schema = schemas[formStage] || {};
-
-  return {
-    stages,
-    stageTitle,
-    schema,
-    schemas,
-  };
 }
 
 export function canDeleteMember(members: User[], memberId?: number) {

@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import FormStageBox from 'form-components/FormStageBox';
-import { Stage } from 'interfaces/form';
+import { Schema } from '@app/schemas/index';
 
 interface Props {
   currentStage: number;
@@ -9,7 +9,7 @@ interface Props {
   errors: any;
   visited: any;
   isNew: boolean;
-  stages: Stage[];
+  schemas: Schema[];
 }
 
 const Container = styled.div`
@@ -17,7 +17,7 @@ const Container = styled.div`
   max-width: 100%;
 `;
 
-export default function Formstage({ currentStage, setFormStage, errors, isNew, visited, stages }: Props) {
+export default function Formstage({ currentStage, setFormStage, errors, isNew, visited, schemas }: Props) {
   const handleClick = (stage: number) => {
     // Disable navigation if record is not yet created
     if (isNew) return;
@@ -28,16 +28,16 @@ export default function Formstage({ currentStage, setFormStage, errors, isNew, v
     <Container>
       <Grid cols={4}>
         <Grid.Row collapse="992" gutter={[]}>
-          {stages?.map((stage) => (
-            <Grid.Col key={stage.title}>
+          {schemas?.map((schema, index) => (
+            <Grid.Col key={schema.stepText}>
               <FormStageBox
-                title={stage.title}
-                stageNumber={stage.number + 1}
-                active={stage.number === currentStage}
-                key={stage.number}
-                hasError={!!errors[stage.number]}
-                visited={visited[stage.number]}
-                handleClick={() => handleClick(stage.number)}
+                title={schema.stepText}
+                stageNumber={index + 1}
+                active={index === currentStage}
+                key={index}
+                hasError={!!errors[index]}
+                visited={visited[index]}
+                handleClick={() => handleClick(index)}
               />
             </Grid.Col>
           ))}

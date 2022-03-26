@@ -37,12 +37,6 @@ export interface SaveMessage {
   error: boolean;
 }
 
-export interface Stage {
-  title: string;
-  header: string;
-  number: number;
-}
-
 export interface BceidEmailDetails {
   bceidTo?: string;
   bceidCc?: string;

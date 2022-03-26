@@ -1,4 +1,4 @@
-import { JSONSchema6 } from 'json-schema';
+import { Schema } from './index';
 
 const projectLead = {
   type: 'boolean',
@@ -18,6 +18,8 @@ export default function getSchema(teams: any[] = []) {
   return {
     type: 'object',
     customValidation: ['createTeam'],
+    headerText: 'Enter requester information',
+    stepText: 'Requester Info',
     properties: {
       projectName: { type: 'string', title: 'Project Name', maxLength: 50 },
       usesTeam: {
@@ -71,5 +73,5 @@ export default function getSchema(teams: any[] = []) {
         ],
       },
     },
-  } as JSONSchema6;
+  } as Schema;
 }

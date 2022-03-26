@@ -1,5 +1,5 @@
-import { JSONSchema6 } from 'json-schema';
 import { Request } from '../interfaces/Request';
+import { Schema } from './index';
 
 export const redirectUriTooltipInfo = {
   tooltipContent: `At least one redirect URI is required for each of DEV, TEST and PROD. If you don't know the redirect URI for one or
@@ -46,6 +46,8 @@ export default function getSchema(integration: Request) {
     type: 'object',
     required: ['realm', 'publicAccess'],
     customValidation: ['devValidRedirectUris', 'testValidRedirectUris', 'prodValidRedirectUris'],
+    headerText: 'Choose providers and provide URIs',
+    stepText: 'Providers and URIs',
     properties: {
       publicAccess: {
         type: 'boolean',
@@ -75,5 +77,5 @@ export default function getSchema(integration: Request) {
       },
       ...redirectUriProps,
     },
-  } as JSONSchema6;
+  } as Schema;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import FormStage from 'form-components/FormStage';
-import { getStages } from 'utils/constants';
+import { getSchemas } from 'schemas';
 
 const setFormStage = jest.fn();
 const errors = {
@@ -9,7 +9,7 @@ const errors = {
 };
 
 const STEPPER_ERROR = 'Some additional fields require your attention.';
-const newIntegrationStages = getStages({ integration: {}, formData: {} });
+const newIntegrationSchemas = getSchemas({ integration: {}, formData: {}, teams: [] });
 
 describe('Form Stage', () => {
   it('Only allows navigation once a request is created', () => {
@@ -20,7 +20,7 @@ describe('Form Stage', () => {
         setFormStage={setFormStage}
         errors={{}}
         visited={{}}
-        stages={newIntegrationStages}
+        schemas={newIntegrationSchemas}
       />,
     );
     fireEvent.click(screen.getByText('Providers and URIs'));
@@ -35,7 +35,7 @@ describe('Form Stage', () => {
         setFormStage={setFormStage}
         errors={errors}
         visited={{}}
-        stages={newIntegrationStages}
+        schemas={newIntegrationSchemas}
       />,
     );
     const firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
@@ -52,10 +52,10 @@ describe('Form Stage', () => {
         setFormStage={setFormStage}
         errors={errors}
         visited={{}}
-        stages={newIntegrationStages}
+        schemas={newIntegrationSchemas}
       />,
     );
-    const bceidTitles = newIntegrationStages.map((stage) => stage.title);
+    const bceidTitles = newIntegrationSchemas.map((schema) => schema.stepText);
     bceidTitles.forEach((title) => {
       expect(screen.getByText(title)).toBeInTheDocument();
     });
