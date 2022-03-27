@@ -12,22 +12,22 @@ const Title = styled.legend`
 export default function FieldTemplate(
   props: FieldTemplateProps & { top?: React.ReactElement; bottom?: React.ReactElement },
 ) {
-  const { classNames, label, displayLabel, help, errors, children, schema, top, bottom } = props;
+  const { classNames, label, displayLabel, help, errors, children, schema, top = null, bottom = null } = props;
   const { type, tooltipTitle, tooltipContent, hide = 250, description } = schema as any;
 
   if (type === 'array') {
     return (
       <>
-        {top && top}
+        {top}
         <div className={classNames}>{children}</div>
-        {bottom && bottom}
+        {bottom}
       </>
     );
   }
 
   return (
     <>
-      {top && top}
+      {top}
       <div className={classNames}>
         {displayLabel && label && (
           <Title>
@@ -40,7 +40,7 @@ export default function FieldTemplate(
         {errors}
         {help}
       </div>
-      {bottom && bottom}
+      {bottom}
     </>
   );
 }
