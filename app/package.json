@@ -11,15 +11,15 @@
     "export": "next export",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --silent"
+    "test": "jest"
   },
   "dependencies": {
     "@bcgov-sso/common-react-components": "^1.19.0",
     "@bcgov/bc-sans": "^1.0.1",
     "@button-inc/bcgov-theme": "^1.0.1",
-    "@fortawesome/fontawesome-svg-core": "^1.2.35",
-    "@fortawesome/free-solid-svg-icons": "^5.15.3",
-    "@fortawesome/react-fontawesome": "^0.1.14",
+    "@fortawesome/fontawesome-svg-core": "^6.1.1",
+    "@fortawesome/free-solid-svg-icons": "^6.1.1",
+    "@fortawesome/react-fontawesome": "^0.1.18",
     "@rjsf/core": "^3.0.0",
     "axios": "^0.21.1",
     "backslash": "^0.2.0",
@@ -35,7 +35,6 @@
     "react-placeholder": "^4.1.0",
     "react-typography": "^0.16.20",
     "styled-components": "^5.3.0",
-    "uuid": "^8.3.2",
     "validator": "^13.7.0"
   },
   "devDependencies": {
@@ -46,15 +45,14 @@
     "@types/jsrsasign": "^8.0.12",
     "@types/react": "17.0.11",
     "@types/react-jsonschema-form": "^1.7.6",
-    "@types/uuid": "^8.3.3",
     "@types/validator": "^13.7.1",
-    "babel-jest": "^27.0.5",
+    "babel-jest": "^27.5.1",
     "cypress": "^8.3.1",
     "eslint": "7.29.0",
     "eslint-config-next": "11.0.1",
-    "jest": "^27.0.5",
-    "jest-axe": "^5.0.1",
+    "jest": "^27.5.1",
+    "jest-axe": "^6.0.0",
     "jest-dom": "^4.0.0",
-    "typescript": "4.3.4"
+    "typescript": "^4.6.3"
   }
 }

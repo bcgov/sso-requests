@@ -52,7 +52,7 @@ const Text = styled.p`
 
 export default function FormStagebox({ stageNumber, title, active, visited, handleClick, hasError }: FormStageBox) {
   return (
-    <Box active={active || false} visited={visited || false} onClick={handleClick}>
+    <Box active={active || false} visited={visited || false} onClick={handleClick} data-testid={`stage-${stageNumber}`}>
       <Circle>
         {hasError ? (
           <FontAwesomeIcon

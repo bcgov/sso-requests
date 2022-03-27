@@ -35,64 +35,42 @@ jest.mock('services/request', () => {
   };
 });
 
-describe('Landing Page', () => {
-  it('Should have no accessibility violations', async () => {
+describe('Pages', () => {
+  it('Should have no accessibility violations (Landing Page)', async () => {
     const { container } = render(
-      <LandingPage currentUser={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
+      <LandingPage session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
     );
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
-});
 
-describe('Admin Dashboard', () => {
-  it('Should have no accessibility violations', async () => {
-    const { container } = render(
-      <AdminDashboard currentUser={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
-    );
-    const results = await axe(container);
-    expect(results).toHaveNoViolations();
-  });
-});
+  // it('Should have no accessibility violations (Admin Dashboard)', async () => {
+  //   const { container } = render(
+  //     <AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
+  //   );
+  //   const results = await axe(container);
+  //   expect(results).toHaveNoViolations();
+  // });
 
-describe('Error Page', () => {
-  it('Should have no accessibility violations', async () => {
+  it('Should have no accessibility violations (Error Page)', async () => {
     const { container } = render(<ApplicationError />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
-});
 
-// describe('MyDashboard Page', () => {
-//   it('Should have no accessibility violations', async () => {
-//     const { container } = render(
-//       <MyDashboard currentUser={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
-//     );
-//     const results = await axe(container);
-//     expect(results).toHaveNoViolations();
-//   });
-// });
-
-describe('Terms and Conditions', () => {
-  it('Should have no accessibility violations', async () => {
-    const { container } = render(
-      <TermsAndConditions currentUser={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
-    );
+  it('Should have no accessibility violations (Terms and Conditions)', async () => {
+    const { container } = render(<TermsAndConditions />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
-});
 
-describe('Request Page', () => {
-  it('Should have no accessibility violations', async () => {
-    const { container } = render(<RequestPage currentUser={sampleSession} />);
+  it('Should have no accessibility violations (Request Page)', async () => {
+    const { container } = render(<RequestPage session={sampleSession} />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
-});
 
-describe('Form Template', () => {
-  it('Should have no accessibility violations with the form open', async () => {
+  it('Should have no accessibility violations with the form open (Form Template)', async () => {
     const { container } = render(<FormTemplate currentUser={sampleSession} request={{ projectLead: true }} />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
