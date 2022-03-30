@@ -19,7 +19,11 @@ export const ActionButtonContainer = styled.div`
   }
 `;
 
-export const ActionButton = styled(FontAwesomeIcon)<{ disabled?: boolean; activeColor?: string; isUnread?: boolean }>`
+export const ActionButton = styled(FontAwesomeIcon)<{
+  disabled?: boolean;
+  activeColor?: string;
+  isUnread?: boolean;
+}>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
   ${(props) =>
     props.disabled ? `color: #CACACA;` : `color: black; &:hover { color: ${props.activeColor || '#137ac8'}; }`}

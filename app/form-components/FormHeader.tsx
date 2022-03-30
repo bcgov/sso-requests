@@ -1,26 +1,23 @@
-import SHeader from 'components/SHeader';
+import styled from 'styled-components';
 import { padStart, isNil } from 'lodash';
+import { Schema } from '@app/schemas/index';
+
+const Header = styled.h1`
+  font-weight: lighter;
+  color: #003366;
+  margin: 0;
+`;
 
 interface Props {
-  formStage: number;
+  schema: Schema;
   requestId: number | undefined;
   editing: boolean;
 }
 
-export default function Formheader({ formStage, requestId, editing }: Props) {
+export default function Formheader({ schema, requestId, editing }: Props) {
   const paddedId = padStart(String(requestId), 8, '0');
-  const titles = [
-    `${isNil(requestId) ? '' : `Req ID: ${paddedId} - `}Enter requester information`,
-    `Req ID: ${paddedId} - Choose providers and provide URIs`,
-    `Req ID: ${paddedId} - Terms and Conditions`,
-    `Req ID: ${paddedId} - Review and Submit`,
-  ];
-
   const prefix = editing ? 'Editing ' : '';
+  const header = `${isNil(requestId) ? '' : `Req ID: ${paddedId} - `}${schema.headerText}`;
 
-  return (
-    <>
-      <SHeader>{prefix + titles[formStage]}</SHeader>
-    </>
-  );
+  return <Header>{prefix + header}</Header>;
 }

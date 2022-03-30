@@ -1,6 +1,6 @@
 import React from 'react';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
-import TermsAndConditions from 'components/TermsAndConditions';
+import TermsAndConditions from 'page-partials/terms-conditions/Content';
 
 export default function TermsConditionsPage() {
   return (

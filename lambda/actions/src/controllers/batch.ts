@@ -13,7 +13,6 @@ const createEvent = async (data) => {
 };
 
 export const handlePRstage = async (data) => {
-  console.log('handlePRstage', data);
   const { id, actionNumber, prNumber, success, changes, isEmpty, isAllowedToMerge, repoOwner, repoName } = data;
   if (isEmpty) {
     await models.request.update({ prNumber, status: 'applied', actionNumber }, { where: { id } });
@@ -47,9 +46,11 @@ export const handlePRstage = async (data) => {
   return true;
 };
 
-export const getPlannedIds = async () => {
+export const getPlannedIds = async (serviceType: string) => {
+  serviceType = serviceType === 'gold' ? 'gold' : 'silver';
+
   const integrations = await models.request.findAll({
-    where: { status: { [Op.in]: ['planned', 'applyFailed'] } },
+    where: { status: { [Op.in]: ['planned', 'applyFailed'] }, serviceType },
     attributes: ['id'],
     raw: true,
   });
@@ -58,7 +59,6 @@ export const getPlannedIds = async () => {
 };
 
 export const updatePlannedItems = async (data) => {
-  console.log('updatePlannedItems', data);
   let { ids, success } = data;
   success = String(success) === 'true';
 

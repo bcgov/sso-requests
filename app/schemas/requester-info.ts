@@ -1,4 +1,4 @@
-import { JSONSchema6 } from 'json-schema';
+import { Schema } from './index';
 
 const projectLead = {
   type: 'boolean',
@@ -10,8 +10,6 @@ const projectLead = {
 </p>`,
 };
 
-const projectName = { type: 'string', title: 'Project Name', maxLength: 50 };
-
 export default function getSchema(teams: any[] = []) {
   const teamNames = teams.map((team) => team.name);
   const teamValues = teams.map((team) => String(team.id));
@@ -19,8 +17,11 @@ export default function getSchema(teams: any[] = []) {
 
   return {
     type: 'object',
+    customValidation: ['createTeam'],
+    headerText: 'Enter requester information',
+    stepText: 'Requester Info',
     properties: {
-      projectName,
+      projectName: { type: 'string', title: 'Project Name', maxLength: 50 },
       usesTeam: {
         type: 'boolean',
         title: 'Project Team',
@@ -72,5 +73,5 @@ export default function getSchema(teams: any[] = []) {
         ],
       },
     },
-  } as JSONSchema6;
+  } as Schema;
 }

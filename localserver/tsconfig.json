@@ -7,7 +7,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "outDir": "dist",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
       "*": ["../*"],
       "@app/*": ["../app/*"],

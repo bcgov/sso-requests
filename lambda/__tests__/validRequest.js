@@ -7,9 +7,7 @@ const validRequest = {
   prodValidRedirectUris: ['https://a'],
   agreeWithTerms: true,
   publicAccess: true,
-  dev: true,
-  test: true,
-  prod: true,
+  environments: ['dev', 'test', 'prod'],
   usesTeam: false,
 };
 

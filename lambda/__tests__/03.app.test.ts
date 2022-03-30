@@ -3,9 +3,8 @@ import { handler } from '../app/src/main';
 import baseEvent from './base-event.json';
 import { authenticate } from '../app/src/authenticate';
 import { models } from '../shared/sequelize/models/models';
-import { validRequest, bceidRequest } from './validRequest.js';
+import { validRequest, bceidRequest } from './validRequest';
 import { sendEmail } from '../shared/utils/ches';
-import { dispatchRequestWorkflow } from '../app/src/github';
 import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, AuthMock } from './00.db.test';
 
 const { path: baseUrl } = baseEvent;
@@ -191,87 +190,5 @@ describe('Updating', () => {
     const response = await handler(event);
     expect(response.statusCode).toEqual(200);
     expect(sendEmail).toHaveBeenCalledTimes(1);
-  });
-
-  it('should create all requested environments for idir only requests', async () => {
-    const event: APIGatewayProxyEvent = {
-      ...baseEvent,
-      path: `${baseUrl}/requests`,
-      httpMethod: 'PUT',
-      body: JSON.stringify({ id: testProjectId, ...validRequest }),
-      queryStringParameters: { submit: 'true' },
-    };
-
-    const response = await handler(event);
-    const request = JSON.parse(response.body);
-    expect(response.statusCode).toEqual(200);
-    expect(sendEmail).toHaveBeenCalledTimes(1);
-    expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
-      requestId: request.id,
-      clientName: request.clientName,
-      realmName: request.realm,
-      validRedirectUris: {
-        dev: request.devValidRedirectUris,
-        test: request.testValidRedirectUris,
-        prod: request.prodValidRedirectUris,
-      },
-      environments: request.environments,
-      publicAccess: request.publicAccess,
-      browserFlowOverride: null,
-    });
-  });
-
-  it('should not create bceid prod if it is not approved', async () => {
-    const event: APIGatewayProxyEvent = {
-      ...baseEvent,
-      path: `${baseUrl}/requests`,
-      httpMethod: 'PUT',
-      body: JSON.stringify({ id: testProjectId, ...bceidRequest }),
-      queryStringParameters: { submit: 'true' },
-    };
-
-    const response = await handler(event);
-    const request = JSON.parse(response.body);
-    expect(response.statusCode).toEqual(200);
-    expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
-      requestId: request.id,
-      clientName: request.clientName,
-      realmName: request.realm,
-      validRedirectUris: {
-        dev: request.devValidRedirectUris,
-        test: request.testValidRedirectUris,
-        prod: request.prodValidRedirectUris,
-      },
-      environments: ['dev', 'test'],
-      publicAccess: request.publicAccess,
-      browserFlowOverride: null,
-    });
-  });
-
-  it('should include browser flow override in dispatch', async () => {
-    const event: APIGatewayProxyEvent = {
-      ...baseEvent,
-      path: `${baseUrl}/requests`,
-      httpMethod: 'PUT',
-      body: JSON.stringify({ id: testProjectId, ...validRequest, browserFlowOverride: 'asdf' }),
-      queryStringParameters: { submit: 'true' },
-    };
-
-    const response = await handler(event);
-    const request = JSON.parse(response.body);
-    expect(response.statusCode).toEqual(200);
-    expect(dispatchRequestWorkflow).toHaveBeenCalledWith({
-      requestId: request.id,
-      clientName: request.clientName,
-      realmName: request.realm,
-      validRedirectUris: {
-        dev: request.devValidRedirectUris,
-        test: request.testValidRedirectUris,
-        prod: request.prodValidRedirectUris,
-      },
-      environments: ['dev', 'test', 'prod'],
-      publicAccess: request.publicAccess,
-      browserFlowOverride: 'asdf',
-    });
   });
 });

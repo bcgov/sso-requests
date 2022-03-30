@@ -2,7 +2,7 @@ import { validateRequest, errorMessage } from '../utils/helpers';
 import { formDataUpdated, formDataOriginal, formDataWithMutatedNonFormFields } from './fixtures';
 
 it('should respond valid if there are valid changes', () => {
-  expect(validateRequest(formDataOriginal, formDataUpdated, true, [])).toBe(true);
+  expect(validateRequest(formDataOriginal, formDataUpdated, true, [])).toStrictEqual({});
 });
 
 it('should respond invalid if there are no changes', () => {

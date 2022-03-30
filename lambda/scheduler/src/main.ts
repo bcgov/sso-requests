@@ -5,12 +5,18 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   try {
     const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
-    const data = await octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
-      owner: process.env.GH_OWNER,
-      repo: process.env.GH_REPO,
-      workflow_id: process.env.GH_WORKFLOW_ID,
-      ref: process.env.GH_BRANCH,
-    });
+    const triggerDispatch = (workflow_id) =>
+      octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
+        owner: process.env.GH_OWNER,
+        repo: process.env.GH_REPO,
+        workflow_id,
+        ref: process.env.GH_BRANCH,
+      });
+
+    const data = await Promise.all([
+      triggerDispatch(process.env.GH_WORKFLOW_ID),
+      triggerDispatch(process.env.GH_WORKFLOW_V2_ID),
+    ]);
 
     const response = {
       statusCode: 200,

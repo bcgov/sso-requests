@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { kebabCase, assign, isNil } from 'lodash';
+import { kebabCase, assign, isEmpty } from 'lodash';
 import {
   validateRequest,
   processRequest,
@@ -101,6 +101,7 @@ export const createRequest = async (session: Session, data: Data) => {
     teamId,
     userId: session.user?.id,
     serviceType,
+    environments: ['dev'],
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
@@ -137,35 +138,21 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
     let finalData = getCurrentValue();
 
     if (submit) {
-      const isValid = validateRequest(mergedData, originalData, isMerged, allowedTeams);
-      if (isValid !== true) throw Error(JSON.stringify({ ...isValid, prepared: mergedData }));
+      const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);
+      if (!isEmpty(validationErrors)) throw Error(JSON.stringify({ errors: validationErrors, prepared: mergedData }));
+
       current.clientName = `${kebabCase(current.projectName)}-${id}`;
       current.status = 'submitted';
-      let { environments, realm } = current;
+      let environments = current.environments.concat();
 
-      const hasBceid = usesBceid(realm);
+      const hasBceid = usesBceid(current);
       const hadBceidProd = hasBceid && originalData.environments.includes('prod');
       const hasBceidProd = hasBceid && environments.includes('prod');
 
       if (!current.bceidApproved && hasBceid)
         environments = environments.filter((environment) => environment !== 'prod');
 
-      // trigger GitHub workflow before updating the record
-      const payload = {
-        requestId: current.id,
-        clientName: current.clientName,
-        realmName: current.realm,
-        validRedirectUris: {
-          dev: current.devValidRedirectUris,
-          test: current.testValidRedirectUris,
-          prod: current.prodValidRedirectUris,
-        },
-        environments,
-        publicAccess: current.publicAccess,
-        browserFlowOverride: current.browserFlowOverride,
-      };
-
-      const ghResult = await dispatchRequestWorkflow(payload);
+      const ghResult = await dispatchRequestWorkflow(current);
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
@@ -344,22 +331,8 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     current.archived = true;
 
     if (isMerged) {
-      const payload = {
-        requestId: current.id,
-        clientName: current.clientName,
-        realmName: current.realm,
-        validRedirectUris: {
-          dev: current.devValidRedirectUris,
-          test: current.testValidRedirectUris,
-          prod: current.prodValidRedirectUris,
-        },
-        environments: [],
-        publicAccess: current.publicAccess,
-        browserFlowOverride: current.browserFlowOverride,
-      };
-
       // Trigger workflow with empty environments to delete client
-      const ghResult = await dispatchRequestWorkflow(payload);
+      const ghResult = await dispatchRequestWorkflow(current);
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
@@ -369,7 +342,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     await closeOpenPullRequests(id);
 
     const result = await current.save();
-    const hasBceid = usesBceid(current.realm);
+    const hasBceid = usesBceid(current);
 
     let emailCode: string;
     let emailData: any;

@@ -59,7 +59,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
       content,
     });
     window.location.hash = '#';
-    console.log(result, err);
+    console.error(result, err);
   };
 
   const modalContents = (

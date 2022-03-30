@@ -58,9 +58,9 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/batch/items`, async (req, res) => {
+  app.get(`${BASE_PATH}/batch/items/:type`, async (req: any, res) => {
     try {
-      const result = await getPlannedIds();
+      const result = await getPlannedIds(req.params.type);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
