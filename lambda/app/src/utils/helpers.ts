@@ -58,7 +58,7 @@ export const processRequest = (data: any, isMerged: boolean) => {
   data = omit(data, immutableFields);
   data = sortURIFields(data);
   data.testIdps = data.testIdps || [];
-  data.testIdps = data.prodIdps || [];
+  data.prodIdps = data.prodIdps || [];
 
   return data;
 };
