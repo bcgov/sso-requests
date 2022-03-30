@@ -1,4 +1,4 @@
-import { getAdminClient } from './adminClient';
+import { getAdminClient, getClient } from './adminClient';
 
 export const fetchClient = async (data: {
   serviceType: string;
@@ -9,8 +9,6 @@ export const fetchClient = async (data: {
   const { serviceType, environment, realmName, clientId } = data;
 
   const { kcAdminClient } = await getAdminClient({ serviceType, environment });
-
-  const realm = await kcAdminClient.realms.findOne({ realm: realmName });
-  const clients = await kcAdminClient.clients.find({ realm: realm.realm });
-  return clients.find((client) => client.clientId === clientId);
+  const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });
+  return client;
 };

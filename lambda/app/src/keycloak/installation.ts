@@ -1,4 +1,4 @@
-import { getAdminClient } from './adminClient';
+import { getAdminClient, getClient } from './adminClient';
 
 export const updateClientSecret = async (data: {
   serviceType: string;
@@ -10,9 +10,8 @@ export const updateClientSecret = async (data: {
   const { kcAdminClient } = await getAdminClient({ serviceType, environment });
 
   kcAdminClient.setConfig({ realmName });
-  const clients = await kcAdminClient.clients.find({ realm: realmName });
-  const { id } = clients.find((client) => client.clientId === clientId);
-  await kcAdminClient.clients.generateNewClientSecret({ id });
+  const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });
+  if (client) await kcAdminClient.clients.generateNewClientSecret({ id: client.id });
 };
 
 export const generateInstallation = async (data: {
@@ -24,10 +23,7 @@ export const generateInstallation = async (data: {
   console.log(data);
   const { serviceType, environment, realmName, clientId } = data;
   const { kcAdminClient, authServerUrl } = await getAdminClient({ serviceType, environment });
-
-  const realm = await kcAdminClient.realms.findOne({ realm: realmName });
-  const clients = await kcAdminClient.clients.find({ realm: realm.realm });
-  const client = clients.find((kcClient) => kcClient.clientId === clientId);
+  const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });
 
   console.log(client);
 
