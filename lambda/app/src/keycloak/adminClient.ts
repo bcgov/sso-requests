@@ -1,26 +1,44 @@
 import KcAdminClient from 'keycloak-admin';
 
-export const getAdminClient = async (data: { environment: string }) => {
+export const getAdminClient = async (data: { serviceType: string; environment: string }) => {
   const { environment } = data;
 
   let keycloakUrl;
   let keycloakClientId;
   let keycloakClientSecret;
 
-  if (environment === 'dev') {
-    keycloakUrl = process.env.KEYCLOAK_DEV_URL;
-    keycloakClientId = process.env.KEYCLOAK_DEV_CLIENT_ID || 'terraform-cli';
-    keycloakClientSecret = process.env.KEYCLOAK_DEV_CLIENT_SECRET;
-  } else if (environment === 'test') {
-    keycloakUrl = process.env.KEYCLOAK_TEST_URL;
-    keycloakClientId = process.env.KEYCLOAK_TEST_CLIENT_ID || 'terraform-cli';
-    keycloakClientSecret = process.env.KEYCLOAK_TEST_CLIENT_SECRET;
-  } else if (environment === 'prod') {
-    keycloakUrl = process.env.KEYCLOAK_PROD_URL;
-    keycloakClientId = process.env.KEYCLOAK_PROD_CLIENT_ID || 'terraform-cli';
-    keycloakClientSecret = process.env.KEYCLOAK_PROD_CLIENT_SECRET;
+  if (data.serviceType === 'gold') {
+    if (environment === 'dev') {
+      keycloakUrl = process.env.KEYCLOAK_V2_DEV_URL;
+      keycloakClientId = process.env.KEYCLOAK_V2_DEV_CLIENT_ID || 'terraform-cli';
+      keycloakClientSecret = process.env.KEYCLOAK_V2_DEV_CLIENT_SECRET;
+    } else if (environment === 'test') {
+      keycloakUrl = process.env.KEYCLOAK_V2_TEST_URL;
+      keycloakClientId = process.env.KEYCLOAK_V2_TEST_CLIENT_ID || 'terraform-cli';
+      keycloakClientSecret = process.env.KEYCLOAK_V2_TEST_CLIENT_SECRET;
+    } else if (environment === 'prod') {
+      keycloakUrl = process.env.KEYCLOAK_V2_PROD_URL;
+      keycloakClientId = process.env.KEYCLOAK_V2_PROD_CLIENT_ID || 'terraform-cli';
+      keycloakClientSecret = process.env.KEYCLOAK_V2_PROD_CLIENT_SECRET;
+    } else {
+      throw Error('invalid environment');
+    }
   } else {
-    throw Error('invalid environment');
+    if (environment === 'dev') {
+      keycloakUrl = process.env.KEYCLOAK_DEV_URL;
+      keycloakClientId = process.env.KEYCLOAK_DEV_CLIENT_ID || 'terraform-cli';
+      keycloakClientSecret = process.env.KEYCLOAK_DEV_CLIENT_SECRET;
+    } else if (environment === 'test') {
+      keycloakUrl = process.env.KEYCLOAK_TEST_URL;
+      keycloakClientId = process.env.KEYCLOAK_TEST_CLIENT_ID || 'terraform-cli';
+      keycloakClientSecret = process.env.KEYCLOAK_TEST_CLIENT_SECRET;
+    } else if (environment === 'prod') {
+      keycloakUrl = process.env.KEYCLOAK_PROD_URL;
+      keycloakClientId = process.env.KEYCLOAK_PROD_CLIENT_ID || 'terraform-cli';
+      keycloakClientSecret = process.env.KEYCLOAK_PROD_CLIENT_SECRET;
+    } else {
+      throw Error('invalid environment');
+    }
   }
 
   const authServerUrl = `${keycloakUrl}/auth`;

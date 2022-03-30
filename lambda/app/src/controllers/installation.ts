@@ -6,6 +6,7 @@ export const getInstallation = async (session: Session, data: { requestId: numbe
   const request = await getMyOrTeamRequest(session.user.id, data.requestId);
 
   const installation = await generateInstallation({
+    serviceType: request.serviceType,
     environment: data.environment,
     realmName: request.realm,
     clientId: request.clientName,
@@ -18,6 +19,7 @@ export const changeSecret = async (session: Session, data: { requestId: number; 
   const request = await getMyOrTeamRequest(session.user.id, data.requestId);
 
   await updateClientSecret({
+    serviceType: request.serviceType,
     environment: data.environment,
     realmName: request.realm,
     clientId: request.clientName,
