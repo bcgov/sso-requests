@@ -151,6 +151,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     try {
       if (isNew) {
         formData.serviceType = enable_gold ? 'gold' : 'silver';
+        if (enable_gold) formData.realm = 'standard';
         formData.environments = ['dev'];
         const [data, err] = await createRequest(formData);
         const { id } = data || {};

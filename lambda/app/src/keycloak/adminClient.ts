@@ -55,3 +55,16 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
 
   return { kcAdminClient, authServerUrl };
 };
+
+export const getClient = async (
+  kcAdminClient: KcAdminClient,
+  { serviceType, realmName, clientId }: { serviceType: string; realmName: string; clientId: string },
+) => {
+  if (serviceType === 'gold') realmName = 'standard';
+
+  const realm = await kcAdminClient.realms.findOne({ realm: realmName });
+  const clients = await kcAdminClient.clients.find({ realm: realm.realm });
+  const client = clients.find((client) => client.clientId === clientId);
+
+  return { realm, client };
+};
