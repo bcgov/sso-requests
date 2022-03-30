@@ -189,7 +189,6 @@ describe('Error messages', () => {
   it('Should display the expected page 3 errors after navigating away from the page', async () => {
     setUpRouter('/', sandbox);
     setUpRender(samplePage3Request);
-    console.log('sandboxsandboxsandbox', sandbox);
 
     // Navigate away and back to page
     fireEvent.click(sandbox.thirdStageBox);

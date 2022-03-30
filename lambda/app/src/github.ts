@@ -30,6 +30,10 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     'prodIdps',
   ]);
 
+  // let's use dev's idps until having a env-specific idp selections
+  if (payload.environments.includes('test')) payload.testIdps = payload.devIdps;
+  if (payload.environments.includes('prod')) payload.prodIdps = payload.devIdps;
+
   console.log('requesting github request workflow', payload);
 
   // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
@@ -66,7 +70,7 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     repo: process.env.GH_REPO,
     workflow_id: process.env.GH_WORKFLOW_ID,
     ref: process.env.GH_BRANCH,
-    inputs: JSON.stringify(payload),
+    inputs: { integration: JSON.stringify(payload) },
   });
 };
 
