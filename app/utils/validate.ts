@@ -81,7 +81,7 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
     const { errors: err } = validate(
       formData,
       schema,
-      hasCustomValidation?.length > 0 ? createCustomValidate(schema.customValidation) : undefined,
+      hasCustomValidation ? createCustomValidate(schema.customValidation) : undefined,
     );
     if (err.length > 0) errors[i] = err;
   });
