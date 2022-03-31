@@ -222,11 +222,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const handleButtonSubmit = async () => {
-    if (formStage === 0) {
-      if (isNew) {
-        visited[formStage] = true;
-        setVisited(visited);
-      }
+    if (isNew && formStage === 0) {
+      visited[formStage] = true;
+      setVisited(visited);
     } else if (isLastStage) {
       openConfirmModal();
     } else {
@@ -299,7 +297,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       >
         {showFormButtons ? (
           <FormButtons
-            formSubmission={formStage === 0}
+            formSubmission={isNew && formStage === 0}
             backButton={backButton}
             text={buttonTexts}
             loading={loading}
