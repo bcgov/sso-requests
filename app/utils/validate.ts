@@ -77,12 +77,11 @@ export const validateForm = (formData: Request, schemas: any[], visited?: any) =
   const errors: any = {};
   schemas.forEach((schema, i) => {
     if (visited && !visited[i]) return;
-
     const hasCustomValidation = schema.customValidation && schema?.customValidation.length > 0;
     const { errors: err } = validate(
       formData,
       schema,
-      hasCustomValidation ? createCustomValidate(schema.customValidation) : undefined,
+      hasCustomValidation?.length > 0 ? createCustomValidate(schema.customValidation) : undefined,
     );
     if (err.length > 0) errors[i] = err;
   });
