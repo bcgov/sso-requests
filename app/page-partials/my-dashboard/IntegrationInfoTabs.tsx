@@ -58,9 +58,9 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   const { panelTab } = state;
   if (!integration) return null;
 
-  const { status, bceidApproved } = integration;
+  const { status, environments = [], bceidApproved } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
-  const awaitingBceidProd = usesBceid(integration) && integration.prod && !bceidApproved;
+  const awaitingBceidProd = usesBceid(integration) && environments.includes('prod') && !bceidApproved;
   let panel = null;
 
   if (displayStatus === 'In Draft') {
