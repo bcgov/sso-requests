@@ -141,7 +141,13 @@ function MyApp({ Component, pageProps }: AppProps) {
           <html lang="en" />
           <title>Common Hosted Single Sign-on (CSS)</title>
         </Head>
-        <Component {...pageProps} session={session} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+        <Component
+          {...pageProps}
+          session={session}
+          enable_gold={enable_gold}
+          onLoginClick={handleLogin}
+          onLogoutClick={handleLogout}
+        />
       </Layout>
     </SessionContext.Provider>
   );

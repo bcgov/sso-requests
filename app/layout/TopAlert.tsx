@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useMemo } from 'react';
 import { isBoolean } from 'lodash';
+import { Alert } from '@bcgov-sso/common-react-components';
 import FadingAlert from 'html-components/FadingAlert';
 import TopAlertWrapper from 'components/TopAlertWrapper';
 import FloatingAlert from 'components/FloatingAlert';
@@ -37,19 +38,22 @@ export default function TopAlertProvider({ children }: Props) {
 
 export const TopAlert = ({ children }: Props) => {
   const { state } = useContext<any>(TopAlertContext);
-  const Alert = state.floating ? FloatingAlert : TopAlertWrapper;
+  const AlertWrapper = state.floating ? FloatingAlert : TopAlertWrapper;
+  const AlertComponent = state.fadeOut ? FadingAlert : Alert;
 
   return (
     <>
       {state.show && (
-        <Alert key={state.key}>
-          <FadingAlert
+        <AlertWrapper key={state.key}>
+          <AlertComponent
             variant={state.variant || 'success'}
             fadeOut={state.fadeOut || 10000}
             closable={isBoolean(state.closable) ? state.closable : true}
             content={state.content || ``}
-          />
-        </Alert>
+          >
+            {state.children}
+          </AlertComponent>
+        </AlertWrapper>
       )}
       {children}
     </>

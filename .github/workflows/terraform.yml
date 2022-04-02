@@ -36,9 +36,9 @@ jobs:
           SUBNET_A=App_Dev_aza_net
           SUBNET_B=App_Dev_azb_net
           GITHUB_REPO=sso-terraform-dev
-          KEYCLOAK_DEV_URL=https://sso-keycloak-3d5c3f-dev.apps.silver.devops.gov.bc.ca
-          KEYCLOAK_TEST_URL=https://sso-keycloak-3d5c3f-test.apps.silver.devops.gov.bc.ca
-          KEYCLOAK_PROD_URL=https://sso-keycloak-3d5c3f-prod.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_DEV_URL=https://sso-keycloak-1-b861c7-test.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_TEST_URL=https://sso-keycloak-2-b861c7-test.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_PROD_URL=https://sso-keycloak-3-b861c7-test.apps.silver.devops.gov.bc.ca
           KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}
           KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}
           KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}
