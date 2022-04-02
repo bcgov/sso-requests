@@ -40,6 +40,7 @@ function RequestEdit({ session, enable_gold, alert }: Props) {
                 <a
                   href="https://chat.developer.gov.bc.ca/channel/sso"
                   target="_blank"
+                  rel="noreferrer"
                   title="SSO Team"
                   className="strong"
                 >
