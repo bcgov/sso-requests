@@ -1,28 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/router';
+import styled from 'styled-components';
+import { isNil, throttle, padStart } from 'lodash';
 import FormHeader from 'form-components/FormHeader';
 import FormStage from 'form-components/FormStage';
 import Form from 'form-components/GovForm';
-import getUiSchema from 'schemas/ui';
 import FormButtons from 'form-components/FormButtons';
-import { Request } from 'interfaces/Request';
-import CenteredModal from 'components/CenteredModal';
-import { createRequest, updateRequest } from 'services/request';
+import FieldTemplate from 'form-components/FieldTemplate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
-import FormReview from 'form-components/FormReview';
-import TermsAndConditions from 'components/TermsAndConditions';
-import { useRouter } from 'next/router';
-import styled from 'styled-components';
-import { isNil, throttle } from 'lodash';
-import { validateForm, getFormStageInfo } from 'utils/helpers';
-import { stageTitlesUsingForms, stageTitlesReviewing, createTeamModalId } from 'utils/constants';
-import { customValidate } from 'utils/customValidate';
+import CenteredModal from 'components/CenteredModal';
+import { validateForm, customValidate } from 'utils/validate';
+import { parseError } from 'utils/helpers';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
+import { getUISchema } from 'schemas-ui';
+import { getSchemas } from 'schemas';
+import { Request } from 'interfaces/Request';
 import { SaveMessage } from 'interfaces/form';
 import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
-import CreateTeamForm from 'form-components/team-form/CreateTeamForm';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
+import { createRequest, updateRequest } from 'services/request';
+import getConfig from 'next/config';
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { enable_gold } = publicRuntimeConfig;
 
 const Description = styled.p`
   margin: 0;
@@ -35,11 +36,6 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
-const ErrorText = styled.p`
-  color: #d94532;
-  font-weight: bold;
-`;
-
 interface Props {
   currentUser: LoggedInUser;
   request?: Request | undefined;
@@ -50,7 +46,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const router = useRouter();
   const { step } = router.query;
   const stage = step ? Number(step) : 0;
-
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(stage);
   const [loading, setLoading] = useState(false);
@@ -59,13 +54,14 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
-  const [showAccountableError, setShowAccountableError] = useState(false);
+  const [schemas, setSchemas] = useState<any[]>([]);
   const isNew = isNil(request?.id);
-  const isApplied: boolean = request?.status === 'applied';
-  const isAdmin: boolean = currentUser.isAdmin || false;
+  const isApplied = request?.status === 'applied';
+  const isAdmin = currentUser.isAdmin || false;
 
-  const { stages, stageTitle, schema, schemas } = getFormStageInfo({ isApplied, formStage, teams });
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
+  const isLastStage = formStage === schemas.length - 1;
+  const schema = schemas[formStage] || {};
 
   const throttleUpdate = useCallback(
     throttle(
@@ -94,9 +90,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     }
     if (showModal) {
       window.location.hash = 'info-modal';
-      setShowAccountableError(true);
-    } else {
-      setShowAccountableError(false);
     }
 
     throttleUpdate(e);
@@ -113,17 +106,29 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     }
   };
 
+  const updateInfo = () => {
+    const schemas = getSchemas({
+      integration: request,
+      formData,
+      teams,
+    });
+
+    setSchemas(schemas);
+  };
+
   useEffect(() => {
     loadTeams();
   }, []);
 
+  useEffect(() => {
+    updateInfo();
+  }, [formData, formStage, teams]);
+
   const changeStep = (newStage: number) => {
     visited[formStage] = true;
 
-    if (newStage === 3) {
-      visited['0'] = true;
-      visited['1'] = true;
-      visited['2'] = true;
+    if (newStage === schemas.length - 1) {
+      for (let x = 0; x < schemas.length; x++) visited[x] = true;
     }
 
     const formErrors = validateForm(formData, schemas, visited);
@@ -138,13 +143,16 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUiSchema(request as Request);
+  const uiSchema = getUISchema({ integration: request as Request, isAdmin });
 
   const handleFormSubmit = async () => {
     setLoading(true);
 
     try {
       if (isNew) {
+        formData.serviceType = enable_gold ? 'gold' : 'silver';
+        if (enable_gold) formData.realm = 'standard';
+        formData.environments = ['dev'];
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
 
@@ -184,42 +192,88 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     setLoading(false);
   };
 
-  const handleButtonSubmit = async () => {
-    if (formStage === 0) {
-      if (isNew) {
-        visited[formStage] = true;
-        setVisited(visited);
-        return;
+  const handleSubmit = async () => {
+    try {
+      const [, err] = await updateRequest(formData, true);
+
+      if (err) {
+        alert.show({
+          variant: 'danger',
+          fadeOut: 10000,
+          closable: true,
+          content: parseError(err).message,
+        });
+      } else {
+        alert.show({
+          variant: 'success',
+          fadeOut: 10000,
+          closable: true,
+          content: `Request ID:${padStart(String(formData.id), 8, '0')} is successfully submitted!`,
+        });
+
+        router.push({
+          pathname: isAdmin ? '/admin-dashboard' : '/my-dashboard',
+          query: { id: formData.id },
+        });
       }
+    } catch (err) {
+      console.error(err);
     }
-
-    const newStage = formStage + 1;
-    changeStep(newStage);
   };
 
-  const handleTeamCreate = async (teamId: number) => {
-    await loadTeams();
-    setFormData({ ...formData, usesTeam: true, teamId: String(teamId) });
+  const handleButtonSubmit = async () => {
+    if (isNew && formStage === 0) {
+      visited[formStage] = true;
+      setVisited(visited);
+    } else if (isLastStage) {
+      openConfirmModal();
+    } else {
+      const newStage = formStage + 1;
+      changeStep(newStage);
+    }
   };
 
-  const handleModalClose = () => {
-    window.location.hash = '#';
+  const openConfirmModal = () => {
+    const formErrors = validateForm(formData, schemas);
+    if (Object.keys(formErrors).length > 0) {
+      alert.show({
+        variant: 'danger',
+        fadeOut: 10000,
+        closable: true,
+        content:
+          'There were errors with your submission. Please see the navigation tabs above for the form pages with errors.',
+      });
+
+      setErrors(formErrors);
+    } else {
+      window.location.hash = 'confirmation-modal';
+    }
   };
 
   const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
-  const backButtonText = isApplied ? 'Cancel' : 'Save and Close';
+  const buttonTexts = { continue: '', back: '' };
+
+  if (isLastStage) {
+    buttonTexts.continue = isApplied ? 'Update' : 'Submit';
+    buttonTexts.back = isApplied ? 'Cancel' : 'Save and Close';
+  } else {
+    buttonTexts.continue = 'Next';
+    buttonTexts.back = isApplied ? 'Cancel' : 'Save and Close';
+  }
+
+  if (schemas.length === 0) return null;
 
   return (
     <>
       <HeaderContainer>
-        <FormHeader formStage={formStage} requestId={formData.id} editing={isApplied} />
+        <FormHeader schema={schema} requestId={formData.id} editing={isApplied} />
         <FormStage
           currentStage={formStage}
           setFormStage={changeStep}
           errors={errors}
           isNew={isNew}
           visited={visited}
-          stages={stages}
+          schemas={schemas}
         />
         <Description>
           If new to SSO, please visit{' '}
@@ -229,85 +283,52 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           for more information.
         </Description>
       </HeaderContainer>
-      {stageTitle === 'Terms and conditions' && <TermsAndConditions />}
-      {stageTitlesReviewing.includes(stageTitle) && (
-        <FormReview
-          formData={formData}
-          setErrors={setErrors}
-          errors={errors}
-          visited={visited}
-          saving={saving}
-          saveMessage={saveMessage}
-          isAdmin={isAdmin}
-          setFormData={setFormData}
-          teams={teams}
-        />
-      )}
-      {stageTitlesUsingForms.includes(stageTitle) && (
-        <Form
-          schema={schema}
-          uiSchema={uiSchema}
-          onChange={handleChange}
-          onSubmit={handleFormSubmit}
-          formData={formData}
-          ArrayFieldTemplate={ArrayFieldTemplate}
-          liveValidate={visited[formStage] || isApplied}
-          validate={customValidate}
-        >
-          {showFormButtons ? (
-            <FormButtons
-              formSubmission={formStage === 0}
-              backButton={backButton}
-              text={{ continue: 'Next', back: backButtonText }}
-              loading={loading}
-              handleSubmit={handleButtonSubmit}
-              handleBackClick={handleBackClick}
-              saving={saving}
-              saveMessage={saveMessage}
-            />
-          ) : (
-            <></>
-          )}
-        </Form>
-      )}
-      {stageTitle === 'Requester Info' && (
-        <>
-          <CenteredModal
-            id="info-modal"
-            content={
-              <>
-                <p>If you are not accountable for this project, please refer this request to someone who is.</p>
-                <p> Only the person who is responsible for this project can submit the intergration request.</p>
-              </>
-            }
-            icon={false}
-            onConfirm={handleModalClose}
-            confirmText="Close"
-            showCancel={false}
-            title="Project Accountability"
-            buttonStyle="custom"
-            buttonAlign="center"
-            closable
+      <Form
+        schema={schema}
+        uiSchema={uiSchema}
+        onChange={handleChange}
+        onSubmit={handleFormSubmit}
+        formData={formData}
+        formContext={{ isAdmin, teams, formData, setFormData, loadTeams }}
+        FieldTemplate={FieldTemplate}
+        ArrayFieldTemplate={ArrayFieldTemplate}
+        liveValidate={visited[formStage] || isApplied}
+        validate={customValidate}
+      >
+        {showFormButtons ? (
+          <FormButtons
+            formSubmission={isNew && formStage === 0}
+            backButton={backButton}
+            text={buttonTexts}
+            loading={loading}
+            handleSubmit={handleButtonSubmit}
+            handleBackClick={handleBackClick}
+            saving={saving}
+            saveMessage={saveMessage}
           />
-          <CenteredModal
-            title="Create a new team"
-            icon={null}
-            id={createTeamModalId}
-            content={
-              <CreateTeamForm onSubmit={(teamId: number) => handleTeamCreate(teamId)} currentUser={currentUser} />
-            }
-            showCancel={false}
-            showConfirm={false}
-            closable
-          />
-          {showAccountableError && (
-            <ErrorText>
-              If you are not accountable for this request, please refer this request to someone who is. Only the
-              responsible person can submit the integration request.
-            </ErrorText>
-          )}
-        </>
-      )}
+        ) : (
+          <></>
+        )}
+      </Form>
+      <CenteredModal
+        id={`confirmation-modal`}
+        content={
+          <>
+            <p>Are you sure you're ready to submit your request?</p>
+            {!isAdmin && (
+              <p>
+                If you need to change anything after submitting your request, please contact our{' '}
+                <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
+                  #SSO channel
+                </Link>{' '}
+                or email <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>
+              </p>
+            )}
+          </>
+        }
+        title="Submitting Request"
+        onConfirm={handleSubmit}
+      />
     </>
   );
 }

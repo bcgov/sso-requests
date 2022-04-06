@@ -9,9 +9,6 @@ const data: any = {
   devValidRedirectUris: ['https://a', 'https://c', 'https://b'],
   testValidRedirectUris: ['https://a', 'https://c', 'https://b'],
   prodValidRedirectUris: ['https://a', 'https://c', 'https://b'],
-  dev: true,
-  test: true,
-  prod: false,
   prNumber: 15,
   actionNumber: 15,
   createdAt: 'test2',
@@ -27,14 +24,6 @@ it('should order the URIs', () => {
   expect(processedData.devValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
   expect(processedData.testValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
   expect(processedData.prodValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
-});
-
-it('should process the environments', () => {
-  const processedData = processRequest(data, false);
-  expect(processedData.environments).toEqual(['dev', 'test']);
-
-  const allEnvs = { ...data, prod: true };
-  expect(processRequest(allEnvs, false).environments).toEqual(['dev', 'test', 'prod']);
 });
 
 it('should omit the realm for merged requests', () => {

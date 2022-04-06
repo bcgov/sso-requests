@@ -1,4 +1,5 @@
 import Form from '@rjsf/core';
+import { FormProps } from 'react-jsonschema-form';
 import Input from '@button-inc/bcgov-theme/Input';
 import Textarea from '@button-inc/bcgov-theme/Textarea';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
@@ -13,8 +14,14 @@ const customWidgets = {
   SelectWidget: wrapper(Dropdown, 'select'),
 };
 
-export default function GovForm(props: any) {
+export default function GovForm(props: FormProps<any> & { children: React.ReactNode }) {
   return (
-    <Form {...props} widgets={customWidgets} noHtml5Validate ErrorList={() => null} transformErrors={transformErrors} />
+    <Form
+      {...(props as any)}
+      widgets={customWidgets}
+      noHtml5Validate
+      ErrorList={() => null}
+      transformErrors={transformErrors}
+    />
   );
 }

@@ -1,12 +1,9 @@
 import { isObject, omit, sortBy, compact } from 'lodash';
 import { Op } from 'sequelize';
 import { diff } from 'deep-diff';
-import validate from 'react-jsonschema-form/lib/validate';
 import { Request } from '@app/interfaces/Request';
-import providerSchema from '@app/schemas/shared/providers';
-import requesterSchema from '@app/schemas/shared/requester-info';
-import termsAndConditionsSchema from '@app/schemas/shared/terms-and-conditions';
-import { customValidate } from '@app/utils/customValidate';
+import { getSchemas } from '@app/schemas';
+import { validateForm } from '@app/utils/validate';
 import { Session, Data, User } from '@lambda-shared/interfaces';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
@@ -36,9 +33,14 @@ export const omitNonFormFields = (data: Request) =>
 export type BceidEvent = 'submission' | 'deletion' | 'update';
 const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
 
-export const usesBceid = (realm: string | undefined) => {
-  if (!realm) return false;
-  return bceidRealms.includes(realm);
+export const usesBceid = (integration: any) => {
+  if (!integration) return false;
+
+  if (integration.serviceType === 'gold') {
+    return integration.devIdps.some((idp) => idp.startsWith('bceid'));
+  } else {
+    return bceidRealms.includes(integration.realm);
+  }
 };
 
 const sortURIFields = (data: any) => {
@@ -55,17 +57,10 @@ export const processRequest = (data: any, isMerged: boolean) => {
   if (isMerged) immutableFields.push('realm');
   data = omit(data, immutableFields);
   data = sortURIFields(data);
-  data.environments = processEnvironments(data);
+  data.testIdps = data.testIdps || [];
+  data.prodIdps = data.prodIdps || [];
 
   return data;
-};
-
-const processEnvironments = (data: any) => {
-  const environments = [];
-  if (data.dev) environments.push('dev');
-  if (data.test) environments.push('test');
-  if (data.prod) environments.push('prod');
-  return environments;
 };
 
 export const getDifferences = (newData: any, originalData: Request) => {
@@ -80,30 +75,8 @@ export const validateRequest = (formData: any, original: Request, isUpdate = fal
     if (!differences) return { message: errorMessage };
   }
 
-  const { errors: firstPageErrors } = validate(formData, requesterSchema(teams));
-  const { errors: secondPageErrors } = validate(formData, providerSchema, customValidate);
-  const { errors: thirdPageErrors } = validate(formData, termsAndConditionsSchema);
-  const allValid = firstPageErrors.length === 0 && secondPageErrors.length === 0 && thirdPageErrors.length === 0;
-  if (allValid) return true;
-  return {
-    firstPageErrors,
-    secondPageErrors,
-    thirdPageErrors,
-  };
-};
-
-// GH actions inputs expects an object where all values are strings
-export const stringifyGithubInputs = (inputs: any) => {
-  const stringifiedInputs = {};
-  Object.entries(inputs).forEach(([key, value]) => {
-    if (isObject(value) || Array.isArray(value)) {
-      stringifiedInputs[key] = JSON.stringify(value);
-    } else {
-      stringifiedInputs[key] = String(value);
-    }
-  });
-
-  return stringifiedInputs;
+  const schemas = getSchemas({ formData, teams });
+  return validateForm(formData, schemas);
 };
 
 export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');

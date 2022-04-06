@@ -1,26 +1,40 @@
 // migrate GitHub lambda here and call GitHub API directly to avoid multiple invocations.
 // see https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html
 const { Octokit } = require('octokit');
-import { stringifyGithubInputs } from './utils/helpers';
+import { pick } from 'lodash';
+import { models } from '@lambda-shared/sequelize/models/models';
 
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
-interface ValidRedirectUris {
-  dev: string[];
-  test: string[];
-  prod: string[];
-}
-interface GitHubRequestDispatchInput {
-  requestId: number;
-  clientName: string;
-  realmName: string;
-  validRedirectUris: ValidRedirectUris;
-  environments: string[];
-  publicAccess: boolean;
-}
+export const dispatchRequestWorkflow = async (integration: any) => {
+  if (integration instanceof models.request) {
+    integration = integration.get({ plain: true, clone: true });
+  }
 
-export const dispatchRequestWorkflow = async (formData: GitHubRequestDispatchInput) => {
-  console.log('requesting github request workflow', stringifyGithubInputs(formData));
+  const payload = pick(integration, [
+    'id',
+    'projectName',
+    'clientName',
+    'realm',
+    'publicAccess',
+    'devValidRedirectUris',
+    'testValidRedirectUris',
+    'prodValidRedirectUris',
+    'environments',
+    'bceidApproved',
+    'archived',
+    'browserFlowOverride',
+    'serviceType',
+    'devIdps',
+    'testIdps',
+    'prodIdps',
+  ]);
+
+  // let's use dev's idps until having a env-specific idp selections
+  if (payload.environments.includes('test')) payload.testIdps = payload.devIdps;
+  if (payload.environments.includes('prod')) payload.prodIdps = payload.devIdps;
+
+  console.log('requesting github request workflow', payload);
 
   // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
   // sample successful response
@@ -56,7 +70,7 @@ export const dispatchRequestWorkflow = async (formData: GitHubRequestDispatchInp
     repo: process.env.GH_REPO,
     workflow_id: process.env.GH_WORKFLOW_ID,
     ref: process.env.GH_BRANCH,
-    inputs: stringifyGithubInputs(formData),
+    inputs: { integration: JSON.stringify(payload) },
   });
 };
 

@@ -1,5 +1,5 @@
 import { idpToRealm, getRequestedEnvironments, canDeleteMember } from 'utils/helpers';
-import { isValidKeycloakURI } from 'utils/customValidate';
+import { isValidKeycloakURI } from 'utils/validate';
 
 describe('idp to realm', () => {
   it('gives the correct realm for different orders', () => {
@@ -54,31 +54,28 @@ describe('Get Requested Environments', () => {
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth',
-        dev: true,
+        environments: ['dev'],
       }),
     ).toEqual(dev);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth',
-        test: true,
+        environments: ['test'],
       }),
     ).toEqual(test);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth',
-        test: true,
-        dev: true,
+        environments: ['dev', 'test'],
       }),
     ).toEqual(dev.concat(test));
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth',
-        test: true,
-        dev: true,
-        prod: true,
+        environments: ['dev', 'test', 'prod'],
       }),
     ).toEqual(dev.concat(test).concat(prod));
   });
@@ -87,31 +84,28 @@ describe('Get Requested Environments', () => {
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
-        dev: true,
+        environments: ['dev'],
       }),
     ).toEqual(dev);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
-        test: true,
+        environments: ['test'],
       }),
     ).toEqual(test);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
-        test: true,
-        dev: true,
+        environments: ['dev', 'test'],
       }),
     ).toEqual(dev.concat(test));
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
-        test: true,
-        dev: true,
-        prod: true,
+        environments: ['dev', 'test', 'prod'],
         bceidApproved: false,
       }),
     ).toEqual(dev.concat(test));
@@ -119,9 +113,7 @@ describe('Get Requested Environments', () => {
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
-        test: true,
-        dev: true,
-        prod: true,
+        environments: ['dev', 'test', 'prod'],
         bceidApproved: true,
       }),
     ).toEqual(dev.concat(test).concat(prod));

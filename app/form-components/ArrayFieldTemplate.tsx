@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrayFieldTemplateProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import { isFunction } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -46,9 +47,9 @@ const Title = styled.legend`
   margin: 0;
 `;
 
-export default function ArrayFieldTemplate(props: any) {
-  const { title, items } = props;
-  const { description, tooltipTitle, tooltipContent, deletableIndex = 1, hide = 250, addItemText } = props.schema;
+export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
+  const { title, items, schema } = props;
+  const { description, tooltipTitle, tooltipContent, deletableIndex = 1, hide = 250, addItemText } = schema as any;
   const delIndex = isFunction(deletableIndex) ? deletableIndex(items) : parseInt(deletableIndex);
 
   return (

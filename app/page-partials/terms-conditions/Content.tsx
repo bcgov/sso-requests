@@ -1,6 +1,7 @@
+import React from 'react';
 import styled from 'styled-components';
-import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
 import Link from '@button-inc/bcgov-theme/Link';
+import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
 
 const Title = styled.h2`
   text-transform: uppercase;
@@ -24,7 +25,7 @@ const Container = styled.div`
   margin-top: ${FORM_TOP_SPACING};
 `;
 
-function TermsAndConditions() {
+export default function FaqItems() {
   return (
     <Container>
       <Title>Requirements</Title>
@@ -93,5 +94,3 @@ function TermsAndConditions() {
     </Container>
   );
 }
-
-export default TermsAndConditions;

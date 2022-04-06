@@ -27,10 +27,10 @@ let sandbox: any = {};
 
 const setUpRender = (request: Request | object | null, currentUser = {}) => {
   const { debug } = render(<FormTemplate currentUser={currentUser} request={request} />);
-  sandbox.firstStageBox = screen.queryByText('Requester Info')?.closest('div') as HTMLElement;
-  sandbox.secondStageBox = screen.queryByText('Providers and URIs')?.closest('div') as HTMLElement;
-  sandbox.thirdStageBox = screen.queryByText('Terms and conditions')?.closest('div') as HTMLElement;
-  sandbox.fourthStageBox = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
+  sandbox.firstStageBox = screen.queryByTestId(`stage-1`)?.closest('div') as HTMLElement;
+  sandbox.secondStageBox = screen.queryByTestId(`stage-2`)?.closest('div') as HTMLElement;
+  sandbox.thirdStageBox = screen.queryByTestId(`stage-3`)?.closest('div') as HTMLElement;
+  sandbox.fourthStageBox = screen.queryByTestId(`stage-4`)?.closest('div') as HTMLElement;
   sandbox.adminReview = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
   return debug;
 };
@@ -45,9 +45,10 @@ export const sampleRequest: Request = {
   projectName: 'test project',
   projectLead: true,
   agreeWithTerms: true,
-  environments: ['dev', 'test', 'prod'],
+  environments: ['dev'],
   archived: false,
   usesTeam: false,
+  serviceType: 'silver',
 };
 
 const samplePage3Request = {

@@ -28,10 +28,12 @@ const TabWrapper = styled.div`
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
 
 const joinEnvs = (integration: Request) => {
+  if (!integration?.environments) return '';
+
   const envs = [];
-  if (integration.dev) envs.push('Dev');
-  if (integration.test) envs.push('Test');
-  if (integration.prod) envs.push('Prod');
+  if (integration.environments.includes('dev')) envs.push('Dev');
+  if (integration.environments.includes('test')) envs.push('Test');
+  if (integration.environments.includes('prod')) envs.push('Prod');
 
   let result = '';
   envs.forEach((env, index) => {
@@ -56,9 +58,9 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   const { panelTab } = state;
   if (!integration) return null;
 
-  const { status, bceidApproved } = integration;
+  const { status, environments = [], bceidApproved } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
-  const awaitingBceidProd = usesBceid(integration?.realm) && integration.prod && !bceidApproved;
+  const awaitingBceidProd = usesBceid(integration) && environments.includes('prod') && !bceidApproved;
   let panel = null;
 
   if (displayStatus === 'In Draft') {

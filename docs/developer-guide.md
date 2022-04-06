@@ -118,9 +118,6 @@ export const getTeamMembers = async (id?: number) => {
    - `form-components`: Components specific to the form flow should be included here`
    - `components`: Include other components here
 
-3. For resources shared between the frontend and backend (e.g shared interfaces or form schemas)
-   include them into a shared folder. e.g `app/schemas/shared` for shared form schemas.
-
 ### Backend
 
 1. Most error handling can be done at the route level with `try` and `catch`, see `lambda/app/src/routes.ts`.

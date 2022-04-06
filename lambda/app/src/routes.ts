@@ -230,14 +230,14 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/client`, async (req, res) => {
-    try {
-      const result = await getClient(req.session as Session, req.body);
-      res.status(200).json(result);
-    } catch (err) {
-      handleError(res, err);
-    }
-  });
+  // app.post(`${BASE_PATH}/client`, async (req, res) => {
+  //   try {
+  //     const result = await getClient(req.session as Session, req.body);
+  //     res.status(200).json(result);
+  //   } catch (err) {
+  //     handleError(res, err);
+  //   }
+  // });
 
   app.post(`${BASE_PATH}/events`, async (req, res) => {
     try {

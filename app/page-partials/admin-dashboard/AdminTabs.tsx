@@ -37,9 +37,9 @@ function AdminTabs({
   activeKey = defaultTabKey,
 }: Props) {
   if (!selectedRequest) return null;
-  const { realm, prod, status, bceidApproved } = selectedRequest;
-  const hasBceid = usesBceid(realm);
-  const hasBceidProd = hasBceid && prod;
+  const { environments = [], status, bceidApproved } = selectedRequest;
+  const hasBceid = usesBceid(selectedRequest);
+  const hasBceidProd = hasBceid && environments.includes('prod');
   const canApproveProduction = hasBceidProd && status === 'applied' && !bceidApproved;
   const awaitingProductionCompletion = hasBceidProd && status !== 'applied' && bceidApproved;
   const modalId = 'bceid-approval-modal';

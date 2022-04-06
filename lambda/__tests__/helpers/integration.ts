@@ -42,12 +42,14 @@ export class Integration {
 
     if (usesTeam) await this.createTeam();
 
+    const environments = ['dev', 'test'];
+    if (prod) environments.push('prod');
+
     const otherData = {
       realm: `onestopauth${bceid ? '-basic' : ''}`,
       publicAccess: false,
-      dev: true,
-      test: true,
-      prod,
+      environments,
+      serviceType: 'silver',
       devValidRedirectUris: ['https://a'],
       testValidRedirectUris: ['https://a'],
       prodValidRedirectUris: prod ? ['https://a'] : [],
