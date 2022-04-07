@@ -1,4 +1,4 @@
-import { redirectUriItems, redirectUriTooltipInfo } from './providers';
+import { redirectUriItems, redirectUriTooltip } from './providers';
 import { EnvironmentOption } from 'interfaces/form';
 
 export default function getSchema(envs: EnvironmentOption[]) {
@@ -14,7 +14,7 @@ export default function getSchema(envs: EnvironmentOption[]) {
         additionalItems: redirectUriItems,
         default: [''],
         addItemText: 'Add another URI',
-        ...redirectUriTooltipInfo,
+        tooltip: redirectUriTooltip,
       },
     },
   };
