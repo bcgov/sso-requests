@@ -60,6 +60,10 @@ export const processRequest = (data: any, isMerged: boolean) => {
   data.testIdps = data.testIdps || [];
   data.prodIdps = data.prodIdps || [];
 
+  data.devRoles = compact(data.devRoles || []);
+  data.testRoles = compact(data.testRoles || []);
+  data.prodRoles = compact(data.prodRoles || []);
+
   return data;
 };
 

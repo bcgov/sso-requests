@@ -29,6 +29,7 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2022.03.03T00.00.00.add-displayname-field-in-user-table'),
       await import('./migrations/2022.03.18T10.23.00.add-gold-fields-in-request-table'),
       await import('./migrations/2022.03.21T10.06.00.add-has_read_gold_notification-in-user-table'),
+      await import('./migrations/2022.04.06T16.00.00.add-roles-fields-in-request-table'),
       await import('./migrations/2222.03.02T15.30.09.populate-user-id-in-requests-table'),
     ],
     context: sequelize,
