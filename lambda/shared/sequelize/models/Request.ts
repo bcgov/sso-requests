@@ -143,6 +143,21 @@ const init = (sequelize, DataTypes) => {
         defaultValue: [],
         allowNull: false,
       },
+      devRoles: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+        allowNull: false,
+      },
+      testRoles: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+        allowNull: false,
+      },
+      prodRoles: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+        allowNull: false,
+      },
     },
     {
       underscored: true,

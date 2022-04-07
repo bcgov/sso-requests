@@ -28,6 +28,9 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     'devIdps',
     'testIdps',
     'prodIdps',
+    'devRoles',
+    'testRoles',
+    'prodRoles',
   ]);
 
   // let's use dev's idps until having a env-specific idp selections

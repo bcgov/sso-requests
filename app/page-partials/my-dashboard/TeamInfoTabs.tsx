@@ -340,8 +340,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     <th className="w120">
                       Role&nbsp;
                       <InfoOverlay
-                        tooltipTitle={''}
-                        tooltipContent={
+                        title={''}
+                        content={
                           'Admin: can manage integrations <span class="strong">and</span> teams. <br> Members: can <span class="strong">only</span> manage integrations.'
                         }
                         hide={200}
