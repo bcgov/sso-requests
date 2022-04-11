@@ -1,9 +1,11 @@
 import { isNil } from 'lodash';
 import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
+import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';
 import FieldTermsAndConditions from '@app/form-components/FieldTermsAndConditions';
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
+import FieldAccessTokenLifespan from '@app/form-components/FieldAccessTokenLifespan';
 import { Request } from '@app/interfaces/Request';
 
 interface Props {
@@ -11,12 +13,35 @@ interface Props {
   isAdmin: boolean;
 }
 
+const envs = ['dev', 'test', 'prod'];
+const tokenTypes = [
+  'AccessTokenLifespan',
+  'OfflineSessionIdleTimeout',
+  'OfflineSessionMaxLifespan',
+  'SessionIdleTimeout',
+  'SessionMaxLifespan',
+];
+
 const getUISchema = ({ integration, isAdmin }: Props) => {
   const isNew = isNil(integration?.id);
   const isApplied = integration?.status === 'applied';
 
   const envDisabled = isApplied ? integration?.environments?.concat() || [] : ['dev'];
   const includeComment = isApplied && isAdmin;
+
+  const tokenFields: any = {};
+  for (let x = 0; x < envs.length; x++) {
+    for (let y = 0; y < tokenTypes.length; y++) {
+      const def: any = {
+        'ui:widget': ClientTokenWidget,
+        'ui:label': false,
+        'ui:readonly': !isAdmin,
+      };
+
+      if (tokenTypes[y] === 'AccessTokenLifespan') def['ui:FieldTemplate'] = FieldAccessTokenLifespan;
+      tokenFields[`${envs[x]}${tokenTypes[y]}`] = def;
+    }
+  }
 
   return {
     projectName: {
@@ -68,6 +93,7 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
       'ui:widget': includeComment ? 'textarea' : 'hidden',
       'ui:label': false,
     },
+    ...tokenFields,
   };
 };
 

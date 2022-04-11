@@ -126,7 +126,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       throw Error('unauthorized request');
     }
 
-    const allowedData = processRequest(rest, isMerged);
+    const allowedData = processRequest(rest, isMerged, userIsAdmin);
     assign(current, allowedData);
     const mergedData = getCurrentValue();
 

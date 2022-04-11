@@ -21,6 +21,12 @@ export default function getSchemas(formData: Request) {
   return (formData.environments || []).map((env) => {
     const redirectUriField = `${env}ValidRedirectUris`;
     const roleField = `${env}Roles`;
+    const accessTokenLifespanField = `${env}AccessTokenLifespan`;
+    const sessionIdleTimeoutField = `${env}SessionIdleTimeout`;
+    const sessionMaxLifespanField = `${env}SessionMaxLifespan`;
+    const offlineSessionIdleTimeoutField = `${env}OfflineSessionIdleTimeout`;
+    const offlineSessionMaxLifespanField = `${env}OfflineSessionMaxLifespan`;
+
     let headerText = '';
     let stepText = '';
     if (env === 'prod') {
@@ -43,6 +49,41 @@ export default function getSchemas(formData: Request) {
       properties: {
         [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs' },
         [roleField]: roles,
+        [accessTokenLifespanField]: {
+          title: 'Access Token Lifespan',
+          type: 'number',
+          tooltipContent:
+            'Max time before an access token is expired. This value is recommended to be short relative to the SSO timeout.',
+          additionalClassNames: 'mt-1',
+        },
+        [sessionIdleTimeoutField]: {
+          title: 'Client Session Idle',
+          type: 'number',
+          tooltipContent:
+            'Time a client session is allowed to be idle before it expires. Tokens are invalidated when a client session is expired. If not set it uses the standard SSO Session Idle value.',
+          additionalClassNames: 'mt-1',
+        },
+        [sessionMaxLifespanField]: {
+          title: 'Client Session Max',
+          type: 'number',
+          tooltipContent:
+            'Max time before a client session is expired. Tokens are invalidated when a client session is expired. If not set, it uses the standard SSO Session Max value.',
+          additionalClassNames: 'mt-1',
+        },
+        [offlineSessionIdleTimeoutField]: {
+          title: 'Client Offline Session Idle',
+          type: 'number',
+          tooltipContent:
+            'Time a client offline session is allowed to be idle before it expires. Offline tokens are invalidated when a client offline session is expired. If not set it uses the Offline Session Idle value.',
+          additionalClassNames: 'mt-1',
+        },
+        [offlineSessionMaxLifespanField]: {
+          title: 'Client Offline Session Max',
+          type: 'number',
+          tooltipContent:
+            'Max time before a client offline session is expired. Offline tokens are invalidated when a client offline session is expired. If not set, it uses the Offline Session Max value.',
+          additionalClassNames: 'mt-1',
+        },
       },
     } as Schema;
   });
