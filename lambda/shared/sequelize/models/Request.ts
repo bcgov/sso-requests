@@ -42,7 +42,7 @@ const init = (sequelize, DataTypes) => {
         allowNull: true,
       },
       actionNumber: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.BIGINT,
         allowNull: true,
       },
       environments: {
