@@ -1,6 +1,7 @@
 import React from 'react';
 import { FieldTemplateProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
+import clsx from 'clsx';
 import { noop } from 'lodash';
 import InfoOverlay from 'components/InfoOverlay';
 
@@ -25,13 +26,15 @@ export default function FieldTemplate(
     top = null,
     bottom = null,
   } = props;
-  const { type, tooltip, description } = schema as any;
+  const { type, tooltip, description, additionalClassNames } = schema as any;
+
+  const classes = clsx(classNames, additionalClassNames);
 
   if (type === 'array') {
     return (
       <>
         {top}
-        <div className={classNames}>{children}</div>
+        <div className={classes}>{children}</div>
         {bottom}
       </>
     );
@@ -40,7 +43,7 @@ export default function FieldTemplate(
   return (
     <>
       {top}
-      <div className={classNames}>
+      <div className={classes}>
         {displayLabel && label && (
           <Title>
             {label}&nbsp;

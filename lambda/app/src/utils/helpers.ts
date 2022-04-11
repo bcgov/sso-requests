@@ -52,9 +52,30 @@ const sortURIFields = (data: any) => {
   return sortedData;
 };
 
-export const processRequest = (data: any, isMerged: boolean) => {
+export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
   const immutableFields = ['userId', 'idirUserid', 'clientName', 'projectLead', 'status', 'serviceType'];
   if (isMerged) immutableFields.push('realm');
+  if (!isAdmin)
+    immutableFields.push(
+      'devAccessTokenLifespan',
+      'devSessionIdleTimeout',
+      'devSessionMaxLifespan',
+      'devOfflineSessionIdleTimeout',
+      'devOfflineSessionMaxLifespan',
+
+      'testAccessTokenLifespan',
+      'testSessionIdleTimeout',
+      'testSessionMaxLifespan',
+      'testOfflineSessionIdleTimeout',
+      'testOfflineSessionMaxLifespan',
+
+      'prodAccessTokenLifespan',
+      'prodSessionIdleTimeout',
+      'prodSessionMaxLifespan',
+      'prodOfflineSessionIdleTimeout',
+      'prodOfflineSessionMaxLifespan',
+    );
+
   data = omit(data, immutableFields);
   data = sortURIFields(data);
   data.testIdps = data.testIdps || [];
