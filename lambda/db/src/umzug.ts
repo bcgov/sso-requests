@@ -31,6 +31,7 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2022.03.21T10.06.00.add-has_read_gold_notification-in-user-table'),
       await import('./migrations/2022.04.06T16.00.00.add-roles-fields-in-request-table'),
       await import('./migrations/2022.04.08T09.15.00.add-token-fields-in-request-table'),
+      await import('./migrations/2022.04.11T11.36.00.update-action-number-field-type'),
       await import('./migrations/2222.03.02T15.30.09.populate-user-id-in-requests-table'),
     ],
     context: sequelize,

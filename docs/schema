@@ -13,7 +13,7 @@
  prod_valid_redirect_uris          | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
  environments                      | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
  pr_number                         | integer                  |           |          |
- action_number                     | integer                  |           |          |
+ action_number                     | bigint                   |           |          |
  created_at                        | timestamp with time zone |           | not null |
  updated_at                        | timestamp with time zone |           | not null |
  project_lead                      | boolean                  |           |          | false
