@@ -176,3 +176,36 @@ select events.created_at from events join requests on requests.id = events.reque
 -- get all clients. note the null are those that have not submittted request (zs)
 select client_name, preferred_email from requests where archived = false;
 ```
+
+**Queries to fetch user emails**
+
+```sql
+-- Integration users with a team associated with
+SELECT
+    r.id,
+    r.client_name,
+    r.team_id,
+    ut.user_id,
+    u.idir_email,
+    u.additional_email
+FROM
+    requests as r
+INNER JOIN users_teams as ut ON r.team_id=ut.team_id
+INNER JOIN users as u ON u.id=ut.user_id
+WHERE r.uses_team=TRUE
+AND ut.pending=FALSE
+ORDER BY r.client_name
+
+-- Integration users with no team associated with
+SELECT
+    r.id,
+    r.client_name,
+    r.user_id,
+    u.idir_email,
+    u.additional_email
+FROM
+    requests as r
+INNER JOIN users as u ON u.id=r.user_id
+WHERE r.uses_team=FALSE
+ORDER BY r.client_name
+```
