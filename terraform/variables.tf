@@ -71,13 +71,13 @@ variable "gh_workflow_id" {
 }
 
 variable "gh_apply_workflow_id" {
-  description = "workflow id or filename to trigger when Terraform Apply"
-  default     = "terraform-apply.yml"
+  description = "workflow id or filename to trigger when Terraform Batch"
+  default     = "terraform-batch.yml"
 }
 
 variable "gh_apply_workflow_v2_id" {
-  description = "workflow id or filename to trigger when Terraform Apply"
-  default     = "terraform-v2-apply.yml"
+  description = "workflow id or filename to trigger when Terraform Batch"
+  default     = "terraform-v2-batch.yml"
 }
 
 variable "gh_secret" {
