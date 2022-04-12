@@ -5,6 +5,9 @@ export interface Request {
   devValidRedirectUris: string[];
   testValidRedirectUris: string[];
   prodValidRedirectUris: string[];
+  devRoles: string[];
+  testRoles: string[];
+  prodRoles: string[];
   projectName: string;
   projectLead?: boolean;
   id?: number;

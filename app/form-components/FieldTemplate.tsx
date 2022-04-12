@@ -1,6 +1,8 @@
 import React from 'react';
 import { FieldTemplateProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
+import clsx from 'clsx';
+import { noop } from 'lodash';
 import InfoOverlay from 'components/InfoOverlay';
 
 const Title = styled.legend`
@@ -12,14 +14,27 @@ const Title = styled.legend`
 export default function FieldTemplate(
   props: FieldTemplateProps & { top?: React.ReactElement; bottom?: React.ReactElement },
 ) {
-  const { classNames, label, displayLabel, help, errors, children, schema, top = null, bottom = null } = props;
-  const { type, tooltipTitle, tooltipContent, hide = 250, description } = schema as any;
+  const {
+    formContext,
+    classNames,
+    label,
+    displayLabel,
+    help,
+    errors,
+    children,
+    schema,
+    top = null,
+    bottom = null,
+  } = props;
+  const { type, tooltip, description, additionalClassNames } = schema as any;
+
+  const classes = clsx(classNames, additionalClassNames);
 
   if (type === 'array') {
     return (
       <>
         {top}
-        <div className={classNames}>{children}</div>
+        <div className={classes}>{children}</div>
         {bottom}
       </>
     );
@@ -28,11 +43,11 @@ export default function FieldTemplate(
   return (
     <>
       {top}
-      <div className={classNames}>
+      <div className={classes}>
         {displayLabel && label && (
           <Title>
             {label}&nbsp;
-            {tooltipContent && <InfoOverlay tooltipTitle={tooltipTitle} tooltipContent={tooltipContent} hide={hide} />}
+            {tooltip && <InfoOverlay {...tooltip} onClick={() => tooltip?.onClick(formContext) || noop} />}
           </Title>
         )}
         {description}

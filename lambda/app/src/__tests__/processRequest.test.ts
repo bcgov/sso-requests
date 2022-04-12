@@ -20,13 +20,13 @@ const data: any = {
 };
 
 it('should order the URIs', () => {
-  const processedData = processRequest(data, false);
+  const processedData = processRequest(data, false, false);
   expect(processedData.devValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
   expect(processedData.testValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
   expect(processedData.prodValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
 });
 
 it('should omit the realm for merged requests', () => {
-  const processedData = processRequest(data, true);
+  const processedData = processRequest(data, true, false);
   expect(processedData.realm).toBeUndefined();
 });

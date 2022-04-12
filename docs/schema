@@ -1,40 +1,58 @@
 
-                                                        Table "public.requests"
-          Column          |           Type           | Collation | Nullable |                         Default
---------------------------+--------------------------+-----------+----------+----------------------------------------------------------
- id                       | integer                  |           | not null | nextval('requests_id_seq'::regclass)
- idir_userid              | character varying(255)   |           |          |
- project_name             | character varying(255)   |           | not null |
- client_name              | character varying(255)   |           |          |
- realm                    | character varying(255)   |           |          |
- public_access            | boolean                  |           |          |
- dev_valid_redirect_uris  | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
- test_valid_redirect_uris | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
- prod_valid_redirect_uris | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
- environments             | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
- pr_number                | integer                  |           |          |
- action_number            | integer                  |           |          |
- created_at               | timestamp with time zone |           | not null |
- updated_at               | timestamp with time zone |           | not null |
- project_lead             | boolean                  |           |          | false
- preferred_email          | character varying(255)   |           |          |
- new_to_sso               | boolean                  |           |          | false
- agree_with_terms         | boolean                  |           |          | false
- bceid_approved           | boolean                  |           |          | false
- status                   | enum_requests_status     |           | not null | 'draft'::enum_requests_status
- archived                 | boolean                  |           | not null | false
- idir_user_display_name   | character varying(255)   |           |          |
- additional_emails        | character varying(255)[] |           |          |
- has_unread_notifications | boolean                  |           |          |
- browser_flow_override    | character varying(255)   |           |          |
- team_id                  | integer                  |           |          |
- uses_team                | boolean                  |           | not null | false
- requester                | character varying(255)   |           |          |
- user_id                  | integer                  |           |          |
- service_type             | character varying(255)   |           | not null | 'silver'::character varying
- dev_idps                 | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
- test_idps                | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
- prod_idps                | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+                                                            Table "public.requests"
+              Column               |           Type           | Collation | Nullable |                         Default
+-----------------------------------+--------------------------+-----------+----------+----------------------------------------------------------
+ id                                | integer                  |           | not null | nextval('requests_id_seq'::regclass)
+ idir_userid                       | character varying(255)   |           |          |
+ project_name                      | character varying(255)   |           | not null |
+ client_name                       | character varying(255)   |           |          |
+ realm                             | character varying(255)   |           |          |
+ public_access                     | boolean                  |           |          |
+ dev_valid_redirect_uris           | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ test_valid_redirect_uris          | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ prod_valid_redirect_uris          | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ environments                      | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ pr_number                         | integer                  |           |          |
+ action_number                     | bigint                   |           |          |
+ created_at                        | timestamp with time zone |           | not null |
+ updated_at                        | timestamp with time zone |           | not null |
+ project_lead                      | boolean                  |           |          | false
+ preferred_email                   | character varying(255)   |           |          |
+ new_to_sso                        | boolean                  |           |          | false
+ agree_with_terms                  | boolean                  |           |          | false
+ bceid_approved                    | boolean                  |           |          | false
+ status                            | enum_requests_status     |           | not null | 'draft'::enum_requests_status
+ archived                          | boolean                  |           | not null | false
+ idir_user_display_name            | character varying(255)   |           |          |
+ additional_emails                 | character varying(255)[] |           |          |
+ has_unread_notifications          | boolean                  |           |          |
+ browser_flow_override             | character varying(255)   |           |          |
+ team_id                           | integer                  |           |          |
+ uses_team                         | boolean                  |           | not null | false
+ requester                         | character varying(255)   |           |          |
+ user_id                           | integer                  |           |          |
+ service_type                      | character varying(255)   |           | not null | 'silver'::character varying
+ dev_idps                          | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ test_idps                         | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ prod_idps                         | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ dev_roles                         | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ test_roles                        | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ prod_roles                        | character varying(255)[] |           | not null | (ARRAY[]::character varying[])::character varying(255)[]
+ dev_access_token_lifespan         | integer                  |           | not null | 0
+ dev_offline_session_idle_timeout  | integer                  |           | not null | 0
+ dev_offline_session_max_lifespan  | integer                  |           | not null | 0
+ dev_session_idle_timeout          | integer                  |           | not null | 0
+ dev_session_max_lifespan          | integer                  |           | not null | 0
+ test_access_token_lifespan        | integer                  |           | not null | 0
+ test_offline_session_idle_timeout | integer                  |           | not null | 0
+ test_offline_session_max_lifespan | integer                  |           | not null | 0
+ test_session_idle_timeout         | integer                  |           | not null | 0
+ test_session_max_lifespan         | integer                  |           | not null | 0
+ prod_access_token_lifespan        | integer                  |           | not null | 0
+ prod_offline_session_idle_timeout | integer                  |           | not null | 0
+ prod_offline_session_max_lifespan | integer                  |           | not null | 0
+ prod_session_idle_timeout         | integer                  |           | not null | 0
+ prod_session_max_lifespan         | integer                  |           | not null | 0
 Indexes:
     "requests_pkey" PRIMARY KEY, btree (id)
 Foreign-key constraints:

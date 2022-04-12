@@ -1,8 +1,8 @@
 import { Request } from '../interfaces/Request';
 import { Schema } from './index';
 
-export const redirectUriTooltipInfo = {
-  tooltipContent: `At least one redirect URI is required for each of DEV, TEST and PROD. If you don't know the redirect URI for one or
+export const redirectUriTooltip = {
+  content: `At least one redirect URI is required for each of DEV, TEST and PROD. If you don't know the redirect URI for one or
   more of these environments, you may provide any valid URI for now and change it later. We suggest something like
   'http://localhost:1000'.`,
 };
@@ -34,7 +34,7 @@ export const devValidRedirectUris = {
   ...commonRedirectUris,
   description: 'You can use any valid URI for your redirect URIs.',
   title: 'Dev Redirect URIs',
-  ...redirectUriTooltipInfo,
+  tooltip: redirectUriTooltip,
 };
 
 export default function getSchema(integration: Request) {
@@ -58,7 +58,9 @@ export default function getSchema(integration: Request) {
       realm: {
         type: 'string',
         title: 'Identity Providers Required',
-        tooltipContent: 'The identity providers you add will let your users authenticate with those services.',
+        tooltip: {
+          content: 'The identity providers you add will let your users authenticate with those services.',
+        },
         enum: ['onestopauth', 'onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
         enumNames: ['IDIR + IDIR Azure Beta', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
       },
@@ -66,8 +68,10 @@ export default function getSchema(integration: Request) {
         type: 'array',
         minItems: 1,
         title: 'Environment(s)',
-        tooltipContent:
-          'We will provide a separate client for each environment you select. Select the environments that are required for your project.',
+        tooltip: {
+          content:
+            'We will provide a separate client for each environment you select. Select the environments that are required for your project.',
+        },
         items: {
           type: 'string',
           enum: ['dev', 'test', 'prod'],

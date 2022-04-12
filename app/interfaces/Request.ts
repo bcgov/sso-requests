@@ -29,6 +29,9 @@ export interface Request {
   devIdps?: string[];
   testIdps?: string[];
   prodIdps?: string[];
+  devRoles?: string[];
+  testRoles?: string[];
+  prodRoles?: string[];
 }
 
 export interface Option {

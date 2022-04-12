@@ -17,17 +17,41 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     'clientName',
     'realm',
     'publicAccess',
-    'devValidRedirectUris',
-    'testValidRedirectUris',
-    'prodValidRedirectUris',
     'environments',
     'bceidApproved',
     'archived',
     'browserFlowOverride',
     'serviceType',
+
+    'devValidRedirectUris',
+    'testValidRedirectUris',
+    'prodValidRedirectUris',
+
     'devIdps',
     'testIdps',
     'prodIdps',
+
+    'devRoles',
+    'testRoles',
+    'prodRoles',
+
+    'devAccessTokenLifespan',
+    'devSessionIdleTimeout',
+    'devSessionMaxLifespan',
+    'devOfflineSessionIdleTimeout',
+    'devOfflineSessionMaxLifespan',
+
+    'testAccessTokenLifespan',
+    'testSessionIdleTimeout',
+    'testSessionMaxLifespan',
+    'testOfflineSessionIdleTimeout',
+    'testOfflineSessionMaxLifespan',
+
+    'prodAccessTokenLifespan',
+    'prodSessionIdleTimeout',
+    'prodSessionMaxLifespan',
+    'prodOfflineSessionIdleTimeout',
+    'prodOfflineSessionMaxLifespan',
   ]);
 
   // let's use dev's idps until having a env-specific idp selections

@@ -3,11 +3,13 @@ import { Schema } from './index';
 const projectLead = {
   type: 'boolean',
   title: 'Are you the product owner or technical contact for this project?',
-  tooltipContent: `
-<p>
-  Only the person who is responsible for this project should be submitting the integration request. 
-  If you are not the one accountable, please refer this request to a team member who will be accountable for this project.
-</p>`,
+  tooltip: {
+    content: `
+    <p>
+      Only the person who is responsible for this project should be submitting the integration request. 
+      If you are not the one accountable, please refer this request to a team member who will be accountable for this project.
+    </p>`,
+  },
 };
 
 export default function getSchema(teams: any[] = []) {

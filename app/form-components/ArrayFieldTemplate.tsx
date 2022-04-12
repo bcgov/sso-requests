@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrayFieldTemplateProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
-import { isFunction } from 'lodash';
+import { isFunction, noop } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { MAX_STRING_FIELD_WIDTH } from 'styles/theme';
@@ -48,16 +48,15 @@ const Title = styled.legend`
 `;
 
 export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
-  const { title, items, schema } = props;
-  const { description, tooltipTitle, tooltipContent, deletableIndex = 1, hide = 250, addItemText } = schema as any;
+  const { formContext, title, items, schema } = props;
+  const { description, tooltip, deletableIndex = 1, addItemText } = schema as any;
   const delIndex = isFunction(deletableIndex) ? deletableIndex(items) : parseInt(deletableIndex);
 
   return (
     <div>
       {title && (
         <Title>
-          {title}{' '}
-          {tooltipContent && <InfoOverlay tooltipTitle={tooltipTitle} tooltipContent={tooltipContent} hide={hide} />}
+          {title} {tooltip && <InfoOverlay {...tooltip} onClick={() => tooltip?.onClick(formContext) || noop} />}
         </Title>
       )}
       {description && <Description>{description}</Description>}
