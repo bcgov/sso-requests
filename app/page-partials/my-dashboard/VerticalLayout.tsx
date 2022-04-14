@@ -56,20 +56,20 @@ function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
   return (
     <ResponsiveContainer rules={mediaRules}>
       <RequestsContext.Provider value={contextValue}>
+        {tabs}
         <Resizable
-          style={{ paddingTop: '2px', borderBottom: '6px double #818181' }}
+          style={{ paddingTop: '2px', borderBottom: '6px double #818181', overflowY: 'auto', overflowX: 'hidden' }}
           defaultSize={{
             width: '100%',
             height: window.innerHeight * 0.4,
           }}
+          enable={{ bottom: true }}
+          handleStyles={{ bottom: { bottom: 0 } }}
         >
-          <OverflowAuto>
-            {tabs}
-            {leftPanel && leftPanel(state, dispatch)}
-          </OverflowAuto>
+          {leftPanel && leftPanel(state, dispatch)}
         </Resizable>
         <br />
-        <OverflowAuto>{rightPanel && rightPanel(state, dispatch)}</OverflowAuto>
+        {rightPanel && rightPanel(state, dispatch)}
       </RequestsContext.Provider>
     </ResponsiveContainer>
   );
