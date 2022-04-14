@@ -9,8 +9,8 @@ import reducer, { DashboardReducerState, initialState } from 'reducers/dashboard
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { mediaRules } from './Layout';
 
-// TODO: move this logic to component Grid default style
-const OverflowAuto = styled.div`
+const InnerResizable = styled.div`
+  height: 100%;
   overflow: auto;
 `;
 
@@ -58,7 +58,7 @@ function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
       <RequestsContext.Provider value={contextValue}>
         {tabs}
         <Resizable
-          style={{ paddingTop: '2px', borderBottom: '6px double #818181', overflowY: 'auto', overflowX: 'hidden' }}
+          style={{ paddingTop: '2px', borderBottom: '6px double #818181' }}
           defaultSize={{
             width: '100%',
             height: window.innerHeight * 0.4,
@@ -66,7 +66,7 @@ function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
           enable={{ bottom: true }}
           handleStyles={{ bottom: { bottom: 0 } }}
         >
-          {leftPanel && leftPanel(state, dispatch)}
+          <InnerResizable>{leftPanel && leftPanel(state, dispatch)}</InnerResizable>
         </Resizable>
         <br />
         {rightPanel && rightPanel(state, dispatch)}
