@@ -85,7 +85,8 @@ const hasUris = (uris: string[] | undefined) => {
 
 function RequestPreview({ children, request }: Props) {
   if (!request) return null;
-
+  const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
+  const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request?.realm);
   return (
     <>
       <Table>
@@ -116,7 +117,7 @@ function RequestPreview({ children, request }: Props) {
               <SemiBold>{request?.projectName}</SemiBold>
             </td>
           </tr>
-          <FormattedList list={realmToIDP(request?.realm)} title="Identity Providers Required:" inline />
+          <FormattedList list={idpDisplay} title="Identity Providers Required:" inline />
           {hasUris(request?.devValidRedirectUris) && (
             <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />
           )}
