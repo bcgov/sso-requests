@@ -24,7 +24,9 @@ import {
 import { listIntegrationsForTeam } from './queries/request';
 import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
+import { searchKeycloakUsers } from './controllers/keycloak';
 import { wakeUpAll } from './controllers/heartbeat';
+import { listClientRoles, listUserRoles, manageUserRole } from './keycloak/users';
 import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
@@ -224,6 +226,42 @@ export const setRoutes = (app: any) => {
   app.put(`${BASE_PATH}/installation`, async (req, res) => {
     try {
       const result = await changeSecret(req.session as Session, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/keycloak/users`, async (req, res) => {
+    try {
+      const result = await searchKeycloakUsers(req.session as Session, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/keycloak/roles`, async (req, res) => {
+    try {
+      const result = await listClientRoles((req.session as Session).user.id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/keycloak/user-roles`, async (req, res) => {
+    try {
+      const result = await listUserRoles((req.session as Session).user.id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.put(`${BASE_PATH}/keycloak/user-roles`, async (req, res) => {
+    try {
+      const result = await manageUserRole((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
