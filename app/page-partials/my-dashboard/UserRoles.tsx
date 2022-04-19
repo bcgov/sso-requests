@@ -8,7 +8,6 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import Loader from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import Table from 'components/Table';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRole, KeycloakUser } from 'services/keycloak';
 
@@ -36,12 +35,15 @@ const FlexBox = styled.div`
   }
 `;
 
-const idpOptions = [
-  { value: 'idir', label: 'IDIR' },
-  { value: 'bceidbasic', label: 'BCeID Basic' },
-  { value: 'bceidbusiness', label: 'BCeID Business' },
-  { value: 'bceidboth', label: 'BCeID Both' },
-];
+type IDPS = 'idir' | 'azureidir' | 'bceidbasic' | 'bceidbusiness' | 'bceidboth';
+
+const idpMap = {
+  idir: 'IDIR',
+  azureidir: 'Azure IDIR',
+  bceidbasic: 'BCeID Basic',
+  bceidbusiness: 'BCeID Business',
+  bceidboth: 'BCeID Both',
+};
 
 const propertyOptions = [
   { value: 'lastName', label: 'Last Name' },
@@ -63,7 +65,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
-  const [selectedIdp, setSelectedIdp] = useState<string>(idpOptions[0].value);
+  const [selectedIdp, setSelectedIdp] = useState<string>('');
   const [selectedProperty, setSelectedProperty] = useState<string>(propertyOptions[0].value);
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
@@ -71,28 +73,38 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const getRoles = async () => {
     if (!selectedRequest) return;
 
+    await setLoading(true);
+
     const [data, err] = await listClientRoles({
       environment: selectedEnvironment,
       integrationId: selectedRequest.id as number,
+      first: 0,
+      max: 1000,
     });
 
-    if (data) setRoles(data);
+    const roles = data || [];
+
+    setRoles(roles);
+    setLoading(false);
+  };
+
+  const reset = () => {
+    setRows([]);
+    setRoles([]);
+    setUserRoles([]);
+    setSelectedId(undefined);
+    setSearched(false);
   };
 
   useEffect(() => {
+    reset();
     setSelectedEnvironment('dev');
-    setRows([]);
-    setRoles([]);
-    setUserRoles([]);
-    setSelectedId(undefined);
   }, [selectedRequest.id]);
 
   useEffect(() => {
+    reset();
     getRoles();
-    setRows([]);
-    setRoles([]);
-    setUserRoles([]);
-    setSelectedId(undefined);
+    if (selectedRequest.devIdps) setSelectedIdp(selectedRequest.devIdps.length > 0 ? selectedRequest.devIdps[0] : '');
   }, [selectedEnvironment]);
 
   const handleSearch = async (searchKey: string) => {
@@ -143,7 +155,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   };
 
   const handleUserSelect = async (username: string) => {
-    setLoadingRight(true);
+    await setLoadingRight(true);
     const [data, err] = await listUserRoles({
       environment: selectedEnvironment,
       integrationId: selectedRequest.id as number,
@@ -223,6 +235,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }
 
   const environments = selectedRequest?.environments || [];
+  const idps = (selectedRequest?.devIdps || []) as IDPS[];
 
   return (
     <>
@@ -244,7 +257,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   value: selectedIdp,
                   multiselect: false,
                   onChange: setSelectedIdp,
-                  options: idpOptions,
+                  options: idps.map((idp) => ({ value: idp, label: idpMap[idp] })),
                 },
                 {
                   value: selectedProperty,
