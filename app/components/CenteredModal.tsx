@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { CSSProperties, useState } from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { isFunction } from 'lodash';
@@ -60,7 +60,7 @@ interface Props {
   buttonStyle?: ButtonStyle;
   buttonAlign?: 'center' | 'default';
   skipCloseOnConfirm?: boolean;
-  style?: any;
+  style?: CSSProperties;
 }
 
 const CenteredModal = ({

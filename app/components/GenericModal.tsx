@@ -95,17 +95,16 @@ const GenericModal = (
   const [loading, setLoading] = useState(false);
   const [context, setContext] = useState<any>(null);
 
-  ref &&
-    useImperativeHandle(ref, () => ({
-      open: (context: any) => {
-        setContext(context);
-        window.location.hash = id;
-      },
-      close: () => {
-        window.location.hash = '#';
-      },
-      getId: () => id,
-    }));
+  useImperativeHandle(ref, () => ({
+    open: (context: any) => {
+      setContext(context);
+      window.location.hash = id;
+    },
+    close: () => {
+      window.location.hash = '#';
+    },
+    getId: () => id,
+  }));
 
   const handleConfirm = async () => {
     setLoading(true);

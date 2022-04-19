@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { CSSProperties, useState } from 'react';
 import styled from 'styled-components';
 import { noop } from 'lodash';
 import Input from '@button-inc/bcgov-theme/Input';
@@ -59,7 +59,7 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
 
 interface Header {
   name: string;
-  style?: any;
+  style?: CSSProperties;
 }
 
 interface FilterItem {
