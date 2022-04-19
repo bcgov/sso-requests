@@ -48,7 +48,7 @@ export default function getSchemas(formData: Request) {
       required: [],
       properties: {
         [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs' },
-        [roleField]: roles,
+        // [roleField]: roles,
         [accessTokenLifespanField]: {
           title: 'Access Token Lifespan',
           type: 'number',

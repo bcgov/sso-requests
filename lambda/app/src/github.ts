@@ -31,10 +31,6 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     'testIdps',
     'prodIdps',
 
-    'devRoles',
-    'testRoles',
-    'prodRoles',
-
     'devAccessTokenLifespan',
     'devSessionIdleTimeout',
     'devSessionMaxLifespan',
