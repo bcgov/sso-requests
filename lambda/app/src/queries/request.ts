@@ -57,6 +57,18 @@ export const getMyOrTeamRequest = async (userId: number, requestId: number, role
   });
 };
 
+export const findAllowedIntegrationInfo = async (
+  userId: number,
+  integrationId: number,
+  roles: string[] = ['member', 'admin'],
+  options = { raw: true },
+) => {
+  const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
+  where.id = integrationId;
+
+  return models.request.findOne({ where, attributes: ['id', 'clientName', 'devIdps'], ...options });
+};
+
 export const getAllowedRequest = async (session: Session, requestId: number, roles?: string[]) => {
   if (isAdmin(session)) {
     return models.request.findOne({

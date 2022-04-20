@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { CSSProperties, useState } from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { isFunction } from 'lodash';
 import styled from 'styled-components';
 import Loader from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -59,6 +60,7 @@ interface Props {
   buttonStyle?: ButtonStyle;
   buttonAlign?: 'center' | 'default';
   skipCloseOnConfirm?: boolean;
+  style?: CSSProperties;
 }
 
 const CenteredModal = ({
@@ -75,6 +77,7 @@ const CenteredModal = ({
   buttonStyle = 'bcgov',
   buttonAlign = 'default',
   skipCloseOnConfirm = false,
+  style = {},
 }: Props) => {
   const [loading, setLoading] = useState(false);
   const showButtons = showCancel || showConfirm;
@@ -117,7 +120,7 @@ const CenteredModal = ({
           </Modal.Close>
         )}
       </Header>
-      <Modal.Content>
+      <Modal.Content style={style}>
         {content}
         {showButtons && (
           <ButtonContainer buttonAlign={buttonAlign}>

@@ -4,6 +4,8 @@ import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import SecretsPanel from 'page-partials/my-dashboard/SecretsPanel';
+import ClientRoles from 'page-partials/my-dashboard/ClientRoles';
+import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
@@ -107,10 +109,26 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   } else if (displayStatus === 'Completed') {
     panel = (
       <>
-        <RequestTabs activeKey={panelTab} onSelect={(k: TabKey) => dispatch($setPanelTab(k))}>
+        <RequestTabs activeKey={panelTab} mountOnEnter={true} onSelect={(k: TabKey) => dispatch($setPanelTab(k))}>
           <Tab eventKey="installation-json" title="Installation JSON">
             <TabWrapper>
               <InstallationPanel selectedRequest={integration} />
+            </TabWrapper>
+            {awaitingBceidProd && (
+              <>
+                <Title>Production Status</Title>
+                <BceidStatus request={integration} />
+              </>
+            )}
+          </Tab>
+          <Tab eventKey="client-roles" title="Role Management">
+            <TabWrapper>
+              <ClientRoles selectedRequest={integration} />
+            </TabWrapper>
+          </Tab>
+          <Tab eventKey="user-roles" title="Assign Users to Roles">
+            <TabWrapper>
+              <UserRoles selectedRequest={integration} />
             </TabWrapper>
           </Tab>
           {!integration.publicAccess && (
@@ -126,12 +144,6 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
             </TabWrapper>
           </Tab>
         </RequestTabs>
-        {awaitingBceidProd && (
-          <>
-            <Title>Production Status</Title>
-            <BceidStatus request={integration} />
-          </>
-        )}
       </>
     );
   }
