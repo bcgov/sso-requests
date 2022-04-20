@@ -286,7 +286,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
           await contentRef.current.submit();
           await contentRef.current.reset();
 
-          fetchRoles(true);
+          reset();
         }}
         onCancel={(contentRef: any) => {
           contentRef.current.reset();
@@ -309,7 +309,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
             roleName,
           });
 
-          await fetchRoles(true);
+          await reset();
         }}
         confirmButtonText="Delete"
         confirmButtonVariant="primary"
