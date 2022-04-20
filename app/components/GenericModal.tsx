@@ -35,11 +35,11 @@ const PaddedIcon = styled(FontAwesomeIcon)`
 `;
 
 const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
+  min-width: 350px;
   margin-top: 20px;
   display: flex;
   justify-content: ${(props) => (props.buttonAlign === 'center' ? 'center;' : 'space-between;')} & button {
     min-width: 150px;
-    margin-right: 20px;
     display: inline-block;
   }
 `;
