@@ -76,7 +76,7 @@ interface Filter {
 }
 
 interface Props {
-  variant: string;
+  variant?: string;
   headers: Header[];
   children: React.ReactNode;
   pageLimits?: FilterItem[];
