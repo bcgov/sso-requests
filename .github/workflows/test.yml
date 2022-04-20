@@ -56,6 +56,8 @@ jobs:
         working-directory: ./app
 
       - name: Setup postgres
+        env:
+          PGUSER: postgres
         run: |
           pg_ctl start
           createdb runner || true
@@ -65,13 +67,14 @@ jobs:
 
       - name: Run backend integration tests
         env:
+          PGUSER: postgres
           DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
         run: |
           yarn test
         working-directory: ./lambda
 
   commitlint:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
