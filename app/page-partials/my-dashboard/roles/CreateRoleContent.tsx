@@ -20,6 +20,10 @@ const AddNewButton = styled.span`
   }
 `;
 
+const ErrorMessage = styled.div`
+  color: #ff0000;
+`;
+
 interface Props {
   integrationId: number;
   environments: string[];
@@ -103,6 +107,8 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                   <td className="role">
                     <Input
                       size="small"
+                      minLength="2"
+                      maxLength="100"
                       value={role.name}
                       onChange={(event: any) => handleNameChange(index, event.target.value)}
                     />
@@ -113,7 +119,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                       options={environments.map((env) => ({ value: env, label: env }))}
                       isMulti={true}
                       placeholder="Select..."
-                      noOptionsMessage={() => 'No roles'}
+                      noOptionsMessage={() => 'You selected all environments'}
                       onChange={(
                         newValue: MultiValue<{ value: string; label: string }>,
                         actionMeta: ActionMeta<{
@@ -140,10 +146,16 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
           )}
           <tr>
             <td colSpan={3}>
-              <AddNewButton onClick={handleAdd}>
-                <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Role" />
-                <span>Add another role</span>
-              </AddNewButton>
+              {roles.length < 20 ? (
+                <AddNewButton onClick={handleAdd}>
+                  <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Role" />
+                  <span>Add another role</span>
+                </AddNewButton>
+              ) : (
+                <ErrorMessage>
+                  You can only create 20 roles at a time. Please save before creating any new roles.
+                </ErrorMessage>
+              )}
             </td>
           </tr>
         </tbody>

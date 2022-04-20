@@ -56,18 +56,20 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
   const [users, setUsers] = useState<KeycloakUser[]>([]);
   const [selectedRole, setSelctedRole] = useState<string>('');
 
-  useEffect(() => {
-    setTab('dev');
-    setUsers([]);
-    setRoles([]);
-    setSelctedRole('');
-  }, [selectedRequest.id]);
-
-  useEffect(() => {
+  const reset = () => {
     fetchRoles(true);
     setUsers([]);
     setRoles([]);
     setSelctedRole('');
+  };
+
+  useEffect(() => {
+    setTab('dev');
+    reset();
+  }, [selectedRequest.id]);
+
+  useEffect(() => {
+    reset();
   }, [tab]);
 
   const fetchRoles = async (loadFirst: boolean) => {
@@ -93,7 +95,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
 
     const _data = data || [];
 
-    setHasMoreRole(_data.length > 0);
+    setHasMoreRole(_data.length === maxRole);
     setRoles(_roles.concat(_data));
     setFirstRole(_first + maxRole);
     setRoleLoading(false);
@@ -124,7 +126,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
 
     const _data = data || [];
 
-    setHasMoreUser(_data.length > 0);
+    setHasMoreUser(_data.length === maxUser);
     setUsers(_users.concat(_data));
     setFirstUser(_first + maxUser);
     setSelctedRole(roleName);
@@ -249,12 +251,6 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
   return (
     <>
       <TopMargin />
-      <RequestTabs onSelect={handleTabSelect} activeKey={tab}>
-        {environments.map((env) => (
-          <Tab eventKey={env} title={startCase(env)} />
-        ))}
-      </RequestTabs>
-      <TopMargin />
       <Button
         size="small"
         variant="primary"
@@ -264,6 +260,12 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
       >
         + Create a New Role
       </Button>
+      <TopMargin />
+      <RequestTabs onSelect={handleTabSelect} activeKey={tab}>
+        {environments.map((env) => (
+          <Tab eventKey={env} title={startCase(env)} />
+        ))}
+      </RequestTabs>
       <TopMargin />
       {firstRole === 0 && roleLoading ? (
         <LoaderContainer />
@@ -278,13 +280,13 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
 
       <GenericModal
         ref={modalRef}
-        title="Create a New Role"
+        title="Create New Role"
         icon={null}
         onConfirm={async (contentRef: any) => {
           await contentRef.current.submit();
           await contentRef.current.reset();
 
-          fetchRoles(true);
+          reset();
         }}
         onCancel={(contentRef: any) => {
           contentRef.current.reset();
@@ -307,13 +309,13 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
             roleName,
           });
 
-          await fetchRoles(true);
+          await reset();
         }}
-        confirmButtonText="Confirm"
+        confirmButtonText="Delete"
         confirmButtonVariant="primary"
         cancelButtonVariant="secondary"
       >
-        <div>Are you sure to delete?</div>
+        <div>Are you sure you want to delete this role?</div>
       </GenericModal>
     </>
   );

@@ -76,6 +76,7 @@ interface Filter {
 }
 
 interface Props {
+  variant?: string;
   headers: Header[];
   children: React.ReactNode;
   pageLimits?: FilterItem[];
@@ -163,6 +164,7 @@ const PaginationItems = ({ rowCount, limit, page, onPrev, onNext }: any) => {
 };
 
 function Table({
+  variant = 'medium',
   headers,
   children,
   onSearch = noop,
@@ -302,7 +304,7 @@ function Table({
         </Grid>
       </SectionHeader>
 
-      <StyledTable>
+      <StyledTable variant={variant}>
         <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
           <thead>
             <tr>

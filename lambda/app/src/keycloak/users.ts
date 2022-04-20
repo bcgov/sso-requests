@@ -230,8 +230,11 @@ export const bulkCreateRole = async (
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
+  // create 20 roles at a time
+  const rolesToCreate = roles.slice(0, 20);
+
   const byEnv = { dev: [], test: [], prod: [] };
-  forEach(roles, (role) => {
+  forEach(rolesToCreate, (role) => {
     if (role.envs)
       forEach(role.envs, (env) => {
         if (byEnv[env]) byEnv[env].push(role.name);

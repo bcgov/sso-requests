@@ -245,6 +245,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           <Grid.Col span={6}>
             <Label>1. Search for User</Label>
             <Table
+              variant="mini"
               searchLocation="right"
               filters={[
                 {
