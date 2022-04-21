@@ -112,7 +112,7 @@ const NewEntityButton = ({
               *You’ll be able to save and return your integration request, anytime throughout the request form.
             </p>
           </Grid>
-          <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
+          <Button size="medium" onClick={handleNewIntegrationClick} variant="callout">
             + Request SSO Integration
           </Button>
         </div>
@@ -120,7 +120,7 @@ const NewEntityButton = ({
     );
   } else {
     return (
-      <Button size="large" onClick={handleNewIntegrationClick} variant="callout">
+      <Button size="medium" onClick={handleNewIntegrationClick} variant="callout">
         + Request SSO Integration
       </Button>
     );

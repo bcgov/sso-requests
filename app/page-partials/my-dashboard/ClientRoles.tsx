@@ -252,7 +252,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     <>
       <TopMargin />
       <Button
-        size="small"
+        size="medium"
         variant="primary"
         onClick={() => {
           modalRef.current.open();

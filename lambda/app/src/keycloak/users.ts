@@ -14,6 +14,8 @@ export const searchUsers = async ({
   property: string;
   searchKey: string;
 }) => {
+  if (searchKey?.length < 2) return [];
+
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
   if (!['idir', 'bceidbasic', 'bceidbusiness', 'bceidboth'].includes(idp)) throw Error(`invalid idp ${idp}`);
@@ -42,11 +44,13 @@ export const listClientRoles = async (
   {
     environment,
     integrationId,
+    search = '',
     first = 0,
     max = 50,
   }: {
     environment: string;
     integrationId: number;
+    search?: string;
     first: number;
     max: number;
   },
@@ -59,8 +63,31 @@ export const listClientRoles = async (
   const client = clients[0];
 
   // @ts-ignore
-  const roles = await kcAdminClient.clients.listRoles({ realm: 'standard', id: client.id, first, max });
+  const roles = await kcAdminClient.clients.listRoles({ realm: 'standard', id: client.id, search, first, max });
   return roles.map((role) => role.name);
+};
+
+export const findClientRole = async (
+  sessionUserId: number,
+  {
+    environment,
+    integrationId,
+    roleName,
+  }: {
+    environment: string;
+    integrationId: number;
+    roleName: string;
+  },
+) => {
+  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+  if (clients.length === 0) throw Error('client not found');
+  const client = clients[0];
+
+  const role = await kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName });
+  return role;
 };
 
 export const listRoleUsers = async (

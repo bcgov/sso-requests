@@ -108,6 +108,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }, [selectedEnvironment]);
 
   const handleSearch = async (searchKey: string) => {
+    if (searchKey.length < 2) return;
+
     setLoading(true);
     setSearchKey(searchKey);
     setRows([]);

@@ -84,7 +84,7 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
           return (
             <React.Fragment key={env.name}>
               <Grid.Row collapse="992" gutter={[]} align="center">
-                <Grid.Col span={1}>
+                <Grid.Col span={1} style={{ maxWidth: '200px' }}>
                   <LeftTitle>{env.display}</LeftTitle>
                 </Grid.Col>
                 <Grid.Col span={3}>

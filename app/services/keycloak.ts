@@ -56,17 +56,39 @@ export const searchKeycloakUsers = async ({
 export const listClientRoles = async ({
   environment,
   integrationId,
+  search = '',
   first = 0,
   max = 50,
 }: {
   environment: string;
   integrationId: number;
+  search?: string;
   first?: number;
   max?: number;
 }): Promise<(string[] | null)[]> => {
   try {
     const result = await instance
-      .post('keycloak/roles', { environment, integrationId, first, max })
+      .post('keycloak/roles', { environment, integrationId, search, first, max })
+      .then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
+export const findClientRole = async ({
+  environment,
+  integrationId,
+  roleName,
+}: {
+  environment: string;
+  integrationId: number;
+  roleName: string;
+}): Promise<(string[] | null)[]> => {
+  try {
+    const result = await instance
+      .post('keycloak/role', { environment, integrationId, roleName })
       .then((res) => res.data);
     return [result, null];
   } catch (err: any) {

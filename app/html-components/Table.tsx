@@ -61,10 +61,6 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   & td.w120 {
     width: 120px;
   }
-
-  & td {
-    ${(props) => props.variant === 'mini' && `background-color: ${TABLE_ACTIVE_BLUE};`}
-  }
 `;
 
 export default Table;
