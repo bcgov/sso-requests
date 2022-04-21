@@ -14,6 +14,8 @@ export const searchUsers = async ({
   property: string;
   searchKey: string;
 }) => {
+  if (searchKey?.length < 2) return [];
+
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
   if (!['idir', 'bceidbasic', 'bceidbusiness', 'bceidboth'].includes(idp)) throw Error(`invalid idp ${idp}`);

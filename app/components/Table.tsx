@@ -227,6 +227,7 @@ function Table({
       <Input
         type="text"
         size="small"
+        maxLength="1000"
         placeholder={searchPlaceholder}
         style={{ display: 'inline-block' }}
         value={_searchKey}
