@@ -30,16 +30,6 @@ export default function FieldTemplate(
 
   const classes = clsx(classNames, additionalClassNames);
 
-  if (type === 'array') {
-    return (
-      <>
-        {top}
-        <div className={classes}>{children}</div>
-        {bottom}
-      </>
-    );
-  }
-
   return (
     <>
       {top}
