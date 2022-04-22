@@ -201,7 +201,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           variant: 'danger',
           fadeOut: 10000,
           closable: true,
-          content: parseError(err).message,
+          content: parseError(err),
         });
       } else {
         alert.show({

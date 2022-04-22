@@ -1,4 +1,4 @@
-import { isEqual, isNil } from 'lodash';
+import { isEqual, isNil, isString } from 'lodash';
 import { errorMessages, environmentOptions } from 'utils/constants';
 import { getSchemas } from 'schemas';
 import { Team, User } from 'interfaces/team';
@@ -37,12 +37,13 @@ export const getRequestedEnvironments = (request: Request) => {
 };
 
 export const parseError = (err: any) => {
-  try {
-    if (typeof err === 'object') return err;
-    return JSON.parse(err);
-  } catch (e) {
-    return { message: err };
+  if (isString(err)) return err;
+
+  if (err.validationError) {
+    return 'validation failed';
   }
+
+  return JSON.stringify(err);
 };
 
 // Convert Payload from Base64-URL to JSON
