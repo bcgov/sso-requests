@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { kebabCase, assign, isEmpty } from 'lodash';
+import { kebabCase, assign, isEmpty, isString } from 'lodash';
 import {
   validateRequest,
   processRequest,
@@ -139,7 +139,10 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
 
     if (submit) {
       const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);
-      if (!isEmpty(validationErrors)) throw Error(JSON.stringify({ errors: validationErrors, prepared: mergedData }));
+      if (!isEmpty(validationErrors)) {
+        if (isString(validationErrors)) throw Error(validationErrors);
+        else throw Error(JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }));
+      }
 
       current.clientName = `${kebabCase(current.projectName)}-${id}`;
       current.status = 'submitted';

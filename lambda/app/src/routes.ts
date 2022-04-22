@@ -1,3 +1,4 @@
+import { isString } from 'lodash';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
 import {
@@ -56,9 +57,21 @@ const responseHeaders = {
 
 const BASE_PATH = '/app';
 
+const tryJSON = (str) => {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return str;
+  }
+};
+
 const handleError = (res, err) => {
-  console.error(err);
-  res.status(422).json({ success: false, message: err.message || err });
+  let message = err.message || err;
+  if (isString(message)) {
+    message = tryJSON(message);
+  }
+
+  res.status(422).json({ success: false, message });
 };
 
 export const setRoutes = (app: any) => {
