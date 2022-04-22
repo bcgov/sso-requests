@@ -144,7 +144,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
         else throw Error(JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }));
       }
 
-      current.clientName = `${kebabCase(current.projectName)}-${id}`;
+      if (!isMerged) current.clientName = `${kebabCase(current.projectName)}-${id}`;
       current.status = 'submitted';
       let environments = current.environments.concat();
 
