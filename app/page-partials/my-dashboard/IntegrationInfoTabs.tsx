@@ -22,10 +22,10 @@ const Title = styled(DefaultTitle)`
   margin-top: 10px;
 `;
 
-const TabWrapper = styled.div`
+const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
   padding-right: 1rem;
-  max-width: 800px;
+  ${(props) => (props.short ? 'max-width: 800px;' : '')}
 `;
 
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
@@ -84,7 +84,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
     panel = (
       <RequestTabs activeKey="Integration-request-summary">
         <Tab eventKey="Integration-request-summary" title="Integration Request Summary">
-          <TabWrapper>
+          <TabWrapper short={true}>
             {awaitingBceidProd ? (
               <>
                 <NumberedContents
@@ -119,7 +119,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
           onSelect={(k: TabKey) => dispatch($setPanelTab(k))}
         >
           <Tab eventKey="installation-json" title="Installation JSON">
-            <TabWrapper>
+            <TabWrapper short={true}>
               <InstallationPanel selectedRequest={integration} />
               {awaitingBceidProd && (
                 <>
@@ -145,13 +145,13 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
           )}
           {!integration.publicAccess && (
             <Tab eventKey="configuration-url" title="Secrets">
-              <TabWrapper>
+              <TabWrapper short={true}>
                 <SecretsPanel selectedRequest={integration} />
               </TabWrapper>
             </Tab>
           )}
           <Tab eventKey="history" title="History">
-            <TabWrapper>
+            <TabWrapper short={true}>
               <UserEventPanel requestId={integration.id} />
             </TabWrapper>
           </Tab>
