@@ -10,6 +10,10 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      clientId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       clientName: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -232,6 +236,15 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         defaultValue: 0,
         allowNull: false,
+      },
+      provisioned: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      provisionedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
       },
     },
     {

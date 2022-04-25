@@ -25,6 +25,7 @@ const Title = styled(DefaultTitle)`
 const TabWrapper = styled.div`
   padding-left: 1rem;
   padding-right: 1rem;
+  max-width: 800px;
 `;
 
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
@@ -120,13 +121,13 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
           <Tab eventKey="installation-json" title="Installation JSON">
             <TabWrapper>
               <InstallationPanel selectedRequest={integration} />
+              {awaitingBceidProd && (
+                <>
+                  <Title>Production Status</Title>
+                  <BceidStatus request={integration} />
+                </>
+              )}
             </TabWrapper>
-            {awaitingBceidProd && (
-              <>
-                <Title>Production Status</Title>
-                <BceidStatus request={integration} />
-              </>
-            )}
           </Tab>
           {isGold && (
             <Tab eventKey="client-roles" title="Role Management">
