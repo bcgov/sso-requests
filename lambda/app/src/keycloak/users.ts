@@ -79,6 +79,7 @@ export const findClientRole = async (
     roleName: string;
   },
 ) => {
+  if (roleName?.length < 2) return null;
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
@@ -219,6 +220,8 @@ export const createRole = async (
     roleName: string;
   },
 ) => {
+  if (roleName?.length < 2) return [];
+
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
@@ -264,7 +267,7 @@ export const bulkCreateRole = async (
   forEach(rolesToCreate, (role) => {
     if (role.envs)
       forEach(role.envs, (env) => {
-        if (byEnv[env]) byEnv[env].push(role.name);
+        if (byEnv[env] && role.name?.length >= 2) byEnv[env].push(role.name);
       });
   });
 
@@ -305,6 +308,7 @@ export const deleteRole = async (
     roleName: string;
   },
 ) => {
+  if (roleName?.length < 2) return null;
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
