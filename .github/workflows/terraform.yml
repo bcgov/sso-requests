@@ -62,7 +62,7 @@ jobs:
           API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app
           APP_ENV=production
           ALLOW_SILVER=true
-          ALLOW_GOLD=false
+          ALLOW_GOLD=true
           TFC_WORKSPACE=xgr00q-prod-sso-requests
           SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
           SUBNET_A=App_Prod_aza_net
