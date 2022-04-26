@@ -1,39 +1,17 @@
 import React, { useState, useContext, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
-import Grid from '@button-inc/bcgov-theme/Grid';
+import { Resizable } from 're-resizable';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
+import ResponsiveContainer from 'components/ResponsiveContainer';
 import { RequestTabs } from 'components/RequestTabs';
-import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
+import { mediaRules } from './Layout';
 
-export const mediaRules: MediaRule[] = [
-  {
-    maxWidth: 900,
-    marginTop: 0,
-    marginLeft: 10,
-    marginRight: 10,
-    marginUnit: 'px',
-    horizontalAlign: 'none',
-  },
-  {
-    width: 480,
-    marginTop: 0,
-    marginLeft: 2.5,
-    marginRight: 2.5,
-    marginUnit: 'rem',
-    horizontalAlign: 'none',
-  },
-];
-
-// TODO: move this logic to component Grid default style
-const OverflowAuto = styled.div`
+const InnerResizable = styled.div`
+  height: 100%;
   overflow: auto;
-`;
-
-const WholePage = styled.div`
-  padding-top: 2px;
 `;
 
 export interface DispatchAction {
@@ -51,7 +29,7 @@ interface Props {
   children?: React.ReactNode;
 }
 
-function MyDashboardLayout({ tab, leftPanel, rightPanel, children }: Props) {
+function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -78,27 +56,23 @@ function MyDashboardLayout({ tab, leftPanel, rightPanel, children }: Props) {
   return (
     <ResponsiveContainer rules={mediaRules}>
       <RequestsContext.Provider value={contextValue}>
-        {children ? (
-          <WholePage>
-            {tabs}
-            {children}
-          </WholePage>
-        ) : (
-          <Grid cols={10}>
-            <Grid.Row collapse="1100" gutter={[15, 2]}>
-              <Grid.Col span={6}>
-                <OverflowAuto>
-                  {tabs}
-                  {leftPanel && leftPanel(state, dispatch)}
-                </OverflowAuto>
-              </Grid.Col>
-              <Grid.Col span={4}>{rightPanel && rightPanel(state, dispatch)}</Grid.Col>
-            </Grid.Row>
-          </Grid>
-        )}
+        {tabs}
+        <Resizable
+          style={{ paddingTop: '2px', borderBottom: '6px double #818181' }}
+          defaultSize={{
+            width: '100%',
+            height: window.innerHeight * 0.4,
+          }}
+          enable={{ bottom: true }}
+          handleStyles={{ bottom: { bottom: 0 } }}
+        >
+          <InnerResizable>{leftPanel && leftPanel(state, dispatch)}</InnerResizable>
+        </Resizable>
+        <br />
+        {rightPanel && rightPanel(state, dispatch)}
       </RequestsContext.Provider>
     </ResponsiveContainer>
   );
 }
 
-export default MyDashboardLayout;
+export default VerticalLayout;

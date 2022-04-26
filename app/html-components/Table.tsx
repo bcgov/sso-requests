@@ -45,14 +45,6 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
     text-align: left;
   }
 
-  th:last-child {
-    text-align: right;
-  }
-
-  td:last-child {
-    text-align: right;
-  }
-
   & th,
   & td {
     border: none;
@@ -68,10 +60,6 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   & th.w120,
   & td.w120 {
     width: 120px;
-  }
-
-  & td {
-    ${(props) => props.variant === 'mini' && `background-color: ${TABLE_ACTIVE_BLUE};`}
   }
 `;
 

@@ -63,8 +63,8 @@ export const getClient = async (
   if (serviceType === 'gold') realmName = 'standard';
 
   const realm = await kcAdminClient.realms.findOne({ realm: realmName });
-  const clients = await kcAdminClient.clients.find({ realm: realm.realm });
-  const client = clients.find((client) => client.clientId === clientId);
+  const clients = await kcAdminClient.clients.find({ realm: realm.realm, clientId, max: 1 });
+  const client = clients.length > 0 ? clients[0] : null;
 
   return { realm, client };
 };

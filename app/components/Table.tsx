@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { CSSProperties, useState } from 'react';
 import styled from 'styled-components';
 import { noop } from 'lodash';
 import Input from '@button-inc/bcgov-theme/Input';
@@ -16,8 +16,14 @@ import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
 import { Option } from 'interfaces/Request';
 
 const StyledMultiSelect = styled(MultiSelect)`
+  font-size: 0.9rem;
+
   .dropdown-container {
     border: 1.8px solid black !important;
+
+    .dropdown-heading {
+      height: 32px;
+    }
   }
 `;
 
@@ -47,12 +53,13 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
     ${(props) => `repeat(${props.itemsLength}, 1fr);`}
     &> * {
     margin-right: 10px;
+    white-space: nowrap;
   }
 `;
 
 interface Header {
   name: string;
-  style?: any;
+  style?: CSSProperties;
 }
 
 interface FilterItem {
@@ -65,10 +72,11 @@ interface Filter {
   multiselect?: boolean;
   onChange?: Function;
   options: Option[];
-  label: string;
+  label?: string;
 }
 
 interface Props {
+  variant?: string;
   headers: Header[];
   children: React.ReactNode;
   pageLimits?: FilterItem[];
@@ -78,6 +86,10 @@ interface Props {
   limit?: number;
   rowCount?: number;
   filters: Filter[];
+  searchLocation?: 'left' | 'right';
+  totalColSpan?: number;
+  searchColSpan?: number;
+  filterColSpan?: number;
   onSearch?: (val: string) => void;
   onEnter?: (val: string) => void;
   onFilter?: (val: any) => void;
@@ -152,11 +164,16 @@ const PaginationItems = ({ rowCount, limit, page, onPrev, onNext }: any) => {
 };
 
 function Table({
+  variant = 'medium',
   headers,
   children,
   onSearch = noop,
   onEnter = noop,
   filters = [] as Filter[],
+  searchLocation = 'left',
+  totalColSpan = 14,
+  searchColSpan = 4,
+  filterColSpan = 10,
   onLimit = noop,
   onPage,
   onPrev = noop,
@@ -205,69 +222,90 @@ function Table({
     </td>
   );
 
+  const searchCol = (
+    <Grid.Col span={searchColSpan}>
+      <Input
+        type="text"
+        size="small"
+        maxLength="1000"
+        placeholder={searchPlaceholder}
+        style={{ display: 'inline-block' }}
+        value={_searchKey}
+        onChange={handleSearchKeyChange}
+        onKeyUp={handleKeyUp}
+      />
+      <Button type="button" size="small" onClick={handleSearchSubmit}>
+        Search
+      </Button>
+    </Grid.Col>
+  );
+
+  const filterCol = (
+    <Grid.Col span={filterColSpan} style={{ textAlign: 'right' }}>
+      <FiltersContainer itemsLength={filters.length}>
+        {filters.map((filter, index) => (
+          <Label key={index}>
+            {filter.multiselect ? (
+              <>
+                {filter.label}
+                <StyledMultiSelect
+                  className="multiselect"
+                  options={filter.options}
+                  value={Array.isArray(filter.value) ? filter.value : []}
+                  onChange={filter.onChange}
+                  labelledBy="Select"
+                  hasSelectAll={false}
+                  overrideStrings={overrideStrings}
+                />
+              </>
+            ) : (
+              <>
+                {filter.label}
+                <Dropdown
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                    filter?.onChange && filter.onChange(event.target.value)
+                  }
+                  value={typeof filter.value === 'string' ? filter.value : ''}
+                >
+                  {filter.options.map((option) => (
+                    <option
+                      value={option.value}
+                      key={Array.isArray(option.value) ? JSON.stringify(option.value) : option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </Dropdown>
+              </>
+            )}
+          </Label>
+        ))}
+      </FiltersContainer>
+    </Grid.Col>
+  );
+
+  let leftCol = null;
+  let rightCol = null;
+  if (searchLocation === 'left') {
+    leftCol = searchCol;
+    rightCol = filterCol;
+  } else {
+    leftCol = filterCol;
+    rightCol = searchCol;
+  }
+
   return (
     <>
       <SectionHeader>
-        <Grid cols={14}>
+        <Grid cols={totalColSpan}>
           <Grid.Row collapse="1160" gutter={[]} align="center">
-            <Grid.Col span={4}>
-              <Input
-                type="text"
-                size="small"
-                placeholder={searchPlaceholder}
-                style={{ display: 'inline-block' }}
-                value={_searchKey}
-                onChange={handleSearchKeyChange}
-                onKeyUp={handleKeyUp}
-              />
-              <Button type="button" size="small" onClick={handleSearchSubmit}>
-                Search
-              </Button>
-            </Grid.Col>
-            <Grid.Col span={10} style={{ textAlign: 'right' }}>
-              <FiltersContainer itemsLength={filters.length}>
-                {filters.map((filter, index) => (
-                  <Label key={index}>
-                    {filter.multiselect ? (
-                      <>
-                        {filter.label}
-                        <StyledMultiSelect
-                          className="multiselect"
-                          options={filter.options}
-                          value={Array.isArray(filter.value) ? filter.value : []}
-                          onChange={filter.onChange}
-                          labelledBy="Select"
-                          hasSelectAll={false}
-                          overrideStrings={overrideStrings}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        {filter.label}
-                        <Dropdown
-                          onChange={filter.onChange}
-                          value={typeof filter.value === 'string' ? filter.value : ''}
-                        >
-                          {filter.options.map((option) => (
-                            <option
-                              value={option.value}
-                              key={Array.isArray(option.value) ? JSON.stringify(option.value) : option.value}
-                            >
-                              {option.label}
-                            </option>
-                          ))}
-                        </Dropdown>
-                      </>
-                    )}
-                  </Label>
-                ))}
-              </FiltersContainer>
-            </Grid.Col>
+            {leftCol}
+            {rightCol}
           </Grid.Row>
         </Grid>
       </SectionHeader>
 
-      <StyledTable>
+      <StyledTable variant={variant}>
         <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
           <thead>
             <tr>

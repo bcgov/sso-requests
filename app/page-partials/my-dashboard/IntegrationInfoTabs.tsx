@@ -4,6 +4,8 @@ import Tab from 'react-bootstrap/Tab';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import SecretsPanel from 'page-partials/my-dashboard/SecretsPanel';
+import ClientRoles from 'page-partials/my-dashboard/ClientRoles';
+import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
@@ -20,9 +22,10 @@ const Title = styled(DefaultTitle)`
   margin-top: 10px;
 `;
 
-const TabWrapper = styled.div`
+const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
   padding-right: 1rem;
+  ${(props) => (props.short ? 'max-width: 800px;' : '')}
 `;
 
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
@@ -61,6 +64,8 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   const { status, environments = [], bceidApproved } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
   const awaitingBceidProd = usesBceid(integration) && environments.includes('prod') && !bceidApproved;
+  const isGold = integration.serviceType === 'gold';
+
   let panel = null;
 
   if (displayStatus === 'In Draft') {
@@ -79,7 +84,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
     panel = (
       <RequestTabs activeKey="Integration-request-summary">
         <Tab eventKey="Integration-request-summary" title="Integration Request Summary">
-          <TabWrapper>
+          <TabWrapper short={true}>
             {awaitingBceidProd ? (
               <>
                 <NumberedContents
@@ -107,31 +112,50 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   } else if (displayStatus === 'Completed') {
     panel = (
       <>
-        <RequestTabs activeKey={panelTab} onSelect={(k: TabKey) => dispatch($setPanelTab(k))}>
+        <RequestTabs
+          activeKey={panelTab}
+          mountOnEnter={true}
+          unmountOnExit={true}
+          onSelect={(k: TabKey) => dispatch($setPanelTab(k))}
+        >
           <Tab eventKey="installation-json" title="Installation JSON">
-            <TabWrapper>
+            <TabWrapper short={true}>
               <InstallationPanel selectedRequest={integration} />
+              {awaitingBceidProd && (
+                <>
+                  <Title>Production Status</Title>
+                  <BceidStatus request={integration} />
+                </>
+              )}
             </TabWrapper>
           </Tab>
+          {isGold && (
+            <Tab eventKey="client-roles" title="Role Management">
+              <TabWrapper>
+                <ClientRoles selectedRequest={integration} />
+              </TabWrapper>
+            </Tab>
+          )}
+          {isGold && (
+            <Tab eventKey="user-roles" title="Assign Users to Roles">
+              <TabWrapper>
+                <UserRoles selectedRequest={integration} />
+              </TabWrapper>
+            </Tab>
+          )}
           {!integration.publicAccess && (
             <Tab eventKey="configuration-url" title="Secrets">
-              <TabWrapper>
+              <TabWrapper short={true}>
                 <SecretsPanel selectedRequest={integration} />
               </TabWrapper>
             </Tab>
           )}
           <Tab eventKey="history" title="History">
-            <TabWrapper>
+            <TabWrapper short={true}>
               <UserEventPanel requestId={integration.id} />
             </TabWrapper>
           </Tab>
         </RequestTabs>
-        {awaitingBceidProd && (
-          <>
-            <Title>Production Status</Title>
-            <BceidStatus request={integration} />
-          </>
-        )}
       </>
     );
   }

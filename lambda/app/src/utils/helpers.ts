@@ -95,10 +95,10 @@ export const getDifferences = (newData: any, originalData: Request) => {
 };
 
 export const validateRequest = (formData: any, original: Request, isUpdate = false, teams: any[]) => {
-  if (isUpdate) {
-    const differences = getDifferences(formData, original);
-    if (!differences) return { message: errorMessage };
-  }
+  // if (isUpdate) {
+  //   const differences = getDifferences(formData, original);
+  //   if (!differences) return errorMessage;
+  // }
 
   const schemas = getSchemas({ formData, teams });
   return validateForm(formData, schemas);

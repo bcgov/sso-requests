@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.2.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -14,23 +14,17 @@ repos:
       - id: trailing-whitespace
         exclude: 'lambda/__tests__/__snapshots__'
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.3.1
+    rev: v2.6.2
     hooks:
       - id: prettier
-  # - repo: https://github.com/pre-commit/mirrors-eslint
-  #   rev: v7.29.0
-  #   hooks:
-  #     - id: eslint
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.50.0
+    rev: v1.64.1
     hooks:
       - id: terraform_fmt
-      # let's comment this out to avoid errors of zip files not exists
-      # - id: terraform_validate
       - id: terraform_docs
       - id: terraform_tflint
   - repo: https://github.com/jorisroovers/gitlint
-    rev: v0.12.0
+    rev: v0.17.0
     hooks:
       - id: gitlint
 default_stages: [commit]
