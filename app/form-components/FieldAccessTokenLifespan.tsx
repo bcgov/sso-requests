@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FieldTemplateProps } from 'react-jsonschema-form';
+import InfoOverlay from 'components/InfoOverlay';
 import FieldTemplate from './FieldTemplate';
 
 const Container = styled.div`
@@ -15,9 +16,15 @@ const Title = styled.legend`
 
 export default function FieldAccessTokenLifespan(props: FieldTemplateProps) {
   const top = (
-    <Container>
-      <Title>Additional Settings (Optional)</Title>
-    </Container>
+    <>
+      <Container>
+        <Title>
+          Additional Settings (Optional)&nbsp;
+          <InfoOverlay content="If you would like this set for your integration, please contact the Pathifnder SSO Team" />
+        </Title>
+      </Container>
+      <br />
+    </>
   );
 
   return <FieldTemplate {...props} top={top} />;
