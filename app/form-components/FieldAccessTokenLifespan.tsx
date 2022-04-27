@@ -20,7 +20,7 @@ export default function FieldAccessTokenLifespan(props: FieldTemplateProps) {
       <Container>
         <Title>
           Additional Settings (Optional)&nbsp;
-          <InfoOverlay content="If you would like this set for your integration, please contact the Pathifnder SSO Team" />
+          <InfoOverlay content="If you would like this to be set for your integration, please contact the Pathifnder SSO Team" />
         </Title>
       </Container>
       <br />
