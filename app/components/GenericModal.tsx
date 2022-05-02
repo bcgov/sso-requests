@@ -69,6 +69,8 @@ interface Props {
   cancelButtonText?: string;
   confirmButtonVariant?: string;
   cancelButtonVariant?: string;
+  showConfirmButton?: boolean;
+  showCancelButton?: boolean;
   buttonAlign?: 'center' | 'default';
   style?: CSSProperties;
 }
@@ -86,6 +88,8 @@ const GenericModal = (
     cancelButtonText = 'Cancel',
     confirmButtonVariant = 'bcPrimary',
     cancelButtonVariant = 'bcSecondary',
+    showConfirmButton = true,
+    showCancelButton = true,
     buttonAlign = 'default',
     style = {},
   }: Props,
@@ -118,6 +122,10 @@ const GenericModal = (
     window.location.hash = '#';
   };
 
+  if (typeof children === 'function') {
+    children = children(context);
+  }
+
   let _children: any[] = [];
   if (typeof children === 'object') {
     if (Array.isArray(children)) {
@@ -145,12 +153,20 @@ const GenericModal = (
       <Modal.Content style={style}>
         {_children}
         <ButtonContainer buttonAlign={buttonAlign}>
-          <Button variant={cancelButtonVariant} onClick={handleCancel} type="button">
-            {cancelButtonText}
-          </Button>
-          <Button onClick={handleConfirm} variant={confirmButtonVariant} type="button">
-            {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : confirmButtonText}
-          </Button>
+          {showCancelButton && (
+            <Button variant={cancelButtonVariant} onClick={handleCancel} type="button">
+              {cancelButtonText}
+            </Button>
+          )}
+          {showConfirmButton && (
+            <Button onClick={handleConfirm} variant={confirmButtonVariant} type="button">
+              {loading ? (
+                <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} />
+              ) : (
+                confirmButtonText
+              )}
+            </Button>
+          )}
         </ButtonContainer>
       </Modal.Content>
     </StyledModal>

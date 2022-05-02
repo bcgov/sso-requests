@@ -11,7 +11,7 @@ import { PRIMARY_RED } from 'styles/theme';
 export const ActionButtonContainer = styled.div`
   height: 100%;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   padding-right: 15px;
   & > * {

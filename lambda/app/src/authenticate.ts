@@ -47,7 +47,7 @@ const validateJWTSignature = async (token) => {
       throw new Error('IDP is not IDIR');
     }
 
-    return { idir_userid, email, client_roles: client_roles || [], family_name, given_name };
+    return { idir_userid, email, client_roles: client_roles || [], family_name, given_name, bearerToken: null };
   } catch (err) {
     console.log(err);
     return false;
@@ -63,5 +63,6 @@ export const authenticate = async (headers) => {
   const currentUser = await validateJWTSignature(bearerToken);
   if (!currentUser) return currentUser;
 
+  currentUser.bearerToken = bearerToken;
   return currentUser;
 };

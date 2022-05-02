@@ -40,6 +40,7 @@
     "CHES_USERNAME": "",
     "CHES_PASSWORD": "",
     "VERIFY_USER_SECRET": "asdf",
-    "API_URL": "http://localhost:8080"
+    "API_URL": "http://localhost:8080",
+    "BCEID_WEBSERVICE_PROXY": "http://localhost:3000"
   }
 }
