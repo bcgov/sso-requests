@@ -36,3 +36,7 @@ variable "keycloak_v2_test_client_secret" {
 variable "keycloak_v2_prod_client_secret" {
   description = "Keycloak v2 service account client secret in customer prod environment"
 }
+
+variable "bceid_webservice_proxy" {
+  description = "BCEID Webservice proxy endpoint"
+}
