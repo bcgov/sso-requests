@@ -15,6 +15,12 @@ import 'react-placeholder/lib/reactPlaceholder.css';
 import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
 import { Option } from 'interfaces/Request';
 
+const StyledInput = styled(Input)`
+  input {
+    width: 100%;
+  }
+`;
+
 const StyledMultiSelect = styled(MultiSelect)`
   font-size: 0.9rem;
 
@@ -224,19 +230,26 @@ function Table({
 
   const searchCol = (
     <Grid.Col span={searchColSpan}>
-      <Input
-        type="text"
-        size="small"
-        maxLength="1000"
-        placeholder={searchPlaceholder}
-        style={{ display: 'inline-block' }}
-        value={_searchKey}
-        onChange={handleSearchKeyChange}
-        onKeyUp={handleKeyUp}
-      />
-      <Button type="button" size="small" onClick={handleSearchSubmit}>
-        Search
-      </Button>
+      <Grid cols={12}>
+        <Grid.Row gutter={[]} align="center">
+          <Grid.Col span={8}>
+            <StyledInput
+              type="text"
+              size="small"
+              maxLength="1000"
+              placeholder={searchPlaceholder}
+              value={_searchKey}
+              onChange={handleSearchKeyChange}
+              onKeyUp={handleKeyUp}
+            />
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <Button type="button" size="small" onClick={handleSearchSubmit}>
+              Search
+            </Button>
+          </Grid.Col>
+        </Grid.Row>
+      </Grid>
     </Grid.Col>
   );
 
