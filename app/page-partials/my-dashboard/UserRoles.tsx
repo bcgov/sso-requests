@@ -291,30 +291,28 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           <td>{row.lastName}</td>
           <td>{row.email}</td>
           <td>
-            <td>
-              <ActionButtonContainer>
-                <ActionButton
-                  icon={faEye}
-                  role="button"
-                  aria-label="view"
-                  onClick={(event) => {
-                    event.stopPropagation();
+            <ActionButtonContainer>
+              <ActionButton
+                icon={faEye}
+                role="button"
+                aria-label="view"
+                onClick={(event) => {
+                  event.stopPropagation();
 
-                    modalRef.current.open({
-                      guid: row.username.split('@')[0],
-                      attributes: {
-                        firstName: row.firstName,
-                        lastName: row.lastName,
-                        email: row.email,
-                        ...row.attributes,
-                      },
-                    });
-                  }}
-                  title="View"
-                  size="lg"
-                />
-              </ActionButtonContainer>
-            </td>
+                  modalRef.current.open({
+                    guid: row.username.split('@')[0],
+                    attributes: {
+                      firstName: row.firstName,
+                      lastName: row.lastName,
+                      email: row.email,
+                      ...row.attributes,
+                    },
+                  });
+                }}
+                title="View"
+                size="lg"
+              />
+            </ActionButtonContainer>
           </td>
         </tr>
       );

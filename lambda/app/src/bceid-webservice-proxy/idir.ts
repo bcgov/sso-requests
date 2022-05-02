@@ -33,7 +33,7 @@ export const importIdirUser = async (bearerToken: string, { guid, userId }: { gu
     displayName: result.displayName,
   });
 
-  const aa = await Promise.all(
+  await Promise.all(
     ['dev', 'test', 'prod'].map((env) =>
       createIdirUser({
         environment: env,
