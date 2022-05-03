@@ -96,6 +96,7 @@ interface Props {
   totalColSpan?: number;
   searchColSpan?: number;
   filterColSpan?: number;
+  showContent?: boolean;
   onSearch?: (val: string) => void;
   onEnter?: (val: string) => void;
   onFilter?: (val: any) => void;
@@ -180,6 +181,7 @@ function Table({
   totalColSpan = 14,
   searchColSpan = 4,
   filterColSpan = 10,
+  showContent = true,
   onLimit = noop,
   onPage,
   onPrev = noop,
@@ -318,45 +320,49 @@ function Table({
         </Grid>
       </SectionHeader>
 
-      <StyledTable variant={variant}>
-        <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
-          <thead>
-            <tr>
-              {headers.map((header, index) => {
-                return (
-                  <th key={index} style={header.style || {}}>
-                    {header.name}
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>{children}</tbody>
-        </ReactPlaceholder>
-      </StyledTable>
-      {pageLimits && (
-        <Grid cols={12}>
-          <Grid.Row collapse="992" gutter={[]} align="center">
-            <Grid.Col span={8}>
-              <StyledPagination>
-                {onPage ? (
-                  <PaginationItemsDetail rowCount={rowCount} limit={limit} page={page} onPage={onPage} />
-                ) : (
-                  <PaginationItems rowCount={rowCount} limit={limit} page={page} onPrev={onPrev} onNext={onNext} />
-                )}
-              </StyledPagination>
-            </Grid.Col>
-            <Grid.Col span={4} style={{ textAlign: 'right' }}>
-              <Dropdown
-                style={{ display: 'inline-block', width: '160px' }}
-                value={String(limit)}
-                onChange={handlePageLimitChange}
-              >
-                {generateOptions(pageLimits)}
-              </Dropdown>
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
+      {showContent && (
+        <>
+          <StyledTable variant={variant}>
+            <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
+              <thead>
+                <tr>
+                  {headers.map((header, index) => {
+                    return (
+                      <th key={index} style={header.style || {}}>
+                        {header.name}
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>{children}</tbody>
+            </ReactPlaceholder>
+          </StyledTable>
+          {pageLimits && (
+            <Grid cols={12}>
+              <Grid.Row collapse="992" gutter={[]} align="center">
+                <Grid.Col span={8}>
+                  <StyledPagination>
+                    {onPage ? (
+                      <PaginationItemsDetail rowCount={rowCount} limit={limit} page={page} onPage={onPage} />
+                    ) : (
+                      <PaginationItems rowCount={rowCount} limit={limit} page={page} onPrev={onPrev} onNext={onNext} />
+                    )}
+                  </StyledPagination>
+                </Grid.Col>
+                <Grid.Col span={4} style={{ textAlign: 'right' }}>
+                  <Dropdown
+                    style={{ display: 'inline-block', width: '160px' }}
+                    value={String(limit)}
+                    onChange={handlePageLimitChange}
+                  >
+                    {generateOptions(pageLimits)}
+                  </Dropdown>
+                </Grid.Col>
+              </Grid.Row>
+            </Grid>
+          )}
+        </>
       )}
     </>
   );

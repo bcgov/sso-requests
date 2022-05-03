@@ -32,6 +32,12 @@ const Readonly = styled.div<{ width?: string }>`
   ${(props) => (props.width ? `width: ${props.width};` : `width: 300px;`)}
 `;
 
+const ReadonlySubHeader = styled.div<{ width?: string }>`
+  font-size: 0.9rem;
+  font-weight: 700;
+  ${(props) => (props.width ? `width: ${props.width};` : `width: 300px;`)}
+`;
+
 const ReadonlyItem = ({ children, width }: { children: React.ReactNode; width?: string }) => {
   return (
     <Readonly width={width}>
@@ -325,10 +331,16 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             <FlexItem>
               <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
             </FlexItem>
-            <FlexItem>
-              The search criteria you entered does not exist in this Keycloak realm. If your user has already logged
-              into your application, please try again.
-            </FlexItem>
+            {selectedIdp === 'idir' ? (
+              <FlexItem>
+                The user you searched for does not exist. Please try again, by entering the full search criteria or try
+                using our IDIR Lookup tool.
+              </FlexItem>
+            ) : (
+              <FlexItem>
+                The user you searched for does not exist. Please try again, by entering the full search criteria.
+              </FlexItem>
+            )}
           </FlexBox>
         </td>
       </tr>
@@ -406,7 +418,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
       idirLookup = (
         <>
-          <hr />
           <PlainTable variant="mini">
             <thead>
               <th>First Name</th>
@@ -422,10 +433,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     } else {
       idirLookup = (
         <>
-          <div className="fst-italic small mb-1">
-            If you did not find the user you were looking for, you can try searching for the user in our IDIR Lookup
-            tool. This tool uses a webservice to find IDIR users. so you will need to import the user that is found.
-          </div>
+          {rows.length > 0 && (
+            <div className="fst-italic small mb-1">
+              If you did not find the user you were looking for, you can try searching for the user in our IDIR Lookup
+              tool. This tool uses a webservice to find IDIR users. so you will need to import the user that is found.
+            </div>
+          )}
           <Button type="button" size="small" onClick={handleIdirSearch}>
             Search in IDIR Lookup
           </Button>
@@ -477,6 +490,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               totalColSpan={20}
               searchColSpan={8}
               filterColSpan={12}
+              showContent={!idirSearched}
             >
               {content}
             </Table>
@@ -507,10 +521,14 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               <ReadonlyItem width="400px">{context.guid}</ReadonlyItem>
               <br />
               <Label>Attributes</Label>
+              <ReadonlyContainer>
+                <ReadonlySubHeader width="200px">key</ReadonlySubHeader>
+                <ReadonlySubHeader width="700px">value</ReadonlySubHeader>
+              </ReadonlyContainer>
               {map(attributes, (val, key) => (
                 <ReadonlyContainer>
-                  <ReadonlyItem width="150px">{startCase(key)}</ReadonlyItem>
-                  <ReadonlyItem width="400px">{val}</ReadonlyItem>
+                  <ReadonlyItem width="200px">{startCase(key)}</ReadonlyItem>
+                  <ReadonlyItem width="700px">{val}</ReadonlyItem>
                 </ReadonlyContainer>
               ))}
             </div>
