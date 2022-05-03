@@ -249,7 +249,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     leftContent = (
       <tbody>
         <tr>
-          <td colSpan={2}>You do not have any roles found.</td>
+          <td colSpan={2}>No roles found.</td>
         </tr>
       </tbody>
     );
