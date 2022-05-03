@@ -5,6 +5,7 @@ import { Button } from '@bcgov-sso/common-react-components';
 import { faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { noop, startCase } from 'lodash';
 import InfiniteScroll from 'react-infinite-scroller';
+import Input from '@button-inc/bcgov-theme/Input';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Loader from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
@@ -15,6 +16,14 @@ import { ActionButton } from 'components/ActionButtons';
 import Table from 'html-components/Table';
 import CreateRoleContent from './roles/CreateRoleContent';
 import { searchKeycloakUsers, listClientRoles, deleteRole, listRoleUsers, KeycloakUser } from 'services/keycloak';
+
+const StyledInput = styled(Input)`
+  display: inline-block;
+  input {
+    min-width: 200px;
+    height: 40px;
+  }
+`;
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -47,6 +56,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
   const [roleLoading, setRoleLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
   const [firstRole, setFirstRole] = useState(0);
+  const [searchKey, setSearchKey] = useState('');
   const [maxRole, setMaxRole] = useState(20);
   const [hasMoreRole, setHasMoreRole] = useState(true);
   const [firstUser, setFirstUser] = useState(0);
@@ -90,6 +100,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
       environment: tab,
       integrationId: selectedRequest.id as number,
       first: _first,
+      search: searchKey,
       max: maxRole,
     });
 
@@ -131,6 +142,16 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     setFirstUser(_first + maxUser);
     setSelctedRole(roleName);
     setUserLoading(false);
+  };
+
+  const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchKey(event.target.value);
+  };
+
+  const handleSearchKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      fetchRoles(true);
+    }
   };
 
   const handleDelete = async (roleName: string) => {
@@ -228,7 +249,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     leftContent = (
       <tbody>
         <tr>
-          <td colSpan={2}>You do not have any roles created yet.</td>
+          <td colSpan={2}>You do not have any roles found.</td>
         </tr>
       </tbody>
     );
@@ -266,7 +287,24 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
           <Tab eventKey={env} title={startCase(env)} />
         ))}
       </RequestTabs>
+
+      <div>
+        <StyledInput
+          type="text"
+          size="small"
+          maxLength="1000"
+          placeholder="Search existing roles"
+          value={searchKey}
+          onChange={handleSearchKeyChange}
+          onKeyUp={handleSearchKeyUp}
+        />
+        <Button type="button" size="small" variant="bcPrimary" onClick={() => fetchRoles(true)}>
+          Search
+        </Button>
+      </div>
+
       <TopMargin />
+
       {firstRole === 0 && roleLoading ? (
         <LoaderContainer />
       ) : (
