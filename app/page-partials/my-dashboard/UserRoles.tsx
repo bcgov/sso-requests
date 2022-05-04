@@ -23,18 +23,20 @@ const Label = styled.label`
 
 const ReadonlyContainer = styled.div`
   display: flex;
+  & > div:first-child {
+    margin-right: 20px;
+  }
 `;
 
 const Readonly = styled.div<{ width?: string }>`
   background-color: #f1f1f1;
-  margin: 2px 4px 2px 0;
+  margin: 2px 0 2px 0;
   padding: 4px 6px;
   ${(props) => (props.width ? `width: ${props.width};` : `width: 300px;`)}
 `;
 
 const ReadonlySubHeader = styled.div<{ width?: string }>`
   font-size: 0.9rem;
-  font-weight: 700;
   ${(props) => (props.width ? `width: ${props.width};` : `width: 300px;`)}
 `;
 
@@ -185,7 +187,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       searchKey,
     });
 
-    if (data) setRows(data);
+    if (data) {
+      setRows(data);
+      if (data.length === 1) {
+        setSelectedId(data[0].username);
+      }
+    }
     setLoading(false);
   };
 
@@ -501,13 +508,13 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       </Grid>
       <GenericModal
         ref={modalRef}
-        title="User Info"
+        title="Additional User Info"
         icon={null}
-        confirmButtonText="Close"
-        confirmButtonVariant="primary"
-        showConfirmButton={true}
-        showCancelButton={false}
-        buttonAlign="center"
+        cancelButtonText="Close"
+        cancelButtonVariant="primary"
+        showConfirmButton={false}
+        showCancelButton={true}
+        buttonAlign="right"
         style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
       >
         {(context: { guid: string; attributes: any }) => {
@@ -522,8 +529,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               <br />
               <Label>Attributes</Label>
               <ReadonlyContainer>
-                <ReadonlySubHeader width="200px">key</ReadonlySubHeader>
-                <ReadonlySubHeader width="700px">value</ReadonlySubHeader>
+                <ReadonlySubHeader width="200px">Key</ReadonlySubHeader>
+                <ReadonlySubHeader width="700px">Value</ReadonlySubHeader>
               </ReadonlyContainer>
               {map(attributes, (val, key) => (
                 <ReadonlyContainer>

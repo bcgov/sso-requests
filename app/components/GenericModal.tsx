@@ -34,11 +34,11 @@ const PaddedIcon = styled(FontAwesomeIcon)`
   height: 30px;
 `;
 
-const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
+const ButtonContainer = styled.div<{ buttonAlign: 'center' | 'right' | 'none' }>`
   min-width: 350px;
   margin-top: 20px;
   display: flex;
-  justify-content: ${(props) => (props.buttonAlign === 'center' ? 'center;' : 'space-between;')} & button {
+  justify-content: ${(props) => (props.buttonAlign === 'none' ? 'space-between;' : `${props.buttonAlign};`)} & button {
     min-width: 150px;
     display: inline-block;
   }
@@ -71,7 +71,7 @@ interface Props {
   cancelButtonVariant?: string;
   showConfirmButton?: boolean;
   showCancelButton?: boolean;
-  buttonAlign?: 'center' | 'default';
+  buttonAlign?: 'center' | 'right' | 'none';
   style?: CSSProperties;
 }
 
@@ -90,7 +90,7 @@ const GenericModal = (
     cancelButtonVariant = 'bcSecondary',
     showConfirmButton = true,
     showCancelButton = true,
-    buttonAlign = 'default',
+    buttonAlign = 'none',
     style = {},
   }: Props,
   ref?: any,
