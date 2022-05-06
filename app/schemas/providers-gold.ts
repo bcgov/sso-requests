@@ -21,7 +21,7 @@ export default function getSchema(integration: Request) {
         items: {
           type: 'string',
           enum: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
-          enumNames: ['IDIR', 'IDIR Azure & Beta', 'BCeID Basic', 'BCeID Business', 'BCeID Both'],
+          enumNames: ['IDIR', 'IDIR (Azure)', 'BCeID Basic', 'BCeID Business', 'BCeID Both'],
         },
         uniqueItems: true,
       },
