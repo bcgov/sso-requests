@@ -82,6 +82,10 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     reset();
   }, [tab]);
 
+  useEffect(() => {
+    fetchUsers(true, selectedRole);
+  }, [selectedRole]);
+
   const fetchRoles = async (loadFirst: boolean) => {
     if (roleLoading) return;
 
@@ -91,6 +95,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     setRoleLoading(true);
     if (loadFirst) {
       setFirstRole(_first);
+      setSelctedRole('');
     } else {
       _first = firstRole;
       _roles = roles;
@@ -105,15 +110,21 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     });
 
     const _data = data || [];
+    const allroles = _roles.concat(_data);
 
     setHasMoreRole(_data.length === maxRole);
-    setRoles(_roles.concat(_data));
+    setRoles(allroles);
     setFirstRole(_first + maxRole);
     setRoleLoading(false);
+
+    if (allroles.length === 1) {
+      setSelctedRole(allroles[0]);
+    }
   };
 
   const fetchUsers = async (loadFirst: boolean, roleName: string) => {
     if (userLoading) return;
+    if (roleName.length < 2) return;
 
     let _first = 0;
     let _users: KeycloakUser[] = [];
@@ -220,7 +231,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
               key={role}
               className={selectedRole === role ? 'active' : ''}
               onClick={() => {
-                fetchUsers(true, role);
+                setSelctedRole(role);
               }}
             >
               <td>{role}</td>
