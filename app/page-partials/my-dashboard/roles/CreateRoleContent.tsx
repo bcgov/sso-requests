@@ -2,8 +2,9 @@ import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
+import { forEach } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPlusCircle, faMinusCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, bulkCreateRole, KeycloakUser } from 'services/keycloak';
 
 const Table = styled.table`
@@ -18,6 +19,18 @@ const AddNewButton = styled.span`
   & span {
     margin-left: 5px;
   }
+`;
+
+const FlexBox = styled.div`
+  display: flex;
+  & > * {
+    padding-right: 0.5rem;
+  }
+`;
+
+const FlexItem = styled.div`
+  padding-top: 10px;
+  padding-bottom: 10px;
 `;
 
 const ErrorMessage = styled.div`
@@ -44,15 +57,49 @@ const emptyRole: NewRole = {
   envs: ['dev'],
 };
 
+interface Failures {
+  [key: string]: string[];
+}
+
 function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref: any) {
+  const [submitted, setSubmitted] = useState(false);
+  const [failures, setFailures] = useState<Failures>({});
   const [roles, setRoles] = useState<NewRole[]>([emptyRole]);
 
   useImperativeHandle(ref, () => ({
     submit: async () => {
-      await bulkCreateRole({ integrationId, roles });
+      // if submitted already, prepare data from the failed ones
+      let _roles = roles;
+      if (submitted) {
+        _roles = [];
+        forEach(failures, (envs, role) => {
+          _roles.push({ name: role, envs });
+        });
+      }
+
+      const [results, error] = await bulkCreateRole({ integrationId, roles: _roles });
+      const _failures: any = {};
+      let hasError = false;
+
+      // display failed ones if exists
+      forEach(results, (env) => {
+        if (env.failure.length > 0) {
+          forEach(env.failure, (role) => {
+            if (!_failures[role]) _failures[role] = [];
+            _failures[role].push(env.env);
+            hasError = true;
+          });
+        }
+      });
+
+      setFailures(_failures);
+      setSubmitted(true);
+      return hasError;
     },
     reset: () => {
       setRoles([emptyRole]);
+      setFailures({});
+      setSubmitted(false);
     },
   }));
 
@@ -110,6 +157,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                       minLength="2"
                       maxLength="100"
                       value={role.name}
+                      disabled={submitted}
                       onChange={(event: any) => handleNameChange(index, event.target.value)}
                     />
                   </td>
@@ -118,6 +166,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                       value={role.envs.map((env) => ({ value: env, label: env }))}
                       options={environments.map((env) => ({ value: env, label: env }))}
                       isMulti={true}
+                      isDisabled={submitted}
                       placeholder="Select..."
                       noOptionsMessage={() => 'You selected all environments'}
                       onChange={(
@@ -127,10 +176,19 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                           label: string;
                         }>,
                       ) => handleRoleChange(index, newValue, actionMeta)}
+                      styles={{
+                        multiValue: (base, state) => {
+                          if (failures[role.name] && failures[role.name].includes(state.children as string)) {
+                            return { ...base, backgroundColor: '#F1BFBF' };
+                          }
+
+                          return base;
+                        },
+                      }}
                     />
                   </td>
                   <td>
-                    {roles.length > 1 && (
+                    {!submitted && roles.length > 1 && (
                       <AddNewButton onClick={() => handleRemove(index)}>
                         <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} title="Remove Role" />
                       </AddNewButton>
@@ -145,18 +203,33 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
             </tr>
           )}
           <tr>
-            <td colSpan={3}>
-              {roles.length < 20 ? (
-                <AddNewButton onClick={handleAdd}>
-                  <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Role" />
-                  <span>Add another role</span>
-                </AddNewButton>
-              ) : (
-                <ErrorMessage>
-                  You can only create 20 roles at a time. Please save before creating any new roles.
-                </ErrorMessage>
-              )}
-            </td>
+            {submitted ? (
+              <td colSpan={3}>
+                <FlexBox>
+                  <FlexItem>
+                    <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
+                  </FlexItem>
+                  <FlexItem>
+                    We were unable to save some of your changes.
+                    <br />
+                    <div className="fw-bold">Please try submitting again.</div>
+                  </FlexItem>
+                </FlexBox>
+              </td>
+            ) : (
+              <td colSpan={3}>
+                {roles.length < 20 ? (
+                  <AddNewButton onClick={handleAdd}>
+                    <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Role" />
+                    <span>Add another role</span>
+                  </AddNewButton>
+                ) : (
+                  <ErrorMessage>
+                    You can only create 20 roles at a time. Please save before creating any new roles.
+                  </ErrorMessage>
+                )}
+              </td>
+            )}
           </tr>
         </tbody>
       </Table>

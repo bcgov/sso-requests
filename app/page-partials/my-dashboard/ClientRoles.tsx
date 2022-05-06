@@ -332,10 +332,14 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         title="Create New Role"
         icon={null}
         onConfirm={async (contentRef: any) => {
-          await contentRef.current.submit();
-          await contentRef.current.reset();
-
-          reset();
+          const hasError = await contentRef.current.submit();
+          if (!hasError) {
+            await contentRef.current.reset();
+            modalRef.current.close();
+            reset();
+          } else {
+            modalRef.current.updateConfig({ confirmButtonText: 'Try Again' });
+          }
         }}
         onCancel={(contentRef: any) => {
           contentRef.current.reset();
