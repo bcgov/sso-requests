@@ -262,7 +262,7 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
                 </a>
                 , for each of your projects in the{' '}
                 <span className="strong">
-                  Silver realms. At this time, Silver realms will not be supported as of Jan. 30 2023.
+                  Silver realms. At this time, Silver realms will not be supported as of Jan. 30 2023*.
                 </span>
               </span>
             </Alert>
