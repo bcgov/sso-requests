@@ -48,8 +48,11 @@ export const getAuthorizationUrl = async (otherParams: AuthUrlParams) => {
 
 export const getAccessToken = async ({ code, state }: { code: string; state: string }) => {
   // PKCE workflow
-  if (sessionStorage.getItem('pkce_state') !== state) {
-    console.error('invalid state');
+  const expectedState = sessionStorage.getItem('pkce_state');
+  if (expectedState !== state) {
+    console.error('invalid pkce state');
+    console.error('expected: ' + expectedState);
+    console.error('received: ' + state);
     return null;
   }
 
