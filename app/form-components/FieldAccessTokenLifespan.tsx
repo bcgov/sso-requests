@@ -4,7 +4,7 @@ import { FieldTemplateProps } from 'react-jsonschema-form';
 import InfoOverlay from 'components/InfoOverlay';
 import FieldTemplate from './FieldTemplate';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCommentDots, faEnvelope, faFileAlt, faUserAlt } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 const Container = styled.div`
   margin-top: var(--field-top-spacing);
 `;
