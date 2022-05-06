@@ -119,7 +119,6 @@ const GenericModal = (
       window.location.hash = '#';
     },
     updateConfig: (data: any) => {
-      console.log(data);
       setConfig({ ...config, ...data });
     },
     getId: () => id,
