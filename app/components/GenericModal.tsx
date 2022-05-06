@@ -48,19 +48,21 @@ export type ButtonStyle = 'bcgov' | 'custom' | 'danger';
 export interface ModalRef {
   open: (context?: any) => void;
   close: () => void;
+  updateConfig: (data: any) => void;
   getId: () => any;
 }
 
 export const emptyRef: ModalRef = {
   open: noop,
   close: noop,
+  updateConfig: noop,
   getId: () => 1,
 };
 
 interface Props {
   id?: string;
   title?: string;
-  onConfirm?: (ref: any, context: any) => void;
+  onConfirm?: (ref: any, context: any) => any;
   onCancel?: (ref: any, context: any) => void;
   closable?: boolean;
   children?: React.ReactNode;
@@ -79,7 +81,7 @@ const GenericModal = (
   {
     id = new Date().getTime().toString(),
     title = '',
-    onConfirm = noop,
+    onConfirm = (ref: any, context: any) => true,
     onCancel = noop,
     closable = true,
     children,
@@ -98,6 +100,15 @@ const GenericModal = (
   const contentRef = useRef<any>();
   const [loading, setLoading] = useState(false);
   const [context, setContext] = useState<any>(null);
+  const [config, setConfig] = useState<any>({
+    confirmButtonText,
+    cancelButtonText,
+    confirmButtonVariant,
+    cancelButtonVariant,
+    showConfirmButton,
+    showCancelButton,
+    buttonAlign,
+  });
 
   useImperativeHandle(ref, () => ({
     open: (context: any) => {
@@ -107,14 +118,18 @@ const GenericModal = (
     close: () => {
       window.location.hash = '#';
     },
+    updateConfig: (data: any) => {
+      console.log(data);
+      setConfig({ ...config, ...data });
+    },
     getId: () => id,
   }));
 
   const handleConfirm = async () => {
     setLoading(true);
-    await onConfirm(contentRef, context);
+    const close = await onConfirm(contentRef, context);
     setLoading(false);
-    window.location.hash = '#';
+    if (close) window.location.hash = '#';
   };
 
   const handleCancel = async () => {
@@ -152,18 +167,18 @@ const GenericModal = (
       </Header>
       <Modal.Content style={style}>
         {_children}
-        <ButtonContainer buttonAlign={buttonAlign}>
-          {showCancelButton && (
-            <Button variant={cancelButtonVariant} onClick={handleCancel} type="button">
-              {cancelButtonText}
+        <ButtonContainer buttonAlign={config.buttonAlign}>
+          {config.showCancelButton && (
+            <Button variant={config.cancelButtonVariant} onClick={handleCancel} type="button">
+              {config.cancelButtonText}
             </Button>
           )}
-          {showConfirmButton && (
-            <Button onClick={handleConfirm} variant={confirmButtonVariant} type="button">
+          {config.showConfirmButton && (
+            <Button onClick={handleConfirm} variant={config.confirmButtonVariant} type="button">
               {loading ? (
                 <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} />
               ) : (
-                confirmButtonText
+                config.confirmButtonText
               )}
             </Button>
           )}
