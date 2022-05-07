@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import getConfig from 'next/config';
 import type { AppProps } from 'next/app';
 import { fetchIssuerConfiguration } from 'utils/provider';
-import { getAuthorizationUrl, getAccessToken, getEndSessionUrl } from 'utils/openid';
+import { getAuthorizationUrl, getAccessToken, getEndSessionUrl, parseCallbackParams } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
 import { getProfile, updateProfile } from 'services/user';
@@ -75,9 +75,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       try {
         await fetchIssuerConfiguration();
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state: string = urlParams.get('state') || '';
+        const { code, state } = parseCallbackParams();
 
         // Oauth callback endpoint
         if (code) {
