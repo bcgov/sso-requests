@@ -97,10 +97,7 @@ const GenericModal = (
   }: Props,
   ref?: any,
 ) => {
-  const contentRef = useRef<any>();
-  const [loading, setLoading] = useState(false);
-  const [context, setContext] = useState<any>(null);
-  const [config, setConfig] = useState<any>({
+  const initialConfig = {
     confirmButtonText,
     cancelButtonText,
     confirmButtonVariant,
@@ -108,7 +105,11 @@ const GenericModal = (
     showConfirmButton,
     showCancelButton,
     buttonAlign,
-  });
+  };
+  const contentRef = useRef<any>();
+  const [loading, setLoading] = useState(false);
+  const [context, setContext] = useState<any>(null);
+  const [config, setConfig] = useState<any>(initialConfig);
 
   useImperativeHandle(ref, () => ({
     open: (context: any) => {
@@ -116,6 +117,7 @@ const GenericModal = (
       window.location.hash = id;
     },
     close: () => {
+      setConfig({ ...initialConfig });
       window.location.hash = '#';
     },
     updateConfig: (data: any) => {
@@ -128,11 +130,16 @@ const GenericModal = (
     setLoading(true);
     const close = await onConfirm(contentRef, context);
     setLoading(false);
-    if (close) window.location.hash = '#';
+
+    if (close) {
+      setConfig({ ...initialConfig });
+      window.location.hash = '#';
+    }
   };
 
   const handleCancel = async () => {
     onCancel(contentRef, context);
+    setConfig({ ...initialConfig });
     window.location.hash = '#';
   };
 
