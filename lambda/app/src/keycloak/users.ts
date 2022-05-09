@@ -1,5 +1,5 @@
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
-import { forEach, map } from 'lodash';
+import { forEach, map, get } from 'lodash';
 import { getAdminClient, getClient } from './adminClient';
 import { fetchClient } from './client';
 
@@ -271,29 +271,49 @@ export const bulkCreateRole = async (
       });
   });
 
-  await Promise.all(
+  const results = await Promise.all(
     map(byEnv, async (roleNames, env) => {
       const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment: env });
+      const result = { env, success: [], duplicate: [], failure: [], clientNotFound: false };
+
       const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
-      if (clients.length === 0) return;
+      if (clients.length === 0) {
+        result.clientNotFound = true;
+        result.failure = roleNames;
+        return result;
+      }
+
       const client = clients[0];
 
       for (let x = 0; x < roleNames.length; x++) {
-        const role = await kcAdminClient.clients.createRole({
-          id: client.id,
-          realm: 'standard',
-          name: roleNames[x],
-          description: '',
-          composite: false,
-          clientRole: true,
-          containerId: client.id,
-          attributes: {},
-        });
+        const roleName = roleNames[x];
+        await kcAdminClient.clients
+          .createRole({
+            id: client.id,
+            realm: 'standard',
+            name: roleName,
+            description: '',
+            composite: false,
+            clientRole: true,
+            containerId: client.id,
+            attributes: {},
+          })
+          .then(() => result.success.push(roleName))
+          .catch((error) => {
+            const msg = get(error, 'response.data.errorMessage');
+            if (msg.endsWith('already exists')) {
+              result.duplicate.push(roleName);
+            } else {
+              result.failure.push(roleName);
+            }
+          });
       }
+
+      return result;
     }),
   );
 
-  return { success: true };
+  return results;
 };
 
 export const deleteRole = async (
@@ -323,4 +343,95 @@ export const deleteRole = async (
   });
 
   return role;
+};
+
+export const createIdirUser = async ({
+  environment,
+  guid,
+  userId,
+  email,
+  firstName,
+  lastName,
+  displayName,
+}: {
+  environment: string;
+  guid: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+}) => {
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+
+  const lowGuid = guid.toLowerCase();
+  let parentUser = null;
+  let standardUser = null;
+
+  const existingParentUsers = await kcAdminClient.users.find({ realm: 'idir', username: lowGuid, max: 1 });
+  if (existingParentUsers.length > 0) {
+    parentUser = existingParentUsers[0];
+  } else {
+    parentUser = await kcAdminClient.users.create({
+      realm: 'idir',
+      username: guid,
+      email,
+      firstName,
+      lastName,
+      attributes: {
+        display_name: displayName,
+        idir_user_guid: guid,
+        idir_username: userId,
+      },
+      enabled: true,
+    });
+
+    await kcAdminClient.users.addToFederatedIdentity({
+      realm: 'idir',
+      id: parentUser.id,
+      federatedIdentityId: 'idir',
+      federatedIdentity: {
+        userId: guid,
+        userName: guid,
+        identityProvider: 'idir',
+      },
+    });
+  }
+
+  const existingStandardUsers = await kcAdminClient.users.find({
+    realm: 'standard',
+    username: `${lowGuid}@idir`,
+    max: 1,
+  });
+
+  if (existingStandardUsers.length > 0) {
+    standardUser = existingStandardUsers[0];
+  } else {
+    standardUser = await kcAdminClient.users.create({
+      realm: 'standard',
+      username: `${guid}@idir`,
+      email,
+      firstName,
+      lastName,
+      attributes: {
+        display_name: displayName,
+        idir_user_guid: guid,
+        idir_username: userId,
+      },
+      enabled: true,
+    });
+
+    await kcAdminClient.users.addToFederatedIdentity({
+      realm: 'idir',
+      id: standardUser.id,
+      federatedIdentityId: 'idir',
+      federatedIdentity: {
+        userId: parentUser.id,
+        userName: guid,
+        identityProvider: 'idir',
+      },
+    });
+  }
+
+  return standardUser;
 };

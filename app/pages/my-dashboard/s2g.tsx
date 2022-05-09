@@ -23,7 +23,7 @@ function MyIntegrations() {
       <Container>
         <h1>Keycloak Upgrade from Silver to Gold</h1>
         <p>
-          At this time, Silver realms are being retired on January 30, 2023.
+          At this time, Silver realms are being retired on January 30, 2023*.
           <br />
           Projects on these realms will no longer be supported by the SSO team.
         </p>

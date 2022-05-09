@@ -37,6 +37,7 @@ import {
   deleteRole,
   findClientRole,
 } from './keycloak/users';
+import { searchIdirUsers, importIdirUser } from './bceid-webservice-proxy/idir';
 import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
@@ -329,6 +330,24 @@ export const setRoutes = (app: any) => {
   app.post(`${BASE_PATH}/keycloak/delete-role`, async (req, res) => {
     try {
       const result = await deleteRole((req.session as Session).user.id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/bceid-webservice/idir/search`, async (req, res) => {
+    try {
+      const result = await searchIdirUsers((req.session as Session).bearerToken, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/bceid-webservice/idir/import`, async (req, res) => {
+    try {
+      const result = await importIdirUser((req.session as Session).bearerToken, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

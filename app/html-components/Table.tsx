@@ -8,7 +8,6 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   text-align: left;
   border-collapse: separate;
   border-spacing: 0 ${TABLE_ROW_SPACING}px;
-  table-layout: fixed;
 
   & thead {
     font-size: 16px;

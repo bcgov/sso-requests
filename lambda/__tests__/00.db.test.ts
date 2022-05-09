@@ -45,6 +45,7 @@ export type AuthMock = Promise<{
   client_roles: string[];
   given_name: string;
   family_name: string;
+  bearerToken?: string;
 }>;
 
 beforeAll(async () => {

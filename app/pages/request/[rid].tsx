@@ -36,7 +36,7 @@ function RequestEdit({ session, enable_gold, alert }: Props) {
             closable: true,
             children: (
               <span>
-                You are editing a project that is in a Silver realm, which will be retired on Jan. 30 2023. Please{' '}
+                You are editing a project that is in a Silver realm, which will be retired on Jan. 30 2023*. Please{' '}
                 <a
                   href="https://chat.developer.gov.bc.ca/channel/sso"
                   target="_blank"

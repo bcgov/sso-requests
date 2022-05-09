@@ -13,6 +13,7 @@ export interface Session {
   given_name: string;
   family_name: string;
   user?: User;
+  bearerToken?: string;
 }
 
 export interface Data {

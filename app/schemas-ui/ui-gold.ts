@@ -65,6 +65,7 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     },
     devIdps: {
       'ui:widget': 'checkboxes',
+      'ui:enumDisabled': ['azureidir'],
     },
     bceidTo: {
       'ui:label': false,

@@ -61,7 +61,7 @@ function GoldNotificationModal(): any {
         </div>
         <div>
           <p>
-            At this time, the Silver realms are being retired on Jan. 30 2023. Projects on these realms will no longer
+            At this time, the Silver realms are being retired on Jan. 30 2023*. Projects on these realms will no longer
             be supported by the SSO team.
           </p>
 

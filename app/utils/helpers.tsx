@@ -162,6 +162,8 @@ export const transformErrors = (errors: any) => {
 };
 
 export const formatChangeEventDetails = (changes: Change[]) => {
+  if (!changes || changes.length === 0) return <div>No changes</div>;
+
   const changesJSX = changes.map((change) => {
     const { kind, lhs, rhs, path, item } = change;
     const changedPath = path[0];

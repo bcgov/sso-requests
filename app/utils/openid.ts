@@ -8,6 +8,7 @@ const { publicRuntimeConfig = {} } = getConfig() || {};
 const {
   sso_client_id,
   sso_authorization_scope,
+  sso_authorization_response_mode,
   sso_authorization_response_type,
   sso_redirect_uri,
   sso_token_grant_type,
@@ -20,7 +21,9 @@ import { getRandomString, encryptStringWithSHA256, hashToBase64url } from './hel
 export const getAuthorizationUrl = async (otherParams: AuthUrlParams) => {
   // Create random "state"
   const state = getRandomString();
-  sessionStorage.setItem('pkce_state', state);
+  const nonce = getRandomString();
+  sessionStorage.setItem('oauth_state', state);
+  sessionStorage.setItem('oidc_nonce', nonce);
 
   // Create PKCE code verifier
   const code_verifier = getRandomString();
@@ -33,11 +36,13 @@ export const getAuthorizationUrl = async (otherParams: AuthUrlParams) => {
 
   const params = {
     client_id: sso_client_id,
+    response_mode: sso_authorization_response_mode,
     response_type: sso_authorization_response_type,
     redirect_uri: sso_redirect_uri,
     scope: sso_authorization_scope,
     // PKCE workflow
     state,
+    nonce,
     code_challenge_method: 'S256',
     code_challenge,
     ...otherParams,
@@ -48,8 +53,11 @@ export const getAuthorizationUrl = async (otherParams: AuthUrlParams) => {
 
 export const getAccessToken = async ({ code, state }: { code: string; state: string }) => {
   // PKCE workflow
-  if (sessionStorage.getItem('pkce_state') !== state) {
-    console.error('invalid state');
+  const expectedState = sessionStorage.getItem('oauth_state');
+  if (expectedState !== state) {
+    console.error('invalid pkce state');
+    console.error('expected state: ' + expectedState);
+    console.error('received state: ' + state);
     return null;
   }
 
@@ -71,6 +79,10 @@ export const getAccessToken = async ({ code, state }: { code: string; state: str
     method: 'post',
     data: qs.stringify(params),
   };
+
+  sessionStorage.removeItem('oauth_state');
+  sessionStorage.removeItem('code_verifier');
+  sessionStorage.removeItem('code_challenge');
 
   return axios(config).then((res) => res.data, console.error);
 };
@@ -100,4 +112,22 @@ export const refreshSession = async ({ refreshToken }: { refreshToken: string })
   };
 
   return axios(config).then((res) => res.data, console.error);
+};
+
+export const parseCallbackParams = () => {
+  let params = '';
+  if (sso_authorization_response_mode === 'fragment') {
+    params = '?' + window.location.hash.substring(1);
+  } else {
+    params = window.location.search;
+  }
+
+  const urlParams = new URLSearchParams(params);
+  const getParam = (p: string) => urlParams.get(p) || '';
+
+  return {
+    code: getParam('code'),
+    state: getParam('state'),
+    session_state: getParam('session_state'),
+  };
 };
