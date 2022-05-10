@@ -281,6 +281,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     );
   }
 
+  const showIdirLookupOption = selectedIdp === 'idir' && (idirSearched || selectedProperty !== 'guid');
+
   let content = null;
   if (!searched) {
     content = (
@@ -338,7 +340,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             <FlexItem>
               <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
             </FlexItem>
-            {selectedIdp === 'idir' ? (
+            {showIdirLookupOption ? (
               <FlexItem>
                 The user you searched for does not exist. Please try again, by entering the full search criteria or try
                 using our IDIR Lookup tool.
@@ -356,7 +358,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   let idirLookup = null;
 
-  if (searched && selectedIdp === 'idir') {
+  if (searched && showIdirLookupOption) {
     if (loadingIdir) idirLookup = <Loading />;
     else if (idirSearched) {
       let rows = null;
