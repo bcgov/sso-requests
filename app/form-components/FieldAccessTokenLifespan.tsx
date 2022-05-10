@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FieldTemplateProps } from 'react-jsonschema-form';
+import { faInfoCircle, faEnvelope, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import InfoOverlay from 'components/InfoOverlay';
 import FieldTemplate from './FieldTemplate';
 
@@ -23,8 +24,8 @@ export default function FieldAccessTokenLifespan(props: FieldTemplateProps) {
           <InfoOverlay content="If you would like this set for your integration, please contact the Pathfinder SSO Team." />
           &nbsp;
           <InfoOverlay
-            title={''}
-            triggerType={true}
+            icon={faEnvelope}
+            trigger={['click']}
             content={
               'Please contact <a href="mailto:bcgov.sso@gov.bc.ca">Pathfinder SSO Team</a> if you have questions for the section below.'
             }
