@@ -4,7 +4,7 @@ import DefaultPopover from 'react-bootstrap/Popover';
 import styled from 'styled-components';
 import { noop } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faEnvelope, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE } from 'styles/theme';
 
 const Popover = styled(DefaultPopover)`
@@ -19,6 +19,7 @@ interface Props {
   hide?: number;
   icon?: IconDefinition;
   onClick?: () => void;
+  triggerType?: boolean;
 }
 
 export default function InfoOverlay({
@@ -28,6 +29,7 @@ export default function InfoOverlay({
   hide = 250,
   icon = faInfoCircle,
   onClick = noop,
+  triggerType,
 }: Props) {
   const popover = (
     <Popover id="popover-basic">
@@ -35,6 +37,17 @@ export default function InfoOverlay({
       {content && <Popover.Content dangerouslySetInnerHTML={{ __html: content }} />}
     </Popover>
   );
+  if (triggerType) {
+    console.log(triggerType);
+    return (
+      <>
+        <OverlayTrigger trigger={['click']} placement="right-start" overlay={popover} delay={{ show, hide }}>
+          <FontAwesomeIcon color="#777777" icon={faEnvelope} onClick={onClick} />
+        </OverlayTrigger>
+      </>
+    );
+  }
+  console.log(triggerType);
   return (
     <>
       <OverlayTrigger trigger={['hover', 'focus']} placement="right-start" overlay={popover} delay={{ show, hide }}>

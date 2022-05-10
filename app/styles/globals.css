@@ -160,28 +160,3 @@ ul.error-detail {
 .line-height-200 {
   line-height: 200%;
 }
-
-.popup-info-box {
-  position: relative;
-  display: inline-block;
-  cursor: pointer;
-}
-
-.popup-text {
-  visibility: hidden;
-  position: absolute;
-  width: 640px;
-  height: 35px;
-  border: 1px solid gainsboro;
-  border-radius: 5px;
-  text-align: center;
-  font-weight: normal;
-  line-height: 2;
-  margin: 40%;
-  bottom: 0%;
-  margin-left: 5px;
-}
-
-.show-info {
-  visibility: visible;
-}
