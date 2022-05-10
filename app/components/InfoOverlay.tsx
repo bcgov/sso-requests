@@ -38,7 +38,6 @@ export default function InfoOverlay({
     </Popover>
   );
   if (triggerType) {
-    console.log(triggerType);
     return (
       <>
         <OverlayTrigger trigger={['click']} placement="right-start" overlay={popover} delay={{ show, hide }}>
@@ -47,7 +46,6 @@ export default function InfoOverlay({
       </>
     );
   }
-  console.log(triggerType);
   return (
     <>
       <OverlayTrigger trigger={['hover', 'focus']} placement="right-start" overlay={popover} delay={{ show, hide }}>
