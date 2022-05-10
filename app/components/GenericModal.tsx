@@ -131,7 +131,7 @@ const GenericModal = (
     const close = await onConfirm(contentRef, context);
     setLoading(false);
 
-    if (close) {
+    if (close !== false) {
       setConfig({ ...initialConfig });
       window.location.hash = '#';
     }
