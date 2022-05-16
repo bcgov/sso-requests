@@ -154,8 +154,9 @@ DELETE /api/{environment}/integrations/{id}/roles/{roleName}
 <td>200</td>
 <td>
 
+<!-- the deleted role name -->
+
 ```json
-// the deleted role name
 "manager"
 ```
 
@@ -276,8 +277,9 @@ PUT /api/{environment}/integrations/{id}/users/{username}/roles
 <td>200</td>
 <td>
 
+<!-- all roles for the user after the changes -->
+
 ```json
-// all roles for the user after the changes
 ["admin", "manager"]
 ```
 
