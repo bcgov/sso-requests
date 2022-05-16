@@ -156,7 +156,7 @@ DELETE /api/{environment}/integrations/{id}/roles/{roleName}
 
 ```json
 // the deleted role name
-manager
+"manager"
 ```
 
 </td>
