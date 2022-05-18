@@ -232,7 +232,7 @@ function Table({
 
   const searchCol = (
     <Grid.Col span={searchColSpan}>
-      <Grid cols={12}>
+      <Grid cols={13}>
         <Grid.Row gutter={[]} align="center">
           <Grid.Col span={8}>
             <StyledInput
@@ -245,6 +245,7 @@ function Table({
               onKeyUp={handleKeyUp}
             />
           </Grid.Col>
+          &nbsp;&nbsp;
           <Grid.Col span={4}>
             <Button type="button" size="small" onClick={handleSearchSubmit}>
               Search
