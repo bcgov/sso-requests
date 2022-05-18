@@ -30,6 +30,9 @@ export default function FieldTemplate(
 
   const classes = clsx(classNames, additionalClassNames);
 
+  // prevent array components from displaying the same description in `ArrayFieldTemplate`.
+  const descriptionToUse = type === 'array' ? null : description;
+
   return (
     <>
       {top}
@@ -40,7 +43,7 @@ export default function FieldTemplate(
             {tooltip && <InfoOverlay {...tooltip} onClick={() => tooltip?.onClick(formContext) || noop} />}
           </Title>
         )}
-        {description}
+        {descriptionToUse}
         {children}
         {errors}
         {help}

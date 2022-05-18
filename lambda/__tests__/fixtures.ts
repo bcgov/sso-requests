@@ -4,7 +4,7 @@ export const formDataDev: Data = {
   id: 1,
   idirUserId: 'TEST',
   projectName: 'test',
-  clientName: 'test',
+  clientId: 'test',
   realm: 'onestopauth',
   publicAccess: true,
   devValidRedirectUris: ['https://b'],

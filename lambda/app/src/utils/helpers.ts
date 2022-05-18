@@ -23,7 +23,7 @@ export const omitNonFormFields = (data: Request) =>
     'environments',
     'actionNumber',
     'prNumber',
-    'clientName',
+    'clientId',
     'userId',
     'idirUserid',
     'idirUserDisplayName',
@@ -53,7 +53,7 @@ const sortURIFields = (data: any) => {
 };
 
 export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
-  const immutableFields = ['userId', 'idirUserid', 'clientName', 'projectLead', 'status', 'serviceType'];
+  const immutableFields = ['userId', 'idirUserid', 'clientId', 'projectLead', 'status', 'serviceType'];
   if (isMerged) immutableFields.push('realm');
   if (!isAdmin)
     immutableFields.push(

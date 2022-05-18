@@ -48,6 +48,18 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
       'ui:placeholder': 'Project Name',
       'ui:label': false,
     },
+    devLoginTitle: {
+      'ui:placeholder': 'Keycloak Login Page Name',
+      'ui:label': false,
+    },
+    testLoginTitle: {
+      'ui:placeholder': 'Keycloak Login Page Name',
+      'ui:label': false,
+    },
+    prodLoginTitle: {
+      'ui:placeholder': 'Keycloak Login Page Name',
+      'ui:label': false,
+    },
     usesTeam: {
       'ui:widget': 'radio',
       'ui:readonly': isApplied && integration?.usesTeam,

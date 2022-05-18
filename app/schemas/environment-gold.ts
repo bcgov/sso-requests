@@ -19,6 +19,7 @@ export const roles = {
 
 export default function getSchemas(formData: Request) {
   return (formData.environments || []).map((env) => {
+    const loginTitleField = `${env}LoginTitle`;
     const redirectUriField = `${env}ValidRedirectUris`;
     const roleField = `${env}Roles`;
     const accessTokenLifespanField = `${env}AccessTokenLifespan`;
@@ -47,6 +48,7 @@ export default function getSchemas(formData: Request) {
       stepText,
       required: [],
       properties: {
+        [loginTitleField]: { type: 'string', title: 'Keycloak Login Page Name', maxLength: 100 },
         [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs' },
         // [roleField]: roles,
         [accessTokenLifespanField]: {

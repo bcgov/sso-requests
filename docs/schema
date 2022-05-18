@@ -53,6 +53,12 @@
  prod_offline_session_max_lifespan | integer                  |           | not null | 0
  prod_session_idle_timeout         | integer                  |           | not null | 0
  prod_session_max_lifespan         | integer                  |           | not null | 0
+ client_id                         | character varying(255)   |           |          |
+ provisioned                       | boolean                  |           | not null | false
+ provisioned_at                    | timestamp with time zone |           |          |
+ dev_login_title                   | character varying(255)   |           |          |
+ test_login_title                  | character varying(255)   |           |          |
+ prod_login_title                  | character varying(255)   |           |          |
 Indexes:
     "requests_pkey" PRIMARY KEY, btree (id)
 Foreign-key constraints:
