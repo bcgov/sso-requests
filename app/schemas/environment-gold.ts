@@ -48,7 +48,14 @@ export default function getSchemas(formData: Request) {
       stepText,
       required: [],
       properties: {
-        [loginTitleField]: { type: 'string', title: 'Keycloak Login Page Name', maxLength: 100 },
+        [loginTitleField]: {
+          type: 'string',
+          title: 'Keycloak Login Page Name',
+          tooltip: {
+            content: `Enter a name that you would like to be displayed for users, as they're logging into the Keycloak Login Page. If you leave this field blank, the page will automatically display your Project Name.`,
+          },
+          maxLength: 100,
+        },
         [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs' },
         // [roleField]: roles,
         [accessTokenLifespanField]: {

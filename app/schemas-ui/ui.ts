@@ -21,7 +21,6 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
   return {
     projectName: {
       'ui:placeholder': 'Project Name',
-      'ui:label': false,
     },
     usesTeam: {
       'ui:widget': 'radio',
@@ -68,7 +67,6 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     comment: {
       'ui:FieldTemplate': FieldReviewAndSubmit,
       'ui:widget': includeComment ? 'textarea' : 'hidden',
-      'ui:label': false,
     },
   };
 };

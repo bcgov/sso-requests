@@ -46,19 +46,15 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
   return {
     projectName: {
       'ui:placeholder': 'Project Name',
-      'ui:label': false,
     },
     devLoginTitle: {
       'ui:placeholder': 'Keycloak Login Page Name',
-      'ui:label': false,
     },
     testLoginTitle: {
       'ui:placeholder': 'Keycloak Login Page Name',
-      'ui:label': false,
     },
     prodLoginTitle: {
       'ui:placeholder': 'Keycloak Login Page Name',
-      'ui:label': false,
     },
     usesTeam: {
       'ui:widget': 'radio',
@@ -104,7 +100,6 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     comment: {
       'ui:FieldTemplate': FieldReviewAndSubmit,
       'ui:widget': includeComment ? 'textarea' : 'hidden',
-      'ui:label': false,
     },
     ...tokenFields,
   };

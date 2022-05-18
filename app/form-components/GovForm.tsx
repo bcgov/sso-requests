@@ -1,4 +1,5 @@
 import Form from '@rjsf/core';
+import { omit } from 'lodash';
 import { FormProps } from 'react-jsonschema-form';
 import Input from '@button-inc/bcgov-theme/Input';
 import Textarea from '@button-inc/bcgov-theme/Textarea';
@@ -7,10 +8,13 @@ import wrapper from 'utils/widgetWrapper';
 import React from 'react';
 import { transformErrors } from 'utils/helpers';
 
+const PureInput = (props: any) => <Input {...omit(props, 'label')} />;
+const PureTextarea = (props: any) => <Textarea {...omit(props, 'label')} />;
+
 const customWidgets = {
-  TextWidget: wrapper(Input, 'input'),
-  EmailWidget: wrapper(Input, 'email'),
-  TextareaWidget: wrapper(Textarea, 'textarea'),
+  TextWidget: wrapper(PureInput, 'input'),
+  EmailWidget: wrapper(PureInput, 'email'),
+  TextareaWidget: wrapper(PureTextarea, 'textarea'),
   SelectWidget: wrapper(Dropdown, 'select'),
 };
 
