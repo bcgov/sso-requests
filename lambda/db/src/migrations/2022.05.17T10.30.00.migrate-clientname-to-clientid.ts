@@ -3,7 +3,6 @@ import { DataTypes, Op } from 'sequelize';
 export const name = '2022.05.17T10.30.00.migrate-clientname-to-clientid';
 
 export const up = async ({ context: sequelize }) => {
-  console.log('sequelize', Object.keys(sequelize));
   // migrate values from `client_name` to `client_id`
   await sequelize
     .getQueryInterface()
