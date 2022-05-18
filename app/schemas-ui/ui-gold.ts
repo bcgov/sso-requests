@@ -100,6 +100,7 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     comment: {
       'ui:FieldTemplate': FieldReviewAndSubmit,
       'ui:widget': includeComment ? 'textarea' : 'hidden',
+      'ui:label': includeComment,
     },
     ...tokenFields,
   };
