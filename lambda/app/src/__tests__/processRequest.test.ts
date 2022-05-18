@@ -3,7 +3,7 @@ import { processRequest } from '../utils/helpers';
 const data: any = {
   id: 1,
   projectName: 'test',
-  clientName: 'test-two',
+  clientId: 'test-two',
   realm: 'onestopauth',
   publicAccess: true,
   devValidRedirectUris: ['https://a', 'https://c', 'https://b'],

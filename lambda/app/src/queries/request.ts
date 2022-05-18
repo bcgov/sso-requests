@@ -66,7 +66,7 @@ export const findAllowedIntegrationInfo = async (
   const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
   where.id = integrationId;
 
-  return models.request.findOne({ where, attributes: ['id', 'clientName', 'devIdps'], ...options });
+  return models.request.findOne({ where, attributes: ['id', 'clientId', 'devIdps'], ...options });
 };
 
 export const getAllowedRequest = async (session: Session, requestId: number, roles?: string[]) => {

@@ -237,6 +237,18 @@ const init = (sequelize, DataTypes) => {
         defaultValue: 0,
         allowNull: false,
       },
+      devLoginTitle: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      testLoginTitle: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      prodLoginTitle: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       provisioned: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

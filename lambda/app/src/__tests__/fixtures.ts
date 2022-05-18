@@ -1,7 +1,7 @@
 export const formDataUpdated: any = {
   id: 1,
   projectName: 'test',
-  clientName: 'test',
+  clientId: 'test',
   realm: 'onestopauth',
   publicAccess: true,
   devValidRedirectUris: ['https://b'],
@@ -23,7 +23,7 @@ export const formDataUpdated: any = {
 export const formDataOriginal: any = {
   id: 1,
   projectName: 'test',
-  clientName: 'test',
+  clientId: 'test',
   realm: 'onestopauth',
   publicAccess: true,
   devValidRedirectUris: ['https://a'],
@@ -45,7 +45,7 @@ export const formDataOriginal: any = {
 export const formDataWithMutatedNonFormFields: any = {
   id: 1,
   projectName: 'test',
-  clientName: 'test-two',
+  clientId: 'test-two',
   realm: 'onestopauth',
   publicAccess: true,
   devValidRedirectUris: ['https://a'],

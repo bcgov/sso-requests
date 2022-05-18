@@ -3,6 +3,7 @@ export interface Request {
   id?: number;
   idirUserid?: string;
   projectName?: string;
+  clientId?: string;
   clientName?: string;
   realm?: string;
   publicAccess?: boolean;
@@ -32,6 +33,9 @@ export interface Request {
   devRoles?: string[];
   testRoles?: string[];
   prodRoles?: string[];
+  devLoginTitle?: string;
+  testLoginTitle?: string;
+  prodLoginTitle?: string;
 }
 
 export interface Option {
