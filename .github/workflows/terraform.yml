@@ -16,7 +16,7 @@ on:
       - 'lambda/**'
 
 env:
-  TF_VERSION: 0.15.3
+  TF_VERSION: 1.1.4
 
 jobs:
   terraform:
@@ -214,7 +214,7 @@ jobs:
 
       - name: Terraform Init
         id: init
-        run: terraform init
+        run: terraform init -upgrade
         working-directory: ./terraform
 
       - name: Terraform Plan
