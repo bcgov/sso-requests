@@ -233,7 +233,7 @@ function Table({
   const searchCol = (
     <Grid.Col span={searchColSpan}>
       <Grid cols={12}>
-        <Grid.Row gutter={[]} align="center">
+        <Grid.Row gutter={[5, 0]} align="center">
           <Grid.Col span={8}>
             <StyledInput
               type="text"

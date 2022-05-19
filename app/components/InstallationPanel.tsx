@@ -35,6 +35,13 @@ const TopMargin = styled.div`
   height: var(--field-top-spacing);
 `;
 
+const TopTitle = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  border-bottom: 1px solid gray;
+`;
+
 interface Props {
   selectedRequest: Request;
   alert: TopAlert;
@@ -79,14 +86,18 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
   return (
     <>
       <TopMargin />
-      <Grid cols={4}>
+      <TopTitle>Installation JSONs</TopTitle>
+      <br />
+      <Grid cols={3}>
         {getRequestedEnvironments(selectedRequest).map((env) => {
           return (
             <React.Fragment key={env.name}>
               <Grid.Row collapse="992" gutter={[]} align="center">
-                <Grid.Col span={1} style={{ maxWidth: '200px' }}>
+                <Grid.Col span={1} style={{ maxWidth: '200px', height: '30px' }}>
                   <LeftTitle>{env.display}</LeftTitle>
                 </Grid.Col>
+              </Grid.Row>
+              <Grid.Row collapse="992" gutter={[]} align="center">
                 <Grid.Col span={3}>
                   <Button size="medium" variant="grey" onClick={() => handleCopyClick(env.name)}>
                     Copy

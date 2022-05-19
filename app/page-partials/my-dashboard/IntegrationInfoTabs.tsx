@@ -17,15 +17,24 @@ import DefaultTitle from 'components/SHeader3';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
 import { Request } from 'interfaces/Request';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
+import Grid from '@button-inc/bcgov-theme/Grid';
+import Link from '@button-inc/bcgov-theme/Link';
 
 const Title = styled(DefaultTitle)`
   margin-top: 10px;
 `;
 
 const TabWrapper = styled.div<{ short?: boolean }>`
-  padding-left: 1rem;
+  padding-left: 1.5rem;
   padding-right: 1rem;
   ${(props) => (props.short ? 'max-width: 800px;' : '')}
+`;
+
+const SubTitle = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  border-bottom: 1px solid gray;
 `;
 
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
@@ -82,30 +91,34 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
     );
   } else if (displayStatus === 'Submitted') {
     panel = (
-      <RequestTabs activeKey="Integration-request-summary">
-        <Tab eventKey="Integration-request-summary" title="Integration Request Summary">
-          <TabWrapper short={true}>
-            {awaitingBceidProd ? (
-              <>
-                <NumberedContents
-                  number={1}
-                  title="Access to Dev and/or Test environment(s) - approx 20 mins"
-                  variant="secondary"
-                >
-                  <SubmittedStatusIndicator selectedRequest={integration} />
-                  <br />
-                </NumberedContents>
-                <NumberedContents number={2} title="Access to Prod environment - (TBD)" variant="secondary">
-                  <BceidStatus request={integration} />
-                </NumberedContents>
-              </>
-            ) : (
-              <SubmittedStatusIndicator
-                selectedRequest={integration}
-                title={`Access to ${joinEnvs(integration)} - approx 20 mins`}
-              />
-            )}
-          </TabWrapper>
+      <RequestTabs activeKey={panelTab}>
+        <Tab eventKey="installation-json" title="Technical Details">
+          {awaitingBceidProd ? (
+            <TabWrapper short={false}>
+              <Grid cols={15}>
+                <br />
+                <Grid.Row gutter={[]}>
+                  <Grid.Col span={7} align={'center'}>
+                    <SubTitle>Access to Dev and Test environment(s) will be provided in approx 20 min</SubTitle>
+                    <SubmittedStatusIndicator selectedRequest={integration} />
+                  </Grid.Col>
+                  <Grid.Col span={1}></Grid.Col>
+                  <Grid.Col span={7} align={'center'}>
+                    <SubTitle>Access to Prod (TBD)</SubTitle>
+                    <br />
+                    <br />
+                    <BceidStatus request={integration} />
+                  </Grid.Col>
+                </Grid.Row>
+              </Grid>
+            </TabWrapper>
+          ) : (
+            <TabWrapper short={true}>
+              <br />
+              <SubTitle>Access to environment(s) will be provided in approx 20 min</SubTitle>
+              <SubmittedStatusIndicator selectedRequest={integration} />
+            </TabWrapper>
+          )}
         </Tab>
       </RequestTabs>
     );
@@ -118,20 +131,40 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
           unmountOnExit={true}
           onSelect={(k: TabKey) => dispatch($setPanelTab(k))}
         >
-          <Tab eventKey="installation-json" title="Installation JSON">
-            <TabWrapper short={true}>
-              <InstallationPanel selectedRequest={integration} />
-              {awaitingBceidProd && (
-                <>
-                  <Title>Production Status</Title>
-                  <BceidStatus request={integration} />
-                </>
-              )}
+          <Tab eventKey="installation-json" title="Technical Details">
+            <TabWrapper short={false}>
+              <Grid cols={15}>
+                <Grid.Row gutter={[]}>
+                  <Grid.Col span={7}>
+                    <InstallationPanel selectedRequest={integration} />
+                  </Grid.Col>
+                  <Grid.Col span={1}></Grid.Col>
+                  <Grid.Col span={7}>
+                    {awaitingBceidProd && (
+                      <>
+                        <br />
+                        <SubTitle>Access to Prod (TBD)</SubTitle>
+                        <br />
+                        <br />
+                        <BceidStatus request={integration} />
+                      </>
+                    )}
+                  </Grid.Col>
+                </Grid.Row>
+              </Grid>
             </TabWrapper>
           </Tab>
           {isGold && (
             <Tab eventKey="client-roles" title="Role Management">
               <TabWrapper>
+                <br />
+                <div>
+                  Please visit our{' '}
+                  <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role">
+                    wiki page
+                  </Link>{' '}
+                  for more information on roles.
+                </div>
                 <ClientRoles selectedRequest={integration} />
               </TabWrapper>
             </Tab>
@@ -150,7 +183,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
               </TabWrapper>
             </Tab>
           )}
-          <Tab eventKey="history" title="History">
+          <Tab eventKey="history" title="Change History">
             <TabWrapper short={true}>
               <UserEventPanel requestId={integration.id} />
             </TabWrapper>

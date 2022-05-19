@@ -298,7 +298,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
           <Tab eventKey={env} title={startCase(env)} />
         ))}
       </RequestTabs>
-
+      <br />
       <div>
         <StyledInput
           type="text"
