@@ -95,6 +95,9 @@ export const createRequest = async (session: Session, data: Data) => {
 
   const result = await models.request.create({
     projectName,
+    devLoginTitle: projectName,
+    testLoginTitle: projectName,
+    prodLoginTitle: projectName,
     projectLead,
     idirUserDisplayName,
     usesTeam,
@@ -147,9 +150,6 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       // when it is submitted for the first time.
       if (!isMerged && !current.clientId) {
         current.clientId = `${kebabCase(current.projectName)}-${id}`;
-        current.devLoginTitle = current.projectName;
-        current.testLoginTitle = current.projectName;
-        current.prodLoginTitle = current.projectName;
       }
 
       current.status = 'submitted';
