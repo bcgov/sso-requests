@@ -22,6 +22,9 @@ jobs:
   terraform:
     runs-on: ubuntu-20.04
     steps:
+      - uses: hmarr/debug-action@v2
+      - uses: actions/checkout@v2
+
       - name: Set env to development
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
@@ -113,9 +116,6 @@ jobs:
           }
           EOF
         working-directory: ./terraform
-
-      - uses: hmarr/debug-action@v2
-      - uses: actions/checkout@v2
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
