@@ -22,9 +22,6 @@ jobs:
   terraform:
     runs-on: ubuntu-20.04
     steps:
-      - uses: hmarr/debug-action@v2
-      - uses: actions/checkout@v2
-
       - name: Set env to development
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
@@ -58,14 +55,6 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_DEV}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           EOF
-
-          cat >"buckets.tf" <<EOF
-          module "s3_keycloak_v2" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-keycloak-v2"
-          }
-          EOF
-        working-directory: ./terraform
 
       - name: Set env to production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
@@ -101,21 +90,8 @@ jobs:
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           EOF
 
-          cat >"buckets.tf" <<EOF
-          module "s3_keycloak_v2" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-keycloak-v2"
-          }
-          module "s3_sysdig" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-sysdig"
-          }
-          module "s3_ocp" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-ocp"
-          }
-          EOF
-        working-directory: ./terraform
+      - uses: hmarr/debug-action@v2
+      - uses: actions/checkout@v2
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -148,6 +124,36 @@ jobs:
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check
+        working-directory: ./terraform
+
+      - name: Create S3 Bucket in dev environment
+        if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
+        run: |
+          cat >"buckets.tf" <<EOF
+          module "s3_keycloak_v2" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-keycloak-v2"
+          }
+          EOF
+        working-directory: ./terraform
+
+      - name: Create S3 Bucket in prod environment
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
+        run: |
+          cat >"buckets.tf" <<EOF
+          module "s3_keycloak_v2" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-keycloak-v2"
+          }
+          module "s3_sysdig" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-sysdig"
+          }
+          module "s3_ocp" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-ocp"
+          }
+          EOF
         working-directory: ./terraform
 
       - name: Terraform Variables
