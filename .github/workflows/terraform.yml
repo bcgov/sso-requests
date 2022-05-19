@@ -55,6 +55,15 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_DEV}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           EOF
+
+          cat >"buckets.tf" <<EOF
+          module "s3_keycloak_v2" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-keycloak-v2"
+          }
+          EOF
+        working-directory: ./terraform
+
       - name: Set env to production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
@@ -88,6 +97,23 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           EOF
+
+          cat >"buckets.tf" <<EOF
+          module "s3_keycloak_v2" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-keycloak-v2"
+          }
+          module "s3_sysdig" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-sysdig"
+          }
+          module "s3_ocp" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-ocp"
+          }
+          EOF
+        working-directory: ./terraform
+
       - uses: hmarr/debug-action@v2
       - uses: actions/checkout@v2
 
