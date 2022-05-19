@@ -245,6 +245,7 @@ function Table({
               onKeyUp={handleKeyUp}
             />
           </Grid.Col>
+          &nbsp;&nbsp;
           <Grid.Col span={4}>
             <Button type="button" size="small" onClick={handleSearchSubmit}>
               Search
