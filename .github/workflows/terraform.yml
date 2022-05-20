@@ -16,7 +16,7 @@ on:
       - 'lambda/**'
 
 env:
-  TF_VERSION: 0.15.3
+  TF_VERSION: 1.1.4
 
 jobs:
   terraform:
@@ -55,6 +55,7 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_DEV}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           EOF
+
       - name: Set env to production
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
@@ -88,6 +89,7 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           EOF
+
       - uses: hmarr/debug-action@v2
       - uses: actions/checkout@v2
 
@@ -122,6 +124,36 @@ jobs:
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check
+        working-directory: ./terraform
+
+      - name: Create S3 Bucket in dev environment
+        if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
+        run: |
+          cat >"buckets.tf" <<EOF
+          module "s3_keycloak_v2" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-keycloak-v2"
+          }
+          EOF
+        working-directory: ./terraform
+
+      - name: Create S3 Bucket in prod environment
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
+        run: |
+          cat >"buckets.tf" <<EOF
+          module "s3_keycloak_v2" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-keycloak-v2"
+          }
+          module "s3_sysdig" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-sysdig"
+          }
+          module "s3_ocp" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-ocp"
+          }
+          EOF
         working-directory: ./terraform
 
       - name: Terraform Variables
@@ -182,7 +214,7 @@ jobs:
 
       - name: Terraform Init
         id: init
-        run: terraform init
+        run: terraform init -upgrade
         working-directory: ./terraform
 
       - name: Terraform Plan
