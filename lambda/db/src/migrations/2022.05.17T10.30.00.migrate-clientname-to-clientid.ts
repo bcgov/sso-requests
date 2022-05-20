@@ -8,8 +8,6 @@ export const up = async ({ context: sequelize }) => {
     .getQueryInterface()
     .bulkUpdate('requests', { client_id: sequelize.col('client_name') }, { client_name: { [Op.ne]: null } });
 
-  await sequelize.getQueryInterface().bulkUpdate('requests', { client_name: null }, {});
-
   await sequelize.getQueryInterface().addColumn('requests', 'dev_login_title', {
     type: DataTypes.STRING,
     allowNull: true,
