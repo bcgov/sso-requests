@@ -82,6 +82,10 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
       url = `${url}?submit=true`;
     }
 
+    data.devLoginTitle = data.devLoginTitle || '';
+    data.testLoginTitle = data.testLoginTitle || '';
+    data.prodLoginTitle = data.prodLoginTitle || '';
+
     const result = await instance.put(url, data).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err: any) {
