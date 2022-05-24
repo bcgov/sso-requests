@@ -132,7 +132,7 @@ jobs:
           cat >"buckets.tf" <<EOF
           module "s3_keycloak_v2" {
             source = "./s3-bucket"
-            bucket_name = "xgr00q-keycloak-v2"
+            bucket_name = "xgr00q-dev-keycloak-v2"
           }
           EOF
         working-directory: ./terraform
@@ -143,15 +143,15 @@ jobs:
           cat >"buckets.tf" <<EOF
           module "s3_keycloak_v2" {
             source = "./s3-bucket"
-            bucket_name = "xgr00q-keycloak-v2"
+            bucket_name = "xgr00q-prod-keycloak-v2"
           }
           module "s3_sysdig" {
             source = "./s3-bucket"
-            bucket_name = "xgr00q-sysdig"
+            bucket_name = "xgr00q-prod-sysdig"
           }
           module "s3_ocp" {
             source = "./s3-bucket"
-            bucket_name = "xgr00q-ocp"
+            bucket_name = "xgr00q-prod-ocp"
           }
           EOF
         working-directory: ./terraform
