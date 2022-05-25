@@ -490,7 +490,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   options: propertyOptions,
                 },
               ]}
-              headers={[{ name: 'First name' }, { name: 'Last Name' }, { name: 'Email' }]}
+              headers={[
+                { name: 'First name', style: { float: 'left', width: '20%' } },
+                { name: 'Last Name', style: { float: 'left', width: '40%' } },
+                { name: 'Email', style: { float: 'left' } },
+              ]}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
               onSearch={handleSearch}

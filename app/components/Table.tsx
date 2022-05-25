@@ -63,20 +63,6 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   }
 `;
 
-const FirstAlign: CSSProperties = {
-  float: 'left',
-  width: '20%',
-};
-
-const SecondAlign: CSSProperties = {
-  float: 'left',
-  width: '40%',
-};
-
-const ThirdAlign: CSSProperties = {
-  float: 'left',
-};
-
 interface Header {
   name: string;
   style?: CSSProperties;
@@ -344,23 +330,9 @@ function Table({
             <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
               <thead>
                 <tr>
-                  {align1stHeader.map((header, index) => {
+                  {headers.map((header, index) => {
                     return (
-                      <th key={index} style={FirstAlign}>
-                        {header.name}
-                      </th>
-                    );
-                  })}
-                  {align2ndHeader.map((header, index) => {
-                    return (
-                      <th key={index} style={SecondAlign}>
-                        {header.name}
-                      </th>
-                    );
-                  })}
-                  {align3rdHeader.map((header, index) => {
-                    return (
-                      <th key={index} style={ThirdAlign}>
+                      <th key={index} style={header.style || {}}>
                         {header.name}
                       </th>
                     );
