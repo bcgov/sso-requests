@@ -309,6 +309,10 @@ function Table({
     rightCol = searchCol;
   }
 
+  const align1stHeader = [headers[0]];
+  const align2ndHeader = [headers[1]];
+  const align3rdHeader = [headers[2]];
+
   return (
     <>
       <SectionHeader>
@@ -326,9 +330,23 @@ function Table({
             <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
               <thead>
                 <tr>
-                  {headers.map((header, index) => {
+                  {align1stHeader.map((header, index) => {
                     return (
-                      <th key={index} style={header.style || {}}>
+                      <th className="align-first-header" key={index} style={header.style || {}}>
+                        {header.name}
+                      </th>
+                    );
+                  })}
+                  {align2ndHeader.map((header, index) => {
+                    return (
+                      <th className="align-second-header" key={index} style={header.style || {}}>
+                        {header.name}
+                      </th>
+                    );
+                  })}
+                  {align3rdHeader.map((header, index) => {
+                    return (
+                      <th className="align-third-header" key={index} style={header.style || {}}>
                         {header.name}
                       </th>
                     );
