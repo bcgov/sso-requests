@@ -465,7 +465,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       <Grid cols={10}>
         <Grid.Row collapse="1100" gutter={[15, 2]}>
           <Grid.Col span={6}>
-            <Label>1. Search for a User based on the selection criteria below</Label>
+            <Label>1. Search for a user based on the selection criteria below</Label>
             <Table
               key={searchKey}
               variant="mini"

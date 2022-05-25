@@ -16,6 +16,18 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
     & th {
       min-width: ${(props) => (props.variant === 'mini' ? '30px' : '140px')};
     }
+
+    & th[class*='align-first-header'] {
+      float: left;
+    }
+    & th[class*='align-second-header'] {
+      float: left;
+      margin-left: 11%;
+    }
+    & th[class*='align-third-header'] {
+      float: left;
+      margin-left: 31%;
+    }
   }
 
   & tbody {
