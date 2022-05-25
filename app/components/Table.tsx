@@ -309,10 +309,6 @@ function Table({
     rightCol = searchCol;
   }
 
-  const align1stHeader = [headers[0]];
-  const align2ndHeader = [headers[1]];
-  const align3rdHeader = [headers[2]];
-
   return (
     <>
       <SectionHeader>
