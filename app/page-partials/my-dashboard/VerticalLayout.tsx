@@ -8,6 +8,7 @@ import { RequestTabs } from 'components/RequestTabs';
 import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { mediaRules } from './Layout';
+import IntegrationList from './IntegrationList';
 
 const InnerResizable = styled.div`
   height: 100%;
@@ -53,6 +54,8 @@ function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
     </RequestTabs>
   );
 
+  const numberOfIntegrations = user?.integrations?.length || 0;
+
   return (
     <ResponsiveContainer rules={mediaRules}>
       <RequestsContext.Provider value={contextValue}>
@@ -61,7 +64,7 @@ function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
           style={{ paddingTop: '2px', borderBottom: '3px solid black' }}
           defaultSize={{
             width: '100%',
-            height: '100%',
+            height: numberOfIntegrations <= 4 ? '100%' : window.innerHeight * 0.4,
           }}
           enable={{ bottom: true }}
           handleStyles={{ bottom: { bottom: 0 } }}
