@@ -54,8 +54,6 @@ function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
     </RequestTabs>
   );
 
-  const numberOfIntegrations = user?.integrations?.length || 0;
-
   return (
     <ResponsiveContainer rules={mediaRules}>
       <RequestsContext.Provider value={contextValue}>
@@ -64,7 +62,7 @@ function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
           style={{ paddingTop: '2px', borderBottom: '3px solid black' }}
           defaultSize={{
             width: '100%',
-            height: numberOfIntegrations <= 4 ? '100%' : window.innerHeight * 0.4,
+            height: user?.integrations?.length == 0 ? '100%' : window.innerHeight * 0.4,
           }}
           enable={{ bottom: true }}
           handleStyles={{ bottom: { bottom: 0 } }}
