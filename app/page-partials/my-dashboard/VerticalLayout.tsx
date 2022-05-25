@@ -8,7 +8,6 @@ import { RequestTabs } from 'components/RequestTabs';
 import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { mediaRules } from './Layout';
-import IntegrationList from './IntegrationList';
 
 const InnerResizable = styled.div`
   height: 100%;
