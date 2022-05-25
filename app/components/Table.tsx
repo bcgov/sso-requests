@@ -63,6 +63,20 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   }
 `;
 
+const FirstAlign: CSSProperties = {
+  float: 'left',
+  width: '20%',
+};
+
+const SecondAlign: CSSProperties = {
+  float: 'left',
+  width: '40%',
+};
+
+const ThirdAlign: CSSProperties = {
+  float: 'left',
+};
+
 interface Header {
   name: string;
   style?: CSSProperties;
@@ -332,21 +346,21 @@ function Table({
                 <tr>
                   {align1stHeader.map((header, index) => {
                     return (
-                      <th className="align-first-header" key={index} style={header.style || {}}>
+                      <th key={index} style={FirstAlign}>
                         {header.name}
                       </th>
                     );
                   })}
                   {align2ndHeader.map((header, index) => {
                     return (
-                      <th className="align-second-header" key={index} style={header.style || {}}>
+                      <th key={index} style={SecondAlign}>
                         {header.name}
                       </th>
                     );
                   })}
                   {align3rdHeader.map((header, index) => {
                     return (
-                      <th className="align-third-header" key={index} style={header.style || {}}>
+                      <th key={index} style={ThirdAlign}>
                         {header.name}
                       </th>
                     );
