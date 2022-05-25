@@ -8,28 +8,13 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
   text-align: left;
   border-collapse: separate;
   border-spacing: 0 ${TABLE_ROW_SPACING}px;
-
   & thead {
     font-size: 16px;
     color: black;
-
     & th {
       min-width: ${(props) => (props.variant === 'mini' ? '30px' : '140px')};
     }
-
-    & th[class*='align-first-header'] {
-      float: left;
-    }
-    & th[class*='align-second-header'] {
-      float: left;
-      margin-left: 11%;
-    }
-    & th[class*='align-third-header'] {
-      float: left;
-      margin-left: 31%;
-    }
   }
-
   & tbody {
     font-size: ${(props) => (props.variant === 'mini' ? '14px' : '16px')};
     tr {
@@ -50,24 +35,20 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
       `}
     }
   }
-
   td:first-child {
     padding-left: 1em;
     text-align: left;
   }
-
   & th,
   & td {
     border: none;
     padding: 0;
     overflow: hidden;
   }
-
   & th.w60,
   & td.w60 {
     width: 60px;
   }
-
   & th.w120,
   & td.w120 {
     width: 120px;
