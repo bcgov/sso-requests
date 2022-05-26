@@ -465,7 +465,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       <Grid cols={10}>
         <Grid.Row collapse="1100" gutter={[15, 2]}>
           <Grid.Col span={6}>
-            <Label>1. Search for a User based on the selection criteria below</Label>
+            <Label>1. Search for a user based on the selection criteria below</Label>
             <Table
               key={searchKey}
               variant="mini"
@@ -490,7 +490,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   options: propertyOptions,
                 },
               ]}
-              headers={[{ name: 'First name' }, { name: 'Last Name' }, { name: 'Email' }]}
+              headers={[
+                { name: 'First name', style: { float: 'left', width: '20%' } },
+                { name: 'Last Name', style: { float: 'left', width: '40%' } },
+                { name: 'Email', style: { float: 'left' } },
+              ]}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
               onSearch={handleSearch}
