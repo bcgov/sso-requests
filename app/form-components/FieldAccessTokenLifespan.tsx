@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FieldTemplateProps } from 'react-jsonschema-form';
-import { faInfoCircle, faEnvelope, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import InfoOverlay from 'components/InfoOverlay';
 import FieldTemplate from './FieldTemplate';
 
