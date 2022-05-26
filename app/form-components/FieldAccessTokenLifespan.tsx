@@ -21,13 +21,10 @@ export default function FieldAccessTokenLifespan(props: FieldTemplateProps) {
       <Container>
         <Title>
           Additional Settings (Optional)&nbsp;
-          <InfoOverlay content="If you would like this set for your integration, please contact the Pathfinder SSO Team." />
-          &nbsp;
           <InfoOverlay
-            icon={faEnvelope}
             trigger={['click']}
             content={
-              'Please contact <a href="mailto:bcgov.sso@gov.bc.ca">Pathfinder SSO Team</a> if you have questions for the section below.'
+              'If you would like this set for your integration or have questions, please contact <a href="mailto:bcgov.sso@gov.bc.ca"> Pathfinder SSO Team</a>.'
             }
           />
         </Title>
