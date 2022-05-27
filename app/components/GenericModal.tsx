@@ -13,7 +13,6 @@ const StyledModal = styled(Modal)`
   text-align: left !important;
 
   & .pg-modal-main {
-    max-width: 700px;
     margin: auto;
     box-shadow: 5px 5px 10px black;
   }
@@ -47,7 +46,7 @@ const ButtonContainer = styled.div<{ buttonAlign: 'center' | 'right' | 'none' }>
 export type ButtonStyle = 'bcgov' | 'custom' | 'danger';
 export interface ModalRef {
   open: (context?: any) => void;
-  close: () => void;
+  close: (context?: any) => void;
   updateConfig: (data: any) => void;
   getId: () => any;
 }
@@ -64,6 +63,7 @@ interface Props {
   title?: string;
   onConfirm?: (ref: any, context: any) => any;
   onCancel?: (ref: any, context: any) => void;
+  onClose?: (ref: any, context: any, closeContext: any) => void;
   closable?: boolean;
   children?: React.ReactNode;
   icon?: any;
@@ -83,6 +83,7 @@ const GenericModal = (
     title = '',
     onConfirm = (ref: any, context: any) => true,
     onCancel = noop,
+    onClose = noop,
     closable = true,
     children,
     icon = faExclamationTriangle,
@@ -116,9 +117,10 @@ const GenericModal = (
       setContext(context);
       window.location.hash = id;
     },
-    close: () => {
+    close: (closeContext: any) => {
       setConfig({ ...initialConfig });
-      window.location.hash = '#';
+      onClose(contentRef, context, closeContext);
+      window.location.hash = closeContext?._hash || context?._hash || '#';
     },
     updateConfig: (data: any) => {
       setConfig({ ...config, ...data });
@@ -133,14 +135,14 @@ const GenericModal = (
 
     if (close !== false) {
       setConfig({ ...initialConfig });
-      window.location.hash = '#';
+      window.location.hash = context?._hash || '#';
     }
   };
 
   const handleCancel = async () => {
     onCancel(contentRef, context);
     setConfig({ ...initialConfig });
-    window.location.hash = '#';
+    window.location.hash = context?._hash || '#';
   };
 
   if (typeof children === 'function') {
