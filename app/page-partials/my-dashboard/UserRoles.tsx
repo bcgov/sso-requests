@@ -10,11 +10,10 @@ import Loader from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import Table from 'components/Table';
-import PlainTable from 'html-components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
+import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRole, KeycloakUser } from 'services/keycloak';
-import { searchIdirUsers, importIdirUser, IdirUser } from 'services/bceid-webservice';
 
 const Label = styled.label`
   font-weight: bold;
@@ -97,10 +96,10 @@ const idpMap = {
 };
 
 const propertyOptions = [
-  { value: 'lastName', label: 'Last Name' },
-  { value: 'firstName', label: 'First Name' },
-  { value: 'email', label: 'Email' },
-  { value: 'guid', label: 'IDP GUID' },
+  { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir'] },
+  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir'] },
+  { value: 'email', label: 'Email', allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'] },
+  { value: 'guid', label: 'IDP GUID', allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'] },
 ];
 
 interface Props {
@@ -109,19 +108,17 @@ interface Props {
 }
 
 const UserRoles = ({ selectedRequest, alert }: Props) => {
-  const modalRef = useRef<ModalRef>(emptyRef);
+  const infoModalRef = useRef<ModalRef>(emptyRef);
+  const idimSearchModalRef = useRef<ModalRef>(emptyRef);
   const [searched, setSearched] = useState(false);
-  const [idirSearched, setIdirSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
-  const [loadingIdir, setLoadingIdir] = useState(false);
   const [rows, setRows] = useState<KeycloakUser[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
-  const [idirs, setIdirs] = useState<IdirUser[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
   const [selectedIdp, setSelectedIdp] = useState<string>('');
-  const [selectedProperty, setSelectedProperty] = useState<string>(propertyOptions[0].value);
+  const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
 
@@ -147,10 +144,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setRows([]);
     setRoles([]);
     setUserRoles([]);
-    setIdirs([]);
     setSelectedId(undefined);
     setSearched(false);
-    setIdirSearched(false);
   };
 
   useEffect(() => {
@@ -166,6 +161,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   useEffect(() => {
     reset();
+    const currentPropertyOption = propertyOptions.find((v) => v.value === selectedProperty);
+    const isCurrentPropertyAllowed = currentPropertyOption?.allowed.includes(selectedIdp);
+    if (!isCurrentPropertyAllowed) {
+      const firstAllowedProperty = propertyOptions.find((v) => v.allowed.includes(selectedIdp));
+      setSelectedProperty(firstAllowedProperty?.value || '');
+    }
   }, [selectedIdp]);
 
   const handleSearch = async (searchKey: string, property = selectedProperty) => {
@@ -178,7 +179,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setUserRoles([]);
     setSelectedId(undefined);
     setSearched(true);
-    setIdirSearched(false);
 
     const [data, err] = await searchKeycloakUsers({
       environment: selectedEnvironment,
@@ -194,23 +194,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       }
     }
     setLoading(false);
-  };
-
-  const handleIdirSearch = async () => {
-    if (searchKey.length < 2) return;
-
-    setLoadingIdir(true);
-    setIdirs([]);
-    setSelectedId(undefined);
-    setIdirSearched(true);
-
-    const [data, err] = await searchIdirUsers({
-      field: selectedProperty,
-      search: searchKey,
-    });
-
-    if (data) setIdirs(data);
-    setLoadingIdir(false);
   };
 
   const handleRoleChange = async (
@@ -254,13 +237,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setLoadingRight(false);
   };
 
-  const handleImport = async (data: IdirUser) => {
-    setLoadingIdir(true);
-    await importIdirUser({ guid: data.guid, userId: data.userId });
-    handleSearch(data.guid, 'guid');
-    setLoadingIdir(false);
-  };
-
   let rightPanel = null;
 
   if (loadingRight) {
@@ -281,7 +257,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     );
   }
 
-  const showIdirLookupOption = selectedIdp === 'idir' && (idirSearched || selectedProperty !== 'guid');
+  const showIdirLookupOption = selectedIdp === 'idir';
 
   let content = null;
   if (!searched) {
@@ -314,7 +290,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 onClick={(event) => {
                   event.stopPropagation();
 
-                  modalRef.current.open({
+                  infoModalRef.current.open({
                     guid: row.username.split('@')[0],
                     attributes: {
                       firstName: row.firstName,
@@ -359,101 +335,30 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   let idirLookup = null;
 
   if (searched && showIdirLookupOption) {
-    if (loadingIdir) idirLookup = <Loading />;
-    else if (idirSearched) {
-      let rows = null;
-      if (idirs.length > 0) {
-        rows = idirs.map((data, ind) => {
-          return (
-            <tr key={data.guid}>
-              <td>{data.individualIdentity.name.firstname}</td>
-              <td>{data.individualIdentity.name.surname}</td>
-              <td>{data.contact.email}</td>
-              <td>{data.userId}</td>
-              <td>
-                <ActionButtonContainer>
-                  <ActionButton
-                    icon={faEye}
-                    role="button"
-                    aria-label="view"
-                    onClick={() =>
-                      modalRef.current.open({
-                        guid: data.guid,
-                        attributes: {
-                          username: data.userId,
-                          displayName: data.displayName,
-                          firstName: data.individualIdentity.name.firstname,
-                          middleName: data.individualIdentity.name.middleName,
-                          lastName: data.individualIdentity.name.surname,
-                          initials: data.individualIdentity.name.initials,
-                          email: data.contact.email,
-                          telephone: data.contact.telephone,
-                          company: data.internalIdentity.company,
-                          department: data.internalIdentity.department,
-                          title: data.internalIdentity.title,
-                        },
-                      })
-                    }
-                    title="View"
-                    size="lg"
-                  />
-                  <ActionButton
-                    icon={faDownload}
-                    role="button"
-                    aria-label="import"
-                    onClick={() => handleImport(data)}
-                    title="Import"
-                    size="lg"
-                  />
-                </ActionButtonContainer>
-              </td>
-            </tr>
-          );
-        });
-      } else {
-        rows = (
-          <tr>
-            <td colSpan={5}>
-              <FlexBox>
-                <FlexItem>
-                  <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
-                </FlexItem>
-                <FlexItem>The search criteria you entered does not exist in the IDIR Lookup system.</FlexItem>
-              </FlexBox>
-            </td>
-          </tr>
-        );
-      }
-
-      idirLookup = (
-        <>
-          <PlainTable variant="mini">
-            <thead>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Email</th>
-              <th>IDIR username</th>
-              <th></th>
-            </thead>
-            <tbody>{rows}</tbody>
-          </PlainTable>
-        </>
-      );
-    } else {
-      idirLookup = (
-        <>
-          {rows.length > 0 && (
-            <div className="fst-italic small mb-1">
-              If you did not find the user you were looking for, you can try searching for the user in our IDIR Lookup
-              tool. This tool uses a webservice to find IDIR users. so you will need to import the user that is found.
-            </div>
-          )}
-          <Button type="button" size="small" onClick={handleIdirSearch}>
-            Search in IDIR Lookup
-          </Button>
-        </>
-      );
-    }
+    idirLookup = (
+      <>
+        {rows.length > 0 && (
+          <div className="fst-italic small mb-1">
+            If you did not find the user you were looking for, you can try searching for the user in our IDIR Lookup
+            tool. This tool uses a webservice to find IDIR users. so you will need to import the user that is found.
+          </div>
+        )}
+        <Button
+          type="button"
+          size="small"
+          onClick={() =>
+            idimSearchModalRef.current.open({
+              key: new Date().getTime().toString(),
+              idp: 'idir',
+              property: selectedProperty,
+              search: searchKey,
+            })
+          }
+        >
+          Search in IDIR Lookup
+        </Button>
+      </>
+    );
   }
 
   const environments = selectedRequest?.environments || [];
@@ -487,7 +392,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   value: selectedProperty,
                   multiselect: false,
                   onChange: setSelectedProperty,
-                  options: propertyOptions,
+                  options: propertyOptions.filter((v) => v.allowed.includes(selectedIdp)),
                 },
               ]}
               headers={[
@@ -503,7 +408,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               totalColSpan={20}
               searchColSpan={8}
               filterColSpan={12}
-              showContent={!idirSearched}
             >
               {content}
             </Table>
@@ -513,13 +417,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         </Grid.Row>
       </Grid>
       <GenericModal
-        ref={modalRef}
+        ref={infoModalRef}
         title="Additional User Info"
         icon={null}
         cancelButtonText="Close"
         cancelButtonVariant="primary"
         showConfirmButton={false}
-        showCancelButton={true}
         buttonAlign="right"
         style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
       >
@@ -545,6 +448,34 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 </ReadonlyContainer>
               ))}
             </div>
+          );
+        }}
+      </GenericModal>
+      <GenericModal
+        ref={idimSearchModalRef}
+        title="IDIM Web Service Lookup"
+        icon={null}
+        onClose={(contentRef, context, closeContext) => {
+          handleSearch(closeContext.guid, 'guid');
+        }}
+        cancelButtonText="Close"
+        cancelButtonVariant="primary"
+        showConfirmButton={false}
+        buttonAlign="right"
+        style={{ minWidth: '800px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+      >
+        {(context: { key: string; idp: string; property: string; search: string }) => {
+          if (!context) return <></>;
+
+          return (
+            <IdimLookup
+              key={context.key}
+              idp={context.idp}
+              property={context.property}
+              search={context.search}
+              infoModalRef={infoModalRef}
+              parentModalRef={idimSearchModalRef}
+            />
           );
         }}
       </GenericModal>
