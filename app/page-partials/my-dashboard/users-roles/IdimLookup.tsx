@@ -7,8 +7,8 @@ import { searchIdirUsers, importIdirUser, IdirUser } from 'services/bceid-webser
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
-  { value: 'bceidbasic', label: 'BCeID Basic' },
-  { value: 'bceidbusiness', label: 'BCeID Business' },
+  // { value: 'bceidbasic', label: 'BCeID Basic' },
+  // { value: 'bceidbusiness', label: 'BCeID Business' },
 ];
 
 const propertyOptions = [
@@ -54,10 +54,12 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
       const firstAllowedProperty = propertyOptions.find((v) => v.allowed.includes(selectedIdp));
       setSelectedProperty(firstAllowedProperty?.value || '');
       setSearchKey('');
+    } else {
+      handleSearch(searchKey, selectedProperty);
     }
   }, [selectedIdp]);
 
-  const handleSearch = async (searchKey: string, property = selectedProperty) => {
+  const handleSearch = async (searchKey: string, field = selectedProperty) => {
     if (searchKey.length < 2) return;
 
     setLoading(true);
@@ -65,7 +67,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
     setSearched(true);
 
     const [data, err] = await searchIdirUsers({
-      field: selectedProperty,
+      field,
       search: searchKey,
     });
 
