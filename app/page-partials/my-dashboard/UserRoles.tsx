@@ -98,7 +98,7 @@ const idpMap = {
 const propertyOptions = [
   { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir'] },
   { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir'] },
-  { value: 'email', label: 'Email', allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'] },
+  { value: 'email', label: 'Email', allowed: ['idir', 'azureidir'] },
   { value: 'guid', label: 'IDP GUID', allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'] },
 ];
 
@@ -319,7 +319,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             {showIdirLookupOption ? (
               <FlexItem>
                 The user you searched for does not exist. Please try again, by entering the full search criteria or try
-                using our IDIR Lookup tool.
+                using our IDIM Web Service Lookup tool.
               </FlexItem>
             ) : (
               <FlexItem>
@@ -339,8 +339,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       <>
         {rows.length > 0 && (
           <div className="fst-italic small mb-1">
-            If you did not find the user you were looking for, you can try searching for the user in our IDIR Lookup
-            tool. This tool uses a webservice to find IDIR users. so you will need to import the user that is found.
+            If you did not find the user you were looking for, you can try searching for the user in our IDIM Web
+            Service Lookup tool. This tool uses a webservice to find IDIR users. so you will need to import the user
+            that is found.
           </div>
         )}
         <Button
@@ -355,7 +356,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             })
           }
         >
-          Search in IDIR Lookup
+          Search in IDIM Web Service Lookup
         </Button>
       </>
     );
