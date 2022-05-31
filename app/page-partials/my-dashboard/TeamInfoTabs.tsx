@@ -546,7 +546,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 <Button
                   onClick={async () => {
                     const [sa, err] = await requestServiceAccount(team.id);
-                    setServiceAccount(sa);
+                    if (err) {
+                      alert.show({
+                        variant: 'danger',
+                        fadeOut: 10000,
+                        closable: true,
+                        content: `Failed to request a service account.`,
+                      });
+                    } else {
+                      setServiceAccount(sa);
+                    }
                   }}
                 >
                   Request
