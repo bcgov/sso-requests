@@ -95,3 +95,30 @@ export const deleteTeam = async (teamId?: number) => {
     return handleAxiosError(err);
   }
 };
+
+export const requestServiceAccount = async (teamId?: number) => {
+  try {
+    const result = await instance.post(`teams/${teamId}/service-accounts`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
+export const getServiceAccount = async (teamId?: number) => {
+  try {
+    const result = await instance.get(`teams/${teamId}/service-account`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
+export const downloadServiceAccount = async (teamId?: number, saId?: number) => {
+  try {
+    const result = await instance.get(`teams/${teamId}/service-account/${saId}`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};

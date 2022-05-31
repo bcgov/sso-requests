@@ -12,7 +12,16 @@ import { User, Team } from 'interfaces/team';
 import { Request } from 'interfaces/Request';
 import { UserSession } from 'interfaces/props';
 import { getTeamIntegrations } from 'services/request';
-import { addTeamMembers, getTeamMembers, updateTeamMember, deleteTeamMember, inviteTeamMember } from 'services/team';
+import {
+  addTeamMembers,
+  getTeamMembers,
+  updateTeamMember,
+  deleteTeamMember,
+  inviteTeamMember,
+  getServiceAccount,
+  requestServiceAccount,
+  downloadServiceAccount,
+} from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -31,6 +40,10 @@ import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
+import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
+import getConfig from 'next/config';
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { enable_gold } = publicRuntimeConfig;
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -177,6 +190,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState<User[]>([]);
   const [integrations, setIntegrations] = useState<Request[]>([]);
+  const [serviceAccount, setServiceAccount] = useState<Request | null>(null);
   const [myself, setMyself] = useState<User | null>(null);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
@@ -188,19 +202,25 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   const getData = async (teamId: number) => {
     setLoading(true);
-    const [membersRes, integrationRes] = await Promise.all([getTeamMembers(teamId), getTeamIntegrations(teamId)]);
+    const [membersRes, integrationRes, serviceAccountRes] = await Promise.all([
+      getTeamMembers(teamId),
+      getTeamIntegrations(teamId),
+      getServiceAccount(teamId),
+    ]);
     const [members, err1] = membersRes;
     const [integrations, err2] = integrationRes;
+    const [serviceAccount, err3] = serviceAccountRes;
 
-    if (err1 || err2) {
-      console.error(err1, err2);
+    if (err1 || err2 || err3) {
       setMembers([]);
       setMyself(null);
       setIntegrations([]);
+      setServiceAccount(null);
     } else {
       setMembers(members);
       setMyself(members.find((member: { idirEmail: string }) => member.idirEmail === currentUser.email));
       setIntegrations(integrations || []);
+      setServiceAccount(serviceAccount);
     }
     setLoading(false);
   };
@@ -208,6 +228,28 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   useEffect(() => {
     getData(team.id);
   }, [team?.id]);
+
+  let interval: any;
+
+  useEffect(() => {
+    if (serviceAccount && serviceAccount.status === 'submitted') {
+      clearInterval(interval);
+
+      interval = setInterval(async () => {
+        const [data, err] = await getServiceAccount(team.id);
+
+        if (err) {
+          clearInterval(interval);
+        } else {
+          setServiceAccount(data);
+        }
+      }, 1000 * 5);
+    }
+
+    return () => {
+      interval && clearInterval(interval);
+    };
+  }, [serviceAccount]);
 
   const handleDeleteClick = (memberId?: number) => {
     if (!memberId) return;
@@ -477,6 +519,51 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
+        {enable_gold && (
+          <Tab eventKey="service-accounts" title="Service Accounts">
+            <TabWrapper marginTop="20px">
+              {serviceAccount ? (
+                serviceAccount.status === 'submitted' ? (
+                  <span>The service account is already requested.</span>
+                ) : (
+                  <Button
+                    onClick={async () => {
+                      let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
+                      data = data || {};
+
+                      const text = {
+                        tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
+                        clientId: `${data.resource}`,
+                        clientSecret: `${data.credentials?.secret}`,
+                      };
+                      downloadText(prettyJSON(text), `${serviceAccount.clientId}.json`);
+                    }}
+                  >
+                    Download
+                  </Button>
+                )
+              ) : (
+                <Button
+                  onClick={async () => {
+                    const [sa, err] = await requestServiceAccount(team.id);
+                    if (err) {
+                      alert.show({
+                        variant: 'danger',
+                        fadeOut: 10000,
+                        closable: true,
+                        content: `Failed to request a service account.`,
+                      });
+                    } else {
+                      setServiceAccount(sa);
+                    }
+                  }}
+                >
+                  Request
+                </Button>
+              )}
+            </TabWrapper>
+          </Tab>
+        )}
       </RequestTabs>
       <CenteredModal
         title="Add a New Team Member"

@@ -26,6 +26,16 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: true,
       },
+      serviceAccountEnabled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      apiServiceAccount: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       devValidRedirectUris: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: false,
