@@ -170,7 +170,7 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
   return getMemberOnTeam(teamId, userId, { raw: true });
 };
 
-export const requestServiceAccount = async (userId: number, teamId: number) => {
+export const requestServiceAccount = async (userId: number, teamId: number, requester: string) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
   const serviceAccount = await models.request.create({
     projectName: `Service Account for team #${teamId}`,
@@ -187,6 +187,7 @@ export const requestServiceAccount = async (userId: number, teamId: number) => {
 
   serviceAccount.status = 'submitted';
   serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
+  serviceAccount.requester = requester;
 
   const ghResult = await dispatchRequestWorkflow(serviceAccount);
   if (ghResult.status !== 204) {

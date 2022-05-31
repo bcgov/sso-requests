@@ -494,7 +494,7 @@ export const setRoutes = (app: any) => {
   app.post(`${BASE_PATH}/teams/:id/service-accounts`, async (req, res) => {
     try {
       const { id: teamId } = req.params;
-      const result = await requestServiceAccount(req.user.id, teamId);
+      const result = await requestServiceAccount(req.user.id, teamId, req.user.displayName);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
