@@ -90,7 +90,7 @@ export default function Home({ onLoginClick }: PageProps) {
               </Panel>
             </Grid.Col>
             <Grid.Col>
-              <Panel>{main}</Panel>
+              <Panel marginLeft>{main}</Panel>
             </Grid.Col>
           </Grid.Row>
           <Grid.Row>
