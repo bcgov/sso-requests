@@ -16,7 +16,7 @@ const commonPopulation = [
 ];
 
 export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: string[]) => {
-  const where: any = {};
+  const where: any = { apiServiceAccount: false };
 
   const teamIdsLiteral = getMyTeamsLiteral(userId, roles);
 
@@ -72,7 +72,7 @@ export const findAllowedIntegrationInfo = async (
 export const getAllowedRequest = async (session: Session, requestId: number, roles?: string[]) => {
   if (isAdmin(session)) {
     return models.request.findOne({
-      where: { id: requestId },
+      where: { id: requestId, apiServiceAccount: false },
       include: commonPopulation,
     });
   }
@@ -83,13 +83,13 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
 export const listIntegrationsForTeam = async (session: Session, teamId: number, options?: { raw: boolean }) => {
   if (isAdmin(session)) {
     return models.request.findAll({
-      where: { teamId, archived: false },
+      where: { teamId, apiServiceAccount: false, archived: false },
       ...options,
     });
   }
 
   const { user } = session;
-  const where: any = { archived: false };
+  const where: any = { apiServiceAccount: false, archived: false };
 
   const teamIdsLiteral = getMyTeamsLiteral(user.id);
 

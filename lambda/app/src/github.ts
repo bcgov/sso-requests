@@ -24,6 +24,10 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     'browserFlowOverride',
     'serviceType',
 
+    'userId',
+    'teamId',
+    'apiServiceAccount',
+
     'devLoginTitle',
     'testLoginTitle',
     'prodLoginTitle',

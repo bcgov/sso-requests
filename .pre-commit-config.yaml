@@ -9,7 +9,6 @@ repos:
       - id: check-json
       - id: check-vcs-permalinks
       - id: check-yaml
-        exclude: ^helm/
       - id: end-of-file-fixer
       - id: trailing-whitespace
         exclude: 'lambda/__tests__/__snapshots__'
