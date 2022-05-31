@@ -519,7 +519,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        {enable_gold && (
+        {/* {enable_gold && isAdmin && (
           <Tab eventKey="service-accounts" title="Service Accounts">
             <TabWrapper marginTop="20px">
               {serviceAccount ? (
@@ -563,7 +563,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               )}
             </TabWrapper>
           </Tab>
-        )}
+        )} */}
       </RequestTabs>
       <CenteredModal
         title="Add a New Team Member"
