@@ -55,13 +55,13 @@ function Navigation(props: any) {
           </ResponsiveContainer>
         </BaseHeader.Group>
         <BaseHeader.Item collapse={mobileBreakPoint}>
-          <Title>{isFunction(title) ? title(context) : title}</Title>
+          <Title style={{ marginLeft: '-90px' }}>{isFunction(title) ? title(context) : title}</Title>
         </BaseHeader.Item>
 
         {rightSide && (
           <BaseHeader.Item
             collapse={mobileBreakPoint}
-            style={{ marginLeft: 'auto', marginBottom: 'auto', marginTop: 'auto' }}
+            style={{ marginLeft: 'auto', marginBottom: 'auto', marginTop: 'auto', marginRight: '45px' }}
           >
             {rightSide}
           </BaseHeader.Item>
