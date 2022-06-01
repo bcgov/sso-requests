@@ -49,13 +49,13 @@ function Navigation(props: any) {
   return (
     <BaseNavigation>
       <BaseHeader>
-        <BaseHeader.Group className="banner">
+        <BaseHeader.Group className="banner" style={{ maxWidth: '230px', margin: '0px' }}>
           <ResponsiveContainer rules={mediaRules}>
             <BannerLogo onClick={onBannerClick}>{bcgovLogoSVG}</BannerLogo>
           </ResponsiveContainer>
         </BaseHeader.Group>
         <BaseHeader.Item collapse={mobileBreakPoint}>
-          <Title style={{ marginLeft: '-90px' }}>{isFunction(title) ? title(context) : title}</Title>
+          <Title>{isFunction(title) ? title(context) : title}</Title>
         </BaseHeader.Item>
 
         {rightSide && (
