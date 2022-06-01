@@ -430,6 +430,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       </Grid>
       <GenericModal
         ref={infoModalRef}
+        id="additiona-user-info"
         title="Additional User Info"
         icon={null}
         cancelButtonText="Close"
@@ -465,6 +466,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       </GenericModal>
       <GenericModal
         ref={idimSearchModalRef}
+        id="idim-webservice-lookup"
         title="IDIM Web Service Lookup"
         icon={null}
         onClose={(contentRef, context, closeContext) => {
