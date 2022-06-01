@@ -148,9 +148,20 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setSearched(false);
   };
 
+  const resetSearchOptions = () => {
+    setSearchKey('');
+    setSelectedEnvironment('dev');
+    if (selectedRequest.devIdps) {
+      const idp = selectedRequest.devIdps.length > 0 ? selectedRequest.devIdps[0] : '';
+      setSelectedIdp(idp);
+      const firstAllowedProperty = propertyOptions.find((v) => v.allowed.includes(idp));
+      setSelectedProperty(firstAllowedProperty?.value || '');
+    }
+  };
+
   useEffect(() => {
     reset();
-    setSelectedEnvironment('dev');
+    resetSearchOptions();
   }, [selectedRequest.id]);
 
   useEffect(() => {
