@@ -24,6 +24,7 @@ export const searchUsers = async ({
   const query: any = {};
   if (property === 'guid') {
     query.username = `${searchKey}@${idp}`;
+    query.exact = true;
   } else {
     query.username = `@${idp}`;
     query[property] = searchKey;
