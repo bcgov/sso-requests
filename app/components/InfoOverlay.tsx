@@ -1,5 +1,5 @@
 import React from 'react';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import OverlayTrigger, { OverlayTriggerType } from 'react-bootstrap/OverlayTrigger';
 import DefaultPopover from 'react-bootstrap/Popover';
 import styled from 'styled-components';
 import { noop } from 'lodash';
@@ -19,6 +19,7 @@ interface Props {
   hide?: number;
   icon?: IconDefinition;
   onClick?: () => void;
+  trigger?: OverlayTriggerType[];
 }
 
 export default function InfoOverlay({
@@ -28,6 +29,7 @@ export default function InfoOverlay({
   hide = 250,
   icon = faInfoCircle,
   onClick = noop,
+  trigger = ['hover', 'focus'],
 }: Props) {
   const popover = (
     <Popover id="popover-basic">
@@ -35,11 +37,10 @@ export default function InfoOverlay({
       {content && <Popover.Content dangerouslySetInnerHTML={{ __html: content }} />}
     </Popover>
   );
+
   return (
-    <>
-      <OverlayTrigger trigger={['hover', 'focus']} placement="right-start" overlay={popover} delay={{ show, hide }}>
-        <FontAwesomeIcon color="#777777" icon={icon} onClick={onClick} />
-      </OverlayTrigger>
-    </>
+    <OverlayTrigger trigger={trigger} placement="right-start" overlay={popover} delay={{ show, hide }}>
+      <FontAwesomeIcon color="#777777" icon={icon} onClick={onClick} />
+    </OverlayTrigger>
   );
 }

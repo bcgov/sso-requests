@@ -24,6 +24,7 @@ export const searchUsers = async ({
   const query: any = {};
   if (property === 'guid') {
     query.username = `${searchKey}@${idp}`;
+    query.exact = true;
   } else {
     query.username = `@${idp}`;
     query[property] = searchKey;
@@ -58,7 +59,7 @@ export const listClientRoles = async (
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
@@ -83,7 +84,7 @@ export const findClientRole = async (
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
@@ -110,7 +111,7 @@ export const listRoleUsers = async (
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
@@ -142,7 +143,7 @@ export const listUserRoles = async (
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
@@ -180,7 +181,7 @@ export const manageUserRole = async (
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
@@ -225,7 +226,7 @@ export const createRole = async (
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
@@ -276,7 +277,7 @@ export const bulkCreateRole = async (
       const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment: env });
       const result = { env, success: [], duplicate: [], failure: [], clientNotFound: false };
 
-      const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+      const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
       if (clients.length === 0) {
         result.clientNotFound = true;
         result.failure = roleNames;
@@ -332,7 +333,7 @@ export const deleteRole = async (
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientName, max: 1 });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 

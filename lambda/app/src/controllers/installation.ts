@@ -9,7 +9,7 @@ export const getInstallation = async (session: Session, data: { requestId: numbe
     serviceType: request.serviceType,
     environment: data.environment,
     realmName: request.realm,
-    clientId: request.clientName,
+    clientId: request.clientId,
   });
 
   return installation;
@@ -22,7 +22,7 @@ export const changeSecret = async (session: Session, data: { requestId: number; 
     serviceType: request.serviceType,
     environment: data.environment,
     realmName: request.realm,
-    clientId: request.clientName,
+    clientId: request.clientId,
   });
 
   return { success: true };

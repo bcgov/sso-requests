@@ -11,6 +11,9 @@ import {
   userIsTeamAdmin,
   removeUserFromTeam,
   updateMemberInTeam,
+  getServiceAccount,
+  requestServiceAccount,
+  downloadServiceAccount,
 } from './controllers/team';
 import { findOrCreateUser, updateProfile } from './controllers/user';
 import {
@@ -482,6 +485,36 @@ export const setRoutes = (app: any) => {
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to delete this team' });
       const result = await deleteTeam(req.user, id);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/teams/:id/service-accounts`, async (req, res) => {
+    try {
+      const { id: teamId } = req.params;
+      const result = await requestServiceAccount(req.user.id, teamId, req.user.displayName);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/teams/:id/service-account`, async (req, res) => {
+    try {
+      const { id: teamId } = req.params;
+      const result = await getServiceAccount(req.user.id, teamId);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/teams/:id/service-account/:saId`, async (req, res) => {
+    try {
+      const { id: teamId, saId } = req.params;
+      const result = await downloadServiceAccount(req.user.id, teamId, saId);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

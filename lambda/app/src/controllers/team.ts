@@ -6,8 +6,11 @@ import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { User, Team, Member } from '@lambda-shared/interfaces';
+import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
+import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
+import { generateInstallation, updateClientSecret } from '../keycloak/installation';
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -165,4 +168,74 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
   );
 
   return getMemberOnTeam(teamId, userId, { raw: true });
+};
+
+export const requestServiceAccount = async (userId: number, teamId: number, requester: string) => {
+  const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+  const serviceAccount = await models.request.create({
+    projectName: `Service Account for team #${teamId}`,
+    serviceType: 'gold',
+    usesTeam: true,
+    teamId: sequelize.literal(`(${teamIdLiteral})`),
+    apiServiceAccount: true,
+  });
+
+  if (!serviceAccount.teamId) {
+    await serviceAccount.destroy();
+    throw Error(`team #${teamId} is not allowed for user #${userId}`);
+  }
+
+  serviceAccount.status = 'submitted';
+  serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
+  serviceAccount.requester = requester;
+
+  const ghResult = await dispatchRequestWorkflow(serviceAccount);
+  if (ghResult.status !== 204) {
+    await serviceAccount.destroy();
+    throw Error('failed to create a workflow dispatch event');
+  }
+
+  await serviceAccount.save();
+  return serviceAccount;
+};
+
+export const getServiceAccount = async (userId: number, teamId: number) => {
+  const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+
+  return models.request.findOne({
+    where: {
+      serviceType: 'gold',
+      usesTeam: true,
+      apiServiceAccount: true,
+      teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
+    },
+    attributes: ['id', 'clientId', 'teamId', 'status'],
+    raw: true,
+  });
+};
+
+export const downloadServiceAccount = async (userId: number, teamId: number, saId: number) => {
+  const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+
+  const integration = await models.request.findOne({
+    where: {
+      id: saId,
+      serviceType: 'gold',
+      usesTeam: true,
+      apiServiceAccount: true,
+      status: 'applied',
+      teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
+    },
+    attributes: ['clientId', 'serviceType'],
+    raw: true,
+  });
+
+  const installation = await generateInstallation({
+    serviceType: integration.serviceType,
+    environment: 'prod',
+    realmName: 'standard',
+    clientId: integration.clientId,
+  });
+
+  return installation;
 };

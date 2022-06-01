@@ -74,13 +74,13 @@ export default function Home({ onLoginClick }: PageProps) {
           <Grid.Row collapse="800">
             <Grid.Col>
               <Panel marginRight>
-                <JumbotronH1>Pathfinder SSO Vision</JumbotronH1>
+                <JumbotronH1>Common Hosted Single Sign-On (CSS) Vision</JumbotronH1>
                 <JumbotronP>
-                  Enabling BC Government
+                  Use our self-service app to integrate
                   <br />
-                  digital delivery teams
+                  with BC government approved login
                   <br />
-                  to get single sign-on.
+                  services. Start by requesting an integration.
                 </JumbotronP>
                 <ButtonContainer>
                   <Button size="medium" onClick={onLoginClick}>
@@ -106,7 +106,7 @@ export default function Home({ onLoginClick }: PageProps) {
               <HorizontalRule />
               <Header>About</Header>
               <Accordion>
-                <Accordion.Panel title="What is Pathfinder's Common Hosted Sign-On (CSS) App?">
+                <Accordion.Panel title="What is Pathfinder's Common Hosted Single Sign-On (CSS) App?">
                   <ul>
                     <li>We provide a login service that connects your users to your applications</li>
                     <li>

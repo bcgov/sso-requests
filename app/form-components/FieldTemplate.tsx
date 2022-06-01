@@ -15,6 +15,7 @@ export default function FieldTemplate(
   props: FieldTemplateProps & { top?: React.ReactElement; bottom?: React.ReactElement },
 ) {
   const {
+    id,
     formContext,
     classNames,
     label,
@@ -30,17 +31,20 @@ export default function FieldTemplate(
 
   const classes = clsx(classNames, additionalClassNames);
 
+  // prevent array components from displaying the same description in `ArrayFieldTemplate`.
+  const descriptionToUse = type === 'array' ? null : description;
+
   return (
     <>
       {top}
       <div className={classes}>
         {displayLabel && label && (
-          <Title>
+          <Title data-test-id={`${id}_title`}>
             {label}&nbsp;
             {tooltip && <InfoOverlay {...tooltip} onClick={() => tooltip?.onClick(formContext) || noop} />}
           </Title>
         )}
-        {description}
+        <div data-test-id={`${id}_description`}>{descriptionToUse}</div>
         {children}
         {errors}
         {help}

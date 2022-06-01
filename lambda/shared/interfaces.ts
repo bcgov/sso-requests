@@ -31,6 +31,7 @@ export interface Data {
   environments?: string[];
   idirUserDisplayName?: string;
   idirUserId?: string;
+  clientId?: string;
   clientName?: string;
   newToSso?: boolean;
   agreeWithTerms?: boolean;

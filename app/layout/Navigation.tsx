@@ -49,7 +49,7 @@ function Navigation(props: any) {
   return (
     <BaseNavigation>
       <BaseHeader>
-        <BaseHeader.Group className="banner">
+        <BaseHeader.Group className="banner" style={{ maxWidth: '230px', margin: '0px' }}>
           <ResponsiveContainer rules={mediaRules}>
             <BannerLogo onClick={onBannerClick}>{bcgovLogoSVG}</BannerLogo>
           </ResponsiveContainer>
@@ -61,7 +61,7 @@ function Navigation(props: any) {
         {rightSide && (
           <BaseHeader.Item
             collapse={mobileBreakPoint}
-            style={{ marginLeft: 'auto', marginBottom: 'auto', marginTop: 'auto' }}
+            style={{ marginLeft: 'auto', marginBottom: 'auto', marginTop: 'auto', marginRight: '45px' }}
           >
             {rightSide}
           </BaseHeader.Item>

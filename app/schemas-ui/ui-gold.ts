@@ -46,7 +46,15 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
   return {
     projectName: {
       'ui:placeholder': 'Project Name',
-      'ui:label': false,
+    },
+    devLoginTitle: {
+      'ui:placeholder': 'Keycloak Login Page Name',
+    },
+    testLoginTitle: {
+      'ui:placeholder': 'Keycloak Login Page Name',
+    },
+    prodLoginTitle: {
+      'ui:placeholder': 'Keycloak Login Page Name',
     },
     usesTeam: {
       'ui:widget': 'radio',
@@ -65,7 +73,7 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     },
     devIdps: {
       'ui:widget': 'checkboxes',
-      'ui:enumDisabled': ['azureidir'],
+      'ui:enumDisabled': [],
     },
     bceidTo: {
       'ui:label': false,
@@ -92,7 +100,7 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     comment: {
       'ui:FieldTemplate': FieldReviewAndSubmit,
       'ui:widget': includeComment ? 'textarea' : 'hidden',
-      'ui:label': false,
+      'ui:label': includeComment,
     },
     ...tokenFields,
   };

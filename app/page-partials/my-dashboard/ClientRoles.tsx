@@ -298,7 +298,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
           <Tab eventKey={env} title={startCase(env)} />
         ))}
       </RequestTabs>
-
+      <br />
       <div>
         <StyledInput
           type="text"
@@ -335,10 +335,10 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
           const hasError = await contentRef.current.submit();
           if (!hasError) {
             await contentRef.current.reset();
-            modalRef.current.close();
             reset();
           } else {
             modalRef.current.updateConfig({ confirmButtonText: 'Try Again' });
+            return false;
           }
         }}
         onCancel={(contentRef: any) => {

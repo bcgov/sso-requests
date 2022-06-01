@@ -14,6 +14,7 @@ export const dispatchRequestWorkflow = async (integration: any) => {
   const payload = pick(integration, [
     'id',
     'projectName',
+    'clientId',
     'clientName',
     'realm',
     'publicAccess',
@@ -22,6 +23,14 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     'archived',
     'browserFlowOverride',
     'serviceType',
+
+    'userId',
+    'teamId',
+    'apiServiceAccount',
+
+    'devLoginTitle',
+    'testLoginTitle',
+    'prodLoginTitle',
 
     'devValidRedirectUris',
     'testValidRedirectUris',
