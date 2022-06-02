@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { isNil, throttle, padStart } from 'lodash';
+import { isNil, throttle, padStart, difference } from 'lodash';
 import FormHeader from 'form-components/FormHeader';
 import FormStage from 'form-components/FormStage';
 import Form from 'form-components/GovForm';
@@ -35,6 +35,26 @@ const HeaderContainer = styled.div`
   justify-content: space-between;
   min-height: 150px;
 `;
+
+const isBceidBoth = (idp: string) => idp === 'bceidboth';
+const hasIdir = (idp: string) => ['idir', 'azureidir'].includes(idp);
+const hasBceidRegular = (idp: string) => ['bceidbasic', 'bceidbusiness'].includes(idp);
+const noBceidBoth = (idp: string) => hasIdir(idp) || idp !== 'bceidboth';
+const noBceidRegular = (idp: string) => hasIdir(idp) || !hasBceidRegular(idp);
+
+const filterIdps = (currentIdps: string[], updatedIdps: string[]) => {
+  const idpAdded = currentIdps.length < updatedIdps.length;
+  let idps = updatedIdps;
+
+  if (idpAdded) {
+    const newIdp = difference(updatedIdps, currentIdps)[0];
+
+    if (hasBceidRegular(newIdp)) idps = updatedIdps.filter(noBceidBoth);
+    else if (isBceidBoth(newIdp)) idps = updatedIdps.filter(noBceidRegular);
+  }
+
+  return idps;
+};
 
 interface Props {
   currentUser: LoggedInUser;
@@ -81,12 +101,16 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   );
 
   const handleChange = (e: any) => {
+    const currentIdps = formData?.devIdps || [];
+    const updatedIdps = e.formData.devIdps || [];
+    const devIdps = filterIdps(currentIdps, updatedIdps);
+
     const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
     const togglingTeamToTrue = formData.usesTeam === false && e.formData.usesTeam === true;
     if (togglingTeamToTrue) {
-      setFormData({ ...e.formData, projectLead: undefined });
+      setFormData({ ...e.formData, devIdps, projectLead: undefined });
     } else {
-      setFormData(e.formData);
+      setFormData({ ...e.formData, devIdps });
     }
     if (showModal) {
       window.location.hash = 'info-modal';
