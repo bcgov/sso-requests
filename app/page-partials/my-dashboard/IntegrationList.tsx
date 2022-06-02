@@ -129,11 +129,12 @@ const NewEntityButton = ({
 
 interface Props {
   setIntegration: Function;
+  setIntegrationCount: (integrations: number) => void;
   state: DashboardReducerState;
   dispatch: Dispatch<SetStateAction<any>>;
 }
 
-export default function IntegrationList({ setIntegration, state, dispatch }: Props) {
+export default function IntegrationList({ setIntegration, setIntegrationCount, state, dispatch }: Props) {
   const router = useRouter();
   let { integr } = router.query;
 
@@ -156,7 +157,9 @@ export default function IntegrationList({ setIntegration, state, dispatch }: Pro
   };
 
   const updateIntegrations = (integrations: Request[]) => {
-    setIntegrations(integrations || []);
+    const ints = integrations || [];
+    setIntegrations(ints);
+    setIntegrationCount(ints.length);
     if (activeIntegrationId) {
       const integration = integrations.find((integration) => integration?.id === activeIntegrationId);
       if (integration) updateActiveIntegration(integration);

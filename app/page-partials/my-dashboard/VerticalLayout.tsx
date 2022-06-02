@@ -26,10 +26,11 @@ interface Props {
   tab: 'integrations' | 'teams' | 's2g';
   leftPanel?: (state: DashboardReducerState, dispatch: React.Dispatch<React.SetStateAction<any>>) => React.ReactNode;
   rightPanel?: (state: DashboardReducerState, dispatch: React.Dispatch<React.SetStateAction<any>>) => React.ReactNode;
+  showResizable?: boolean;
   children?: React.ReactNode;
 }
 
-function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
+function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, children }: Props) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -57,18 +58,21 @@ function VerticalLayout({ tab, leftPanel, rightPanel, children }: Props) {
     <ResponsiveContainer rules={mediaRules}>
       <RequestsContext.Provider value={contextValue}>
         {tabs}
-        <Resizable
-          style={{ paddingTop: '2px', borderBottom: '3px solid black' }}
-          defaultSize={{
-            width: '100%',
-            height:
-              user?.integrations?.length == 0 || user?.integrations == undefined ? '100%' : window.innerHeight * 0.4,
-          }}
-          enable={{ bottom: true }}
-          handleStyles={{ bottom: { bottom: 0 } }}
-        >
-          <InnerResizable>{leftPanel && leftPanel(state, dispatch)}</InnerResizable>
-        </Resizable>
+        {showResizable ? (
+          <Resizable
+            style={{ paddingTop: '2px', borderBottom: '3px solid black' }}
+            defaultSize={{
+              width: '100%',
+              height: window.innerHeight * 0.4,
+            }}
+            enable={{ bottom: true }}
+            handleStyles={{ bottom: { bottom: 0 } }}
+          >
+            <InnerResizable>{leftPanel && leftPanel(state, dispatch)}</InnerResizable>
+          </Resizable>
+        ) : (
+          leftPanel && leftPanel(state, dispatch)
+        )}
         <br />
         {rightPanel && rightPanel(state, dispatch)}
       </RequestsContext.Provider>
