@@ -24,6 +24,9 @@ export default function getSchema(integration: Request) {
           enumNames: ['IDIR', 'IDIR (Azure)', 'BCeID Basic', 'BCeID Business', 'BCeID Both'],
         },
         uniqueItems: true,
+        tooltip: {
+          content: `The identity providers you add will let your users authenticate with those services.`,
+        },
       },
       environments: {
         type: 'array',
@@ -35,6 +38,9 @@ export default function getSchema(integration: Request) {
           enumNames: ['Development', 'Test', 'Production'],
         },
         uniqueItems: true,
+        tooltip: {
+          content: `We will provide a separate client for each environment you can select. Select the environments required for your project.`,
+        },
       },
     },
   } as Schema;
