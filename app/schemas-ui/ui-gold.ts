@@ -1,4 +1,4 @@
-import { isNil } from 'lodash';
+import { isNil, uniq } from 'lodash';
 import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';
@@ -25,8 +25,21 @@ const tokenTypes = [
 const getUISchema = ({ integration, isAdmin }: Props) => {
   const isNew = isNil(integration?.id);
   const isApplied = integration?.status === 'applied';
+  const idps = integration?.devIdps || [];
 
   const envDisabled = isApplied ? integration?.environments?.concat() || [] : ['dev'];
+  let idpDisabled: string[] = [];
+  if (isApplied) {
+    idps.forEach((idp) => {
+      if (idp.startsWith('bceid')) {
+        if (idp === 'bceidbasic') idpDisabled.push('bceidbasic', 'bceidboth');
+        else if (idp === 'bceidbusiness') idpDisabled.push('bceidbusiness', 'bceidboth');
+        else if (idp === 'bceidboth') idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+      }
+    });
+  }
+  idpDisabled = uniq(idpDisabled);
+
   const includeComment = isApplied && isAdmin;
 
   const tokenFields: any = {};
@@ -73,7 +86,7 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     },
     devIdps: {
       'ui:widget': 'checkboxes',
-      'ui:enumDisabled': [],
+      'ui:enumDisabled': idpDisabled,
     },
     bceidTo: {
       'ui:label': false,
