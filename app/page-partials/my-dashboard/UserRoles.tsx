@@ -389,18 +389,21 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               searchLocation="right"
               filters={[
                 {
+                  key: 'user-role-filter-env',
                   value: selectedEnvironment,
                   multiselect: false,
                   onChange: setSelectedEnvironment,
                   options: environments.map((env) => ({ value: env, label: startCase(env) })),
                 },
                 {
+                  key: 'user-role-filter-idp',
                   value: selectedIdp,
                   multiselect: false,
                   onChange: setSelectedIdp,
                   options: idps.map((idp) => ({ value: idp, label: idpMap[idp] })),
                 },
                 {
+                  key: 'user-role-filter-prop',
                   value: selectedProperty,
                   multiselect: false,
                   onChange: setSelectedProperty,

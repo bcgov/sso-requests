@@ -74,6 +74,7 @@ interface FilterItem {
 }
 
 interface Filter {
+  key?: string;
   value?: string | Option[];
   multiselect?: boolean;
   onChange?: Function;
@@ -277,6 +278,7 @@ function Table({
               <>
                 {filter.label}
                 <Dropdown
+                  data-test-id={filter.key}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     filter?.onChange && filter.onChange(event.target.value)
                   }
