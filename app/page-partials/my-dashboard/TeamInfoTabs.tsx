@@ -12,6 +12,7 @@ import { User, Team } from 'interfaces/team';
 import { Request } from 'interfaces/Request';
 import { UserSession } from 'interfaces/props';
 import { getTeamIntegrations } from 'services/request';
+import validator from 'validator';
 import {
   addTeamMembers,
   getTeamMembers,
@@ -85,7 +86,8 @@ const validateMembers = (members: User[], setErrors: Function) => {
   let errors: Errors = { members: [] };
 
   members.forEach((member, i) => {
-    if (!member.idirEmail) errors.members[i] = 'Please enter an email';
+    if (!member.idirEmail || !validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter an email';
+    else if (!member.idirEmail.endsWith('@gov.bc.ca')) errors.members[i] = 'Please enter a government email address';
   });
 
   if (errors.members.length === 0) {
@@ -377,9 +379,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th className="w60">Status</th>
+                    <th className="min-width-65">Status</th>
                     <th>Email</th>
-                    <th className="w120">
+                    <th className="min-width-65">
                       Role&nbsp;
                       <InfoOverlay
                         title={''}
@@ -389,7 +391,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         hide={200}
                       />
                     </th>
-                    <th className="w120">Actions</th>
+                    <th className="min-width-65">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -397,11 +399,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     const adminActionsAllowed = isAdmin && myself.id !== member.id;
                     return (
                       <tr key={member.id}>
-                        <td className="w60">
+                        <td className="min-width-65">
                           <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
                         </td>
                         <td>{member.idirEmail}</td>
-                        <td className="w120">
+                        <td className="min-width-65">
                           {adminActionsAllowed && !member.pending ? (
                             <Dropdown
                               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
@@ -416,13 +418,14 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             capitalize(member.role)
                           )}
                         </td>
-                        <td className="w120">
+                        <td className="min-width-65">
                           {adminActionsAllowed && member.pending && (
                             <ButtonIcon
                               icon={faShare}
                               size="lg"
                               onClick={() => inviteMember(member)}
                               title="Resend Invitation"
+                              style={{ paddingLeft: '3px' }}
                             />
                           )}
                           {adminActionsAllowed && (
@@ -431,6 +434,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               onClick={() => handleDeleteClick(member.id)}
                               size="lg"
                               title="Delete User"
+                              style={{ paddingLeft: '10px' }}
                             />
                           )}
                         </td>
@@ -573,7 +577,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           <TeamMembersForm
             members={tempMembers}
             setMembers={setTempMembers}
-            allowDelete={false}
+            allowDelete={isAdmin}
             errors={errors}
             currentUser={currentUser}
           />
