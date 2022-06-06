@@ -7,11 +7,12 @@ import Table from 'html-components/Table';
 import { Button } from '@bcgov-sso/common-react-components';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
-import TeamMembersForm, { isValidGovEmail } from 'form-components/team-form/TeamMembersForm';
+import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
 import { User, Team } from 'interfaces/team';
 import { Request } from 'interfaces/Request';
 import { UserSession } from 'interfaces/props';
 import { getTeamIntegrations } from 'services/request';
+import validator from 'validator';
 import {
   addTeamMembers,
   getTeamMembers,
@@ -85,8 +86,8 @@ const validateMembers = (members: User[], setErrors: Function) => {
   let errors: Errors = { members: [] };
 
   members.forEach((member, i) => {
-    if (!member.idirEmail) errors.members[i] = 'Please enter an email';
-    else if (!isValidGovEmail(member.idirEmail)) errors.members[i] = 'Please enter a government email address';
+    if (!member.idirEmail || !validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter an email';
+    else if (!member.idirEmail.endsWith('@gov.bc.ca')) errors.members[i] = 'Please enter a government email address';
   });
 
   if (errors.members.length === 0) {

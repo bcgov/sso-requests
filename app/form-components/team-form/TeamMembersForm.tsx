@@ -66,16 +66,6 @@ interface Props {
   currentUser: LoggedInUser | null;
 }
 
-export const isValidGovEmail = (email: string) => {
-  try {
-    if (email !== email.trim()) return false;
-    if (!email.match(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@gov.bc.ca/)) return false;
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
-
 function TeamMembersForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
   const handleAddMember = () => {
     setMembers([
