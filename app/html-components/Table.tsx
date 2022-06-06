@@ -56,9 +56,9 @@ const Table = styled.table<{ variant?: string; readOnly?: boolean }>`
     width: 60px;
   }
 
-  & th.w120,
-  & td.w120 {
-    width: 120px;
+  & th.min-width-65,
+  & td.min-width-65 {
+    min-width: 65px;
   }
 `;
 
