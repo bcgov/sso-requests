@@ -149,7 +149,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
               </Dropdown>
-              {i !== 0 && allowDelete && (
+              {i >= 0 && allowDelete && (
                 <Icon icon={faMinusCircle} onClick={() => handleMemberDelete(i)} title="Delete" />
               )}
             </MemberContainer>

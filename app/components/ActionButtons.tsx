@@ -8,12 +8,12 @@ import CenteredModal from 'components/CenteredModal';
 import { getRequests, deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
 
-export const ActionButtonContainer = styled.div`
+export const ActionButtonContainer = styled.div<{ noRightPadding?: boolean }>`
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: 15px;
+  ${(props) => (props.noRightPadding ? `` : `padding-right: 15px;`)}
   & > * {
     margin-left: 15px;
   }
@@ -39,9 +39,10 @@ interface Props {
   request: Request;
   onDelete?: Function;
   children?: any;
+  rightPadding?: boolean;
 }
 
-export default function Actionbuttons({ request, onDelete, children }: Props) {
+export default function Actionbuttons({ request, onDelete, children, rightPadding = false }: Props) {
   const router = useRouter();
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
@@ -70,7 +71,7 @@ export default function Actionbuttons({ request, onDelete, children }: Props) {
 
   return (
     <>
-      <ActionButtonContainer>
+      <ActionButtonContainer noRightPadding={rightPadding}>
         {children}
         <ActionButton
           disabled={!canEdit}

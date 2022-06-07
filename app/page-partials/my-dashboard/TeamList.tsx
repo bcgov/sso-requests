@@ -23,7 +23,7 @@ const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
 
 const CenteredHeader = styled.th`
-  text-align: center;
+  text-align: right;
   min-width: 100px;
 `;
 
@@ -148,8 +148,8 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
                   onClick={() => updateActiveTeam(team)}
                 >
                   <td>{team.name}</td>
-                  <td>
-                    <ActionButtonContainer>
+                  <td style={{ float: 'right', marginTop: '20px' }}>
+                    <ActionButtonContainer style={{ paddingRight: '4px' }}>
                       <ActionButton
                         icon={faEdit}
                         role="button"
