@@ -86,7 +86,7 @@ function AdminTabs({
 
   return (
     <>
-      <RequestTabs activeKey={activeKey} onSelect={(k: TabKey) => setActiveKey(k)}>
+      <RequestTabs activeKey={activeKey} onSelect={(k: any) => setActiveKey(k)}>
         <Tab eventKey="details" title="Details">
           <TabWrapper>
             <AdminRequestPanel currentUser={currentUser} request={selectedRequest} onUpdate={setRows} />

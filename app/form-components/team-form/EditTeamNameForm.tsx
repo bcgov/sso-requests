@@ -3,7 +3,7 @@ import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
 import { Button } from '@bcgov-sso/common-react-components';
 import { editTeamName } from 'services/team';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import ErrorText from 'components/ErrorText';
 
 const ButtonsContainer = styled.div`
@@ -80,7 +80,7 @@ export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: 
           Cancel
         </Button>
         <Button type="button" onClick={handleEditName}>
-          {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : 'Save'}
+          {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Save'}
         </Button>
       </ButtonsContainer>
     </div>

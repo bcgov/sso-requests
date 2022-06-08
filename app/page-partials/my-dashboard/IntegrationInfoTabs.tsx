@@ -129,7 +129,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
           activeKey={panelTab}
           mountOnEnter={true}
           unmountOnExit={true}
-          onSelect={(k: TabKey) => dispatch($setPanelTab(k))}
+          onSelect={(k: any) => dispatch($setPanelTab(k))}
         >
           <Tab eventKey="installation-json" title="Technical Details">
             <TabWrapper short={false}>

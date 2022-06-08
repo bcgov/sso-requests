@@ -8,7 +8,7 @@ import { noop, startCase } from 'lodash';
 import InfiniteScroll from 'react-infinite-scroller';
 import Input from '@button-inc/bcgov-theme/Input';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { RequestTabs } from 'components/RequestTabs';
@@ -33,6 +33,8 @@ const StyledInput = styled(Input)`
   }
 `;
 
+const InfScroll = InfiniteScroll as unknown as (a: any) => JSX.Element;
+
 const AlignCenter = styled.div`
   text-align: center;
 `;
@@ -53,7 +55,7 @@ interface Props {
 const LoaderContainer = () => (
   <AlignCenter>
     <TopMargin />
-    <Loader type="Grid" color="#000" height={45} width={45} visible={true} />
+    <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
   </AlignCenter>
 );
 
@@ -178,7 +180,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     confirmModalRef.current.open(roleName);
   };
 
-  const handleTabSelect = (key: string) => {
+  const handleTabSelect = (key: any) => {
     setEnvironment(key);
   };
 
@@ -198,7 +200,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
           </tr>
         </thead>
         {users.length > 0 ? (
-          <InfiniteScroll
+          <InfScroll
             element="tbody"
             loadMore={() => fetchUsers(false, selectedRole)}
             hasMore={hasMoreUser}
@@ -219,7 +221,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
                 </tr>
               );
             })}
-          </InfiniteScroll>
+          </InfScroll>
         ) : (
           <tbody>
             <tr>
@@ -234,12 +236,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
   let leftContent = <tbody />;
   if (roles.length > 0) {
     leftContent = (
-      <InfiniteScroll
-        element="tbody"
-        loadMore={() => fetchRoles(false)}
-        hasMore={hasMoreRole}
-        loader={<LoaderContainer />}
-      >
+      <InfScroll element="tbody" loadMore={() => fetchRoles(false)} hasMore={hasMoreRole} loader={<LoaderContainer />}>
         {roles.map((role: string) => {
           return (
             <tr
@@ -269,7 +266,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
             </tr>
           );
         })}
-      </InfiniteScroll>
+      </InfScroll>
     );
   } else {
     leftContent = (

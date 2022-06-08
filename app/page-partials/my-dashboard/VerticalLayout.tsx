@@ -42,7 +42,7 @@ function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, chil
     return { state, dispatch };
   }, [state, dispatch]);
 
-  const navigateTab = (key: string) => {
+  const navigateTab = (key: any) => {
     router.replace(`/my-dashboard/${key}`);
   };
 

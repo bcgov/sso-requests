@@ -3,7 +3,7 @@ import Modal from '@button-inc/bcgov-theme/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { noop } from 'lodash';
 import styled from 'styled-components';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@bcgov-sso/common-react-components';
 
@@ -65,7 +65,7 @@ interface Props {
   onCancel?: (ref: any, context: any) => void;
   onClose?: (ref: any, context: any, closeContext: any) => void;
   closable?: boolean;
-  children?: React.ReactNode;
+  children?: React.ReactNode | ((context: any) => JSX.Element);
   icon?: any;
   confirmButtonText?: string;
   cancelButtonText?: string;
@@ -184,7 +184,7 @@ const GenericModal = (
           {config.showConfirmButton && (
             <Button onClick={handleConfirm} variant={config.confirmButtonVariant} type="button">
               {loading ? (
-                <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} />
+                <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} />
               ) : (
                 config.confirmButtonText
               )}

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { getInstallation } from 'services/keycloak';
 import Button from 'html-components/Button';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
@@ -79,7 +79,7 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
     return (
       <AlignCenter>
         <TopMargin />
-        <Loader type="Grid" color="#000" height={45} width={45} visible={true} />
+        <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
       </AlignCenter>
     );
 
