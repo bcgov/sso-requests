@@ -427,7 +427,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               size="lg"
                               onClick={() => inviteMember(member)}
                               title="Resend Invitation"
-                              style={{ marginRight: '16px' }}
+                              style={{ marginRight: '6px' }}
                             />
                           )}
                           {adminActionsAllowed && (
@@ -436,7 +436,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               onClick={() => handleDeleteClick(member.id)}
                               size="lg"
                               title="Delete User"
-                              style={{ marginRight: '4px' }}
+                              style={{ marginRight: '16px' }}
                             />
                           )}
                         </td>
