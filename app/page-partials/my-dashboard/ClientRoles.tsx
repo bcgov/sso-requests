@@ -2,7 +2,8 @@ import React, { MouseEvent, useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import { Button } from '@bcgov-sso/common-react-components';
-import { faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash, faExclamationTriangle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { noop, startCase } from 'lodash';
 import InfiniteScroll from 'react-infinite-scroller';
 import Input from '@button-inc/bcgov-theme/Input';
@@ -15,7 +16,14 @@ import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
 import Table from 'html-components/Table';
 import CreateRoleContent from './roles/CreateRoleContent';
-import { searchKeycloakUsers, listClientRoles, deleteRole, listRoleUsers, KeycloakUser } from 'services/keycloak';
+import {
+  searchKeycloakUsers,
+  listClientRoles,
+  deleteRole,
+  listRoleUsers,
+  manageUserRole,
+  KeycloakUser,
+} from 'services/keycloak';
 
 const StyledInput = styled(Input)`
   display: inline-block;
@@ -52,7 +60,8 @@ const LoaderContainer = () => (
 const ClientRoles = ({ selectedRequest, alert }: Props) => {
   const modalRef = useRef<ModalRef>(emptyRef);
   const confirmModalRef = useRef<ModalRef>(emptyRef);
-  const [tab, setTab] = useState('dev');
+  const removeUserModalRef = useRef<ModalRef>(emptyRef);
+  const [environment, setEnvironment] = useState('dev');
   const [roleLoading, setRoleLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
   const [firstRole, setFirstRole] = useState(0);
@@ -74,13 +83,13 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
   };
 
   useEffect(() => {
-    setTab('dev');
+    setEnvironment('dev');
     reset();
   }, [selectedRequest.id]);
 
   useEffect(() => {
     reset();
-  }, [tab]);
+  }, [environment]);
 
   useEffect(() => {
     fetchUsers(true, selectedRole);
@@ -102,7 +111,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     }
 
     const [data, err] = await listClientRoles({
-      environment: tab,
+      environment,
       integrationId: selectedRequest.id as number,
       first: _first,
       search: searchKey,
@@ -139,7 +148,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     }
 
     const [data, err] = await listRoleUsers({
-      environment: tab,
+      environment,
       integrationId: selectedRequest.id as number,
       roleName,
       first: _first,
@@ -170,7 +179,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
   };
 
   const handleTabSelect = (key: string) => {
-    setTab(key);
+    setEnvironment(key);
   };
 
   let rightPanel = null;
@@ -185,6 +194,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
             <th>Last Name</th>
             <th>Email</th>
             <th>Username</th>
+            <th className="text-center">Actions</th>
           </tr>
         </thead>
         {users.length > 0 ? (
@@ -201,6 +211,11 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
                   <td>{user.lastName}</td>
                   <td>{user.email}</td>
                   <td>{user.username}</td>
+                  <td className="text-center">
+                    <span onClick={() => removeUserModalRef.current.open(user)}>
+                      <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} title="Remove User" />
+                    </span>
+                  </td>
                 </tr>
               );
             })}
@@ -208,7 +223,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         ) : (
           <tbody>
             <tr>
-              <td colSpan={4}>No users found.</td>
+              <td colSpan={5}>No users found.</td>
             </tr>
           </tbody>
         )}
@@ -293,7 +308,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         + Create a New Role
       </Button>
       <TopMargin />
-      <RequestTabs onSelect={handleTabSelect} activeKey={tab}>
+      <RequestTabs onSelect={handleTabSelect} activeKey={environment}>
         {environments.map((env) => (
           <Tab eventKey={env} title={startCase(env)} />
         ))}
@@ -357,7 +372,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         icon={faExclamationTriangle}
         onConfirm={async (contentRef: any, roleName: string) => {
           await deleteRole({
-            environment: tab,
+            environment,
             integrationId: selectedRequest.id as number,
             roleName,
           });
@@ -369,6 +384,37 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         cancelButtonVariant="secondary"
       >
         <div>Are you sure you want to delete this role?</div>
+      </GenericModal>
+      <GenericModal
+        id="remove-user"
+        ref={removeUserModalRef}
+        title="Remove User from Role"
+        icon={faExclamationTriangle}
+        onConfirm={async (contentRef: any, user: KeycloakUser) => {
+          const [, err] = await manageUserRole({
+            environment,
+            integrationId: selectedRequest.id as number,
+            username: user.username as string,
+            roleName: selectedRole,
+            mode: 'del',
+          });
+
+          if (err) {
+            alert.show({
+              variant: 'danger',
+              fadeOut: 5000,
+              closable: true,
+              content: err,
+            });
+          }
+
+          fetchUsers(true, selectedRole);
+        }}
+        confirmButtonText="Remove"
+        confirmButtonVariant="primary"
+        cancelButtonVariant="secondary"
+      >
+        <div>Are you sure you want to remove this user from this role?</div>
       </GenericModal>
     </>
   );
