@@ -6,7 +6,7 @@ import Button from '@button-inc/bcgov-theme/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import Table from 'components/Table';
@@ -81,7 +81,7 @@ const FlexItem = styled.div`
 const Loading = () => (
   <AlignCenter>
     <TopMargin />
-    <Loader type="Grid" color="#000" height={45} width={45} visible={true} />
+    <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
   </AlignCenter>
 );
 

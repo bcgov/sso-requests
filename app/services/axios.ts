@@ -1,5 +1,5 @@
 import getConfig from 'next/config';
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosRequestHeaders, AxiosResponse, AxiosError } from 'axios';
 import { getAuthHeader } from 'services/auth';
 import Router from 'next/router';
 
@@ -14,13 +14,13 @@ const instance = axios.create({
 
 instance?.interceptors.request.use(
   async function (config) {
-    const { skipAuth } = config.headers;
-    if (skipAuth) {
-      delete config.headers.skipAuth;
+    const headers = config.headers as AxiosRequestHeaders & { skipAuth: boolean | undefined };
+    if (headers.skipAuth) {
+      delete headers.skipAuth;
       return config;
     }
     const authHeader = await getAuthHeader();
-    return { ...config, headers: { ...config.headers, Authorization: authHeader } };
+    return { ...config, headers: { ...headers, Authorization: authHeader } };
   },
   function (error) {
     return Promise.reject(error);
@@ -30,7 +30,7 @@ instance?.interceptors.request.use(
 const applicationBlockingErrors = ['E01'];
 
 export const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
-  const errorMessage = err?.response?.data?.message || 'Unhandled Exception';
+  const errorMessage = (err.response as AxiosResponse).data?.message || 'Unhandled Exception';
   if (applicationBlockingErrors.includes(errorMessage))
     Router.push({
       pathname: '/application-error',

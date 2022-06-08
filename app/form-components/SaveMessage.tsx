@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { SaveMessage as SaveMessageInterface } from 'interfaces/form';
 import styled from 'styled-components';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 
 const Icon = styled.span`
   width: 30px;
@@ -29,7 +29,7 @@ export default function SaveMessage({ saving, saveMessage }: Props) {
         <Icon>
           {saving ? (
             // @ts-ignore
-            <Loader type="TailSpin" color="#000" height={18} width={50} visible label="request-saving" />
+            <SpinnerGrid color="#000" height={18} width={50} visible label="request-saving" />
           ) : (
             <FontAwesomeIcon style={{ color: '#006fc4' }} icon={icon} title="request-saved" />
           )}
