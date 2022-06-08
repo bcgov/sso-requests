@@ -149,7 +149,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
                 >
                   <td>{team.name}</td>
                   <td style={{ float: 'right', marginTop: '20px' }}>
-                    <ActionButtonContainer style={{ paddingRight: '16px' }} marginLeft={'7px'}>
+                    <ActionButtonContainer paddingRight={'16px'} marginLeft={'7px'}>
                       <ActionButton
                         icon={faEdit}
                         role="button"

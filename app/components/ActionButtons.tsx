@@ -44,10 +44,9 @@ interface Props {
   onDelete?: Function;
   children?: any;
   paddingRight?: string;
-  marginLeft?: string;
 }
 
-export default function Actionbuttons({ request, onDelete, children, paddingRight, marginLeft }: Props) {
+export default function Actionbuttons({ request, onDelete, children, paddingRight }: Props) {
   const router = useRouter();
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
@@ -76,7 +75,7 @@ export default function Actionbuttons({ request, onDelete, children, paddingRigh
 
   return (
     <>
-      <ActionButtonContainer paddingRight={paddingRight} marginLeft={marginLeft}>
+      <ActionButtonContainer paddingRight={paddingRight}>
         {children}
         <ActionButton
           disabled={!canEdit}
