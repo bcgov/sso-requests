@@ -3,90 +3,154 @@
 exports[`should match the snapshot 1`] = `
 <DocumentFragment>
   <div
-    class="sc-gsnTZi jMsOSA"
+    class="sc-ftvSup ehGKsD"
   >
     <span
-      class="sc-bczRLJ cZQXoq"
+      class="sc-iBkjds flrtOA"
     >
       <div
-        aria-busy="true"
-        class=""
+        data-testid="grid-loading"
+        style="display: flex;"
       >
         <svg
-          aria-label="request-saving"
+          aria-label="grid-loading"
+          data-testid="grid-svg"
+          fill="#000"
           height="18"
-          viewBox="0 0 38 38"
+          viewBox="0 0 105 105"
           width="50"
-          xmlns="http://www.w3.org/2000/svg"
         >
-          <defs>
-            <lineargradient
-              id="a"
-              x1="8.042%"
-              x2="65.682%"
-              y1="0%"
-              y2="23.865%"
-            >
-              <stop
-                offset="0%"
-                stop-color="#000"
-                stop-opacity="0"
-              />
-              <stop
-                offset="63.146%"
-                stop-color="#000"
-                stop-opacity=".631"
-              />
-              <stop
-                offset="100%"
-                stop-color="#000"
-              />
-            </lineargradient>
-          </defs>
-          <g
-            fill="none"
-            fill-rule="evenodd"
+          <circle
+            cx="12.5"
+            cy="12.5"
+            r="12.5"
           >
-            <g
-              transform="translate(1 1)"
-            >
-              <path
-                d="M36 18c0-9.94-8.06-18-18-18"
-                id="Oval-2"
-                stroke="#000"
-                stroke-width="2"
-              >
-                <animatetransform
-                  attributeName="transform"
-                  dur="0.9s"
-                  from="0 18 18"
-                  repeatCount="indefinite"
-                  to="360 18 18"
-                  type="rotate"
-                />
-              </path>
-              <circle
-                cx="36"
-                cy="18"
-                fill="#fff"
-                r="1"
-              >
-                <animatetransform
-                  attributeName="transform"
-                  dur="0.9s"
-                  from="0 18 18"
-                  repeatCount="indefinite"
-                  to="360 18 18"
-                  type="rotate"
-                />
-              </circle>
-            </g>
-          </g>
+            <animate
+              attributeName="fill-opacity"
+              begin="0s"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="12.5"
+            cy="52.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="100ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="52.5"
+            cy="12.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="300ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="52.5"
+            cy="52.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="600ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="92.5"
+            cy="12.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="800ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="92.5"
+            cy="52.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="400ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="12.5"
+            cy="92.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="700ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="52.5"
+            cy="92.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="500ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="92.5"
+            cy="92.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="200ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
         </svg>
       </div>
     </span>
     <p
-      class="sc-dkzDqf fqpkrj"
+      class="sc-papXJ gTcYUq"
     >
       saving
     </p>
@@ -97,90 +161,154 @@ exports[`should match the snapshot 1`] = `
 exports[`should match the snapshot 2`] = `
 <DocumentFragment>
   <div
-    class="sc-gsnTZi jMsOSA"
+    class="sc-ftvSup ehGKsD"
   >
     <span
-      class="sc-bczRLJ cZQXoq"
+      class="sc-iBkjds flrtOA"
     >
       <div
-        aria-busy="true"
-        class=""
+        data-testid="grid-loading"
+        style="display: flex;"
       >
         <svg
-          aria-label="request-saving"
+          aria-label="grid-loading"
+          data-testid="grid-svg"
+          fill="#000"
           height="18"
-          viewBox="0 0 38 38"
+          viewBox="0 0 105 105"
           width="50"
-          xmlns="http://www.w3.org/2000/svg"
         >
-          <defs>
-            <lineargradient
-              id="a"
-              x1="8.042%"
-              x2="65.682%"
-              y1="0%"
-              y2="23.865%"
-            >
-              <stop
-                offset="0%"
-                stop-color="#000"
-                stop-opacity="0"
-              />
-              <stop
-                offset="63.146%"
-                stop-color="#000"
-                stop-opacity=".631"
-              />
-              <stop
-                offset="100%"
-                stop-color="#000"
-              />
-            </lineargradient>
-          </defs>
-          <g
-            fill="none"
-            fill-rule="evenodd"
+          <circle
+            cx="12.5"
+            cy="12.5"
+            r="12.5"
           >
-            <g
-              transform="translate(1 1)"
-            >
-              <path
-                d="M36 18c0-9.94-8.06-18-18-18"
-                id="Oval-2"
-                stroke="#000"
-                stroke-width="2"
-              >
-                <animatetransform
-                  attributeName="transform"
-                  dur="0.9s"
-                  from="0 18 18"
-                  repeatCount="indefinite"
-                  to="360 18 18"
-                  type="rotate"
-                />
-              </path>
-              <circle
-                cx="36"
-                cy="18"
-                fill="#fff"
-                r="1"
-              >
-                <animatetransform
-                  attributeName="transform"
-                  dur="0.9s"
-                  from="0 18 18"
-                  repeatCount="indefinite"
-                  to="360 18 18"
-                  type="rotate"
-                />
-              </circle>
-            </g>
-          </g>
+            <animate
+              attributeName="fill-opacity"
+              begin="0s"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="12.5"
+            cy="52.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="100ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="52.5"
+            cy="12.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="300ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="52.5"
+            cy="52.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="600ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="92.5"
+            cy="12.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="800ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="92.5"
+            cy="52.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="400ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="12.5"
+            cy="92.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="700ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="52.5"
+            cy="92.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="500ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
+          <circle
+            cx="92.5"
+            cy="92.5"
+            r="12.5"
+          >
+            <animate
+              attributeName="fill-opacity"
+              begin="200ms"
+              calcMode="linear"
+              dur="1s"
+              repeatCount="indefinite"
+              values="1;.2;1"
+            />
+          </circle>
         </svg>
       </div>
     </span>
     <p
-      class="sc-dkzDqf fqpkrj"
+      class="sc-papXJ gTcYUq"
     >
       saving
     </p>

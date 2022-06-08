@@ -30,6 +30,8 @@ instance?.interceptors.request.use(
 const applicationBlockingErrors = ['E01'];
 
 export const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
+  if (!err.response) return [null, 'Unhandled Exception' as any];
+
   const errorMessage = (err.response as AxiosResponse).data?.message || 'Unhandled Exception';
   if (applicationBlockingErrors.includes(errorMessage))
     Router.push({

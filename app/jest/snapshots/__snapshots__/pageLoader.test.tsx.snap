@@ -3,14 +3,15 @@
 exports[`should match the snapshot 1`] = `
 <DocumentFragment>
   <div
-    class="sc-bczRLJ hTKdri"
+    class="sc-iBkjds ijjrNc"
   >
     <div
-      aria-busy="true"
-      class=""
+      data-testid="grid-loading"
+      style="display: flex;"
     >
       <svg
-        aria-label="audio-loading"
+        aria-label="grid-loading"
+        data-testid="grid-svg"
         fill="#000"
         height="45"
         viewBox="0 0 105 105"

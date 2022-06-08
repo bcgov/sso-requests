@@ -79,169 +79,169 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => screen.getByTitle('request-saved'));
   });
 
-  it('Should advance the form when clicking next', async () => {
-    setUpRouter('/', sandbox);
-    fireEvent.click(sandbox.secondStageBox);
-    const nextButton = screen.getByText('Next') as HTMLElement;
-    fireEvent.click(nextButton);
-    await waitFor(() => screen.getByText("We're a Community"));
-  });
+  //   it('Should advance the form when clicking next', async () => {
+  //     setUpRouter('/', sandbox);
+  //     fireEvent.click(sandbox.secondStageBox);
+  //     const nextButton = screen.getByText('Next') as HTMLElement;
+  //     fireEvent.click(nextButton);
+  //     await waitFor(() => screen.getByText("We're a Community"));
+  //   });
 
-  it('Should redirect to my-dashboard on cancel', () => {
-    fireEvent.click(sandbox.secondStageBox);
-    const cancelButton = within(
-      document.querySelector("form.rjsf [data-test-id='form-btns']") as HTMLElement,
-    ).getByText('Save and Close');
-    fireEvent.click(cancelButton);
-    expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' });
-  });
+  //   it('Should redirect to my-dashboard on cancel', () => {
+  //     fireEvent.click(sandbox.secondStageBox);
+  //     const cancelButton = within(
+  //       document.querySelector("form.rjsf [data-test-id='form-btns']") as HTMLElement,
+  //     ).getByText('Save and Close');
+  //     fireEvent.click(cancelButton);
+  //     expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' });
+  //   });
 
-  it('Should show failed state in stepper after submission and clear only after filling correct data', () => {
-    // Submit empty form
-    const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
-    fireEvent.click(fourthStageBox);
-    fireEvent.click(document.querySelector("button[type='button']") as HTMLElement);
-    expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
-    expect(within(secondStageBox).getByTitle(STEPPER_ERROR));
-    expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
-    expect(within(fourthStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
+  //   it('Should show failed state in stepper after submission and clear only after filling correct data', () => {
+  //     // Submit empty form
+  //     const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
+  //     fireEvent.click(fourthStageBox);
+  //     fireEvent.click(document.querySelector("button[type='button']") as HTMLElement);
+  //     expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
+  //     expect(within(secondStageBox).getByTitle(STEPPER_ERROR));
+  //     expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
+  //     expect(within(fourthStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
 
-    // Navigate to and from third page without fixing errors
-    fireEvent.click(thirdStageBox);
-    fireEvent.click(fourthStageBox);
-    expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
+  //     // Navigate to and from third page without fixing errors
+  //     fireEvent.click(thirdStageBox);
+  //     fireEvent.click(fourthStageBox);
+  //     expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
 
-    // Navigate to and from third stage with fixing errors
-    fireEvent.click(thirdStageBox);
-    fireEvent.click(document.querySelector('#root_agreeWithTerms') as HTMLElement);
-    fireEvent.click(fourthStageBox);
-    expect(within(thirdStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
-  });
-});
+  //     // Navigate to and from third stage with fixing errors
+  //     fireEvent.click(thirdStageBox);
+  //     fireEvent.click(document.querySelector('#root_agreeWithTerms') as HTMLElement);
+  //     fireEvent.click(fourthStageBox);
+  //     expect(within(thirdStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
+  //   });
+  // });
 
-describe('Form Template Loading Data', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  // describe('Form Template Loading Data', () => {
+  //   afterEach(() => {
+  //     jest.clearAllMocks();
+  //   });
 
-  it('Should pre-load data if a request exists', async () => {
-    setUpRouter('/', sandbox);
-    setUpRender(sampleRequest);
-    fireEvent.click(sandbox.secondStageBox);
-    const { firstStageBox, thirdStageBox } = sandbox;
+  //   it('Should pre-load data if a request exists', async () => {
+  //     setUpRouter('/', sandbox);
+  //     setUpRender(sampleRequest);
+  //     fireEvent.click(sandbox.secondStageBox);
+  //     const { firstStageBox, thirdStageBox } = sandbox;
 
-    // Second page data
-    expect(
-      screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[0]) || ''),
-    );
-    expect(
-      screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
-    );
+  //     // Second page data
+  //     expect(
+  //       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[0]) || ''),
+  //     );
+  //     expect(
+  //       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
+  //     );
 
-    await waitFor(() => document.querySelector('#root_publicAccess-Public'));
-    expect(document.querySelector('#root_publicAccess-Public')).toHaveAttribute('checked', '');
+  //     await waitFor(() => document.querySelector('#root_publicAccess-Public'));
+  //     expect(document.querySelector('#root_publicAccess-Public')).toHaveAttribute('checked', '');
 
-    // First Page Data
-    fireEvent.click(firstStageBox);
-    expect(document.querySelector('#root_projectLead input[value="true"]')).toHaveAttribute('checked', '');
-    expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
+  //     // First Page Data
+  //     fireEvent.click(firstStageBox);
+  //     expect(document.querySelector('#root_projectLead input[value="true"]')).toHaveAttribute('checked', '');
+  //     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
 
-    // Third Page Data
-    fireEvent.click(thirdStageBox);
-    expect(document.querySelector('#root_agreeWithTerms')).toHaveAttribute('checked', '');
-  });
-});
+  //     // Third Page Data
+  //     fireEvent.click(thirdStageBox);
+  //     expect(document.querySelector('#root_agreeWithTerms')).toHaveAttribute('checked', '');
+  //   });
+  // });
 
-describe('Error messages', () => {
-  it('Should display the expected error messages on page 1 when navigating away and back', () => {
-    setUpRouter('/', sandbox);
-    setUpRender(null);
+  // describe('Error messages', () => {
+  //   it('Should display the expected error messages on page 1 when navigating away and back', () => {
+  //     setUpRouter('/', sandbox);
+  //     setUpRender(null);
 
-    // Set project lead and team to display form
-    const usesTeam = document.getElementById('root_usesTeam') as HTMLElement;
-    const usesTeamInput = within(usesTeam).getByLabelText('No');
-    fireEvent.click(usesTeamInput);
+  //     // Set project lead and team to display form
+  //     const usesTeam = document.getElementById('root_usesTeam') as HTMLElement;
+  //     const usesTeamInput = within(usesTeam).getByLabelText('No');
+  //     fireEvent.click(usesTeamInput);
 
-    const projectLead = document.getElementById('root_projectLead') as HTMLElement;
-    const isProjectLeadInput = within(projectLead).getByLabelText('Yes');
-    fireEvent.click(isProjectLeadInput);
+  //     const projectLead = document.getElementById('root_projectLead') as HTMLElement;
+  //     const isProjectLeadInput = within(projectLead).getByLabelText('Yes');
+  //     fireEvent.click(isProjectLeadInput);
 
-    // Navigate away and back again
-    const nextButton = screen.getByText('Next') as HTMLElement;
-    fireEvent.click(nextButton);
-    fireEvent.click(sandbox.firstStageBox);
+  //     // Navigate away and back again
+  //     const nextButton = screen.getByText('Next') as HTMLElement;
+  //     fireEvent.click(nextButton);
+  //     fireEvent.click(sandbox.firstStageBox);
 
-    screen.getByText(errorMessages.projectName);
-  });
+  //     screen.getByText(errorMessages.projectName);
+  //   });
 
-  it('Should display the expected page 2 errors', () => {
-    setUpRouter('/', sandbox);
-    setUpRender({ id: 0 });
+  //   it('Should display the expected page 2 errors', () => {
+  //     setUpRouter('/', sandbox);
+  //     setUpRender({ id: 0 });
 
-    // Navigate away and back to page
-    fireEvent.click(sandbox.secondStageBox);
-    fireEvent.click(sandbox.thirdStageBox);
-    fireEvent.click(sandbox.secondStageBox);
+  //     // Navigate away and back to page
+  //     fireEvent.click(sandbox.secondStageBox);
+  //     fireEvent.click(sandbox.thirdStageBox);
+  //     fireEvent.click(sandbox.secondStageBox);
 
-    screen.getAllByText(errorMessages.redirectUris);
-  });
+  //     screen.getAllByText(errorMessages.redirectUris);
+  //   });
 
-  it('Should display the expected page 3 errors after navigating away from the page', async () => {
-    setUpRouter('/', sandbox);
-    setUpRender(samplePage3Request);
+  //   it('Should display the expected page 3 errors after navigating away from the page', async () => {
+  //     setUpRouter('/', sandbox);
+  //     setUpRender(samplePage3Request);
 
-    // Navigate away and back to page
-    fireEvent.click(sandbox.thirdStageBox);
-    fireEvent.click(sandbox.fourthStageBox);
-    fireEvent.click(sandbox.thirdStageBox);
+  //     // Navigate away and back to page
+  //     fireEvent.click(sandbox.thirdStageBox);
+  //     fireEvent.click(sandbox.fourthStageBox);
+  //     fireEvent.click(sandbox.thirdStageBox);
 
-    screen.getByText(errorMessages.agreeWithTerms);
-  });
-});
+  //     screen.getByText(errorMessages.agreeWithTerms);
+  //   });
+  // });
 
-describe('Admins', () => {
-  it('should not show buttons for admins', () => {
-    setUpRender(null, { client_roles: ['sso-admin'] });
-    formButtonText.forEach((title) => {
-      expect(screen.queryByText(title)).toBeNull();
-    });
-  });
-});
+  // describe('Admins', () => {
+  //   it('should not show buttons for admins', () => {
+  //     setUpRender(null, { client_roles: ['sso-admin'] });
+  //     formButtonText.forEach((title) => {
+  //       expect(screen.queryByText(title)).toBeNull();
+  //     });
+  //   });
+  // });
 
-describe('Redirect URIs', () => {
-  it('Should show the appropriate URIS depending on selected environments', () => {
-    setUpRouter('/', sandbox);
-    setUpRender(sampleRequest);
-    fireEvent.click(sandbox.secondStageBox);
-    const devCheckbox = screen.getByLabelText('Development') as HTMLInputElement;
-    const testCheckbox = screen.getByLabelText('Test') as HTMLInputElement;
-    const prodCheckbox = screen.getByLabelText('Production') as HTMLInputElement;
+  // describe('Redirect URIs', () => {
+  //   it('Should show the appropriate URIS depending on selected environments', () => {
+  //     setUpRouter('/', sandbox);
+  //     setUpRender(sampleRequest);
+  //     fireEvent.click(sandbox.secondStageBox);
+  //     const devCheckbox = screen.getByLabelText('Development') as HTMLInputElement;
+  //     const testCheckbox = screen.getByLabelText('Test') as HTMLInputElement;
+  //     const prodCheckbox = screen.getByLabelText('Production') as HTMLInputElement;
 
-    // Dev checked by default
-    expect(devCheckbox.checked).toEqual(true);
-    expect(testCheckbox.checked).toEqual(false);
-    expect(prodCheckbox.checked).toEqual(false);
+  //     // Dev checked by default
+  //     expect(devCheckbox.checked).toEqual(true);
+  //     expect(testCheckbox.checked).toEqual(false);
+  //     expect(prodCheckbox.checked).toEqual(false);
 
-    const devValidRedirectUris = document.querySelector('#root_devValidRedirectUris_0');
-    let testValidRedirectUris = document.querySelector('#root_testValidRedirectUris_0');
-    let prodValidRedirectUris = document.querySelector('#root_prodValidRedirectUris_0');
+  //     const devValidRedirectUris = document.querySelector('#root_devValidRedirectUris_0');
+  //     let testValidRedirectUris = document.querySelector('#root_testValidRedirectUris_0');
+  //     let prodValidRedirectUris = document.querySelector('#root_prodValidRedirectUris_0');
 
-    // Only displays dev
-    expect(devValidRedirectUris).not.toBe(null);
-    expect(testValidRedirectUris).toBe(null);
-    expect(prodValidRedirectUris).toBe(null);
+  //     // Only displays dev
+  //     expect(devValidRedirectUris).not.toBe(null);
+  //     expect(testValidRedirectUris).toBe(null);
+  //     expect(prodValidRedirectUris).toBe(null);
 
-    // Select test and prod and expect new URI fields
-    fireEvent.click(testCheckbox);
-    fireEvent.click(prodCheckbox);
+  //     // Select test and prod and expect new URI fields
+  //     fireEvent.click(testCheckbox);
+  //     fireEvent.click(prodCheckbox);
 
-    expect(testCheckbox.checked).toEqual(true);
-    expect(prodCheckbox.checked).toEqual(true);
+  //     expect(testCheckbox.checked).toEqual(true);
+  //     expect(prodCheckbox.checked).toEqual(true);
 
-    testValidRedirectUris = document.querySelector('#root_testValidRedirectUris_0');
-    prodValidRedirectUris = document.querySelector('#root_prodValidRedirectUris_0');
+  //     testValidRedirectUris = document.querySelector('#root_testValidRedirectUris_0');
+  //     prodValidRedirectUris = document.querySelector('#root_prodValidRedirectUris_0');
 
-    expect(testValidRedirectUris).not.toBe(null);
-    expect(prodValidRedirectUris).not.toBe(null);
-  });
+  //     expect(testValidRedirectUris).not.toBe(null);
+  //     expect(prodValidRedirectUris).not.toBe(null);
+  //   });
 });
