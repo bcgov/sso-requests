@@ -27,5 +27,8 @@
     "octokit": "^1.7.2",
     "react": "^18.1.0",
     "react-jsonschema-form": "^1.8.1"
+  },
+  "resolutions": {
+    "minimist": ">=1.2.6"
   }
 }

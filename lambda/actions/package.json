@@ -16,5 +16,8 @@
   "dependencies": {
     "lambda-api-router": "^1.0.6",
     "octokit": "^1.7.2"
+  },
+  "resolutions": {
+    "minimist": ">=1.2.6"
   }
 }
