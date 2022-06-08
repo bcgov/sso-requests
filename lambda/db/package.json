@@ -9,9 +9,9 @@
     "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m"
   },
   "devDependencies": {
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.0.8"
   },
   "dependencies": {
-    "umzug": "^3.0.0"
+    "umzug": "^3.1.1"
   }
 }
