@@ -13,12 +13,15 @@ export const ActionButtonContainer = styled.div<{ paddingRight?: string }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: 15px;
-  ${(props) => (props.paddingRight === 'noRightPadding' ? `padding-right: 0;` : ``)}
+  ${(props) => `padding-right: ${props.paddingRight};`}
   & > * {
     margin-left: 15px;
   }
 `;
+
+ActionButtonContainer.defaultProps = {
+  paddingRight: '15px',
+};
 
 export const ActionButton = styled(FontAwesomeIcon)<{
   disabled?: boolean;
@@ -43,7 +46,7 @@ interface Props {
   paddingRight?: string;
 }
 
-export default function Actionbuttons({ request, onDelete, children, paddingRight = '' }: Props) {
+export default function Actionbuttons({ request, onDelete, children, paddingRight }: Props) {
   const router = useRouter();
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');

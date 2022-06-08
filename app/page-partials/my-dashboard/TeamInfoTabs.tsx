@@ -478,7 +478,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               loadTeams();
                               getData(team?.id);
                             }}
-                            paddingRight={'noRightPadding'}
+                            paddingRight={'0px'}
                           >
                             <ActionButton icon={faEye} onClick={() => viewProject(integration.id)} size="lg" />
                           </ActionButtons>
