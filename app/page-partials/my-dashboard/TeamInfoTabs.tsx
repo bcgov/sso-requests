@@ -457,7 +457,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     <th className="min-width-60">Status</th>
                     <th className="min-width-60">Request ID</th>
                     <th className="min-width-60">Project Name</th>
-                    <th className="min-width-60" style={{ textAlign: 'right', paddingRight: '15px' }}>
+                    <th className="min-width-60" style={{ textAlign: 'right', paddingRight: '30px' }}>
                       Actions
                     </th>
                   </tr>
@@ -478,7 +478,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               loadTeams();
                               getData(team?.id);
                             }}
-                            paddingRight={'0px'}
                           >
                             <ActionButton icon={faEye} onClick={() => viewProject(integration.id)} size="lg" />
                           </ActionButtons>

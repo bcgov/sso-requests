@@ -149,7 +149,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
                 >
                   <td>{team.name}</td>
                   <td style={{ float: 'right', marginTop: '20px' }}>
-                    <ActionButtonContainer paddingRight={'16px'} marginLeft={'7px'}>
+                    <ActionButtonContainer>
                       <ActionButton
                         icon={faEdit}
                         role="button"
@@ -166,6 +166,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
                         title="Delete"
                         size="lg"
                         onClick={() => (canDelete ? showDeleteModal(team) : noop)}
+                        style={{ marginRight: '2px', marginLeft: '6px' }}
                       />
                     </ActionButtonContainer>
                   </td>

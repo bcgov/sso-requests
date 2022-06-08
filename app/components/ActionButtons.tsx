@@ -8,20 +8,16 @@ import CenteredModal from 'components/CenteredModal';
 import { getRequests, deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
 
-export const ActionButtonContainer = styled.div<{ paddingRight?: string; marginLeft?: string }>`
+export const ActionButtonContainer = styled.div`
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  ${(props) => `padding-right: ${props.paddingRight};`}
+  padding-right: 15px;
   & > * {
-    ${(props) => `margin-left: ${props.marginLeft};`}
+    margin-left: 15px;
+  }
 `;
-
-ActionButtonContainer.defaultProps = {
-  paddingRight: '15px',
-  marginLeft: '15px',
-};
 
 export const ActionButton = styled(FontAwesomeIcon)<{
   disabled?: boolean;
@@ -43,10 +39,9 @@ interface Props {
   request: Request;
   onDelete?: Function;
   children?: any;
-  paddingRight?: string;
 }
 
-export default function Actionbuttons({ request, onDelete, children, paddingRight }: Props) {
+export default function Actionbuttons({ request, onDelete, children }: Props) {
   const router = useRouter();
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
@@ -75,7 +70,7 @@ export default function Actionbuttons({ request, onDelete, children, paddingRigh
 
   return (
     <>
-      <ActionButtonContainer paddingRight={paddingRight}>
+      <ActionButtonContainer>
         {children}
         <ActionButton
           disabled={!canEdit}
