@@ -33,5 +33,11 @@
     "pg": "^8.7.3",
     "pg-format": "^1.0.4",
     "sequelize": "^6.20.1"
+  },
+  "resolutions": {
+    "minimist": ">=1.2.6",
+    "node-fetch": ">=2.6.7",
+    "ansi-regex": ">=5.0.1",
+    "moment": ">=2.29.2"
   }
 }
