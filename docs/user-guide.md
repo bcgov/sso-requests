@@ -64,7 +64,7 @@ For a list of adapters and instructions on how to connect see [here](https://www
 _See [here](https://www.keycloak.org/docs/latest/securing_apps/index.html#other-openid-connect-libraries) for keycloak documentation_
 
 If you are not using an adapter, you will require some additional information to set up your OpenID connection. Required information
-can be found behind the publicly accessible `.well-known` endpoint for your environment. 
+can be found behind the publicly accessible `.well-known` endpoint for your environment.
 Based on our integration with us, you will either have your integration connected to our Silver (soon to be deprecated) offering or our Gold (the place to be) offering. Reach out to us if you have questions.
 
 ##### Silver Service
