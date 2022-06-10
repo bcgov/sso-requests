@@ -193,6 +193,7 @@ FROM
 INNER JOIN users_teams as ut ON r.team_id=ut.team_id
 INNER JOIN users as u ON u.id=ut.user_id
 WHERE r.uses_team=TRUE
+AND r.archived=FALSE
 AND ut.pending=FALSE
 ORDER BY r.client_name
 
@@ -207,5 +208,6 @@ FROM
     requests as r
 INNER JOIN users as u ON u.id=r.user_id
 WHERE r.uses_team=FALSE
+AND r.archived=FALSE
 ORDER BY r.client_name
 ```
