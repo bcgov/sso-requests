@@ -8,11 +8,15 @@ export const searchUsers = async ({
   idp,
   property,
   searchKey,
+  limit,
+  page,
 }: {
   environment: string;
   idp: string;
   property: string;
   searchKey: string;
+  limit?: number;
+  page?: number;
 }) => {
   if (searchKey?.length < 2) return [];
 
@@ -28,16 +32,24 @@ export const searchUsers = async ({
   } else {
     query.username = `@${idp}`;
     query[property] = searchKey;
+    query.max = limit;
+    query.first = page > 0 ? (page - 1) * limit : 0;
   }
 
   const users = await kcAdminClient.users.find({ realm: 'standard', ...query });
-  return users.map(({ username, firstName, lastName, email, attributes }) => ({
-    username,
-    firstName,
-    lastName,
-    email,
-    attributes,
-  }));
+  const countRow = await kcAdminClient.users.find({ realm: 'standard', ...query, max: undefined, first: undefined });
+  const result: { count: number; rows: any[] } = {
+    count: countRow.length,
+    rows: users.map(({ username, firstName, lastName, email, attributes }) => ({
+      username,
+      firstName,
+      lastName,
+      email,
+      attributes,
+    })),
+  };
+
+  return result;
 };
 
 export const listClientRoles = async (
