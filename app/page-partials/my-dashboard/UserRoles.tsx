@@ -102,8 +102,6 @@ const propertyOptions = [
   { value: 'guid', label: 'IDP GUID', allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'] },
 ];
 
-const pageLimits = [{ value: 15, text: '15 per page' }];
-
 interface Props {
   selectedRequest: Request;
   alert: TopAlert;
@@ -126,7 +124,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-
+  const pageLimits = [{ value: limit, text: `${limit} per page` }];
   const getRoles = async () => {
     if (!selectedRequest) return;
 
@@ -449,7 +447,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               totalColSpan={20}
               searchColSpan={8}
               filterColSpan={12}
-              pageLimitBox={'hidden'}
             >
               {content}
             </Table>

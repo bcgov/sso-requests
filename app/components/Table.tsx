@@ -107,7 +107,6 @@ interface Props {
   onPrev?: (val: number) => void;
   onNext?: (val: number) => void;
   loading?: boolean;
-  pageLimitBox?: string;
 }
 
 const overrideStrings = {
@@ -195,7 +194,6 @@ function Table({
   limit = 10,
   rowCount = 10,
   loading,
-  pageLimitBox = '',
 }: Props) {
   const [_searchKey, setSearchKey] = useState(searchKey);
 
@@ -354,15 +352,17 @@ function Table({
                     )}
                   </StyledPagination>
                 </Grid.Col>
-                <Grid.Col span={4} style={{ textAlign: 'right' }}>
-                  <Dropdown
-                    style={{ display: 'inline-block', width: '160px', visibility: pageLimitBox }}
-                    value={String(limit)}
-                    onChange={handlePageLimitChange}
-                  >
-                    {generateOptions(pageLimits)}
-                  </Dropdown>
-                </Grid.Col>
+                {pageLimits?.length > 1 && (
+                  <Grid.Col span={4} style={{ textAlign: 'right' }}>
+                    <Dropdown
+                      style={{ display: 'inline-block', width: '160px' }}
+                      value={String(limit)}
+                      onChange={handlePageLimitChange}
+                    >
+                      {generateOptions(pageLimits)}
+                    </Dropdown>
+                  </Grid.Col>
+                )}
               </Grid.Row>
             </Grid>
           )}
