@@ -102,6 +102,8 @@ const propertyOptions = [
   { value: 'guid', label: 'IDP GUID', allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'] },
 ];
 
+const pageLimits = [{ value: 15, text: '15 per page' }];
+
 interface Props {
   selectedRequest: Request;
   alert: TopAlert;
@@ -111,6 +113,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const infoModalRef = useRef<ModalRef>(emptyRef);
   const idimSearchModalRef = useRef<ModalRef>(emptyRef);
   const [searched, setSearched] = useState(false);
+  const [page, setPage] = useState<number>(1);
+  const limit = 15;
+  const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [rows, setRows] = useState<KeycloakUser[]>([]);
@@ -144,6 +149,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setRows([]);
     setRoles([]);
     setUserRoles([]);
+    setPage(1);
+    setCount(0);
     setSelectedId(undefined);
     setSearched(false);
   };
@@ -163,6 +170,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     reset();
     resetSearchOptions();
   }, [selectedRequest.id]);
+
+  useEffect(() => {
+    handleSearch(searchKey);
+  }, [page, searchKey]);
 
   useEffect(() => {
     reset();
@@ -196,12 +207,15 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       idp: selectedIdp,
       property,
       searchKey,
+      limit: limit,
+      page: page,
     });
 
     if (data) {
-      setRows(data);
-      if (data.length === 1) {
-        setSelectedId(data[0].username);
+      setRows(data.rows);
+      setCount(data.count);
+      if (data.count === 1) {
+        setSelectedId(data.rows[0].username);
       }
     }
     setLoading(false);
@@ -415,14 +429,27 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 { name: 'Last Name', style: { float: 'left', width: '40%' } },
                 { name: 'Email', style: { float: 'left' } },
               ]}
+              pageLimits={pageLimits}
+              limit={limit}
+              page={page}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
-              onSearch={handleSearch}
-              onEnter={handleSearch}
+              onSearch={(val) => {
+                setSearchKey(val);
+                setPage(1);
+              }}
+              onEnter={(val) => {
+                setSearchKey(val);
+                setPage(1);
+              }}
               loading={loading}
+              rowCount={count}
+              onPrev={setPage}
+              onNext={setPage}
               totalColSpan={20}
               searchColSpan={8}
               filterColSpan={12}
+              pageLimitBox={'hidden'}
             >
               {content}
             </Table>
