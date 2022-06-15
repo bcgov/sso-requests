@@ -388,18 +388,14 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
   }
 };
 
-export const updateRequestMetadata = async (
-  session: Session,
-  user: User,
-  data: { id: number; idirUserid: string; status: string },
-) => {
+export const updateRequestMetadata = async (session: Session, user: User, data: { id: number; status: string }) => {
   if (!session.client_roles?.includes('sso-admin')) {
     throw Error('not allowed');
   }
 
-  const { id, idirUserid, status } = data;
+  const { id, status } = data;
   const result = await models.request.update(
-    { idirUserid, status },
+    { status },
     {
       where: { id },
       returning: true,

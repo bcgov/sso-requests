@@ -182,9 +182,9 @@ const GenericModal = (
             </Button>
           )}
           {config.showConfirmButton && (
-            <Button onClick={handleConfirm} variant={config.confirmButtonVariant} type="button">
+            <Button onClick={handleConfirm} variant={config.confirmButtonVariant} type="button" className="text-center">
               {loading ? (
-                <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} />
+                <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
               ) : (
                 config.confirmButtonText
               )}

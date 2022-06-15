@@ -129,8 +129,12 @@ const CenteredModal = ({
                 Cancel
               </Button>
             )}
-            <Button onClick={handleConfirm} variant={confirmButtonVariant} type="button">
-              {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : confirmText}
+            <Button onClick={handleConfirm} variant={confirmButtonVariant} type="button" className="text-center">
+              {loading ? (
+                <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
+              ) : (
+                confirmText
+              )}
             </Button>
           </ButtonContainer>
         )}

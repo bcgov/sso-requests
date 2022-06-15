@@ -85,17 +85,7 @@ const init = (sequelize, DataTypes) => {
         defaultValue: false,
       },
       status: {
-        type: DataTypes.ENUM(
-          'draft',
-          'submitted',
-          'pr',
-          'prFailed',
-          'planned',
-          'planFailed',
-          'approved',
-          'applied',
-          'applyFailed',
-        ),
+        type: DataTypes.ENUM('draft', 'submitted', 'pr', 'prFailed', 'planned', 'planFailed', 'applied', 'applyFailed'),
         defaultValue: 'draft',
         allowNull: false,
       },
