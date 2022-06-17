@@ -32,14 +32,13 @@ export const searchUsers = async ({
   } else {
     query.username = `@${idp}`;
     query[property] = searchKey;
-    query.max = limit;
-    query.first = page > 0 ? (page - 1) * limit : 0;
+    query.max = 500;
+    query.first = 0;
   }
 
   const users = await kcAdminClient.users.find({ realm: 'standard', ...query });
-  const countRow = await kcAdminClient.users.find({ realm: 'standard', ...query, max: undefined, first: undefined });
   const result: { count: number; rows: any[] } = {
-    count: countRow.length,
+    count: users.length,
     rows: users.map(({ username, firstName, lastName, email, attributes }) => ({
       username,
       firstName,

@@ -87,6 +87,8 @@ const Loading = () => (
 
 type IDPS = 'idir' | 'azureidir' | 'bceidbasic' | 'bceidbusiness' | 'bceidboth';
 
+const PAGE_LIMIT = 15;
+
 const idpMap = {
   idir: 'IDIR',
   azureidir: 'Azure IDIR',
@@ -112,7 +114,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const idimSearchModalRef = useRef<ModalRef>(emptyRef);
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState<number>(1);
-  const limit = 15;
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
@@ -124,7 +125,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-  const pageLimits = [{ value: limit, text: `${limit} per page` }];
+  const pageLimits = [{ value: PAGE_LIMIT, text: `${PAGE_LIMIT} per page` }];
   const getRoles = async () => {
     if (!selectedRequest) return;
 
@@ -170,7 +171,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }, [selectedRequest.id]);
 
   useEffect(() => {
-    handleSearch(searchKey);
+    searchResults(searchKey);
   }, [page, searchKey]);
 
   useEffect(() => {
@@ -189,11 +190,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     }
   }, [selectedIdp]);
 
-  const handleSearch = async (searchKey: string, property = selectedProperty) => {
+  const searchResults = async (searchKey: string, property = selectedProperty, _page = page) => {
     if (searchKey.length < 2) return;
 
     setLoading(true);
     setSearchKey(searchKey);
+    setPage(_page);
     setSelectedProperty(property);
     setRows([]);
     setUserRoles([]);
@@ -205,8 +207,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       idp: selectedIdp,
       property,
       searchKey,
-      limit: limit,
-      page: page,
+      limit: PAGE_LIMIT,
+      page: _page,
     });
 
     if (data) {
@@ -218,6 +220,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     }
     setLoading(false);
   };
+
+  const handleSearch = (key: string) => searchResults(key, undefined, 1);
 
   const handleRoleChange = async (
     newValue: MultiValue<{ value: string; label: string }>,
@@ -428,18 +432,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 { name: 'Email', style: { float: 'left' } },
               ]}
               pageLimits={pageLimits}
-              limit={limit}
+              limit={PAGE_LIMIT}
               page={page}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
-              onSearch={(val) => {
-                setSearchKey(val);
-                setPage(1);
-              }}
-              onEnter={(val) => {
-                setSearchKey(val);
-                setPage(1);
-              }}
+              onSearch={handleSearch}
+              onEnter={handleSearch}
               loading={loading}
               rowCount={count}
               onPrev={setPage}
@@ -497,7 +495,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         title="IDIM Web Service Lookup"
         icon={null}
         onClose={(contentRef, context, closeContext) => {
-          handleSearch(closeContext.guid, 'guid');
+          searchResults(closeContext.guid, 'guid', 1);
         }}
         cancelButtonText="Close"
         cancelButtonVariant="primary"

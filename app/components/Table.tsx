@@ -86,6 +86,7 @@ interface Props {
   variant?: string;
   headers: Header[];
   children: React.ReactNode;
+  pagination?: boolean;
   pageLimits?: FilterItem[];
   searchKey?: string;
   searchPlaceholder?: string;
@@ -175,6 +176,7 @@ function Table({
   variant = 'medium',
   headers,
   children,
+  pagination = false,
   onSearch = noop,
   onEnter = noop,
   filters = [] as Filter[],
@@ -187,7 +189,7 @@ function Table({
   onPage,
   onPrev = noop,
   onNext = noop,
-  pageLimits,
+  pageLimits = [],
   searchKey = '',
   searchPlaceholder = 'Search...',
   page = 1,
@@ -340,7 +342,7 @@ function Table({
               <tbody>{children}</tbody>
             </ReactPlaceholder>
           </StyledTable>
-          {pageLimits && (
+          {pagination && (
             <Grid cols={12}>
               <Grid.Row collapse="992" gutter={[]} align="center">
                 <Grid.Col span={8}>
@@ -352,7 +354,7 @@ function Table({
                     )}
                   </StyledPagination>
                 </Grid.Col>
-                {pageLimits?.length > 1 && (
+                {pageLimits?.length > 0 && (
                   <Grid.Col span={4} style={{ textAlign: 'right' }}>
                     <Dropdown
                       style={{ display: 'inline-block', width: '160px' }}
