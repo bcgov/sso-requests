@@ -3,7 +3,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import { Request } from 'interfaces/Request';
 import { padStart } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import Table from 'html-components/Table';
+import { Table } from '@bcgov-sso/common-react-components';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { $setDownloadError } from 'dispatchers/requestDispatcher';
@@ -235,6 +235,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
                   onDelete={() => {
                     loadIntegrations();
                   }}
+                  defaultActiveColor="#fff"
                 />
               </td>
             </tr>
