@@ -99,6 +99,7 @@ interface Props {
   searchColSpan?: number;
   filterColSpan?: number;
   showContent?: boolean;
+  contentAlignment?: string;
   onSearch?: (val: string) => void;
   onEnter?: (val: string) => void;
   onFilter?: (val: any) => void;
@@ -185,6 +186,7 @@ function Table({
   searchColSpan = 4,
   filterColSpan = 10,
   showContent = true,
+  contentAlignment = 'center',
   onLimit = noop,
   onPage,
   onPrev = noop,
@@ -317,7 +319,7 @@ function Table({
     <>
       <SectionHeader>
         <Grid cols={totalColSpan}>
-          <Grid.Row collapse="1160" gutter={[]} align="center">
+          <Grid.Row collapse="1160" gutter={[1, 0]} align={contentAlignment} style={{ minWidth: '5px' }}>
             {leftCol}
             {rightCol}
           </Grid.Row>

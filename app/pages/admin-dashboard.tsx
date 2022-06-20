@@ -240,6 +240,9 @@ export default function AdminDashboard({ session }: PageProps) {
               onPrev={setPage}
               onNext={setPage}
               loading={loading}
+              totalColSpan={15}
+              searchColSpan={5}
+              contentAlignment={'bottom'}
             >
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
