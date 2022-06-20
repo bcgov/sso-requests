@@ -28,16 +28,23 @@ export const searchUsers = async ({
   } else {
     query.username = `@${idp}`;
     query[property] = searchKey;
+    query.max = 500;
+    query.first = 0;
   }
 
   const users = await kcAdminClient.users.find({ realm: 'standard', ...query });
-  return users.map(({ username, firstName, lastName, email, attributes }) => ({
-    username,
-    firstName,
-    lastName,
-    email,
-    attributes,
-  }));
+  const result: { count: number; rows: any[] } = {
+    count: users.length,
+    rows: users.map(({ username, firstName, lastName, email, attributes }) => ({
+      username,
+      firstName,
+      lastName,
+      email,
+      attributes,
+    })),
+  };
+
+  return result;
 };
 
 export const listClientRoles = async (
