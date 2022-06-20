@@ -26,7 +26,7 @@ export const ActionButton = styled(FontAwesomeIcon)<{
 }>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
   ${(props) =>
-    props.disabled ? `color: #CACACA;` : `color: black; &:hover { color: ${props.activeColor || '#137ac8'}; }`}
+    props.disabled ? `color: #CACACA;` : `color: inherit; &:hover { color: ${props.activeColor || '#000'}; }`}
   ${(props) => (props.isUnread ? `color: ${PRIMARY_RED}` : '')};
 `;
 
@@ -38,10 +38,11 @@ export const VerticalLine = styled.div`
 interface Props {
   request: Request;
   onDelete?: Function;
+  defaultActiveColor?: string;
   children?: any;
 }
 
-export default function Actionbuttons({ request, onDelete, children }: Props) {
+export default function Actionbuttons({ request, onDelete, defaultActiveColor, children }: Props) {
   const router = useRouter();
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
@@ -78,6 +79,7 @@ export default function Actionbuttons({ request, onDelete, children }: Props) {
           role="button"
           aria-label="edit"
           onClick={handleEdit}
+          activeColor={defaultActiveColor}
           title="Edit"
           size="lg"
         />
