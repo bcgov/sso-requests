@@ -87,6 +87,10 @@ const Loading = () => (
 
 type IDPS = 'idir' | 'azureidir' | 'bceidbasic' | 'bceidbusiness' | 'bceidboth';
 
+const PAGE_LIMIT = 15;
+
+const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
+
 const idpMap = {
   idir: 'IDIR',
   azureidir: 'Azure IDIR',
@@ -111,6 +115,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const infoModalRef = useRef<ModalRef>(emptyRef);
   const idimSearchModalRef = useRef<ModalRef>(emptyRef);
   const [searched, setSearched] = useState(false);
+  const [page, setPage] = useState<number>(1);
+  const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [rows, setRows] = useState<KeycloakUser[]>([]);
@@ -121,6 +127,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const pageLimits = [{ value: PAGE_LIMIT, text: `${PAGE_LIMIT} per page` }];
 
   const getRoles = async () => {
     if (!selectedRequest) return;
@@ -144,6 +151,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setRows([]);
     setRoles([]);
     setUserRoles([]);
+    setPage(1);
+    setCount(0);
     setSelectedId(undefined);
     setSearched(false);
   };
@@ -165,6 +174,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }, [selectedRequest.id]);
 
   useEffect(() => {
+    searchResults(searchKey, undefined, page);
+  }, [page]);
+
+  useEffect(() => {
     reset();
     getRoles();
     if (selectedRequest.devIdps) setSelectedIdp(selectedRequest.devIdps.length > 0 ? selectedRequest.devIdps[0] : '');
@@ -180,11 +193,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     }
   }, [selectedIdp]);
 
-  const handleSearch = async (searchKey: string, property = selectedProperty) => {
+  const searchResults = async (searchKey: string, property = selectedProperty, _page = page) => {
     if (searchKey.length < 2) return;
 
     setLoading(true);
     setSearchKey(searchKey);
+    setPage(_page);
     setSelectedProperty(property);
     setRows([]);
     setUserRoles([]);
@@ -199,13 +213,16 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     });
 
     if (data) {
-      setRows(data);
-      if (data.length === 1) {
-        setSelectedId(data[0].username);
+      setRows(sliceRows(_page, data.rows));
+      setCount(data.count);
+      if (data.count === 1) {
+        setSelectedId(data.rows[0].username);
       }
     }
     setLoading(false);
   };
+
+  const handleSearch = (key: string) => searchResults(key, undefined, 1);
 
   const handleRoleChange = async (
     newValue: MultiValue<{ value: string; label: string }>,
@@ -415,11 +432,18 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 { name: 'Last Name', style: { float: 'left', width: '40%' } },
                 { name: 'Email', style: { float: 'left' } },
               ]}
+              pagination={true}
+              pageLimits={pageLimits}
+              limit={PAGE_LIMIT}
+              page={page}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
               onSearch={handleSearch}
               onEnter={handleSearch}
               loading={loading}
+              rowCount={count}
+              onPrev={setPage}
+              onNext={setPage}
               totalColSpan={20}
               searchColSpan={8}
               filterColSpan={12}
@@ -473,7 +497,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         title="IDIM Web Service Lookup"
         icon={null}
         onClose={(contentRef, context, closeContext) => {
-          handleSearch(closeContext.guid, 'guid');
+          searchResults(closeContext.guid, 'guid', 1);
         }}
         cancelButtonText="Close"
         cancelButtonVariant="primary"
