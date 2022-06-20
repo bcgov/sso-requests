@@ -439,8 +439,14 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               page={page}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
-              onSearch={handleSearch}
-              onEnter={handleSearch}
+              onSearch={(val) => {
+                setSearchKey(val);
+                setPage(1);
+              }}
+              onEnter={(val) => {
+                setSearchKey(val);
+                setPage(1);
+              }}
               loading={loading}
               rowCount={count}
               onPrev={setPage}
