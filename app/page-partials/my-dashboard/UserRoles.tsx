@@ -428,9 +428,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 },
               ]}
               headers={[
-                { name: 'First name', style: { float: 'left', width: '20%' } },
-                { name: 'Last Name', style: { float: 'left', width: '40%' } },
-                { name: 'Email', style: { float: 'left' } },
+                { name: 'First name' },
+                { name: 'Last Name', style: { minWidth: '170px' } },
+                { name: 'Email', style: { minWidth: '170px' } },
               ]}
               pagination={true}
               pageLimits={pageLimits}
