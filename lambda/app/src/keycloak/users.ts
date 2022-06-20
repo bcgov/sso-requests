@@ -8,15 +8,11 @@ export const searchUsers = async ({
   idp,
   property,
   searchKey,
-  limit,
-  page,
 }: {
   environment: string;
   idp: string;
   property: string;
   searchKey: string;
-  limit?: number;
-  page?: number;
 }) => {
   if (searchKey?.length < 2) return [];
 

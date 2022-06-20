@@ -23,7 +23,7 @@ export const changeClientSecret = async (
   }
 };
 
-interface RequestAllResult {
+interface RowsAndCount {
   count: number;
   rows: KeycloakUser[];
 }
@@ -41,19 +41,15 @@ export const searchKeycloakUsers = async ({
   idp,
   property,
   searchKey,
-  page,
-  limit,
 }: {
   environment: string;
   idp: string;
   property: string;
   searchKey: string;
-  page?: number;
-  limit?: number;
-}): Promise<[RequestAllResult, null] | [null, Error]> => {
+}): Promise<[RowsAndCount, null] | [null, Error]> => {
   try {
-    const result: RequestAllResult = await instance
-      .post('keycloak/users', { environment, idp, property, searchKey, limit, page })
+    const result: RowsAndCount = await instance
+      .post('keycloak/users', { environment, idp, property, searchKey })
       .then((res) => res.data);
     return [result, null];
   } catch (err: any) {

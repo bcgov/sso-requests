@@ -171,8 +171,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }, [selectedRequest.id]);
 
   useEffect(() => {
-    searchResults(searchKey);
-  }, [page, searchKey]);
+    searchResults(searchKey, undefined, page);
+  }, [page]);
 
   useEffect(() => {
     reset();
@@ -189,6 +189,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       setSelectedProperty(firstAllowedProperty?.value || '');
     }
   }, [selectedIdp]);
+
+  const handlePagination = (_page: number, _row: KeycloakUser[]) => {
+    return _row.slice((_page - 1) * PAGE_LIMIT, _page * PAGE_LIMIT);
+  };
 
   const searchResults = async (searchKey: string, property = selectedProperty, _page = page) => {
     if (searchKey.length < 2) return;
@@ -207,12 +211,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       idp: selectedIdp,
       property,
       searchKey,
-      limit: PAGE_LIMIT,
-      page: _page,
     });
 
     if (data) {
-      setRows(data.rows);
+      setRows(handlePagination(_page, data.rows));
       setCount(data.count);
       if (data.count === 1) {
         setSelectedId(data.rows[0].username);
@@ -431,6 +433,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 { name: 'Last Name', style: { float: 'left', width: '40%' } },
                 { name: 'Email', style: { float: 'left' } },
               ]}
+              pagination={true}
               pageLimits={pageLimits}
               limit={PAGE_LIMIT}
               page={page}
