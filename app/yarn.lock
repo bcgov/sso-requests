@@ -1110,10 +1110,10 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@bcgov-sso/common-react-components@1.20.6":
-  version "1.20.6"
-  resolved "https://registry.yarnpkg.com/@bcgov-sso/common-react-components/-/common-react-components-1.20.6.tgz#385de2b044683f43f6a0bbba03fd35494d3e7282"
-  integrity sha512-C2dPYDm9V8/dCrWhjxv6IhS4Lha72xbHlgQ152xJCDu+dg9FYB2javyfQtKIRbfOiW3kSpGdjVq8W5ccW6VBXQ==
+"@bcgov-sso/common-react-components@1.20.7":
+  version "1.20.7"
+  resolved "https://registry.yarnpkg.com/@bcgov-sso/common-react-components/-/common-react-components-1.20.7.tgz#8e6b708ec7e039a7c47b5bd3e1639456cd24a224"
+  integrity sha512-RSz4dEq6bdowsA00rIbhrt/gfpCKyAOUruNptGSIRT7IXsC6RsnQocQK1bk5wr5lvMUOWfmnHGGd0rjZ2T867A==
   dependencies:
     "@button-inc/component-library" "^1.0.1"
     "@fortawesome/fontawesome-svg-core" "^6.1.1"
