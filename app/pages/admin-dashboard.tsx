@@ -243,7 +243,8 @@ export default function AdminDashboard({ session }: PageProps) {
               loading={loading}
               totalColSpan={15}
               searchColSpan={5}
-              contentAlignment={'bottom'}
+              headerAlign={'bottom'}
+              headerGutter={[5, 0]}
             >
               {rows.length > 0 ? (
                 rows.map((row: Request) => {
