@@ -99,6 +99,8 @@ interface Props {
   searchColSpan?: number;
   filterColSpan?: number;
   showContent?: boolean;
+  headerAlign?: string;
+  headerGutter?: number[];
   onSearch?: (val: string) => void;
   onEnter?: (val: string) => void;
   onFilter?: (val: any) => void;
@@ -185,6 +187,8 @@ function Table({
   searchColSpan = 4,
   filterColSpan = 10,
   showContent = true,
+  headerAlign = 'center',
+  headerGutter = [],
   onLimit = noop,
   onPage,
   onPrev = noop,
@@ -317,7 +321,7 @@ function Table({
     <>
       <SectionHeader>
         <Grid cols={totalColSpan}>
-          <Grid.Row collapse="1160" gutter={[]} align="center">
+          <Grid.Row collapse="1160" gutter={headerGutter} align={headerAlign}>
             {leftCol}
             {rightCol}
           </Grid.Row>
@@ -342,7 +346,7 @@ function Table({
               <tbody>{children}</tbody>
             </ReactPlaceholder>
           </StyledTable>
-          {pagination && (
+          {pagination && rowCount > 0 && (
             <Grid cols={12}>
               <Grid.Row collapse="992" gutter={[]} align="center">
                 <Grid.Col span={8}>
