@@ -35,11 +35,6 @@ export interface ErrorMessages {
   [any: string]: string;
 }
 
-export interface SaveMessage {
-  content: string;
-  error: boolean;
-}
-
 export interface BceidEmailDetails {
   bceidTo?: string;
   bceidCc?: string;

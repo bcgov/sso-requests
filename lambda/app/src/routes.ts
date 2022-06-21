@@ -34,6 +34,7 @@ import {
   listClientRoles,
   listUserRoles,
   manageUserRole,
+  manageUserRoles,
   listRoleUsers,
   createRole,
   bulkCreateRole,
@@ -285,9 +286,18 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/keycloak/user-roles`, async (req, res) => {
+  app.put(`${BASE_PATH}/keycloak/user-role`, async (req, res) => {
     try {
       const result = await manageUserRole((req.session as Session).user.id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.put(`${BASE_PATH}/keycloak/user-roles`, async (req, res) => {
+    try {
+      const result = await manageUserRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

@@ -4,9 +4,9 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 it('should match the snapshot', () => {
-  let { asFragment } = render(<SaveMessage saving={true} saveMessage={{ content: 'saving', error: false }} />);
+  let { asFragment } = render(<SaveMessage saving={true} content="saving" />);
   expect(asFragment()).toMatchSnapshot();
 
-  ({ asFragment } = render(<SaveMessage saving={true} saveMessage={{ content: 'saving', error: true }} />));
+  ({ asFragment } = render(<SaveMessage saving={true} content="saving" variant="error" />));
   expect(asFragment()).toMatchSnapshot();
 });

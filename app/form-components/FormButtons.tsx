@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import CancelButton from 'components/CancelButton';
 import { FORM_BUTTON_MIN_WIDTH, FORM_BUTTON_TOP_SPACING } from 'styles/theme';
-import { SaveMessage as SaveMessageInterface } from 'interfaces/form';
 import SaveMessage from 'form-components/SaveMessage';
 
 interface Props {
@@ -16,8 +15,11 @@ interface Props {
   handleSubmit?: Function;
   handleBackClick?: Function;
   formSubmission?: boolean;
-  saving?: boolean;
-  saveMessage?: SaveMessageInterface;
+  savingStatus: {
+    saving: boolean;
+    content: string;
+    variant?: string;
+  };
 }
 
 const PaddedButton = styled(Button)`
@@ -36,8 +38,7 @@ export default function FormButtons({
   handleSubmit,
   handleBackClick,
   formSubmission,
-  saving,
-  saveMessage,
+  savingStatus,
 }: Props) {
   return (
     <>
@@ -58,7 +59,7 @@ export default function FormButtons({
           {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
         </PaddedButton>
       </Container>
-      {(saving || saveMessage) && <SaveMessage saving={saving} saveMessage={saveMessage}></SaveMessage>}
+      <SaveMessage {...savingStatus} />
     </>
   );
 }

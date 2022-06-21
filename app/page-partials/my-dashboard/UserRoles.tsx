@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import { map, omitBy, startCase, isEmpty } from 'lodash';
+import { map, omitBy, startCase, isEmpty, throttle } from 'lodash';
 import Button from '@button-inc/bcgov-theme/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
@@ -9,11 +9,12 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
+import SaveMessage from 'form-components/SaveMessage';
 import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
-import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRole, KeycloakUser } from 'services/keycloak';
+import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
 
 const Label = styled.label`
   font-weight: bold;
@@ -119,6 +120,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savingMessage, setSavingMessage] = useState('');
   const [rows, setRows] = useState<KeycloakUser[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
@@ -128,6 +131,25 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const pageLimits = [{ value: PAGE_LIMIT, text: `${PAGE_LIMIT} per page` }];
+
+  const throttleUpdate = useCallback(
+    throttle(
+      async (roleNames: string[]) => {
+        await setSaving(true);
+        const [, err] = await manageUserRoles({
+          environment: selectedEnvironment,
+          integrationId: selectedRequest.id as number,
+          username: selectedId as string,
+          roleNames,
+        });
+        if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+        await setSaving(false);
+      },
+      2000,
+      { trailing: true },
+    ),
+    [selectedRequest?.id, selectedEnvironment, selectedId],
+  );
 
   const getRoles = async () => {
     if (!selectedRequest) return;
@@ -231,25 +253,15 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       label: string;
     }>,
   ) => {
-    const data: any = {};
+    let newRoles = [];
     if (actionMeta.action === 'remove-value') {
-      data.mode = 'del';
-      data.roleName = actionMeta.removedValue?.value as string;
+      newRoles = userRoles.filter((role) => role !== (actionMeta.removedValue?.value as string));
     } else {
-      data.mode = 'add';
-      data.roleName = actionMeta.option?.value as string;
+      newRoles = [...userRoles, actionMeta.option?.value as string];
     }
 
-    await setLoadingRight(true);
-    const [roles, err] = await manageUserRole({
-      environment: selectedEnvironment,
-      integrationId: selectedRequest.id as number,
-      username: selectedId as string,
-      ...data,
-    });
-
-    await setUserRoles(roles || []);
-    await setLoadingRight(false);
+    throttleUpdate(newRoles);
+    setUserRoles(newRoles);
   };
 
   const handleUserSelect = async (username: string) => {
@@ -281,6 +293,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           noOptionsMessage={() => 'No roles'}
           onChange={handleRoleChange}
         />
+        <SaveMessage saving={saving} content={savingMessage} />
       </>
     );
   }
