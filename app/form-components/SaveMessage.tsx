@@ -1,8 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import { SaveMessage as SaveMessageInterface } from 'interfaces/form';
 import styled from 'styled-components';
-import { Grid as SpinnerGrid } from 'react-loader-spinner';
+import { RotatingLines as SpinnerRotatingLines } from 'react-loader-spinner';
 
 const Icon = styled.span`
   width: 30px;
@@ -10,6 +9,7 @@ const Icon = styled.span`
 
 const SaveContainer = styled.div`
   display: flex;
+  margin-top: 5px;
 `;
 
 const StyledP = styled.p`
@@ -17,24 +17,26 @@ const StyledP = styled.p`
 `;
 
 interface Props {
-  saving?: boolean;
-  saveMessage?: SaveMessageInterface;
+  saving: boolean;
+  content?: string;
+  variant?: string;
 }
 
-export default function SaveMessage({ saving, saveMessage }: Props) {
-  const icon = saveMessage?.error ? faExclamationTriangle : faCheck;
+export default function SaveMessage({ saving, content = '', variant = 'info' }: Props) {
+  if (!saving && !content) return null;
+
+  const icon = variant === 'error' ? faExclamationTriangle : faCheck;
   return (
     <>
       <SaveContainer>
         <Icon>
           {saving ? (
-            // @ts-ignore
-            <SpinnerGrid color="#000" height={18} width={50} visible label="request-saving" />
+            <SpinnerRotatingLines width="20" visible />
           ) : (
-            <FontAwesomeIcon style={{ color: '#006fc4' }} icon={icon} title="request-saved" />
+            <FontAwesomeIcon style={{ color: '#006fc4' }} icon={icon} />
           )}
         </Icon>
-        <StyledP>{saveMessage?.content}</StyledP>
+        <StyledP>{content}</StyledP>
       </SaveContainer>
     </>
   );
