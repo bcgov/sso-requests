@@ -3,7 +3,7 @@ import Modal from '@button-inc/bcgov-theme/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { isFunction } from 'lodash';
 import styled from 'styled-components';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@bcgov-sso/common-react-components';
 
@@ -129,8 +129,12 @@ const CenteredModal = ({
                 Cancel
               </Button>
             )}
-            <Button onClick={handleConfirm} variant={confirmButtonVariant} type="button">
-              {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : confirmText}
+            <Button onClick={handleConfirm} variant={confirmButtonVariant} type="button" className="text-center">
+              {loading ? (
+                <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
+              ) : (
+                confirmText
+              )}
             </Button>
           </ButtonContainer>
         )}

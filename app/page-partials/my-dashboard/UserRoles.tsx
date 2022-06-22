@@ -1,19 +1,20 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import { map, omitBy, startCase, isEmpty } from 'lodash';
+import { map, omitBy, startCase, isEmpty, throttle } from 'lodash';
 import Button from '@button-inc/bcgov-theme/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
+import SaveMessage from 'form-components/SaveMessage';
 import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
-import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRole, KeycloakUser } from 'services/keycloak';
+import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
 
 const Label = styled.label`
   font-weight: bold;
@@ -81,11 +82,15 @@ const FlexItem = styled.div`
 const Loading = () => (
   <AlignCenter>
     <TopMargin />
-    <Loader type="Grid" color="#000" height={45} width={45} visible={true} />
+    <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
   </AlignCenter>
 );
 
 type IDPS = 'idir' | 'azureidir' | 'bceidbasic' | 'bceidbusiness' | 'bceidboth';
+
+const PAGE_LIMIT = 15;
+
+const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
 
 const idpMap = {
   idir: 'IDIR',
@@ -111,8 +116,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const infoModalRef = useRef<ModalRef>(emptyRef);
   const idimSearchModalRef = useRef<ModalRef>(emptyRef);
   const [searched, setSearched] = useState(false);
+  const [page, setPage] = useState<number>(1);
+  const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savingMessage, setSavingMessage] = useState('');
   const [rows, setRows] = useState<KeycloakUser[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
@@ -121,6 +130,26 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const pageLimits = [{ value: PAGE_LIMIT, text: `${PAGE_LIMIT} per page` }];
+
+  const throttleUpdate = useCallback(
+    throttle(
+      async (roleNames: string[]) => {
+        await setSaving(true);
+        const [, err] = await manageUserRoles({
+          environment: selectedEnvironment,
+          integrationId: selectedRequest.id as number,
+          username: selectedId as string,
+          roleNames,
+        });
+        if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+        await setSaving(false);
+      },
+      2000,
+      { trailing: true },
+    ),
+    [selectedRequest?.id, selectedEnvironment, selectedId],
+  );
 
   const getRoles = async () => {
     if (!selectedRequest) return;
@@ -144,6 +173,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setRows([]);
     setRoles([]);
     setUserRoles([]);
+    setPage(1);
+    setCount(0);
     setSelectedId(undefined);
     setSearched(false);
   };
@@ -165,6 +196,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }, [selectedRequest.id]);
 
   useEffect(() => {
+    searchResults(searchKey, undefined, page);
+  }, [page]);
+
+  useEffect(() => {
     reset();
     getRoles();
     if (selectedRequest.devIdps) setSelectedIdp(selectedRequest.devIdps.length > 0 ? selectedRequest.devIdps[0] : '');
@@ -180,11 +215,16 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     }
   }, [selectedIdp]);
 
-  const handleSearch = async (searchKey: string, property = selectedProperty) => {
+  useEffect(() => {
+    setSavingMessage('');
+  }, [selectedId]);
+
+  const searchResults = async (searchKey: string, property = selectedProperty, _page = page) => {
     if (searchKey.length < 2) return;
 
     setLoading(true);
     setSearchKey(searchKey);
+    setPage(_page);
     setSelectedProperty(property);
     setRows([]);
     setUserRoles([]);
@@ -199,13 +239,16 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     });
 
     if (data) {
-      setRows(data);
-      if (data.length === 1) {
-        setSelectedId(data[0].username);
+      setRows(sliceRows(_page, data.rows));
+      setCount(data.count);
+      if (data.count === 1) {
+        setSelectedId(data.rows[0].username);
       }
     }
     setLoading(false);
   };
+
+  const handleSearch = (key: string) => searchResults(key, undefined, 1);
 
   const handleRoleChange = async (
     newValue: MultiValue<{ value: string; label: string }>,
@@ -214,25 +257,15 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       label: string;
     }>,
   ) => {
-    const data: any = {};
+    let newRoles = [];
     if (actionMeta.action === 'remove-value') {
-      data.mode = 'del';
-      data.roleName = actionMeta.removedValue?.value as string;
+      newRoles = userRoles.filter((role) => role !== (actionMeta.removedValue?.value as string));
     } else {
-      data.mode = 'add';
-      data.roleName = actionMeta.option?.value as string;
+      newRoles = [...userRoles, actionMeta.option?.value as string];
     }
 
-    await setLoadingRight(true);
-    const [roles, err] = await manageUserRole({
-      environment: selectedEnvironment,
-      integrationId: selectedRequest.id as number,
-      username: selectedId as string,
-      ...data,
-    });
-
-    await setUserRoles(roles || []);
-    await setLoadingRight(false);
+    throttleUpdate(newRoles);
+    setUserRoles(newRoles);
   };
 
   const handleUserSelect = async (username: string) => {
@@ -264,6 +297,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           noOptionsMessage={() => 'No roles'}
           onChange={handleRoleChange}
         />
+        <SaveMessage saving={saving} content={savingMessage} />
       </>
     );
   }
@@ -411,15 +445,22 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 },
               ]}
               headers={[
-                { name: 'First name', style: { float: 'left', width: '20%' } },
-                { name: 'Last Name', style: { float: 'left', width: '40%' } },
-                { name: 'Email', style: { float: 'left' } },
+                { name: 'First name' },
+                { name: 'Last Name', style: { minWidth: '170px' } },
+                { name: 'Email', style: { minWidth: '170px' } },
               ]}
+              pagination={true}
+              pageLimits={pageLimits}
+              limit={PAGE_LIMIT}
+              page={page}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
               onSearch={handleSearch}
               onEnter={handleSearch}
               loading={loading}
+              rowCount={count}
+              onPrev={setPage}
+              onNext={setPage}
               totalColSpan={20}
               searchColSpan={8}
               filterColSpan={12}
@@ -473,7 +514,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         title="IDIM Web Service Lookup"
         icon={null}
         onClose={(contentRef, context, closeContext) => {
-          handleSearch(closeContext.guid, 'guid');
+          searchResults(closeContext.guid, 'guid', 1);
         }}
         cancelButtonText="Close"
         cancelButtonVariant="primary"

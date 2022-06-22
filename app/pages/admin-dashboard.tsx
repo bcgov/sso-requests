@@ -219,6 +219,7 @@ export default function AdminDashboard({ session }: PageProps) {
                 { name: 'Service Type' },
                 { name: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
               ]}
+              pagination={true}
               pageLimits={pageLimits}
               searchKey={searchKey}
               searchPlaceholder="Project ID or Name"
@@ -240,6 +241,10 @@ export default function AdminDashboard({ session }: PageProps) {
               onPrev={setPage}
               onNext={setPage}
               loading={loading}
+              totalColSpan={15}
+              searchColSpan={5}
+              headerAlign={'bottom'}
+              headerGutter={[5, 0]}
             >
               {rows.length > 0 ? (
                 rows.map((row: Request) => {

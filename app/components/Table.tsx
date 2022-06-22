@@ -86,6 +86,7 @@ interface Props {
   variant?: string;
   headers: Header[];
   children: React.ReactNode;
+  pagination?: boolean;
   pageLimits?: FilterItem[];
   searchKey?: string;
   searchPlaceholder?: string;
@@ -98,6 +99,8 @@ interface Props {
   searchColSpan?: number;
   filterColSpan?: number;
   showContent?: boolean;
+  headerAlign?: string;
+  headerGutter?: number[];
   onSearch?: (val: string) => void;
   onEnter?: (val: string) => void;
   onFilter?: (val: any) => void;
@@ -175,6 +178,7 @@ function Table({
   variant = 'medium',
   headers,
   children,
+  pagination = false,
   onSearch = noop,
   onEnter = noop,
   filters = [] as Filter[],
@@ -183,11 +187,13 @@ function Table({
   searchColSpan = 4,
   filterColSpan = 10,
   showContent = true,
+  headerAlign = 'center',
+  headerGutter = [],
   onLimit = noop,
   onPage,
   onPrev = noop,
   onNext = noop,
-  pageLimits,
+  pageLimits = [],
   searchKey = '',
   searchPlaceholder = 'Search...',
   page = 1,
@@ -315,7 +321,7 @@ function Table({
     <>
       <SectionHeader>
         <Grid cols={totalColSpan}>
-          <Grid.Row collapse="1160" gutter={[]} align="center">
+          <Grid.Row collapse="1160" gutter={headerGutter} align={headerAlign}>
             {leftCol}
             {rightCol}
           </Grid.Row>
@@ -340,7 +346,7 @@ function Table({
               <tbody>{children}</tbody>
             </ReactPlaceholder>
           </StyledTable>
-          {pageLimits && (
+          {pagination && rowCount > 0 && (
             <Grid cols={12}>
               <Grid.Row collapse="992" gutter={[]} align="center">
                 <Grid.Col span={8}>
@@ -352,15 +358,17 @@ function Table({
                     )}
                   </StyledPagination>
                 </Grid.Col>
-                <Grid.Col span={4} style={{ textAlign: 'right' }}>
-                  <Dropdown
-                    style={{ display: 'inline-block', width: '160px' }}
-                    value={String(limit)}
-                    onChange={handlePageLimitChange}
-                  >
-                    {generateOptions(pageLimits)}
-                  </Dropdown>
-                </Grid.Col>
+                {pageLimits?.length > 0 && (
+                  <Grid.Col span={4} style={{ textAlign: 'right' }}>
+                    <Dropdown
+                      style={{ display: 'inline-block', width: '160px' }}
+                      value={String(limit)}
+                      onChange={handlePageLimitChange}
+                    >
+                      {generateOptions(pageLimits)}
+                    </Dropdown>
+                  </Grid.Col>
+                )}
               </Grid.Row>
             </Grid>
           )}

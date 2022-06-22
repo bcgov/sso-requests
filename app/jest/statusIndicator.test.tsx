@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
-import { sampleRequest } from './form.test';
+import { sampleRequest } from './samples/integrations';
 import type { Status } from 'interfaces/types';
 
 describe('Submission Status Indicator', () => {

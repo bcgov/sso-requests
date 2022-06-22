@@ -1,5 +1,5 @@
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
-import { forEach, map, get } from 'lodash';
+import { forEach, map, get, difference } from 'lodash';
 import { getAdminClient, getClient } from './adminClient';
 import { fetchClient } from './client';
 
@@ -28,16 +28,23 @@ export const searchUsers = async ({
   } else {
     query.username = `@${idp}`;
     query[property] = searchKey;
+    query.max = 500;
+    query.first = 0;
   }
 
   const users = await kcAdminClient.users.find({ realm: 'standard', ...query });
-  return users.map(({ username, firstName, lastName, email, attributes }) => ({
-    username,
-    firstName,
-    lastName,
-    email,
-    attributes,
-  }));
+  const result: { count: number; rows: any[] } = {
+    count: users.length,
+    rows: users.map(({ username, firstName, lastName, email, attributes }) => ({
+      username,
+      firstName,
+      lastName,
+      email,
+      attributes,
+    })),
+  };
+
+  return result;
 };
 
 export const listClientRoles = async (
@@ -207,6 +214,64 @@ export const manageUserRole = async (
 
   const roles = await kcAdminClient.users.listClientRoleMappings(roleMapping);
   return roles.map((role) => role.name);
+};
+
+export const manageUserRoles = async (
+  sessionUserId: number,
+  {
+    environment,
+    integrationId,
+    username,
+    roleNames,
+  }: {
+    environment: string;
+    integrationId: number;
+    username: string;
+    roleNames: string[];
+  },
+) => {
+  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+
+  const idp = username.split('@')[1];
+  if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
+
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
+  if (clients.length === 0) throw Error('client not found');
+  const client = clients[0];
+
+  const users = await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
+  if (users.length === 0) throw Error('user not found');
+
+  const roles = await kcAdminClient.users.listClientRoleMappings({
+    realm: 'standard',
+    id: users[0].id,
+    clientUniqueId: client.id,
+  });
+
+  const rnames = roles.map((role) => role.name);
+  const rolesToAdd = difference(roleNames, rnames);
+  const rolesToDel = difference(rnames, roleNames);
+
+  const roleMapping = {
+    realm: 'standard',
+    id: users[0].id,
+    clientUniqueId: client.id,
+  };
+
+  const findRole = (roleName) => kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName });
+
+  const addPromise = Promise.all(rolesToAdd.map((roleName) => findRole(roleName))).then((roles) =>
+    kcAdminClient.users.addClientRoleMappings({ ...roleMapping, roles }),
+  );
+
+  const delPromise = Promise.all(rolesToDel.map((roleName) => findRole(roleName))).then((roles) =>
+    kcAdminClient.users.delClientRoleMappings({ ...roleMapping, roles }),
+  );
+
+  await Promise.all([addPromise, delPromise]);
+
+  return true;
 };
 
 export const createRole = async (

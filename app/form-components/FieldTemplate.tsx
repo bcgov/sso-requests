@@ -38,16 +38,18 @@ export default function FieldTemplate(
     <>
       {top}
       <div className={classes}>
-        {displayLabel && label && (
-          <Title data-test-id={`${id}_title`}>
-            {label}&nbsp;
-            {tooltip && <InfoOverlay {...tooltip} onClick={() => tooltip?.onClick(formContext) || noop} />}
-          </Title>
-        )}
-        <div data-test-id={`${id}_description`}>{descriptionToUse}</div>
-        {children}
-        {errors}
-        {help}
+        <>
+          {displayLabel && label && (
+            <Title data-test-id={`${id}_title`}>
+              {label}&nbsp;
+              {tooltip && <InfoOverlay {...tooltip} onClick={() => tooltip?.onClick(formContext) || noop} />}
+            </Title>
+          )}
+          <div data-test-id={`${id}_description`}>{descriptionToUse}</div>
+          {children}
+          {errors}
+          {help}
+        </>
       </div>
       {bottom}
     </>

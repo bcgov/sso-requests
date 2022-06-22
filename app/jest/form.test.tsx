@@ -74,9 +74,9 @@ describe('Form Template Saving and Navigation', () => {
     const uriInput = document.querySelector('#root_devValidRedirectUris_0') as HTMLElement;
     fireEvent.change(uriInput, { target: { value: 'http://localhost:8080' } });
     expect(updateRequest).toHaveBeenCalled();
-    await waitFor(() => document.querySelector("svg[aria-label='request-saving']"));
+    await waitFor(() => document.querySelector("svg[testid='rotating-lines-svg']"));
     // wait for spinner to change to checkmark
-    await waitFor(() => screen.getByTitle('request-saved'));
+    await waitFor(() => document.querySelector("svg[icon='check']"));
   });
 
   it('Should advance the form when clicking next', async () => {

@@ -16,7 +16,6 @@ import { getMyTeams, getAllowedTeams } from 'services/team';
 import { getUISchema } from 'schemas-ui';
 import { getSchemas } from 'schemas';
 import { Request } from 'interfaces/Request';
-import { SaveMessage } from 'interfaces/form';
 import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
@@ -69,7 +68,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [formData, setFormData] = useState((request || {}) as Request);
   const [formStage, setFormStage] = useState(stage);
   const [loading, setLoading] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<SaveMessage | undefined>(undefined);
+  const [saveMessage, setSaveMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
@@ -90,7 +89,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         if (request) {
           setSaving(true);
           const [, err] = await updateRequest({ ...event.formData, id: request.id });
-          if (!err) setSaveMessage({ content: `Last saved at ${new Date().toLocaleString()}`, error: false });
+          if (!err) setSaveMessage(`Last saved at ${new Date().toLocaleString()}`);
           setSaving(false);
         }
       },
@@ -327,8 +326,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
             loading={loading}
             handleSubmit={handleButtonSubmit}
             handleBackClick={handleBackClick}
-            saving={saving}
-            saveMessage={saveMessage}
+            savingStatus={{ saving, content: saveMessage }}
           />
         ) : (
           <></>

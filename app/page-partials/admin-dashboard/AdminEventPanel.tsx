@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import styled from 'styled-components';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SectionHeader from 'components/SectionHeader';
 import { Event } from 'interfaces/Event';
 import { getEvents } from 'services/event';
@@ -94,7 +94,7 @@ export default function AdminEventPanel({ requestId }: Props) {
       </SectionHeader>
       {loading ? (
         <AlignCenter>
-          <Loader type="Grid" color="#000" height={45} width={45} visible={loading} />
+          <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={loading} />
         </AlignCenter>
       ) : (
         <EventContent events={events} />

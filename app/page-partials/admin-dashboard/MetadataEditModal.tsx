@@ -22,19 +22,17 @@ const StyledDropdown = styled(Dropdown)`
 `;
 
 function MetadataEditModal({ request, onUpdate }: Props) {
-  const [uuid, setUuid] = useState(request.idirUserid);
   const [status, setStatus] = useState(request.status);
 
   const modalId = 'edit-metadata';
 
   const handleMetadataModalConfirm = async () => {
-    await updateRequestMetadata({ id: request.id, idirUserid: uuid, status });
+    await updateRequestMetadata({ id: request.id, status });
     if (onUpdate) await onUpdate();
     window.location.hash = '#';
   };
 
   useEffect(() => {
-    setUuid(request.idirUserid);
     setStatus(request.status);
   }, [request.id]);
 
@@ -42,15 +40,6 @@ function MetadataEditModal({ request, onUpdate }: Props) {
 
   const modalContents = (
     <>
-      <Input
-        label="Owner IDIR UUID"
-        fullWidth={true}
-        onChange={(event: any) => {
-          setUuid(event.target.value);
-        }}
-        value={uuid}
-      />
-      <br />
       <StyledDropdown
         label="Integration Status"
         onChange={(event: any) => {

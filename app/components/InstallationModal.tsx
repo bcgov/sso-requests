@@ -4,7 +4,7 @@ import Button from '@button-inc/bcgov-theme/Button';
 import Alert from 'html-components/Alert';
 import Link from '@button-inc/bcgov-theme/Link';
 import styled from 'styled-components';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { getInstallation } from 'services/keycloak';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import type { Environment } from 'interfaces/types';
@@ -68,7 +68,7 @@ const InstallationModal = ({
         </Modal.Header>
         <Modal.Content>
           <AlignCenter>
-            <Loader type="Grid" color="#000" height={45} width={45} visible={loading} />
+            <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={loading} />
           </AlignCenter>
 
           {!loading && installationDisplay}

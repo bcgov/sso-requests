@@ -12,6 +12,7 @@ import { User, Team } from 'interfaces/team';
 import { Request } from 'interfaces/Request';
 import { UserSession } from 'interfaces/props';
 import { getTeamIntegrations } from 'services/request';
+import validator from 'validator';
 import {
   addTeamMembers,
   getTeamMembers,
@@ -85,7 +86,8 @@ const validateMembers = (members: User[], setErrors: Function) => {
   let errors: Errors = { members: [] };
 
   members.forEach((member, i) => {
-    if (!member.idirEmail) errors.members[i] = 'Please enter an email';
+    if (!member.idirEmail || !validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter an email';
+    else if (!member.idirEmail.endsWith('@gov.bc.ca')) errors.members[i] = 'Please enter a government email address';
   });
 
   if (errors.members.length === 0) {
@@ -377,9 +379,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th className="w60">Status</th>
-                    <th>Email</th>
-                    <th className="w120">
+                    <th className="min-width-60">Status</th>
+                    <th className="min-width-60">Email</th>
+                    <th className="min-width-60">
                       Role&nbsp;
                       <InfoOverlay
                         title={''}
@@ -389,7 +391,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         hide={200}
                       />
                     </th>
-                    <th className="w120">Actions</th>
+                    <th className="min-width-60" style={{ textAlign: 'right' }}>
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -397,11 +401,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     const adminActionsAllowed = isAdmin && myself.id !== member.id;
                     return (
                       <tr key={member.id}>
-                        <td className="w60">
+                        <td className="min-width-60">
                           <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
                         </td>
-                        <td>{member.idirEmail}</td>
-                        <td className="w120">
+                        <td className="min-width-60">{member.idirEmail}</td>
+                        <td className="min-width-60">
                           {adminActionsAllowed && !member.pending ? (
                             <Dropdown
                               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
@@ -416,13 +420,14 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             capitalize(member.role)
                           )}
                         </td>
-                        <td className="w120">
+                        <td style={{ textAlign: 'right' }}>
                           {adminActionsAllowed && member.pending && (
                             <ButtonIcon
                               icon={faShare}
                               size="lg"
                               onClick={() => inviteMember(member)}
                               title="Resend Invitation"
+                              style={{ marginRight: '6px' }}
                             />
                           )}
                           {adminActionsAllowed && (
@@ -431,6 +436,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               onClick={() => handleDeleteClick(member.id)}
                               size="lg"
                               title="Delete User"
+                              style={{ marginRight: '16px' }}
                             />
                           )}
                         </td>
@@ -448,22 +454,24 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th className="w60">Status</th>
-                    <th>Request ID</th>
-                    <th>Project Name</th>
-                    <th>Actions</th>
+                    <th className="min-width-60">Status</th>
+                    <th className="min-width-60">Request ID</th>
+                    <th className="min-width-60">Project Name</th>
+                    <th className="min-width-60" style={{ textAlign: 'right', paddingRight: '30px' }}>
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {integrations?.length > 0 ? (
                     integrations?.map((integration) => (
                       <tr key={integration.id}>
-                        <td className="w60">
+                        <td className="min-width-60">
                           <RequestStatusIcon status={integration?.status} />
                         </td>
-                        <td>{integration.id}</td>
-                        <td>{integration.projectName}</td>
-                        <td>
+                        <td className="min-width-60">{integration.id}</td>
+                        <td className="min-width-60">{integration.projectName}</td>
+                        <td className="min-width-60" style={{ float: 'right', marginTop: '20px' }}>
                           <ActionButtons
                             request={integration}
                             onDelete={() => {
@@ -573,7 +581,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           <TeamMembersForm
             members={tempMembers}
             setMembers={setTempMembers}
-            allowDelete={false}
+            allowDelete={isAdmin}
             errors={errors}
             currentUser={currentUser}
           />

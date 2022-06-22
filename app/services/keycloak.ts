@@ -23,6 +23,11 @@ export const changeClientSecret = async (
   }
 };
 
+interface RowsAndCount {
+  count: number;
+  rows: KeycloakUser[];
+}
+
 export interface KeycloakUser {
   email: string;
   firstName: string;
@@ -41,9 +46,9 @@ export const searchKeycloakUsers = async ({
   idp: string;
   property: string;
   searchKey: string;
-}): Promise<(KeycloakUser[] | null)[]> => {
+}): Promise<[RowsAndCount, null] | [null, Error]> => {
   try {
-    const result = await instance
+    const result: RowsAndCount = await instance
       .post('keycloak/users', { environment, idp, property, searchKey })
       .then((res) => res.data);
     return [result, null];
@@ -137,7 +142,30 @@ export const manageUserRole = async ({
 }): Promise<(string[] | null)[]> => {
   try {
     const result = await instance
-      .put('keycloak/user-roles', { environment, integrationId, username, roleName, mode })
+      .put('keycloak/user-role', { environment, integrationId, username, roleName, mode })
+      .then((res) => res.data);
+
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
+export const manageUserRoles = async ({
+  environment,
+  integrationId,
+  username,
+  roleNames,
+}: {
+  environment: string;
+  integrationId: number;
+  username: string;
+  roleNames: string[];
+}): Promise<(string[] | null)[]> => {
+  try {
+    const result = await instance
+      .put('keycloak/user-roles', { environment, integrationId, username, roleNames })
       .then((res) => res.data);
 
     return [result, null];

@@ -3,7 +3,7 @@ import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
 import { Button } from '@bcgov-sso/common-react-components';
 import { createTeam } from 'services/team';
-import Loader from 'react-loader-spinner';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { User, LoggedInUser } from 'interfaces/team';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import ErrorText from 'components/ErrorText';
@@ -115,7 +115,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
           Cancel
         </Button>
         <Button type="button" onClick={handleCreate}>
-          {loading ? <Loader type="Grid" color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
+          {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
         </Button>
       </ButtonsContainer>
     </div>

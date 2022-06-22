@@ -10,8 +10,10 @@ module.exports = {
     '\\.css$': '<rootDir>/jest/mocks/styleMock.js',
     typography: 'typography/dist/index', // prevent jest `require` the base file itself in runtime
   },
+  transform: { '\\.[jt]sx?$': 'babel-jest' },
+  transformIgnorePatterns: ['<rootDir>/node_modules/(?!(@rjsf)/)', '\\.pnp\\.[^\\/]+$'],
   modulePaths: ['<rootDir>'],
-  moduleDirectories: ['node_modules', '.'],
+  moduleDirectories: ['node_modules'],
   testEnvironment: 'jsdom',
   rootDir: '.',
   verbose: true,

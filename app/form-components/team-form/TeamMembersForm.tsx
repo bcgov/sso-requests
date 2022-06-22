@@ -16,15 +16,15 @@ const Container = styled.div`
   grid-gap: 0 1em;
 `;
 
-const Dropdown = styled(DefaultDropdown)`
+const Dropdown = styled(DefaultDropdown)<{ readOnlyRole?: boolean }>`
   & .pg-select-wrapper {
     height: 44px;
+    ${(props) => (props.readOnlyRole ? `padding-left:6px;` : ``)}
   }
 `;
 
 const Divider = styled.div`
   border-bottom: 1px solid black;
-  margin: 10px 0;
   grid-column: 1 / 3;
 `;
 
@@ -42,7 +42,7 @@ const MembersSection = styled.section`
 `;
 
 const MemberContainer = styled(Container)`
-  grid-template-columns: 2fr 2fr 1fr;
+  grid-template-columns: 2.2fr 0.9fr 1.2fr;
   align-items: start;
   margin-bottom: 20px;
 `;
@@ -51,6 +51,11 @@ const Icon = styled(FontAwesomeIcon)`
   align-self: center;
   color: red;
   cursor: pointer;
+`;
+
+const EmailAddrValidHeader = styled.p`
+  font-style: italic;
+  font-size: 0.95em;
 `;
 
 interface Props {
@@ -97,8 +102,8 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
   return (
     <div>
       <p>
-        Enter your team member’s email address and they will be sent an invitation to join the project. Once they accept
-        the invitation, they will have access to your project. Their invitation will expire in{' '}
+        Enter your team member’s government email address and they will be sent an invitation to join the project. Once
+        they accept the invitation, they will have access to your project. Their invitation will expire in{' '}
         <strong>2 business days</strong>.
       </p>
       <p>
@@ -114,10 +119,17 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
           <strong>Role</strong>
           <Divider />
         </Container>
+        <EmailAddrValidHeader>
+          *Please enter a{' '}
+          <span className="underline">
+            <span className="strong">government email address</span>
+          </span>{' '}
+          ending in "@gov.bc.ca", to allow your user to login
+        </EmailAddrValidHeader>
         {currentUser && (
           <MemberContainer>
             <Input value={currentUser?.email || ''} readOnly />
-            <Dropdown label="Role" disabled value={'admin'}>
+            <Dropdown label="Role" disabled value={'admin'} readOnlyRole={true}>
               <option value="admin">Admin</option>
             </Dropdown>
           </MemberContainer>
@@ -137,7 +149,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
               </Dropdown>
-              {i !== 0 && allowDelete && (
+              {i >= 0 && allowDelete && (
                 <Icon icon={faMinusCircle} onClick={() => handleMemberDelete(i)} title="Delete" />
               )}
             </MemberContainer>
