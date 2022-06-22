@@ -215,6 +215,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     }
   }, [selectedIdp]);
 
+  useEffect(() => {
+    setSavingMessage('');
+  }, [selectedId]);
+
   const searchResults = async (searchKey: string, property = selectedProperty, _page = page) => {
     if (searchKey.length < 2) return;
 
