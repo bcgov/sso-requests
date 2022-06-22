@@ -159,10 +159,16 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       const hadBceidProd = hasBceid && originalData.environments.includes('prod');
       const hasBceidProd = hasBceid && environments.includes('prod');
 
-      if (!current.bceidApproved && hasBceid)
-        environments = environments.filter((environment) => environment !== 'prod');
+      const tfData = getCurrentValue();
+      if (!current.bceidApproved && hasBceid) {
+        if (tfData.serviceType === 'gold') {
+          tfData.devIdps = tfData.devIdps.filter((idp) => !idp.startsWith('bceid'));
+        } else {
+          tfData.environments = environments.filter((environment) => environment !== 'prod');
+        }
+      }
 
-      const ghResult = await dispatchRequestWorkflow(current);
+      const ghResult = await dispatchRequestWorkflow(tfData);
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
