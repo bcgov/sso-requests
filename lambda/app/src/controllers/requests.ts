@@ -160,11 +160,16 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       const hasBceidProd = hasBceid && environments.includes('prod');
 
       const tfData = getCurrentValue();
+
+      // let's use dev's idps until having a env-specific idp selections
+      if (tfData.environments.includes('test')) tfData.testIdps = tfData.devIdps;
+      if (tfData.environments.includes('prod')) tfData.prodIdps = tfData.devIdps;
+
       if (!current.bceidApproved && hasBceid) {
         if (tfData.serviceType === 'gold') {
-          tfData.devIdps = tfData.devIdps.filter((idp) => !idp.startsWith('bceid'));
+          tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('bceid'));
         } else {
-          tfData.environments = environments.filter((environment) => environment !== 'prod');
+          tfData.environments = tfData.environments.filter((environment) => environment !== 'prod');
         }
       }
 

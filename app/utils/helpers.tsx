@@ -27,13 +27,13 @@ export const usesBceid = (integration: any) => {
 };
 
 export const getRequestedEnvironments = (request: Request) => {
-  const { bceidApproved, environments, serviceType } = request;
+  const { bceidApproved, environments = [], serviceType } = request;
   const hasBceid = usesBceid(request);
 
-  let allowedEnvs = environments?.concat() || [];
+  let allowedEnvs = environments.concat() || [];
   if (hasBceid && !bceidApproved) allowedEnvs = allowedEnvs.filter((env) => env !== 'prod');
 
-  if (serviceType === 'gold') return environmentOptions;
+  if (serviceType === 'gold') return environmentOptions.filter((env) => environments.includes(env.name));
   return environmentOptions.filter((env) => allowedEnvs.includes(env.name));
 };
 

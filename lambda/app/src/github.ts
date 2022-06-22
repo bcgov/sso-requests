@@ -60,9 +60,6 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     'prodOfflineSessionMaxLifespan',
   ]);
 
-  // let's use dev's idps until having a env-specific idp selections
-  if (payload.environments.includes('test')) payload.testIdps = payload.devIdps;
-  if (payload.environments.includes('prod')) payload.prodIdps = payload.devIdps;
   if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
 
   console.log('requesting github request workflow', payload);
