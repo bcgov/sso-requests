@@ -46,6 +46,12 @@ const NoProjects = styled.div`
   background-color: #f8f8f8;
 `;
 
+const TabHeader = styled.div`
+  font-size: 21px;
+  padding-bottom: 5px;
+  font-weight: bold;
+`;
+
 const SystemUnavailableMessage = (
   <NotAvailable>
     <FontAwesomeIcon icon={faExclamationCircle} title="Unavailable" />
@@ -208,40 +214,43 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
     if (!integrations || integrations.length === 0) return <NoEntitiesMessage message="No Requests Submitted" />;
 
     return (
-      <Table>
-        <thead>
-          <tr>
-            <th>Request ID</th>
-            <th>Project Name</th>
-            <th>Status</th>
-            <th>Service Type</th>
-            <CenteredHeader>Actions</CenteredHeader>
-          </tr>
-        </thead>
-        <tbody>
-          {integrations?.map((integration: Request) => (
-            <tr
-              className={activeIntegrationId === integration.id ? 'active' : ''}
-              key={integration.id}
-              onClick={() => updateActiveIntegration(integration)}
-            >
-              <td>{padStart(String(integration.id), 8, '0')}</td>
-              <td>{integration.projectName}</td>
-              <td>{getStatusDisplayName(integration.status || 'draft')}</td>
-              <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
-              <td>
-                <ActionButtons
-                  request={integration}
-                  onDelete={() => {
-                    loadIntegrations();
-                  }}
-                  defaultActiveColor="#fff"
-                />
-              </td>
+      <>
+        <TabHeader>INTEGRATIONS</TabHeader>
+        <Table>
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Project Name</th>
+              <th>Status</th>
+              <th>Service Type</th>
+              <CenteredHeader>Actions</CenteredHeader>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {integrations?.map((integration: Request) => (
+              <tr
+                className={activeIntegrationId === integration.id ? 'active' : ''}
+                key={integration.id}
+                onClick={() => updateActiveIntegration(integration)}
+              >
+                <td>{padStart(String(integration.id), 8, '0')}</td>
+                <td>{integration.projectName}</td>
+                <td>{getStatusDisplayName(integration.status || 'draft')}</td>
+                <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
+                <td>
+                  <ActionButtons
+                    request={integration}
+                    onDelete={() => {
+                      loadIntegrations();
+                    }}
+                    defaultActiveColor="#fff"
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </>
     );
   };
 
