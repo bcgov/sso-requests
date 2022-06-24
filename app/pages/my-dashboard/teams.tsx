@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import MyDashboardLayout from 'page-partials/my-dashboard/Layout';
+import VerticalLayout from 'page-partials/my-dashboard/VerticalLayout';
 import TeamInfoTabs from 'page-partials/my-dashboard/TeamInfoTabs';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { getMyTeams, deleteTeam } from 'services/team';
@@ -23,7 +23,7 @@ function MyTeams({ session }: PageProps) {
   }, []);
 
   return (
-    <MyDashboardLayout
+    <VerticalLayout
       tab="teams"
       leftPanel={(state: any, dispatch: any) => (
         <TeamList

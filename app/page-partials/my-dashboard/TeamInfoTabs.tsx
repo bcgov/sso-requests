@@ -50,7 +50,6 @@ const INVITATION_EXPIRY_DAYS = 2;
 
 const TabWrapper = styled.div<{ marginTop?: string; marginBottom?: string; marginLeft?: string; marginRight?: string }>`
   padding-left: 1rem;
-  padding-right: 1rem;
   ${(props) => `
   margin-top: ${props.marginTop || '0'};
   margin-bottom: ${props.marginBottom || '0'};
@@ -62,11 +61,6 @@ const TabWrapper = styled.div<{ marginTop?: string; marginBottom?: string; margi
 const PaddedButton = styled(Button)`
   padding: 0 !important;
   margin: 20px 0 !important;
-`;
-
-const Container = styled.div`
-  border: 3px solid #a6b1c4;
-  padding: 10px;
 `;
 
 const CenteredTD = styled.td`
@@ -364,7 +358,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const isAdmin = myself.role === 'admin';
 
   return (
-    <Container>
+    <>
       <RequestTabs defaultActiveKey={'members'}>
         <Tab eventKey="members" title="Members">
           <TabWrapper>
@@ -592,7 +586,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         closable
       />
       <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
-    </Container>
+    </>
   );
 }
 
