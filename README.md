@@ -184,6 +184,7 @@ select client_name, preferred_email from requests where archived = false;
 SELECT
     r.id,
     r.client_name,
+    r.service_type,
     r.team_id,
     ut.user_id,
     u.idir_email,
@@ -202,6 +203,7 @@ SELECT
     r.id,
     r.client_name,
     r.user_id,
+    r.service_type,
     u.idir_email,
     u.additional_email
 FROM
