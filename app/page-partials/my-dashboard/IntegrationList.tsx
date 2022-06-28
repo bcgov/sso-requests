@@ -22,6 +22,11 @@ const RightAlignHeader = styled.th`
   min-width: 100px;
 `;
 
+const RightAlignButton = styled.th`
+  float: right;
+  margintop: 10px;
+`;
+
 const PNoMargin = styled.p`
   margin: 0;
 `;
@@ -237,15 +242,17 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
                 <td>{integration.projectName}</td>
                 <td>{getStatusDisplayName(integration.status || 'draft')}</td>
                 <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
-                <td style={{ float: 'right', marginTop: '10px' }}>
-                  <ActionButtons
-                    request={integration}
-                    onDelete={() => {
-                      loadIntegrations();
-                    }}
-                    defaultActiveColor="#fff"
-                    delIconStyle={{ marginLeft: '6px' }}
-                  />
+                <td>
+                  <RightAlignButton>
+                    <ActionButtons
+                      request={integration}
+                      onDelete={() => {
+                        loadIntegrations();
+                      }}
+                      defaultActiveColor="#fff"
+                      delIconStyle={{ marginLeft: '7px' }}
+                    />
+                  </RightAlignButton>
                 </td>
               </tr>
             ))}
