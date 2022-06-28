@@ -49,8 +49,8 @@ export default function Actionbuttons({
   onDelete,
   defaultActiveColor,
   children,
-  editIconStyle = '',
-  delIconStyle = '',
+  editIconStyle = {},
+  delIconStyle = {},
 }: Props) {
   const router = useRouter();
   const { archived } = request || {};
