@@ -100,9 +100,8 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
                 <>
                   <H3Large>Recommendation: Confidential Client</H3Large>
                   <p>
-                    Based on your response, we recommend that you use a <strong>confidential client.</strong>{' '}
-                    Confidential clients have back-end components that securely store an application's secret and use a
-                    secure OAuth flow called PKCE, or Proof Key for Code Exchange.
+                    With a confidential client, the back-end component securely stores an application secret that allows
+                    it to communicate with the KeyCloak server to facilitate the OIDC authentication process.
                   </p>
                 </>
               ) : (
