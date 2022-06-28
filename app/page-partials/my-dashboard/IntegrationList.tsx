@@ -244,7 +244,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
                       loadIntegrations();
                     }}
                     defaultActiveColor="#fff"
-                    delIconStyle={{ marginLeft: '7px' }}
+                    delIconStyle={{ marginLeft: '6px' }}
                   />
                 </td>
               </tr>
