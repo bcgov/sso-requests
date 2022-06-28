@@ -22,9 +22,8 @@ const RightAlignHeader = styled.th`
   min-width: 100px;
 `;
 
-const RightAlignButton = styled.th`
+const RightAlignButton = styled.td`
   float: right;
-  margintop: 10px;
 `;
 
 const PNoMargin = styled.p`
