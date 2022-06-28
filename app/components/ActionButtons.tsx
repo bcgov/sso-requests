@@ -40,9 +40,18 @@ interface Props {
   onDelete?: Function;
   defaultActiveColor?: string;
   children?: any;
+  editIconStyle?: any;
+  delIconStyle?: any;
 }
 
-export default function Actionbuttons({ request, onDelete, defaultActiveColor, children }: Props) {
+export default function Actionbuttons({
+  request,
+  onDelete,
+  defaultActiveColor,
+  children,
+  editIconStyle = '',
+  delIconStyle = '',
+}: Props) {
   const router = useRouter();
   const { archived } = request || {};
   const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
@@ -82,6 +91,7 @@ export default function Actionbuttons({ request, onDelete, defaultActiveColor, c
           activeColor={defaultActiveColor}
           title="Edit"
           size="lg"
+          style={editIconStyle}
         />
         <ActionButton
           icon={faTrash}
@@ -92,6 +102,7 @@ export default function Actionbuttons({ request, onDelete, defaultActiveColor, c
           activeColor={PRIMARY_RED}
           title="Delete"
           size="lg"
+          style={delIconStyle}
         />
       </ActionButtonContainer>
       <CenteredModal

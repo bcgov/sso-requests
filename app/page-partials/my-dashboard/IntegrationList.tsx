@@ -17,8 +17,8 @@ import { getRequests, deleteRequest } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 
-const CenteredHeader = styled.th`
-  text-align: center;
+const RightAlignHeader = styled.th`
+  text-align: right;
   min-width: 100px;
 `;
 
@@ -223,7 +223,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
               <th>Project Name</th>
               <th>Status</th>
               <th>Service Type</th>
-              <CenteredHeader>Actions</CenteredHeader>
+              <RightAlignHeader>Actions</RightAlignHeader>
             </tr>
           </thead>
           <tbody>
@@ -237,13 +237,14 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
                 <td>{integration.projectName}</td>
                 <td>{getStatusDisplayName(integration.status || 'draft')}</td>
                 <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
-                <td>
+                <td style={{ float: 'right', marginTop: '10px' }}>
                   <ActionButtons
                     request={integration}
                     onDelete={() => {
                       loadIntegrations();
                     }}
                     defaultActiveColor="#fff"
+                    delIconStyle={{ marginLeft: '6px' }}
                   />
                 </td>
               </tr>
