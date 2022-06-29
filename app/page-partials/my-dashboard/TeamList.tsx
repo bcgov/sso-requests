@@ -27,6 +27,10 @@ const RightAlignHeader = styled.th`
   min-width: 100px;
 `;
 
+const RightFloatButtons = styled.td`
+  float: right;
+`;
+
 const NotAvailable = styled.div`
   color: #a12622;
   height: 60px;
@@ -149,26 +153,28 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
                 >
                   <td>{team.name}</td>
                   <td>
-                    <ActionButtonContainer style={{ float: 'right' }}>
-                      <ActionButton
-                        icon={faEdit}
-                        role="button"
-                        aria-label="edit"
-                        title="Edit"
-                        size="lg"
-                        onClick={() => showEditTeamNameModal(team)}
-                      />
-                      <ActionButton
-                        disabled={!canDelete}
-                        icon={faTrash}
-                        role="button"
-                        aria-label="delete"
-                        title="Delete"
-                        size="lg"
-                        onClick={() => (canDelete ? showDeleteModal(team) : noop)}
-                        style={{ marginLeft: '7px' }}
-                      />
-                    </ActionButtonContainer>
+                    <RightFloatButtons>
+                      <ActionButtonContainer>
+                        <ActionButton
+                          icon={faEdit}
+                          role="button"
+                          aria-label="edit"
+                          title="Edit"
+                          size="lg"
+                          onClick={() => showEditTeamNameModal(team)}
+                        />
+                        <ActionButton
+                          disabled={!canDelete}
+                          icon={faTrash}
+                          role="button"
+                          aria-label="delete"
+                          title="Delete"
+                          size="lg"
+                          onClick={() => (canDelete ? showDeleteModal(team) : noop)}
+                          style={{ marginLeft: '7px' }}
+                        />
+                      </ActionButtonContainer>
+                    </RightFloatButtons>
                   </td>
                 </tr>
               );
