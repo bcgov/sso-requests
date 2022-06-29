@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import { RequestTabs } from 'components/RequestTabs';
-import Table from 'html-components/Table';
+import { Table } from '@bcgov-sso/common-react-components';
 import { Button } from '@bcgov-sso/common-react-components';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
@@ -56,6 +56,15 @@ const TabWrapper = styled.div<{ marginTop?: string; marginBottom?: string; margi
   margin-left: ${props.marginLeft || '0'};
   margin-right: ${props.marginRight || '0'};
   `}
+`;
+
+const RightPaddedHeader = styled.th`
+  float: right;
+  margin-right: 30px;
+`;
+
+const RightFloat = styled.td`
+  float: right;
 `;
 
 const PaddedButton = styled(Button)`
@@ -373,9 +382,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th className="min-width-60">Status</th>
-                    <th className="min-width-60">Email</th>
-                    <th className="min-width-60">
+                    <th>Status</th>
+                    <th>Email</th>
+                    <th>
                       Role&nbsp;
                       <InfoOverlay
                         title={''}
@@ -385,8 +394,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         hide={200}
                       />
                     </th>
-                    <th className="min-width-60" style={{ textAlign: 'right' }}>
-                      Actions
+                    <th>
+                      <RightFloat>Actions</RightFloat>
                     </th>
                   </tr>
                 </thead>
@@ -395,11 +404,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     const adminActionsAllowed = isAdmin && myself.id !== member.id;
                     return (
                       <tr key={member.id}>
-                        <td className="min-width-60">
+                        <td>
                           <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
                         </td>
-                        <td className="min-width-60">{member.idirEmail}</td>
-                        <td className="min-width-60">
+                        <td>{member.idirEmail}</td>
+                        <td>
                           {adminActionsAllowed && !member.pending ? (
                             <Dropdown
                               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
@@ -448,11 +457,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               <Table variant="medium" readOnly>
                 <thead>
                   <tr>
-                    <th className="min-width-60">Status</th>
-                    <th className="min-width-60">Request ID</th>
-                    <th className="min-width-60">Project Name</th>
-                    <th className="min-width-60" style={{ textAlign: 'right', paddingRight: '30px' }}>
-                      Actions
+                    <th>Status</th>
+                    <th>Request ID</th>
+                    <th>Project Name</th>
+                    <th>
+                      <RightPaddedHeader>Actions</RightPaddedHeader>
                     </th>
                   </tr>
                 </thead>
@@ -460,21 +469,23 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   {integrations?.length > 0 ? (
                     integrations?.map((integration) => (
                       <tr key={integration.id}>
-                        <td className="min-width-60">
+                        <td>
                           <RequestStatusIcon status={integration?.status} />
                         </td>
-                        <td className="min-width-60">{integration.id}</td>
-                        <td className="min-width-60">{integration.projectName}</td>
-                        <td className="min-width-60" style={{ float: 'right', marginTop: '20px' }}>
-                          <ActionButtons
-                            request={integration}
-                            onDelete={() => {
-                              loadTeams();
-                              getData(team?.id);
-                            }}
-                          >
-                            <ActionButton icon={faEye} onClick={() => viewProject(integration.id)} size="lg" />
-                          </ActionButtons>
+                        <td>{integration.id}</td>
+                        <td>{integration.projectName}</td>
+                        <td>
+                          <RightFloat>
+                            <ActionButtons
+                              request={integration}
+                              onDelete={() => {
+                                loadTeams();
+                                getData(team?.id);
+                              }}
+                            >
+                              <ActionButton icon={faEye} onClick={() => viewProject(integration.id)} size="lg" />
+                            </ActionButtons>
+                          </RightFloat>
                         </td>
                       </tr>
                     ))

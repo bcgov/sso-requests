@@ -14,7 +14,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { RequestTabs } from 'components/RequestTabs';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import Table from 'html-components/Table';
+import { Table } from '@bcgov-sso/common-react-components';
 import CreateRoleContent from './roles/CreateRoleContent';
 import {
   searchKeycloakUsers,
