@@ -22,7 +22,7 @@ const RightAlignHeader = styled.th`
   min-width: 100px;
 `;
 
-const RightAlignButton = styled.td`
+const RightFloatButtons = styled.td`
   float: right;
 `;
 
@@ -242,7 +242,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
                 <td>{getStatusDisplayName(integration.status || 'draft')}</td>
                 <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
                 <td>
-                  <RightAlignButton>
+                  <RightFloatButtons>
                     <ActionButtons
                       request={integration}
                       onDelete={() => {
@@ -251,7 +251,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
                       defaultActiveColor="#fff"
                       delIconStyle={{ marginLeft: '7px' }}
                     />
-                  </RightAlignButton>
+                  </RightFloatButtons>
                 </td>
               </tr>
             ))}
