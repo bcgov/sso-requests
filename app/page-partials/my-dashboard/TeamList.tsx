@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
-import Table from 'html-components/Table';
+import { Table } from '@bcgov-sso/common-react-components';
 import styled from 'styled-components';
 import { noop } from 'lodash';
 import { $setDownloadError } from 'dispatchers/requestDispatcher';
@@ -22,9 +22,13 @@ import { DashboardReducerState } from 'reducers/dashboardReducer';
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
 
-const CenteredHeader = styled.th`
+const RightAlignHeader = styled.th`
   text-align: right;
   min-width: 100px;
+`;
+
+const RightFloatButtons = styled.td`
+  float: right;
 `;
 
 const NotAvailable = styled.div`
@@ -134,7 +138,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
         <thead>
           <tr>
             <th>Team Name</th>
-            <CenteredHeader>Actions</CenteredHeader>
+            <RightAlignHeader>Actions</RightAlignHeader>
           </tr>
         </thead>
         <tbody>
@@ -148,27 +152,29 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
                   onClick={() => updateActiveTeam(team)}
                 >
                   <td>{team.name}</td>
-                  <td style={{ float: 'right', marginTop: '20px' }}>
-                    <ActionButtonContainer>
-                      <ActionButton
-                        icon={faEdit}
-                        role="button"
-                        aria-label="edit"
-                        title="Edit"
-                        size="lg"
-                        onClick={() => showEditTeamNameModal(team)}
-                      />
-                      <ActionButton
-                        disabled={!canDelete}
-                        icon={faTrash}
-                        role="button"
-                        aria-label="delete"
-                        title="Delete"
-                        size="lg"
-                        onClick={() => (canDelete ? showDeleteModal(team) : noop)}
-                        style={{ marginRight: '2px', marginLeft: '6px' }}
-                      />
-                    </ActionButtonContainer>
+                  <td>
+                    <RightFloatButtons>
+                      <ActionButtonContainer>
+                        <ActionButton
+                          icon={faEdit}
+                          role="button"
+                          aria-label="edit"
+                          title="Edit"
+                          size="lg"
+                          onClick={() => showEditTeamNameModal(team)}
+                        />
+                        <ActionButton
+                          disabled={!canDelete}
+                          icon={faTrash}
+                          role="button"
+                          aria-label="delete"
+                          title="Delete"
+                          size="lg"
+                          onClick={() => (canDelete ? showDeleteModal(team) : noop)}
+                          style={{ marginLeft: '7px' }}
+                        />
+                      </ActionButtonContainer>
+                    </RightFloatButtons>
                   </td>
                 </tr>
               );

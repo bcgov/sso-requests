@@ -19,13 +19,28 @@ import { Request } from 'interfaces/Request';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
+import { padStart } from 'lodash';
 
 const Title = styled(DefaultTitle)`
   margin-top: 10px;
 `;
 
+const Container = styled.div`
+  border: 3px solid #4950fa;
+  border-radius: 10px;
+  padding: 5px;
+  padding-top: 20px;
+`;
+
+const BottomPanelHeader = styled.div`
+  font-size: 21px;
+  padding-bottom: 10px;
+  font-weight: bold;
+  color: #4950fa;
+`;
+
 const TabWrapper = styled.div<{ short?: boolean }>`
-  padding-left: 1.5rem;
+  padding-left: 1rem;
   padding-right: 1rem;
   ${(props) => (props.short ? 'max-width: 800px;' : '')}
 `;
@@ -125,70 +140,73 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   } else if (displayStatus === 'Completed') {
     panel = (
       <>
-        <RequestTabs
-          activeKey={panelTab}
-          mountOnEnter={true}
-          unmountOnExit={true}
-          onSelect={(k: any) => dispatch($setPanelTab(k))}
-        >
-          <Tab eventKey="installation-json" title="Technical Details">
-            <TabWrapper short={false}>
-              <Grid cols={15}>
-                <Grid.Row gutter={[]}>
-                  <Grid.Col span={7}>
-                    <InstallationPanel selectedRequest={integration} />
-                  </Grid.Col>
-                  <Grid.Col span={1}></Grid.Col>
-                  <Grid.Col span={7}>
-                    {awaitingBceidProd && (
-                      <>
-                        <br />
-                        <SubTitle>Access to Prod (TBD)</SubTitle>
-                        <br />
-                        <br />
-                        <BceidStatus request={integration} />
-                      </>
-                    )}
-                  </Grid.Col>
-                </Grid.Row>
-              </Grid>
-            </TabWrapper>
-          </Tab>
-          {isGold && (
-            <Tab eventKey="client-roles" title="Role Management">
-              <TabWrapper>
-                <br />
-                <div>
-                  Please visit our{' '}
-                  <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role">
-                    wiki page
-                  </Link>{' '}
-                  for more information on roles.
-                </div>
-                <ClientRoles selectedRequest={integration} />
+        <BottomPanelHeader>INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}</BottomPanelHeader>
+        <Container>
+          <RequestTabs
+            activeKey={panelTab}
+            mountOnEnter={true}
+            unmountOnExit={true}
+            onSelect={(k: any) => dispatch($setPanelTab(k))}
+          >
+            <Tab eventKey="installation-json" title="Technical Details">
+              <TabWrapper short={false}>
+                <Grid cols={15}>
+                  <Grid.Row gutter={[]}>
+                    <Grid.Col span={7}>
+                      <InstallationPanel selectedRequest={integration} />
+                    </Grid.Col>
+                    <Grid.Col span={1}></Grid.Col>
+                    <Grid.Col span={7}>
+                      {awaitingBceidProd && (
+                        <>
+                          <br />
+                          <SubTitle>Access to Prod (TBD)</SubTitle>
+                          <br />
+                          <br />
+                          <BceidStatus request={integration} />
+                        </>
+                      )}
+                    </Grid.Col>
+                  </Grid.Row>
+                </Grid>
               </TabWrapper>
             </Tab>
-          )}
-          {isGold && (
-            <Tab eventKey="user-roles" title="Assign Users to Roles">
-              <TabWrapper>
-                <UserRoles selectedRequest={integration} />
-              </TabWrapper>
-            </Tab>
-          )}
-          {!integration.publicAccess && (
-            <Tab eventKey="configuration-url" title="Secrets">
+            {isGold && (
+              <Tab eventKey="client-roles" title="Role Management">
+                <TabWrapper>
+                  <br />
+                  <div>
+                    Please visit our{' '}
+                    <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role">
+                      wiki page
+                    </Link>{' '}
+                    for more information on roles.
+                  </div>
+                  <ClientRoles selectedRequest={integration} />
+                </TabWrapper>
+              </Tab>
+            )}
+            {isGold && (
+              <Tab eventKey="user-roles" title="Assign Users to Roles">
+                <TabWrapper>
+                  <UserRoles selectedRequest={integration} />
+                </TabWrapper>
+              </Tab>
+            )}
+            {!integration.publicAccess && (
+              <Tab eventKey="configuration-url" title="Secrets">
+                <TabWrapper short={true}>
+                  <SecretsPanel selectedRequest={integration} />
+                </TabWrapper>
+              </Tab>
+            )}
+            <Tab eventKey="history" title="Change History">
               <TabWrapper short={true}>
-                <SecretsPanel selectedRequest={integration} />
+                <UserEventPanel requestId={integration.id} />
               </TabWrapper>
             </Tab>
-          )}
-          <Tab eventKey="history" title="Change History">
-            <TabWrapper short={true}>
-              <UserEventPanel requestId={integration.id} />
-            </TabWrapper>
-          </Tab>
-        </RequestTabs>
+          </RequestTabs>
+        </Container>
       </>
     );
   }

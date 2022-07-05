@@ -6,7 +6,7 @@ import Button from '@button-inc/bcgov-theme/Button';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Pagination from 'react-bootstrap/Pagination';
-import StyledTable from 'html-components/Table';
+import { Table as StyledTable } from '@bcgov-sso/common-react-components';
 import SectionHeader from 'components/SectionHeader';
 import { MultiSelect } from 'react-multi-select-component';
 import { TextBlock } from 'react-placeholder/lib/placeholders';
