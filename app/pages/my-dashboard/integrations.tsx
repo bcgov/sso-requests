@@ -7,7 +7,7 @@ import { Request } from 'interfaces/Request';
 
 function MyIntegrations() {
   const [integration, setIntegration] = useState<Request | null>(null);
-  const [integrationCount, setIntegrationCount] = useState(0);
+  const [integrationCount, setIntegrationCount] = useState(1);
 
   return (
     <VerticalLayout
