@@ -169,6 +169,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const uiSchema = getUISchema({ integration: request as Request, isAdmin });
 
   const handleFormSubmit = async () => {
+    if (loading) return;
     setLoading(true);
 
     try {

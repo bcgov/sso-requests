@@ -1,5 +1,6 @@
 import Button from '@button-inc/bcgov-theme/Button';
 import styled from 'styled-components';
+import { noop } from 'lodash';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import CancelButton from 'components/CancelButton';
 import { FORM_BUTTON_MIN_WIDTH, FORM_BUTTON_TOP_SPACING } from 'styles/theme';
@@ -53,10 +54,14 @@ export default function FormButtons({
         <PaddedButton
           variant="primary"
           size="medium"
-          onClick={handleSubmit}
+          onClick={loading ? handleSubmit : noop}
           type={formSubmission ? 'submit' : 'button'}
         >
-          {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible /> : <>{text.continue}</>}
+          {loading ? (
+            <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible />
+          ) : (
+            <>{text.continue}</>
+          )}
         </PaddedButton>
       </Container>
       <SaveMessage {...savingStatus} />
