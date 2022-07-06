@@ -54,7 +54,7 @@ export default function FormButtons({
         <PaddedButton
           variant="primary"
           size="medium"
-          onClick={loading ? handleSubmit : noop}
+          onClick={loading ? noop : handleSubmit}
           type={formSubmission ? 'submit' : 'button'}
         >
           {loading ? (
