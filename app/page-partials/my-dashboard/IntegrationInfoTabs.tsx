@@ -89,6 +89,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   const displayStatus = getStatusDisplayName(status || 'draft');
   const awaitingBceidProd = usesBceid(integration) && environments.includes('prod') && !bceidApproved;
   const isGold = integration.serviceType === 'gold';
+  const hasBrowserFlow = integration.authType !== 'service-account';
 
   let panel = null;
 
@@ -171,7 +172,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
                 </Grid>
               </TabWrapper>
             </Tab>
-            {isGold && (
+            {isGold && hasBrowserFlow && (
               <Tab eventKey="client-roles" title="Role Management">
                 <TabWrapper>
                   <br />
@@ -186,7 +187,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
                 </TabWrapper>
               </Tab>
             )}
-            {isGold && (
+            {isGold && hasBrowserFlow && (
               <Tab eventKey="user-roles" title="Assign Users to Roles">
                 <TabWrapper>
                   <UserRoles selectedRequest={integration} />
