@@ -16,6 +16,7 @@ import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/A
 import { getRequests, deleteRequest } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
+import { authTypeDisplay } from 'metadata/display';
 
 const RightAlignHeader = styled.th`
   text-align: right;
@@ -69,12 +70,6 @@ const NoEntitiesMessage = ({ message }: { message: string }) => (
     &nbsp; {message}
   </NoProjects>
 );
-
-const authTypeDisplay: { [key: string]: string } = {
-  'browser-login': 'Browser Login',
-  'service-account': 'Service Account',
-  both: 'Browser Login & Service Account',
-};
 
 const NewEntityButton = ({
   handleNewIntegrationClick,

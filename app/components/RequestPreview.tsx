@@ -1,6 +1,7 @@
 import { Request } from 'interfaces/Request';
 import { realmToIDP } from 'utils/helpers';
 import styled from 'styled-components';
+import { authTypeDisplay } from 'metadata/display';
 
 const Table = styled.table`
   font-size: unset;
@@ -100,15 +101,15 @@ function RequestPreview({ children, request }: Props) {
             </tr>
           )}
           <tr>
-            <td>Are you accountable for this project?</td>
-            <td>
-              <SemiBold>{formatBoolean(request?.projectLead)}</SemiBold>
-            </td>
-          </tr>
-          <tr>
             <td>Client Type:</td>
             <td>
               <SemiBold>{request?.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
+            </td>
+          </tr>
+          <tr>
+            <td>Auth Type:</td>
+            <td>
+              <SemiBold>{authTypeDisplay[request?.authType || 'browser-login']}</SemiBold>
             </td>
           </tr>
           <tr>
