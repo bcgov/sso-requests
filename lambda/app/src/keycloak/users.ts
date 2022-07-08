@@ -64,6 +64,7 @@ export const listClientRoles = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -89,6 +90,7 @@ export const findClientRole = async (
 ) => {
   if (roleName?.length < 2) return null;
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -116,6 +118,7 @@ export const listRoleUsers = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -145,6 +148,7 @@ export const listUserRoles = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const idp = username.split('@')[1];
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
@@ -183,6 +187,7 @@ export const manageUserRole = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const idp = username.split('@')[1];
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
@@ -231,6 +236,7 @@ export const manageUserRoles = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const idp = username.split('@')[1];
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
@@ -289,6 +295,7 @@ export const createRole = async (
   if (roleName?.length < 2) return [];
 
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -325,6 +332,7 @@ export const bulkCreateRole = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   // create 20 roles at a time
   const rolesToCreate = roles.slice(0, 20);
@@ -396,6 +404,7 @@ export const deleteRole = async (
 ) => {
   if (roleName?.length < 2) return null;
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });

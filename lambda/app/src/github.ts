@@ -23,6 +23,7 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     'archived',
     'browserFlowOverride',
     'serviceType',
+    'authType',
 
     'userId',
     'teamId',

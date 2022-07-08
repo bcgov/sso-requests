@@ -103,13 +103,14 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const currentIdps = formData?.devIdps || [];
     const updatedIdps = e.formData.devIdps || [];
     const devIdps = filterIdps(currentIdps, updatedIdps);
+    const authType = e.formData.publicAccess ? 'browser-login' : e.formData.authType;
 
     const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
     const togglingTeamToTrue = formData.usesTeam === false && e.formData.usesTeam === true;
     if (togglingTeamToTrue) {
-      setFormData({ ...e.formData, devIdps, projectLead: undefined });
+      setFormData({ ...e.formData, devIdps, authType, projectLead: undefined });
     } else {
-      setFormData({ ...e.formData, devIdps });
+      setFormData({ ...e.formData, devIdps, authType });
     }
     if (showModal) {
       window.location.hash = 'info-modal';

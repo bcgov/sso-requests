@@ -61,6 +61,7 @@
  prod_login_title                  | character varying(255)   |           |          |
  service_account_enabled           | boolean                  |           | not null | false
  api_service_account               | boolean                  |           | not null | false
+ auth_type                         | character varying(255)   |           | not null | 'browser-login'::character varying
 Indexes:
     "requests_pkey" PRIMARY KEY, btree (id)
 Foreign-key constraints:

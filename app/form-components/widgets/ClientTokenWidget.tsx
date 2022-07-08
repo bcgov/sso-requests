@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { JSONSchema6 } from 'json-schema';
 import { WidgetProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import { noop } from 'lodash';
@@ -43,7 +44,7 @@ const DAY_1 = HOUR_1 * 24;
 
 const ClientTokenWidget = ({ id, value = 0, label, readonly, onChange, onBlur, schema, formContext }: WidgetProps) => {
   if (readonly) onChange = noop;
-  const { tooltipContent = '' } = schema as any;
+  const { tooltipContent = '' } = schema as JSONSchema6 & { tooltipContent?: string };
 
   const [time, setTime] = useState(0);
   const [unit, setUnit] = useState('Minutes');

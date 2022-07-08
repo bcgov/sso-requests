@@ -27,7 +27,7 @@ interface Props {
 export default function InfoOverlay({
   title,
   content,
-  show = 250,
+  show = 150,
   hide = 250,
   icon = faInfoCircle,
   onClick = noop,
