@@ -70,6 +70,12 @@ const NoEntitiesMessage = ({ message }: { message: string }) => (
   </NoProjects>
 );
 
+const authTypeDisplay: { [key: string]: string } = {
+  'browser-login': 'Browser Login',
+  'service-account': 'Service Account',
+  both: 'Browser Login & Service Account',
+};
+
 const NewEntityButton = ({
   handleNewIntegrationClick,
   integrations,
@@ -241,7 +247,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
                 <td>{padStart(String(integration.id), 8, '0')}</td>
                 <td>{integration.projectName}</td>
                 <td>{getStatusDisplayName(integration.status || 'draft')}</td>
-                <td>{startCase(integration.authType || 'browser-login')}</td>
+                <td>{authTypeDisplay[integration.authType || 'browser-login']}</td>
                 <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
                 <td>
                   <RightFloatButtons>
