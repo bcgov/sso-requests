@@ -3,8 +3,6 @@ import validate from 'react-jsonschema-form/lib/validate';
 import { Request } from '@app/interfaces/Request';
 
 export const isValidKeycloakURI = (uri: string) => {
-  if (!uri) return true;
-
   try {
     // Throws error if invalid url
     new URL(uri);
