@@ -35,6 +35,12 @@ export default function getSchema(integration: Request) {
             enum: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
             enumNames: ['IDIR', 'IDIR (Azure)', 'BCeID Basic', 'BCeID Business', 'BCeID Both'],
           },
+          tooltips: [
+            null,
+            {
+              content: `Using Azure IDIR adds the benefit of MFA (multi-factor authentication). This is a step up security-wise from regular IDIR.`,
+            },
+          ],
           uniqueItems: true,
           tooltip: {
             content: `The identity providers you add will let your users authenticate with those services.`,
