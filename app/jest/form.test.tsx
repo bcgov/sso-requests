@@ -180,6 +180,9 @@ describe('Error messages', () => {
 
     // Navigate away and back to page
     fireEvent.click(sandbox.secondStageBox);
+    const uriInput = document.querySelector('#root_devValidRedirectUris_0') as HTMLElement;
+    fireEvent.change(uriInput, { target: { value: 'invalid-url' } });
+
     fireEvent.click(sandbox.thirdStageBox);
     fireEvent.click(sandbox.secondStageBox);
 
