@@ -56,7 +56,9 @@ const filterIdps = (currentIdps: string[], updatedIdps: string[]) => {
 };
 
 const trimRedirectUris = (urls: string[], dropEmptyRedirectUris = false) => {
-  let items = (urls || []).map(trim);
+  if (!urls || urls.length === 0) return [];
+
+  let items = urls.map(trim);
   if (dropEmptyRedirectUris) items = items.filter((v) => v);
   if (items.length === 0) items.push('');
   return items;
