@@ -31,6 +31,7 @@ const setUpRender = (request: Request | object | null, currentUser = {}) => {
   sandbox.secondStageBox = screen.queryByTestId(`stage-2`)?.closest('div') as HTMLElement;
   sandbox.thirdStageBox = screen.queryByTestId(`stage-3`)?.closest('div') as HTMLElement;
   sandbox.fourthStageBox = screen.queryByTestId(`stage-4`)?.closest('div') as HTMLElement;
+  sandbox.fifthStageBox = screen.queryByTestId(`stage-5`)?.closest('div') as HTMLElement;
   sandbox.adminReview = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
   return debug;
 };
@@ -41,14 +42,13 @@ export const sampleRequest: Request = {
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
   publicAccess: true,
-  realm: 'onestopauth',
   projectName: 'test project',
   projectLead: true,
   agreeWithTerms: true,
   environments: ['dev'],
   archived: false,
   usesTeam: false,
-  serviceType: 'silver',
+  serviceType: 'gold',
 };
 
 const samplePage3Request = {
@@ -56,7 +56,7 @@ const samplePage3Request = {
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
-  realm: 'onestopauth',
+  serviceType: 'gold',
 };
 
 describe('Form Template Saving and Navigation', () => {
@@ -71,8 +71,8 @@ describe('Form Template Saving and Navigation', () => {
 
   it('Should save data and triggers spinner on blur events', async () => {
     fireEvent.click(sandbox.secondStageBox);
-    const uriInput = document.querySelector('#root_devValidRedirectUris_0') as HTMLElement;
-    fireEvent.change(uriInput, { target: { value: 'http://localhost:8080' } });
+    const publicRadio = document.querySelector('#root_publicAccess-Public') as HTMLElement;
+    fireEvent.change(publicRadio, { target: { checked: true } });
     expect(updateRequest).toHaveBeenCalled();
     await waitFor(() => document.querySelector("svg[testid='rotating-lines-svg']"));
     // wait for spinner to change to checkmark
@@ -127,10 +127,20 @@ describe('Form Template Loading Data', () => {
   it('Should pre-load data if a request exists', async () => {
     setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
-    fireEvent.click(sandbox.secondStageBox);
-    const { firstStageBox, thirdStageBox } = sandbox;
+    const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
 
-    // Second page data
+    fireEvent.click(firstStageBox);
+    const firstStageElementSelector = '#root_projectLead input[value="true"';
+    await waitFor(() => document.querySelector(firstStageElementSelector));
+    expect(document.querySelector(firstStageElementSelector)).toHaveAttribute('checked', '');
+    expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
+
+    fireEvent.click(secondStageBox);
+    const secondStageElementSelector = '#root_publicAccess-Public';
+    await waitFor(() => document.querySelector(secondStageElementSelector));
+    expect(document.querySelector(secondStageElementSelector)).toHaveAttribute('checked', '');
+
+    fireEvent.click(thirdStageBox);
     expect(
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[0]) || ''),
     );
@@ -138,17 +148,9 @@ describe('Form Template Loading Data', () => {
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
 
-    await waitFor(() => document.querySelector('#root_publicAccess-Public'));
-    expect(document.querySelector('#root_publicAccess-Public')).toHaveAttribute('checked', '');
-
-    // First Page Data
-    fireEvent.click(firstStageBox);
-    expect(document.querySelector('#root_projectLead input[value="true"]')).toHaveAttribute('checked', '');
-    expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
-
-    // Third Page Data
-    fireEvent.click(thirdStageBox);
-    expect(document.querySelector('#root_agreeWithTerms')).toHaveAttribute('checked', '');
+    fireEvent.click(fourthStageBox);
+    const fourthStageElementSelector = '#root_agreeWithTerms';
+    expect(document.querySelector(fourthStageElementSelector)).toHaveAttribute('checked', '');
   });
 });
 
@@ -174,17 +176,20 @@ describe('Error messages', () => {
     screen.getByText(errorMessages.projectName);
   });
 
-  it('Should display the expected page 2 errors', () => {
+  it('Should display the expected page 2 errors', async () => {
     setUpRouter('/', sandbox);
-    setUpRender({ id: 0 });
+    setUpRender({ id: 0, environments: ['dev'], devValidRedirectUris: [''], serviceType: 'gold' });
 
     // Navigate away and back to page
-    fireEvent.click(sandbox.secondStageBox);
-    const uriInput = document.querySelector('#root_devValidRedirectUris_0') as HTMLElement;
+    fireEvent.click(sandbox.thirdStageBox);
+
+    const devValidRedirectUrisSelector = '#root_devValidRedirectUris_0';
+    await waitFor(() => document.querySelector(devValidRedirectUrisSelector));
+    const uriInput = document.querySelector(devValidRedirectUrisSelector) as HTMLElement;
     fireEvent.change(uriInput, { target: { value: 'invalid-url' } });
 
-    fireEvent.click(sandbox.thirdStageBox);
     fireEvent.click(sandbox.secondStageBox);
+    fireEvent.click(sandbox.thirdStageBox);
 
     screen.getAllByText(errorMessages.redirectUris);
   });
@@ -208,43 +213,5 @@ describe('Admins', () => {
     formButtonText.forEach((title) => {
       expect(screen.queryByText(title)).toBeNull();
     });
-  });
-});
-
-describe('Redirect URIs', () => {
-  it('Should show the appropriate URIS depending on selected environments', () => {
-    setUpRouter('/', sandbox);
-    setUpRender(sampleRequest);
-    fireEvent.click(sandbox.secondStageBox);
-    const devCheckbox = screen.getByLabelText('Development') as HTMLInputElement;
-    const testCheckbox = screen.getByLabelText('Test') as HTMLInputElement;
-    const prodCheckbox = screen.getByLabelText('Production') as HTMLInputElement;
-
-    // Dev checked by default
-    expect(devCheckbox.checked).toEqual(true);
-    expect(testCheckbox.checked).toEqual(false);
-    expect(prodCheckbox.checked).toEqual(false);
-
-    const devValidRedirectUris = document.querySelector('#root_devValidRedirectUris_0');
-    let testValidRedirectUris = document.querySelector('#root_testValidRedirectUris_0');
-    let prodValidRedirectUris = document.querySelector('#root_prodValidRedirectUris_0');
-
-    // Only displays dev
-    expect(devValidRedirectUris).not.toBe(null);
-    expect(testValidRedirectUris).toBe(null);
-    expect(prodValidRedirectUris).toBe(null);
-
-    // Select test and prod and expect new URI fields
-    fireEvent.click(testCheckbox);
-    fireEvent.click(prodCheckbox);
-
-    expect(testCheckbox.checked).toEqual(true);
-    expect(prodCheckbox.checked).toEqual(true);
-
-    testValidRedirectUris = document.querySelector('#root_testValidRedirectUris_0');
-    prodValidRedirectUris = document.querySelector('#root_prodValidRedirectUris_0');
-
-    expect(testValidRedirectUris).not.toBe(null);
-    expect(prodValidRedirectUris).not.toBe(null);
   });
 });
