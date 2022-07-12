@@ -132,12 +132,12 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const currentIdps = formData?.devIdps || [];
     const updatedIdps = newData.devIdps || [];
     const devIdps = filterIdps(currentIdps, updatedIdps);
-    const authType = newData.publicAccess ? 'browser-login' : newData.authType;
 
     const showModal = newData.projectLead === false && newData.usesTeam === false;
     const togglingTeamToTrue = formData.usesTeam === false && newData.usesTeam === true;
 
-    const processed = { ...newData, devIdps, authType };
+    const processed = { ...newData, devIdps };
+    if (newData.authType !== 'browser-login') processed.publicAccess = false;
 
     if (togglingTeamToTrue) processed.projectLead = undefined;
     setFormData(processed);
