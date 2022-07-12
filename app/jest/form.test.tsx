@@ -42,6 +42,7 @@ export const sampleRequest: Request = {
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
   publicAccess: true,
+  authType: 'browser-login',
   projectName: 'test project',
   projectLead: true,
   agreeWithTerms: true,

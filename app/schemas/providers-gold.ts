@@ -2,25 +2,39 @@ import { Request } from '../interfaces/Request';
 import { Schema } from './index';
 
 export default function getSchema(integration: Request) {
-  const { publicAccess, authType } = integration;
-  const authTypeSchema =
-    publicAccess === false
+  const { authType, status } = integration;
+  const applied = status === 'applied';
+
+  const authTypeSchema = {
+    type: 'string',
+    title: 'Select Usecase',
+    enum: ['browser-login', 'service-account', 'both'],
+    enumNames: ['Browser Login', 'Service Account', 'Browser Login and Service Account'],
+    tooltip: applied
+      ? null
+      : {
+          content: `Note that once this is submitted, you will not be able to update and rather will need to create a new integration.`,
+        },
+    tooltips: [
+      {
+        content: `This enables standard OpenID Connect redirect based authentication with authorization code. In terms of OpenID Connect or OAuth2 specifications, this enables support of 'Authorization Code Flow' for this client.`,
+      },
+      {
+        content: `This allows you to authenticate this client to Keycloak and retrieve access token dedicated to this client. In terms of OAuth2 specification, this enables support of 'Client Credentials Grant' for this client.`,
+      },
+      {
+        content: `This enables 'Browser Login' and 'Service Account' both.`,
+      },
+    ],
+  };
+
+  const clientTypeSchema =
+    authType === 'browser-login'
       ? {
-          type: 'string',
-          title: 'Select Confidential Client Type',
-          enum: ['browser-login', 'service-account', 'both'],
-          enumNames: ['Browser Login', 'Service Account', 'User Login and Service Account'],
-          tooltips: [
-            {
-              content: `This enables standard OpenID Connect redirect based authentication with authorization code. In terms of OpenID Connect or OAuth2 specifications, this enables support of 'Authorization Code Flow' for this client.`,
-            },
-            {
-              content: `This allows you to authenticate this client to Keycloak and retrieve access token dedicated to this client. In terms of OAuth2 specification, this enables support of 'Client Credentials Grant' for this client.`,
-            },
-            {
-              content: `This enables 'Browser Login' and 'Service Account' both.`,
-            },
-          ],
+          type: 'boolean',
+          title: 'Select Client Type',
+          enum: [true, false],
+          enumNames: ['Public', 'Confidential'],
         }
       : {};
 
@@ -49,13 +63,8 @@ export default function getSchema(integration: Request) {
         };
 
   const properties = {
-    publicAccess: {
-      type: 'boolean',
-      title: 'Select Client Type',
-      enum: [true, false],
-      enumNames: ['Public', 'Confidential'],
-    },
     authType: authTypeSchema,
+    publicAccess: clientTypeSchema,
     devIdps: devIdpsSchema,
     environments: {
       type: 'array',
