@@ -9,8 +9,8 @@ import { fetchClient } from './client';
 // TODO: encapsulate admin client with user session and associated client infomation
 const getRoleByName = async (kcClient: KcAdminClient, clientId: string, roleName: string) => {
   // @ts-ignore
-  const searchedRoles = await kcClient.clients.listRoles({ realm: 'standard', id: clientId, search: roleName });
-  return searchedRoles.find((role) => role.name === roleName);
+  const role = await kcClient.clients.findRole({ realm: 'standard', id: clientId, roleName });
+  return role;
 };
 
 const populateComposites = async (kcClient: KcAdminClient, clientId: string, role: RoleRepresentation) => {

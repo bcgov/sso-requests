@@ -123,7 +123,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
   const [rows, setRows] = useState<KeycloakUser[]>([]);
-  const [roles, setRoles] = useState<ClientRole[]>([]);
+  const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
   const [selectedIdp, setSelectedIdp] = useState<string>('');
@@ -291,7 +291,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         <Label>2. Assign User to a Role</Label>
         <Select
           value={userRoles.map((role) => ({ value: role, label: role }))}
-          options={roles.map((role) => ({ value: role.name, label: role.name }))}
+          options={roles.map((role) => ({ value: role, label: role }))}
           isMulti={true}
           placeholder="Select..."
           noOptionsMessage={() => 'No roles'}
