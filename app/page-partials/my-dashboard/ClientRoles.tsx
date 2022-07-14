@@ -1,4 +1,4 @@
-import React, { MouseEvent, useEffect, useState, useRef, useCallback } from 'react';
+import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import { Button } from '@bcgov-sso/common-react-components';
@@ -10,13 +10,14 @@ import InfiniteScroll from 'react-infinite-scroller';
 import Input from '@button-inc/bcgov-theme/Input';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { Request, ClientRole, Option } from 'interfaces/Request';
+import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import SaveMessage from 'form-components/SaveMessage';
 import { RequestTabs } from 'components/RequestTabs';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
 import { Table } from '@bcgov-sso/common-react-components';
+import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
 import CreateRoleContent from './roles/CreateRoleContent';
 import {
@@ -24,6 +25,7 @@ import {
   listClientRoles,
   deleteRole,
   listRoleUsers,
+  getCompositeClientRoles,
   setCompositeClientRoles,
   manageUserRole,
   KeycloakUser,
@@ -58,8 +60,11 @@ const TopMargin = styled.div`
 
 const rightPanelTabs = ['Users', 'Composite Roles'];
 
+const optionize = (v: string) => ({ label: v, value: v });
+const optionizeAll = (vs: string[]) => vs.map(optionize);
+
 interface Props {
-  selectedRequest: Request;
+  integration: Request;
   alert: TopAlert;
 }
 
@@ -70,25 +75,23 @@ const LoaderContainer = () => (
   </AlignCenter>
 );
 
-const ClientRoles = ({ selectedRequest, alert }: Props) => {
+const ClientRoles = ({ integration, alert }: Props) => {
   const modalRef = useRef<ModalRef>(emptyRef);
   const confirmModalRef = useRef<ModalRef>(emptyRef);
   const removeUserModalRef = useRef<ModalRef>(emptyRef);
   const [environment, setEnvironment] = useState('dev');
   const [roleLoading, setRoleLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
+  const [compositeLoading, setCompositeLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
-  const [firstRole, setFirstRole] = useState(0);
   const [searchKey, setSearchKey] = useState('');
-  const [maxRole, setMaxRole] = useState(20);
-  const [hasMoreRole, setHasMoreRole] = useState(true);
   const [firstUser, setFirstUser] = useState(0);
   const [maxUser, setMaxUser] = useState(20);
   const [hasMoreUser, setHasMoreUser] = useState(true);
-  const [roles, setRoles] = useState<ClientRole[]>([]);
+  const [roles, setRoles] = useState<string[]>([]);
   const [users, setUsers] = useState<KeycloakUser[]>([]);
-  const [selectedRole, setSelctedRole] = useState<ClientRole | null>(null);
+  const [selectedRole, setSelctedRole] = useState<string | null>(null);
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
   const [rightPanelTab, setRightPanelTab] = useState<string>(rightPanelTabs[0]);
 
@@ -98,20 +101,12 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         if (!selectedRole) return;
 
         await setSaving(true);
-        const [newRole, err] = await setCompositeClientRoles({
+        const [, err] = await setCompositeClientRoles({
           environment,
-          integrationId: selectedRequest.id as number,
-          roleName: selectedRole.name,
+          integrationId: integration.id as number,
+          roleName: selectedRole,
           compositeRoleNames: newValues.map((v) => v.value) as string[],
         });
-
-        if (newRole) {
-          const newRoles = roles.map((role) => {
-            if (role.name === newRole.name) return newRole;
-            return role;
-          });
-          setRoles(newRoles);
-        }
 
         if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         await setSaving(false);
@@ -119,11 +114,11 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
       2000,
       { trailing: true },
     ),
-    [selectedRequest?.id, selectedRole],
+    [integration?.id, selectedRole],
   );
 
   const reset = () => {
-    fetchRoles(true);
+    fetchRoles();
     setUsers([]);
     setRoles([]);
     setSelctedRole(null);
@@ -132,7 +127,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
   useEffect(() => {
     setEnvironment('dev');
     reset();
-  }, [selectedRequest.id]);
+  }, [integration.id]);
 
   useEffect(() => {
     reset();
@@ -141,50 +136,47 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
   useEffect(() => {
     if (!selectedRole) return;
 
-    setSavingMessage('');
     fetchUsers(true, selectedRole);
-    setCompositeRoles(selectedRole.composites.map((name: string) => ({ label: name, value: name })));
+    fetchComposite(selectedRole);
+    setSaving(false);
+    setSavingMessage('');
   }, [selectedRole]);
 
-  const fetchRoles = async (loadFirst: boolean) => {
+  const roleOptions = useMemo(() => {
+    return optionizeAll(roles);
+  }, [roles]);
+
+  const fetchRoles = async () => {
     if (roleLoading) return;
 
-    let _first = 0;
-    let _roles: ClientRole[] = [];
-
     setRoleLoading(true);
-    if (loadFirst) {
-      setFirstRole(_first);
-      setSelctedRole(null);
-    } else {
-      _first = firstRole;
-      _roles = roles;
-    }
-
     const [data, err] = await listClientRoles({
       environment,
-      integrationId: selectedRequest.id as number,
-      first: _first,
+      integrationId: integration.id as number,
       search: searchKey,
-      max: maxRole,
     });
 
-    const _data = data || [];
-    const allroles = _roles.concat(_data);
+    if (err || !data) {
+      alert.show({
+        variant: 'danger',
+        fadeOut: 5000,
+        closable: true,
+        content: err || 'failed to fetch roles',
+      });
+      return;
+    }
 
-    setHasMoreRole(_data.length === maxRole);
-    setRoles(allroles);
-    setFirstRole(_first + maxRole);
+    setRoles(data);
     setRoleLoading(false);
 
-    if (allroles.length === 1) {
-      setSelctedRole(allroles[0]);
+    if (data.length === 1) {
+      setSelctedRole(data[0]);
     }
   };
 
-  const fetchUsers = async (loadFirst: boolean, role: ClientRole) => {
-    if (!role || userLoading) return;
-    if (role.name.length < 2) return;
+  const fetchUsers = async (loadFirst: boolean, roleName: string) => {
+    if (userLoading) return;
+    if (roleName.length < 2) return;
 
     let _first = 0;
     let _users: KeycloakUser[] = [];
@@ -200,8 +192,8 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
 
     const [data, err] = await listRoleUsers({
       environment,
-      integrationId: selectedRequest.id as number,
-      roleName: role.name,
+      integrationId: integration.id as number,
+      roleName,
       first: _first,
       max: maxUser,
     });
@@ -211,8 +203,32 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     setHasMoreUser(_data.length === maxUser);
     setUsers(_users.concat(_data));
     setFirstUser(_first + maxUser);
-    setSelctedRole(role);
+    setSelctedRole(roleName);
     setUserLoading(false);
+  };
+
+  const fetchComposite = async (roleName: string) => {
+    if (compositeLoading) return;
+
+    setCompositeLoading(true);
+    const [data, err] = await getCompositeClientRoles({
+      environment,
+      integrationId: integration.id as number,
+      roleName,
+    });
+
+    if (err || !data) {
+      alert.show({
+        variant: 'danger',
+        fadeOut: 5000,
+        closable: true,
+        content: err || 'failed to fetch composite roles',
+      });
+      return;
+    }
+
+    setCompositeRoles(data.map((v: string) => ({ label: v, value: v })));
+    setCompositeLoading(false);
   };
 
   const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,12 +237,12 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
 
   const handleSearchKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      fetchRoles(true);
+      fetchRoles();
     }
   };
 
-  const handleDelete = async (role: ClientRole) => {
-    confirmModalRef.current.open(role.name);
+  const handleDelete = async (roleName: string) => {
+    confirmModalRef.current.open(roleName);
   };
 
   const handleTabSelect = (key: any) => {
@@ -286,7 +302,9 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         </Table>
       );
     } else {
-      rightPanel = (
+      rightPanel = compositeLoading ? (
+        <LoaderContainer />
+      ) : (
         <>
           <Label>
             Select the roles to be nested under the Parent role{' '}
@@ -294,7 +312,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
           </Label>
           <Select
             value={compositeRoles}
-            options={roles.map((role) => ({ value: role.name, label: role.name }))}
+            options={roleOptions.filter((v) => v.value !== selectedRole)}
             isMulti={true}
             placeholder="Select..."
             noOptionsMessage={() => 'No roles'}
@@ -309,66 +327,46 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
     }
   }
 
-  let leftContent = <tbody />;
-  if (roles.length > 0) {
-    leftContent = (
-      <InfScroll element="tbody" loadMore={() => fetchRoles(false)} hasMore={hasMoreRole} loader={<LoaderContainer />}>
-        {roles.map((role: ClientRole) => {
-          return (
-            <tr
-              key={role.name}
-              className={selectedRole === role ? 'active' : ''}
-              onClick={() => {
-                setSelctedRole(role);
-              }}
-            >
-              <td>{role.name}</td>
-              <td>
-                <AlignRight>
-                  <ActionButton
-                    icon={faTrash}
-                    role="button"
-                    aria-label="delete"
-                    onClick={(event: MouseEvent) => {
-                      event.stopPropagation();
-                      handleDelete(role);
-                    }}
-                    title="Delete"
-                    size="lg"
-                    style={{ marginRight: '1rem' }}
-                  />
-                </AlignRight>
-              </td>
-            </tr>
-          );
-        })}
-      </InfScroll>
-    );
-  } else {
-    leftContent = (
-      <tbody>
-        <tr>
-          <td colSpan={2}>No roles found.</td>
-        </tr>
-      </tbody>
-    );
-  }
-
   const leftPanel = (
-    <>
-      <Table variant="mini">
-        <thead>
-          <tr>
-            <th>Role Name</th>
-            <th></th>
+    <ControlledTable
+      rows={roles}
+      headers={[{ name: 'Request ID' }]}
+      showFilters={false}
+      rowPlaceholder="No roles found."
+    >
+      {(role: string) => {
+        return (
+          <tr
+            key={role}
+            className={selectedRole === role ? 'active' : ''}
+            onClick={() => {
+              setSelctedRole(role);
+            }}
+          >
+            <td>{role}</td>
+            <td>
+              <AlignRight>
+                <ActionButton
+                  icon={faTrash}
+                  role="button"
+                  aria-label="delete"
+                  onClick={(event: MouseEvent) => {
+                    event.stopPropagation();
+                    handleDelete(role);
+                  }}
+                  title="Delete"
+                  size="lg"
+                  style={{ marginRight: '1rem' }}
+                />
+              </AlignRight>
+            </td>
           </tr>
-        </thead>
-        {leftContent}
-      </Table>
-    </>
+        );
+      }}
+    </ControlledTable>
   );
 
-  const environments = selectedRequest?.environments || [];
+  const environments = integration?.environments || [];
 
   return (
     <>
@@ -402,7 +400,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
                 onChange={handleSearchKeyChange}
                 onKeyUp={handleSearchKeyUp}
               />
-              <Button type="button" size="small" variant="bcPrimary" onClick={() => fetchRoles(true)}>
+              <Button type="button" size="small" variant="bcPrimary" onClick={fetchRoles}>
                 Search
               </Button>
             </div>
@@ -421,7 +419,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
 
       <TopMargin />
 
-      {firstRole === 0 && roleLoading ? (
+      {roleLoading ? (
         <LoaderContainer />
       ) : (
         <Grid cols={10}>
@@ -454,7 +452,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         cancelButtonVariant="secondary"
         style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
       >
-        <CreateRoleContent integrationId={selectedRequest.id as number} environments={environments} />
+        <CreateRoleContent integrationId={integration.id as number} environments={environments} />
       </GenericModal>
       <GenericModal
         ref={confirmModalRef}
@@ -463,7 +461,7 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
         onConfirm={async (contentRef: any, roleName: string) => {
           await deleteRole({
             environment,
-            integrationId: selectedRequest.id as number,
+            integrationId: integration.id as number,
             roleName,
           });
 
@@ -485,9 +483,9 @@ const ClientRoles = ({ selectedRequest, alert }: Props) => {
 
           const [, err] = await manageUserRole({
             environment,
-            integrationId: selectedRequest.id as number,
+            integrationId: integration.id as number,
             username: user.username as string,
-            roleName: selectedRole.name,
+            roleName: selectedRole,
             mode: 'del',
           });
 
