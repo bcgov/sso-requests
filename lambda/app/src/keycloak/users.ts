@@ -1,7 +1,37 @@
+import KcAdminClient from 'keycloak-admin';
+import RoleRepresentation from 'keycloak-admin/lib/defs/roleRepresentation';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { forEach, map, get, difference } from 'lodash';
 import { getAdminClient, getClient } from './adminClient';
 import { fetchClient } from './client';
+
+// Helpers
+// TODO: encapsulate admin client with user session and associated client infomation
+const getRoleByName = async (kcClient: KcAdminClient, clientId: string, roleName: string) => {
+  // @ts-ignore
+  const searchedRoles = await kcClient.clients.listRoles({ realm: 'standard', id: clientId, search: roleName });
+  return searchedRoles.find((role) => role.name === roleName);
+};
+
+const populateComposites = async (kcClient: KcAdminClient, clientId: string, role: RoleRepresentation) => {
+  if (!role.composite) {
+    return {
+      name: role.name,
+      composites: [],
+    };
+  }
+
+  const composites = await kcClient.roles.getCompositeRolesForClient({
+    realm: 'standard',
+    clientId,
+    id: role.id,
+  });
+
+  return {
+    name: role.name,
+    composites: composites.map((comp) => comp.name),
+  };
+};
 
 export const searchUsers = async ({
   environment,
@@ -72,8 +102,54 @@ export const listClientRoles = async (
   const client = clients[0];
 
   // @ts-ignore
-  const roles = await kcAdminClient.clients.listRoles({ realm: 'standard', id: client.id, search, first, max });
-  return roles.map((role) => role.name);
+  let roles: any[] = await kcAdminClient.clients.listRoles({ realm: 'standard', id: client.id, search, first, max });
+  roles = await Promise.all(roles.map((role) => populateComposites(kcAdminClient, client.id, role)));
+
+  return roles;
+};
+
+export const setCompositeClientRoles = async (
+  sessionUserId: number,
+  {
+    environment,
+    integrationId,
+    roleName,
+    compositeRoleNames,
+  }: {
+    environment: string;
+    integrationId: number;
+    roleName: string;
+    compositeRoleNames: string[];
+  },
+) => {
+  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
+
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
+  if (clients.length === 0) throw Error('client not found');
+  const client = clients[0];
+
+  const role = await getRoleByName(kcAdminClient, client.id, roleName);
+  if (!role) throw Error('role not found');
+
+  const rolesToDel = await kcAdminClient.roles.getCompositeRolesForClient({
+    realm: 'standard',
+    clientId: client.id,
+    id: role.id,
+  });
+
+  const rolesToAdd = await Promise.all(
+    compositeRoleNames.map((roleName) => getRoleByName(kcAdminClient, client.id, roleName)),
+  );
+
+  // 1. remove all composite roles first
+  await kcAdminClient.roles.delCompositeRoles({ realm: 'standard', id: role.id }, rolesToDel);
+
+  // 2. add composite roles
+  await kcAdminClient.roles.createComposite({ realm: 'standard', roleId: role.id }, rolesToAdd);
+
+  return populateComposites(kcAdminClient, client.id, role);
 };
 
 export const findClientRole = async (

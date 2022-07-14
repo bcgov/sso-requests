@@ -43,3 +43,8 @@ export interface Option {
   value: string | string[];
   label: string;
 }
+
+export interface ClientRole {
+  name: string;
+  composites: string[];
+}

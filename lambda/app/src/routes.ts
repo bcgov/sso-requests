@@ -40,6 +40,7 @@ import {
   bulkCreateRole,
   deleteRole,
   findClientRole,
+  setCompositeClientRoles,
 } from './keycloak/users';
 import { searchIdirUsers, importIdirUser } from './bceid-webservice-proxy/idir';
 import { findAllowedTeamUsers } from './queries/team';
@@ -307,6 +308,15 @@ export const setRoutes = (app: any) => {
   app.post(`${BASE_PATH}/keycloak/role-users`, async (req, res) => {
     try {
       const result = await listRoleUsers((req.session as Session).user.id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/keycloak/composite-roles`, async (req, res) => {
+    try {
+      const result = await setCompositeClientRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
