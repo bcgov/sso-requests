@@ -106,7 +106,6 @@ export const listClientRoles = async (
 
   // @ts-ignore
   const roles: any[] = await kcAdminClient.clients.listRoles({ realm: 'standard', id: client.id, search, first, max });
-  // roles = await Promise.all(roles.map((role) => populateComposites(kcAdminClient, client.id, role)));
 
   return roles.map((role) => role.name);
 };
