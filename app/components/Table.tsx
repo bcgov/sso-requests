@@ -63,17 +63,17 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   }
 `;
 
-interface Header {
+export interface TableHeader {
   name: string;
   style?: CSSProperties;
 }
 
-interface FilterItem {
+export interface TableFilterItem {
   value: string | number;
   text: string;
 }
 
-interface Filter {
+export interface TableFilter {
   key?: string;
   value?: string | Option[];
   multiselect?: boolean;
@@ -84,20 +84,21 @@ interface Filter {
 
 interface Props {
   variant?: string;
-  headers: Header[];
+  headers: TableHeader[];
   children: React.ReactNode;
   pagination?: boolean;
-  pageLimits?: FilterItem[];
+  pageLimits?: TableFilterItem[];
   searchKey?: string;
   searchPlaceholder?: string;
   page?: number;
   limit?: number;
   rowCount?: number;
-  filters: Filter[];
+  filters: TableFilter[];
   searchLocation?: 'left' | 'right';
   totalColSpan?: number;
   searchColSpan?: number;
   filterColSpan?: number;
+  showFilters?: boolean;
   showContent?: boolean;
   headerAlign?: string;
   headerGutter?: number[];
@@ -117,7 +118,7 @@ const overrideStrings = {
   selectSomeItems: '',
 };
 
-const generateOptions = (items: FilterItem[]) => (
+const generateOptions = (items: TableFilterItem[]) => (
   <>
     {items.map((item) => (
       <option key={item.value} value={item.value}>
@@ -181,11 +182,12 @@ function Table({
   pagination = false,
   onSearch = noop,
   onEnter = noop,
-  filters = [] as Filter[],
+  filters = [] as TableFilter[],
   searchLocation = 'left',
   totalColSpan = 14,
   searchColSpan = 4,
   filterColSpan = 10,
+  showFilters = true,
   showContent = true,
   headerAlign = 'center',
   headerGutter = [],
@@ -319,14 +321,16 @@ function Table({
 
   return (
     <>
-      <SectionHeader>
-        <Grid cols={totalColSpan}>
-          <Grid.Row collapse="1160" gutter={headerGutter} align={headerAlign}>
-            {leftCol}
-            {rightCol}
-          </Grid.Row>
-        </Grid>
-      </SectionHeader>
+      {showFilters && (
+        <SectionHeader>
+          <Grid cols={totalColSpan}>
+            <Grid.Row collapse="1160" gutter={headerGutter} align={headerAlign}>
+              {leftCol}
+              {rightCol}
+            </Grid.Row>
+          </Grid>
+        </SectionHeader>
+      )}
 
       {showContent && (
         <>

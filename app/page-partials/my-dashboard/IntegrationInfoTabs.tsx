@@ -183,7 +183,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
                     </Link>{' '}
                     for more information on roles.
                   </div>
-                  <ClientRoles selectedRequest={integration} />
+                  <ClientRoles integration={integration} />
                 </TabWrapper>
               </Tab>
             )}
