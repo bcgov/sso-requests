@@ -16,18 +16,8 @@ services:
     image: sso-requests:latest
     entrypoint: yarn
     command: ['--cwd', './app', 'dev']
-    environment:
-      - APP_ENV=develop
-      - API_URL=/app
-      - SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth
-      - SSO_CLIENT_ID=sso-requests
-      - SSO_REDIRECT_URI=http://localhost:3000
-      - SSO_AUTHORIZATION_RESPONSE_TYPE=code
-      - SSO_AUTHORIZATION_SCOPE=openid
-      - SSO_TOKEN_GRANT_TYPE=authorization_code
-      - KC_IDP_HINT=idir
-      - ENABLE_GOLD=false=value
-      - CLIENT_SECRET=${CLIENT_SECRET}
+    env_file:
+      - ./app/.env
     depends_on:
       - sso-requests
     network_mode: host
@@ -39,8 +29,6 @@ services:
     container_name: sso-requests
     image: sso-requests:latest
     entrypoint: ['/bin/bash', '-c', 'yarn --cwd ./localserver migrate-db && yarn --cwd ./localserver dev']
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ssorequests
     build:
       context: .
       dockerfile: Dockerfile
