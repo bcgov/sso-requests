@@ -132,6 +132,10 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      lastChanges: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
       serviceType: {
         type: DataTypes.STRING,
         defaultValue: 'silver',

@@ -37,6 +37,7 @@ export interface Request {
   devLoginTitle?: string;
   testLoginTitle?: string;
   prodLoginTitle?: string;
+  lastChanges?: any[] | null;
 }
 
 export interface Option {

@@ -32,6 +32,7 @@ const dev = [
   {
     display: 'Development',
     name: 'dev',
+    idps: [],
   },
 ];
 
@@ -39,6 +40,7 @@ const test = [
   {
     display: 'Test',
     name: 'test',
+    idps: [],
   },
 ];
 
@@ -46,6 +48,7 @@ const prod = [
   {
     display: 'Production',
     name: 'prod',
+    idps: [],
   },
 ];
 
