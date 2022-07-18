@@ -22,6 +22,7 @@ const INSTALLATION_LABEL = /Installation JSONs/;
 const BCEID_PROD_LABEL = /Access to BCeID Prod/;
 const BCEID_PROD_REQUESTED_MESSAGE = /Please reach out to IDIM/;
 const BCEID_PROD_APPROVED = /Your integration has been approved/;
+const BCEID_PROD_AVAILABLE = /Your integration is approved and available/;
 
 describe('Draft Status', () => {
   it('should display draft integration screen', async () => {
@@ -47,6 +48,7 @@ describe('Draft Status', () => {
       BCEID_PROD_LABEL,
       BCEID_PROD_REQUESTED_MESSAGE,
       BCEID_PROD_APPROVED,
+      BCEID_PROD_AVAILABLE,
     ]);
   });
 });
@@ -75,6 +77,7 @@ describe('Submitted Status', () => {
       BCEID_PROD_LABEL,
       BCEID_PROD_REQUESTED_MESSAGE,
       BCEID_PROD_APPROVED,
+      BCEID_PROD_AVAILABLE,
     ]);
   });
 
@@ -95,7 +98,7 @@ describe('Submitted Status', () => {
     );
 
     expectAllTexts([PROGRESS_MESSAGE, BCEID_PROD_LABEL, BCEID_PROD_REQUESTED_MESSAGE]);
-    notExpectAllTexts([DRAFT_MESSAGE, INSTALLATION_LABEL, BCEID_PROD_APPROVED]);
+    notExpectAllTexts([DRAFT_MESSAGE, INSTALLATION_LABEL, BCEID_PROD_APPROVED, BCEID_PROD_AVAILABLE]);
   });
 
   it('should display BCeID-prod-being-approved integration screen', async () => {
@@ -117,6 +120,75 @@ describe('Submitted Status', () => {
     console.log(document.body.innerHTML);
 
     expectAllTexts([INSTALLATION_LABEL, BCEID_PROD_LABEL, BCEID_PROD_APPROVED]);
-    notExpectAllTexts([DRAFT_MESSAGE, PROGRESS_MESSAGE, BCEID_PROD_REQUESTED_MESSAGE]);
+    notExpectAllTexts([DRAFT_MESSAGE, PROGRESS_MESSAGE, BCEID_PROD_REQUESTED_MESSAGE, BCEID_PROD_AVAILABLE]);
+  });
+});
+
+describe('Applied Status', () => {
+  it('should display non-BCeID-prod integration screen', async () => {
+    render(
+      <IntegrationInfoTabs
+        {...defaultProps}
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['idir'],
+          lastChanges: null,
+          bceidApproved: false,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectText(INSTALLATION_LABEL);
+    notExpectAllTexts([
+      DRAFT_MESSAGE,
+      PROGRESS_MESSAGE,
+      BCEID_PROD_LABEL,
+      BCEID_PROD_REQUESTED_MESSAGE,
+      BCEID_PROD_APPROVED,
+      BCEID_PROD_AVAILABLE,
+    ]);
+  });
+
+  it('should display BCeID-prod-integration screen', async () => {
+    render(
+      <IntegrationInfoTabs
+        {...defaultProps}
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['idir', 'bceidbasic'],
+          lastChanges: null,
+          bceidApproved: false,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectAllTexts([INSTALLATION_LABEL, BCEID_PROD_LABEL, BCEID_PROD_REQUESTED_MESSAGE]);
+    notExpectAllTexts([DRAFT_MESSAGE, PROGRESS_MESSAGE, BCEID_PROD_APPROVED, BCEID_PROD_AVAILABLE]);
+  });
+
+  it('should display BCeID-prod-approved integration screen', async () => {
+    render(
+      <IntegrationInfoTabs
+        {...defaultProps}
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['idir', 'bceidbasic'],
+          lastChanges: null,
+          bceidApproved: true,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectAllTexts([INSTALLATION_LABEL, BCEID_PROD_LABEL, BCEID_PROD_AVAILABLE]);
+    notExpectAllTexts([DRAFT_MESSAGE, PROGRESS_MESSAGE, BCEID_PROD_APPROVED, BCEID_PROD_REQUESTED_MESSAGE]);
   });
 });

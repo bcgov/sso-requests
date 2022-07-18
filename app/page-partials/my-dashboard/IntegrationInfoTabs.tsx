@@ -98,6 +98,9 @@ const getInstallationTab = ({
   integration: Request;
   awaitingBceidProd: boolean;
 }) => {
+  const { bceidApproved } = integration;
+  const bceidInvolved = bceidApproved || awaitingBceidProd;
+
   return (
     <Tab key="installation-json" eventKey="installation-json" title="Technical Details">
       <TabWrapper short={false}>
@@ -108,12 +111,23 @@ const getInstallationTab = ({
             </Grid.Col>
             <Grid.Col span={1}></Grid.Col>
             <Grid.Col span={7}>
-              {awaitingBceidProd && (
+              {bceidInvolved && (
                 <>
                   <br />
                   <SubTitle>Access to BCeID Prod</SubTitle>
                   <br />
-                  <BceidStatus integration={integration} />
+                  {bceidApproved ? (
+                    <FlexStartBox>
+                      <div>
+                        <FontAwesomeIcon icon={faCheckCircle} color="#2E8540" />
+                      </div>
+                      <div>
+                        <span>Your integration is approved and available.</span>
+                      </div>
+                    </FlexStartBox>
+                  ) : (
+                    <BceidStatus integration={integration} />
+                  )}
                 </>
               )}
             </Grid.Col>
@@ -170,7 +184,7 @@ const getApprovalProgressTab = ({ integration }: { integration: Request }) => {
               <br />
               <FlexStartBox>
                 <div>
-                  <FontAwesomeIcon icon={faCheckCircle} color="#00C45B" />
+                  <FontAwesomeIcon icon={faCheckCircle} color="#2E8540" />
                 </div>
                 <div>
                   <span>
