@@ -9,7 +9,7 @@
     "NODE_ENV": "development",
     "ALLOW_SILVER": "true",
     "ALLOW_GOLD": "true",
-    "DATABASE_URL": "postgresql://localhost:5432/ssorequests",
+    "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/ssorequests",
     "SSO_CLIENT_ID": "sso-requests",
     "CONFIGURATION_ENDPOINT": "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration",
     "KEYCLOAK_DEV_CLIENT_ID": "terraform-cli",

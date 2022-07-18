@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  sso-db:
+    image: postgres:11.4
+    container_name: sso-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./.bin/db-setup.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    network_mode: host
+
+  db-migrations:
+    image: sso-requests:latest
+    container_name: db-migrations
+    entrypoint: yarn
+    command: ['--cwd', './localserver', 'migrate-db']
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ssorequests
+      HOST: db-migrations.localtest.me
+      PORT: 8081
+    restart: on-failure:3
+    depends_on:
+      - sso-requests
+    network_mode: host
+
+  sso-portal-ui:
+    container_name: sso-portal-ui
+    image: sso-requests:latest
+    entrypoint: yarn
+    command: ['--cwd', './app', 'dev']
+    environment:
+      - APP_ENV=develop
+      - API_URL=/app
+      - SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth
+      - SSO_CLIENT_ID=sso-requests
+      - SSO_REDIRECT_URI=http://localhost:3000
+      - SSO_AUTHORIZATION_RESPONSE_TYPE=code
+      - SSO_AUTHORIZATION_SCOPE=openid
+      - SSO_TOKEN_GRANT_TYPE=authorization_code
+      - KC_IDP_HINT=idir
+      - ENABLE_GOLD=false=value
+    depends_on:
+      - sso-requests
+    network_mode: host
+
+  sso-requests:
+    container_name: sso-requests
+    image: sso-requests:latest
+    entrypoint: yarn
+    command: ['--cwd', './localserver', 'dev']
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ssorequests
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - sso-db
+    network_mode: host

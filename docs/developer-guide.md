@@ -28,40 +28,61 @@
 
 ### Setup
 
-1. Copy environment variables
-   ```sh
-     make setup_env
-   ```
+- Copy environment variables
+  ```sh
+    make setup_env
+  ```
 
 _**Note:** The defaults will get you up and running, but actual credentials are required for full functionality._
 
-2. Install dependencies
+- You could run the apps locally on your host machine using npm commands or in your docker environment using docker compose
 
-   ```sh
-    make app_install
-    make server_install
-   ```
+### Run Locally
 
-   _**Note:** Installing all dependencies the first time will take a while._
+- Install dependencies
 
-3. Start the local `postgres` server (`pg_ctl start` if you installed it with `asdf`)
-4. Generate initial database schemas, fields, functions and related objects.
-   ```sh
-    make local_db
-   ```
+  ```sh
+   make app_install
+   make server_install
+  ```
+
+  _**Note:** Installing all dependencies the first time will take a while._
+
+- Start the local `postgres` server (`pg_ctl start` if you installed it with `asdf`)
+- Generate initial database schemas, fields, functions and related objects.
+  ```sh
+   make local_db
+  ```
 
 _**Note:** If the script has logged `migration done` but won't close, you can exit with `ctrl + c`._
 
-5. Start the server
+- Start the server
 
 ```sh
 make server
 ```
 
-6. In another terminal, start the app
-   ```sh
-    make app
-   ```
+- In another terminal, start the app
+  ```sh
+   make app
+  ```
+
+### Run in Docker Containers
+
+#### Requirements
+
+- Docker (preferebly docker engine and CLI)
+
+#### Steps
+
+- To build and start the containers (postgres, next app and backend app)
+  ```bash
+  docker-compose up -d
+  ```
+- To stop the containers
+  ```bash
+  docker-compose down
+  ```
 
 ## Code style and Linting
 
