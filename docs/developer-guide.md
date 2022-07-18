@@ -75,6 +75,11 @@ make server
 
 #### Steps
 
+- Run `make setup_env` from the root directory to generate,
+
+  - `.env` file under `./app` folder
+  - `nodemon.json` file under `./localserver`
+
 - To build and start the containers (postgres, next app and backend app)
   ```bash
   docker-compose up -d

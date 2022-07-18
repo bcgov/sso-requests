@@ -9,7 +9,7 @@
 .idea
 .data
 .sass-cache
-.env
+.env.example
 .bin
 tests
 README.md
