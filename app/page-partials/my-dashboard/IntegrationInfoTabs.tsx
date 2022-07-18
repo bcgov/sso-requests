@@ -99,7 +99,7 @@ const getInstallationTab = ({
   awaitingBceidProd: boolean;
 }) => {
   return (
-    <Tab eventKey="installation-json" title="Technical Details">
+    <Tab key="installation-json" eventKey="installation-json" title="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <Grid.Row gutter={[]}>
@@ -126,7 +126,7 @@ const getInstallationTab = ({
 
 const getProgressTab = ({ integration, awaitingBceidProd }: { integration: Request; awaitingBceidProd: boolean }) => {
   return (
-    <Tab eventKey="installation-json" title="Technical Details">
+    <Tab key="installation-json" eventKey="installation-json" title="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <br />
@@ -155,7 +155,7 @@ const getProgressTab = ({ integration, awaitingBceidProd }: { integration: Reque
 
 const getApprovalProgressTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab eventKey="installation-json" title="Technical Details">
+    <Tab key="installation-json" eventKey="installation-json" title="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <br />
@@ -191,7 +191,7 @@ const getApprovalProgressTab = ({ integration }: { integration: Request }) => {
 
 const getRoleManagementTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab eventKey="client-roles" title="Role Management">
+    <Tab key="client-roles" eventKey="client-roles" title="Role Management">
       <TabWrapper>
         <br />
         <div>
@@ -209,7 +209,7 @@ const getRoleManagementTab = ({ integration }: { integration: Request }) => {
 
 const getUserAssignmentTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab eventKey="user-roles" title="Assign Users to Roles">
+    <Tab key="user-roles" eventKey="user-roles" title="Assign Users to Roles">
       <TabWrapper>
         <UserRoles selectedRequest={integration} />
       </TabWrapper>
@@ -219,7 +219,7 @@ const getUserAssignmentTab = ({ integration }: { integration: Request }) => {
 
 const getSecretsTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab eventKey="secret" title="Secrets">
+    <Tab key="secret" eventKey="secret" title="Secrets">
       <TabWrapper short={true}>
         <SecretsPanel selectedRequest={integration} />
       </TabWrapper>
@@ -229,7 +229,7 @@ const getSecretsTab = ({ integration }: { integration: Request }) => {
 
 const getHistoryTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab eventKey="history" title="Change History">
+    <Tab key="history" eventKey="history" title="Change History">
       <TabWrapper short={true}>
         <UserEventPanel requestId={integration.id} />
       </TabWrapper>
