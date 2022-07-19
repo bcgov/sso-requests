@@ -156,21 +156,22 @@ const ClientRoles = ({ integration, alert }: Props) => {
       search: searchKey,
     });
 
+    const _roles = data || [];
+
     if (err || !data) {
       alert.show({
         variant: 'danger',
         fadeOut: 5000,
         closable: true,
-        content: err || 'failed to fetch roles',
+        content: err?.message || 'failed to fetch roles',
       });
-      return;
     }
 
-    setRoles(data);
+    setRoles(_roles);
     setRoleLoading(false);
 
-    if (data.length === 1) {
-      setSelctedRole(data[0]);
+    if (_roles.length === 1) {
+      setSelctedRole(_roles[0]);
     }
   };
 

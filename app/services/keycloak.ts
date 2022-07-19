@@ -69,7 +69,7 @@ export const listClientRoles = async ({
   search?: string;
   first?: number;
   max?: number;
-}): Promise<(string[] | null)[]> => {
+}): Promise<any[]> => {
   try {
     const result = await instance
       .post('keycloak/roles', { environment, integrationId, search })

@@ -159,10 +159,22 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       const hadBceidProd = hasBceid && originalData.environments.includes('prod');
       const hasBceidProd = hasBceid && environments.includes('prod');
 
-      if (!current.bceidApproved && hasBceid)
-        environments = environments.filter((environment) => environment !== 'prod');
+      const tfData = getCurrentValue();
 
-      const ghResult = await dispatchRequestWorkflow(current);
+      // let's use dev's idps until having a env-specific idp selections
+      if (tfData.environments.includes('test')) tfData.testIdps = tfData.devIdps;
+      if (tfData.environments.includes('prod')) tfData.prodIdps = tfData.devIdps;
+
+      // prevent the TF from creating BCeID integration in prod environment if not approved
+      if (!current.bceidApproved && hasBceid) {
+        if (tfData.serviceType === 'gold') {
+          tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('bceid'));
+        } else {
+          tfData.environments = tfData.environments.filter((environment) => environment !== 'prod');
+        }
+      }
+
+      const ghResult = await dispatchRequestWorkflow(tfData);
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
@@ -221,6 +233,8 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       await sendTemplates(emails);
     }
 
+    const changes = getDifferences(finalData, originalData);
+    current.lastChanges = changes;
     const updated = await current.save();
 
     if (!updated) {
@@ -236,7 +250,7 @@ export const updateRequest = async (session: Session, data: Data, user: User, su
       };
 
       if (isMerged) {
-        const details: any = { changes: getDifferences(finalData, originalData) };
+        const details: any = { changes };
         if (userIsAdmin && comment) details.comment = comment;
 
         eventData.eventCode = EVENTS.REQUEST_UPDATE_SUCCESS;
