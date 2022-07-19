@@ -88,8 +88,7 @@ function RequestPreview({ children, request }: Props) {
   if (!request) return null;
   const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
   const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request?.realm);
-  console.log('request?.team');
-  console.log(request?.team);
+
   return (
     <>
       <Table>
