@@ -38,6 +38,7 @@ export interface Request {
   testLoginTitle?: string;
   prodLoginTitle?: string;
   lastChanges?: any[] | null;
+  requester?: string;
 }
 
 export interface Option {
