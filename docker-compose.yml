@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  sso-db:
+    image: postgres:11.4
+    container_name: sso-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./.bin/db-setup.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    network_mode: host
+
+  sso-portal-ui:
+    container_name: sso-portal-ui
+    image: sso-requests:latest
+    entrypoint: yarn
+    command: ['--cwd', './app', 'dev']
+    env_file:
+      - ./app/.env
+    depends_on:
+      - sso-requests
+    network_mode: host
+    volumes:
+      - ./app:/app/app
+      - app-node-modules:/app/app/node_modules/
+
+  sso-requests:
+    container_name: sso-requests
+    image: sso-requests:latest
+    entrypoint: ['/bin/bash', '-c', 'yarn --cwd ./localserver migrate-db && yarn --cwd ./localserver dev']
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - sso-db
+    network_mode: host
+    volumes:
+      - ./lambda:/app/lambda
+      - /app/lambda/node_modules/
+      - ./lambda/shared:/app/lambda/shared
+      - /app/lambda/shared/node_modules/
+      - ./lambda/app:/app/lambda/app
+      - /app/lambda/app/node_modules/
+      - ./lambda/actions:/app/lambda/actions
+      - /app/lambda/actions/node_modules/
+      - ./lambda/db:/app/lambda/db
+      - /app/lambda/db/node_modules/
+      - ./lambda/scheduler:/app/lambda/scheduler
+      - /app/lambda/scheduler/node_modules/
+      - ./localserver:/app/localserver
+      - /app/localserver/node_modules/
+      - ./app:/app/app
+      - app-node-modules:/app/app/node_modules/
+
+volumes:
+  app-node-modules:
