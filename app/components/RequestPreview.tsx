@@ -88,15 +88,23 @@ function RequestPreview({ children, request }: Props) {
   if (!request) return null;
   const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
   const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request?.realm);
+
   return (
     <>
       <Table>
         <tbody>
-          {request?.team && (
+          {request?.team ? (
             <tr>
               <td>Associated Team:</td>
               <td>
                 <SemiBold>{request.team.name}</SemiBold>
+              </td>
+            </tr>
+          ) : (
+            <tr>
+              <td>Are you accountable for this project?</td>
+              <td>
+                <SemiBold>{formatBoolean(request?.projectLead)}</SemiBold>
               </td>
             </tr>
           )}
