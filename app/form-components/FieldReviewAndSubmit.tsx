@@ -8,7 +8,7 @@ import FieldTemplate from './FieldTemplate';
 
 export default function FieldReviewAndSubmit(props: FieldTemplateProps) {
   const { formContext } = props;
-  const { formData } = formContext;
+  const { formData, teams } = formContext;
 
   const hasBceid = usesBceid(formData);
   const hasBceidProd = hasBceid && formData.environments?.includes('prod');
@@ -16,7 +16,7 @@ export default function FieldReviewAndSubmit(props: FieldTemplateProps) {
   const top = (
     <div>
       <NumberedContents title="Please review your information to make sure it is correct." number={1}>
-        <RequestPreview request={formData} hasBceid={hasBceid || false} />
+        <RequestPreview request={formData} teams={teams} />
       </NumberedContents>
 
       <NumberedContents
