@@ -4,6 +4,7 @@ import { getSchemas } from 'schemas';
 import { Team, User } from 'interfaces/team';
 import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
+import { getStatusDisplayName } from 'utils/status';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   let realms: string[] | null = [];
@@ -276,7 +277,8 @@ export function canDeleteMember(members: User[], memberId?: number) {
 export const capitalize = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);
 
 export const checkIfBceidProdApplying = (integration: Request) => {
-  if (integration.status !== 'submitted') return false;
+  const displayStatus = getStatusDisplayName(integration.status || 'draft');
+  if (displayStatus !== 'Submitted') return false;
   if (!integration.lastChanges) return false;
   if (integration.lastChanges.length > 1) return false;
 
