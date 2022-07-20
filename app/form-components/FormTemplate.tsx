@@ -65,18 +65,12 @@ const trimRedirectUris = (urls: string[], dropEmptyRedirectUris = false) => {
 };
 
 const trimFormData = (formData: any, { dropEmptyRedirectUris = false } = {}) => {
-  const devLoginTitle = trim(formData.devLoginTitle);
-  const testLoginTitle = trim(formData.testLoginTitle);
-  const prodLoginTitle = trim(formData.prodLoginTitle);
   const devValidRedirectUris = trimRedirectUris(formData.devValidRedirectUris, dropEmptyRedirectUris);
   const testValidRedirectUris = trimRedirectUris(formData.testValidRedirectUris, dropEmptyRedirectUris);
   const prodValidRedirectUris = trimRedirectUris(formData.prodValidRedirectUris, dropEmptyRedirectUris);
 
   return {
     ...formData,
-    devLoginTitle,
-    testLoginTitle,
-    prodLoginTitle,
     devValidRedirectUris,
     testValidRedirectUris,
     prodValidRedirectUris,
