@@ -91,6 +91,8 @@ const InstallationPanel = ({ integration, alert }: Props) => {
       <br />
       <Grid cols={3}>
         {getRequestedEnvironments(integration).map((env) => {
+          if (env.idps.length === 0) return null;
+
           return (
             <React.Fragment key={env.name}>
               <Grid.Row collapse="992" gutter={[]} align="center">

@@ -2,6 +2,7 @@ import { Request } from 'interfaces/Request';
 import { realmToIDP } from 'utils/helpers';
 import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';
+import { Team } from 'interfaces/team';
 
 const Table = styled.table`
   font-size: unset;
@@ -73,7 +74,7 @@ const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
 
 interface Props {
   request: Request;
-  hasBceid: boolean;
+  teams?: Team[];
   children?: React.ReactNode;
 }
 
@@ -84,57 +85,60 @@ const hasUris = (uris: string[] | undefined) => {
   return true;
 };
 
-function RequestPreview({ children, request }: Props) {
+function RequestPreview({ children, request, teams = [] }: Props) {
   if (!request) return null;
   const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
-  const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request?.realm);
+  const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request.realm);
 
   return (
     <>
       <Table>
         <tbody>
-          {request?.team ? (
+          {request.usesTeam ? (
             <tr>
               <td>Associated Team:</td>
               <td>
-                <SemiBold>{request.team.name}</SemiBold>
+                <SemiBold>
+                  {(request.team && request.team.name) ||
+                    teams.find((team) => String(team.id) === String(request.teamId))?.name}
+                </SemiBold>
               </td>
             </tr>
           ) : (
             <tr>
               <td>Are you accountable for this project?</td>
               <td>
-                <SemiBold>{formatBoolean(request?.projectLead)}</SemiBold>
+                <SemiBold>{formatBoolean(request.projectLead)}</SemiBold>
               </td>
             </tr>
           )}
           <tr>
             <td>Client Type:</td>
             <td>
-              <SemiBold>{request?.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
+              <SemiBold>{request.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Auth Type:</td>
             <td>
-              <SemiBold>{authTypeDisplay[request?.authType || 'browser-login']}</SemiBold>
+              <SemiBold>{authTypeDisplay[request.authType || 'browser-login']}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Project Name:</td>
             <td>
-              <SemiBold>{request?.projectName}</SemiBold>
+              <SemiBold>{request.projectName}</SemiBold>
             </td>
           </tr>
           <FormattedList list={idpDisplay} title="Identity Providers Required:" inline />
-          {hasUris(request?.devValidRedirectUris) && (
-            <FormattedList list={request?.devValidRedirectUris} title="Dev Redirect URIs:" />
+          {hasUris(request.devValidRedirectUris) && (
+            <FormattedList list={request.devValidRedirectUris} title="Dev Redirect URIs:" />
           )}
-          {hasUris(request?.testValidRedirectUris) && (
-            <FormattedList list={request?.testValidRedirectUris} title="Test Redirect URIs:" />
+          {hasUris(request.testValidRedirectUris) && (
+            <FormattedList list={request.testValidRedirectUris} title="Test Redirect URIs:" />
           )}
-          {hasUris(request?.prodValidRedirectUris) && (
-            <FormattedList list={request?.prodValidRedirectUris} title="Prod Redirect URIs:" />
+          {hasUris(request.prodValidRedirectUris) && (
+            <FormattedList list={request.prodValidRedirectUris} title="Prod Redirect URIs:" />
           )}
           {children}
         </tbody>
