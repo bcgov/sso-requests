@@ -279,10 +279,9 @@ export const capitalize = (string: string) => string.charAt(0).toUpperCase() + s
 export const checkIfBceidProdApplying = (integration: Request) => {
   const displayStatus = getStatusDisplayName(integration.status || 'draft');
   if (displayStatus !== 'Submitted') return false;
-  if (!integration.lastChanges) return false;
-  if (integration.lastChanges.length > 1) return false;
+  if (!integration.lastChanges || integration.lastChanges.length === 0) return false;
 
-  const change = integration.lastChanges[0];
-  if (change.path[0] !== 'bceidApproved') return false;
-  return change.lhs === false && change.rhs === true;
+  return integration.lastChanges.some((change) => {
+    return change.path[0] === 'bceidApproved' && change.lhs === false && change.rhs === true;
+  });
 };
