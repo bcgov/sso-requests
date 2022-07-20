@@ -74,7 +74,7 @@ const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
 
 interface Props {
   request: Request;
-  teams: Team[];
+  teams?: Team[];
   children?: React.ReactNode;
 }
 
@@ -85,7 +85,7 @@ const hasUris = (uris: string[] | undefined) => {
   return true;
 };
 
-function RequestPreview({ children, request, teams }: Props) {
+function RequestPreview({ children, request, teams = [] }: Props) {
   if (!request) return null;
   const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
   const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request.realm);
@@ -98,7 +98,10 @@ function RequestPreview({ children, request, teams }: Props) {
             <tr>
               <td>Associated Team:</td>
               <td>
-                <SemiBold>{teams.find((team) => String(team.id) === String(request.teamId))?.name}</SemiBold>
+                <SemiBold>
+                  {(request.team && request.team.name) ||
+                    teams.find((team) => String(team.id) === String(request.teamId))?.name}
+                </SemiBold>
               </td>
             </tr>
           ) : (
