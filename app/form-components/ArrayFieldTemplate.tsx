@@ -59,7 +59,7 @@ export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
           {title} {tooltip && <InfoOverlay {...tooltip} onClick={() => tooltip?.onClick(formContext) || noop} />}
         </Title>
       )}
-      {description && <Description>{description}</Description>}
+      {description && <Description dangerouslySetInnerHTML={{ __html: description }} />}
       {items.map((element: any) => {
         return (
           <React.Fragment key={element.index}>

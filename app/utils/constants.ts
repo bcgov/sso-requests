@@ -23,7 +23,7 @@ export const environmentOptions: EnvironmentOption[] = [
 export const errorMessages: ErrorMessages = {
   agreeWithTerms: 'You must agree to the terms to submit a request',
   realm: 'Please select your IDPs',
-  redirectUris: 'Please enter a valid URI, including an http:// or https:// prefix',
+  redirectUris: 'Please enter a valid URI',
   publicAccess: 'Please select an answer',
   newToSso: 'Please select an answer',
   projectName: 'Please enter a project name',
