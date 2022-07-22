@@ -119,7 +119,7 @@ function RequestPreview({ children, request, teams = [] }: Props) {
             </td>
           </tr>
           <tr>
-            <td>Auth Type:</td>
+            <td>Usecase:</td>
             <td>
               <SemiBold>{authTypeDisplay[request.authType || 'browser-login']}</SemiBold>
             </td>

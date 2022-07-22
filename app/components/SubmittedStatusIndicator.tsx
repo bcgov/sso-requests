@@ -28,12 +28,6 @@ const SubTitle = styled(Title)`
   font-size: 14px;
 `;
 
-const Requester = styled.div`
-  font-weight: 700;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-`;
-
 const SLink = styled.a`
   color: ${LINK_COLOR};
 `;
@@ -224,7 +218,6 @@ export default function SubmittedStatusIndicator({ integration, title }: Props) 
       <SubTitle>{statusMessage}</SubTitle>
       <IntegrationProgressStatus integration={integration} />
       <StatusList>{statusItems}</StatusList>
-      {integration.requester && <Requester>Submitted by: {integration.requester}</Requester>}
       <InfoMessage>
         If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
         <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
