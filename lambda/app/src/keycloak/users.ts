@@ -602,7 +602,7 @@ export const createIdirUser = async ({
     });
 
     await kcAdminClient.users.addToFederatedIdentity({
-      realm: 'idir',
+      realm: 'standard',
       id: standardUser.id,
       federatedIdentityId: 'idir',
       federatedIdentity: {
