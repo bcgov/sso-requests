@@ -59,6 +59,13 @@ const FlexStartBox = styled.div`
   }
 `;
 
+const Requester = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 1rem;
+`;
+
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
 
 const joinEnvs = (integration: Request) => {
@@ -146,6 +153,7 @@ const getProgressTab = ({ integration, awaitingBceidProd }: { integration: Reque
           <br />
           <Grid.Row gutter={[]}>
             <Grid.Col span={7} align={'center'}>
+              {integration.requester && <Requester>Submitted by: {integration.requester}</Requester>}
               <SubTitle>Access to environment(s) will be provided in approx 20 min</SubTitle>
               <SubmittedStatusIndicator integration={integration} />
             </Grid.Col>
@@ -172,7 +180,6 @@ const getApprovalProgressTab = ({ integration }: { integration: Request }) => {
     <Tab key="installation-json" eventKey="installation-json" title="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
-          <br />
           <Grid.Row gutter={[]}>
             <Grid.Col span={7}>
               <InstallationPanel integration={integration} />
@@ -271,7 +278,6 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   if (displayStatus === 'In Draft') {
     return (
       <IntegrationWrapper integration={integration}>
-        <br />
         <Alert variant="info">
           <div>
             <strong>Your request has not been submitted.</strong>

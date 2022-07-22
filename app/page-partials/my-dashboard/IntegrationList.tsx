@@ -227,7 +227,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
               <th>Request ID</th>
               <th>Project Name</th>
               <th>Status</th>
-              <th>Auth Type</th>
+              <th>Usecase</th>
               <th>Service Type</th>
               <RightAlignHeader>Actions</RightAlignHeader>
             </tr>
