@@ -19,10 +19,12 @@ const Label = styled.span`
 
 const LeftInput = styled.span`
   display: inline-block;
+  margin-right: 5px;
+  margin-bottom: 8px;
 
   & input {
     height: 31px;
-    max-width: 120px;
+    max-width: 50px;
   }
 `;
 
