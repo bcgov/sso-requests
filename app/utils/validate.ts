@@ -8,7 +8,7 @@ export const isValidKeycloakURI = (uri: string) => {
     new URL(uri);
     if (uri !== uri.trim()) return false;
     if (uri.match(/\s/)) return false;
-    if (!uri.match(/^[a-zA-Z]+:\/\/\S+/)) return false;
+    if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/\S+/)) return false;
     return true;
   } catch (err) {
     return false;

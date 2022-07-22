@@ -25,6 +25,20 @@ describe('kecloak URIs', () => {
     expect(isValidKeycloakURI(' http:/')).toBe(false);
     expect(isValidKeycloakURI('http://a ')).toBe(false);
     expect(isValidKeycloakURI('http://a b')).toBe(false);
+
+    expect(isValidKeycloakURI('a://b')).toBe(true);
+    expect(isValidKeycloakURI('://b')).toBe(false);
+    expect(isValidKeycloakURI('//b')).toBe(false);
+
+    expect(isValidKeycloakURI('a-b://c')).toBe(true);
+    expect(isValidKeycloakURI('ab-://c')).toBe(true);
+    expect(isValidKeycloakURI('a-b-://c')).toBe(true);
+    expect(isValidKeycloakURI('-ab://c')).toBe(false);
+
+    expect(isValidKeycloakURI('a.b://c')).toBe(true);
+    expect(isValidKeycloakURI('ab.://c')).toBe(true);
+    expect(isValidKeycloakURI('a.b.://c')).toBe(true);
+    expect(isValidKeycloakURI('.ab://c')).toBe(false);
   });
 });
 
