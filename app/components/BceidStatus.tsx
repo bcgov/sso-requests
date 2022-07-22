@@ -9,7 +9,7 @@ import { ProgressBar } from 'react-bootstrap';
 import HelpText from 'components/HelpText';
 
 interface Props {
-  request: Request;
+  integration: Request;
 }
 
 const CIRCLE_DIAMETER = '15px';
@@ -36,15 +36,9 @@ const StyledLi = styled.li`
   }
 `;
 
-export default function Bceidstatus({ request }: Props) {
-  const { updatedAt } = request;
-  const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();
-
+export default function Bceidstatus({ integration }: Props) {
   return (
     <>
-      <ProgressBar now={50} />
-      <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
-
       <StatusList>
         <StyledLi>
           Requirements email sent to IDIM

@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { Request, Option } from 'interfaces/Request';
+import { Request, ClientRole, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import SaveMessage from 'form-components/SaveMessage';
 import Table from 'components/Table';

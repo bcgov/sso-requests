@@ -4,6 +4,7 @@ import { getSchemas } from 'schemas';
 import { Team, User } from 'interfaces/team';
 import { Request, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
+import { getStatusDisplayName } from 'utils/status';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   let realms: string[] | null = [];
@@ -26,14 +27,29 @@ export const usesBceid = (integration: any) => {
   }
 };
 
-export const getRequestedEnvironments = (request: Request) => {
-  const { bceidApproved, environments } = request;
-  const hasBceid = usesBceid(request);
+export const getRequestedEnvironments = (integration: Request) => {
+  const { bceidApproved, environments = [], serviceType } = integration;
 
-  let allowedEnvs = environments?.concat() || [];
+  const hasBceid = usesBceid(integration);
+  const options = environmentOptions.map((option) => {
+    return { ...option, idps: integration.devIdps || [] };
+  });
+
+  if (serviceType === 'gold') {
+    const bceidApplying = checkIfBceidProdApplying(integration);
+    let envs = options.filter((env) => environments.includes(env.name));
+    if (hasBceid && (!bceidApproved || bceidApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter((idp) => !idp.startsWith('bceid'));
+        return env;
+      });
+
+    return envs;
+  }
+
+  let allowedEnvs = environments.concat() || [];
   if (hasBceid && !bceidApproved) allowedEnvs = allowedEnvs.filter((env) => env !== 'prod');
-
-  return environmentOptions.filter((env) => allowedEnvs.includes(env.name));
+  return options.filter((env) => allowedEnvs.includes(env.name));
 };
 
 export const parseError = (err: any) => {
@@ -259,3 +275,13 @@ export function canDeleteMember(members: User[], memberId?: number) {
 }
 
 export const capitalize = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);
+
+export const checkIfBceidProdApplying = (integration: Request) => {
+  const displayStatus = getStatusDisplayName(integration.status || 'draft');
+  if (displayStatus !== 'Submitted') return false;
+  if (!integration.lastChanges || integration.lastChanges.length === 0) return false;
+
+  return integration.lastChanges.some((change) => {
+    return change.path[0] === 'bceidApproved' && change.lhs === false && change.rhs === true;
+  });
+};

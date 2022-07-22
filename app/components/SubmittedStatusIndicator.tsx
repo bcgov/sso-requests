@@ -15,7 +15,7 @@ const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
 
 interface Props {
-  selectedRequest: Request;
+  integration: Request;
   title?: string;
 }
 
@@ -98,12 +98,22 @@ const getStatusStatusCode = (status?: string) => {
   }
 };
 
-export default function SubmittedStatusIndicator({ selectedRequest, title }: Props) {
-  const { status, prNumber, updatedAt } = selectedRequest;
-
+export function IntegrationProgressStatus({ integration }: { integration: Request }) {
+  const { status, updatedAt } = integration;
   const hasError = getStatusFailure(status);
-  const statusMessage = getStatusMessage(status);
   const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();
+
+  return (
+    <>
+      <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />
+      <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
+    </>
+  );
+}
+
+export default function SubmittedStatusIndicator({ integration, title }: Props) {
+  const { status, prNumber } = integration;
+  const statusMessage = getStatusMessage(status);
 
   // Step 1.
   const statusItems = [
@@ -206,10 +216,8 @@ export default function SubmittedStatusIndicator({ selectedRequest, title }: Pro
     <>
       {title && <Title>{title}</Title>}
       <SubTitle>{statusMessage}</SubTitle>
-      <SProgressBar now={getPercent(status)} animated variant={hasError ? 'danger' : undefined} />
-      <HelpText>Last updated at {formattedUpdatedAt}</HelpText>
+      <IntegrationProgressStatus integration={integration} />
       <StatusList>{statusItems}</StatusList>
-      <br />
       <InfoMessage>
         If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
         <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">

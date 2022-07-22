@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Request } from 'interfaces/Request';
-import { padStart } from 'lodash';
+import { padStart, startCase } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Table } from '@bcgov-sso/common-react-components';
 import { getStatusDisplayName } from 'utils/status';
@@ -16,6 +16,7 @@ import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/A
 import { getRequests, deleteRequest } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
+import { authTypeDisplay } from 'metadata/display';
 
 const RightAlignHeader = styled.th`
   text-align: right;
@@ -226,6 +227,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
               <th>Request ID</th>
               <th>Project Name</th>
               <th>Status</th>
+              <th>Usecase</th>
               <th>Service Type</th>
               <RightAlignHeader>Actions</RightAlignHeader>
             </tr>
@@ -240,6 +242,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
                 <td>{padStart(String(integration.id), 8, '0')}</td>
                 <td>{integration.projectName}</td>
                 <td>{getStatusDisplayName(integration.status || 'draft')}</td>
+                <td>{authTypeDisplay[integration.authType || 'browser-login']}</td>
                 <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
                 <td>
                   <RightFloatButtons>

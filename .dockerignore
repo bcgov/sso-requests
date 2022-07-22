@@ -1,0 +1,27 @@
+# creating a docker image
+.dockerignore
+.DS_Store
+.git
+.github
+.gitignore
+.gitlab-ci.yml
+.gitmodules
+.idea
+.data
+.sass-cache
+.env.example
+.bin
+tests
+README.md
+Dockerfile
+Dockerfile.archive
+docker-compose.yml
+docs
+.prettierignore
+.prettierrc
+.tool-versions
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+LICENSE
+*.lock
+node_modules

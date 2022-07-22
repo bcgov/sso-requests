@@ -1,7 +1,37 @@
+import KcAdminClient from 'keycloak-admin';
+import RoleRepresentation from 'keycloak-admin/lib/defs/roleRepresentation';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { forEach, map, get, difference } from 'lodash';
 import { getAdminClient, getClient } from './adminClient';
 import { fetchClient } from './client';
+
+// Helpers
+// TODO: encapsulate admin client with user session and associated client infomation
+const getRoleByName = async (kcClient: KcAdminClient, clientId: string, roleName: string) => {
+  // @ts-ignore
+  const role = await kcClient.clients.findRole({ realm: 'standard', id: clientId, roleName });
+  return role;
+};
+
+const populateComposites = async (kcClient: KcAdminClient, clientId: string, role: RoleRepresentation) => {
+  if (!role.composite) {
+    return {
+      name: role.name,
+      composites: [],
+    };
+  }
+
+  const composites = await kcClient.roles.getCompositeRolesForClient({
+    realm: 'standard',
+    clientId,
+    id: role.id,
+  });
+
+  return {
+    name: role.name,
+    composites: composites.map((comp) => comp.name),
+  };
+};
 
 export const searchUsers = async ({
   environment,
@@ -47,6 +77,7 @@ export const searchUsers = async ({
   return result;
 };
 
+const MAX_CLIENT_ROLE_COUNT = 5000;
 export const listClientRoles = async (
   sessionUserId: number,
   {
@@ -54,25 +85,100 @@ export const listClientRoles = async (
     integrationId,
     search = '',
     first = 0,
-    max = 50,
+    max = MAX_CLIENT_ROLE_COUNT,
   }: {
     environment: string;
     integrationId: number;
     search?: string;
-    first: number;
-    max: number;
+    first?: number;
+    max?: number;
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
+  if (max > MAX_CLIENT_ROLE_COUNT) max = MAX_CLIENT_ROLE_COUNT;
+
   // @ts-ignore
-  const roles = await kcAdminClient.clients.listRoles({ realm: 'standard', id: client.id, search, first, max });
+  const roles: any[] = await kcAdminClient.clients.listRoles({ realm: 'standard', id: client.id, search, first, max });
+
   return roles.map((role) => role.name);
+};
+
+export const getCompositeClientRoles = async (
+  sessionUserId: number,
+  {
+    environment,
+    integrationId,
+    roleName,
+  }: {
+    environment: string;
+    integrationId: number;
+    roleName: string;
+  },
+) => {
+  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
+
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
+  if (clients.length === 0) throw Error('client not found');
+  const client = clients[0];
+
+  const role = await getRoleByName(kcAdminClient, client.id, roleName);
+  if (!role) throw Error('role not found');
+
+  const populatedRole = await populateComposites(kcAdminClient, client.id, role);
+  return populatedRole.composites;
+};
+
+export const setCompositeClientRoles = async (
+  sessionUserId: number,
+  {
+    environment,
+    integrationId,
+    roleName,
+    compositeRoleNames,
+  }: {
+    environment: string;
+    integrationId: number;
+    roleName: string;
+    compositeRoleNames: string[];
+  },
+) => {
+  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
+
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
+  if (clients.length === 0) throw Error('client not found');
+  const client = clients[0];
+
+  const role = await getRoleByName(kcAdminClient, client.id, roleName);
+  if (!role) throw Error('role not found');
+
+  const rolesToDel = await kcAdminClient.roles.getCompositeRolesForClient({
+    realm: 'standard',
+    clientId: client.id,
+    id: role.id,
+  });
+
+  const rolesToAdd = await Promise.all(
+    compositeRoleNames.map((roleName) => getRoleByName(kcAdminClient, client.id, roleName)),
+  );
+
+  // 1. remove all composite roles first
+  await kcAdminClient.roles.delCompositeRoles({ realm: 'standard', id: role.id }, rolesToDel);
+
+  // 2. add composite roles
+  await kcAdminClient.roles.createComposite({ realm: 'standard', roleId: role.id }, rolesToAdd);
+
+  return populateComposites(kcAdminClient, client.id, role);
 };
 
 export const findClientRole = async (
@@ -89,6 +195,7 @@ export const findClientRole = async (
 ) => {
   if (roleName?.length < 2) return null;
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -116,6 +223,7 @@ export const listRoleUsers = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -145,6 +253,7 @@ export const listUserRoles = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const idp = username.split('@')[1];
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
@@ -183,6 +292,7 @@ export const manageUserRole = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const idp = username.split('@')[1];
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
@@ -231,6 +341,7 @@ export const manageUserRoles = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const idp = username.split('@')[1];
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
@@ -289,6 +400,7 @@ export const createRole = async (
   if (roleName?.length < 2) return [];
 
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -325,6 +437,7 @@ export const bulkCreateRole = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   // create 20 roles at a time
   const rolesToCreate = roles.slice(0, 20);
@@ -396,6 +509,7 @@ export const deleteRole = async (
 ) => {
   if (roleName?.length < 2) return null;
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });

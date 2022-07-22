@@ -1,4 +1,5 @@
 import { instance } from './axios';
+import { ClientRole } from 'interfaces/Request';
 
 export const getInstallation = async (requestId: number, environment: string) => {
   try {
@@ -62,18 +63,58 @@ export const listClientRoles = async ({
   environment,
   integrationId,
   search = '',
-  first = 0,
-  max = 50,
 }: {
   environment: string;
   integrationId: number;
   search?: string;
   first?: number;
   max?: number;
+}): Promise<any[]> => {
+  try {
+    const result = await instance
+      .post('keycloak/roles', { environment, integrationId, search })
+      .then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
+export const setCompositeClientRoles = async ({
+  environment,
+  integrationId,
+  roleName,
+  compositeRoleNames,
+}: {
+  environment: string;
+  integrationId: number;
+  roleName: string;
+  compositeRoleNames: string[];
+}): Promise<(ClientRole | null)[]> => {
+  try {
+    const result = await instance
+      .post('keycloak/set-composite-roles', { environment, integrationId, roleName, compositeRoleNames })
+      .then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
+export const getCompositeClientRoles = async ({
+  environment,
+  integrationId,
+  roleName,
+}: {
+  environment: string;
+  integrationId: number;
+  roleName: string;
 }): Promise<(string[] | null)[]> => {
   try {
     const result = await instance
-      .post('keycloak/roles', { environment, integrationId, search, first, max })
+      .post('keycloak/get-composite-roles', { environment, integrationId, roleName })
       .then((res) => res.data);
     return [result, null];
   } catch (err: any) {

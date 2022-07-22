@@ -7,6 +7,7 @@ export interface Request {
   clientName?: string;
   realm?: string;
   publicAccess?: boolean;
+  authType?: string;
   devValidRedirectUris?: string[];
   testValidRedirectUris?: string[];
   prodValidRedirectUris?: string[];
@@ -36,9 +37,16 @@ export interface Request {
   devLoginTitle?: string;
   testLoginTitle?: string;
   prodLoginTitle?: string;
+  lastChanges?: any[] | null;
+  requester?: string;
 }
 
 export interface Option {
   value: string | string[];
   label: string;
+}
+
+export interface ClientRole {
+  name: string;
+  composites: string[];
 }

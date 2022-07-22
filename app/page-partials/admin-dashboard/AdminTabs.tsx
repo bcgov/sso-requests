@@ -58,7 +58,7 @@ function AdminTabs({
     ProductionPanel = (
       <>
         <SubmittedStatusIndicator
-          selectedRequest={selectedRequest}
+          integration={selectedRequest}
           title="The terraform script will take approximately 20 minutes to complete."
         />
       </>

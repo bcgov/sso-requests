@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { isNil, throttle, padStart, difference } from 'lodash';
+import { isNil, throttle, padStart, difference, trim } from 'lodash';
 import FormHeader from 'form-components/FormHeader';
 import FormStage from 'form-components/FormStage';
 import Form from 'form-components/GovForm';
@@ -55,6 +55,28 @@ const filterIdps = (currentIdps: string[], updatedIdps: string[]) => {
   return idps;
 };
 
+const trimRedirectUris = (urls: string[], dropEmptyRedirectUris = false) => {
+  if (!urls || urls.length === 0) return [];
+
+  let items = urls.map(trim);
+  if (dropEmptyRedirectUris) items = items.filter((v) => v);
+  if (items.length === 0) items.push('');
+  return items;
+};
+
+const trimFormData = (formData: any, { dropEmptyRedirectUris = false } = {}) => {
+  const devValidRedirectUris = trimRedirectUris(formData.devValidRedirectUris, dropEmptyRedirectUris);
+  const testValidRedirectUris = trimRedirectUris(formData.testValidRedirectUris, dropEmptyRedirectUris);
+  const prodValidRedirectUris = trimRedirectUris(formData.prodValidRedirectUris, dropEmptyRedirectUris);
+
+  return {
+    ...formData,
+    devValidRedirectUris,
+    testValidRedirectUris,
+    prodValidRedirectUris,
+  };
+};
+
 interface Props {
   currentUser: LoggedInUser;
   request?: Request | undefined;
@@ -100,17 +122,20 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   );
 
   const handleChange = (e: any) => {
+    const newData = trimFormData(e.formData);
     const currentIdps = formData?.devIdps || [];
-    const updatedIdps = e.formData.devIdps || [];
+    const updatedIdps = newData.devIdps || [];
     const devIdps = filterIdps(currentIdps, updatedIdps);
 
-    const showModal = e.formData.projectLead === false && e.formData.usesTeam === false;
-    const togglingTeamToTrue = formData.usesTeam === false && e.formData.usesTeam === true;
-    if (togglingTeamToTrue) {
-      setFormData({ ...e.formData, devIdps, projectLead: undefined });
-    } else {
-      setFormData({ ...e.formData, devIdps });
-    }
+    const showModal = newData.projectLead === false && newData.usesTeam === false;
+    const togglingTeamToTrue = formData.usesTeam === false && newData.usesTeam === true;
+
+    const processed = { ...newData, devIdps };
+    if (newData.authType !== 'browser-login') processed.publicAccess = false;
+
+    if (togglingTeamToTrue) processed.projectLead = undefined;
+    setFormData(processed);
+
     if (showModal) {
       window.location.hash = 'info-modal';
     }
@@ -154,9 +179,12 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       for (let x = 0; x < schemas.length; x++) visited[x] = true;
     }
 
+    const newData = trimFormData(formData, { dropEmptyRedirectUris: true });
+
     const formErrors = validateForm(formData, schemas, visited);
     setErrors(formErrors);
     setFormStage(newStage);
+    setFormData(newData);
     setVisited(visited);
     alert.hide();
   };
@@ -169,6 +197,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const uiSchema = getUISchema({ integration: request as Request, isAdmin });
 
   const handleFormSubmit = async () => {
+    if (loading) return;
     setLoading(true);
 
     try {

@@ -36,6 +36,8 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2022.05.17T10.30.00.migrate-clientname-to-clientid'),
       await import('./migrations/2022.05.30T11.59.00.add-sa-columns-in-request-table'),
       await import('./migrations/2022.07.05T15.30.09.populate-user-id-in-requests-table'),
+      await import('./migrations/2022.07.06T17.00.00.add-auth-type-in-request-table'),
+      await import('./migrations/2022.07.15T15.23.00.add-last-changes-in-request-table'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

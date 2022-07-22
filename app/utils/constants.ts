@@ -6,14 +6,17 @@ export const environmentOptions: EnvironmentOption[] = [
   {
     name: 'dev',
     display: 'Development',
+    idps: [],
   },
   {
     name: 'test',
     display: 'Test',
+    idps: [],
   },
   {
     name: 'prod',
     display: 'Production',
+    idps: [],
   },
 ];
 

@@ -41,23 +41,31 @@ export default function getSchemas(formData: Request) {
       stepText = 'Development';
     }
 
+    const hasLoginFlow = formData.authType !== 'service-account';
+    const loginFlowSchemas = hasLoginFlow
+      ? {
+          [loginTitleField]: {
+            type: 'string',
+            title: 'Keycloak Login Page Name',
+            tooltip: {
+              content: `Enter a name that you would like to be displayed for users, as they're logging into the Keycloak Login Page. If you leave this field blank, the page will automatically display "Standard"`,
+            },
+            maxLength: 100,
+          },
+          [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs' },
+        }
+      : {};
+
+    const customValidation = hasLoginFlow ? [redirectUriField] : [];
+
     return {
       type: 'object',
-      customValidation: [redirectUriField],
+      customValidation,
       headerText,
       stepText,
       required: [],
       properties: {
-        [loginTitleField]: {
-          type: 'string',
-          title: 'Keycloak Login Page Name',
-          tooltip: {
-            content: `Enter a name that you would like to be displayed for users, as they're logging into the Keycloak Login Page. If you leave this field blank, the page will automatically display "Standard"`,
-          },
-          maxLength: 100,
-        },
-        [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs' },
-        // [roleField]: roles,
+        ...loginFlowSchemas,
         [accessTokenLifespanField]: {
           title: 'Access Token Lifespan',
           type: 'number',
@@ -94,6 +102,6 @@ export default function getSchemas(formData: Request) {
           additionalClassNames: 'mt-1',
         },
       },
-    } as Schema;
+    } as any;
   });
 }

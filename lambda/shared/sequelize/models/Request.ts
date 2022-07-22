@@ -26,6 +26,11 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: true,
       },
+      authType: {
+        type: DataTypes.STRING,
+        defaultValue: 'browser-login',
+        allowNull: false,
+      },
       serviceAccountEnabled: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -125,6 +130,10 @@ const init = (sequelize, DataTypes) => {
       },
       requester: {
         type: DataTypes.STRING,
+        allowNull: true,
+      },
+      lastChanges: {
+        type: DataTypes.JSONB,
         allowNull: true,
       },
       serviceType: {

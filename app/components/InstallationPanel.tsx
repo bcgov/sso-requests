@@ -13,13 +13,14 @@ import { getRequestedEnvironments } from 'utils/helpers';
 import { DEFAULT_FONT_SIZE } from 'styles/theme';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import InfoMessage from 'components/InfoMessage';
+import { idpMap } from 'helpers/meta';
 import Link from '@button-inc/bcgov-theme/Link';
 
 const AlignCenter = styled.div`
   text-align: center;
 `;
 
-const LeftTitle = styled.span`
+const EnvTitle = styled.div`
   color: #000;
   font-size: ${DEFAULT_FONT_SIZE};
   font-weight: bold;
@@ -43,16 +44,16 @@ const TopTitle = styled.div`
 `;
 
 interface Props {
-  selectedRequest: Request;
+  integration: Request;
   alert: TopAlert;
 }
 
-const InstallationPanel = ({ selectedRequest, alert }: Props) => {
+const InstallationPanel = ({ integration, alert }: Props) => {
   const [loading, setLoading] = useState(false);
 
   const handleInstallationClick = async (environment: Environment) => {
     setLoading(true);
-    const [data] = await getInstallation(selectedRequest.id as number, environment);
+    const [data] = await getInstallation(integration.id as number, environment);
     setLoading(false);
     return data;
   };
@@ -72,7 +73,7 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
 
   const handleDownloadClick = async (env: Environment) => {
     const inst = await handleInstallationClick(env);
-    downloadText(prettyJSON(inst), `${selectedRequest.projectName}-installation-${env}.json`);
+    downloadText(prettyJSON(inst), `${integration.projectName}-installation-${env}.json`);
   };
 
   if (loading)
@@ -89,12 +90,16 @@ const InstallationPanel = ({ selectedRequest, alert }: Props) => {
       <TopTitle>Installation JSONs</TopTitle>
       <br />
       <Grid cols={3}>
-        {getRequestedEnvironments(selectedRequest).map((env) => {
+        {getRequestedEnvironments(integration).map((env) => {
+          if (env.idps.length === 0) return null;
+
           return (
             <React.Fragment key={env.name}>
               <Grid.Row collapse="992" gutter={[]} align="center">
-                <Grid.Col span={1} style={{ maxWidth: '200px', height: '30px' }}>
-                  <LeftTitle>{env.display}</LeftTitle>
+                <Grid.Col span={1} style={{ width: '100%', height: '30px' }}>
+                  <EnvTitle>
+                    {env.display} ({env.idps.map((idp) => idpMap[idp]).join(', ')})
+                  </EnvTitle>
                 </Grid.Col>
               </Grid.Row>
               <Grid.Row collapse="992" gutter={[]} align="center">

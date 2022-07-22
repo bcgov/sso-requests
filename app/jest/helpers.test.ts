@@ -25,6 +25,20 @@ describe('kecloak URIs', () => {
     expect(isValidKeycloakURI(' http:/')).toBe(false);
     expect(isValidKeycloakURI('http://a ')).toBe(false);
     expect(isValidKeycloakURI('http://a b')).toBe(false);
+
+    expect(isValidKeycloakURI('a://b')).toBe(true);
+    expect(isValidKeycloakURI('://b')).toBe(false);
+    expect(isValidKeycloakURI('//b')).toBe(false);
+
+    expect(isValidKeycloakURI('a-b://c')).toBe(true);
+    expect(isValidKeycloakURI('ab-://c')).toBe(true);
+    expect(isValidKeycloakURI('a-b-://c')).toBe(true);
+    expect(isValidKeycloakURI('-ab://c')).toBe(false);
+
+    expect(isValidKeycloakURI('a.b://c')).toBe(true);
+    expect(isValidKeycloakURI('ab.://c')).toBe(true);
+    expect(isValidKeycloakURI('a.b.://c')).toBe(true);
+    expect(isValidKeycloakURI('.ab://c')).toBe(false);
   });
 });
 
@@ -32,6 +46,7 @@ const dev = [
   {
     display: 'Development',
     name: 'dev',
+    idps: [],
   },
 ];
 
@@ -39,6 +54,7 @@ const test = [
   {
     display: 'Test',
     name: 'test',
+    idps: [],
   },
 ];
 
@@ -46,6 +62,7 @@ const prod = [
   {
     display: 'Production',
     name: 'prod',
+    idps: [],
   },
 ];
 

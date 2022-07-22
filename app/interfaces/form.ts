@@ -23,6 +23,7 @@ export interface Request {
 export interface EnvironmentOption {
   name: Environment;
   display: string;
+  idps: string[];
 }
 
 export interface ErrorMessages {

@@ -2,6 +2,8 @@ import { isNil, uniq } from 'lodash';
 import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';
+import TooltipRadioWidget from '@app/form-components/widgets/TooltipRadioWidget';
+import TooltipCheckboxesWidget from '@app/form-components/widgets/TooltipCheckboxesWidget';
 import FieldTermsAndConditions from '@app/form-components/FieldTermsAndConditions';
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
@@ -84,8 +86,13 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     publicAccess: {
       'ui:widget': ClientTypeWidget,
     },
+    authType: {
+      'ui:widget': TooltipRadioWidget,
+      'ui:default': 'browser-login',
+      'ui:readonly': isApplied,
+    },
     devIdps: {
-      'ui:widget': 'checkboxes',
+      'ui:widget': TooltipCheckboxesWidget,
       'ui:enumDisabled': idpDisabled,
     },
     bceidTo: {
