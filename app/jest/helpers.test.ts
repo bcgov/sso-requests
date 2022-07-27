@@ -1,17 +1,5 @@
-import { idpToRealm, getRequestedEnvironments, canDeleteMember } from 'utils/helpers';
+import { getRequestedEnvironments, canDeleteMember } from 'utils/helpers';
 import { isValidKeycloakURI } from 'utils/validate';
-
-describe('idp to realm', () => {
-  it('gives the correct realm for different orders', () => {
-    expect(idpToRealm(['idir'])).toEqual('onestopauth');
-    expect(idpToRealm(['idir'])).toEqual('onestopauth');
-  });
-  it('works for all realms', () => {
-    expect(idpToRealm(['idir', 'bceid-basic'])).toEqual('onestopauth-basic');
-    expect(idpToRealm(['idir', 'bceid-business'])).toEqual('onestopauth-business');
-    expect(idpToRealm(['idir', 'bceid-business', 'bceid-basic'])).toEqual('onestopauth-both');
-  });
-});
 
 describe('kecloak URIs', () => {
   it('should validate the URI correctly', () => {
@@ -42,59 +30,35 @@ describe('kecloak URIs', () => {
   });
 });
 
-const dev = [
-  {
-    display: 'Development',
-    name: 'dev',
-    idps: [],
-  },
-];
-
-const test = [
-  {
-    display: 'Test',
-    name: 'test',
-    idps: [],
-  },
-];
-
-const prod = [
-  {
-    display: 'Production',
-    name: 'prod',
-    idps: [],
-  },
-];
-
 describe('Get Requested Environments', () => {
   it('returns the expected environments for idir', () => {
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth',
         environments: ['dev'],
-      }),
-    ).toEqual(dev);
+      }).map((v) => v.name),
+    ).toEqual(['dev']);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth',
         environments: ['test'],
-      }),
-    ).toEqual(test);
+      }).map((v) => v.name),
+    ).toEqual(['test']);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth',
         environments: ['dev', 'test'],
-      }),
-    ).toEqual(dev.concat(test));
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test']);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth',
         environments: ['dev', 'test', 'prod'],
-      }),
-    ).toEqual(dev.concat(test).concat(prod));
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test', 'prod']);
   });
 
   it('returns the expected environments for bceid', () => {
@@ -102,38 +66,38 @@ describe('Get Requested Environments', () => {
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
         environments: ['dev'],
-      }),
-    ).toEqual(dev);
+      }).map((v) => v.name),
+    ).toEqual(['dev']);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
         environments: ['test'],
-      }),
-    ).toEqual(test);
+      }).map((v) => v.name),
+    ).toEqual(['test']);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
         environments: ['dev', 'test'],
-      }),
-    ).toEqual(dev.concat(test));
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test']);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
         environments: ['dev', 'test', 'prod'],
         bceidApproved: false,
-      }),
-    ).toEqual(dev.concat(test));
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test']);
 
     expect(
       getRequestedEnvironments({
         realm: 'onestopauth-basic',
         environments: ['dev', 'test', 'prod'],
         bceidApproved: true,
-      }),
-    ).toEqual(dev.concat(test).concat(prod));
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test', 'prod']);
   });
 });
 

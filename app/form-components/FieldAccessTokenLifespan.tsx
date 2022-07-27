@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FieldTemplateProps } from 'react-jsonschema-form';
-import InfoOverlay from 'components/InfoOverlay';
+import Link from '@button-inc/bcgov-theme/Link';
 import FieldTemplate from './FieldTemplate';
 
 const Container = styled.div`
@@ -14,16 +14,23 @@ const Title = styled.legend`
   margin: 0;
 `;
 
+const InfoText = styled.p`
+  font-style: italic;
+  font-size: 0.9rem;
+  margin-top: 0.7rem;
+  font-weight: normal;
+`;
+
 export default function FieldAccessTokenLifespan(props: FieldTemplateProps) {
   const top = (
     <>
       <Container>
         <Title>
           Additional Settings (Optional)&nbsp;
-          <InfoOverlay
-            trigger={['click']}
-            content='If you would like this set for your integration or have questions, please contact <a href="mailto:bcgov.sso@gov.bc.ca"> Pathfinder SSO Team</a>.'
-          />
+          <InfoText>
+            *If you would like to configure the Additional Settings, or have any questions,{' '}
+            <Link href="mailto:bcgov.sso@gov.bc.ca">please contact the Pathfinder SSO Team</Link>.
+          </InfoText>
         </Title>
       </Container>
       <br />

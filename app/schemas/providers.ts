@@ -30,9 +30,12 @@ const prodValidRedirectUris = {
   title: 'Prod Redirect URIs',
 };
 
+const validURIlink =
+  '<a target="_blank" class="link" href="https://github.com/bcgov/sso-keycloak/wiki/CSS-App-Valid-Redirect-URI-Format">valid URI </a>';
+
 export const devValidRedirectUris = {
   ...commonRedirectUris,
-  description: 'You can use any valid URI for your redirect URIs.',
+  description: `You can use any ${validURIlink} for your redirect URIs.`,
   title: 'Dev Redirect URIs',
   tooltip: redirectUriTooltip,
 };

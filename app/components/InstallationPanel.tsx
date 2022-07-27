@@ -91,14 +91,15 @@ const InstallationPanel = ({ integration, alert }: Props) => {
       <br />
       <Grid cols={3}>
         {getRequestedEnvironments(integration).map((env) => {
-          if (env.idps.length === 0) return null;
+          if (integration.authType !== 'service-account' && env.idps.length === 0) return null;
+          const idpList = env.idps.length > 0 ? `(${env.idps.map((idp) => idpMap[idp]).join(', ')})` : '';
 
           return (
             <React.Fragment key={env.name}>
               <Grid.Row collapse="992" gutter={[]} align="center">
                 <Grid.Col span={1} style={{ width: '100%', height: '30px' }}>
                   <EnvTitle>
-                    {env.display} ({env.idps.map((idp) => idpMap[idp]).join(', ')})
+                    {env.display} {idpList}
                   </EnvTitle>
                 </Grid.Col>
               </Grid.Row>
@@ -124,7 +125,10 @@ const InstallationPanel = ({ integration, alert }: Props) => {
       </Grid>
       <InfoMessage>
         For more information on how to use these details, or for the public endpoints associated to your client, see{' '}
-        <Link href="https://github.com/bcgov/sso-requests/blob/dev/docs/user-guide.md#using-your-integration" external>
+        <Link
+          href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#setting-up-your-keycloak-client"
+          external
+        >
           here
         </Link>
         .

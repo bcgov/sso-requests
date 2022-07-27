@@ -15,7 +15,7 @@ export const isValidKeycloakURI = (uri: string) => {
   }
 };
 
-const validationMessage = 'Please enter a valid URI, including an http:// or https:// prefix';
+const validationMessage = 'Please enter a valid URI';
 
 export const customValidate = (formData: any, errors: FormValidation, fields?: string[]) => {
   const {

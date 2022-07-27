@@ -32,7 +32,8 @@ export const getRequestedEnvironments = (integration: Request) => {
 
   const hasBceid = usesBceid(integration);
   const options = environmentOptions.map((option) => {
-    return { ...option, idps: integration.devIdps || [] };
+    const idps = serviceType === 'gold' ? integration.devIdps : realmToIDP(integration.realm);
+    return { ...option, idps: idps || [] };
   });
 
   if (serviceType === 'gold') {
@@ -117,21 +118,12 @@ export const hashToBase64url = (arrayBuffer: Iterable<number>) => {
   return decodedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
 
-export const idpToRealm = (idp: string[]) => {
-  let sorted = [...idp].sort();
-  if (isEqual(['idir'], sorted)) return 'onestopauth';
-  if (isEqual(['bceid-basic', 'idir'], sorted)) return 'onestopauth-basic';
-  if (isEqual(['bceid-basic', 'bceid-business', 'idir'], sorted)) return 'onestopauth-both';
-  if (isEqual(['bceid-business', 'idir'], sorted)) return 'onestopauth-business';
-  return null;
-};
-
 export const realmToIDP = (realm?: string) => {
   let idps: string[] = [];
   if (realm === 'onestopauth') idps = ['idir'];
-  if (realm === 'onestopauth-basic') idps = ['idir', 'bceid-basic'];
-  if (realm === 'onestopauth-business') idps = ['idir', 'bceid-business'];
-  if (realm === 'onestopauth-both') idps = ['idir', 'bceid-business', 'bceid-basic'];
+  if (realm === 'onestopauth-basic') idps = ['idir', 'bceidbasic'];
+  if (realm === 'onestopauth-business') idps = ['idir', 'bceidbusiness'];
+  if (realm === 'onestopauth-both') idps = ['idir', 'bceidboth'];
   return idps;
 };
 
