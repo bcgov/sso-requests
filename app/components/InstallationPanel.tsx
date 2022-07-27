@@ -91,14 +91,15 @@ const InstallationPanel = ({ integration, alert }: Props) => {
       <br />
       <Grid cols={3}>
         {getRequestedEnvironments(integration).map((env) => {
-          if (env.idps.length === 0) return null;
+          if (integration.authType !== 'service-account' && env.idps.length === 0) return null;
+          const idpList = env.idps.length > 0 ? `(${env.idps.map((idp) => idpMap[idp]).join(', ')})` : '';
 
           return (
             <React.Fragment key={env.name}>
               <Grid.Row collapse="992" gutter={[]} align="center">
                 <Grid.Col span={1} style={{ width: '100%', height: '30px' }}>
                   <EnvTitle>
-                    {env.display} ({env.idps.map((idp) => idpMap[idp]).join(', ')})
+                    {env.display} {idpList}
                   </EnvTitle>
                 </Grid.Col>
               </Grid.Row>
