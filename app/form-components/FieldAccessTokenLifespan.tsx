@@ -28,8 +28,8 @@ export default function FieldAccessTokenLifespan(props: FieldTemplateProps) {
         <Title>
           Additional Settings (Optional)&nbsp;
           <InfoText>
-            *If you would like this set for your integration or have questions,{' '}
-            <Link href="mailto:bcgov.sso@gov.bc.ca">please contact Pathfinder SSO Team</Link>.
+            *If you would like to configure the Additional Settings, or have any questions,{' '}
+            <Link href="mailto:bcgov.sso@gov.bc.ca">please contact the Pathfinder SSO Team</Link>.
           </InfoText>
         </Title>
       </Container>
