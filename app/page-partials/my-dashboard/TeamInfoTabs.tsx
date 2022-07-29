@@ -369,6 +369,51 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   return (
     <>
       <RequestTabs defaultActiveKey={'members'}>
+        {enable_gold && isAdmin && (
+          <Tab eventKey="service-accounts" title="Team Service Account">
+            <TabWrapper marginTop="20px">
+              {serviceAccount ? (
+                serviceAccount.status === 'submitted' ? (
+                  <span>The service account is already requested.</span>
+                ) : (
+                  <Button
+                    onClick={async () => {
+                      let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
+                      data = data || {};
+
+                      const text = {
+                        tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
+                        clientId: `${data.resource}`,
+                        clientSecret: `${data.credentials?.secret}`,
+                      };
+                      downloadText(prettyJSON(text), `${serviceAccount.clientId}.json`);
+                    }}
+                  >
+                    Download
+                  </Button>
+                )
+              ) : (
+                <Button
+                  onClick={async () => {
+                    const [sa, err] = await requestServiceAccount(team.id);
+                    if (err) {
+                      alert.show({
+                        variant: 'danger',
+                        fadeOut: 10000,
+                        closable: true,
+                        content: err,
+                      });
+                    } else {
+                      setServiceAccount(sa);
+                    }
+                  }}
+                >
+                  + Request Team Service Account
+                </Button>
+              )}
+            </TabWrapper>
+          </Tab>
+        )}
         <Tab eventKey="members" title="Members">
           <TabWrapper>
             {isAdmin ? (
@@ -532,51 +577,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        {/* {enable_gold && isAdmin && (
-          <Tab eventKey="service-accounts" title="Service Accounts">
-            <TabWrapper marginTop="20px">
-              {serviceAccount ? (
-                serviceAccount.status === 'submitted' ? (
-                  <span>The service account is already requested.</span>
-                ) : (
-                  <Button
-                    onClick={async () => {
-                      let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
-                      data = data || {};
-
-                      const text = {
-                        tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
-                        clientId: `${data.resource}`,
-                        clientSecret: `${data.credentials?.secret}`,
-                      };
-                      downloadText(prettyJSON(text), `${serviceAccount.clientId}.json`);
-                    }}
-                  >
-                    Download
-                  </Button>
-                )
-              ) : (
-                <Button
-                  onClick={async () => {
-                    const [sa, err] = await requestServiceAccount(team.id);
-                    if (err) {
-                      alert.show({
-                        variant: 'danger',
-                        fadeOut: 10000,
-                        closable: true,
-                        content: `Failed to request a service account.`,
-                      });
-                    } else {
-                      setServiceAccount(sa);
-                    }
-                  }}
-                >
-                  Request
-                </Button>
-              )}
-            </TabWrapper>
-          </Tab>
-        )} */}
       </RequestTabs>
       <CenteredModal
         title="Add a New Team Member"

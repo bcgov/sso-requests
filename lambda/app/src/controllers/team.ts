@@ -3,14 +3,15 @@ import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
 import { inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
-import { sendTemplate } from '@lambda-shared/templates';
+import { sendTemplate, sendTemplates } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
-import { User, Team, Member } from '@lambda-shared/interfaces';
+import { User, Team, Member, Session } from '@lambda-shared/interfaces';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
+import { listIntegrationsForTeam } from '@lambda-app/queries/request';
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -170,8 +171,15 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
   return getMemberOnTeam(teamId, userId, { raw: true });
 };
 
-export const requestServiceAccount = async (userId: number, teamId: number, requester: string) => {
+export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+  const integrations = await listIntegrationsForTeam(session, teamId);
+  const team = await getTeamById(teamId);
+  console.log(integrations.length);
+
+  if (integrations.length == 0)
+    throw Error(`service account not allowed as team #${team.name} has no active integrations`);
+
   const serviceAccount = await models.request.create({
     projectName: `Service Account for team #${teamId}`,
     serviceType: 'gold',
@@ -190,12 +198,25 @@ export const requestServiceAccount = async (userId: number, teamId: number, requ
   serviceAccount.requester = requester;
 
   const ghResult = await dispatchRequestWorkflow(serviceAccount);
+
   if (ghResult.status !== 204) {
     await serviceAccount.destroy();
     throw Error('failed to create a workflow dispatch event');
   }
 
   await serviceAccount.save();
+
+  const user = await getUserById(userId);
+
+  const emails: { code: string; data: any }[] = [];
+
+  emails.push({
+    code: EMAILS.TEAM_API_SERVICE_ACCOUNT_REQUESTED,
+    data: { integrations, user, team },
+  });
+
+  await sendTemplates(emails);
+
   return serviceAccount;
 };
 

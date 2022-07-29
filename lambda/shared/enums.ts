@@ -30,4 +30,5 @@ export const EMAILS = {
   TEAM_MEMBER_DELETED_USER_REMOVED: 'team-member-deleted-user-removed',
   TEAM_DELETED: 'team-deleted',
   REQUEST_LIMIT_EXCEEDED: 'request-limit-exceeded',
+  TEAM_API_SERVICE_ACCOUNT_REQUESTED: 'team-api-service-account-requested',
 };
