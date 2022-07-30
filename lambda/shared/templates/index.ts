@@ -18,6 +18,7 @@ import teamMemberDeletedUserRemoved from './team-member-deleted-user-removed';
 import updateIntegrationApproved from './update-integration-approved';
 import updateIntegrationSubmitted from './update-integration-submitted';
 import teamApiServiceAccountRequested from './team-api-service-account-requested';
+import teamApiServiceAccountCreated from './team-api-service-account-created';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -74,6 +75,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.TEAM_API_SERVICE_ACCOUNT_REQUESTED:
       builder = teamApiServiceAccountRequested;
+      break;
+    case EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED:
+      builder = teamApiServiceAccountCreated;
       break;
     default:
       break;

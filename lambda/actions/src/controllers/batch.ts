@@ -3,6 +3,8 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EVENTS, EMAILS } from '@lambda-shared/enums';
 import { mergePR } from '../github';
+import { getUserById } from '@lambda-app/queries/user';
+import { getTeamById } from '@lambda-app/queries/team';
 
 const createEvent = async (data) => {
   try {
@@ -68,7 +70,7 @@ export const updatePlannedItems = async (data) => {
 
   const integrations = await models.request.findAll({
     where,
-    attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId', 'archived'],
+    attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId', 'archived', 'apiServiceAccount'],
     raw: true,
   });
   const integrationIds = integrations.map((intg) => intg.id);
@@ -85,8 +87,17 @@ export const updatePlannedItems = async (data) => {
         (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) >
         1;
 
-      const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;
-      await sendTemplate(emailCode, { integration });
+      if (integration.apiServiceAccount) {
+        const integrations = models.request.findAll({
+          where: { teamId: integration.teamId, apiServiceAccount: false, archived: false },
+        });
+        const team = await getTeamById(integration.teamId);
+        const user = await getUserById(integration.userId);
+        await sendTemplate(EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED, { integrations, user, team });
+      } else {
+        const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;
+        await sendTemplate(emailCode, { integration });
+      }
     }),
   );
 
