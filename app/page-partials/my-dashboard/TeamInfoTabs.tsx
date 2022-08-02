@@ -49,8 +49,6 @@ import getConfig from 'next/config';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
-import DefaultButton from '@button-inc/bcgov-theme/Button';
-import BceidStatus from 'components/BceidStatus';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -396,7 +394,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   const isAdmin = myself.role === 'admin';
 
-  const fetchApiAccountCredentials = async (team: any, serviceAccount: any, download: boolean) => {
+  const fetchApiAccountCredentials = async (team: Team, serviceAccount: Request, download: boolean) => {
     setLoading(true);
     let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
     data = data || {};
