@@ -3,7 +3,7 @@ import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
 import { inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
-import { sendTemplate, sendTemplates } from '@lambda-shared/templates';
+import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';

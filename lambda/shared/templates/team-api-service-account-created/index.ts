@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
-import { Team, User, Data } from '@lambda-shared/interfaces';
+import { Team, Data } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { getTeamEmails, processIntegrationList, processRequest, processTeam, processUser } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
@@ -37,7 +37,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getTeamEmails(team.id, false, ['admin']);
 
   return sendEmail({
-    code: EMAILS.TEAM_API_SERVICE_ACCOUNT_REQUESTED,
+    code: EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED,
     to: emails,
     cc: [SSO_EMAIL_ADDRESS],
     ...rendered,

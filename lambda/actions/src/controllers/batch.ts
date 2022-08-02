@@ -3,7 +3,6 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EVENTS, EMAILS } from '@lambda-shared/enums';
 import { mergePR } from '../github';
-import { getUserById } from '@lambda-app/queries/user';
 import { getTeamById } from '@lambda-app/queries/team';
 
 const createEvent = async (data) => {

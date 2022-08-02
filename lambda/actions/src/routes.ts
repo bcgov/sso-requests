@@ -34,20 +34,20 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  // app.use((req, res, next) => {
-  //   try {
-  //     const { Authorization, authorization } = req.headers || {};
-  //     const authHeader = Authorization || authorization;
-  //     if (!authHeader || authHeader !== process.env.GH_SECRET) {
-  //       res.status(401).json({ success: false, message: 'not authorized' });
-  //       return false;
-  //     }
-  //   } catch (err) {
-  //     handleError(res, err);
-  //   }
+  app.use((req, res, next) => {
+    try {
+      const { Authorization, authorization } = req.headers || {};
+      const authHeader = Authorization || authorization;
+      if (!authHeader || authHeader !== process.env.GH_SECRET) {
+        res.status(401).json({ success: false, message: 'not authorized' });
+        return false;
+      }
+    } catch (err) {
+      handleError(res, err);
+    }
 
-  //   if (next) next();
-  // });
+    if (next) next();
+  });
 
   app.put(`${BASE_PATH}/batch/pr`, async (req, res) => {
     try {
