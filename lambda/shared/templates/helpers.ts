@@ -94,3 +94,11 @@ export const getIntegrationEmails = async (integration: Data, primaryEmailOnly =
 
   return [];
 };
+
+export const processIntegrationList = (integrations: Array<Data>) => {
+  return Promise.all(
+    integrations.map(async (int) => {
+      return await processRequest(int);
+    }),
+  );
+};

@@ -73,6 +73,7 @@ export const updatePlannedItems = async (data) => {
     attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId', 'archived', 'apiServiceAccount'],
     raw: true,
   });
+
   const integrationIds = integrations.map((intg) => intg.id);
   await models.request.update({ status: newStatus }, { where: { id: { [Op.in]: integrationIds } } });
   await models.event.bulkCreate(integrationIds.map((requestId) => ({ eventCode, requestId })));
@@ -88,12 +89,16 @@ export const updatePlannedItems = async (data) => {
         1;
 
       if (integration.apiServiceAccount) {
-        const integrations = models.request.findAll({
+        const integrations = await models.request.findAll({
           where: { teamId: integration.teamId, apiServiceAccount: false, archived: false },
         });
+
         const team = await getTeamById(integration.teamId);
-        const user = await getUserById(integration.userId);
-        await sendTemplate(EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED, { integrations, user, team });
+        await sendTemplate(EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED, {
+          requester: integration.requester,
+          team,
+          integrations,
+        });
       } else {
         const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;
         await sendTemplate(emailCode, { integration });

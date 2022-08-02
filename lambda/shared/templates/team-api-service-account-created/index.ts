@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import Handlebars = require('handlebars');
 import { Team, User, Data } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
-import { getTeamEmails, processRequest, processTeam, processUser } from '../helpers';
+import { getTeamEmails, processIntegrationList, processRequest, processTeam, processUser } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
@@ -14,18 +14,17 @@ const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
-  integrations: Array<Data>;
-  user: User;
+  requester: string;
   team: Team;
+  integrations: Array<Data>;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
-  const { team, user } = originalData;
-  const integrations = originalData.integrations.map(async (int) => {
-    return await processRequest(int);
-  });
+  const { team, requester, integrations } = originalData;
 
-  const data = { ...originalData, team: await processTeam(team), user: await processUser(user), integrations };
+  const integrationList = await processIntegrationList(integrations);
+
+  const data = { ...originalData, team: await processTeam(team), requester, integrations: integrationList };
 
   return {
     subject: subjectHandler(data),
@@ -34,7 +33,7 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 };
 
 export const send = async (data: DataProps, rendered: RenderResult) => {
-  const { team, user, integrations } = data;
+  const { team, requester, integrations } = data;
   const emails = await getTeamEmails(team.id, false, ['admin']);
 
   return sendEmail({

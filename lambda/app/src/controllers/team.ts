@@ -175,7 +175,6 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
   const integrations = await listIntegrationsForTeam(session, teamId);
   const team = await getTeamById(teamId);
-  console.log(integrations.length);
 
   if (integrations.length == 0)
     throw Error(`service account not allowed as team #${team.name} has no active integrations`);
@@ -206,16 +205,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 
   await serviceAccount.save();
 
-  const user = await getUserById(userId);
-
-  const emails: { code: string; data: any }[] = [];
-
-  emails.push({
-    code: EMAILS.TEAM_API_SERVICE_ACCOUNT_REQUESTED,
-    data: { integrations, user, team },
-  });
-
-  await sendTemplates(emails);
+  await sendTemplate(EMAILS.TEAM_API_SERVICE_ACCOUNT_REQUESTED, { requester, team, integrations });
 
   return serviceAccount;
 };
@@ -230,7 +220,7 @@ export const getServiceAccount = async (userId: number, teamId: number) => {
       apiServiceAccount: true,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['id', 'clientId', 'teamId', 'status'],
+    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt'],
     raw: true,
   });
 };
