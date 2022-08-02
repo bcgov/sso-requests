@@ -96,7 +96,7 @@ export const updatePlannedItems = async (data) => {
         await sendTemplate(EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED, {
           requester: integration.requester,
           team,
-          teamIntegrations,
+          integrations: teamIntegrations,
         });
       } else {
         const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;

@@ -446,7 +446,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         <Button
                           size="medium"
                           variant="grey"
-                          onClick={async () => fetchApiAccountCredentials(team, serviceAccount, false)}
+                          onClick={() => fetchApiAccountCredentials(team, serviceAccount, false)}
                         >
                           Copy
                         </Button>
@@ -454,7 +454,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         <Button
                           size="medium"
                           variant="grey"
-                          onClick={async () => await fetchApiAccountCredentials(team, serviceAccount, true)}
+                          onClick={() => fetchApiAccountCredentials(team, serviceAccount, true)}
                         >
                           Download
                         </Button>
