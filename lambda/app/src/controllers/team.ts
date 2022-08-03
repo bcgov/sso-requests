@@ -220,7 +220,7 @@ export const getServiceAccount = async (userId: number, teamId: number) => {
       apiServiceAccount: true,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt'],
+    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber'],
     raw: true,
   });
 };
