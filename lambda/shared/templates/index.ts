@@ -17,8 +17,9 @@ import teamMemberDeletedAdmins from './team-member-deleted-admins';
 import teamMemberDeletedUserRemoved from './team-member-deleted-user-removed';
 import updateIntegrationApproved from './update-integration-approved';
 import updateIntegrationSubmitted from './update-integration-submitted';
-import teamApiServiceAccountRequested from './team-api-service-account-requested';
-import teamApiServiceAccountCreated from './team-api-service-account-created';
+import createTeamApiAccountSubmitted from './create-team-api-account-approved';
+import createTeamApiAccountApproved from './create-team-api-account-approved';
+import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -73,11 +74,14 @@ const getBuilder = (key: string) => {
     case EMAILS.UPDATE_INTEGRATION_SUBMITTED:
       builder = updateIntegrationSubmitted;
       break;
-    case EMAILS.TEAM_API_SERVICE_ACCOUNT_REQUESTED:
-      builder = teamApiServiceAccountRequested;
+    case EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED:
+      builder = createTeamApiAccountSubmitted;
       break;
-    case EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED:
-      builder = teamApiServiceAccountCreated;
+    case EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED:
+      builder = createTeamApiAccountApproved;
+      break;
+    case EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED:
+      builder = deleteTeamApiAccountSubmitted;
       break;
     default:
       break;

@@ -7,8 +7,8 @@ import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
 
-const SUBJECT_TEMPLATE = `SSO CSS API Account requested`;
-const template = fs.readFileSync(__dirname + '/team-api-service-account-requested.html', 'utf8');
+const SUBJECT_TEMPLATE = `SSO CSS API Account created`;
+const template = fs.readFileSync(__dirname + '/create-team-api-account-approved.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
@@ -20,7 +20,8 @@ interface DataProps {
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
-  const { requester, team, integrations } = originalData;
+  const { team, requester, integrations } = originalData;
+
   const integrationList = await processIntegrationList(integrations);
 
   const data = { ...originalData, team: await processTeam(team), requester, integrations: integrationList };
@@ -36,7 +37,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getTeamEmails(team.id, false, ['admin']);
 
   return sendEmail({
-    code: EMAILS.TEAM_API_SERVICE_ACCOUNT_REQUESTED,
+    code: EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED,
     to: emails,
     cc: [SSO_EMAIL_ADDRESS],
     ...rendered,

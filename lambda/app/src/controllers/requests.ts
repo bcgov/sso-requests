@@ -27,7 +27,7 @@ const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
 
-const createEvent = async (data) => {
+export const createEvent = async (data) => {
   try {
     await models.event.create(data);
   } catch (err) {
@@ -35,7 +35,7 @@ const createEvent = async (data) => {
   }
 };
 
-const getRequester = async (session: Session, requestId: number) => {
+export const getRequester = async (session: Session, requestId: number) => {
   let requester = getDisplayName(session);
   const isMyOrTeamRequest = await getMyOrTeamRequest(session.user.id, requestId);
   if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
@@ -48,7 +48,7 @@ const checkIfHasFailedRequests = async () => {
 };
 
 // Check if an applied/apply-failed event exists for the client
-const checkIfRequestMerged = async (id: number) => {
+export const checkIfRequestMerged = async (id: number) => {
   const request = await models.event.findOne({
     where: { requestId: id, eventCode: { [Op.in]: [EVENTS.REQUEST_APPLY_SUCCESS, EVENTS.REQUEST_APPLY_FAILURE] } },
   });

@@ -23,6 +23,7 @@ import {
   getServiceAccount,
   requestServiceAccount,
   downloadServiceAccount,
+  deleteServiceAccount,
 } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
@@ -230,6 +231,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
+  const deleteServiceAccountModalId = 'delete-service-account-modal';
+  const canDeleteServiceAccount = Number(team.integrationCount) === 0;
 
   const openModal = () => (window.location.hash = addMemberModalId);
 
@@ -458,13 +461,21 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         >
                           Download
                         </Button>
+                        &nbsp;&nbsp;&nbsp;
+                        <Button
+                          size="medium"
+                          variant="danger"
+                          disabled={canDeleteServiceAccount}
+                          onClick={() => deleteServiceAccount(team.id, serviceAccount.id)}
+                        >
+                          Delete
+                        </Button>
                       </Grid.Col>
                     </Grid.Row>
                     <br />
                     <Grid.Row collapse="992" gutter={[]} align="center">
                       <InfoMessage>
-                        For more information on how to use these details, or for the public endpoints associated to your
-                        client, see{' '}
+                        For more information on how to use the CSS API Account with your integrations, see{' '}
                         <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
                           here
                         </Link>

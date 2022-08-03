@@ -14,6 +14,7 @@ import {
   getServiceAccount,
   requestServiceAccount,
   downloadServiceAccount,
+  deleteServiceAccount,
 } from './controllers/team';
 import { findOrCreateUser, updateProfile } from './controllers/user';
 import {
@@ -545,6 +546,21 @@ export const setRoutes = (app: any) => {
     try {
       const { id: teamId, saId } = req.params;
       const result = await downloadServiceAccount(req.user.id, teamId, saId);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.delete(`${BASE_PATH}/teams/:id/service-account/:saId`, async (req, res) => {
+    try {
+      const { id: teamId, saId } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, teamId);
+      if (!authorized)
+        return res
+          .status(401)
+          .json({ success: false, message: 'You are not authorized to delete this CSS API Account' });
+      const result = await deleteServiceAccount(req.session as Session, req.user.id, teamId, saId);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

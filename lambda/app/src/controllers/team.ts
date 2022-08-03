@@ -4,14 +4,15 @@ import { inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
-import { EMAILS } from '@lambda-shared/enums';
+import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
-import { listIntegrationsForTeam } from '@lambda-app/queries/request';
+import { getAllowedRequest, listIntegrationsForTeam } from '@lambda-app/queries/request';
+import { checkIfRequestMerged, createEvent, getRequester } from './requests';
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -177,7 +178,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   const team = await getTeamById(teamId);
 
   if (integrations.length == 0)
-    throw Error(`service account not allowed as team #${team.name} has no active integrations`);
+    throw Error(`CSS API Account not allowed as team #${team.name} has no active integrations`);
 
   const serviceAccount = await models.request.create({
     projectName: `Service Account for team #${teamId}`,
@@ -205,7 +206,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 
   await serviceAccount.save();
 
-  await sendTemplate(EMAILS.TEAM_API_SERVICE_ACCOUNT_REQUESTED, { requester, team, integrations });
+  await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
 
   return serviceAccount;
 };
@@ -213,7 +214,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 export const getServiceAccount = async (userId: number, teamId: number) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
 
-  return models.request.findOne({
+  return await models.request.findOne({
     where: {
       serviceType: 'gold',
       usesTeam: true,
@@ -249,4 +250,63 @@ export const downloadServiceAccount = async (userId: number, teamId: number, saI
   });
 
   return installation;
+};
+
+export const deleteServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
+  try {
+    const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+    const team = await getTeamById(teamId);
+    const serviceAccount = await models.request.findOne({
+      where: {
+        id: saId,
+        serviceType: 'gold',
+        usesTeam: true,
+        apiServiceAccount: true,
+        archived: false,
+        teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
+      },
+    });
+
+    if (!serviceAccount) {
+      throw Error('unauthorized request');
+    }
+
+    const isMerged = await checkIfRequestMerged(teamId);
+    const requester = await getRequester(session, serviceAccount.id);
+    serviceAccount.requester = requester;
+    serviceAccount.status = 'submitted';
+    serviceAccount.archived = true;
+
+    if (isMerged) {
+      // Trigger workflow with empty environments to delete client
+      const ghResult = await dispatchRequestWorkflow(serviceAccount);
+      if (ghResult.status !== 204) {
+        throw Error('failed to create a workflow dispatch event');
+      }
+    }
+
+    // Close any pr's if they exist
+    await closeOpenPullRequests(saId);
+
+    await serviceAccount.save();
+
+    await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team });
+
+    createEvent({
+      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,
+      requestId: saId,
+      userId: session.user.id,
+    });
+
+    return serviceAccount;
+  } catch (err) {
+    console.error(err);
+
+    createEvent({
+      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,
+      requestId: saId,
+      userId: session.user.id,
+    });
+    throw Error(err.message || err);
+  }
 };
