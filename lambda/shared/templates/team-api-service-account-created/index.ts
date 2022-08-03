@@ -16,7 +16,7 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   requester: string;
   team: Team;
-  integrations: Array<Data>;
+  integrations: Data[];
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {

@@ -90,6 +90,7 @@ export const updatePlannedItems = async (data) => {
       if (integration.apiServiceAccount) {
         const teamIntegrations = await models.request.findAll({
           where: { teamId: integration.teamId, apiServiceAccount: false, archived: false },
+          attributes: ['id', 'projectName', 'usesTeam', 'teamId', 'userId'],
         });
 
         const team = await getTeamById(integration.teamId);
