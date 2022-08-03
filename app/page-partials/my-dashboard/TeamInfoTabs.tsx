@@ -415,7 +415,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   return (
     <>
-      <RequestTabs defaultActiveKey={isAdmin ? 'service-accounts' : 'members'}>
+      <RequestTabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'}>
         {enable_gold && isAdmin && (
           <Tab eventKey="service-accounts" title="CSS API Account">
             <TabWrapper marginTop="20px">
