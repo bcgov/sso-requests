@@ -8,7 +8,8 @@
       "*": ["../*"],
       "@app/*": ["../app/*"],
       "@lambda-app/*": ["../lambda/app/src/*"],
-      "@lambda-shared/*": ["../lambda/shared/*"]
+      "@lambda-shared/*": ["../lambda/shared/*"],
+      "@lambda-actions/*": ["../lambda/actions/src/*"]
     }
   }
 }

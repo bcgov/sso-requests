@@ -4,7 +4,8 @@ import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
 import { RequestTabs } from 'components/RequestTabs';
 import { Table } from '@bcgov-sso/common-react-components';
-import { Button } from '@bcgov-sso/common-react-components';
+import { Button as RequestButton } from '@bcgov-sso/common-react-components';
+import Button from 'html-components/Button';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
@@ -41,8 +42,13 @@ import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
+import InfoMessage from 'components/InfoMessage';
+import Link from '@button-inc/bcgov-theme/Link';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import getConfig from 'next/config';
+import Grid from '@button-inc/bcgov-theme/Grid';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
+import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -74,6 +80,10 @@ const PaddedButton = styled(Button)`
 
 const CenteredTD = styled.td`
   text-align: left !important;
+`;
+
+const TopMargin = styled.div`
+  height: var(--field-top-spacing);
 `;
 
 const addMemberModalId = 'add-member-modal';
@@ -191,6 +201,24 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
   return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
 };
 
+const Requester = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 1rem;
+`;
+
+const SubTitle = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  border-bottom: 1px solid gray;
+`;
+
+const AlignCenter = styled.div`
+  text-align: center;
+`;
+
 function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState<User[]>([]);
@@ -237,7 +265,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   let interval: any;
 
   useEffect(() => {
-    if (serviceAccount && serviceAccount.status === 'submitted') {
+    if (serviceAccount && serviceAccount.status !== 'applied') {
       clearInterval(interval);
 
       interval = setInterval(async () => {
@@ -366,9 +394,107 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   const isAdmin = myself.role === 'admin';
 
+  const fetchApiAccountCredentials = async (team: Team, serviceAccount: Request, download: boolean) => {
+    setLoading(true);
+    let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
+    data = data || {};
+
+    const text = {
+      tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
+      clientId: `${data.resource}`,
+      clientSecret: `${data.credentials?.secret}`,
+    };
+
+    if (download) {
+      downloadText(prettyJSON(text), `${serviceAccount.clientId}.json`);
+    } else {
+      copyTextToClipboard(prettyJSON(text));
+    }
+    setLoading(false);
+  };
+
   return (
     <>
-      <RequestTabs defaultActiveKey={'members'}>
+      <RequestTabs defaultActiveKey={isAdmin ? 'service-accounts' : 'members'}>
+        {enable_gold && isAdmin && (
+          <Tab eventKey="service-accounts" title="CSS API Account">
+            <TabWrapper marginTop="20px">
+              {serviceAccount ? (
+                serviceAccount.status !== 'applied' ? (
+                  <Grid cols={15}>
+                    <Grid.Row gutter={[]}>
+                      <Grid.Col span={7} align={'center'}>
+                        {serviceAccount.requester && <Requester>Submitted by: {serviceAccount.requester}</Requester>}
+                        <SubTitle>CSS API Account will be provisioned in approx 20 min</SubTitle>
+                        <SubmittedStatusIndicator integration={serviceAccount} />
+                      </Grid.Col>
+                    </Grid.Row>
+                  </Grid>
+                ) : loading ? (
+                  <AlignCenter>
+                    <TopMargin />
+                    <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+                  </AlignCenter>
+                ) : (
+                  <Grid cols={3}>
+                    <Grid.Row collapse="992" gutter={[]} align="center">
+                      Download the files to get access to the CSS App API
+                    </Grid.Row>
+                    <br />
+                    <Grid.Row collapse="992" gutter={[]} align="center">
+                      <Grid.Col span={3}>
+                        <Button
+                          size="medium"
+                          variant="grey"
+                          onClick={() => fetchApiAccountCredentials(team, serviceAccount, false)}
+                        >
+                          Copy
+                        </Button>
+                        &nbsp;&nbsp;&nbsp;
+                        <Button
+                          size="medium"
+                          variant="grey"
+                          onClick={() => fetchApiAccountCredentials(team, serviceAccount, true)}
+                        >
+                          Download
+                        </Button>
+                      </Grid.Col>
+                    </Grid.Row>
+                    <br />
+                    <Grid.Row collapse="992" gutter={[]} align="center">
+                      <InfoMessage>
+                        For more information on how to use these details, or for the public endpoints associated to your
+                        client, see{' '}
+                        <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
+                          here
+                        </Link>
+                        .
+                      </InfoMessage>
+                    </Grid.Row>
+                  </Grid>
+                )
+              ) : (
+                <RequestButton
+                  onClick={async () => {
+                    const [sa, err] = await requestServiceAccount(team.id);
+                    if (err) {
+                      alert.show({
+                        variant: 'danger',
+                        fadeOut: 10000,
+                        closable: true,
+                        content: err,
+                      });
+                    } else {
+                      setServiceAccount(sa);
+                    }
+                  }}
+                >
+                  + Request CSS API Account
+                </RequestButton>
+              )}
+            </TabWrapper>
+          </Tab>
+        )}
         <Tab eventKey="members" title="Members">
           <TabWrapper>
             {isAdmin ? (
@@ -506,8 +632,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             </span>{' '}
                             tab
                           </li>
-                          <li>Select the "pencil" icon to edit the integration</li>
-                          <li>Select this team from the "Project Team" drop down</li>
+                          <li>Select the &ldquo;pencil&rdquo; icon to edit the integration</li>
+                          <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
                         </ol>
                         <br />
                         To add this team to a <span className="strong">new integration</span>:
@@ -520,9 +646,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             </span>{' '}
                             tab
                           </li>
-                          <li>Select "+ Request SSO Integration"</li>
-                          <li>Select "Yes" to allow multiple team members to manage the integration</li>
-                          <li>Select this team from the "Project Team" drop down</li>
+                          <li>Select &ldquo;+ Request SSO Integration&rdquo;</li>
+                          <li>Select &ldquo;Yes&rdquo; to allow multiple team members to manage the integration</li>
+                          <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
                         </ol>
                       </CenteredTD>
                     </tr>
@@ -532,51 +658,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        {/* {enable_gold && isAdmin && (
-          <Tab eventKey="service-accounts" title="Service Accounts">
-            <TabWrapper marginTop="20px">
-              {serviceAccount ? (
-                serviceAccount.status === 'submitted' ? (
-                  <span>The service account is already requested.</span>
-                ) : (
-                  <Button
-                    onClick={async () => {
-                      let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
-                      data = data || {};
-
-                      const text = {
-                        tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
-                        clientId: `${data.resource}`,
-                        clientSecret: `${data.credentials?.secret}`,
-                      };
-                      downloadText(prettyJSON(text), `${serviceAccount.clientId}.json`);
-                    }}
-                  >
-                    Download
-                  </Button>
-                )
-              ) : (
-                <Button
-                  onClick={async () => {
-                    const [sa, err] = await requestServiceAccount(team.id);
-                    if (err) {
-                      alert.show({
-                        variant: 'danger',
-                        fadeOut: 10000,
-                        closable: true,
-                        content: `Failed to request a service account.`,
-                      });
-                    } else {
-                      setServiceAccount(sa);
-                    }
-                  }}
-                >
-                  Request
-                </Button>
-              )}
-            </TabWrapper>
-          </Tab>
-        )} */}
       </RequestTabs>
       <CenteredModal
         title="Add a New Team Member"
