@@ -219,9 +219,10 @@ export const getServiceAccount = async (userId: number, teamId: number) => {
       serviceType: 'gold',
       usesTeam: true,
       apiServiceAccount: true,
+      archived: false,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber'],
+    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived'],
     raw: true,
   });
 };
@@ -290,7 +291,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 
     await serviceAccount.save();
 
-    await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team });
+    await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { team, requester });
 
     createEvent({
       eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,

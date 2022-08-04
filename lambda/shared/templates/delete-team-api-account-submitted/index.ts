@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
-import { Team, Data } from '@lambda-shared/interfaces';
+import { Team } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
-import { getTeamEmails, processIntegrationList, processRequest, processTeam } from '../helpers';
+import { getTeamEmails, processTeam } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
@@ -14,14 +14,14 @@ const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
-  requester: string;
   team: Team;
+  requester: string;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
-  const { requester, team } = originalData;
+  const { team, requester } = originalData;
 
-  const data = { ...originalData, requester, team: processTeam(team) };
+  const data = { ...originalData, requester, team: await processTeam(team) };
 
   return {
     subject: subjectHandler(data),

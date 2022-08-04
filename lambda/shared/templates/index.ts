@@ -17,7 +17,7 @@ import teamMemberDeletedAdmins from './team-member-deleted-admins';
 import teamMemberDeletedUserRemoved from './team-member-deleted-user-removed';
 import updateIntegrationApproved from './update-integration-approved';
 import updateIntegrationSubmitted from './update-integration-submitted';
-import createTeamApiAccountSubmitted from './create-team-api-account-approved';
+import createTeamApiAccountSubmitted from './create-team-api-account-submitted';
 import createTeamApiAccountApproved from './create-team-api-account-approved';
 import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
 

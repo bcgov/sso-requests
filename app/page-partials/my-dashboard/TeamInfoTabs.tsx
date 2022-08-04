@@ -50,6 +50,7 @@ import getConfig from 'next/config';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
+import WarningModalContents from 'components/WarningModalContents';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -79,6 +80,14 @@ const PaddedButton = styled(Button)`
   margin: 20px 0 !important;
 `;
 
+const DeleteButton = styled(Button)`
+  background-color: red;
+  &:hover {
+    background-color: red;
+    opacity: 0.7;
+  }
+`;
+
 const CenteredTD = styled.td`
   text-align: left !important;
 `;
@@ -89,6 +98,7 @@ const TopMargin = styled.div`
 
 const addMemberModalId = 'add-member-modal';
 const deleteMemberModalId = 'delete-member-modal';
+const deleteServiceAccountModalId = 'delete-service-account-modal';
 
 export type TabKey = 'members';
 
@@ -231,10 +241,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
-  const deleteServiceAccountModalId = 'delete-service-account-modal';
-  const canDeleteServiceAccount = Number(team.integrationCount) === 0;
-
+  const canDeleteServiceAccount = integrations.length === 0;
   const openModal = () => (window.location.hash = addMemberModalId);
+  const inProgressServiceAccount = serviceAccount?.status !== 'applied' && !serviceAccount?.archived;
+  const showDeleteServiceAccountModal = () => (window.location.hash = deleteServiceAccountModalId);
+
+  const handleDeleteSeviceAccount = async () => {
+    if (!canDeleteServiceAccount) return;
+    await deleteServiceAccount(team.id, serviceAccount?.id);
+    setServiceAccount(null);
+  };
 
   const getData = async (teamId: number) => {
     setLoading(true);
@@ -423,7 +439,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           <Tab eventKey="service-accounts" title="CSS API Account">
             <TabWrapper marginTop="20px">
               {serviceAccount ? (
-                serviceAccount.status !== 'applied' ? (
+                inProgressServiceAccount ? (
                   <Grid cols={15}>
                     <Grid.Row gutter={[]}>
                       <Grid.Col span={7} align={'center'}>
@@ -462,14 +478,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                           Download
                         </Button>
                         &nbsp;&nbsp;&nbsp;
-                        <Button
-                          size="medium"
-                          variant="danger"
-                          disabled={canDeleteServiceAccount}
-                          onClick={() => deleteServiceAccount(team.id, serviceAccount.id)}
-                        >
-                          Delete
-                        </Button>
+                        {canDeleteServiceAccount && (
+                          <DeleteButton size="medium" variant="grey" onClick={showDeleteServiceAccountModal}>
+                            Delete
+                          </DeleteButton>
+                        )}
                       </Grid.Col>
                     </Grid.Row>
                     <br />
@@ -689,6 +702,21 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         closable
       />
       <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
+      <CenteredModal
+        title="Delete CSS API Account"
+        icon={null}
+        onConfirm={handleDeleteSeviceAccount}
+        id={deleteServiceAccountModalId}
+        content={
+          <WarningModalContents
+            title="Are you sure that you want to delete this CSS API Account?"
+            content={'Once you delete this CSS PI Account, this action cannot be undone.'}
+          />
+        }
+        buttonStyle={'danger'}
+        confirmText={'Delete CSS API Account'}
+        closable
+      />
     </>
   );
 }
