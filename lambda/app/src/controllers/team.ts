@@ -7,12 +7,23 @@ import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
-import { getTeamById, findAllowedTeamUsers, getAllowedServiceAccount } from '../queries/team';
+import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
 import { listIntegrationsForTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent, getRequester } from './requests';
+
+const serviceAccountCommonPopulation = [
+  {
+    model: models.user,
+    required: false,
+  },
+  {
+    model: models.team,
+    required: false,
+  },
+];
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -255,8 +266,19 @@ export const downloadServiceAccount = async (userId: number, teamId: number, saI
 
 export const deleteServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
   try {
+    const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
     const team = await getTeamById(teamId);
-    const serviceAccount = await getAllowedServiceAccount(session, saId, userId, teamId);
+    const serviceAccount = await models.request.findOne({
+      where: {
+        id: saId,
+        serviceType: 'gold',
+        usesTeam: true,
+        apiServiceAccount: true,
+        archived: false,
+        teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
+      },
+      include: serviceAccountCommonPopulation,
+    });
 
     if (!serviceAccount) {
       throw Error('unauthorized request');

@@ -1,19 +1,7 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { Session, User } from '../../../shared/interfaces';
-import { getMyTeamsLiteral, getTeamIdLiteralOutOfRange } from './literals';
-import { isAdmin } from '@lambda-app/utils/helpers';
-
-const serviceAccountCommonPopulation = [
-  {
-    model: models.user,
-    required: false,
-  },
-  {
-    model: models.team,
-    required: false,
-  },
-];
+import { User } from '../../../shared/interfaces';
+import { getMyTeamsLiteral } from './literals';
 
 export const getTeamById = async (teamId: number, options = { raw: true }) => {
   return models.team.findOne({
@@ -132,21 +120,4 @@ export const findAllowedTeamUsers = async (teamId: number, userId: number, optio
     attributes: userTeamAttributes,
     ...options,
   });
-};
-
-export const getAllowedServiceAccount = async (session: Session, saId: number, userId: number, teamId: number) => {
-  const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
-  if (isAdmin(session)) {
-    return models.request.findOne({
-      where: {
-        id: saId,
-        serviceType: 'gold',
-        usesTeam: true,
-        apiServiceAccount: true,
-        archived: false,
-        teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
-      },
-      include: serviceAccountCommonPopulation,
-    });
-  }
 };
