@@ -94,7 +94,7 @@ export const updatePlannedItems = async (data) => {
         });
 
         const team = await getTeamById(integration.teamId);
-        await sendTemplate(EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED, {
+        await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED, {
           requester: integration.requester,
           team,
           integrations: teamIntegrations,

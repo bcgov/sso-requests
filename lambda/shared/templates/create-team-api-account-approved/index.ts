@@ -8,7 +8,7 @@ import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
 
 const SUBJECT_TEMPLATE = `SSO CSS API Account created`;
-const template = fs.readFileSync(__dirname + '/team-api-service-account-created.html', 'utf8');
+const template = fs.readFileSync(__dirname + '/create-team-api-account-approved.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
@@ -37,7 +37,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getTeamEmails(team.id, false, ['admin']);
 
   return sendEmail({
-    code: EMAILS.TEAM_API_SERVICE_ACCOUNT_CREATED,
+    code: EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED,
     to: emails,
     cc: [SSO_EMAIL_ADDRESS],
     ...rendered,

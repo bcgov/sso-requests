@@ -23,6 +23,7 @@ import {
   getServiceAccount,
   requestServiceAccount,
   downloadServiceAccount,
+  deleteServiceAccount,
 } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
@@ -78,6 +79,14 @@ const PaddedButton = styled(Button)`
   margin: 20px 0 !important;
 `;
 
+const DeleteButton = styled(Button)`
+  background-color: red;
+  &:hover {
+    background-color: red;
+    opacity: 0.7;
+  }
+`;
+
 const CenteredTD = styled.td`
   text-align: left !important;
 `;
@@ -88,6 +97,7 @@ const TopMargin = styled.div`
 
 const addMemberModalId = 'add-member-modal';
 const deleteMemberModalId = 'delete-member-modal';
+const deleteServiceAccountModalId = 'delete-service-account-modal';
 
 export type TabKey = 'members';
 
@@ -230,8 +240,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
-
+  const canDeleteServiceAccount = integrations.length === 0;
   const openModal = () => (window.location.hash = addMemberModalId);
+  const inProgressServiceAccount = serviceAccount?.status !== 'applied' && !serviceAccount?.archived;
+  const showDeleteServiceAccountModal = () => (window.location.hash = deleteServiceAccountModalId);
+
+  const handleDeleteSeviceAccount = async () => {
+    if (!canDeleteServiceAccount) return;
+    await deleteServiceAccount(team.id, serviceAccount?.id);
+    setServiceAccount(null);
+  };
 
   const getData = async (teamId: number) => {
     setLoading(true);
@@ -420,7 +438,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           <Tab eventKey="service-accounts" title="CSS API Account">
             <TabWrapper marginTop="20px">
               {serviceAccount ? (
-                serviceAccount.status !== 'applied' ? (
+                inProgressServiceAccount ? (
                   <Grid cols={15}>
                     <Grid.Row gutter={[]}>
                       <Grid.Col span={7} align={'center'}>
@@ -458,13 +476,18 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         >
                           Download
                         </Button>
+                        &nbsp;&nbsp;&nbsp;
+                        {canDeleteServiceAccount && (
+                          <DeleteButton size="medium" variant="grey" onClick={showDeleteServiceAccountModal}>
+                            Delete
+                          </DeleteButton>
+                        )}
                       </Grid.Col>
                     </Grid.Row>
                     <br />
                     <Grid.Row collapse="992" gutter={[]} align="center">
                       <InfoMessage>
-                        For more information on how to use these details, or for the public endpoints associated to your
-                        client, see{' '}
+                        For more information on how to use the CSS API Account with your integrations, see{' '}
                         <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
                           here
                         </Link>
@@ -678,6 +701,21 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         closable
       />
       <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
+      <CenteredModal
+        title="Delete CSS API Account"
+        icon={null}
+        onConfirm={handleDeleteSeviceAccount}
+        id={deleteServiceAccountModalId}
+        content={
+          <ModalContents
+            title="Are you sure that you want to delete this CSS API Account?"
+            content={'Once you delete this CSS PI Account, this action cannot be undone.'}
+          />
+        }
+        buttonStyle={'danger'}
+        confirmText={'Delete CSS API Account'}
+        closable
+      />
     </>
   );
 }
