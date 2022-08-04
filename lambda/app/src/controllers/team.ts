@@ -1,13 +1,13 @@
 import { Op } from 'sequelize';
 import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
-import { inviteTeamMembers } from '@lambda-app/utils/helpers';
+import { getDisplayName, inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
-import { getTeamById, findAllowedTeamUsers } from '../queries/team';
+import { getTeamById, findAllowedTeamUsers, getAllowedServiceAccount } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
@@ -222,7 +222,7 @@ export const getServiceAccount = async (userId: number, teamId: number) => {
       archived: false,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived'],
+    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived', 'requester'],
     raw: true,
   });
 };
@@ -255,25 +255,15 @@ export const downloadServiceAccount = async (userId: number, teamId: number, saI
 
 export const deleteServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
   try {
-    const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
     const team = await getTeamById(teamId);
-    const serviceAccount = await models.request.findOne({
-      where: {
-        id: saId,
-        serviceType: 'gold',
-        usesTeam: true,
-        apiServiceAccount: true,
-        archived: false,
-        teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
-      },
-    });
+    const serviceAccount = await getAllowedServiceAccount(session, saId, userId, teamId);
 
     if (!serviceAccount) {
       throw Error('unauthorized request');
     }
 
-    const isMerged = await checkIfRequestMerged(teamId);
-    const requester = await getRequester(session, serviceAccount.id);
+    const isMerged = await checkIfRequestMerged(saId);
+    const requester = getDisplayName(session);
     serviceAccount.requester = requester;
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
