@@ -11,7 +11,7 @@ import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
-import { getAllowedRequest, listIntegrationsForTeam } from '@lambda-app/queries/request';
+import { listIntegrationsForTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent, getRequester } from './requests';
 
 export const listTeams = async (user: User) => {
@@ -214,7 +214,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 export const getServiceAccount = async (userId: number, teamId: number) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
 
-  return await models.request.findOne({
+  return models.request.findOne({
     where: {
       serviceType: 'gold',
       usesTeam: true,

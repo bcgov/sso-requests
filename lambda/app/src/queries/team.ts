@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { User } from '../../../shared/interfaces';
-import { getMyTeamsLiteral, getTeamIdLiteralOutOfRange } from './literals';
+import { getMyTeamsLiteral } from './literals';
 
 export const getTeamById = async (teamId: number, options = { raw: true }) => {
   return models.team.findOne({

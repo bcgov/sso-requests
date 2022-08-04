@@ -50,7 +50,6 @@ import getConfig from 'next/config';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
-import WarningModalContents from 'components/WarningModalContents';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -708,7 +707,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         onConfirm={handleDeleteSeviceAccount}
         id={deleteServiceAccountModalId}
         content={
-          <WarningModalContents
+          <ModalContents
             title="Are you sure that you want to delete this CSS API Account?"
             content={'Once you delete this CSS PI Account, this action cannot be undone.'}
           />
