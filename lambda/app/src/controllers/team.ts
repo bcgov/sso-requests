@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
-import { inviteTeamMembers } from '@lambda-app/utils/helpers';
+import { getDisplayName, inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
@@ -13,6 +13,17 @@ import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
 import { listIntegrationsForTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent, getRequester } from './requests';
+
+const serviceAccountCommonPopulation = [
+  {
+    model: models.user,
+    required: false,
+  },
+  {
+    model: models.team,
+    required: false,
+  },
+];
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -222,7 +233,7 @@ export const getServiceAccount = async (userId: number, teamId: number) => {
       archived: false,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived'],
+    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived', 'requester'],
     raw: true,
   });
 };
@@ -266,14 +277,15 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
         archived: false,
         teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
       },
+      include: serviceAccountCommonPopulation,
     });
 
     if (!serviceAccount) {
       throw Error('unauthorized request');
     }
 
-    const isMerged = await checkIfRequestMerged(teamId);
-    const requester = await getRequester(session, serviceAccount.id);
+    const isMerged = await checkIfRequestMerged(saId);
+    const requester = getDisplayName(session);
     serviceAccount.requester = requester;
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
