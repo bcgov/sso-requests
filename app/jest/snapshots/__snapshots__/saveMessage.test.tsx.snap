@@ -3,13 +3,13 @@
 exports[`should match the snapshot 1`] = `
 <DocumentFragment>
   <div
-    class="sc-ftvSup gqkVqB"
+    class="sc-jIZahH exmPQj"
   >
     <span
-      class="sc-iBkjds flrtOA"
+      class="sc-ikZpkk eotClJ"
     >
       <svg
-        class="sc-hKMtZM eAShCR"
+        class="sc-gicCDI iyyarr"
         data-testid="rotating-lines-svg"
         role="status"
         speed="0.75"
@@ -19,73 +19,73 @@ exports[`should match the snapshot 1`] = `
         xmlns="http://www.w3.org/2000/svg"
       >
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(0, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(30, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(60, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(90, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(120, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(150, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(180, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(210, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(240, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(270, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(300, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(330, 24, 24)"
           width="5"
@@ -93,7 +93,7 @@ exports[`should match the snapshot 1`] = `
       </svg>
     </span>
     <p
-      class="sc-papXJ gTcYUq"
+      class="sc-himrzO dlyeCk"
     >
       saving
     </p>
@@ -104,13 +104,13 @@ exports[`should match the snapshot 1`] = `
 exports[`should match the snapshot 2`] = `
 <DocumentFragment>
   <div
-    class="sc-ftvSup gqkVqB"
+    class="sc-jIZahH exmPQj"
   >
     <span
-      class="sc-iBkjds flrtOA"
+      class="sc-ikZpkk eotClJ"
     >
       <svg
-        class="sc-hKMtZM eAShCR"
+        class="sc-gicCDI iyyarr"
         data-testid="rotating-lines-svg"
         role="status"
         speed="0.75"
@@ -120,73 +120,73 @@ exports[`should match the snapshot 2`] = `
         xmlns="http://www.w3.org/2000/svg"
       >
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(0, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(30, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(60, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(90, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(120, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(150, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(180, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(210, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(240, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(270, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(300, 24, 24)"
           width="5"
         />
         <polyline
-          class="sc-eCYdqJ lpbYzG"
+          class="sc-ezWOiH hHYwTo"
           points="24,12 24,4"
           transform="rotate(330, 24, 24)"
           width="5"
@@ -194,7 +194,7 @@ exports[`should match the snapshot 2`] = `
       </svg>
     </span>
     <p
-      class="sc-papXJ gTcYUq"
+      class="sc-himrzO dlyeCk"
     >
       saving
     </p>
