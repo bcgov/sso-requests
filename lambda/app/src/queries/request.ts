@@ -80,18 +80,27 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
   return getMyOrTeamRequest(session.user.id, requestId, roles);
 };
 
-export const listIntegrationsForTeam = async (session: Session, teamId: number, options?: { raw: boolean }) => {
+export const listIntegrationsForTeam = async (
+  session: Session,
+  teamId: number,
+  serviceType?: string,
+  options?: { raw: boolean },
+) => {
   if (isAdmin(session)) {
+    const where: any = { teamId, apiServiceAccount: false, archived: false };
+
+    if (serviceType) where.serviceType = serviceType;
     return models.request.findAll({
-      where: { teamId, apiServiceAccount: false, archived: false },
+      where,
       ...options,
     });
   }
 
   const { user } = session;
   const where: any = { apiServiceAccount: false, archived: false };
-
   const teamIdsLiteral = getMyTeamsLiteral(user.id);
+
+  if (serviceType) where.serviceType = serviceType;
 
   where[Op.and] = [
     {
