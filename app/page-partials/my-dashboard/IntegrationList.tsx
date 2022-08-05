@@ -3,11 +3,10 @@ import Link from '@button-inc/bcgov-theme/Link';
 import { Request } from 'interfaces/Request';
 import { padStart, startCase } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import { Table } from '@bcgov-sso/common-react-components';
+import { Table, Button, NumberedContents, Header } from '@bcgov-sso/common-react-components';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { $setDownloadError } from 'dispatchers/requestDispatcher';
-import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faExclamationCircle, faTrash, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -49,12 +48,6 @@ const NoProjects = styled.div`
   padding-bottom: 22px;
   weight: 700;
   background-color: #f8f8f8;
-`;
-
-const TabHeader = styled.div`
-  font-size: 21px;
-  padding-bottom: 5px;
-  font-weight: bold;
 `;
 
 const SystemUnavailableMessage = (
@@ -220,7 +213,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
 
     return (
       <>
-        <TabHeader>INTEGRATIONS</TabHeader>
+        <Header size="lg">INTEGRATIONS</Header>
         <Table>
           <thead>
             <tr>

@@ -1,7 +1,6 @@
 import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import Tab from 'react-bootstrap/Tab';
-import { Button } from '@bcgov-sso/common-react-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import Select, { MultiValue, ActionMeta } from 'react-select';
@@ -12,11 +11,10 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import SaveMessage from 'form-components/SaveMessage';
 import { RequestTabs } from 'components/RequestTabs';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import { Table } from '@bcgov-sso/common-react-components';
+import { Button, Table, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
 import CreateRoleContent from './roles/CreateRoleContent';
@@ -322,7 +320,7 @@ const ClientRoles = ({ integration, alert }: Props) => {
               throttleCompositeRoleUpdate(newValues as Option[]);
             }}
           />
-          <SaveMessage saving={saving} content={savingMessage} />
+          <LastSavedMessage saving={saving} content={savingMessage} />
         </>
       );
     }
