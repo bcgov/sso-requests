@@ -13,7 +13,7 @@ import SubmittedStatusIndicator, { IntegrationProgressStatus } from 'components/
 import UserEventPanel from 'components/UserEventPanel';
 import { RequestTabs } from 'components/RequestTabs';
 import { usesBceid, checkIfBceidProdApplying } from 'utils/helpers';
-import { NumberedContents } from '@bcgov-sso/common-react-components';
+import { Border, Header } from '@bcgov-sso/common-react-components';
 import BceidStatus from 'components/BceidStatus';
 import DefaultTitle from 'components/SHeader3';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
@@ -22,20 +22,6 @@ import { DashboardReducerState } from 'reducers/dashboardReducer';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
 import { padStart } from 'lodash';
-
-const Container = styled.div`
-  border: 3px solid #4950fa;
-  border-radius: 10px;
-  padding: 5px;
-  padding-top: 20px;
-`;
-
-const BottomPanelHeader = styled.div`
-  font-size: 21px;
-  padding-bottom: 10px;
-  font-weight: bold;
-  color: #4950fa;
-`;
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -92,8 +78,10 @@ const joinEnvs = (integration: Request) => {
 const IntegrationWrapper = ({ integration, children }: { integration: Request; children: React.ReactNode }) => {
   return (
     <>
-      <BottomPanelHeader>INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}</BottomPanelHeader>
-      <Container>{children}</Container>
+      <Header variant="primary" size="lg">
+        INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}
+      </Header>
+      <Border>{children}</Border>
     </>
   );
 };

@@ -9,7 +9,7 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Request, ClientRole, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import SaveMessage from 'form-components/SaveMessage';
+import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
@@ -297,7 +297,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           noOptionsMessage={() => 'No roles'}
           onChange={handleRoleChange}
         />
-        <SaveMessage saving={saving} content={savingMessage} />
+        <LastSavedMessage saving={saving} content={savingMessage} />
       </>
     );
   }
@@ -383,11 +383,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     idirLookup = (
       <>
         {rows.length > 0 && (
-          <div className="fst-italic small mb-1">
+          <InfoText italic={true}>
             If you did not find the user you were looking for, you can try searching for the user in our IDIM Web
             Service Lookup tool. This tool uses a webservice to find IDIR users. so you will need to import the user
             that is found.
-          </div>
+          </InfoText>
         )}
         <Button
           type="button"
@@ -416,7 +416,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       <Grid cols={10}>
         <Grid.Row collapse="1100" gutter={[15, 2]}>
           <Grid.Col span={6}>
-            <Label>1. Search for a user based on the selection criteria below</Label>
+            <Header variant="dark" size="sm">
+              1. Search for a user based on the selection criteria below
+            </Header>
             <Table
               key={searchKey}
               variant="mini"
