@@ -26,7 +26,8 @@
     "lambda-api-router": "^1.0.6",
     "octokit": "^1.7.2",
     "react": "^18.1.0",
-    "react-jsonschema-form": "^1.8.1"
+    "react-jsonschema-form": "^1.8.1",
+    "xml2js": "^0.4.23"
   },
   "resolutions": {
     "minimist": ">=1.2.6"

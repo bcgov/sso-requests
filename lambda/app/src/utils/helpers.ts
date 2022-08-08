@@ -2,7 +2,7 @@ import { isObject, omit, sortBy, compact } from 'lodash';
 import { Op } from 'sequelize';
 import { diff } from 'deep-diff';
 import { Request } from '@app/interfaces/Request';
-import { getSchemas } from '@app/schemas';
+import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import { validateForm } from '@app/utils/validate';
 import { Session, Data, User } from '@lambda-shared/interfaces';
 import { sendTemplate } from '@lambda-shared/templates';
@@ -52,29 +52,27 @@ const sortURIFields = (data: any) => {
   return sortedData;
 };
 
+const durationAdditionalFields = [];
+['dev', 'test', 'prod'].forEach((env) => {
+  const addDurationAdditionalField = (field) => durationAdditionalFields.push(`${env}${field}`);
+  oidcDurationAdditionalFields.forEach(addDurationAdditionalField);
+  samlDurationAdditionalFields.forEach(addDurationAdditionalField);
+});
+
 export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
-  const immutableFields = ['userId', 'idirUserid', 'clientId', 'projectLead', 'status', 'serviceType'];
+  const immutableFields = [
+    'user',
+    'userId',
+    'idirUserid',
+    'clientId',
+    'projectLead',
+    'status',
+    'serviceType',
+    'lastChanges',
+  ];
+
   if (isMerged) immutableFields.push('realm');
-  if (!isAdmin)
-    immutableFields.push(
-      'devAccessTokenLifespan',
-      'devSessionIdleTimeout',
-      'devSessionMaxLifespan',
-      'devOfflineSessionIdleTimeout',
-      'devOfflineSessionMaxLifespan',
-
-      'testAccessTokenLifespan',
-      'testSessionIdleTimeout',
-      'testSessionMaxLifespan',
-      'testOfflineSessionIdleTimeout',
-      'testOfflineSessionMaxLifespan',
-
-      'prodAccessTokenLifespan',
-      'prodSessionIdleTimeout',
-      'prodSessionMaxLifespan',
-      'prodOfflineSessionIdleTimeout',
-      'prodOfflineSessionMaxLifespan',
-    );
+  if (!isAdmin) immutableFields.push(...durationAdditionalFields);
 
   data = omit(data, immutableFields);
   data = sortURIFields(data);

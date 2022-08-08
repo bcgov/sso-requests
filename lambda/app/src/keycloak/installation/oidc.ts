@@ -1,4 +1,7 @@
-import { getAdminClient, getClient } from './adminClient';
+import RealmRepresentation from 'keycloak-admin/lib/defs/realmRepresentation';
+import ClientRepresentation from 'keycloak-admin/lib/defs/clientRepresentation';
+import KeycloakAdminClient from 'keycloak-admin/lib/client';
+import { getAdminClient, getClient } from '../adminClient';
 
 export const updateClientSecret = async (data: {
   serviceType: string;
@@ -9,23 +12,20 @@ export const updateClientSecret = async (data: {
   const { serviceType, environment, clientId, realmName } = data;
   const { kcAdminClient } = await getAdminClient({ serviceType, environment });
 
-  kcAdminClient.setConfig({ realmName });
+  kcAdminClient.setConfig({ realmName: realmName || 'standard' });
   const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });
-  if (client) await kcAdminClient.clients.generateNewClientSecret({ id: client.id });
+  if (!client) throw Error('client not found');
+
+  await kcAdminClient.clients.generateNewClientSecret({ id: client.id });
 };
 
 export const generateInstallation = async (data: {
-  serviceType: string;
-  environment: string;
-  realmName: string;
-  clientId: string;
+  kcAdminClient: KeycloakAdminClient.KeycloakAdminClient;
+  realm: RealmRepresentation;
+  client: ClientRepresentation;
+  authServerUrl: string;
 }) => {
-  console.log(data);
-  const { serviceType, environment, realmName, clientId } = data;
-  const { kcAdminClient, authServerUrl } = await getAdminClient({ serviceType, environment });
-  const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });
-
-  console.log(client);
+  const { kcAdminClient, realm, client, authServerUrl } = data;
 
   // see https://github.com/keycloak/keycloak/blob/dce163d3e204115933df794772e4d49a4abf701f/services/src/main/java/org/keycloak/protocol/oidc/installation/KeycloakOIDCClientInstallation.java#L54
   const rep = { 'confidential-port': 0 };

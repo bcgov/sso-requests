@@ -2,41 +2,53 @@ import { Request } from '../interfaces/Request';
 import { Schema } from './index';
 
 export default function getSchema(integration: Request) {
-  const { authType, status } = integration;
+  const { protocol, authType, status } = integration;
   const applied = status === 'applied';
 
-  const authTypeSchema = {
+  const protocolSchema = {
     type: 'string',
-    title: 'Select Usecase',
-    enum: ['browser-login', 'service-account', 'both'],
-    enumNames: ['Browser Login', 'Service Account', 'Browser Login and Service Account'],
-    tooltip: applied
-      ? null
-      : {
-          content: `Note that once this is submitted, you will not be able to update and rather will need to create a new integration.`,
-        },
-    tooltips: [
-      {
-        content: `This enables standard OpenID Connect redirect based authentication with authorization code. In terms of OpenID Connect or OAuth2 specifications, this enables support of 'Authorization Code Flow' for this client.`,
-      },
-      {
-        content: `This allows you to authenticate this client to Keycloak and retrieve access token dedicated to this client. In terms of OAuth2 specification, this enables support of 'Client Credentials Grant' for this client.`,
-      },
-      {
-        content: `This enables 'Browser Login' and 'Service Account' both.`,
-      },
-    ],
+    title: 'Select Client Protocol',
+    enum: ['oidc', 'saml'],
+    enumNames: ['OpenID Connect', 'SAML'],
   };
 
-  const clientTypeSchema =
-    authType === 'browser-login'
-      ? {
-          type: 'boolean',
-          title: 'Select Client Type',
-          enum: [true, false],
-          enumNames: ['Public', 'Confidential'],
-        }
-      : {};
+  let authTypeSchema = {};
+  let clientTypeSchema = {};
+
+  if (protocol === 'oidc') {
+    authTypeSchema = {
+      type: 'string',
+      title: 'Select Usecase',
+      enum: ['browser-login', 'service-account', 'both'],
+      enumNames: ['Browser Login', 'Service Account', 'Browser Login and Service Account'],
+      tooltip: applied
+        ? null
+        : {
+            content: `Note that once this is submitted, you will not be able to update and rather will need to create a new integration.`,
+          },
+      tooltips: [
+        {
+          content: `This enables standard OpenID Connect redirect based authentication with authorization code. In terms of OpenID Connect or OAuth2 specifications, this enables support of 'Authorization Code Flow' for this client.`,
+        },
+        {
+          content: `This allows you to authenticate this client to Keycloak and retrieve access token dedicated to this client. In terms of OAuth2 specification, this enables support of 'Client Credentials Grant' for this client.`,
+        },
+        {
+          content: `This enables 'Browser Login' and 'Service Account' both.`,
+        },
+      ],
+    };
+
+    clientTypeSchema =
+      authType === 'browser-login'
+        ? {
+            type: 'boolean',
+            title: 'Select Client Type',
+            enum: [true, false],
+            enumNames: ['Public', 'Confidential'],
+          }
+        : {};
+  }
 
   const devIdpsSchema =
     authType === 'service-account'
@@ -63,6 +75,7 @@ export default function getSchema(integration: Request) {
         };
 
   const properties = {
+    protocol: protocolSchema,
     authType: authTypeSchema,
     publicAccess: clientTypeSchema,
     devIdps: devIdpsSchema,

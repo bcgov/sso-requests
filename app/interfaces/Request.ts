@@ -7,6 +7,7 @@ export interface Request {
   clientName?: string;
   realm?: string;
   publicAccess?: boolean;
+  protocol?: string;
   authType?: string;
   devValidRedirectUris?: string[];
   testValidRedirectUris?: string[];

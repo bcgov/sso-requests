@@ -1,5 +1,5 @@
 import { instance } from './axios';
-import { orderBy, isString } from 'lodash';
+import { orderBy, isString, omit } from 'lodash';
 import { Request } from 'interfaces/Request';
 import { processRequest } from 'utils/helpers';
 import { handleAxiosError } from 'services/axios';
@@ -81,6 +81,8 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
     if (submit) {
       url = `${url}?submit=true`;
     }
+
+    data = omit(data, ['user', 'lastChanges']);
 
     data.devLoginTitle = data.devLoginTitle || '';
     data.testLoginTitle = data.testLoginTitle || '';
