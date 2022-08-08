@@ -137,9 +137,9 @@ describe('Form Template Loading Data', () => {
     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
 
     fireEvent.click(secondStageBox);
-    const secondStageElementSelector = '#root_publicAccess-Public';
+
+    const secondStageElementSelector = '#root_protocol input[type="radio"][value="oidc"]';
     await waitFor(() => document.querySelector(secondStageElementSelector));
-    expect(document.querySelector(secondStageElementSelector)).toHaveAttribute('checked', '');
 
     fireEvent.click(thirdStageBox);
     expect(
