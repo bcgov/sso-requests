@@ -151,7 +151,7 @@ describe('Feature: Submit Integration Update - User notification with BCeID prod
   });
 });
 
-describe('Feature: Submit Integration Update - Team notification without BCeID prod', () => {
+describe('Feature: Submit Integration Update - Team notification with BCeID prod', () => {
   let emailList: any = [];
 
   const integration = new Integration();
