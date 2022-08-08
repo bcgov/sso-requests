@@ -194,7 +194,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUISchema({ integration: request as Request, isAdmin });
+  const uiSchema = getUISchema({ integration: request as Request, formData, isAdmin });
 
   const handleFormSubmit = async () => {
     if (loading) return;

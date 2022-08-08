@@ -59,3 +59,13 @@ export const getSchemas = ({
 
   return schemas;
 };
+
+export const oidcDurationAdditionalFields = [
+  'AccessTokenLifespan',
+  'OfflineSessionIdleTimeout',
+  'OfflineSessionMaxLifespan',
+  'SessionIdleTimeout',
+  'SessionMaxLifespan',
+];
+
+export const samlDurationAdditionalFields = ['AssertionLifespan'];

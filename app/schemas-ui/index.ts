@@ -8,12 +8,15 @@ const { enable_gold } = publicRuntimeConfig;
 
 interface Props {
   integration: Request;
+  formData?: Request;
   isAdmin: boolean;
 }
 
 export const getUISchema = (props: Props) => {
   const { integration } = props;
   const isNew = isNil(integration?.id);
+
+  if (!props.formData) props.formData = integration;
 
   if (isNew) {
     if (enable_gold) {

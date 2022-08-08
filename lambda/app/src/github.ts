@@ -3,66 +3,51 @@
 const { Octokit } = require('octokit');
 import { pick } from 'lodash';
 import { models } from '@lambda-shared/sequelize/models/models';
+import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
+
+const envFields = [
+  'LoginTitle',
+  'ValidRedirectUris',
+  'Idps',
+  ...oidcDurationAdditionalFields,
+  ...samlDurationAdditionalFields,
+];
+
+const envFieldsAll = [];
+['dev', 'test', 'prod'].forEach((env) => {
+  envFields.forEach((prop) => envFieldsAll.push(`${env}${prop}`));
+});
+
+const allowedFieldsForGithub = [
+  'id',
+  'projectName',
+  'clientId',
+  'clientName',
+  'realm',
+  'publicAccess',
+  'environments',
+  'bceidApproved',
+  'archived',
+  'browserFlowOverride',
+  'serviceType',
+  'authType',
+
+  'userId',
+  'teamId',
+  'apiServiceAccount',
+
+  ...envFieldsAll,
+];
 
 export const dispatchRequestWorkflow = async (integration: any) => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
   }
 
-  const payload = pick(integration, [
-    'id',
-    'projectName',
-    'clientId',
-    'clientName',
-    'realm',
-    'publicAccess',
-    'environments',
-    'bceidApproved',
-    'archived',
-    'browserFlowOverride',
-    'serviceType',
-    'authType',
-
-    'userId',
-    'teamId',
-    'apiServiceAccount',
-
-    'devLoginTitle',
-    'testLoginTitle',
-    'prodLoginTitle',
-
-    'devValidRedirectUris',
-    'testValidRedirectUris',
-    'prodValidRedirectUris',
-
-    'devIdps',
-    'testIdps',
-    'prodIdps',
-
-    'devAccessTokenLifespan',
-    'devSessionIdleTimeout',
-    'devSessionMaxLifespan',
-    'devOfflineSessionIdleTimeout',
-    'devOfflineSessionMaxLifespan',
-
-    'testAccessTokenLifespan',
-    'testSessionIdleTimeout',
-    'testSessionMaxLifespan',
-    'testOfflineSessionIdleTimeout',
-    'testOfflineSessionMaxLifespan',
-
-    'prodAccessTokenLifespan',
-    'prodSessionIdleTimeout',
-    'prodSessionMaxLifespan',
-    'prodOfflineSessionIdleTimeout',
-    'prodOfflineSessionMaxLifespan',
-  ]);
-
+  const payload = pick(integration, allowedFieldsForGithub);
   if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
-
-  console.log('requesting github request workflow', payload);
 
   // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
   // sample successful response
