@@ -14,7 +14,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { RequestTabs } from 'components/RequestTabs';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import { Button, Table, LastSavedMessage } from '@bcgov-sso/common-react-components';
+import { Button, Table, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-components';
 import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
 import CreateRoleContent from './roles/CreateRoleContent';
@@ -389,10 +389,9 @@ const ClientRoles = ({ integration, alert }: Props) => {
       <Grid cols={10}>
         <Grid.Row collapse="1100" gutter={[15, 2]}>
           <Grid.Col span={4}>
-            <div>
-              <StyledInput
+            <div style={{ display: 'flex', float: 'left' }}>
+              <SearchBar
                 type="text"
-                size="small"
                 maxLength="1000"
                 placeholder="Search existing roles"
                 value={searchKey}
