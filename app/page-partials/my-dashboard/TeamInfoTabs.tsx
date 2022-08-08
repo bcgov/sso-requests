@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import Tab from 'react-bootstrap/Tab';
-import { RequestTabs } from 'components/RequestTabs';
 import { Table } from '@bcgov-sso/common-react-components';
-import { Button as RequestButton } from '@bcgov-sso/common-react-components';
+import { Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import Button from 'html-components/Button';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
@@ -433,9 +431,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   return (
     <>
-      <RequestTabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'}>
+      <Tabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'} tabBarGutter={30}>
         {enable_gold && isAdmin && (
-          <Tab eventKey="service-accounts" title="CSS API Account">
+          <Tab key="service-accounts" tab="CSS API Account">
             <TabWrapper marginTop="20px">
               {serviceAccount ? (
                 inProgressServiceAccount ? (
@@ -518,7 +516,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </TabWrapper>
           </Tab>
         )}
-        <Tab eventKey="members" title="Members">
+        <Tab key="members" tab="Members">
           <TabWrapper>
             {isAdmin ? (
               <PaddedButton variant="plainText" onClick={openModal}>
@@ -600,7 +598,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        <Tab eventKey="integrations" title="Integrations">
+        <Tab key="integrations" tab="Integrations">
           <TabWrapper marginTop="20px">
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
               <Table variant="medium" readOnly>
@@ -681,7 +679,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-      </RequestTabs>
+      </Tabs>
       <CenteredModal
         title="Add a New Team Member"
         icon={null}

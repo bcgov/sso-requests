@@ -2,8 +2,7 @@ import React, { useState, useContext, useMemo, useReducer } from 'react';
 import { useRouter } from 'next/router';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import styled from 'styled-components';
-import Tab from 'react-bootstrap/Tab';
-import { RequestTabs } from 'components/RequestTabs';
+import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
@@ -68,11 +67,11 @@ function MyDashboardLayout({ tab, leftPanel, rightPanel, children }: Props) {
   };
 
   const tabs = (
-    <RequestTabs onSelect={navigateTab} activeKey={tab}>
-      <Tab eventKey="integrations" title="My Projects" />
-      <Tab eventKey="teams" title="My Teams" />
-      {enableGold && hasSilverIntegration && <Tab eventKey="s2g" title="*New - Silver to Gold Upgrade" />}
-    </RequestTabs>
+    <Tabs onChange={navigateTab} activeKey={tab} tabBarGutter={30}>
+      <Tab key="integrations" tab="My Projects" />
+      <Tab key="teams" tab="My Teams" />
+      {enableGold && hasSilverIntegration && <Tab key="s2g" tab="*New - Silver to Gold Upgrade" />}
+    </Tabs>
   );
 
   return (

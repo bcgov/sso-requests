@@ -1,6 +1,5 @@
 import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import Tab from 'react-bootstrap/Tab';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import Select, { MultiValue, ActionMeta } from 'react-select';
@@ -11,10 +10,9 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Request, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { RequestTabs } from 'components/RequestTabs';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import { Button, Table, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-components';
+import { Button, Table, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
 import CreateRoleContent from './roles/CreateRoleContent';
@@ -380,11 +378,11 @@ const ClientRoles = ({ integration, alert }: Props) => {
         + Create a New Role
       </Button>
       <TopMargin />
-      <RequestTabs onSelect={handleTabSelect} activeKey={environment}>
+      <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30}>
         {environments.map((env) => (
-          <Tab eventKey={env} title={startCase(env)} />
+          <Tab key={env} tab={startCase(env)} />
         ))}
-      </RequestTabs>
+      </Tabs>
       <br />
       <Grid cols={10}>
         <Grid.Row collapse="1100" gutter={[15, 2]}>
@@ -405,11 +403,11 @@ const ClientRoles = ({ integration, alert }: Props) => {
           </Grid.Col>
           <Grid.Col span={6}>
             {selectedRole && (
-              <RequestTabs onSelect={handleRightPanelTabSelect} activeKey={rightPanelTab}>
+              <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
                 {rightPanelTabs.map((tab) => (
-                  <Tab eventKey={tab} title={tab} />
+                  <Tab key={tab} tab={tab} />
                 ))}
-              </RequestTabs>
+              </Tabs>
             )}
           </Grid.Col>
         </Grid.Row>

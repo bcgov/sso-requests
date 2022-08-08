@@ -1,7 +1,7 @@
 import styled from 'styled-components';
-import Tab from 'react-bootstrap/Tab';
+import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Request } from 'interfaces/Request';
-import { RequestTabs } from 'components/RequestTabs';
+
 import Button from '@button-inc/bcgov-theme/Button';
 import { usesBceid } from 'utils/helpers';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
@@ -86,26 +86,26 @@ function AdminTabs({
 
   return (
     <>
-      <RequestTabs activeKey={activeKey} onSelect={(k: any) => setActiveKey(k)}>
-        <Tab eventKey="details" title="Details">
+      <Tabs activeKey={activeKey} onChange={(k: any) => setActiveKey(k)} tabBarGutter={30}>
+        <Tab key="details" tab="Details">
           <TabWrapper>
             <AdminRequestPanel currentUser={currentUser} request={selectedRequest} onUpdate={setRows} />
           </TabWrapper>
         </Tab>
         {hasBceid && (
-          <Tab eventKey="prod-configuration" title="Prod Configuration">
+          <Tab key="prod-configuration" tab="Prod Configuration">
             <TabWrapper>
               <br />
               {ProductionPanel}
             </TabWrapper>
           </Tab>
         )}
-        <Tab eventKey="events" title="Events">
+        <Tab key="events" tab="Events">
           <TabWrapper>
             <AdminEventPanel requestId={selectedRequest.id} />
           </TabWrapper>
         </Tab>
-      </RequestTabs>
+      </Tabs>
       <CenteredModal
         id={modalId}
         content="Are you sure you want to approve this integration for production?"

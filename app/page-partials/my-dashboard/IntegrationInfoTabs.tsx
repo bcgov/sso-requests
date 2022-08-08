@@ -1,6 +1,5 @@
 import React, { Dispatch, SetStateAction, Children, cloneElement } from 'react';
 import styled from 'styled-components';
-import Tab from 'react-bootstrap/Tab';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import Alert from 'html-components/Alert';
@@ -11,9 +10,8 @@ import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import SubmittedStatusIndicator, { IntegrationProgressStatus } from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
-import { RequestTabs } from 'components/RequestTabs';
 import { usesBceid, checkIfBceidProdApplying } from 'utils/helpers';
-import { Border, Header } from '@bcgov-sso/common-react-components';
+import { Border, Header, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import BceidStatus from 'components/BceidStatus';
 import DefaultTitle from 'components/SHeader3';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
@@ -97,7 +95,7 @@ const getInstallationTab = ({
   const bceidInvolved = bceidApproved || awaitingBceidProd;
 
   return (
-    <Tab key="installation-json" eventKey="installation-json" title="Technical Details">
+    <Tab key="installation-json" tab="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <Grid.Row gutter={[]}>
@@ -135,7 +133,7 @@ const getInstallationTab = ({
 
 const getProgressTab = ({ integration, awaitingBceidProd }: { integration: Request; awaitingBceidProd: boolean }) => {
   return (
-    <Tab key="installation-json" eventKey="installation-json" title="Technical Details">
+    <Tab key="installation-json" tab="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <br />
@@ -165,7 +163,7 @@ const getProgressTab = ({ integration, awaitingBceidProd }: { integration: Reque
 
 const getApprovalProgressTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab key="installation-json" eventKey="installation-json" title="Technical Details">
+    <Tab key="installation-json" tab="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <Grid.Row gutter={[]}>
@@ -200,7 +198,7 @@ const getApprovalProgressTab = ({ integration }: { integration: Request }) => {
 
 const getRoleManagementTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab key="client-roles" eventKey="client-roles" title="Role Management">
+    <Tab key="client-roles" tab="Role Management">
       <TabWrapper>
         <br />
         <div>
@@ -218,7 +216,7 @@ const getRoleManagementTab = ({ integration }: { integration: Request }) => {
 
 const getUserAssignmentTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab key="user-roles" eventKey="user-roles" title="Assign Users to Roles">
+    <Tab key="user-roles" tab="Assign Users to Roles">
       <TabWrapper>
         <UserRoles selectedRequest={integration} />
       </TabWrapper>
@@ -228,7 +226,7 @@ const getUserAssignmentTab = ({ integration }: { integration: Request }) => {
 
 const getSecretsTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab key="secret" eventKey="secret" title="Secrets">
+    <Tab key="secret" tab="Secrets">
       <TabWrapper short={true}>
         <SecretsPanel selectedRequest={integration} />
       </TabWrapper>
@@ -238,7 +236,7 @@ const getSecretsTab = ({ integration }: { integration: Request }) => {
 
 const getHistoryTab = ({ integration }: { integration: Request }) => {
   return (
-    <Tab key="history" eventKey="history" title="Change History">
+    <Tab key="history" tab="Change History">
       <TabWrapper short={true}>
         <UserEventPanel requestId={integration.id} />
       </TabWrapper>
@@ -300,14 +298,9 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
 
   return (
     <IntegrationWrapper integration={integration}>
-      <RequestTabs
-        activeKey={panelTab}
-        mountOnEnter={true}
-        unmountOnExit={true}
-        onSelect={(k: any) => dispatch($setPanelTab(k))}
-      >
+      <Tabs activeKey={panelTab} onChange={(k: any) => dispatch($setPanelTab(k))} tabBarGutter={30}>
         {tabs}
-      </RequestTabs>
+      </Tabs>
     </IntegrationWrapper>
   );
 }
