@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { Table } from '@bcgov-sso/common-react-components';
-import { Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Table, Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import Button from 'html-components/Button';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
