@@ -233,16 +233,13 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
-  const canDeleteServiceAccount = integrations.filter((int) => int.serviceType === 'gold').length === 0;
   const openModal = () => (window.location.hash = addMemberModalId);
   const inProgressServiceAccount = serviceAccount?.status !== 'applied' && !serviceAccount?.archived;
   const showDeleteServiceAccountModal = () => {
-    if (!canDeleteServiceAccount) return;
     window.location.hash = deleteServiceAccountModalId;
   };
 
   const handleDeleteSeviceAccount = async () => {
-    if (!canDeleteServiceAccount) return;
     await deleteServiceAccount(team.id, serviceAccount?.id);
     setServiceAccount(null);
   };
@@ -472,19 +469,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         >
                           Download
                         </Button>
-                        {canDeleteServiceAccount && (
-                          <ActionButton
-                            icon={faTrash}
-                            role="button"
-                            aria-label="delete"
-                            onClick={showDeleteServiceAccountModal}
-                            disabled={!canDeleteServiceAccount}
-                            activeColor={PRIMARY_RED}
-                            title="Delete CSS API Account"
-                            size="lg"
-                            style={{ marginLeft: '7px' }}
-                          />
-                        )}
+                        <ActionButton
+                          icon={faTrash}
+                          role="button"
+                          aria-label="delete"
+                          onClick={showDeleteServiceAccountModal}
+                          activeColor={PRIMARY_RED}
+                          title="Delete CSS API Account"
+                          size="lg"
+                          style={{ marginLeft: '7px' }}
+                        />
                       </Grid.Col>
                     </Grid.Row>
                     <br />
@@ -499,6 +493,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     </Grid.Row>
                   </Grid>
                 )
+              ) : loading ? (
+                <AlignCenter>
+                  <TopMargin />
+                  <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+                </AlignCenter>
               ) : (
                 <RequestButton
                   onClick={async () => {

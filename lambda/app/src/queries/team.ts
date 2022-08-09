@@ -17,7 +17,7 @@ const teamAttributes = [
   'updatedAt',
   [
     sequelize.literal(
-      '(select count(*) FROM requests WHERE "requests"."team_id"="team"."id" AND "requests"."archived"=false)',
+      '(select count(*) FROM requests WHERE "requests"."team_id"="team"."id" AND "requests"."archived"=false AND "api_service_account"=false)',
     ),
     'integrationCount',
   ],
