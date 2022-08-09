@@ -104,6 +104,7 @@ export const deleteTeam = async (user: User, id: string) => {
   );
 
   const team = await models.team.findOne({ where: { id } });
+
   await sendTemplate(EMAILS.TEAM_DELETED, { team });
   await team.destroy();
   return true;
@@ -185,11 +186,8 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
 
 export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
-  const integrations = await listIntegrationsForTeam(session, teamId);
+  const integrations = await listIntegrationsForTeam(session, teamId, 'gold');
   const team = await getTeamById(teamId);
-
-  if (integrations.length == 0)
-    throw Error(`CSS API Account not allowed as team #${team.name} has no active integrations`);
 
   const serviceAccount = await models.request.create({
     projectName: `Service Account for team #${teamId}`,

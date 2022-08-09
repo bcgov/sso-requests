@@ -47,6 +47,7 @@ import getConfig from 'next/config';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
+import { PRIMARY_RED } from '@app/styles/theme';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -74,14 +75,6 @@ const RightFloat = styled.td`
 const PaddedButton = styled(Button)`
   padding: 0 !important;
   margin: 20px 0 !important;
-`;
-
-const DeleteButton = styled(Button)`
-  background-color: red;
-  &:hover {
-    background-color: red;
-    opacity: 0.7;
-  }
 `;
 
 const CenteredTD = styled.td`
@@ -237,13 +230,13 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
-  const canDeleteServiceAccount = integrations.length === 0;
   const openModal = () => (window.location.hash = addMemberModalId);
   const inProgressServiceAccount = serviceAccount?.status !== 'applied' && !serviceAccount?.archived;
-  const showDeleteServiceAccountModal = () => (window.location.hash = deleteServiceAccountModalId);
+  const showDeleteServiceAccountModal = () => {
+    window.location.hash = deleteServiceAccountModalId;
+  };
 
-  const handleDeleteSeviceAccount = async () => {
-    if (!canDeleteServiceAccount) return;
+  const handleDeleteServiceAccount = async () => {
     await deleteServiceAccount(team.id, serviceAccount?.id);
     setServiceAccount(null);
   };
@@ -473,12 +466,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         >
                           Download
                         </Button>
-                        &nbsp;&nbsp;&nbsp;
-                        {canDeleteServiceAccount && (
-                          <DeleteButton size="medium" variant="grey" onClick={showDeleteServiceAccountModal}>
-                            Delete
-                          </DeleteButton>
-                        )}
+                        <ActionButton
+                          icon={faTrash}
+                          role="button"
+                          aria-label="delete"
+                          onClick={showDeleteServiceAccountModal}
+                          activeColor={PRIMARY_RED}
+                          title="Delete CSS API Account"
+                          size="lg"
+                          style={{ marginLeft: '7px' }}
+                        />
                       </Grid.Col>
                     </Grid.Row>
                     <br />
@@ -493,6 +490,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     </Grid.Row>
                   </Grid>
                 )
+              ) : loading ? (
+                <AlignCenter>
+                  <TopMargin />
+                  <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+                </AlignCenter>
               ) : (
                 <RequestButton
                   onClick={async () => {
@@ -701,7 +703,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       <CenteredModal
         title="Delete CSS API Account"
         icon={null}
-        onConfirm={handleDeleteSeviceAccount}
+        onConfirm={handleDeleteServiceAccount}
         id={deleteServiceAccountModalId}
         content={
           <ModalContents

@@ -32,8 +32,10 @@ export class Integration {
   teamResponse: Response;
   submitResponse: Response;
   deleteResponse: Response;
+  serviceAccountResponse: Response;
 
   team: any;
+  serviceAccount: any;
   teamUsers: any[];
   firstTeamMember: any;
 
@@ -194,5 +196,29 @@ export class Integration {
     prNumber = prNumber + 1;
     await this.prSuccess(prNumber);
     await this.applySuccess();
+  }
+
+  async createServiceAccount() {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      path: `${baseUrl}/teams/${this.current.teamId}/service-accounts`,
+      httpMethod: 'POST',
+    };
+
+    const { statusCode, body } = await appHandler(event, context);
+    this.serviceAccountResponse = { statusCode, data: JSON.parse(body) };
+    this.serviceAccount = this.serviceAccountResponse.data;
+    return this.serviceAccountResponse;
+  }
+
+  async deleteServiceAccount() {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      path: `${baseUrl}/teams/${this.current.teamId}/service-account/${this.serviceAccount.id}`,
+      httpMethod: 'DELETE',
+    };
+
+    const { statusCode, body } = await appHandler(event, context);
+    return { statusCode, data: JSON.parse(body) };
   }
 }
