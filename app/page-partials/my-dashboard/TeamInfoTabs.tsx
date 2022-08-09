@@ -239,7 +239,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
     window.location.hash = deleteServiceAccountModalId;
   };
 
-  const handleDeleteSeviceAccount = async () => {
+  const handleDeleteServiceAccount = async () => {
     await deleteServiceAccount(team.id, serviceAccount?.id);
     setServiceAccount(null);
   };
@@ -706,7 +706,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       <CenteredModal
         title="Delete CSS API Account"
         icon={null}
-        onConfirm={handleDeleteSeviceAccount}
+        onConfirm={handleDeleteServiceAccount}
         id={deleteServiceAccountModalId}
         content={
           <ModalContents
