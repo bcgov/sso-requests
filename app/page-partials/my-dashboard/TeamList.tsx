@@ -21,6 +21,7 @@ import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { Request } from 'interfaces/Request';
 
 const deleteTeamModalId = 'delete-team-modal';
+const deleteTeamAndSaModalId = 'delete-team-and-sa-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
 
 const RightAlignHeader = styled.th`
@@ -134,9 +135,10 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
 
   const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
 
-  const showDeleteModal = (team: Team) => {
+  const showDeleteModal = async (team: Team) => {
     updateActiveTeam(team);
-    window.location.hash = deleteTeamModalId;
+    const [sa] = await getServiceAccount(activeTeamId);
+    window.location.hash = sa ? deleteTeamAndSaModalId : deleteTeamModalId;
   };
 
   const showEditTeamNameModal = (team: Team) => {
@@ -255,7 +257,22 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
           <WarningModalContents
             title="Are you sure that you want to delete this team?"
             content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-            note={canDelete && serviceAccount ? deleteServiceAccontNote : ''}
+          />
+        }
+        buttonStyle={canDelete ? 'danger' : 'custom'}
+        confirmText={canDelete ? 'Delete Team' : 'Okay'}
+        closable
+      />
+      <CenteredModal
+        title="Delete team and CSS API Account"
+        icon={null}
+        onConfirm={handleDeleteTeam}
+        id={deleteTeamAndSaModalId}
+        content={
+          <WarningModalContents
+            title="Are you sure that you want to delete this team?"
+            content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
+            note={deleteServiceAccontNote}
           />
         }
         buttonStyle={canDelete ? 'danger' : 'custom'}
