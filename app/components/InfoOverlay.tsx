@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import OverlayTrigger, { OverlayTriggerType } from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';
 import PopoverHeader from 'react-bootstrap/PopoverHeader';
@@ -22,6 +22,7 @@ interface Props {
   icon?: IconDefinition;
   onClick?: () => void;
   trigger?: OverlayTriggerType[];
+  style?: CSSProperties;
 }
 
 export default function InfoOverlay({
@@ -32,9 +33,10 @@ export default function InfoOverlay({
   icon = faInfoCircle,
   onClick = noop,
   trigger = ['hover', 'focus'],
+  style,
 }: Props) {
   const popover = (
-    <Popover id="popover-basic">
+    <Popover id="popover-basic" style={style}>
       {title && <PopoverHeader>{title}</PopoverHeader>}
       {content && <PopoverBody dangerouslySetInnerHTML={{ __html: content }} />}
     </Popover>

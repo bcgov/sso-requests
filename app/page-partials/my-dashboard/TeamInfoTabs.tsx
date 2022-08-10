@@ -426,7 +426,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       <Tabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'} tabBarGutter={30}>
         {enable_gold && isAdmin && (
           <Tab key="service-accounts" tab="CSS API Account">
-            <TabWrapper marginTop="20px">
+            <TabWrapper marginTop="10px">
               {serviceAccount ? (
                 inProgressServiceAccount ? (
                   <Grid cols={15}>
@@ -446,10 +446,17 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 ) : (
                   <Grid cols={3}>
                     <Grid.Row collapse="992" gutter={[]} align="center">
-                      Download the files to get access to the CSS App API
+                      Download the files to get access to the CSS App API &nbsp;
+                      <InfoOverlay
+                        title={''}
+                        content={`Create a CSS API Account for this team. <br /><br />
+                        The CSS API Account will only be available to teams created in the <b>Gold Keycloak</b>.<br /><br />
+                        If you <b>delete this Team</b>, then the <b>CSS API Account will also be deleted</b>.`}
+                        hide={200}
+                        style={{ maxWidth: 600 }}
+                      />
                     </Grid.Row>
-                    <br />
-                    <Grid.Row collapse="992" gutter={[]} align="center">
+                    <Grid.Row collapse="992" gutter={[0, 10]} align="center">
                       <Grid.Col span={3}>
                         <Button
                           size="medium"
@@ -478,7 +485,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         />
                       </Grid.Col>
                     </Grid.Row>
-                    <br />
                     <Grid.Row collapse="992" gutter={[]} align="center">
                       <InfoMessage>
                         For more information on how to use the CSS API Account with your integrations, see{' '}
