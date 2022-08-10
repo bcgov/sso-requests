@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./build",
+    "sourceMap": false,
+    "rootDir": "../",
+    "baseUrl": "./",
+    "paths": {
+      "@lambda-app/*": ["../app/src/*"],
+      "@lambda-shared/*": ["../shared/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
+}
