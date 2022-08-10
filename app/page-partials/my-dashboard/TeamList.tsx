@@ -21,7 +21,6 @@ import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { Request } from 'interfaces/Request';
 
 const deleteTeamModalId = 'delete-team-modal';
-const deleteTeamAndSaModalId = 'delete-team-and-sa-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
 
 const RightAlignHeader = styled.th`
@@ -135,10 +134,10 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
 
   const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
 
-  const showDeleteModal = async (team: Team) => {
+  const showDeleteModal = (team: Team) => {
     updateActiveTeam(team);
-    const [sa] = await getServiceAccount(activeTeamId);
-    window.location.hash = sa ? deleteTeamAndSaModalId : deleteTeamModalId;
+    if (activeTeamId !== team.id) return;
+    window.location.hash = deleteTeamModalId;
   };
 
   const showEditTeamNameModal = (team: Team) => {
