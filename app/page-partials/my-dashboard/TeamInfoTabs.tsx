@@ -498,6 +498,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               ) : (
                 <RequestButton
                   onClick={async () => {
+                    setLoading(true);
                     const [sa, err] = await requestServiceAccount(team.id);
                     if (err) {
                       alert.show({
@@ -509,6 +510,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     } else {
                       setServiceAccount(sa);
                     }
+                    setLoading(false);
                   }}
                 >
                   + Request CSS API Account
