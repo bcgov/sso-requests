@@ -2,7 +2,9 @@
 <p>
   <strong>Team Name: </strong>{{team.name}}<br />
   <strong>Submitted by: </strong>{{requester}}<br />
+  {{#if integrations}}
   <strong>Integrations:</strong>
+  {{/if}}
 </p>
 <ul>
   {{#each integrations}}
