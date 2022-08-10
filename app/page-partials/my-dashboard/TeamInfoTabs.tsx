@@ -426,7 +426,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       <Tabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'} tabBarGutter={30}>
         {enable_gold && isAdmin && (
           <Tab key="service-accounts" tab="CSS API Account">
-            <TabWrapper marginTop="20px">
+            <TabWrapper marginTop="10px">
               {serviceAccount ? (
                 inProgressServiceAccount ? (
                   <Grid cols={15}>
@@ -456,8 +456,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         style={{ maxWidth: 600 }}
                       />
                     </Grid.Row>
-                    <br />
-                    <Grid.Row collapse="992" gutter={[]} align="center">
+                    <Grid.Row collapse="992" gutter={[0, 10]} align="center">
                       <Grid.Col span={3}>
                         <Button
                           size="medium"
@@ -486,7 +485,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         />
                       </Grid.Col>
                     </Grid.Row>
-                    <br />
                     <Grid.Row collapse="992" gutter={[]} align="center">
                       <InfoMessage>
                         For more information on how to use the CSS API Account with your integrations, see{' '}
