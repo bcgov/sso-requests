@@ -257,22 +257,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
           <WarningModalContents
             title="Are you sure that you want to delete this team?"
             content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-          />
-        }
-        buttonStyle={canDelete ? 'danger' : 'custom'}
-        confirmText={canDelete ? 'Delete Team' : 'Okay'}
-        closable
-      />
-      <CenteredModal
-        title="Delete team and CSS API Account"
-        icon={null}
-        onConfirm={handleDeleteTeam}
-        id={deleteTeamAndSaModalId}
-        content={
-          <WarningModalContents
-            title="Are you sure that you want to delete this team?"
-            content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-            note={deleteServiceAccontNote}
+            note={canDelete && serviceAccount ? deleteServiceAccontNote : ''}
           />
         }
         buttonStyle={canDelete ? 'danger' : 'custom'}
