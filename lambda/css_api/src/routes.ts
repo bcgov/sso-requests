@@ -1,10 +1,9 @@
+import { authenticate } from './authenticate';
 import { wakeUpAll } from './controllers/heartbeat';
 
 const responseHeaders = {
-  'Content-Type': 'text/html; charset=utf-8',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Origin': 'https://bcgov.github.io',
-  'Access-Control-Allow-Methods': 'OPTIONS,PUT,GET',
+  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
 };
 
 const BASE_PATH = '/api';
@@ -33,18 +32,29 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.use((req, res, next) => {
+  app.use(async (req, res, next) => {
+    const teamId = await authenticate(req.headers);
+    if (!teamId) {
+      res.status(401).json({ success: false, message: 'not authorized' });
+      return false;
+    } else req.teamId = teamId;
+    if (next) next();
+  });
+
+  app.get(`${BASE_PATH}/verify-token`, async (req, res) => {
     try {
-      const { Authorization, authorization } = req.headers || {};
-      const authHeader = Authorization || authorization;
-      if (!authHeader || authHeader !== process.env.GH_SECRET) {
+      if (!req.teamId) {
         res.status(401).json({ success: false, message: 'not authorized' });
-        return false;
-      }
+      } else res.status(200).json({ success: true, teamId: req.teamId });
     } catch (err) {
       handleError(res, err);
     }
+  });
 
-    if (next) next();
+  app.get(`${BASE_PATH}/:environment/integrations`, async (req, res) => {
+    try {
+    } catch (err) {
+      handleError(res, err);
+    }
   });
 };

@@ -9,7 +9,8 @@
       "@app/*": ["../app/*"],
       "@lambda-app/*": ["../lambda/app/src/*"],
       "@lambda-shared/*": ["../lambda/shared/*"],
-      "@lambda-actions/*": ["../lambda/actions/src/*"]
+      "@lambda-actions/*": ["../lambda/actions/src/*"],
+      "@lambda-css-api/*": ["../lambda/css_api/src/*"]
     }
   }
 }
