@@ -130,25 +130,25 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.use(async (req, res, next) => {
-    const session = (await authenticate(req.headers)) as Session;
-    if (!session) {
-      res.status(401).json({ success: false, message: 'not authorized' });
-      return false;
-    }
+  // app.use(async (req, res, next) => {
+  //   const session = (await authenticate(req.headers)) as Session;
+  //   if (!session) {
+  //     res.status(401).json({ success: false, message: 'not authorized' });
+  //     return false;
+  //   }
 
-    try {
-      const user: User = await findOrCreateUser(session);
-      user.isAdmin = isAdmin(session);
-      session.user = user;
-      req.user = user;
-      req.session = session;
-    } catch (err) {
-      handleError(res, err);
-    }
+  //   try {
+  //     const user: User = await findOrCreateUser(session);
+  //     user.isAdmin = isAdmin(session);
+  //     session.user = user;
+  //     req.user = user;
+  //     req.session = session;
+  //   } catch (err) {
+  //     handleError(res, err);
+  //   }
 
-    if (next) next();
-  });
+  //   if (next) next();
+  // });
 
   app.get(`${BASE_PATH}/me`, async (req, res) => {
     try {

@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import _ from 'lodash';
 import { setRoutes } from '../lambda/app/src/routes';
 import * as actionRoutes from '../lambda/actions/src/routes';
+import * as apiRoutes from '../lambda/css_api/src/routes';
 
 const logger = morgan('combined');
 
@@ -26,6 +27,7 @@ const initExpresss = async () => {
 
   setRoutes(router);
   actionRoutes.setRoutes(router);
+  apiRoutes.setRoutes(router);
   expressServer.use('/', router);
   return expressServer;
 };
