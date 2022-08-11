@@ -14,7 +14,12 @@
   </li>
   <li>
     <strong>Identity Providers Required:</strong>
-    {{integration.devIdps}}
+    <ul>
+      Dev environment IDP(s): {{integration.devIdps}}
+    </ul>
+    <ul>
+      Test environment IDP(s): {{integration.testIdps}}
+    </ul>
   </li>
 </ul>
 {{> footer }}

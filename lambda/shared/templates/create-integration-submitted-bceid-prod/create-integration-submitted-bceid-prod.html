@@ -9,7 +9,18 @@
       {{integration.devUris}} {{integration.testUris}}
     </ul>
   </li>
-  <li><strong>Identity Providers Required: </strong>{{integration.devIdps}}</li>
+  <li>
+    <strong>Identity Providers Required: </strong>
+    <ul>
+      Dev environment IDP(s): {{integration.devIdps}}
+    </ul>
+    <ul>
+      Test environment IDP(s): {{integration.testIdps}}
+    </ul>
+    <ul>
+      Prod environment IDP(s): {{integration.prodIdps}}
+    </ul>
+  </li>
 </ul>
 <p><strong>Submitted by: </strong>{{integration.requester}}</p>
 <p>
