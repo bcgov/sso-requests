@@ -93,7 +93,8 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li> Development: https://b </li> 
     </ul>
   </li>
-  <li><strong>Identity Providers Required:</strong>
+  <li>
+    <strong>Identity Providers Required:</strong>
     <ul>
       <li>Dev environment IDP(s): idir</li>
       <li>Test environment IDP(s): idir</li>
@@ -126,7 +127,8 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li> Development: https://b </li> <li> Test: https://a </li>
     </ul>
   </li>
-  <li><strong>Identity Providers Required: </strong>
+  <li>
+    <strong>Identity Providers Required: </strong>
     <ul>
       <li>Dev environment IDP(s): idir</li>
       <li>Test environment IDP(s): idir</li>
@@ -216,7 +218,8 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
       <li> Development: https://b </li>  
     </ul>
   </li>
-  <li><strong>Identity Providers Required: </strong>
+  <li>
+    <strong>Identity Providers Required: </strong>
     <ul>
       <li>Dev environment IDP(s): idir</li>
       <li>Test environment IDP(s): idir</li>
