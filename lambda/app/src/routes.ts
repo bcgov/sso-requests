@@ -25,9 +25,8 @@ import {
   updateRequest,
   deleteRequest,
   updateRequestMetadata,
+  getRequestsByTeam,
 } from './controllers/requests';
-import { listIntegrationsForTeam } from './queries/request';
-import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
 import { wakeUpAll } from './controllers/heartbeat';
@@ -190,7 +189,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/team-integrations/:teamId`, async (req, res) => {
     try {
       const { teamId } = req.params;
-      const result = await listIntegrationsForTeam(req.session as Session, teamId);
+      const result = await getRequestsByTeam(req.session as Session, teamId, req.user);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

@@ -1,5 +1,6 @@
-import { authenticate } from './authenticate';
+import { Auth, authenticate } from './authenticate';
 import { wakeUpAll } from './controllers/heartbeat';
+import { fetchIntegrationsOfTeam } from './controllers/integrations';
 
 const responseHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
@@ -33,26 +34,28 @@ export const setRoutes = (app: any) => {
   });
 
   app.use(async (req, res, next) => {
-    const teamId = await authenticate(req.headers);
-    if (!teamId) {
-      res.status(401).json({ success: false, message: 'not authorized' });
+    const auth: Auth = await authenticate(req.headers);
+    if (!auth.success) {
+      res.status(401).json(auth);
       return false;
-    } else req.teamId = teamId;
+    } else {
+      req.teamId = auth.data.teamId;
+    }
     if (next) next();
   });
 
   app.get(`${BASE_PATH}/verify-token`, async (req, res) => {
     try {
-      if (!req.teamId) {
-        res.status(401).json({ success: false, message: 'not authorized' });
-      } else res.status(200).json({ success: true, teamId: req.teamId });
+      res.status(200).json({ teamId: req.teamId });
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/integrations`, async (req, res) => {
+  app.get(`${BASE_PATH}/integrations`, async (req, res) => {
     try {
+      const result = await fetchIntegrationsOfTeam(1);
+      res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
