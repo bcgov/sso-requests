@@ -16,7 +16,7 @@ const commonPopulation = [
 ];
 
 export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: string[]) => {
-  const where: any = { apiServiceAccount: false };
+  const where: any = {};
 
   const teamIdsLiteral = getMyTeamsLiteral(userId, roles);
 
@@ -97,6 +97,42 @@ export const listIntegrationsForTeam = async (
   }
 
   const { user } = session;
+  const where: any = { apiServiceAccount: false, archived: false };
+  const teamIdsLiteral = getMyTeamsLiteral(user.id);
+
+  if (serviceType) where.serviceType = serviceType;
+
+  where[Op.and] = [
+    {
+      teamId,
+    },
+    {
+      teamId: { [Op.in]: sequelize.literal(`(${teamIdsLiteral})`) },
+    },
+  ];
+
+  return models.request.findAll({
+    where,
+    ...options,
+  });
+};
+
+export const getIntegrationsByTeam = async (teamId: number, serviceType?: string, options?: { raw: boolean }) => {
+  const where: any = { teamId, apiServiceAccount: false, archived: false };
+  console.log(teamId);
+  if (serviceType) where.serviceType = serviceType;
+  return models.request.findAll({
+    where,
+    ...options,
+  });
+};
+
+export const getIntegrationsByUserTeam = async (
+  user: User,
+  teamId: number,
+  serviceType?: string,
+  options?: { raw: boolean },
+) => {
   const where: any = { apiServiceAccount: false, archived: false };
   const teamIdsLiteral = getMyTeamsLiteral(user.id);
 

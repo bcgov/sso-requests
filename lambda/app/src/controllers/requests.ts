@@ -20,6 +20,8 @@ import {
   getMyOrTeamRequest,
   getAllowedRequest,
   getBaseWhereForMyOrTeamIntegrations,
+  getIntegrationsByTeam,
+  getIntegrationsByUserTeam,
 } from '@lambda-app/queries/request';
 
 const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
@@ -324,6 +326,8 @@ export const getRequestAll = async (
 
 export const getRequests = async (session: Session, user: User, include: string = 'active') => {
   const where: any = getBaseWhereForMyOrTeamIntegrations(session.user.id);
+  // ignore api accounts
+  where.apiServiceAccount = false;
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
@@ -338,6 +342,13 @@ export const getRequests = async (session: Session, user: User, include: string 
   });
 
   return requests;
+};
+
+export const getRequestsByTeam = async (session: Session, teamId: number, user: User, include: string = 'active') => {
+  if (isAdmin(session)) {
+    return getIntegrationsByTeam(teamId);
+  }
+  return getIntegrationsByUserTeam(user, teamId);
 };
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {

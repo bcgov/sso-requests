@@ -10,8 +10,8 @@ import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
-import { generateInstallation, updateClientSecret } from '../keycloak/installation';
-import { listIntegrationsForTeam } from '@lambda-app/queries/request';
+import { generateInstallation } from '../keycloak/installation';
+import { getIntegrationsByTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent, getRequester } from './requests';
 
 const serviceAccountCommonPopulation = [
@@ -186,7 +186,7 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
 
 export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
-  const integrations = await listIntegrationsForTeam(session, teamId, 'gold');
+  const integrations = await getIntegrationsByTeam(teamId, 'gold');
   const team = await getTeamById(teamId);
 
   const serviceAccount = await models.request.create({

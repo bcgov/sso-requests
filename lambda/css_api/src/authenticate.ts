@@ -5,6 +5,18 @@ const jwt = require('jsonwebtoken');
 const jws = require('jws');
 const jwkToPem = require('jwk-to-pem');
 
+export interface Claims {
+  teamId: number | null;
+}
+
+export interface Auth {
+  success: boolean;
+  data: Claims | null;
+  err: string | null;
+}
+
+const failedAuth: Auth = { success: false, data: null, err: 'not authorized' };
+
 const getConfiguration = async () => {
   const { issuer, jwks_uri } = await axios
     .get(`${authServerUrl}/auth/realms/standard/.well-known/openid-configuration`)
@@ -41,23 +53,31 @@ const validateJWTSignature = async (token) => {
     // If setting ignoreExpiration to true, you can control the maxAge on the backend
     const { team } = jwt.verify(token, pem, { issuer });
     if (!team) {
-      throw new Error('Invalid token');
+      throw new Error('[invalid token] expected claims not found');
     }
 
-    return team;
+    return { success: true, data: { teamId: team }, err: null };
   } catch (err) {
     console.log(err);
-    return false;
+
+    if (err.name === 'TokenExpiredError') failedAuth.err = 'token expired';
+    else if (err.name === 'JsonWebTokenError') failedAuth.err = 'invalid token';
+    else if (err.name === 'Error') failedAuth.err = err.message;
+    return failedAuth;
   }
 };
 
-export const authenticate = async (headers) => {
+export const authenticate = async (headers): Promise<Auth> => {
   const { Authorization, authorization } = headers || {};
   const authHeader = Authorization || authorization;
-  if (!authHeader) return false;
-
+  if (!authHeader) {
+    failedAuth.err = 'No authorization header was found';
+    return failedAuth;
+  }
   const bearerToken = authHeader.split('Bearer ')[1];
-  const currentTeam = await validateJWTSignature(bearerToken);
-  if (!currentTeam) return currentTeam;
-  return currentTeam;
+  if (!bearerToken) {
+    failedAuth.err = 'No authorization token was found';
+    return failedAuth;
+  }
+  return await validateJWTSignature(bearerToken);
 };
