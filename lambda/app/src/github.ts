@@ -33,6 +33,7 @@ const allowedFieldsForGithub = [
   'browserFlowOverride',
   'serviceType',
   'authType',
+  'protocol',
 
   'userId',
   'teamId',
