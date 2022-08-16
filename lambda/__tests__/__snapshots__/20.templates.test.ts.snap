@@ -94,11 +94,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
   <li>
-    <strong>Identity Providers Required:</strong>
-    <ul>
-      <li>Dev environment IDP(s): idir</li>
-      <li>Test environment IDP(s): idir</li>
-    </ul>
+    <strong>Identity Providers Required:</strong>idir
   </li>
 </ul>
 <p>
@@ -128,12 +124,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
   <li>
-    <strong>Identity Providers Required: </strong>
-    <ul>
-      <li>Dev environment IDP(s): idir</li>
-      <li>Test environment IDP(s): idir</li>
-      <li>Prod environment IDP(s): idir</li>
-    </ul>
+    <strong>Identity Providers Required:</strong>idir
   </li>
 </ul>
 <p><strong>Submitted by: </strong>SSO Admin</p>
@@ -219,12 +210,7 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
     </ul>
   </li>
   <li>
-    <strong>Identity Providers Required: </strong>
-    <ul>
-      <li>Dev environment IDP(s): idir</li>
-      <li>Test environment IDP(s): idir</li>
-      <li>Prod environment IDP(s): idir</li>
-    </ul>
+    <strong>Identity Providers Required:</strong>idir
   </li>
 </ul>
 <p>
