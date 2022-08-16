@@ -16,7 +16,7 @@ const commonPopulation = [
 ];
 
 export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: string[]) => {
-  const where: any = {};
+  const where: any = { apiServiceAccount: false };
 
   const teamIdsLiteral = getMyTeamsLiteral(userId, roles);
 
