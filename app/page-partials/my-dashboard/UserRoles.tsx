@@ -171,7 +171,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const reset = () => {
     setRows([]);
-    setRoles([]);
     setUserRoles([]);
     setPage(1);
     setCount(0);
@@ -190,9 +189,22 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     }
   };
 
+  const fetchUserRoles = async (username: string) => {
+    await setLoadingRight(true);
+    const [data, err] = await listUserRoles({
+      environment: selectedEnvironment,
+      integrationId: selectedRequest.id as number,
+      username,
+    });
+
+    await setUserRoles(data || []);
+    setLoadingRight(false);
+  };
+
   useEffect(() => {
     reset();
     resetSearchOptions();
+    setRoles([]);
   }, [selectedRequest.id]);
 
   useEffect(() => {
@@ -217,6 +229,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   useEffect(() => {
     setSavingMessage('');
+    if (selectedId) fetchUserRoles(selectedId);
   }, [selectedId]);
 
   const searchResults = async (searchKey: string, property = selectedProperty, _page = page) => {
@@ -268,19 +281,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setUserRoles(newRoles);
   };
 
-  const handleUserSelect = async (username: string) => {
-    await setLoadingRight(true);
-    const [data, err] = await listUserRoles({
-      environment: selectedEnvironment,
-      integrationId: selectedRequest.id as number,
-      username,
-    });
-
-    await setUserRoles(data || []);
-    setSelectedId(username);
-    setLoadingRight(false);
-  };
-
   let rightPanel = null;
 
   if (loadingRight) {
@@ -320,7 +320,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           key={row.username}
           className={selectedId === row.username ? 'active' : ''}
           onClick={() => {
-            handleUserSelect(row.username);
+            setSelectedId(row.username);
           }}
         >
           <td>{row.firstName}</td>
