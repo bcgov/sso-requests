@@ -62,7 +62,7 @@ export const setRoutes = (app: any) => {
 
   app.get(`${BASE_PATH}/integrations`, async (req, res) => {
     try {
-      const result = await integrationController.listByTeam(1849);
+      const result = await integrationController.listByTeam(req.teamId);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -71,7 +71,8 @@ export const setRoutes = (app: any) => {
 
   app.get(`${BASE_PATH}/integrations/:integrationId`, async (req, res) => {
     try {
-      const result = await integrationController.getIntegration(2, 1849);
+      const { integrationId } = req.params;
+      const result = await integrationController.getIntegration(integrationId, req.teamId);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -91,19 +92,18 @@ export const setRoutes = (app: any) => {
   app.post(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
     try {
       const { integrationId, environment } = req.params;
-      const result = await roleController.create(req.teamId, integrationId, req.body.roleName, environment);
-      res.status(200).json({ message: result });
+      await roleController.create(req.teamId, integrationId, req.body.roleName, environment);
+      res.status(200).json({ message: 'created' });
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
     try {
-      const { integrationId, environment } = req.params;
-      const { roleName } = req.query;
+      const { integrationId, environment, roleName } = req.params;
       const { newRoleName } = req.body;
-      const result = await roleController.update(req.teamId, integrationId, roleName, environment, newRoleName);
+      await roleController.update(req.teamId, integrationId, roleName, environment, newRoleName);
       res.status(200).json({ message: 'updated' });
     } catch (err) {
       handleError(res, err);

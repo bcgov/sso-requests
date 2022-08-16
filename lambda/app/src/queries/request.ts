@@ -80,11 +80,17 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
   return getMyOrTeamRequest(session.user.id, requestId, roles);
 };
 
-export const getIntegrationsByTeam = async (teamId: number, serviceType?: string, options?: { raw: boolean }) => {
+export const getIntegrationsByTeam = async (
+  teamId: number,
+  serviceType?: string,
+  attributes?: string[],
+  options?: { raw: boolean },
+) => {
   const where: any = { teamId, apiServiceAccount: false, archived: false };
   if (serviceType) where.serviceType = serviceType;
   return models.request.findAll({
     where,
+    attributes,
     ...options,
   });
 };
@@ -115,10 +121,14 @@ export const getIntegrationsByUserTeam = async (
   });
 };
 
-export const getRequestById = (requestId: number, options = { raw: true }) => {
+export const getRequestById = (
+  requestId: number,
+  attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps'],
+  options = { raw: true },
+) => {
   return models.request.findOne({
     where: { id: requestId, apiServiceAccount: false, archived: false },
-    attributes: ['id', 'clientId', 'environments', 'teamId', 'devIdps'],
+    attributes,
     ...options,
   });
 };
