@@ -80,46 +80,8 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
   return getMyOrTeamRequest(session.user.id, requestId, roles);
 };
 
-export const listIntegrationsForTeam = async (
-  session: Session,
-  teamId: number,
-  serviceType?: string,
-  options?: { raw: boolean },
-) => {
-  if (isAdmin(session)) {
-    const where: any = { teamId, apiServiceAccount: false, archived: false };
-
-    if (serviceType) where.serviceType = serviceType;
-    return models.request.findAll({
-      where,
-      ...options,
-    });
-  }
-
-  const { user } = session;
-  const where: any = { apiServiceAccount: false, archived: false };
-  const teamIdsLiteral = getMyTeamsLiteral(user.id);
-
-  if (serviceType) where.serviceType = serviceType;
-
-  where[Op.and] = [
-    {
-      teamId,
-    },
-    {
-      teamId: { [Op.in]: sequelize.literal(`(${teamIdsLiteral})`) },
-    },
-  ];
-
-  return models.request.findAll({
-    where,
-    ...options,
-  });
-};
-
 export const getIntegrationsByTeam = async (teamId: number, serviceType?: string, options?: { raw: boolean }) => {
   const where: any = { teamId, apiServiceAccount: false, archived: false };
-  console.log(teamId);
   if (serviceType) where.serviceType = serviceType;
   return models.request.findAll({
     where,
@@ -149,6 +111,14 @@ export const getIntegrationsByUserTeam = async (
 
   return models.request.findAll({
     where,
+    ...options,
+  });
+};
+
+export const getRequestById = (requestId: number, options = { raw: true }) => {
+  return models.request.findOne({
+    where: { id: requestId, apiServiceAccount: false, archived: false },
+    attributes: ['id', 'clientId', 'environments', 'teamId', 'devIdps'],
     ...options,
   });
 };

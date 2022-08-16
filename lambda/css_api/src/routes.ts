@@ -1,6 +1,8 @@
 import { Auth, authenticate } from './authenticate';
-import { wakeUpAll } from './controllers/heartbeat';
-import { fetchIntegrationsOfTeam } from './controllers/integrations';
+import { wakeUpAll } from './controllers/HeartbeatController';
+import { IntegrationController } from './controllers/IntegrationController';
+import { RoleController } from './controllers/RoleController';
+import { UserRoleMappingController } from './controllers/UserRoleMappingController';
 
 const responseHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
@@ -54,8 +56,98 @@ export const setRoutes = (app: any) => {
 
   app.get(`${BASE_PATH}/integrations`, async (req, res) => {
     try {
-      const result = await fetchIntegrationsOfTeam(1);
-      res.status(200).json(result);
+      const result = await new IntegrationController().listByTeam(1849);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/integrations/:integrationId`, async (req, res) => {
+    try {
+      const result = await new IntegrationController().getIntegration(2, 1849);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+    try {
+      const { integrationId, environment } = req.params;
+      const result = await new RoleController().list(req.teamId, integrationId, environment);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+    try {
+      const { integrationId, environment } = req.params;
+      const result = await new RoleController().create(req.teamId, integrationId, req.body.roleName, environment);
+      res.status(200).json({ message: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+    try {
+      const { integrationId, environment } = req.params;
+      const { roleName } = req.query;
+      const { newRoleName } = req.body;
+      const result = await new RoleController().update(req.teamId, integrationId, roleName, environment, newRoleName);
+      res.status(200).json({ message: 'updated' });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.delete(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
+    try {
+      const { integrationId, environment, roleName } = req.params;
+      const result = await new RoleController().delete(req.teamId, integrationId, roleName, environment);
+      res.status(204).json({ message: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
+    try {
+      const { integrationId, environment } = req.params;
+      const result = await new UserRoleMappingController().list(req.teamId, integrationId, environment);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
+    try {
+      const { integrationId, environment } = req.params;
+      const { roleName } = req.query;
+      const result = await new UserRoleMappingController().get(req.teamId, integrationId, environment, roleName);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
+    try {
+      const { integrationId, environment } = req.params;
+      const { userName, roleName, operation } = req.body;
+      const result = await new UserRoleMappingController().manage(
+        req.teamId,
+        integrationId,
+        environment,
+        userName,
+        roleName,
+        operation,
+      );
+      res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
