@@ -1,3 +1,4 @@
+import { injectable } from 'tsyringe';
 import { RoleService } from '../services/RoleService';
 import { UserRoleMappingService } from '../services/UserRoleMappingService';
 
@@ -6,14 +7,9 @@ interface UserRoleMapping {
   users: any;
 }
 
+@injectable()
 export class UserRoleMappingController {
-  private readonly userRoleMappingService: UserRoleMappingService;
-  private readonly roleService: RoleService;
-
-  constructor() {
-    this.userRoleMappingService = new UserRoleMappingService();
-    this.roleService = new RoleService();
-  }
+  constructor(private userRoleMappingService: UserRoleMappingService, private roleService: RoleService) {}
 
   public async list(teamId: number, integrationId: number, environment: string) {
     const roles = await this.roleService.getAllByEnvironment(teamId, integrationId, environment);

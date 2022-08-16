@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import initExpresss from './express-server';
 import createServer from './create-server';
 

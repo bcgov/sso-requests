@@ -8,7 +8,10 @@
     "dev": "nodemon --trace-warnings",
     "migrate-db": "nodemon --config nodemon-db.json"
   },
-  "dependencies": {},
+  "dependencies": {
+    "reflect-metadata": "^0.1.13",
+    "tsyringe": "^4.7.0"
+  },
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/lodash": "^4.14.182",

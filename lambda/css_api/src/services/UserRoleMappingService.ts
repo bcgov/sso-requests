@@ -1,12 +1,10 @@
 import { IntegrationService } from './IntegrationService';
 import { listRoleUsers, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
+import { injectable } from 'tsyringe';
 
+@injectable()
 export class UserRoleMappingService {
-  private readonly integrationService: IntegrationService;
-
-  constructor() {
-    this.integrationService = new IntegrationService();
-  }
+  constructor(private integrationService: IntegrationService) {}
 
   public async getAllByRole(teamId: number, integrationId: number, environment: string, roleName: string) {
     const int = await this.integrationService.getById(integrationId, teamId);

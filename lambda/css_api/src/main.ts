@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
 const Api = require('lambda-api-router');
 import { setRoutes } from './routes';

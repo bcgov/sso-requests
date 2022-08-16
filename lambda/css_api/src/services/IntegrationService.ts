@@ -1,6 +1,8 @@
 import { getIntegrationsByTeam, getRequestById } from '@lambda-app/queries/request';
 import { Data } from '@lambda-shared/interfaces';
+import { injectable } from 'tsyringe';
 
+@injectable()
 export class IntegrationService {
   public async getAllByTeam(teamId: number) {
     return await getIntegrationsByTeam(teamId, 'gold');
