@@ -12,11 +12,14 @@ export default function getSchema(integration: Request) {
     enumNames: ['OpenID Connect', 'SAML'],
   };
 
-  let authTypeSchema = {};
-  let clientTypeSchema = {};
+  const properties: any = {
+    protocol: protocolSchema,
+  };
+
+  const required = [];
 
   if (protocol === 'oidc') {
-    authTypeSchema = {
+    properties.authType = {
       type: 'string',
       title: 'Select Usecase',
       enum: ['browser-login', 'service-account', 'both'],
@@ -39,67 +42,61 @@ export default function getSchema(integration: Request) {
       ],
     };
 
-    clientTypeSchema =
-      authType === 'browser-login'
-        ? {
-            type: 'boolean',
-            title: 'Select Client Type',
-            enum: [true, false],
-            enumNames: ['Public', 'Confidential'],
-          }
-        : {};
+    if (authType === 'browser-login') {
+      properties.publicAccess = {
+        type: 'boolean',
+        title: 'Select Client Type',
+        enum: [true, false],
+        enumNames: ['Public', 'Confidential'],
+      };
+    }
+
+    required.push('publicAccess');
   }
 
-  const devIdpsSchema =
-    authType === 'service-account'
-      ? {}
-      : {
-          type: 'array',
-          minItems: 1,
-          title: 'Choose Identity Provider(s)',
-          items: {
-            type: 'string',
-            enum: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
-            enumNames: ['IDIR', 'IDIR (Azure)', 'BCeID Basic', 'BCeID Business', 'BCeID Both'],
-          },
-          tooltips: [
-            null,
-            {
-              content: `Using Azure IDIR adds the benefit of MFA (multi-factor authentication). This is a step up security-wise from regular IDIR.`,
-            },
-          ],
-          uniqueItems: true,
-          tooltip: {
-            content: `The identity providers you add will let your users authenticate with those services.`,
-          },
-        };
-
-  const properties = {
-    protocol: protocolSchema,
-    authType: authTypeSchema,
-    publicAccess: clientTypeSchema,
-    devIdps: devIdpsSchema,
-    environments: {
+  if (authType !== 'service-account') {
+    properties.devIdps = {
       type: 'array',
       minItems: 1,
-      title: 'Choose Environment(s)',
+      title: 'Choose Identity Provider(s)',
       items: {
         type: 'string',
-        enum: ['dev', 'test', 'prod'],
-        enumNames: ['Development', 'Test', 'Production'],
+        enum: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
+        enumNames: ['IDIR', 'IDIR (Azure)', 'BCeID Basic', 'BCeID Business', 'BCeID Both'],
       },
+      tooltips: [
+        null,
+        {
+          content: `Using Azure IDIR adds the benefit of MFA (multi-factor authentication). This is a step up security-wise from regular IDIR.`,
+        },
+      ],
       uniqueItems: true,
       tooltip: {
-        content: `We will provide a separate client for each environment you can select. Select the environments required for your project.`,
+        content: `The identity providers you add will let your users authenticate with those services.`,
       },
+    };
+  }
+
+  properties.environments = {
+    type: 'array',
+    minItems: 1,
+    title: 'Choose Environment(s)',
+    items: {
+      type: 'string',
+      enum: ['dev', 'test', 'prod'],
+      enumNames: ['Development', 'Test', 'Production'],
+    },
+    uniqueItems: true,
+    tooltip: {
+      content: `We will provide a separate client for each environment you can select. Select the environments required for your project.`,
     },
   };
 
   return {
     type: 'object',
-    required: ['publicAccess'],
     headerText: 'Choose providers',
     stepText: 'Providers',
     properties,
+    required,
   } as Schema;
 }
