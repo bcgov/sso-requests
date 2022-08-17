@@ -1,6 +1,6 @@
 import { createRole, deleteRole, listClientRoles, updateRole } from '@lambda-app/keycloak/users';
 import { injectable } from 'tsyringe';
-import { IntegrationService } from './IntegrationService';
+import { IntegrationService } from './integration-service';
 
 @injectable()
 export class RoleService {

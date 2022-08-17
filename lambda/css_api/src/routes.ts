@@ -1,8 +1,8 @@
 import { Auth, authenticate } from './authenticate';
-import { wakeUpAll } from './controllers/HeartbeatController';
-import { IntegrationController } from './controllers/IntegrationController';
-import { RoleController } from './controllers/RoleController';
-import { UserRoleMappingController } from './controllers/UserRoleMappingController';
+import { wakeUpAll } from './controllers/heartbeat-controller';
+import { IntegrationController } from './controllers/integration-controller';
+import { RoleController } from './controllers/role-controller';
+import { UserRoleMappingController } from './controllers/user-role-mapping-controller';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 
@@ -11,7 +11,7 @@ const responseHeaders = {
   'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
 };
 
-const BASE_PATH = '/api';
+const BASE_PATH = '/api/v1';
 
 const handleError = (res, err) => {
   console.error(err);

@@ -1,4 +1,4 @@
-import { IntegrationService } from './IntegrationService';
+import { IntegrationService } from './integration-service';
 import { listRoleUsers, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
 import { injectable } from 'tsyringe';
 

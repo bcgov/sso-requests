@@ -1,5 +1,5 @@
 import { injectable } from 'tsyringe';
-import { IntegrationService } from '../services/IntegrationService';
+import { IntegrationService } from '../services/integration-service';
 
 @injectable()
 export class IntegrationController {

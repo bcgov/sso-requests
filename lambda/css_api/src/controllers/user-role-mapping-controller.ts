@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
-import { RoleService } from '../services/RoleService';
-import { UserRoleMappingService } from '../services/UserRoleMappingService';
+import { RoleService } from '../services/role-service';
+import { UserRoleMappingService } from '../services/user-role-mapping-service';
 
 interface UserRoleMapping {
   role: string;

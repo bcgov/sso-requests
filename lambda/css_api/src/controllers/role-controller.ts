@@ -1,5 +1,5 @@
 import { injectable } from 'tsyringe';
-import { RoleService } from '../services/RoleService';
+import { RoleService } from '../services/role-service';
 
 @injectable()
 export class RoleController {
