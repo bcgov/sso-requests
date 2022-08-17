@@ -29,9 +29,6 @@ export interface Data {
   comment?: string;
   bceidEmailDetails?: object;
   environments?: string[];
-  devIdps?: string[];
-  testIdps?: string[];
-  prodIdps?: string[];
   idirUserDisplayName?: string;
   idirUserId?: string;
   clientId?: string;

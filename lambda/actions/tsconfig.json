@@ -3,9 +3,10 @@
   "compilerOptions": {
     "outDir": "./build",
     "sourceMap": false,
-    "rootDir": "../",
+    "rootDir": "../../",
     "baseUrl": "./",
     "paths": {
+      "@app/*": ["../../app/*"],
       "@lambda-app/*": ["../app/src/*"],
       "@lambda-shared/*": ["../shared/*"]
     }
