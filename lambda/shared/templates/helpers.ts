@@ -5,7 +5,7 @@ import { formatUrisForEmail, realmToIDP } from '@lambda-shared/utils/helpers';
 import { Data } from '@lambda-shared/interfaces';
 import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
-import { idpMap } from 'app/helpers/meta';
+import { idpMap } from '@app/helpers/meta';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
