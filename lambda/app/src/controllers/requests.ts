@@ -344,7 +344,7 @@ export const getRequests = async (session: Session, user: User, include: string 
   return requests;
 };
 
-export const getRequestsByTeam = async (session: Session, teamId: number, user: User, include: string = 'active') => {
+export const getIntegrations = async (session: Session, teamId: number, user: User, include: string = 'active') => {
   if (isAdmin(session)) {
     return getIntegrationsByTeam(teamId);
   }

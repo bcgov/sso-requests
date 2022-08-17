@@ -17,7 +17,7 @@
 ### Get List of Gold Integrations managed by the Team
 
 ```sh
-GET /api/integrations
+GET /api/v1/integrations
 ```
 
 - Responses
@@ -50,13 +50,13 @@ GET /api/integrations
 </table>
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/integrations
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations
 ```
 
 ### Get a Gold Integration managed by the Team
 
 ```
-GET /api/integrations/{integrationId}
+GET /api/v1/integrations/{integrationId}
 ```
 
 - Parameters
@@ -102,13 +102,13 @@ GET /api/integrations/{integrationId}
 </table>
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/integrations/2
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2
 ```
 
 ### List all available roles for an Integration
 
 ```sh
-GET /api/integrations/{integrationId}/{environment}/roles
+GET /api/v1/integrations/{integrationId}/{environment}/roles
 ```
 
 - Parameters
@@ -144,13 +144,13 @@ GET /api/integrations/{integrationId}/{environment}/roles
 </table>
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/integrations/2/dev/roles
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2/dev/roles
 ```
 
 ### Create role for an Integration
 
 ```sh
-GET /api/integrations/{integrationId}/{environment}/roles
+POST /api/v1/integrations/{integrationId}/{environment}/roles
 ```
 
 - Parameters
@@ -196,13 +196,13 @@ GET /api/integrations/{integrationId}/{environment}/roles
 </table>
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"roleName":"role1"}' -X POST /api/integrations/2/dev/roles
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"roleName":"role1"}' -X POST /api/v1/integrations/2/dev/roles
 ```
 
 ### Delete role for an Integration
 
 ```sh
-GET /api/integrations/{integrationId}/{environment}/roles/{roleName}
+DELETE /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 ```
 
 - Parameters
@@ -237,13 +237,13 @@ GET /api/integrations/{integrationId}/{environment}/roles/{roleName}
 </table>
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" -X DELETE /api/integrations/2/dev/roles/role1
+curl -H "Authorization: Bearer $API_TOKEN" -X DELETE /api/v1/integrations/2/dev/roles/role1
 ```
 
 ### Update role for an Integration
 
 ```sh
-GET /api/integrations/{integrationId}/{environment}/roles/{roleName}
+PUT /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 ```
 
 - Parameters
@@ -258,7 +258,7 @@ GET /api/integrations/{integrationId}/{environment}/roles/{roleName}
 
 ```json
 {
-  "roleName": "role2"
+  "newRoleName": "role2"
 }
 ```
 
@@ -292,13 +292,13 @@ GET /api/integrations/{integrationId}/{environment}/roles/{roleName}
 - Request Sample
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"newRoleName":"role2"}' -X PUT /api/integrations/2/dev/roles/role1
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"newRoleName":"role2"}' -X PUT /api/v1/integrations/2/dev/roles/role1
 ```
 
 ### Get all the user-role mappings for an Integration
 
 ```sh
-GET /api/integrations/{integrationId}/{environment}/user-role-mappings
+GET /api/v1/integrations/{integrationId}/{environment}/user-role-mappings
 ```
 
 - Parameters
@@ -334,13 +334,13 @@ GET /api/integrations/{integrationId}/{environment}/user-role-mappings
 - Request Sample
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/integrations/2/dev/user-role-mappings
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2/dev/user-role-mappings
 ```
 
 ### Add/Delete user-role mappings for an Integration
 
 ```sh
-GET /api/integrations/{integrationId}/{environment}/roles/user-role-mappings
+POST /api/v1/integrations/{integrationId}/{environment}/roles/user-role-mappings
 ```
 
 - Parameters
@@ -390,5 +390,5 @@ GET /api/integrations/{integrationId}/{environment}/roles/user-role-mappings
 - Request Sample
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"userName":"002c1e0f30fa48e782809a0726ef263c@bceidbasic","roleName":"role1","operation":"add"}' -X POST /api/integrations/2/dev/user-role-mappings
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"userName":"002c1e0f30fa48e782809a0726ef263c@bceidbasic","roleName":"role1","operation":"add"}' -X POST /api/v1/integrations/2/dev/user-role-mappings
 ```
