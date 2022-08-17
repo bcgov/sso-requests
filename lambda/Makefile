@@ -10,7 +10,7 @@ install_all:
 	@cd db; make install
 	@cd actions; make install
 	@cd scheduler; make install
-	@cd css_api; make install
+	@cd css-api; make install
 
 .PHONY: build_all
 build_all:
@@ -20,4 +20,4 @@ build_all:
 	@cd db; make build
 	@cd actions; make build
 	@cd scheduler; make build
-	@cd css_api; make build
+	@cd css-api; make build
