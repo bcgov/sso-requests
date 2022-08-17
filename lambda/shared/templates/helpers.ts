@@ -5,6 +5,7 @@ import { formatUrisForEmail, realmToIDP } from '@lambda-shared/utils/helpers';
 import { Data } from '@lambda-shared/interfaces';
 import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
+import { idpMap } from 'app/helpers/meta';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -41,7 +42,8 @@ export const processRequest = async (integration: any) => {
   const devUris = formatUrisForEmail(devValidRedirectUris, 'Development');
   const testUris = formatUrisForEmail(testValidRedirectUris, 'Test');
   const prodUris = formatUrisForEmail(prodValidRedirectUris, 'Production');
-  const idps = realmToIDP(realm);
+  const idps =
+    integration.serviceType === 'gold' ? [integration.devIdps.map((idp) => idpMap[idp]).join(', ')] : realmToIDP(realm);
 
   return {
     ...integration,
