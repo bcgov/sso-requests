@@ -121,13 +121,13 @@ export const getIntegrationsByUserTeam = async (
   });
 };
 
-export const getRequestById = (
-  requestId: number,
+export const getIntegrationById = (
+  integrationId: number,
   attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps'],
   options = { raw: true },
 ) => {
   return models.request.findOne({
-    where: { id: requestId, apiServiceAccount: false, archived: false },
+    where: { id: integrationId, apiServiceAccount: false, archived: false },
     attributes,
     ...options,
   });

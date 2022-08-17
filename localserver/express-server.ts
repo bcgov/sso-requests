@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import _ from 'lodash';
 import { setRoutes } from '../lambda/app/src/routes';
 import * as actionRoutes from '../lambda/actions/src/routes';
-import * as apiRoutes from '../lambda/css_api/src/routes';
+import * as apiRoutes from '../lambda/css-api/src/routes';
 
 const logger = morgan('combined');
 
