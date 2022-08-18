@@ -132,3 +132,7 @@ variable "ches_api_endpoint" {
 variable "ches_token_endpoint" {
   description = "endpoint for ches service"
 }
+
+variable "custom_domain_name" {
+  description = "custom domain name for a Regional API, API Gateway"
+}
