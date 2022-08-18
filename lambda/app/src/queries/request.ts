@@ -80,23 +80,27 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
   return getMyOrTeamRequest(session.user.id, requestId, roles);
 };
 
-export const listIntegrationsForTeam = async (
-  session: Session,
+export const getIntegrationsByTeam = async (
+  teamId: number,
+  serviceType?: string,
+  attributes?: string[],
+  options?: { raw: boolean },
+) => {
+  const where: any = { teamId, apiServiceAccount: false, archived: false };
+  if (serviceType) where.serviceType = serviceType;
+  return models.request.findAll({
+    where,
+    attributes,
+    ...options,
+  });
+};
+
+export const getIntegrationsByUserTeam = async (
+  user: User,
   teamId: number,
   serviceType?: string,
   options?: { raw: boolean },
 ) => {
-  if (isAdmin(session)) {
-    const where: any = { teamId, apiServiceAccount: false, archived: false };
-
-    if (serviceType) where.serviceType = serviceType;
-    return models.request.findAll({
-      where,
-      ...options,
-    });
-  }
-
-  const { user } = session;
   const where: any = { apiServiceAccount: false, archived: false };
   const teamIdsLiteral = getMyTeamsLiteral(user.id);
 
@@ -113,6 +117,18 @@ export const listIntegrationsForTeam = async (
 
   return models.request.findAll({
     where,
+    ...options,
+  });
+};
+
+export const getIntegrationById = (
+  integrationId: number,
+  attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps'],
+  options = { raw: true },
+) => {
+  return models.request.findOne({
+    where: { id: integrationId, apiServiceAccount: false, archived: false },
+    attributes,
     ...options,
   });
 };

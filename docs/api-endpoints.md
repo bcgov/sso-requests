@@ -1,303 +1,394 @@
-## CSS API Architect Proposal and Requirments
+# CSS API Architect Proposal and Requirments
 
-### API Token Management System
+## API Token Management System
 
-- Users/Teams create a new user/team token with an expiry duration.
-- Users/Teams delete an existing user/team token to invalidate the token.
+- Team admin can request for an API Account through CSS App for managing gold integrations. Using the API Account credentials, the team admin can request for a token with an expiry duration
+- Token url would be `https://loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token`
 
-### API Token Validation System
+## API Token Validation System
 
 - The backend API system finds the API token from the `Authorization request header`.
 - The backend validates the token and obtains the requester identity.
 - The backend declines the request if the action is not authorized.
 - The backend processes the request if the action is authorized.
 
-### API Endpoints
+## OpenAPI Spec
 
-#### Get all users for the identity provider filtered according to search criteria
-
-```
-GET /api/{environment}/idps/{idp}/users/{search}
-```
-
-- Parameters
-
-  | Name                  | Type                                                    | In    | Description                                     |
-  | --------------------- | ------------------------------------------------------- | ----- | ----------------------------------------------- |
-  | `environment`         | 'dev' \| 'test' \| 'prod'                               | path  | The environment to search the users in          |
-  | `idp`                 | 'idir' \| 'bceidbasic' \| 'bceidbusiness'\| 'bceidboth' | path  | The identity provider the users associated with |
-  | `search`              | string                                                  | path  | The search key to use for the search criteria   |
-  | `property` (optional) | 'email' \| 'firstName' \| 'lastName' \| 'guid'          | query | The search property (defaults to 'email')       |
-
-- Responses
-
-<table style="margin-left: 2em;">
-<tr><td>Status Code</td><td>Response</td></tr>
-<tr>
-<td>200</td>
-<td>
-
-```json
-[
-  {
-    "username": "f9468f2708443a0729704d475f1e8bc3@idir",
-    "firstName": "James",
-    "lastName": "Smith",
-    "email": "james.smith@gov.bc.ca",
-    "attributes": {
-      "idir_user_guid": "F9468F2708443A0729704D475F1E8BC3",
-      "idir_username": "jasmith"
-    }
-  }
-]
-```
-
-</td>
-</tr>
-<tr>
-<td>422</td>
-<td>
-
-```json
-{ "success": false, "message": "<error_message>" }
-```
-
-</td></tr>
-</table>
-
-#### Create roles for the integration
-
-```
-POST /api/integrations/{id}/roles
-```
-
-- Parameters
-
-  | Name    | Type        | In   | Description               |
-  | ------- | ----------- | ---- | ------------------------- |
-  | `id`    | number      | path | The id of the integration |
-  | `roles` | `NewRole`[] | body | Array of roles            |
-
-  ```ts
-  interface NewRole {
-    name: string;
-    envs: 'dev' | 'test' | 'prod';
-  }
-  ```
-
-- Responses
-
-<table style="margin-left: 2em;">
-<tr><td>Status Code</td><td>Response</td></tr>
-<tr>
-<td>200</td>
-<td>
-
-```json
-[
-  {
-    "env": "dev",
-    "success": ["admin", "manager"],
-    "duplicate": [],
-    "failure": [],
-    "clientNotFound": false
-  },
-  {
-    "env": "test",
-    "success": ["admin"],
-    "duplicate": ["manager"],
-    "failure": [],
-    "clientNotFound": false
-  },
-  {
-    "env": "prod",
-    "success": [],
-    "duplicate": [],
-    "failure": ["admin", "manager"],
-    "clientNotFound": true
-  }
-]
-```
-
-</td>
-</tr>
-<tr>
-<td>422</td>
-<td>
-
-```json
-{ "success": false, "message": "<error_message>" }
-```
-
-</td></tr>
-</table>
-
-#### Delete a role for the integration
-
-```
-DELETE /api/{environment}/integrations/{id}/roles/{roleName}
-```
-
-- Parameters
-
-  | Name          | Type                      | In   | Description                            |
-  | ------------- | ------------------------- | ---- | -------------------------------------- |
-  | `environment` | 'dev' \| 'test' \| 'prod' | path | The environment to search the users in |
-  | `id`          | number                    | path | The id of the integration              |
-  | `roleName`    | string                    | path | The role name to delete                |
-
-- Responses
-
-<table style="margin-left: 2em;">
-<tr><td>Status Code</td><td>Response</td></tr>
-<tr>
-<td>200</td>
-<td>
-
-<!-- the deleted role name -->
-
-```json
-"manager"
-```
-
-</td>
-</tr>
-<tr>
-<td>422</td>
-<td>
-
-```json
-{ "success": false, "message": "<error_message>" }
-```
-
-</td></tr>
-</table>
-
-#### Get all roles for the integration
-
-```
-GET /api/{environment}/integrations/{id}/roles
-```
-
-- Parameters
-
-  | Name                | Type                      | In    | Description                               |
-  | ------------------- | ------------------------- | ----- | ----------------------------------------- |
-  | `environment`       | 'dev' \| 'test' \| 'prod' | path  | The environment to search the users in    |
-  | `id`                | number                    | path  | The id of the integration                 |
-  | `search` (optional) | string                    | query | The search key                            |
-  | `first` (optional)  | number                    | query | The pagination offset (defaults to 0)     |
-  | `max` (optional)    | number                    | query | The maximum results size (defaults to 50) |
-
-- Responses
-
-<table style="margin-left: 2em;">
-<tr><td>Status Code</td><td>Response</td></tr>
-<tr>
-<td>200</td>
-<td>
-
-```json
-["admin", "manager"]
-```
-
-</td>
-</tr>
-<tr>
-<td>422</td>
-<td>
-
-```json
-{ "success": false, "message": "<error_message>" }
-```
-
-</td></tr>
-</table>
-
-#### Get all roles for the integration user
-
-```
-GET /api/{environment}/integrations/{id}/users/{username}/roles
-```
-
-- Parameters
-
-  | Name          | Type                      | In   | Description                            |
-  | ------------- | ------------------------- | ---- | -------------------------------------- |
-  | `environment` | 'dev' \| 'test' \| 'prod' | path | The environment to search the users in |
-  | `id`          | number                    | path | The id of the integration              |
-  | `username`    | string                    | path | The username of the user               |
-
-- Responses
-
-<table style="margin-left: 2em;">
-<tr><td>Status Code</td><td>Response</td></tr>
-<tr>
-<td>200</td>
-<td>
-
-```json
-["admin", "manager"]
-```
-
-</td>
-</tr>
-<tr>
-<td>422</td>
-<td>
-
-```json
-{ "success": false, "message": "<error_message>" }
-```
-
-</td></tr>
-</table>
-
-#### Manage the user roles
-
-```
-PUT /api/{environment}/integrations/{id}/users/{username}/roles
-```
-
-- Parameters
-
-  | Name            | Type                      | In   | Description                            |
-  | --------------- | ------------------------- | ---- | -------------------------------------- |
-  | `environment`   | 'dev' \| 'test' \| 'prod' | path | The environment to search the users in |
-  | `id`            | number                    | path | The id of the integration              |
-  | `username`      | string                    | path | The username of the user               |
-  | `rolesToAdd`    | string[]                  | body | array of roles to add                  |
-  | `rolesToRemove` | string[]                  | body | array of roles to remove               |
-
-- Responses
-
-<table style="margin-left: 2em;">
-<tr><td>Status Code</td><td>Response</td></tr>
-<tr>
-<td>200</td>
-<td>
-
-<!-- all roles for the user after the changes -->
-
-```json
-["admin", "manager"]
-```
-
-</td>
-</tr>
-<tr>
-<td>422</td>
-<td>
-
-```json
-{ "success": false, "message": "<error_message>" }
-```
-
-</td></tr>
-</table>
-
-### Request Sample
+### Get List of Gold Integrations managed by the Team
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"rolesToAdd":"["admin"]","rolesToRemove":"["manager"]"}' -X PUT /api/dev/integrations/111/users/f9468f2708443a0729704d475f1e8bc3@idir/roles
+GET /api/v1/integrations
+```
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>
+
+```json
+{
+  "data": [
+    {
+      "id": 2,
+      "projectName": "test",
+      "protocol": "oidc",
+      "requester": "James Smith",
+      "teamId": 1,
+      "environments": ["dev"],
+      "createdAt": "2022-08-10T21:21:25.303Z",
+      "updatedAt": "2022-08-10T21:21:53.598Z"
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+</table>
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations
+```
+
+### Get a Gold Integration managed by the Team
+
+```
+GET /api/v1/integrations/{integrationId}
+```
+
+- Parameters
+
+  | Name            | Type   | In   | Description        |
+  | --------------- | ------ | ---- | ------------------ |
+  | `integrationId` | number | path | The integration id |
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>
+
+```json
+{
+  "data": [
+    {
+      "id": 2,
+      "projectName": "test",
+      "protocol": "oidc",
+      "requester": "James Smith",
+      "teamId": 1,
+      "environments": ["dev"],
+      "createdAt": "2022-08-10T21:21:25.303Z",
+      "updatedAt": "2022-08-10T21:21:53.598Z"
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>422</td>
+<td>
+```json
+{ "success": false, "message": "integration #{integrationId} not found" }
+```
+</td></tr>
+</table>
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2
+```
+
+### List all available roles for an Integration
+
+```sh
+GET /api/v1/integrations/{integrationId}/{environment}/roles
+```
+
+- Parameters
+
+  | Name            | Type   | In   | Description             |
+  | --------------- | ------ | ---- | ----------------------- |
+  | `integrationId` | number | path | The integration id      |
+  | `environment`   | string | path | Integration Environment |
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>
+
+```json
+{
+  "data": ["role1", "role2", "role3"]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>422</td>
+<td>
+```json
+{ "success": false, "message": "<error_message>" }
+```
+</td></tr>
+</table>
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2/dev/roles
+```
+
+### Create role for an Integration
+
+```sh
+POST /api/v1/integrations/{integrationId}/{environment}/roles
+```
+
+- Parameters
+
+  | Name            | Type   | In   | Description             |
+  | --------------- | ------ | ---- | ----------------------- |
+  | `integrationId` | number | path | The integration id      |
+  | `environment`   | string | path | Integration Environment |
+
+- Payload
+
+```json
+{
+  "roleName": "role1"
+}
+```
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>
+
+```json
+{
+  "message": "created"
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>422</td>
+<td>
+
+```json
+{ "success": false, "message": "<error_message>" }
+```
+
+</td></tr>
+</table>
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"roleName":"role1"}' -X POST /api/v1/integrations/2/dev/roles
+```
+
+### Delete role for an Integration
+
+```sh
+DELETE /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
+```
+
+- Parameters
+
+  | Name            | Type   | In   | Description                    |
+  | --------------- | ------ | ---- | ------------------------------ |
+  | `integrationId` | number | path | The integration id             |
+  | `environment`   | string | path | Integration Environment        |
+  | `roleName`      | string | path | Name of the role to be deleted |
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>204</td>
+<td>
+
+`No Content`
+
+</td>
+</tr>
+<tr>
+<td>422</td>
+<td>
+
+```json
+{ "success": false, "message": "<error_message>" }
+```
+
+</td></tr>
+</table>
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" -X DELETE /api/v1/integrations/2/dev/roles/role1
+```
+
+### Update role for an Integration
+
+```sh
+PUT /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
+```
+
+- Parameters
+
+  | Name            | Type   | In   | Description                    |
+  | --------------- | ------ | ---- | ------------------------------ |
+  | `integrationId` | number | path | The integration id             |
+  | `environment`   | string | path | Integration Environment        |
+  | `roleName`      | string | path | Name of the role to be updated |
+
+- Payload
+
+```json
+{
+  "newRoleName": "role2"
+}
+```
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>
+
+```json
+{
+  "message": "updated"
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>422</td>
+<td>
+
+```json
+{ "success": false, "message": "<error_message>" }
+```
+
+</td></tr>
+</table>
+
+- Request Sample
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"newRoleName":"role2"}' -X PUT /api/v1/integrations/2/dev/roles/role1
+```
+
+### Get all the user-role mappings for an Integration
+
+```sh
+GET /api/v1/integrations/{integrationId}/{environment}/user-role-mappings
+```
+
+- Parameters
+
+  | Name            | Type   | In   | Description             |
+  | --------------- | ------ | ---- | ----------------------- |
+  | `integrationId` | number | path | The integration id      |
+  | `environment`   | string | path | Integration Environment |
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>
+
+```json
+{
+  "data": [
+    {
+      "role": "role1",
+      "users": []
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+</table>
+
+- Request Sample
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2/dev/user-role-mappings
+```
+
+### Add/Delete user-role mappings for an Integration
+
+```sh
+POST /api/v1/integrations/{integrationId}/{environment}/roles/user-role-mappings
+```
+
+- Parameters
+
+  | Name            | Type   | In   | Description             |
+  | --------------- | ------ | ---- | ----------------------- |
+  | `integrationId` | number | path | The integration id      |
+  | `environment`   | string | path | Integration Environment |
+
+- Payload
+
+```json
+{
+  "userName": "002c1e0f30fa48e782809a0726ef263c@bceidbasic",
+  "roleName": "role2",
+  "operation": "<add | del>"
+}
+```
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>
+
+```json
+{
+  "message": "updated"
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>422</td>
+<td>
+
+```json
+{ "success": false, "message": "<error_message>" }
+```
+
+</td></tr>
+</table>
+
+- Request Sample
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"userName":"002c1e0f30fa48e782809a0726ef263c@bceidbasic","roleName":"role1","operation":"add"}' -X POST /api/v1/integrations/2/dev/user-role-mappings
 ```

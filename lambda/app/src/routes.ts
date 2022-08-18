@@ -16,7 +16,13 @@ import {
   downloadServiceAccount,
   deleteServiceAccount,
 } from './controllers/team';
-import { findOrCreateUser, updateProfile } from './controllers/user';
+import {
+  findOrCreateUser,
+  listUsersByRole,
+  updateProfile,
+  updateUserRoleMapping,
+  updateUserRoleMappings,
+} from './controllers/user';
 import {
   createRequest,
   getRequests,
@@ -25,21 +31,14 @@ import {
   updateRequest,
   deleteRequest,
   updateRequestMetadata,
+  getIntegrations,
 } from './controllers/requests';
-import { listIntegrationsForTeam } from './queries/request';
-import { getClient } from './controllers/client';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
 import { wakeUpAll } from './controllers/heartbeat';
 import {
-  listClientRoles,
   listUserRoles,
-  manageUserRole,
-  manageUserRoles,
-  listRoleUsers,
-  createRole,
   bulkCreateRole,
-  deleteRole,
   findClientRole,
   getCompositeClientRoles,
   setCompositeClientRoles,
@@ -52,6 +51,7 @@ import { getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
+import { createClientRole, deleteRoles, listRoles } from './controllers/roles';
 
 const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -190,7 +190,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/team-integrations/:teamId`, async (req, res) => {
     try {
       const { teamId } = req.params;
-      const result = await listIntegrationsForTeam(req.session as Session, teamId);
+      const result = await getIntegrations(req.session as Session, teamId, req.user);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -273,7 +273,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/roles`, async (req, res) => {
     try {
-      const result = await listClientRoles((req.session as Session).user.id, req.body);
+      const result = await listRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -291,7 +291,7 @@ export const setRoutes = (app: any) => {
 
   app.put(`${BASE_PATH}/keycloak/user-role`, async (req, res) => {
     try {
-      const result = await manageUserRole((req.session as Session).user.id, req.body);
+      const result = await updateUserRoleMapping((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -300,7 +300,7 @@ export const setRoutes = (app: any) => {
 
   app.put(`${BASE_PATH}/keycloak/user-roles`, async (req, res) => {
     try {
-      const result = await manageUserRoles((req.session as Session).user.id, req.body);
+      const result = await updateUserRoleMappings((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -309,7 +309,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/role-users`, async (req, res) => {
     try {
-      const result = await listRoleUsers((req.session as Session).user.id, req.body);
+      const result = await listUsersByRole((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -336,7 +336,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/roles`, async (req, res) => {
     try {
-      const result = await createRole((req.session as Session).user.id, req.body);
+      const result = await createClientRole((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -363,7 +363,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/delete-role`, async (req, res) => {
     try {
-      const result = await deleteRole((req.session as Session).user.id, req.body);
+      const result = await deleteRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
