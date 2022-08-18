@@ -5,6 +5,10 @@
 resource "aws_api_gateway_rest_api" "sso_backend" {
   name        = "SSOApi"
   description = "Terraform Serverless Application Example"
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
 }
 
 # Proxy routes starting with /app to the app handler allowing any method
