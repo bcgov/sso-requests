@@ -490,13 +490,16 @@ export const deleteRole = async (
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
-  const role = await kcAdminClient.clients.delRole({
+  const role = await getRoleByName(kcAdminClient, client.id, roleName);
+  if (!role) throw Error('role not found');
+
+  const deletedRole = await kcAdminClient.clients.delRole({
     id: client.id,
     realm: 'standard',
     roleName,
   });
 
-  return role;
+  return deletedRole;
 };
 
 export const updateRole = async (
@@ -515,28 +518,35 @@ export const updateRole = async (
 ) => {
   if (roleName?.length < 2) return null;
 
-  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
-  const client = clients[0];
+  try {
+    const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+    const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
+    if (clients.length === 0) throw Error('client not found');
+    const client = clients[0];
 
-  const role = await kcAdminClient.clients.updateRole(
-    {
-      id: client.id,
-      realm: 'standard',
-      roleName,
-    },
-    {
-      id: client.id,
-      name: newRoleName,
-      description: '',
-      composite: false,
-      clientRole: true,
-      containerId: client.id,
-      attributes: {},
-    },
-  );
-  return role;
+    const role = await getRoleByName(kcAdminClient, client.id, roleName);
+    if (!role) throw Error('role not found');
+
+    const updatedRole = await kcAdminClient.clients.updateRole(
+      {
+        id: client.id,
+        realm: 'standard',
+        roleName,
+      },
+      {
+        id: client.id,
+        name: newRoleName,
+        description: '',
+        composite: false,
+        clientRole: true,
+        containerId: client.id,
+        attributes: {},
+      },
+    );
+    return updatedRole;
+  } catch (err) {
+    throw Error(err);
+  }
 };
 
 export const createIdirUser = async ({
