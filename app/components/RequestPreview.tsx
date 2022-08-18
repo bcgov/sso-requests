@@ -120,21 +120,19 @@ function RequestPreview({ children, request, teams = [] }: Props) {
             </td>
           </tr>
           {isOIDC && (
-            <>
-              <tr>
-                <td>Client Type:</td>
-                <td>
-                  <SemiBold>{request.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
-                </td>
-              </tr>
-              <tr>
-                <td>Usecase:</td>
-                <td>
-                  <SemiBold>{authTypeDisplay[request.authType || 'browser-login']}</SemiBold>
-                </td>
-              </tr>
-            </>
+            <tr>
+              <td>Client Type:</td>
+              <td>
+                <SemiBold>{request.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
+              </td>
+            </tr>
           )}
+          <tr>
+            <td>Usecase:</td>
+            <td>
+              <SemiBold>{authTypeDisplay[request.authType || 'browser-login']}</SemiBold>
+            </td>
+          </tr>
           <tr>
             <td>Project Name:</td>
             <td>
