@@ -54,6 +54,7 @@ jobs:
           CHES_USERNAME=${{secrets.CHES_USERNAME_DEV}}
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_DEV}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          CUSTOM_DOMAIN_NAME=api-dev.loginproxy.gov.bc.ca
           EOF
 
       - name: Set env to production
@@ -88,6 +89,7 @@ jobs:
           CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          CUSTOM_DOMAIN_NAME=api.loginproxy.gov.bc.ca
           EOF
 
       - uses: hmarr/debug-action@v2
@@ -158,7 +160,7 @@ jobs:
 
       - name: Terraform Variables
         run: |
-          cat >"versions.tf" <<EOF
+          cat >"config.tf" <<EOF
           terraform {
             backend "remote" {
               hostname     = "app.terraform.io"
@@ -208,6 +210,7 @@ jobs:
           ches_password="${{ env.CHES_PASSWORD }}"
           ches_api_endpoint="${{ env.CHES_API_ENDPOINT }}"
           ches_token_endpoint="${{ env.CHES_TOKEN_ENDPOINT }}"
+          custom_domain_name="${{ env.CUSTOM_DOMAIN_NAME }}"
           EOF
 
         working-directory: ./terraform
