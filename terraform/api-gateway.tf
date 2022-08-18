@@ -142,7 +142,7 @@ resource "aws_lambda_permission" "apigw_actions" {
 resource "aws_lambda_permission" "apigw_api" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.api.function_name
+  function_name = aws_lambda_function.css_api.function_name
   principal     = "apigateway.amazonaws.com"
 
   # The "/*/*" portion grants access from any method on any resource
