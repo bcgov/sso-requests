@@ -83,6 +83,8 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
   data.testRoles = compact(data.testRoles || []);
   data.prodRoles = compact(data.prodRoles || []);
 
+  if (data.protocol === 'saml') data.authType = 'browser-login';
+
   return data;
 };
 
