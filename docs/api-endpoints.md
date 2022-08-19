@@ -5,6 +5,20 @@
 - Team admin can request for an API Account through CSS App for managing gold integrations. Using the API Account credentials, the team admin can request for a token with an expiry duration
 - Token url would be `https://loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token`
 
+### Requesting a token
+
+- Request a token using below command
+
+  ```sh
+  export CLIENT_ID=
+  export CLIENT_SECRET=
+  export TOKEN_URL=
+
+  curl -X POST -d grant_type=client_credentials -d client_id=$CLIENT_ID -d client_secret=$CLIENT_SECRET $TOKEN_URL
+  ```
+
+- Set `API_TOKEN` variable with `access_token` value from the response
+
 ## API Token Validation System
 
 - The backend API system finds the API token from the `Authorization request header`.

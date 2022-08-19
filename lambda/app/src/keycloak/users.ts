@@ -490,13 +490,16 @@ export const deleteRole = async (
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
-  const role = await kcAdminClient.clients.delRole({
+  const role = await getRoleByName(kcAdminClient, client.id, roleName);
+  if (!role) throw Error('role not found');
+
+  const deletedRole = await kcAdminClient.clients.delRole({
     id: client.id,
     realm: 'standard',
     roleName,
   });
 
-  return role;
+  return deletedRole;
 };
 
 export const updateRole = async (
@@ -520,7 +523,10 @@ export const updateRole = async (
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
-  const role = await kcAdminClient.clients.updateRole(
+  const role = await getRoleByName(kcAdminClient, client.id, roleName);
+  if (!role) throw Error('role not found');
+
+  const updatedRole = await kcAdminClient.clients.updateRole(
     {
       id: client.id,
       realm: 'standard',
@@ -536,7 +542,7 @@ export const updateRole = async (
       attributes: {},
     },
   );
-  return role;
+  return updatedRole;
 };
 
 export const createIdirUser = async ({
