@@ -14,7 +14,7 @@
   export CLIENT_SECRET=
   export TOKEN_URL=
 
-  curl -d grant_type=client_credentials -d client_id=$CLIENT_ID -d client_secret=$CLIENT_SECRET $TOKEN_URL
+  curl -X POST -d grant_type=client_credentials -d client_id=$CLIENT_ID -d client_secret=$CLIENT_SECRET $TOKEN_URL
   ```
 
 - Set `API_TOKEN` variable with `access_token` value from the response
