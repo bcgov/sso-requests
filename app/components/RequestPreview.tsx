@@ -89,6 +89,7 @@ function RequestPreview({ children, request, teams = [] }: Props) {
   if (!request) return null;
   const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
   const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request.realm);
+  const isOIDC = request.protocol !== 'saml';
 
   return (
     <>
@@ -113,11 +114,19 @@ function RequestPreview({ children, request, teams = [] }: Props) {
             </tr>
           )}
           <tr>
-            <td>Client Type:</td>
+            <td>Client Protocol:</td>
             <td>
-              <SemiBold>{request.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
+              <SemiBold>{isOIDC ? 'OpenID Connect' : 'SAML'}</SemiBold>
             </td>
           </tr>
+          {isOIDC && (
+            <tr>
+              <td>Client Type:</td>
+              <td>
+                <SemiBold>{request.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
+              </td>
+            </tr>
+          )}
           <tr>
             <td>Usecase:</td>
             <td>
