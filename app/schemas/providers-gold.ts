@@ -95,7 +95,7 @@ export default function getSchema(integration: Request) {
   return {
     type: 'object',
     headerText: 'Choose providers',
-    stepText: 'Providers',
+    stepText: 'Basic Info',
     properties,
     required,
   } as Schema;
