@@ -18,6 +18,7 @@ import {
 } from './controllers/team';
 import {
   findOrCreateUser,
+  listClientRolesByUsers,
   listUsersByRole,
   updateProfile,
   updateUserRoleMapping,
@@ -36,13 +37,7 @@ import {
 import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
 import { wakeUpAll } from './controllers/heartbeat';
-import {
-  listUserRoles,
-  bulkCreateRole,
-  findClientRole,
-  getCompositeClientRoles,
-  setCompositeClientRoles,
-} from './keycloak/users';
+import { bulkCreateRole, findClientRole, getCompositeClientRoles, setCompositeClientRoles } from './keycloak/users';
 import { searchIdirUsers, importIdirUser } from './bceid-webservice-proxy/idir';
 import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
@@ -282,7 +277,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/user-roles`, async (req, res) => {
     try {
-      const result = await listUserRoles((req.session as Session).user.id, req.body);
+      const result = await listClientRolesByUsers((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

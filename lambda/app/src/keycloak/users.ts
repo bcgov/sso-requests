@@ -234,20 +234,15 @@ export const listRoleUsers = async (
 };
 
 export const listUserRoles = async (
-  sessionUserId: number,
+  integration: Data,
   {
     environment,
-    integrationId,
     username,
   }: {
     environment: string;
-    integrationId: number;
     username: string;
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-  if (integration.authType === 'service-account') throw Error('invalid auth type');
-
   const idp = username.split('@')[1];
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
 

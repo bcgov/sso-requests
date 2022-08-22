@@ -5,7 +5,7 @@ import { Session } from '../../../shared/interfaces';
 import { lowcase } from '@lambda-app/helpers/string';
 import { getDisplayName } from '../utils/helpers';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
-import { listRoleUsers, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
+import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -110,4 +110,24 @@ export const updateUserRoleMappings = async (
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
   if (integration.authType === 'service-account') throw Error('invalid auth type');
   return await manageUserRoles(integration, { environment, username, roleNames });
+};
+
+export const listClientRolesByUsers = async (
+  sessionUserId: number,
+  {
+    environment,
+    integrationId,
+    username,
+  }: {
+    environment: string;
+    integrationId: number;
+    username: string;
+  },
+) => {
+  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  if (integration.authType === 'service-account') throw Error('invalid auth type');
+  return await listUserRoles(integration, {
+    environment,
+    username,
+  });
 };

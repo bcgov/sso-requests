@@ -19,3 +19,10 @@ build:
 	@yarn build
 	@yarn copy-templates
 	@cd dist; rm -f $(TARGET); zip -rq $(TARGET) *
+
+.PHONY: swagger
+swagger:
+	@rm -rf swagger-ui-dist
+	@yarn swagger-autogen
+	@cp node_modules/swagger-ui-dist . -r
+	cp src/swagger-* swagger-ui-dist/
