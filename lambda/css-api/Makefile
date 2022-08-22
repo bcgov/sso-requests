@@ -25,4 +25,6 @@ swagger:
 	@rm -rf swagger-ui-dist
 	@yarn swagger-autogen
 	@cp node_modules/swagger-ui-dist . -r
-	cp src/swagger-* swagger-ui-dist/
+	@cp src/swagger-* swagger-ui-dist/
+	@cp swagger-output.json swagger-ui-dist/
+	@mv swagger-ui-dist ../../terraform/

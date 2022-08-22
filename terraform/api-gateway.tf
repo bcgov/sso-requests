@@ -101,12 +101,135 @@ resource "aws_api_gateway_integration" "api" {
   uri                     = aws_lambda_function.css_api.invoke_arn
 }
 
+# Proxy requests to s3 for serving swagger console
+resource "aws_api_gateway_resource" "openapi_swagger" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  parent_id   = aws_api_gateway_rest_api.sso_backend.root_resource_id
+  path_part   = "openapi"
+}
+
+resource "aws_api_gateway_resource" "openapi_swagger_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  parent_id   = aws_api_gateway_resource.openapi_swagger.id
+  path_part   = "swagger"
+}
+
+resource "aws_api_gateway_method" "openapi_swagger_proxy" {
+  rest_api_id   = aws_api_gateway_rest_api.sso_backend.id
+  resource_id   = aws_api_gateway_resource.openapi_swagger_proxy.id
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.header.Content-Type"        = true,
+    "method.request.header.Content-Disposition" = true,
+  }
+}
+
+resource "aws_api_gateway_method_response" "openapi_swagger_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  resource_id = aws_api_gateway_resource.openapi_swagger_proxy.id
+  http_method = aws_api_gateway_method.openapi_swagger_proxy
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Content-Type"        = true,
+    "method.response.header.Content-Disposition" = true,
+  }
+}
+
+resource "aws_api_gateway_resource" "swagger_assets_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  parent_id   = aws_api_gateway_resource.openapi_swagger.id
+  path_part   = "{asset}"
+}
+
+resource "aws_api_gateway_method" "swagger_assets_proxy" {
+  rest_api_id   = aws_api_gateway_rest_api.sso_backend.id
+  resource_id   = aws_api_gateway_resource.swagger_assets_proxy.id
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.header.Content-Type"        = true,
+    "method.request.header.Content-Disposition" = true,
+  }
+}
+
+resource "aws_api_gateway_method_response" "swagger_assets_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  resource_id = aws_api_gateway_resource.swagger_assets_proxy.id
+  http_method = aws_api_gateway_method.swagger_assets_proxy
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Content-Type"        = true,
+    "method.response.header.Content-Disposition" = true,
+  }
+}
+
+resource "aws_api_gateway_integration" "openapi_swagger" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  resource_id = aws_api_gateway_method.openapi_proxy.resource_id
+  http_method = aws_api_gateway_method.openapi_proxy.http_method
+
+  integration_http_method = "GET"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.css_api.invoke_arn
+
+  request_parameters = {
+    "integration.request.header.Content-Type"        = "method.request.header.Content-Type",
+    "integration.request.header.Content-Disposition" = "method.request.header.Content-Disposition",
+  }
+}
+
+resource "aws_api_gateway_integration_response" "openapi_swagger" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  resource_id = aws_api_gateway_method.openapi_proxy.resource_id
+  http_method = aws_api_gateway_method.openapi_proxy.http_method
+  status_code = aws_api_gateway_method_response.openapi_swagger_proxy.status_code
+
+  request_parameters = {
+    "method.response.header.Content-Type"        = "integration.response.header.Content-Type",
+    "method.response.header.Content-Disposition" = "integration.response.header.Content-Disposition",
+  }
+}
+
+resource "aws_api_gateway_integration" "openapi_swagger_assets" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  resource_id = aws_api_gateway_method.swagger_assets_proxy.resource_id
+  http_method = aws_api_gateway_method.swagger_assets_proxy.http_method
+
+  integration_http_method = "GET"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.css_api.invoke_arn
+
+  request_parameters = {
+    "integration.request.header.Content-Type"        = "method.request.header.Content-Type",
+    "integration.request.header.Content-Disposition" = "method.request.header.Content-Disposition",
+  }
+}
+
+resource "aws_api_gateway_integration_response" "openapi_swagger_assets" {
+  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
+  resource_id = aws_api_gateway_method.swagger_assets_proxy.resource_id
+  http_method = aws_api_gateway_method.swagger_assets_proxy.http_method
+  status_code = aws_api_gateway_method_response.swagger_assets_proxy.status_code
+
+  request_parameters = {
+    "method.response.header.Content-Type"        = "integration.response.header.Content-Type",
+    "method.response.header.Content-Disposition" = "integration.response.header.Content-Disposition",
+  }
+}
+
 # Deploy API and authorize to use lambdas
 resource "aws_api_gateway_deployment" "this" {
   depends_on = [
     aws_api_gateway_integration.lambda,
     aws_api_gateway_integration.actions,
     aws_api_gateway_integration.api,
+    aws_api_gateway_integration.openapi_swagger,
+    aws_api_gateway_integration.openapi_swagger_assets
   ]
 
   triggers = {
@@ -114,6 +237,8 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_integration.actions.id,
       aws_api_gateway_integration.lambda.id,
       aws_api_gateway_integration.api.id,
+      aws_api_gateway_integration.openapi_swagger,
+      aws_api_gateway_integration.openapi_swagger_assets
     ]))
   }
 
