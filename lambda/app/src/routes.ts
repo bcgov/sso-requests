@@ -52,6 +52,8 @@ import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
 import { createClientRole, deleteRoles, listRoles } from './controllers/roles';
+import reportController from './controllers/reports';
+import { assertSessionRole } from './helpers/permissions';
 
 const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
@@ -561,6 +563,26 @@ export const setRoutes = (app: any) => {
           .status(401)
           .json({ success: false, message: 'You are not authorized to delete this CSS API Account' });
       const result = await deleteServiceAccount(req.session as Session, req.user.id, teamId, saId);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/reports/team-integrations`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await reportController.getRawTeamIntegrations();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/reports/user-integrations`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await reportController.getRawUserIntegrations();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
