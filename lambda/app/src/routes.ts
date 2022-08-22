@@ -51,7 +51,6 @@ import { getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
-import { convertCSV } from './utils/csv';
 import { createClientRole, deleteRoles, listRoles } from './controllers/roles';
 import reportController from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
@@ -573,7 +572,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/reports/team-integrations`, async (req, res) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
-      const result = await reportController.downloadTeamIntegrationsReport();
+      const result = await reportController.getRawTeamIntegrations();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -583,7 +582,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/reports/user-integrations`, async (req, res) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
-      const result = await reportController.downloadUserIntegrationsReport();
+      const result = await reportController.getRawUserIntegrations();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

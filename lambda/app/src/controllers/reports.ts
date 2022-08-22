@@ -1,6 +1,6 @@
 import { sequelize } from '@lambda-shared/sequelize/models/models';
 
-export const downloadTeamIntegrationsReport = async () => {
+export const getRawTeamIntegrations = async () => {
   const [results] = await sequelize.query(`
 SELECT
   r.id,
@@ -28,7 +28,7 @@ ORDER BY r.client_name
   return results;
 };
 
-export const downloadUserIntegrationsReport = async () => {
+export const getRawUserIntegrations = async () => {
   const [results] = await sequelize.query(`
 SELECT
   r.id,
@@ -53,4 +53,4 @@ ORDER BY r.client_name
   return results;
 };
 
-export default { downloadTeamIntegrationsReport, downloadUserIntegrationsReport };
+export default { getRawTeamIntegrations, getRawUserIntegrations };
