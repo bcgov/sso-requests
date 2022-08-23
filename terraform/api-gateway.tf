@@ -194,6 +194,10 @@ resource "aws_api_gateway_integration_response" "openapi_swagger" {
     "method.response.header.Content-Type"        = "integration.response.header.Content-Type",
     "method.response.header.Content-Disposition" = "integration.response.header.Content-Disposition",
   }
+
+  depends_on = [
+    aws_api_gateway_integration.openapi_swagger
+  ]
 }
 
 resource "aws_api_gateway_integration" "openapi_swagger_assets" {
@@ -223,6 +227,9 @@ resource "aws_api_gateway_integration_response" "openapi_swagger_assets" {
     "method.response.header.Content-Type"        = "integration.response.header.Content-Type",
     "method.response.header.Content-Disposition" = "integration.response.header.Content-Disposition",
   }
+  depends_on = [
+    aws_api_gateway_integration.openapi_swagger_assets
+  ]
 }
 
 # Deploy API and authorize to use lambdas
