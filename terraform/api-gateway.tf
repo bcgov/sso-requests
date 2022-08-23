@@ -207,7 +207,7 @@ resource "aws_api_gateway_integration" "openapi_swagger_assets" {
   uri                     = "arn:aws:s3:::css-sso-api-swagger"
 
   request_parameters = {
-    "integration.request.path.asset"                 = "method.request.path.file",
+    "integration.request.path.asset"                 = "method.request.path.asset",
     "integration.request.header.Content-Type"        = "method.request.header.Content-Type",
     "integration.request.header.Content-Disposition" = "method.request.header.Content-Disposition",
   }
