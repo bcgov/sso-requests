@@ -5,6 +5,7 @@ import { setRoutes } from './routes';
 import { expressyApiRouter } from '@lambda-shared/helpers/expressy-api-router';
 
 const app = new Api();
+
 expressyApiRouter(app);
 setRoutes(app);
 

@@ -1,52 +1,45 @@
+import { findUserByRealm } from '@lambda-app/keycloak/users';
 import { injectable } from 'tsyringe';
 import { RoleService } from '../services/role-service';
 import { UserRoleMappingService } from '../services/user-role-mapping-service';
-
-interface UserRoleMapping {
-  role: string;
-  users: any;
-}
 
 @injectable()
 export class UserRoleMappingController {
   constructor(private userRoleMappingService: UserRoleMappingService, private roleService: RoleService) {}
 
-  public async list(teamId: number, integrationId: number, environment: string) {
-    const roles = await this.roleService.getAllByEnvironment(teamId, integrationId, environment);
-    const result: UserRoleMapping[] = [];
+  public async list(teamId: number, integrationId: number, environment: string, queryParams: any) {
+    let users = [];
+    let roles = [];
 
-    for (let role of roles) {
-      let users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, role);
-      result.push({
-        role,
-        users: users.map((user) => {
-          return {
-            username: user.username,
-            email: user.email,
-            first_name: user.firstName,
-            last_name: user.lastName,
-            attributes: user.attributes,
-          };
-        }),
-      });
+    if (queryParams.roleName && !queryParams.username) {
+      users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
+      if (users.length > 0) roles = [{ roleName: queryParams.roleName }];
+    } else if (!queryParams.roleName && queryParams.username) {
+      roles = await this.userRoleMappingService.getAllByUser(teamId, integrationId, environment, queryParams.username);
+      if (roles.length > 0) users = await findUserByRealm(environment, queryParams.username);
+    } else if (queryParams.roleName && queryParams.username) {
+      const userRoles = await this.userRoleMappingService.getAllByUser(
+        teamId,
+        integrationId,
+        environment,
+        queryParams.username,
+      );
+      await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
+      if (userRoles.includes(queryParams.roleName)) {
+        users = await findUserByRealm(environment, queryParams.username);
+        roles = [{ roleName: queryParams.roleName }];
+      }
     }
-    return result;
-  }
-
-  public async get(teamId: number, integrationId: number, environment: string, role: string) {
-    const users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, role);
-    return {
-      role,
-      users: users.map((user) => {
-        return {
-          username: user.username,
-          email: user.email,
-          first_name: user.firstName,
-          last_name: user.lastName,
-          attributes: user.attributes,
-        };
-      }),
-    };
+    users = users.map((user) => {
+      return {
+        username: user.username,
+        email: user.email,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        attributes: user.attributes,
+      };
+    });
+    return { users, roles };
   }
 
   public async manage(

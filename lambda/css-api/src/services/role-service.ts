@@ -11,6 +11,13 @@ export class RoleService {
     return await listClientRoles(int, { environment, integrationId });
   }
 
+  public async getByName(teamId: number, integrationId: number, environment: string, roleName: string) {
+    const int = await this.integrationService.getById(integrationId, teamId);
+    const roles = await listClientRoles(int, { environment, integrationId });
+    if (!roles.includes(roleName)) throw Error(`Role #${roleName} not found`);
+    return { roleName };
+  }
+
   public async createRole(teamId: number, integrationId: number, roleName: string, environment: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
     return await createRole(int, { environment, integrationId, roleName });

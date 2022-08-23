@@ -223,6 +223,17 @@ export const listRoleUsers = async (
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
+  const roles: any[] = await kcAdminClient.clients.listRoles({
+    realm: 'standard',
+    id: client.id,
+    // @ts-ignore
+    search: '',
+    first: 0,
+    max: MAX_CLIENT_ROLE_COUNT,
+  });
+
+  if (!roles.find((role) => role.name === roleName)) throw Error('role not found');
+
   const users = await kcAdminClient.clients.findUsersWithRole({
     realm: 'standard',
     id: client.id,
@@ -234,20 +245,15 @@ export const listRoleUsers = async (
 };
 
 export const listUserRoles = async (
-  sessionUserId: number,
+  integration: Data,
   {
     environment,
-    integrationId,
     username,
   }: {
     environment: string;
-    integrationId: number;
     username: string;
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-  if (integration.authType === 'service-account') throw Error('invalid auth type');
-
   const idp = username.split('@')[1];
   if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
 
@@ -634,4 +640,9 @@ export const createIdirUser = async ({
   }
 
   return standardUser;
+};
+
+export const findUserByRealm = async (environment: string, username: string) => {
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  return await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
 };

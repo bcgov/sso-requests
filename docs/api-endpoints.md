@@ -44,6 +44,7 @@ GET /api/v1/integrations
 
 ```json
 {
+  "success": true,
   "data": [
     {
       "id": 2,
@@ -61,6 +62,15 @@ GET /api/v1/integrations
 
 </td>
 </tr>
+<tr>
+<td>422</td>
+<td>
+
+```json
+{ "success": false, "message": "<error_message>" }
+```
+
+</td></tr>
 </table>
 
 ```sh
@@ -89,18 +99,17 @@ GET /api/v1/integrations/{integrationId}
 
 ```json
 {
-  "data": [
-    {
-      "id": 2,
-      "projectName": "test",
-      "protocol": "oidc",
-      "requester": "James Smith",
-      "teamId": 1,
-      "environments": ["dev"],
-      "createdAt": "2022-08-10T21:21:25.303Z",
-      "updatedAt": "2022-08-10T21:21:53.598Z"
-    }
-  ]
+  "success": true,
+  "data": {
+    "id": 2,
+    "projectName": "test",
+    "protocol": "oidc",
+    "requester": "James Smith",
+    "teamId": 1,
+    "environments": ["dev"],
+    "createdAt": "2022-08-10T21:21:25.303Z",
+    "updatedAt": "2022-08-10T21:21:53.598Z"
+  }
 }
 ```
 
@@ -109,9 +118,11 @@ GET /api/v1/integrations/{integrationId}
 <tr>
 <td>422</td>
 <td>
+
 ```json
-{ "success": false, "message": "integration #{integrationId} not found" }
+{ "success": false, "message": "<error_message>" }
 ```
+
 </td></tr>
 </table>
 
@@ -142,7 +153,15 @@ GET /api/v1/integrations/{integrationId}/{environment}/roles
 
 ```json
 {
-  "data": ["role1", "role2", "role3"]
+  "success": true,
+  "data": [
+    {
+      "roleName": "role1"
+    },
+    {
+      "roleName": "role2"
+    }
+  ]
 }
 ```
 
@@ -151,9 +170,11 @@ GET /api/v1/integrations/{integrationId}/{environment}/roles
 <tr>
 <td>422</td>
 <td>
+
 ```json
 { "success": false, "message": "<error_message>" }
 ```
+
 </td></tr>
 </table>
 
@@ -161,10 +182,57 @@ GET /api/v1/integrations/{integrationId}/{environment}/roles
 curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2/dev/roles
 ```
 
+### Get a role for an Integration
+
+```sh
+GET /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
+```
+
+- Parameters
+
+  | Name            | Type   | In   | Description             |
+  | --------------- | ------ | ---- | ----------------------- |
+  | `integrationId` | number | path | The integration id      |
+  | `environment`   | string | path | Integration Environment |
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>
+
+```json
+{
+  "success": true,
+  "data": {
+    "roleName": "role1"
+  }
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>422</td>
+<td>
+
+```json
+{ "success": false, "message": "<error_message>" }
+```
+
+</td></tr>
+</table>
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2/dev/roles/role1
+```
+
 ### Create role for an Integration
 
 ```sh
-POST /api/v1/integrations/{integrationId}/{environment}/roles
+PUT /api/v1/integrations/{integrationId}/{environment}/roles
 ```
 
 - Parameters
@@ -187,11 +255,12 @@ POST /api/v1/integrations/{integrationId}/{environment}/roles
 <table style="margin-left: 2em;">
 <tr><td>Status Code</td><td>Response</td></tr>
 <tr>
-<td>200</td>
+<td>201</td>
 <td>
 
 ```json
 {
+  "success": true,
   "message": "created"
 }
 ```
@@ -210,7 +279,7 @@ POST /api/v1/integrations/{integrationId}/{environment}/roles
 </table>
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"roleName":"role1"}' -X POST /api/v1/integrations/2/dev/roles
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"roleName":"role1"}' -X PUT /api/v1/integrations/2/dev/roles
 ```
 
 ### Delete role for an Integration
@@ -232,10 +301,15 @@ DELETE /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 <table style="margin-left: 2em;">
 <tr><td>Status Code</td><td>Response</td></tr>
 <tr>
-<td>204</td>
+<td>200</td>
 <td>
 
-`No Content`
+```json
+{
+  "success": true,
+  "message": "deleted"
+}
+```
 
 </td>
 </tr>
@@ -257,7 +331,7 @@ curl -H "Authorization: Bearer $API_TOKEN" -X DELETE /api/v1/integrations/2/dev/
 ### Update role for an Integration
 
 ```sh
-PUT /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
+POST /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 ```
 
 - Parameters
@@ -272,7 +346,7 @@ PUT /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 
 ```json
 {
-  "newRoleName": "role2"
+  "roleName": "role2"
 }
 ```
 
@@ -286,6 +360,7 @@ PUT /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 
 ```json
 {
+  "success": true,
   "message": "updated"
 }
 ```
@@ -306,7 +381,7 @@ PUT /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 - Request Sample
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"newRoleName":"role2"}' -X PUT /api/v1/integrations/2/dev/roles/role1
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"newRoleName":"role2"}' -X POST /api/v1/integrations/2/dev/roles/role1
 ```
 
 ### Get all the user-role mappings for an Integration
@@ -332,10 +407,20 @@ GET /api/v1/integrations/{integrationId}/{environment}/user-role-mappings
 
 ```json
 {
+  "success": true,
   "data": [
     {
-      "role": "role1",
-      "users": []
+      "users": [
+        {
+          "username": "username",
+          "email": "email",
+          "attributes": {
+            "attributeKey1": ["attributeValue1"],
+            "attributeKey1": ["attributeValue2"]
+          }
+        }
+      ],
+      "roles": [{ "roleName": "role1" }]
     }
   ]
 }
@@ -343,6 +428,15 @@ GET /api/v1/integrations/{integrationId}/{environment}/user-role-mappings
 
 </td>
 </tr>
+<tr>
+<td>422</td>
+<td>
+
+```json
+{ "success": false, "message": "<error_message>" }
+```
+
+</td></tr>
 </table>
 
 - Request Sample
@@ -368,7 +462,7 @@ POST /api/v1/integrations/{integrationId}/{environment}/roles/user-role-mappings
 
 ```json
 {
-  "userName": "002c1e0f30fa48e782809a0726ef263c@bceidbasic",
+  "username": "002c1e0f30fa48e782809a0726ef263c@bceidbasic",
   "roleName": "role2",
   "operation": "<add | del>"
 }
@@ -384,7 +478,8 @@ POST /api/v1/integrations/{integrationId}/{environment}/roles/user-role-mappings
 
 ```json
 {
-  "message": "updated"
+  "success": true,
+  "message": "created | deleted"
 }
 ```
 
@@ -404,5 +499,5 @@ POST /api/v1/integrations/{integrationId}/{environment}/roles/user-role-mappings
 - Request Sample
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"userName":"002c1e0f30fa48e782809a0726ef263c@bceidbasic","roleName":"role1","operation":"add"}' -X POST /api/v1/integrations/2/dev/user-role-mappings
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"username":"002c1e0f30fa48e782809a0726ef263c@bceidbasic","roleName":"role1","operation":"add"}' -X POST /api/v1/integrations/2/dev/user-role-mappings
 ```
