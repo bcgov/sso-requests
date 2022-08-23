@@ -129,7 +129,7 @@ resource "aws_api_gateway_method" "openapi_swagger_proxy" {
 resource "aws_api_gateway_method_response" "openapi_swagger_proxy" {
   rest_api_id = aws_api_gateway_rest_api.sso_backend.id
   resource_id = aws_api_gateway_resource.openapi_swagger_proxy.id
-  http_method = aws_api_gateway_method.openapi_swagger_proxy
+  http_method = aws_api_gateway_method.openapi_swagger_proxy.http_method
   status_code = "200"
 
   response_parameters = {
@@ -159,7 +159,7 @@ resource "aws_api_gateway_method" "swagger_assets_proxy" {
 resource "aws_api_gateway_method_response" "swagger_assets_proxy" {
   rest_api_id = aws_api_gateway_rest_api.sso_backend.id
   resource_id = aws_api_gateway_resource.swagger_assets_proxy.id
-  http_method = aws_api_gateway_method.swagger_assets_proxy
+  http_method = aws_api_gateway_method.swagger_assets_proxy.http_method
   status_code = "200"
 
   response_parameters = {
@@ -175,7 +175,8 @@ resource "aws_api_gateway_integration" "openapi_swagger" {
 
   integration_http_method = "GET"
   type                    = "AWS"
-  uri                     = aws_lambda_function.css_api.invoke_arn
+  credentials             = aws_iam_role.s3_read_access_role.arn
+  uri                     = "arn:aws:s3:::css-sso-api-swagger"
 
   request_parameters = {
     "integration.request.header.Content-Type"        = "method.request.header.Content-Type",
@@ -202,9 +203,11 @@ resource "aws_api_gateway_integration" "openapi_swagger_assets" {
 
   integration_http_method = "GET"
   type                    = "AWS"
-  uri                     = aws_lambda_function.css_api.invoke_arn
+  credentials             = aws_iam_role.s3_read_access_role.arn
+  uri                     = "arn:aws:s3:::css-sso-api-swagger"
 
   request_parameters = {
+    "integration.request.path.asset"                 = "method.request.path.file",
     "integration.request.header.Content-Type"        = "method.request.header.Content-Type",
     "integration.request.header.Content-Disposition" = "method.request.header.Content-Disposition",
   }
