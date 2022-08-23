@@ -136,6 +136,10 @@ jobs:
             source = "./s3-bucket"
             bucket_name = "xgr00q-dev-keycloak"
           }
+          module "s3_sso_api_swagger" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-dev-api-swagger"
+          }
           EOF
         working-directory: ./terraform
 
@@ -154,6 +158,10 @@ jobs:
           module "s3_ocp" {
             source = "./s3-bucket"
             bucket_name = "xgr00q-prod-ocp"
+          }
+          module "s3_sso_api_swagger" {
+            source = "./s3-bucket"
+            bucket_name = "xgr00q-prod-api-swagger"
           }
           EOF
         working-directory: ./terraform

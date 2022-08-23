@@ -420,9 +420,9 @@ export const setRoutes = (app: any) => {
     */
     try {
       const { integrationId, environment } = req.params;
-      const { userName, roleName, operation } = req.body;
-      await userRoleMappingController.manage(req.teamId, integrationId, environment, userName, roleName, operation);
-      res.status(200).json({ success: true, message: operation === 'add' ? 'created ' : 'deleted' });
+      const { username, roleName, operation } = req.body;
+      await userRoleMappingController.manage(req.teamId, integrationId, environment, username, roleName, operation);
+      res.status(200).json({ success: true, message: operation === 'add' ? 'created' : 'deleted' });
     } catch (err) {
       handleError(res, err);
     }

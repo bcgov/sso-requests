@@ -223,6 +223,17 @@ export const listRoleUsers = async (
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
+  const roles: any[] = await kcAdminClient.clients.listRoles({
+    realm: 'standard',
+    id: client.id,
+    // @ts-ignore
+    search: '',
+    first: 0,
+    max: MAX_CLIENT_ROLE_COUNT,
+  });
+
+  if (!roles.find((role) => role.name === roleName)) throw Error('role not found');
+
   const users = await kcAdminClient.clients.findUsersWithRole({
     realm: 'standard',
     id: client.id,

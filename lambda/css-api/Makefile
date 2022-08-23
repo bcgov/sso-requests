@@ -28,5 +28,5 @@ swagger:
 	@cp node_modules/swagger-ui-dist . -r
 	@cp src/swagger-* swagger-ui-dist/
 	@cp swagger-output.json swagger-ui-dist/
-	@rm -rf ../../terraform/s3-bucket/swagger-ui-dist
-	@mv swagger-ui-dist ../../terraform/s3-bucket/
+	@rm -rf ../../terraform/swagger-ui-dist
+	@mv swagger-ui-dist ../../terraform/

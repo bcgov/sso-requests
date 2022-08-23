@@ -8,47 +8,38 @@ export class UserRoleMappingController {
   constructor(private userRoleMappingService: UserRoleMappingService, private roleService: RoleService) {}
 
   public async list(teamId: number, integrationId: number, environment: string, queryParams: any) {
-    if (queryParams.roleName) {
-      return await this.listByRole(teamId, integrationId, environment, queryParams.roleName);
-    } else if (queryParams.username) {
-      return await this.listByUser(teamId, integrationId, environment, queryParams.username);
+    let users = [];
+    let roles = [];
+
+    if (queryParams.roleName && !queryParams.username) {
+      users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
+      if (users.length > 0) roles = [{ roleName: queryParams.roleName }];
+    } else if (!queryParams.roleName && queryParams.username) {
+      roles = await this.userRoleMappingService.getAllByUser(teamId, integrationId, environment, queryParams.username);
+      if (roles.length > 0) users = await findUserByRealm(environment, queryParams.username);
+    } else if (queryParams.roleName && queryParams.username) {
+      const userRoles = await this.userRoleMappingService.getAllByUser(
+        teamId,
+        integrationId,
+        environment,
+        queryParams.username,
+      );
+      await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
+      if (userRoles.includes(queryParams.roleName)) {
+        users = await findUserByRealm(environment, queryParams.username);
+        roles = [{ roleName: queryParams.roleName }];
+      }
     }
-  }
-
-  public async listByRole(teamId: number, integrationId: number, environment: string, roleName: string) {
-    const users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, roleName);
-
-    return {
-      users: users.map((user) => {
-        return {
-          username: user.username,
-          email: user.email,
-          first_name: user.firstName,
-          last_name: user.lastName,
-          attributes: user.attributes,
-        };
-      }),
-      roles: [{ roleName }],
-    };
-  }
-
-  public async listByUser(teamId: number, integrationId: number, environment: string, username: string) {
-    const roles = await this.userRoleMappingService.getAllByUser(teamId, integrationId, environment, username);
-    const users = await findUserByRealm(environment, username);
-    return {
-      users: users.map((user) => {
-        return {
-          username: user.username,
-          email: user.email,
-          first_name: user.firstName,
-          last_name: user.lastName,
-          attributes: user.attributes,
-        };
-      }),
-      roles: roles.map((role) => {
-        return { roleName: role };
-      }),
-    };
+    users = users.map((user) => {
+      return {
+        username: user.username,
+        email: user.email,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        attributes: user.attributes,
+      };
+    });
+    return { users, roles };
   }
 
   public async manage(
