@@ -630,3 +630,8 @@ export const createIdirUser = async ({
 
   return standardUser;
 };
+
+export const findUserByRealm = async (environment: string, username: string) => {
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  return await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
+};

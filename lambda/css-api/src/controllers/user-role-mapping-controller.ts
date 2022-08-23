@@ -1,3 +1,4 @@
+import { findUserByRealm } from '@lambda-app/keycloak/users';
 import { injectable } from 'tsyringe';
 import { RoleService } from '../services/role-service';
 import { UserRoleMappingService } from '../services/user-role-mapping-service';
@@ -17,19 +18,37 @@ export class UserRoleMappingController {
   public async listByRole(teamId: number, integrationId: number, environment: string, roleName: string) {
     const users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, roleName);
 
-    return users.map((user) => {
-      return { username: user.username, roleName };
-    });
+    return {
+      users: users.map((user) => {
+        return {
+          username: user.username,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          attributes: user.attributes,
+        };
+      }),
+      roles: [{ roleName }],
+    };
   }
 
   public async listByUser(teamId: number, integrationId: number, environment: string, username: string) {
     const roles = await this.userRoleMappingService.getAllByUser(teamId, integrationId, environment, username);
-    return roles.map((role) => {
-      return {
-        username,
-        roleName: role,
-      };
-    });
+    const users = await findUserByRealm(environment, username);
+    return {
+      users: users.map((user) => {
+        return {
+          username: user.username,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          attributes: user.attributes,
+        };
+      }),
+      roles: roles.map((role) => {
+        return { roleName: role };
+      }),
+    };
   }
 
   public async manage(

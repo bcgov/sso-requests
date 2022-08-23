@@ -364,7 +364,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { success: true, data: [{ username: 'string', roleName: 'string'}] }
+        schema: { success: true, data: { users: [{ $ref: '#/components/schemas/user' }], roles: [{ $ref: '#/components/schemas/role' }]} }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
