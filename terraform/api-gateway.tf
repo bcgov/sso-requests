@@ -170,8 +170,8 @@ resource "aws_api_gateway_method_response" "swagger_assets_proxy" {
 
 resource "aws_api_gateway_integration" "openapi_swagger" {
   rest_api_id = aws_api_gateway_rest_api.sso_backend.id
-  resource_id = aws_api_gateway_method.openapi_proxy.resource_id
-  http_method = aws_api_gateway_method.openapi_proxy.http_method
+  resource_id = aws_api_gateway_method.openapi_swagger_proxy.resource_id
+  http_method = aws_api_gateway_method.openapi_swagger_proxy.http_method
 
   integration_http_method = "GET"
   type                    = "AWS"
@@ -185,11 +185,11 @@ resource "aws_api_gateway_integration" "openapi_swagger" {
 
 resource "aws_api_gateway_integration_response" "openapi_swagger" {
   rest_api_id = aws_api_gateway_rest_api.sso_backend.id
-  resource_id = aws_api_gateway_method.openapi_proxy.resource_id
-  http_method = aws_api_gateway_method.openapi_proxy.http_method
+  resource_id = aws_api_gateway_method.openapi_swagger_proxy.resource_id
+  http_method = aws_api_gateway_method.openapi_swagger_proxy.http_method
   status_code = aws_api_gateway_method_response.openapi_swagger_proxy.status_code
 
-  request_parameters = {
+  response_parameters = {
     "method.response.header.Content-Type"        = "integration.response.header.Content-Type",
     "method.response.header.Content-Disposition" = "integration.response.header.Content-Disposition",
   }
@@ -216,7 +216,7 @@ resource "aws_api_gateway_integration_response" "openapi_swagger_assets" {
   http_method = aws_api_gateway_method.swagger_assets_proxy.http_method
   status_code = aws_api_gateway_method_response.swagger_assets_proxy.status_code
 
-  request_parameters = {
+  response_parameters = {
     "method.response.header.Content-Type"        = "integration.response.header.Content-Type",
     "method.response.header.Content-Disposition" = "integration.response.header.Content-Disposition",
   }
