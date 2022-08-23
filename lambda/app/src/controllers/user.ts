@@ -10,7 +10,11 @@ export const findOrCreateUser = async (session: Session) => {
   const displayName = getDisplayName(session);
   email = lowcase(email);
 
-  let user = await models.user.findOne({ where: { [Op.or]: [{ idirEmail: email }, { idirUserid: idir_userid }] } });
+  const conditions = [];
+  if (email) conditions.push({ idirEmail: email });
+  if (idir_userid) conditions.push({ idirUserid: idir_userid });
+
+  let user = await models.user.findOne({ where: { [Op.or]: conditions } });
 
   if (user) {
     // make sure the idir email is up-to-date for the account
