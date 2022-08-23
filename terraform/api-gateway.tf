@@ -176,7 +176,7 @@ resource "aws_api_gateway_integration" "openapi_swagger" {
   integration_http_method = "GET"
   type                    = "AWS"
   credentials             = aws_iam_role.s3_read_access_role.arn
-  uri                     = "${module.s3_sso_api_swagger.sso_api_swagger_bucket_arn}/index.html"
+  uri                     = "${module.s3_sso_api_swagger.bucket_arn}/index.html"
 
   request_parameters = {
     "integration.request.header.Content-Type"        = "method.request.header.Content-Type",
@@ -204,7 +204,7 @@ resource "aws_api_gateway_integration" "openapi_swagger_assets" {
   integration_http_method = "GET"
   type                    = "AWS"
   credentials             = aws_iam_role.s3_read_access_role.arn
-  uri                     = "${module.s3_sso_api_swagger.sso_api_swagger_bucket_arn}/*"
+  uri                     = "${module.s3_sso_api_swagger.bucket_arn}/*"
 
   request_parameters = {
     "integration.request.path.asset"                 = "method.request.path.asset",
