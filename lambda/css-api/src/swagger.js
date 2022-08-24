@@ -11,7 +11,7 @@ const doc = {
       ? 'kgodz1zmk2.execute-api.ca-central-1.amazonaws.com'
       : 'api-dev.loginproxy.gov.bc.ca'
   }`,
-  basePath: '/test/api/v1',
+  basePath: '/api/v1',
   schemes: ['https'],
   tags: [
     {
