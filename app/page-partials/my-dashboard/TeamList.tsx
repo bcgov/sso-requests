@@ -18,7 +18,7 @@ import { UserSession } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import WarningModalContents from 'components/WarningModalContents';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
@@ -97,7 +97,7 @@ interface Props {
 export default function TeamList({ currentUser, setTeam, loading, teams, loadTeams, state, dispatch }: Props) {
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
-  const [serviceAccount, setServiceAccount] = useState<Request | null>(null);
+  const [serviceAccount, setServiceAccount] = useState<Integration | null>(null);
   const { downloadError } = state;
 
   const deleteServiceAccontNote =

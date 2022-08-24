@@ -7,7 +7,7 @@ import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
 import { User, Team } from 'interfaces/team';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { UserSession } from 'interfaces/props';
 import { getTeamIntegrations } from 'services/request';
 import validator from 'validator';
@@ -222,8 +222,8 @@ const AlignCenter = styled.div`
 function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState<User[]>([]);
-  const [integrations, setIntegrations] = useState<Request[]>([]);
-  const [serviceAccount, setServiceAccount] = useState<Request | null>(null);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [serviceAccount, setServiceAccount] = useState<Integration | null>(null);
   const [myself, setMyself] = useState<User | null>(null);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
@@ -402,7 +402,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   const isAdmin = myself.role === 'admin';
 
-  const fetchApiAccountCredentials = async (team: Team, serviceAccount: Request, download: boolean) => {
+  const fetchApiAccountCredentials = async (team: Team, serviceAccount: Integration, download: boolean) => {
     setLoading(true);
     let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
     data = data || {};

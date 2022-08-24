@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
-import { Team, Data } from '@lambda-shared/interfaces';
+import { Team, IntegrationData } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { getTeamEmails, processIntegrationList, processTeam } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
@@ -16,7 +16,7 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   requester: string;
   team: Team;
-  integrations: Data[];
+  integrations: IntegrationData[];
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {

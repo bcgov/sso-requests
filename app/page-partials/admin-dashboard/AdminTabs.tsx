@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 
 import Button from '@button-inc/bcgov-theme/Button';
 import { usesBceid } from 'utils/helpers';
@@ -21,7 +21,7 @@ export type TabKey = 'details' | 'configuration-url' | 'events';
 
 interface Props {
   currentUser: LoggedInUser;
-  selectedRequest?: Request;
+  selectedRequest?: Integration;
   defaultTabKey: TabKey;
   setActiveKey: Function;
   activeKey?: TabKey;

@@ -2,7 +2,7 @@ import { isEqual, isNil, isString } from 'lodash';
 import { errorMessages, environmentOptions } from 'utils/constants';
 import { getSchemas } from 'schemas';
 import { Team, User } from 'interfaces/team';
-import { Request, Option } from 'interfaces/Request';
+import { Integration, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
 
@@ -27,7 +27,7 @@ export const usesBceid = (integration: any) => {
   }
 };
 
-export const getRequestedEnvironments = (integration: Request) => {
+export const getRequestedEnvironments = (integration: Integration) => {
   const { bceidApproved, environments = [], serviceType } = integration;
 
   const hasBceid = usesBceid(integration);
@@ -135,7 +135,7 @@ const changeNullToUndefined = (data: any) => {
   return data;
 };
 
-export const processRequest = (request: Request): Request => {
+export const processRequest = (request: Integration): Integration => {
   if (!request.devValidRedirectUris || request.devValidRedirectUris.length === 0) {
     request.devValidRedirectUris = [''];
   }
@@ -234,7 +234,7 @@ export const formatChangeEventDetails = (changes: Change[]) => {
   );
 };
 
-export const hasAnyPendingStatus = (requests: Request[]) => {
+export const hasAnyPendingStatus = (requests: Integration[]) => {
   return requests.some((request) => {
     return [
       // 'draft',
@@ -251,8 +251,8 @@ export const hasAnyPendingStatus = (requests: Request[]) => {
 };
 
 interface Args {
-  integration: Request | undefined;
-  formData: Request;
+  integration: Integration | undefined;
+  formData: Integration;
   formStage: number;
   teams: Team[];
 }
@@ -268,7 +268,7 @@ export function canDeleteMember(members: User[], memberId?: number) {
 
 export const capitalize = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);
 
-export const checkIfBceidProdApplying = (integration: Request) => {
+export const checkIfBceidProdApplying = (integration: Integration) => {
   const displayStatus = getStatusDisplayName(integration.status || 'draft');
   if (displayStatus !== 'Submitted') return false;
   if (!integration.lastChanges || integration.lastChanges.length === 0) return false;

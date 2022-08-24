@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { padStart, startCase } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Table, Button, NumberedContents, Header } from '@bcgov-sso/common-react-components';
@@ -69,7 +69,7 @@ const NewEntityButton = ({
   integrations,
 }: {
   handleNewIntegrationClick: Function;
-  integrations?: Request[];
+  integrations?: Integration[];
 }) => {
   if (!integrations || integrations?.length == 0) {
     return (
@@ -143,8 +143,8 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
   let { integr } = router.query;
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [integrations, setIntegrations] = useState<Request[]>([]);
-  const [activeIntegration, setActiveIntegration] = useState<Request | null>(null);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [activeIntegration, setActiveIntegration] = useState<Integration | null>(null);
   const [activeIntegrationId, setActiveIntegrationId] = useState<number | undefined>(
     (integr && Number(integr)) || undefined,
   );
@@ -154,13 +154,13 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
     router.push('/request');
   };
 
-  const updateActiveIntegration = (integration: Request) => {
+  const updateActiveIntegration = (integration: Integration) => {
     setActiveIntegration(integration);
     setActiveIntegrationId(integration.id);
     setIntegration(integration);
   };
 
-  const updateIntegrations = (integrations: Request[]) => {
+  const updateIntegrations = (integrations: Integration[]) => {
     const ints = integrations || [];
     setIntegrations(ints);
     setIntegrationCount(ints.length);
@@ -226,7 +226,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
             </tr>
           </thead>
           <tbody>
-            {integrations?.map((integration: Request) => (
+            {integrations?.map((integration: Integration) => (
               <tr
                 className={activeIntegrationId === integration.id ? 'active' : ''}
                 key={integration.id}

@@ -3,10 +3,10 @@ import RequestInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import VerticalLayout from 'page-partials/my-dashboard/VerticalLayout';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 
 function MyIntegrations() {
-  const [integration, setIntegration] = useState<Request | null>(null);
+  const [integration, setIntegration] = useState<Integration | null>(null);
   const [integrationCount, setIntegrationCount] = useState(1);
 
   return (

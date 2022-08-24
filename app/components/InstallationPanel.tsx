@@ -7,7 +7,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { getInstallation } from 'services/keycloak';
 import Button from 'html-components/Button';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
 import { getRequestedEnvironments } from 'utils/helpers';
 import { DEFAULT_FONT_SIZE } from 'styles/theme';
@@ -44,7 +44,7 @@ const TopTitle = styled.div`
 `;
 
 interface Props {
-  integration: Request;
+  integration: Integration;
   alert: TopAlert;
 }
 

@@ -2,7 +2,7 @@ import { Op } from 'sequelize';
 import { map, compact, flatten, uniq } from 'lodash';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { formatUrisForEmail, realmToIDP } from '@lambda-shared/utils/helpers';
-import { Data } from '@lambda-shared/interfaces';
+import { IntegrationData } from '@lambda-shared/interfaces';
 import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
 import { idpMap } from '@app/helpers/meta';
@@ -79,7 +79,7 @@ export const getTeamEmails = async (teamId: number, primaryEmailOnly = false, ro
   return uniq(flatten(map(users, (user) => getUserEmails(user, primaryEmailOnly))));
 };
 
-export const getIntegrationEmails = async (integration: Data, primaryEmailOnly = false) => {
+export const getIntegrationEmails = async (integration: IntegrationData, primaryEmailOnly = false) => {
   if (integration.usesTeam === true) {
     return getTeamEmails(Number(integration.teamId), primaryEmailOnly);
   } else if (integration.user) {
@@ -97,7 +97,7 @@ export const getIntegrationEmails = async (integration: Data, primaryEmailOnly =
   return [];
 };
 
-export const processIntegrationList = (integrations: Data[]) => {
+export const processIntegrationList = (integrations: IntegrationData[]) => {
   return Promise.all(
     integrations.map((int) => {
       return processRequest(int);

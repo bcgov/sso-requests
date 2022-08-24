@@ -5,7 +5,7 @@ import FormTemplate from 'form-components/FormTemplate';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getRequest } from 'services/request';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { LoggedInUser } from 'interfaces/team';
 import PageLoader from 'components/PageLoader';
 
@@ -20,7 +20,7 @@ interface Props {
 function RequestEdit({ session, enable_gold, alert }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [request, setRequest] = useState<Request | null>(null);
+  const [request, setRequest] = useState<Integration | null>(null);
   const { rid } = router.query;
 
   useEffect(() => {

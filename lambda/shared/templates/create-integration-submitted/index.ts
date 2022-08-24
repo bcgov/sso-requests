@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
 import { processRequest } from '../helpers';
-import { Data } from '@lambda-shared/interfaces';
+import { IntegrationData } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
@@ -15,7 +15,7 @@ const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
-  integration: Data;
+  integration: IntegrationData;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {

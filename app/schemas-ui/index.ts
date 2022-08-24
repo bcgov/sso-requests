@@ -1,14 +1,14 @@
 import { isNil } from 'lodash';
 import getSilverUISchema from '@app/schemas-ui/ui';
 import getGoldUISchema from '@app/schemas-ui/ui-gold';
-import { Request, Option } from '@app/interfaces/Request';
+import { Integration, Option } from '@app/interfaces/Request';
 import getConfig from 'next/config';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
 interface Props {
-  integration: Request;
-  formData?: Request;
+  integration: Integration;
+  formData?: Integration;
   isAdmin: boolean;
 }
 

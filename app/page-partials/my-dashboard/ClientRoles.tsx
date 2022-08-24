@@ -8,7 +8,7 @@ import InfiniteScroll from 'react-infinite-scroller';
 import Input from '@button-inc/bcgov-theme/Input';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { Request, Option } from 'interfaces/Request';
+import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
@@ -60,7 +60,7 @@ const optionize = (v: string) => ({ label: v, value: v });
 const optionizeAll = (vs: string[]) => vs.map(optionize);
 
 interface Props {
-  integration: Request;
+  integration: Integration;
   alert: TopAlert;
 }
 

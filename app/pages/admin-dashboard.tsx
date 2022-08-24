@@ -8,7 +8,7 @@ import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
-import { Request, Option } from 'interfaces/Request';
+import { Integration, Option } from 'interfaces/Request';
 import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
@@ -73,7 +73,7 @@ export default function AdminDashboard({ session }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
-  const [rows, setRows] = useState<Request[]>([]);
+  const [rows, setRows] = useState<Integration[]>([]);
   const [searchKey, setSearchKey] = useState<string>(String(router.query?.id || ''));
   const [count, setCount] = useState<number>(0);
   const [limit, setLimit] = useState<number>(5);
@@ -147,15 +147,15 @@ export default function AdminDashboard({ session }: PageProps) {
     return null;
   }
 
-  const canEdit = (request: Request) => ['applied'].includes(request?.status || '');
-  const canDelete = (request: Request) => !['pr', 'planned', 'submitted'].includes(request?.status || '');
+  const canEdit = (request: Integration) => ['applied'].includes(request?.status || '');
+  const canDelete = (request: Integration) => !['pr', 'planned', 'submitted'].includes(request?.status || '');
 
-  const handleEdit = async (request: Request) => {
+  const handleEdit = async (request: Integration) => {
     if (!request.id || !canEdit(request)) return;
     await router.push(`/request/${request.id}?status=${request.status}`);
   };
 
-  const handleDelete = async (request: Request) => {
+  const handleDelete = async (request: Integration) => {
     if (!request.id || !canDelete(request)) return;
     setSelectedId(request.id);
     window.location.hash = 'delete-modal';
@@ -247,7 +247,7 @@ export default function AdminDashboard({ session }: PageProps) {
               headerGutter={[5, 0]}
             >
               {rows.length > 0 ? (
-                rows.map((row: Request) => {
+                rows.map((row: Integration) => {
                   return (
                     <tr
                       key={row.id}

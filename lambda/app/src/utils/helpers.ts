@@ -1,10 +1,10 @@
 import { isObject, omit, sortBy, compact } from 'lodash';
 import { Op } from 'sequelize';
 import { diff } from 'deep-diff';
-import { Request } from '@app/interfaces/Request';
+import { Integration } from '@app/interfaces/Request';
 import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import { validateForm } from '@app/utils/validate';
-import { Session, Data, User } from '@lambda-shared/interfaces';
+import { Session, User } from '@lambda-shared/interfaces';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
@@ -14,7 +14,7 @@ import { generateInvitationToken } from '@lambda-app/helpers/token';
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 
-export const omitNonFormFields = (data: Request) =>
+export const omitNonFormFields = (data: Integration) =>
   omit(data, [
     'updatedAt',
     'createdAt',
@@ -88,13 +88,13 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
   return data;
 };
 
-export const getDifferences = (newData: any, originalData: Request) => {
+export const getDifferences = (newData: any, originalData: Integration) => {
   newData = sortURIFields(newData);
   if (newData.usesTeam === true) newData.teamId = parseInt(newData.teamId);
   return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };
 
-export const validateRequest = (formData: any, original: Request, isUpdate = false, teams: any[]) => {
+export const validateRequest = (formData: any, original: Integration, isUpdate = false, teams: any[]) => {
   // if (isUpdate) {
   //   const differences = getDifferences(formData, original);
   //   if (!differences) return errorMessage;
