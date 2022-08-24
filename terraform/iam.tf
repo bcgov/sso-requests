@@ -18,9 +18,8 @@ resource "aws_iam_role" "api_gateway_s3_role" {
 
 
 resource "aws_iam_role_policy" "s3_read_access_policy" {
-  name        = "AWSS3ResourceReadAccessRolePolicy"
-  description = "A policy for reading s3 bucket resources"
-  role        = aws_iam_role.api_gateway_s3_role.id
+  name = "AWSS3ResourceReadAccessRolePolicy"
+  role = aws_iam_role.api_gateway_s3_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
