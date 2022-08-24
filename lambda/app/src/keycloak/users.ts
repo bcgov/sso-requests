@@ -4,7 +4,7 @@ import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { forEach, map, get, difference } from 'lodash';
 import { getAdminClient, getClient } from './adminClient';
 import { fetchClient } from './client';
-import { IntegrationData } from '@lambda-shared/interfaces';
+import { Integration } from '@app/interfaces/Request';
 
 // Helpers
 // TODO: encapsulate admin client with user session and associated client infomation
@@ -80,7 +80,7 @@ export const searchUsers = async ({
 
 const MAX_CLIENT_ROLE_COUNT = 5000;
 export const listClientRoles = async (
-  integration: IntegrationData,
+  integration: Integration,
   {
     environment,
     integrationId,
@@ -205,7 +205,7 @@ export const findClientRole = async (
 };
 
 export const listRoleUsers = async (
-  integration: IntegrationData,
+  integration: Integration,
   {
     environment,
     roleName,
@@ -245,7 +245,7 @@ export const listRoleUsers = async (
 };
 
 export const listUserRoles = async (
-  integration: Data,
+  integration: Integration,
   {
     environment,
     username,
@@ -275,7 +275,7 @@ export const listUserRoles = async (
 };
 
 export const manageUserRole = async (
-  integration: IntegrationData,
+  integration: Integration,
   {
     environment,
     username,
@@ -321,7 +321,7 @@ export const manageUserRole = async (
 };
 
 export const manageUserRoles = async (
-  integration: IntegrationData,
+  integration: Integration,
   {
     environment,
     username,
@@ -375,7 +375,7 @@ export const manageUserRoles = async (
 };
 
 export const createRole = async (
-  integration: IntegrationData,
+  integration: Integration,
   role: {
     environment: string;
     integrationId: number;
@@ -478,7 +478,7 @@ export const bulkCreateRole = async (
 };
 
 export const deleteRole = async (
-  integration: IntegrationData,
+  integration: Integration,
   {
     environment,
     integrationId,
@@ -509,7 +509,7 @@ export const deleteRole = async (
 };
 
 export const updateRole = async (
-  integration: IntegrationData,
+  integration: Integration,
   {
     environment,
     integrationId,

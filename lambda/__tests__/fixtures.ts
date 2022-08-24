@@ -2,7 +2,7 @@ import { IntegrationData } from '../shared/interfaces';
 
 export const formDataDev: IntegrationData = {
   id: 1,
-  idirUserId: 'TEST',
+  idirUserid: 'TEST',
   projectName: 'test',
   clientId: 'test',
   realm: 'onestopauth',
