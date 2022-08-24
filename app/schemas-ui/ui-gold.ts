@@ -8,12 +8,12 @@ import FieldTermsAndConditions from '@app/form-components/FieldTermsAndCondition
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
 import FieldAccessTokenLifespan from '@app/form-components/FieldAccessTokenLifespan';
-import { Request } from '@app/interfaces/Request';
+import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 
 interface Props {
-  integration: Request;
-  formData?: Request;
+  integration: Integration;
+  formData?: Integration;
   isAdmin: boolean;
 }
 

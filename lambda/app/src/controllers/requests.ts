@@ -11,7 +11,7 @@ import {
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
-import { Session, Data, User } from '@lambda-shared/interfaces';
+import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
 import { EMAILS } from '@lambda-shared/enums';
 import { sendTemplate, sendTemplates } from '@lambda-shared/templates';
 import { EVENTS } from '@lambda-shared/enums';
@@ -58,7 +58,7 @@ export const checkIfRequestMerged = async (id: number) => {
   return !!request;
 };
 
-export const createRequest = async (session: Session, data: Data) => {
+export const createRequest = async (session: Session, data: IntegrationData) => {
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
 
@@ -112,13 +112,18 @@ export const createRequest = async (session: Session, data: Data) => {
   return { ...result.dataValues, numOfRequestsForToday };
 };
 
-export const updateRequest = async (session: Session, data: Data, user: User, submit: string | undefined) => {
+export const updateRequest = async (
+  session: Session,
+  data: IntegrationData,
+  user: User,
+  submit: string | undefined,
+) => {
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
 
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = getDisplayName(session);
-  const { id, comment, bceidEmailDetails, ...rest } = data;
+  const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id);
 
   try {

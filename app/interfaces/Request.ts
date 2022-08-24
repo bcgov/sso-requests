@@ -1,5 +1,5 @@
 import type { Status } from './types';
-export interface Request {
+export interface Integration {
   id?: number;
   idirUserid?: string;
   projectName?: string;
@@ -7,28 +7,27 @@ export interface Request {
   clientName?: string;
   realm?: string;
   publicAccess?: boolean;
-  protocol?: string;
-  authType?: string;
-  devValidRedirectUris?: string[];
-  testValidRedirectUris?: string[];
-  prodValidRedirectUris?: string[];
-  environments?: string[];
-  prNumber?: number;
-  actionNumber?: number;
-  createdAt?: string;
-  updatedAt?: string;
   projectLead?: boolean;
   newToSso?: boolean;
   agreeWithTerms?: boolean;
-  status?: Status;
-  archived?: boolean;
+  protocol?: string;
+  authType?: string;
+  serviceType?: string;
+  serviceAccountEnabled?: boolean;
+  apiServiceAccount?: boolean;
+  environments?: string[];
+  prNumber?: number;
+  actionNumber?: number;
   hasUnreadNotifications?: boolean;
+  browserFlowOverride?: string;
   usesTeam?: boolean;
-  bceidApproved?: boolean;
   teamId?: number | string;
   userId?: number;
   team?: any;
-  serviceType?: string;
+  user?: any;
+  devValidRedirectUris?: string[];
+  testValidRedirectUris?: string[];
+  prodValidRedirectUris?: string[];
   devIdps?: string[];
   testIdps?: string[];
   prodIdps?: string[];
@@ -38,8 +37,34 @@ export interface Request {
   devLoginTitle?: string;
   testLoginTitle?: string;
   prodLoginTitle?: string;
+  devAssertionLifespan?: number;
+  devAccessTokenLifespan?: number;
+  devSessionIdleTimeout?: number;
+  devSessionMaxLifespan?: number;
+  devOfflineSessionIdleTimeout?: number;
+  devOfflineSessionMaxLifespan?: number;
+  testAssertionLifespan?: number;
+  testAccessTokenLifespan?: number;
+  testSessionIdleTimeout?: number;
+  testSessionMaxLifespan?: number;
+  testOfflineSessionIdleTimeout?: number;
+  testOfflineSessionMaxLifespan?: number;
+  prodAssertionLifespan?: number;
+  prodAccessTokenLifespan?: number;
+  prodSessionIdleTimeout?: number;
+  prodSessionMaxLifespan?: number;
+  prodOfflineSessionIdleTimeout?: number;
+  prodOfflineSessionMaxLifespan?: number;
   lastChanges?: any[] | null;
+  idirUserDisplayName?: string;
   requester?: string;
+  status?: Status;
+  bceidApproved?: boolean;
+  archived?: boolean;
+  provisioned?: boolean;
+  provisionedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Option {

@@ -6,7 +6,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import styled from 'styled-components';
 import { LINK_COLOR } from 'styles/theme';
 import HelpText from 'components/HelpText';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import getConfig from 'next/config';
 import StatusList from 'components/StatusList';
 import InfoMessage from 'components/InfoMessage';
@@ -15,7 +15,7 @@ const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
 
 interface Props {
-  integration: Request;
+  integration: Integration;
   title?: string;
 }
 
@@ -98,7 +98,7 @@ const getStatusStatusCode = (status?: string) => {
   }
 };
 
-export function IntegrationProgressStatus({ integration }: { integration: Request }) {
+export function IntegrationProgressStatus({ integration }: { integration: Integration }) {
   const { status, updatedAt } = integration;
   const hasError = getStatusFailure(status);
   const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();

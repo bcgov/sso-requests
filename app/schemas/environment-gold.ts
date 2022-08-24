@@ -1,4 +1,4 @@
-import { Request } from '../interfaces/Request';
+import { Integration } from '../interfaces/Request';
 import { devValidRedirectUris } from './providers';
 
 export const roles = {
@@ -16,7 +16,7 @@ export const roles = {
   },
 };
 
-export default function getSchemas(formData: Request) {
+export default function getSchemas(formData: Integration) {
   return (formData.environments || []).map((env) => {
     const loginTitleField = `${env}LoginTitle`;
     const redirectUriField = `${env}ValidRedirectUris`;

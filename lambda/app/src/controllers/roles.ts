@@ -1,5 +1,4 @@
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
-import { Data } from '@lambda-shared/interfaces';
 import {
   listClientRoles,
   listUserRoles,

@@ -1,4 +1,4 @@
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { realmToIDP } from 'utils/helpers';
 import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';
@@ -73,7 +73,7 @@ const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
 };
 
 interface Props {
-  request: Request;
+  request: Integration;
   teams?: Team[];
   children?: React.ReactNode;
 }

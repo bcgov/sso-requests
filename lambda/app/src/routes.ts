@@ -76,6 +76,7 @@ const handleError = (res, err) => {
     message = tryJSON(message);
   }
 
+  console.error(message);
   res.status(422).json({ success: false, message });
 };
 

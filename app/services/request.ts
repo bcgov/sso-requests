@@ -1,11 +1,11 @@
 import { instance } from './axios';
 import { orderBy, isString, omit } from 'lodash';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { processRequest } from 'utils/helpers';
 import { handleAxiosError } from 'services/axios';
 import { AxiosError } from 'axios';
 
-export const createRequest = async (data: Request): Promise<[Request, null] | [null, AxiosError]> => {
+export const createRequest = async (data: Integration): Promise<[Integration, null] | [null, AxiosError]> => {
   try {
     const result = await instance.post('requests', data).then((res) => res.data);
     return [processRequest(result), null];
@@ -14,9 +14,9 @@ export const createRequest = async (data: Request): Promise<[Request, null] | [n
   }
 };
 
-export const getRequest = async (requestId: number | string): Promise<[Request, null] | [null, AxiosError]> => {
+export const getRequest = async (requestId: number | string): Promise<[Integration, null] | [null, AxiosError]> => {
   try {
-    const result: Request = await instance
+    const result: Integration = await instance
       .post('request', { requestId: isString(requestId) ? parseInt(requestId) : requestId })
       .then((res) => res.data);
 
@@ -26,10 +26,10 @@ export const getRequest = async (requestId: number | string): Promise<[Request, 
   }
 };
 
-export const getRequests = async (include: string = 'active'): Promise<[Request[], null] | [null, Error]> => {
+export const getRequests = async (include: string = 'active'): Promise<[Integration[], null] | [null, Error]> => {
   const config = { params: { include } };
   try {
-    let results: Request[] = await instance.get('requests', config).then((res) => res.data);
+    let results: Integration[] = await instance.get('requests', config).then((res) => res.data);
     results = orderBy(results, ['createdAt'], ['desc']);
     return [results.map(processRequest), null];
   } catch (err: any) {
@@ -37,9 +37,9 @@ export const getRequests = async (include: string = 'active'): Promise<[Request[
   }
 };
 
-export const getTeamIntegrations = async (teamId: number): Promise<[Request[], null] | [null, Error]> => {
+export const getTeamIntegrations = async (teamId: number): Promise<[Integration[], null] | [null, Error]> => {
   try {
-    let results: Request[] = await instance.get(`team-integrations/${teamId}`).then((res) => res.data);
+    let results: Integration[] = await instance.get(`team-integrations/${teamId}`).then((res) => res.data);
     results = orderBy(results, ['createdAt'], ['desc']);
     return [results.map(processRequest), null];
   } catch (err: any) {
@@ -62,7 +62,7 @@ interface RequestAllData {
 
 interface RequestAllResult {
   count: number;
-  rows: Request[];
+  rows: Integration[];
 }
 
 export const getRequestAll = async (data: RequestAllData): Promise<[RequestAllResult, null] | [null, Error]> => {
@@ -74,7 +74,10 @@ export const getRequestAll = async (data: RequestAllData): Promise<[RequestAllRe
   }
 };
 
-export const updateRequest = async (data: Request, submit = false): Promise<[Request, null] | [null, AxiosError]> => {
+export const updateRequest = async (
+  data: Integration,
+  submit = false,
+): Promise<[Integration, null] | [null, AxiosError]> => {
   try {
     let url = 'requests';
 
@@ -95,16 +98,16 @@ export const updateRequest = async (data: Request, submit = false): Promise<[Req
   }
 };
 
-export const deleteRequest = async (id?: number): Promise<[Request[], null] | [null, Error]> => {
+export const deleteRequest = async (id?: number): Promise<[Integration[], null] | [null, Error]> => {
   try {
-    const result: Request[] = await instance.delete('requests', { params: { id } }).then((res) => res.data);
+    const result: Integration[] = await instance.delete('requests', { params: { id } }).then((res) => res.data);
     return [result, null];
   } catch (err: any) {
     return handleAxiosError(err);
   }
 };
 
-export const updateRequestMetadata = async (data: Request): Promise<[Request, null] | [null, AxiosError]> => {
+export const updateRequestMetadata = async (data: Integration): Promise<[Integration, null] | [null, AxiosError]> => {
   try {
     const result = await instance.put('request-metadata', data).then((res) => res.data);
     return [processRequest(result), null];

@@ -15,7 +15,7 @@ import { Border, Header, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import BceidStatus from 'components/BceidStatus';
 import DefaultTitle from 'components/SHeader3';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
@@ -52,7 +52,7 @@ const Requester = styled.div`
 
 export type TabKey = 'installation-json' | 'configuration-url' | 'history';
 
-const joinEnvs = (integration: Request) => {
+const joinEnvs = (integration: Integration) => {
   if (!integration?.environments) return '';
 
   const envs = [];
@@ -73,7 +73,7 @@ const joinEnvs = (integration: Request) => {
   return `${result} environment${envs.length > 1 ? 's' : ''}`;
 };
 
-const IntegrationWrapper = ({ integration, children }: { integration: Request; children: React.ReactNode }) => {
+const IntegrationWrapper = ({ integration, children }: { integration: Integration; children: React.ReactNode }) => {
   return (
     <>
       <Header variant="primary" size="lg">
@@ -88,7 +88,7 @@ const getInstallationTab = ({
   integration,
   awaitingBceidProd,
 }: {
-  integration: Request;
+  integration: Integration;
   awaitingBceidProd: boolean;
 }) => {
   const { bceidApproved } = integration;
@@ -131,7 +131,13 @@ const getInstallationTab = ({
   );
 };
 
-const getProgressTab = ({ integration, awaitingBceidProd }: { integration: Request; awaitingBceidProd: boolean }) => {
+const getProgressTab = ({
+  integration,
+  awaitingBceidProd,
+}: {
+  integration: Integration;
+  awaitingBceidProd: boolean;
+}) => {
   return (
     <Tab key="installation-json" tab="Technical Details">
       <TabWrapper short={false}>
@@ -161,7 +167,7 @@ const getProgressTab = ({ integration, awaitingBceidProd }: { integration: Reque
   );
 };
 
-const getApprovalProgressTab = ({ integration }: { integration: Request }) => {
+const getApprovalProgressTab = ({ integration }: { integration: Integration }) => {
   return (
     <Tab key="installation-json" tab="Technical Details">
       <TabWrapper short={false}>
@@ -196,7 +202,7 @@ const getApprovalProgressTab = ({ integration }: { integration: Request }) => {
   );
 };
 
-const getRoleManagementTab = ({ integration }: { integration: Request }) => {
+const getRoleManagementTab = ({ integration }: { integration: Integration }) => {
   return (
     <Tab key="client-roles" tab="Role Management">
       <TabWrapper>
@@ -214,7 +220,7 @@ const getRoleManagementTab = ({ integration }: { integration: Request }) => {
   );
 };
 
-const getUserAssignmentTab = ({ integration }: { integration: Request }) => {
+const getUserAssignmentTab = ({ integration }: { integration: Integration }) => {
   return (
     <Tab key="user-roles" tab="Assign Users to Roles">
       <TabWrapper>
@@ -224,7 +230,7 @@ const getUserAssignmentTab = ({ integration }: { integration: Request }) => {
   );
 };
 
-const getSecretsTab = ({ integration }: { integration: Request }) => {
+const getSecretsTab = ({ integration }: { integration: Integration }) => {
   return (
     <Tab key="secret" tab="Secrets">
       <TabWrapper short={true}>
@@ -234,7 +240,7 @@ const getSecretsTab = ({ integration }: { integration: Request }) => {
   );
 };
 
-const getHistoryTab = ({ integration }: { integration: Request }) => {
+const getHistoryTab = ({ integration }: { integration: Integration }) => {
   return (
     <Tab key="history" tab="Change History">
       <TabWrapper short={true}>
@@ -245,7 +251,7 @@ const getHistoryTab = ({ integration }: { integration: Request }) => {
 };
 
 interface Props {
-  integration: Request;
+  integration: Integration;
   state: DashboardReducerState;
   dispatch: Dispatch<SetStateAction<any>>;
 }

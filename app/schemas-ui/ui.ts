@@ -4,10 +4,10 @@ import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import FieldTermsAndConditions from '@app/form-components/FieldTermsAndConditions';
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
-import { Request } from '@app/interfaces/Request';
+import { Integration } from '@app/interfaces/Request';
 
 interface Props {
-  integration: Request;
+  integration: Integration;
   isAdmin: boolean;
 }
 

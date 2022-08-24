@@ -1,7 +1,7 @@
-import { Request } from '../interfaces/Request';
+import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 
-export default function getSchema(integration: Request) {
+export default function getSchema(integration: Integration) {
   const { protocol, authType, status } = integration;
   const applied = status === 'applied';
 

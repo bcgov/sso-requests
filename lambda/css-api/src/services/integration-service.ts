@@ -1,5 +1,5 @@
 import { getIntegrationsByTeam, getIntegrationById } from '@lambda-app/queries/request';
-import { Data } from '@lambda-shared/interfaces';
+import { IntegrationData } from '@lambda-shared/interfaces';
 import { injectable } from 'tsyringe';
 
 @injectable()
@@ -18,7 +18,7 @@ export class IntegrationService {
   }
 
   public async getById(id: number, teamId: number, attributes?: string[]) {
-    const int: Data = await getIntegrationById(id, attributes);
+    const int: IntegrationData = await getIntegrationById(id, attributes);
     if (!int || teamId.toString() != int.teamId) throw Error(`integration #${id} not found`);
     return int;
   }
