@@ -209,7 +209,7 @@ resource "aws_api_gateway_integration" "openapi_swagger_assets" {
   integration_http_method = "GET"
   type                    = "AWS"
   credentials             = aws_iam_role.api_gateway_s3_role.arn
-  uri                     = "arn:aws:apigateway:ca-central-1:s3:path/${module.s3_sso_api_swagger.bucket_name}/*"
+  uri                     = "arn:aws:apigateway:ca-central-1:s3:path/${module.s3_sso_api_swagger.bucket_name}/{asset}"
 
   request_parameters = {
     "integration.request.path.asset"                 = "method.request.path.asset",
