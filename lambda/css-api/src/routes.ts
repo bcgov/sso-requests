@@ -78,9 +78,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const result = await integrationController.listByTeam(req.teamId);
@@ -110,9 +107,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const { integrationId } = req.params;
@@ -148,9 +142,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const { integrationId, environment } = req.params;
@@ -191,9 +182,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const { integrationId, environment, roleName } = req.params;
@@ -233,9 +221,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const { integrationId, environment } = req.params;
@@ -280,9 +265,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const { integrationId, environment, roleName } = req.params;
@@ -324,9 +306,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const { integrationId, environment, roleName } = req.params;
@@ -370,9 +349,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const { integrationId, environment } = req.params;
@@ -414,9 +390,6 @@ export const setRoutes = (app: any) => {
         description: 'Unprocessable Entity',
         schema: {success: false, message: 'string'}
       }
-      #swagger.security = [{
-        "access_token": []
-      }]
     */
     try {
       const { integrationId, environment } = req.params;

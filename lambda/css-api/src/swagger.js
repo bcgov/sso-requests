@@ -59,13 +59,30 @@ const doc = {
       },
     },
     securitySchemes: {
-      access_token: {
+      oAuth2ClientCredentials: {
+        type: 'oauth2',
+        flows: {
+          clientCredentials: {
+            tokenUrl: `${process.env.KEYCLOAK_V2_PROD_URL}/auth/realms/standard/protocol/openid-connect/token`,
+            scopes: {},
+          },
+        },
+      },
+      accessToken: {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
       },
     },
   },
+  security: [
+    {
+      oAuth2ClientCredentials: [],
+    },
+    {
+      accessToken: [],
+    },
+  ],
 };
 
 const outputFile = './swagger-output.json';

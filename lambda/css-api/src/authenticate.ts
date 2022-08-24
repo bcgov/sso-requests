@@ -1,5 +1,4 @@
-const authServerUrl =
-  process.env.APP_ENV === 'development' ? `${process.env.KEYCLOAK_V2_PROD_URL}` : 'https://oidc.gov.bc.ca';
+const authServerUrl = process.env.KEYCLOAK_V2_PROD_URL;
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const jws = require('jws');
