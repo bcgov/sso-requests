@@ -7,10 +7,13 @@ import { getDisplayName } from '../utils/helpers';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
-  const displayName = getDisplayName(session);
   email = lowcase(email);
 
-  let user = await models.user.findOne({ where: { [Op.or]: [{ idirEmail: email }, { idirUserid: idir_userid }] } });
+  if (!idir_userid || !email) throw Error('invalid IDIR account');
+
+  const displayName = getDisplayName(session);
+  const conditions = [{ idirEmail: email }, { idirUserid: idir_userid }];
+  let user = await models.user.findOne({ where: { [Op.or]: conditions } });
 
   if (user) {
     // make sure the idir email is up-to-date for the account
