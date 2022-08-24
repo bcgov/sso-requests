@@ -139,6 +139,7 @@ jobs:
           module "s3_sso_api_swagger" {
             source = "./s3-bucket"
             bucket_name = "xgr00q-dev-api-swagger"
+            enable_encrytion = false
           }
           EOF
         working-directory: ./terraform
@@ -162,6 +163,7 @@ jobs:
           module "s3_sso_api_swagger" {
             source = "./s3-bucket"
             bucket_name = "xgr00q-prod-api-swagger"
+            enable_encrytion = false
           }
           EOF
         working-directory: ./terraform

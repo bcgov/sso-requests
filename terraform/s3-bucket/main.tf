@@ -8,6 +8,7 @@ resource "aws_s3_bucket_acl" "this" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+  count  = var.enable_encrytion ? 1 : 0
   bucket = aws_s3_bucket.this.bucket
 
   rule {
