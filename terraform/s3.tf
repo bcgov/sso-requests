@@ -3,7 +3,7 @@ locals {
 }
 
 resource "aws_s3_object" "swagger_dist" {
-  for_each     = fileset("swagger-ui-dist/", "*")
+  for_each     = fileset("swagger-ui-dist/", "*.*")
   bucket       = module.s3_sso_api_swagger.bucket_id
   key          = each.value
   source       = "swagger-ui-dist/${each.value}"
