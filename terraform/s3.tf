@@ -8,5 +8,5 @@ resource "aws_s3_object" "swagger_dist" {
   key          = each.value
   source       = "swagger-ui-dist/${each.value}"
   etag         = filemd5("swagger-ui-dist/${each.value}")
-  content_type = lookup(local.mime_types, regex("\\.[^.]+$", each.value), null)
+  content_type = lookup(local.mime_types, regex("\\.[^.]+$", each.value), "binary/octet-stream")
 }
