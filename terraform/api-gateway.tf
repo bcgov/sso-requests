@@ -151,6 +151,7 @@ resource "aws_api_gateway_method" "swagger_assets_proxy" {
   authorization = "NONE"
 
   request_parameters = {
+    "method.request.path.asset"                 = true,
     "method.request.header.Content-Type"        = true,
     "method.request.header.Content-Disposition" = true,
   }
