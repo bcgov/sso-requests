@@ -52,7 +52,7 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     payload.browserFlowOverride = 'idp stopper';
 
     if (payload.apiServiceAccount) {
-      payload.webOrigins = [`${process.env.CSS_API_URL}/*`];
+      payload.webOrigins = [process.env.CSS_API_URL];
     }
   }
 
