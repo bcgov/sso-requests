@@ -48,7 +48,13 @@ export const dispatchRequestWorkflow = async (integration: any) => {
   }
 
   const payload = pick(integration, allowedFieldsForGithub);
-  if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
+  if (payload.serviceType === 'gold') {
+    payload.browserFlowOverride = 'idp stopper';
+
+    if (payload.apiServiceAccount) {
+      payload.webOrigins = [process.env.CSS_API_URL];
+    }
+  }
 
   // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
   // sample successful response

@@ -31,6 +31,7 @@ jobs:
           APP_ENV=development
           ALLOW_SILVER=true
           ALLOW_GOLD=true
+          CSS_API_URL=https://api-dev.loginproxy.gov.bc.ca
           TFC_WORKSPACE=xgr00q-dev-sso-requests
           SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
           SUBNET_A=App_Dev_aza_net
@@ -66,6 +67,7 @@ jobs:
           APP_ENV=production
           ALLOW_SILVER=true
           ALLOW_GOLD=true
+          CSS_API_URL=https://api.loginproxy.gov.bc.ca
           TFC_WORKSPACE=xgr00q-prod-sso-requests
           SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
           SUBNET_A=App_Prod_aza_net
@@ -197,6 +199,7 @@ jobs:
           app_env="${{ env.APP_ENV }}"
           allow_silver="${{ env.ALLOW_SILVER }}"
           allow_gold="${{ env.ALLOW_GOLD }}"
+          css_api_url="${{ env.CSS_API_URL }}"
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
           gh_secret="${{ secrets.GH_SECRET }}"
           configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
