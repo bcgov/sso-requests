@@ -15,6 +15,7 @@ import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
+import InfoOverlay from 'components/InfoOverlay';
 
 const Label = styled.label`
   font-weight: bold;
@@ -417,7 +418,14 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         <Grid.Row collapse="1100" gutter={[15, 2]}>
           <Grid.Col span={6}>
             <Header variant="dark" size="sm">
-              1. Search for a user based on the selection criteria below
+              1. Search for a user based on the selection criteria below &nbsp;
+              <InfoOverlay
+                title={''}
+                content={
+                  'When searching BCeID GUID, please ensure your end users has logged in via your app (and indirectly our IDP) for this search to be successful.'
+                }
+                hide={200}
+              />
             </Header>
             <Table
               key={searchKey}
