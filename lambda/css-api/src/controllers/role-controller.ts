@@ -13,7 +13,7 @@ export class RoleController {
     const roles = await this.roleService.getAllByEnvironment(integrationId, teamId, environment);
     return roles.map((role) => {
       return {
-        roleName: role,
+        name: role,
       };
     });
   }

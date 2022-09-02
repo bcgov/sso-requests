@@ -66,7 +66,7 @@ const validateJWTSignature = async (token) => {
   }
 };
 
-export const authenticate = async (headers): Promise<Auth> => {
+export const authenticate = async (headers) => {
   const { Authorization, authorization } = headers || {};
   const authHeader = Authorization || authorization;
   if (!authHeader) {
@@ -78,5 +78,6 @@ export const authenticate = async (headers): Promise<Auth> => {
     failedAuth.err = 'No authorization token was found';
     return failedAuth;
   }
-  return await validateJWTSignature(bearerToken);
+  const apiAuth: Auth = await validateJWTSignature(bearerToken);
+  return apiAuth;
 };
