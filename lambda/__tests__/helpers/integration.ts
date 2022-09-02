@@ -34,12 +34,13 @@ export class Integration {
   deleteResponse: Response;
   serviceAccountResponse: Response;
 
+  int: any;
   team: any;
   serviceAccount: any;
   teamUsers: any[];
   firstTeamMember: any;
 
-  async create(args: { bceid?: boolean; prod?: boolean; usesTeam?: boolean }) {
+  async create(args: { bceid?: boolean; prod?: boolean; usesTeam?: boolean; serviceType?: string }) {
     const { bceid = false, prod = false, usesTeam = false } = args;
 
     if (usesTeam) await this.createTeam();
@@ -47,11 +48,13 @@ export class Integration {
     const environments = ['dev', 'test'];
     if (prod) environments.push('prod');
 
+    if (args.serviceType) this.current.serviceType = args.serviceType;
+
     const otherData = {
       realm: `onestopauth${bceid ? '-basic' : ''}`,
       publicAccess: false,
       environments,
-      serviceType: 'silver',
+      serviceType: args.serviceType ?? 'silver',
       devValidRedirectUris: ['https://a'],
       testValidRedirectUris: ['https://a'],
       prodValidRedirectUris: prod ? ['https://a'] : [],
@@ -67,6 +70,7 @@ export class Integration {
 
     const { statusCode, body } = await appHandler(event, context);
     this.createResponse = { statusCode, data: JSON.parse(body) };
+    this.int = this.createResponse.data;
 
     Object.assign(this.current, this.createResponse.data, otherData);
 

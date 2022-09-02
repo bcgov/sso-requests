@@ -11,9 +11,11 @@ export class UserRoleMappingController {
     let users = [];
     let roles = [];
 
+    if (!queryParams.roleName && !queryParams.username) throw Error(`either of roleName or username is required`);
+
     if (queryParams.roleName && !queryParams.username) {
       users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
-      if (users.length > 0) roles = [{ roleName: queryParams.roleName }];
+      if (users.length > 0) roles = [{ name: queryParams.roleName }];
     } else if (!queryParams.roleName && queryParams.username) {
       roles = await this.userRoleMappingService.getAllByUser(teamId, integrationId, environment, queryParams.username);
       if (roles.length > 0) users = await findUserByRealm(environment, queryParams.username);
@@ -27,15 +29,15 @@ export class UserRoleMappingController {
       await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
       if (userRoles.includes(queryParams.roleName)) {
         users = await findUserByRealm(environment, queryParams.username);
-        roles = [{ roleName: queryParams.roleName }];
+        roles = [{ name: queryParams.roleName }];
       }
     }
     users = users.map((user) => {
       return {
         username: user.username,
         email: user.email,
-        first_name: user.firstName,
-        last_name: user.lastName,
+        firstName: user.firstName,
+        lastName: user.lastName,
         attributes: user.attributes,
       };
     });

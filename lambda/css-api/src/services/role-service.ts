@@ -14,13 +14,15 @@ export class RoleService {
   public async getByName(teamId: number, integrationId: number, environment: string, roleName: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
     const roles = await listClientRoles(int, { environment, integrationId });
-    if (!roles.includes(roleName)) throw Error(`Role #${roleName} not found`);
-    return { roleName };
+    if (!roles.includes(roleName)) throw Error(`role ${roleName} not found`);
+    return { name: roleName };
   }
 
   public async createRole(teamId: number, integrationId: number, roleName: string, environment: string) {
+    const role = roleName.trim();
+    if (role.length === 0) throw Error('invalid role');
     const int = await this.integrationService.getById(integrationId, teamId);
-    return await createRole(int, { environment, integrationId, roleName });
+    return await createRole(int, { environment, integrationId, roleName: role });
   }
 
   public async deleteRole(teamId: number, integrationId: number, roleName: string, environment: string) {

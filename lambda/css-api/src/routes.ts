@@ -33,6 +33,10 @@ export const setRoutes = (app: any) => {
     res.status(200).json(null);
   });
 
+  app.get('/', async (req, res) => {
+    res.status(200);
+  });
+
   app.get(`${BASE_PATH}/heartbeat`, async (req, res) => {
     //#swagger.ignore = true
     try {
@@ -192,11 +196,11 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+  app.post(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles'
-      #swagger.method = 'put'
+      #swagger.method = 'post'
       #swagger.description = 'Create role for integration'
       #swagger.summary = 'Create role'
       #swagger.parameters['integrationId'] = {
@@ -224,18 +228,18 @@ export const setRoutes = (app: any) => {
     */
     try {
       const { integrationId, environment } = req.params;
-      await roleController.create(req.teamId, integrationId, req.body.roleName, environment);
+      await roleController.create(req.teamId, integrationId, req.body.name, environment);
       res.status(201).json({ success: true, message: 'created' });
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.post(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
+  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
-      #swagger.method = 'post'
+      #swagger.method = 'put'
       #swagger.description = 'Update role for integration'
       #swagger.summary = 'Update role'
       #swagger.parameters['integrationId'] = {
@@ -268,8 +272,7 @@ export const setRoutes = (app: any) => {
     */
     try {
       const { integrationId, environment, roleName } = req.params;
-      const { newRoleName } = req.body;
-      await roleController.update(req.teamId, integrationId, roleName, environment, newRoleName);
+      await roleController.update(req.teamId, integrationId, roleName, environment, req.body.name);
       res.status(200).json({ success: true, message: 'updated' });
     } catch (err) {
       handleError(res, err);
@@ -321,7 +324,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
       #swagger.method = 'get'
-      #swagger.description = 'Get user role mappings by role or user names for integration'
+      #swagger.description = 'Get user role mappings by role or user names for integration <br><br> <b>Note:</b> Either roleName or username is required'
       #swagger.summary = 'Get user role mappings by role name or user name'
       #swagger.parameters['integrationId'] = {
         in: 'path',
@@ -352,8 +355,6 @@ export const setRoutes = (app: any) => {
     */
     try {
       const { integrationId, environment } = req.params;
-      const { roleName, username } = req.query;
-      if (!roleName && !username) throw Error(`One of the query parameters (roleName, username) is a must`);
       const result = await userRoleMappingController.list(req.teamId, integrationId, environment, req.query);
       res.status(200).json({ success: true, data: result });
     } catch (err) {

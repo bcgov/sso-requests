@@ -32,15 +32,14 @@ const doc = {
       integration: {
         id: 'number',
         projectName: 'string',
-        protocol: 'string',
-        requester: 'string',
-        teamId: 'number',
+        authType: 'string',
         environments: 'string[]',
+        status: 'string',
         createdAt: 'timestamp',
         updatedAt: 'timestamp',
       },
       role: {
-        roleName: 'string',
+        name: 'string',
       },
       userAttribute: {
         attributeKey: 'string[]',
@@ -48,8 +47,8 @@ const doc = {
       user: {
         username: 'string',
         email: 'string',
-        first_name: 'string',
-        last_name: 'string',
+        firstName: 'string',
+        lastName: 'string',
         attribues: [{ $ref: '#/components/schemas/userAttribute' }],
       },
       userRoleMappingRequest: {

@@ -3,22 +3,16 @@ import { IntegrationService } from '../services/integration-service';
 
 @injectable()
 export class IntegrationController {
+  private attributes = ['id', 'projectName', 'authType', 'environments', 'status', 'createdAt', 'updatedAt'];
+
   constructor(private integrationService: IntegrationService) {}
 
   public async getIntegration(id: number, teamId: number) {
-    return await this.integrationService.getById(id, teamId, [
-      'id',
-      'projectName',
-      'protocol',
-      'requester',
-      'teamId',
-      'environments',
-      'createdAt',
-      'updatedAt',
-    ]);
+    const int = await this.integrationService.getById(id, teamId);
+    return Object.fromEntries(Object.entries(int).filter(([prop]) => this.attributes.includes(prop)));
   }
 
   public async listByTeam(teamId: number) {
-    return await this.integrationService.getAllByTeam(teamId);
+    return await this.integrationService.getAllByTeam(teamId, this.attributes);
   }
 }
