@@ -7,7 +7,7 @@ import getProvidersGoldSchema from '@app/schemas/providers-gold';
 import getEnvironmentGoldSchemas from '@app/schemas/environment-gold';
 import getReviewSubmitSchema from '@app/schemas/review-submit';
 import { Team } from '@app/interfaces/team';
-import { Request } from '@app/interfaces/Request';
+import { Integration } from '@app/interfaces/Request';
 import getConfig from 'next/config';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
@@ -23,8 +23,8 @@ export const getSchemas = ({
   formData,
   teams = [],
 }: {
-  integration?: Request | undefined;
-  formData: Request;
+  integration?: Integration | undefined;
+  formData: Integration;
   teams: Team[];
 }) => {
   if (!integration) integration = formData;
@@ -59,3 +59,13 @@ export const getSchemas = ({
 
   return schemas;
 };
+
+export const oidcDurationAdditionalFields = [
+  'AccessTokenLifespan',
+  'OfflineSessionIdleTimeout',
+  'OfflineSessionMaxLifespan',
+  'SessionIdleTimeout',
+  'SessionMaxLifespan',
+];
+
+export const samlDurationAdditionalFields = ['AssertionLifespan'];

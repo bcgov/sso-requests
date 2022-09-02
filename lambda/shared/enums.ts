@@ -13,6 +13,8 @@ export const EVENTS = {
   REQUEST_DELETE_FAILURE: 'request-delete-failure',
   EMAIL_SUBMISSION_FAILURE: 'email-submission-failure',
   REQUEST_LIMIT_REACHED: 'request-limit-reached',
+  TEAM_API_ACCOUNT_DELETE_SUCCESS: 'api-account-delete-success',
+  TEAM_API_ACCOUNT_DELETE_FAILURE: 'api-account-delete-failure',
 };
 
 export const EMAILS = {
@@ -30,4 +32,7 @@ export const EMAILS = {
   TEAM_MEMBER_DELETED_USER_REMOVED: 'team-member-deleted-user-removed',
   TEAM_DELETED: 'team-deleted',
   REQUEST_LIMIT_EXCEEDED: 'request-limit-exceeded',
+  CREATE_TEAM_API_ACCOUNT_SUBMITTED: 'create-team-api-account-submitted',
+  CREATE_TEAM_API_ACCOUNT_APPROVED: 'create-team-api-account-approved',
+  DELETE_TEAM_API_ACCOUNT_SUBMITTED: 'delete-team-api-account-submitted',
 };

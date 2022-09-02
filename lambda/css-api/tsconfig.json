@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "./build",
+    "rootDir": "../../",
+    "baseUrl": "./",
+    "paths": {
+      "*": ["../../*"],
+      "@app/*": ["../../app/*"],
+      "@lambda-app/*": ["../app/src/*"],
+      "@lambda-shared/*": ["../shared/*"]
+    }
+  },
+  "include": ["src/**/*", "../shared/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
+}

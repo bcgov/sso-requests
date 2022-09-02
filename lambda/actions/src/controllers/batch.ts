@@ -3,6 +3,7 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EVENTS, EMAILS } from '@lambda-shared/enums';
 import { mergePR } from '../github';
+import { getTeamById } from '@lambda-app/queries/team';
 
 const createEvent = async (data) => {
   try {
@@ -68,9 +69,10 @@ export const updatePlannedItems = async (data) => {
 
   const integrations = await models.request.findAll({
     where,
-    attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId', 'archived'],
+    attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId', 'archived', 'apiServiceAccount'],
     raw: true,
   });
+
   const integrationIds = integrations.map((intg) => intg.id);
   await models.request.update({ status: newStatus }, { where: { id: { [Op.in]: integrationIds } } });
   await models.event.bulkCreate(integrationIds.map((requestId) => ({ eventCode, requestId })));
@@ -85,8 +87,27 @@ export const updatePlannedItems = async (data) => {
         (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) >
         1;
 
-      const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;
-      await sendTemplate(emailCode, { integration });
+      if (integration.apiServiceAccount) {
+        const teamIntegrations = await models.request.findAll({
+          where: {
+            teamId: integration.teamId,
+            apiServiceAccount: false,
+            archived: false,
+            serviceType: 'gold',
+          },
+          attributes: ['id', 'projectName', 'usesTeam', 'teamId', 'userId'],
+        });
+
+        const team = await getTeamById(integration.teamId);
+        await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED, {
+          requester: integration.requester,
+          team,
+          integrations: teamIntegrations,
+        });
+      } else {
+        const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;
+        await sendTemplate(emailCode, { integration });
+      }
     }),
   );
 

@@ -1,8 +1,8 @@
-import { Data } from '../shared/interfaces';
+import { IntegrationData } from '../shared/interfaces';
 
-export const formDataDev: Data = {
+export const formDataDev: IntegrationData = {
   id: 1,
-  idirUserId: 'TEST',
+  idirUserid: 'TEST',
   projectName: 'test',
   clientId: 'test',
   realm: 'onestopauth',
@@ -26,7 +26,7 @@ export const formDataDev: Data = {
   },
 };
 
-export const formDataProd: Data = {
+export const formDataProd: IntegrationData = {
   ...formDataDev,
   testValidRedirectUris: ['https://a'],
   prodValidRedirectUris: ['https://a'],

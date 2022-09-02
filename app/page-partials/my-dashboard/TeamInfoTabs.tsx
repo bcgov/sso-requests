@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import Tab from 'react-bootstrap/Tab';
-import { RequestTabs } from 'components/RequestTabs';
-import { Table } from '@bcgov-sso/common-react-components';
-import { Button } from '@bcgov-sso/common-react-components';
+import { Table, Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import Button from 'html-components/Button';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
 import { User, Team } from 'interfaces/team';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { UserSession } from 'interfaces/props';
 import { getTeamIntegrations } from 'services/request';
 import validator from 'validator';
@@ -22,6 +20,7 @@ import {
   getServiceAccount,
   requestServiceAccount,
   downloadServiceAccount,
+  deleteServiceAccount,
 } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
@@ -41,8 +40,14 @@ import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
+import InfoMessage from 'components/InfoMessage';
+import Link from '@button-inc/bcgov-theme/Link';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import getConfig from 'next/config';
+import Grid from '@button-inc/bcgov-theme/Grid';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
+import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
+import { PRIMARY_RED } from '@app/styles/theme';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -76,8 +81,13 @@ const CenteredTD = styled.td`
   text-align: left !important;
 `;
 
+const TopMargin = styled.div`
+  height: var(--field-top-spacing);
+`;
+
 const addMemberModalId = 'add-member-modal';
 const deleteMemberModalId = 'delete-member-modal';
+const deleteServiceAccountModalId = 'delete-service-account-modal';
 
 export type TabKey = 'members';
 
@@ -191,19 +201,45 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
   return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
 };
 
+const Requester = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 1rem;
+`;
+
+const SubTitle = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  border-bottom: 1px solid gray;
+`;
+
+const AlignCenter = styled.div`
+  text-align: center;
+`;
+
 function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState<User[]>([]);
-  const [integrations, setIntegrations] = useState<Request[]>([]);
-  const [serviceAccount, setServiceAccount] = useState<Request | null>(null);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [serviceAccount, setServiceAccount] = useState<Integration | null>(null);
   const [myself, setMyself] = useState<User | null>(null);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
-
   const openModal = () => (window.location.hash = addMemberModalId);
+  const inProgressServiceAccount = serviceAccount?.status !== 'applied' && !serviceAccount?.archived;
+  const showDeleteServiceAccountModal = () => {
+    window.location.hash = deleteServiceAccountModalId;
+  };
+
+  const handleDeleteServiceAccount = async () => {
+    await deleteServiceAccount(team.id, serviceAccount?.id);
+    setServiceAccount(null);
+  };
 
   const getData = async (teamId: number) => {
     setLoading(true);
@@ -237,7 +273,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   let interval: any;
 
   useEffect(() => {
-    if (serviceAccount && serviceAccount.status === 'submitted') {
+    if (serviceAccount && serviceAccount.status !== 'applied') {
       clearInterval(interval);
 
       interval = setInterval(async () => {
@@ -366,10 +402,130 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   const isAdmin = myself.role === 'admin';
 
+  const fetchApiAccountCredentials = async (team: Team, serviceAccount: Integration, download: boolean) => {
+    setLoading(true);
+    let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
+    data = data || {};
+
+    const text = {
+      tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
+      clientId: `${data.resource}`,
+      clientSecret: `${data.credentials?.secret}`,
+    };
+
+    if (download) {
+      downloadText(prettyJSON(text), `${serviceAccount.clientId}.json`);
+    } else {
+      copyTextToClipboard(prettyJSON(text));
+    }
+    setLoading(false);
+  };
+
   return (
     <>
-      <RequestTabs defaultActiveKey={'members'}>
-        <Tab eventKey="members" title="Members">
+      <Tabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'} tabBarGutter={30}>
+        {/* {enable_gold && isAdmin && (
+          <Tab key="service-accounts" tab="CSS API Account">
+            <TabWrapper marginTop="10px">
+              {serviceAccount ? (
+                inProgressServiceAccount ? (
+                  <Grid cols={15}>
+                    <Grid.Row gutter={[]}>
+                      <Grid.Col span={7} align={'center'}>
+                        {serviceAccount.requester && <Requester>Submitted by: {serviceAccount.requester}</Requester>}
+                        <SubTitle>CSS API Account will be provisioned in approx 20 min</SubTitle>
+                        <SubmittedStatusIndicator integration={serviceAccount} />
+                      </Grid.Col>
+                    </Grid.Row>
+                  </Grid>
+                ) : loading ? (
+                  <AlignCenter>
+                    <TopMargin />
+                    <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+                  </AlignCenter>
+                ) : (
+                  <Grid cols={3}>
+                    <Grid.Row collapse="992" gutter={[]} align="center">
+                      Download the files to get access to the CSS App API &nbsp;
+                      <InfoOverlay
+                        title={''}
+                        content={`Create a CSS API Account for this team. <br /><br />
+                        The CSS API Account will only be available to teams created in the <b>Gold Keycloak</b>.<br /><br />
+                        If you <b>delete this Team</b>, then the <b>CSS API Account will also be deleted</b>.`}
+                        hide={200}
+                        style={{ maxWidth: 600 }}
+                      />
+                    </Grid.Row>
+                    <Grid.Row collapse="992" gutter={[0, 10]} align="center">
+                      <Grid.Col span={3}>
+                        <Button
+                          size="medium"
+                          variant="grey"
+                          onClick={() => fetchApiAccountCredentials(team, serviceAccount, false)}
+                        >
+                          Copy
+                        </Button>
+                        &nbsp;&nbsp;&nbsp;
+                        <Button
+                          size="medium"
+                          variant="grey"
+                          onClick={() => fetchApiAccountCredentials(team, serviceAccount, true)}
+                        >
+                          Download
+                        </Button>
+                        <ActionButton
+                          icon={faTrash}
+                          role="button"
+                          aria-label="delete"
+                          onClick={showDeleteServiceAccountModal}
+                          activeColor={PRIMARY_RED}
+                          title="Delete CSS API Account"
+                          size="lg"
+                          style={{ marginLeft: '7px' }}
+                        />
+                      </Grid.Col>
+                    </Grid.Row>
+                    <Grid.Row collapse="992" gutter={[]} align="center">
+                      <InfoMessage>
+                        For more information on how to use the CSS API Account with your integrations, see{' '}
+                        <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
+                          here
+                        </Link>
+                        .
+                      </InfoMessage>
+                    </Grid.Row>
+                  </Grid>
+                )
+              ) : loading ? (
+                <AlignCenter>
+                  <TopMargin />
+                  <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+                </AlignCenter>
+              ) : (
+                <RequestButton
+                  onClick={async () => {
+                    setLoading(true);
+                    const [sa, err] = await requestServiceAccount(team.id);
+                    if (err) {
+                      alert.show({
+                        variant: 'danger',
+                        fadeOut: 10000,
+                        closable: true,
+                        content: err,
+                      });
+                    } else {
+                      setServiceAccount(sa);
+                    }
+                    setLoading(false);
+                  }}
+                >
+                  + Request CSS API Account
+                </RequestButton>
+              )}
+            </TabWrapper>
+          </Tab>
+        )} */}
+        <Tab key="members" tab="Members">
           <TabWrapper>
             {isAdmin ? (
               <PaddedButton variant="plainText" onClick={openModal}>
@@ -451,7 +607,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        <Tab eventKey="integrations" title="Integrations">
+        <Tab key="integrations" tab="Integrations">
           <TabWrapper marginTop="20px">
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
               <Table variant="medium" readOnly>
@@ -506,8 +662,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             </span>{' '}
                             tab
                           </li>
-                          <li>Select the "pencil" icon to edit the integration</li>
-                          <li>Select this team from the "Project Team" drop down</li>
+                          <li>Select the &ldquo;pencil&rdquo; icon to edit the integration</li>
+                          <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
                         </ol>
                         <br />
                         To add this team to a <span className="strong">new integration</span>:
@@ -520,9 +676,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             </span>{' '}
                             tab
                           </li>
-                          <li>Select "+ Request SSO Integration"</li>
-                          <li>Select "Yes" to allow multiple team members to manage the integration</li>
-                          <li>Select this team from the "Project Team" drop down</li>
+                          <li>Select &ldquo;+ Request SSO Integration&rdquo;</li>
+                          <li>Select &ldquo;Yes&rdquo; to allow multiple team members to manage the integration</li>
+                          <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
                         </ol>
                       </CenteredTD>
                     </tr>
@@ -532,52 +688,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        {/* {enable_gold && isAdmin && (
-          <Tab eventKey="service-accounts" title="Service Accounts">
-            <TabWrapper marginTop="20px">
-              {serviceAccount ? (
-                serviceAccount.status === 'submitted' ? (
-                  <span>The service account is already requested.</span>
-                ) : (
-                  <Button
-                    onClick={async () => {
-                      let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
-                      data = data || {};
-
-                      const text = {
-                        tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
-                        clientId: `${data.resource}`,
-                        clientSecret: `${data.credentials?.secret}`,
-                      };
-                      downloadText(prettyJSON(text), `${serviceAccount.clientId}.json`);
-                    }}
-                  >
-                    Download
-                  </Button>
-                )
-              ) : (
-                <Button
-                  onClick={async () => {
-                    const [sa, err] = await requestServiceAccount(team.id);
-                    if (err) {
-                      alert.show({
-                        variant: 'danger',
-                        fadeOut: 10000,
-                        closable: true,
-                        content: `Failed to request a service account.`,
-                      });
-                    } else {
-                      setServiceAccount(sa);
-                    }
-                  }}
-                >
-                  Request
-                </Button>
-              )}
-            </TabWrapper>
-          </Tab>
-        )} */}
-      </RequestTabs>
+      </Tabs>
       <CenteredModal
         title="Add a New Team Member"
         icon={null}
@@ -597,6 +708,21 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         closable
       />
       <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
+      <CenteredModal
+        title="Delete CSS API Account"
+        icon={null}
+        onConfirm={handleDeleteServiceAccount}
+        id={deleteServiceAccountModalId}
+        content={
+          <ModalContents
+            title="Are you sure that you want to delete this CSS API Account?"
+            content={'Once you delete this CSS PI Account, this action cannot be undone.'}
+          />
+        }
+        buttonStyle={'danger'}
+        confirmText={'Delete CSS API Account'}
+        closable
+      />
     </>
   );
 }

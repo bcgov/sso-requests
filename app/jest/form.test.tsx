@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
 import { updateRequest } from 'services/request';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 
@@ -25,7 +25,7 @@ const STEPPER_ERROR = 'Some additional fields require your attention.';
 // Container to expose variables from beforeeach to test functions
 let sandbox: any = {};
 
-const setUpRender = (request: Request | object | null, currentUser = {}) => {
+const setUpRender = (request: Integration | object | null, currentUser = {}) => {
   const { debug } = render(<FormTemplate currentUser={currentUser} request={request} />);
   sandbox.firstStageBox = screen.queryByTestId(`stage-1`)?.closest('div') as HTMLElement;
   sandbox.secondStageBox = screen.queryByTestId(`stage-2`)?.closest('div') as HTMLElement;
@@ -36,7 +36,7 @@ const setUpRender = (request: Request | object | null, currentUser = {}) => {
   return debug;
 };
 
-export const sampleRequest: Request = {
+export const sampleRequest: Integration = {
   id: 0,
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
@@ -137,9 +137,9 @@ describe('Form Template Loading Data', () => {
     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
 
     fireEvent.click(secondStageBox);
-    const secondStageElementSelector = '#root_publicAccess-Public';
+
+    const secondStageElementSelector = '#root_protocol input[type="radio"][value="oidc"]';
     await waitFor(() => document.querySelector(secondStageElementSelector));
-    expect(document.querySelector(secondStageElementSelector)).toHaveAttribute('checked', '');
 
     fireEvent.click(thirdStageBox);
     expect(

@@ -7,14 +7,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { Request, ClientRole, Option } from 'interfaces/Request';
+import { Integration, ClientRole, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import SaveMessage from 'form-components/SaveMessage';
+import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
+import InfoOverlay from 'components/InfoOverlay';
 
 const Label = styled.label`
   font-weight: bold;
@@ -108,7 +109,7 @@ const propertyOptions = [
 ];
 
 interface Props {
-  selectedRequest: Request;
+  selectedRequest: Integration;
   alert: TopAlert;
 }
 
@@ -297,7 +298,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           noOptionsMessage={() => 'No roles'}
           onChange={handleRoleChange}
         />
-        <SaveMessage saving={saving} content={savingMessage} />
+        <LastSavedMessage saving={saving} content={savingMessage} />
       </>
     );
   }
@@ -383,11 +384,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     idirLookup = (
       <>
         {rows.length > 0 && (
-          <div className="fst-italic small mb-1">
+          <InfoText italic={true}>
             If you did not find the user you were looking for, you can try searching for the user in our IDIM Web
             Service Lookup tool. This tool uses a webservice to find IDIR users. so you will need to import the user
             that is found.
-          </div>
+          </InfoText>
         )}
         <Button
           type="button"
@@ -416,7 +417,16 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       <Grid cols={10}>
         <Grid.Row collapse="1100" gutter={[15, 2]}>
           <Grid.Col span={6}>
-            <Label>1. Search for a user based on the selection criteria below</Label>
+            <Header variant="dark" size="sm">
+              1. Search for a user based on the selection criteria below &nbsp;
+              <InfoOverlay
+                title={''}
+                content={
+                  'When searching BCeID GUID, please ensure your end users has logged in via your app (and indirectly our IDP) for this search to be successful.'
+                }
+                hide={200}
+              />
+            </Header>
             <Table
               key={searchKey}
               variant="mini"

@@ -1,4 +1,4 @@
-import { Request } from '../interfaces/Request';
+import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 
 export const redirectUriTooltip = {
@@ -40,7 +40,7 @@ export const devValidRedirectUris = {
   tooltip: redirectUriTooltip,
 };
 
-export default function getSchema(integration: Request) {
+export default function getSchema(integration: Integration) {
   const redirectUriProps: any = { devValidRedirectUris };
   if (integration?.environments?.includes('test')) redirectUriProps.testValidRedirectUris = testValidRedirectUris;
   if (integration?.environments?.includes('prod')) redirectUriProps.prodValidRedirectUris = prodValidRedirectUris;

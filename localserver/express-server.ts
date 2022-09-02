@@ -4,6 +4,8 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import _ from 'lodash';
 import { setRoutes } from '../lambda/app/src/routes';
+import * as actionRoutes from '../lambda/actions/src/routes';
+import * as apiRoutes from '../lambda/css-api/src/routes';
 
 const logger = morgan('combined');
 
@@ -24,6 +26,8 @@ const initExpresss = async () => {
   expressServer.set('trust proxy', 1);
 
   setRoutes(router);
+  actionRoutes.setRoutes(router);
+  apiRoutes.setRoutes(router);
   expressServer.use('/', router);
   return expressServer;
 };

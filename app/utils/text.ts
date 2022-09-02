@@ -20,8 +20,8 @@ export const copyTextToClipboard = (text: string) => {
   }
 };
 
-export const downloadText = (text: string, filename: string) => {
-  const url = window.URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+export const downloadText = (text: string, filename: string, type = 'application/json') => {
+  const url = window.URL.createObjectURL(new Blob([text], { type }));
   const link = document.createElement('a');
   link.href = url;
   link.setAttribute('download', filename);

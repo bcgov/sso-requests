@@ -4,7 +4,7 @@ import { noop } from 'lodash';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import CancelButton from 'components/CancelButton';
 import { FORM_BUTTON_MIN_WIDTH, FORM_BUTTON_TOP_SPACING } from 'styles/theme';
-import SaveMessage from 'form-components/SaveMessage';
+import { LastSavedMessage } from '@bcgov-sso/common-react-components';
 
 interface Props {
   loading?: boolean;
@@ -64,7 +64,7 @@ export default function FormButtons({
           )}
         </PaddedButton>
       </Container>
-      <SaveMessage {...savingStatus} />
+      <LastSavedMessage {...savingStatus} />
     </>
   );
 }

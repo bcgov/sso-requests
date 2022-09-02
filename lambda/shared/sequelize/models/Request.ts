@@ -26,6 +26,11 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: true,
       },
+      protocol: {
+        type: DataTypes.STRING,
+        defaultValue: 'oidc',
+        allowNull: false,
+      },
       authType: {
         type: DataTypes.STRING,
         defaultValue: 'browser-login',
@@ -171,6 +176,11 @@ const init = (sequelize, DataTypes) => {
         defaultValue: [],
         allowNull: false,
       },
+      devAssertionLifespan: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
+      },
       devAccessTokenLifespan: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
@@ -196,6 +206,11 @@ const init = (sequelize, DataTypes) => {
         defaultValue: 0,
         allowNull: false,
       },
+      testAssertionLifespan: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
+      },
       testAccessTokenLifespan: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
@@ -217,6 +232,11 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
       },
       testOfflineSessionMaxLifespan: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
+      },
+      prodAssertionLifespan: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
         allowNull: false,

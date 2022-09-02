@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { getRequestedEnvironments } from 'utils/helpers';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { EnvironmentOption } from 'interfaces/form';
 import { withTopAlert } from 'layout/TopAlert';
 import Button from '@button-inc/bcgov-theme/Button';
@@ -35,7 +35,7 @@ const StyledHr = styled.hr`
 `;
 
 interface Props {
-  selectedRequest: Request;
+  selectedRequest: Integration;
   alert: any;
 }
 

@@ -3,3 +3,5 @@ bundle
 build
 dist
 .env
+swagger-ui-dist
+swagger-output.json

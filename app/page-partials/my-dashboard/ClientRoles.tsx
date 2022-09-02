@@ -1,7 +1,5 @@
 import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import Tab from 'react-bootstrap/Tab';
-import { Button } from '@bcgov-sso/common-react-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import Select, { MultiValue, ActionMeta } from 'react-select';
@@ -10,13 +8,11 @@ import InfiniteScroll from 'react-infinite-scroller';
 import Input from '@button-inc/bcgov-theme/Input';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { Request, Option } from 'interfaces/Request';
+import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import SaveMessage from 'form-components/SaveMessage';
-import { RequestTabs } from 'components/RequestTabs';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import { Table } from '@bcgov-sso/common-react-components';
+import { Button, Table, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
 import CreateRoleContent from './roles/CreateRoleContent';
@@ -64,7 +60,7 @@ const optionize = (v: string) => ({ label: v, value: v });
 const optionizeAll = (vs: string[]) => vs.map(optionize);
 
 interface Props {
-  integration: Request;
+  integration: Integration;
   alert: TopAlert;
 }
 
@@ -322,7 +318,7 @@ const ClientRoles = ({ integration, alert }: Props) => {
               throttleCompositeRoleUpdate(newValues as Option[]);
             }}
           />
-          <SaveMessage saving={saving} content={savingMessage} />
+          <LastSavedMessage saving={saving} content={savingMessage} />
         </>
       );
     }
@@ -382,19 +378,18 @@ const ClientRoles = ({ integration, alert }: Props) => {
         + Create a New Role
       </Button>
       <TopMargin />
-      <RequestTabs onSelect={handleTabSelect} activeKey={environment}>
+      <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30}>
         {environments.map((env) => (
-          <Tab eventKey={env} title={startCase(env)} />
+          <Tab key={env} tab={startCase(env)} />
         ))}
-      </RequestTabs>
+      </Tabs>
       <br />
       <Grid cols={10}>
         <Grid.Row collapse="1100" gutter={[15, 2]}>
           <Grid.Col span={4}>
-            <div>
-              <StyledInput
+            <div style={{ display: 'flex', float: 'left' }}>
+              <SearchBar
                 type="text"
-                size="small"
                 maxLength="1000"
                 placeholder="Search existing roles"
                 value={searchKey}
@@ -408,11 +403,11 @@ const ClientRoles = ({ integration, alert }: Props) => {
           </Grid.Col>
           <Grid.Col span={6}>
             {selectedRole && (
-              <RequestTabs onSelect={handleRightPanelTabSelect} activeKey={rightPanelTab}>
+              <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
                 {rightPanelTabs.map((tab) => (
-                  <Tab eventKey={tab} title={tab} />
+                  <Tab key={tab} tab={tab} />
                 ))}
-              </RequestTabs>
+              </Tabs>
             )}
           </Grid.Col>
         </Grid.Row>

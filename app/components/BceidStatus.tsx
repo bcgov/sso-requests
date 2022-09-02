@@ -1,5 +1,5 @@
 import React from 'react';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
@@ -9,7 +9,7 @@ import { ProgressBar } from 'react-bootstrap';
 import HelpText from 'components/HelpText';
 
 interface Props {
-  integration: Request;
+  integration: Integration;
 }
 
 const CIRCLE_DIAMETER = '15px';

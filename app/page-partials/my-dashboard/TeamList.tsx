@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faExclamationCircle, faTrash, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { Team } from 'interfaces/team';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import { getMyTeams, deleteTeam } from 'services/team';
+import { getMyTeams, deleteTeam, getServiceAccount, deleteServiceAccount } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
@@ -18,6 +18,7 @@ import { UserSession } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import WarningModalContents from 'components/WarningModalContents';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
+import { Integration } from 'interfaces/Request';
 
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
@@ -96,7 +97,11 @@ interface Props {
 export default function TeamList({ currentUser, setTeam, loading, teams, loadTeams, state, dispatch }: Props) {
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
+  const [serviceAccount, setServiceAccount] = useState<Integration | null>(null);
   const { downloadError } = state;
+
+  const deleteServiceAccontNote =
+    '*By deleting this team, you are also deleting the CSS App API Account that belongs to this team.';
 
   const canDelete = activeTeam && Number(activeTeam.integrationCount) === 0;
 
@@ -104,6 +109,13 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
     setActiveTeam(team);
     setActiveTeamId(team?.id);
     setTeam(team);
+  };
+
+  const updateServiceAccount = async () => {
+    const [serviceAccount] = await getServiceAccount(activeTeamId);
+
+    if (serviceAccount) setServiceAccount(serviceAccount);
+    else setServiceAccount(null);
   };
 
   useEffect(() => {
@@ -116,10 +128,15 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
     }
   }, [teams]);
 
+  useEffect(() => {
+    updateServiceAccount();
+  }, [activeTeamId]);
+
   const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
 
   const showDeleteModal = (team: Team) => {
     updateActiveTeam(team);
+    if (activeTeamId !== team.id) return;
     window.location.hash = deleteTeamModalId;
   };
 
@@ -188,6 +205,9 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
 
   const handleDeleteTeam = async () => {
     if (!canDelete) return;
+
+    if (serviceAccount) await deleteServiceAccount(activeTeamId, serviceAccount.id);
+
     await deleteTeam(activeTeamId);
     await loadTeams();
   };
@@ -236,6 +256,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
           <WarningModalContents
             title="Are you sure that you want to delete this team?"
             content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
+            note={canDelete && serviceAccount ? deleteServiceAccontNote : ''}
           />
         }
         buttonStyle={canDelete ? 'danger' : 'custom'}

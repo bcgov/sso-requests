@@ -1,3 +1,5 @@
+import { Integration } from '@app/interfaces/Request';
+
 export interface User {
   id: number;
   idirUserid: string;
@@ -16,49 +18,8 @@ export interface Session {
   bearerToken?: string;
 }
 
-export interface Data {
-  realm?: string;
-  projectName: string;
-  projectLead: boolean;
-  devValidRedirectUris?: string[];
-  testValidRedirectUris?: string[];
-  prodValidRedirectUris?: string[];
-  agreeWithTC?: boolean;
-  publicAccess?: boolean;
-  id?: number;
+export interface IntegrationData extends Integration {
   comment?: string;
-  bceidEmailDetails?: object;
-  environments?: string[];
-  idirUserDisplayName?: string;
-  idirUserId?: string;
-  clientId?: string;
-  clientName?: string;
-  newToSso?: boolean;
-  agreeWithTerms?: boolean;
-  status?: string;
-  archived?: boolean;
-  usesTeam?: boolean;
-  teamId?: string;
-  userId?: string;
-  team?: Team;
-  user?: User;
-  requester?: string;
-  serviceType?: string;
-}
-
-export interface FormattedData {
-  realm?: string;
-  environments: string[];
-  projectName: string;
-  validRedirectUris: {
-    dev: string[];
-    test: string[];
-    prod: string[];
-  };
-  id?: number;
-  projectLead: boolean;
-  agreeWithTC?: boolean;
-  publicAccess?: boolean;
 }
 
 interface EmailEvent {

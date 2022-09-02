@@ -8,23 +8,18 @@ import FieldTermsAndConditions from '@app/form-components/FieldTermsAndCondition
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
 import FieldAccessTokenLifespan from '@app/form-components/FieldAccessTokenLifespan';
-import { Request } from '@app/interfaces/Request';
+import { Integration } from '@app/interfaces/Request';
+import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 
 interface Props {
-  integration: Request;
+  integration: Integration;
+  formData?: Integration;
   isAdmin: boolean;
 }
 
 const envs = ['dev', 'test', 'prod'];
-const tokenTypes = [
-  'AccessTokenLifespan',
-  'OfflineSessionIdleTimeout',
-  'OfflineSessionMaxLifespan',
-  'SessionIdleTimeout',
-  'SessionMaxLifespan',
-];
 
-const getUISchema = ({ integration, isAdmin }: Props) => {
+const getUISchema = ({ integration, formData, isAdmin }: Props) => {
   const isNew = isNil(integration?.id);
   const isApplied = integration?.status === 'applied';
   const idps = integration?.devIdps || [];
@@ -45,16 +40,20 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
   const includeComment = isApplied && isAdmin;
 
   const tokenFields: any = {};
+
+  const durationAdditionalFields =
+    formData?.protocol === 'saml' ? samlDurationAdditionalFields : oidcDurationAdditionalFields;
+
   for (let x = 0; x < envs.length; x++) {
-    for (let y = 0; y < tokenTypes.length; y++) {
+    for (let y = 0; y < durationAdditionalFields.length; y++) {
       const def: any = {
         'ui:widget': ClientTokenWidget,
         'ui:label': false,
         'ui:readonly': !isAdmin,
       };
 
-      if (tokenTypes[y] === 'AccessTokenLifespan') def['ui:FieldTemplate'] = FieldAccessTokenLifespan;
-      tokenFields[`${envs[x]}${tokenTypes[y]}`] = def;
+      if (y === 0) def['ui:FieldTemplate'] = FieldAccessTokenLifespan;
+      tokenFields[`${envs[x]}${durationAdditionalFields[y]}`] = def;
     }
   }
 
@@ -85,6 +84,11 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
     },
     publicAccess: {
       'ui:widget': ClientTypeWidget,
+    },
+    protocol: {
+      'ui:widget': 'radio',
+      'ui:default': 'oidc',
+      'ui:readonly': isApplied,
     },
     authType: {
       'ui:widget': TooltipRadioWidget,

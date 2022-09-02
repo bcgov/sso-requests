@@ -1,16 +1,29 @@
 import { Op } from 'sequelize';
 import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
-import { inviteTeamMembers } from '@lambda-app/utils/helpers';
+import { getDisplayName, inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
-import { EMAILS } from '@lambda-shared/enums';
-import { User, Team, Member } from '@lambda-shared/interfaces';
+import { EMAILS, EVENTS } from '@lambda-shared/enums';
+import { User, Team, Member, Session } from '@lambda-shared/interfaces';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
-import { generateInstallation, updateClientSecret } from '../keycloak/installation';
+import { generateInstallation } from '../keycloak/installation';
+import { getIntegrationsByTeam } from '@lambda-app/queries/request';
+import { checkIfRequestMerged, createEvent, getRequester } from './requests';
+
+const serviceAccountCommonPopulation = [
+  {
+    model: models.user,
+    required: false,
+  },
+  {
+    model: models.team,
+    required: false,
+  },
+];
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -91,6 +104,7 @@ export const deleteTeam = async (user: User, id: string) => {
   );
 
   const team = await models.team.findOne({ where: { id } });
+
   await sendTemplate(EMAILS.TEAM_DELETED, { team });
   await team.destroy();
   return true;
@@ -170,8 +184,11 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
   return getMemberOnTeam(teamId, userId, { raw: true });
 };
 
-export const requestServiceAccount = async (userId: number, teamId: number, requester: string) => {
+export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+  const integrations = await getIntegrationsByTeam(teamId, 'gold');
+  const team = await getTeamById(teamId);
+
   const serviceAccount = await models.request.create({
     projectName: `Service Account for team #${teamId}`,
     serviceType: 'gold',
@@ -190,12 +207,16 @@ export const requestServiceAccount = async (userId: number, teamId: number, requ
   serviceAccount.requester = requester;
 
   const ghResult = await dispatchRequestWorkflow(serviceAccount);
+
   if (ghResult.status !== 204) {
     await serviceAccount.destroy();
     throw Error('failed to create a workflow dispatch event');
   }
 
   await serviceAccount.save();
+
+  await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
+
   return serviceAccount;
 };
 
@@ -207,9 +228,10 @@ export const getServiceAccount = async (userId: number, teamId: number) => {
       serviceType: 'gold',
       usesTeam: true,
       apiServiceAccount: true,
+      archived: false,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['id', 'clientId', 'teamId', 'status'],
+    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived', 'requester'],
     raw: true,
   });
 };
@@ -238,4 +260,64 @@ export const downloadServiceAccount = async (userId: number, teamId: number, saI
   });
 
   return installation;
+};
+
+export const deleteServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
+  try {
+    const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+    const team = await getTeamById(teamId);
+    const serviceAccount = await models.request.findOne({
+      where: {
+        id: saId,
+        serviceType: 'gold',
+        usesTeam: true,
+        apiServiceAccount: true,
+        archived: false,
+        teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
+      },
+      include: serviceAccountCommonPopulation,
+    });
+
+    if (!serviceAccount) {
+      throw Error('unauthorized request');
+    }
+
+    const isMerged = await checkIfRequestMerged(saId);
+    const requester = getDisplayName(session);
+    serviceAccount.requester = requester;
+    serviceAccount.status = 'submitted';
+    serviceAccount.archived = true;
+
+    if (isMerged) {
+      // Trigger workflow with empty environments to delete client
+      const ghResult = await dispatchRequestWorkflow(serviceAccount);
+      if (ghResult.status !== 204) {
+        throw Error('failed to create a workflow dispatch event');
+      }
+    }
+
+    // Close any pr's if they exist
+    await closeOpenPullRequests(saId);
+
+    await serviceAccount.save();
+
+    await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { team, requester });
+
+    createEvent({
+      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,
+      requestId: saId,
+      userId: session.user.id,
+    });
+
+    return serviceAccount;
+  } catch (err) {
+    console.error(err);
+
+    createEvent({
+      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,
+      requestId: saId,
+      userId: session.user.id,
+    });
+    throw Error(err.message || err);
+  }
 };

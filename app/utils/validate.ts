@@ -1,6 +1,6 @@
 import { FormValidation } from 'react-jsonschema-form';
 import validate from 'react-jsonschema-form/lib/validate';
-import { Request } from '@app/interfaces/Request';
+import { Integration } from '@app/interfaces/Request';
 
 export const isValidKeycloakURI = (uri: string) => {
   try {
@@ -73,7 +73,7 @@ const validateArrayFields = (arrayValues: any, errors: any, key: string) => {
   });
 };
 
-export const validateForm = (formData: Request, schemas: any[], visited?: any) => {
+export const validateForm = (formData: Integration, schemas: any[], visited?: any) => {
   const errors: any = {};
   schemas.forEach((schema, i) => {
     if (visited && !visited[i]) return;

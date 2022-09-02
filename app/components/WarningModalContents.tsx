@@ -11,12 +11,13 @@ const ModalContentContainer = styled.div`
   grid-template-columns: 1fr 6fr;
 `;
 
-const ModalContents = ({ title, content }: { title?: string; content?: string }) => (
+const ModalContents = ({ title, content, note }: { title?: string; content?: string; note?: string }) => (
   <ModalContentContainer>
     <RedIcon icon={faExclamationCircle} size="3x" />
     <div>
       {title && <strong>{title}</strong>}
       {content && <p>{content}</p>}
+      {note && <i>{note}</i>}
     </div>
   </ModalContentContainer>
 );

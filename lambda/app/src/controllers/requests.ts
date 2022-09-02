@@ -11,7 +11,7 @@ import {
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
-import { Session, Data, User } from '@lambda-shared/interfaces';
+import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
 import { EMAILS } from '@lambda-shared/enums';
 import { sendTemplate, sendTemplates } from '@lambda-shared/templates';
 import { EVENTS } from '@lambda-shared/enums';
@@ -20,6 +20,8 @@ import {
   getMyOrTeamRequest,
   getAllowedRequest,
   getBaseWhereForMyOrTeamIntegrations,
+  getIntegrationsByTeam,
+  getIntegrationsByUserTeam,
 } from '@lambda-app/queries/request';
 
 const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
@@ -27,7 +29,7 @@ const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
 
-const createEvent = async (data) => {
+export const createEvent = async (data) => {
   try {
     await models.event.create(data);
   } catch (err) {
@@ -35,7 +37,7 @@ const createEvent = async (data) => {
   }
 };
 
-const getRequester = async (session: Session, requestId: number) => {
+export const getRequester = async (session: Session, requestId: number) => {
   let requester = getDisplayName(session);
   const isMyOrTeamRequest = await getMyOrTeamRequest(session.user.id, requestId);
   if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
@@ -48,7 +50,7 @@ const checkIfHasFailedRequests = async () => {
 };
 
 // Check if an applied/apply-failed event exists for the client
-const checkIfRequestMerged = async (id: number) => {
+export const checkIfRequestMerged = async (id: number) => {
   const request = await models.event.findOne({
     where: { requestId: id, eventCode: { [Op.in]: [EVENTS.REQUEST_APPLY_SUCCESS, EVENTS.REQUEST_APPLY_FAILURE] } },
   });
@@ -56,7 +58,7 @@ const checkIfRequestMerged = async (id: number) => {
   return !!request;
 };
 
-export const createRequest = async (session: Session, data: Data) => {
+export const createRequest = async (session: Session, data: IntegrationData) => {
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
 
@@ -110,13 +112,18 @@ export const createRequest = async (session: Session, data: Data) => {
   return { ...result.dataValues, numOfRequestsForToday };
 };
 
-export const updateRequest = async (session: Session, data: Data, user: User, submit: string | undefined) => {
+export const updateRequest = async (
+  session: Session,
+  data: IntegrationData,
+  user: User,
+  submit: string | undefined,
+) => {
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
 
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = getDisplayName(session);
-  const { id, comment, bceidEmailDetails, ...rest } = data;
+  const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id);
 
   try {
@@ -324,6 +331,8 @@ export const getRequestAll = async (
 
 export const getRequests = async (session: Session, user: User, include: string = 'active') => {
   const where: any = getBaseWhereForMyOrTeamIntegrations(session.user.id);
+  // ignore api accounts
+  where.apiServiceAccount = false;
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
@@ -338,6 +347,13 @@ export const getRequests = async (session: Session, user: User, include: string 
   });
 
   return requests;
+};
+
+export const getIntegrations = async (session: Session, teamId: number, user: User, include: string = 'active') => {
+  if (isAdmin(session)) {
+    return getIntegrationsByTeam(teamId);
+  }
+  return getIntegrationsByUserTeam(user, teamId);
 };
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {

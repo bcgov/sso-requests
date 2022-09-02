@@ -15,7 +15,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
 import { getUISchema } from 'schemas-ui';
 import { getSchemas } from 'schemas';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
@@ -79,7 +79,7 @@ const trimFormData = (formData: any, { dropEmptyRedirectUris = false } = {}) => 
 
 interface Props {
   currentUser: LoggedInUser;
-  request?: Request | undefined;
+  request?: Integration | undefined;
   alert: TopAlert;
 }
 
@@ -87,7 +87,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const router = useRouter();
   const { step } = router.query;
   const stage = step ? Number(step) : 0;
-  const [formData, setFormData] = useState((request || {}) as Request);
+  const [formData, setFormData] = useState((request || {}) as Integration);
   const [formStage, setFormStage] = useState(stage);
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -194,7 +194,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUISchema({ integration: request as Request, isAdmin });
+  const uiSchema = getUISchema({ integration: request as Integration, formData, isAdmin });
 
   const handleFormSubmit = async () => {
     if (loading) return;

@@ -1,6 +1,8 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "sourceMap": true,
     "outDir": "dist",
     "baseUrl": ".",
@@ -8,7 +10,9 @@
       "*": ["../*"],
       "@app/*": ["../app/*"],
       "@lambda-app/*": ["../lambda/app/src/*"],
-      "@lambda-shared/*": ["../lambda/shared/*"]
+      "@lambda-shared/*": ["../lambda/shared/*"],
+      "@lambda-actions/*": ["../lambda/actions/src/*"],
+      "@lambda-css-api/*": ["../lambda/css-api/src/*"]
     }
   }
 }

@@ -122,3 +122,12 @@ export const downloadServiceAccount = async (teamId?: number, saId?: number) => 
     return handleAxiosError(err);
   }
 };
+
+export const deleteServiceAccount = async (teamId?: number, saId?: number) => {
+  try {
+    const result = await instance.delete(`teams/${teamId}/service-account/${saId}`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};

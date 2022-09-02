@@ -5,12 +5,12 @@ import Input from '@button-inc/bcgov-theme/Input';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { workflowStatusOptions } from 'metadata/options';
 import { updateRequestMetadata } from 'services/request';
 
 interface Props {
-  request: Request;
+  request: Integration;
   onUpdate?: Function;
 }
 

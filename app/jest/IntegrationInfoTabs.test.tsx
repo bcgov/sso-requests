@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import IntegrationInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 
 type Text = string | RegExp;
 const expectText = (text: Text) => expect(screen.getByText(text)).toBeTruthy();

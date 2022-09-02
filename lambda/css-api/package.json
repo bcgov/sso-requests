@@ -1,0 +1,33 @@
+{
+  "name": "lambda-css-api",
+  "version": "1.0.0",
+  "description": "lambda function for CSS API",
+  "license": "Apache-2.0",
+  "author": "SSO Team",
+  "scripts": {
+    "compile": "../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias",
+    "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m",
+    "copy-templates": "../node_modules/.bin/copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html dist --flat",
+    "swagger-autogen": "node src/swagger.js"
+  },
+  "devDependencies": {
+    "@octokit/types": "^6.23.0",
+    "@types/jsonwebtoken": "^8.5.2",
+    "@types/jwk-to-pem": "^2.0.0",
+    "@types/jws": "^3.2.3"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.5",
+    "jws": "^4.0.0",
+    "lambda-api-router": "^1.0.6",
+    "octokit": "^1.7.2",
+    "reflect-metadata": "^0.1.13",
+    "swagger-autogen": "^2.21.5",
+    "swagger-ui-dist": "^4.14.0",
+    "tsyringe": "^4.7.0"
+  },
+  "resolutions": {
+    "minimist": ">=1.2.6"
+  }
+}

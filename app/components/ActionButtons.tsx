@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
-import { Request } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import CenteredModal from 'components/CenteredModal';
 import { getRequests, deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
@@ -36,7 +36,7 @@ export const VerticalLine = styled.div`
 `;
 
 interface Props {
-  request: Request;
+  request: Integration;
   onDelete?: Function;
   defaultActiveColor?: string;
   children?: any;
