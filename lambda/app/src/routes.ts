@@ -143,6 +143,7 @@ export const setRoutes = (app: any) => {
       req.session = session;
     } catch (err) {
       handleError(res, err);
+      return false;
     }
 
     if (next) next();
