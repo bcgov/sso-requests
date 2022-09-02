@@ -304,7 +304,12 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
 
   return (
     <IntegrationWrapper integration={integration}>
-      <Tabs activeKey={panelTab} onChange={(k: any) => dispatch($setPanelTab(k))} tabBarGutter={30}>
+      <Tabs
+        activeKey={panelTab}
+        onChange={(k: any) => dispatch($setPanelTab(k))}
+        tabBarGutter={30}
+        destroyInactiveTabPane={true}
+      >
         {tabs}
       </Tabs>
     </IntegrationWrapper>
