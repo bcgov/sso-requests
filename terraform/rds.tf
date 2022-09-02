@@ -5,7 +5,7 @@ module "db" {
 
   name           = "aurora-db-postgres"
   engine         = "aurora-postgresql"
-  engine_version = "11.9"
+  engine_version = "11.13"
   engine_mode    = "serverless"
 
   vpc_id                 = data.aws_vpc.selected.id
