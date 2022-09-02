@@ -9,7 +9,6 @@
     "NODE_ENV": "development",
     "ALLOW_SILVER": "true",
     "ALLOW_GOLD": "true",
-    "CSS_API_URL": "https://api-dev.loginproxy.gov.bc.ca",
     "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/ssorequests",
     "SSO_CLIENT_ID": "sso-requests",
     "CONFIGURATION_ENDPOINT": "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration",

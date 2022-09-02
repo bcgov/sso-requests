@@ -95,10 +95,6 @@ variable "api_url" {
   description = "the api base url"
 }
 
-variable "css_api_url" {
-  description = "the css app api base url"
-}
-
 variable "app_env" {
   description = "the application environment; development, test, production"
   default     = "development"
