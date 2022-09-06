@@ -23,6 +23,7 @@ import {
   getIntegrationsByTeam,
   getIntegrationsByUserTeam,
 } from '@lambda-app/queries/request';
+import { disableIntegration } from '@lambda-app/keycloak/client';
 
 const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
 const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
@@ -376,6 +377,9 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
+
+      // disable the client while TF applying the changes
+      await disableIntegration(current.get({ plain: true, clone: true }));
     }
 
     // Close any pr's if they exist
