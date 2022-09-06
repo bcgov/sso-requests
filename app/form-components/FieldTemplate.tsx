@@ -2,7 +2,7 @@ import React from 'react';
 import { FieldTemplateProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import clsx from 'clsx';
-import { noop } from 'lodash';
+import noop from 'lodash.noop';
 import InfoOverlay from 'components/InfoOverlay';
 
 const Title = styled.legend`

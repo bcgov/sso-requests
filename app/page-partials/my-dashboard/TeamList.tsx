@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { Table } from '@bcgov-sso/common-react-components';
 import styled from 'styled-components';
-import { noop } from 'lodash';
+import noop from 'lodash.noop';
 import { $setDownloadError } from 'dispatchers/requestDispatcher';
 import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';

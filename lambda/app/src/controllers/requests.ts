@@ -1,5 +1,8 @@
 import { Op } from 'sequelize';
-import { kebabCase, assign, isEmpty, isString } from 'lodash';
+import kebabCase from 'lodash.kebabcase';
+import assign from 'lodash.assign';
+import isEmpty from 'lodash.isempty';
+import isString from 'lodash.isstring';
 import {
   validateRequest,
   processRequest,

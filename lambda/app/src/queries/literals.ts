@@ -1,4 +1,4 @@
-import { castArray } from 'lodash';
+import castArray from 'lodash.castarray';
 import format = require('pg-format');
 
 export const getMyTeamsLiteral = (userId: number, roles: string[] = ['member', 'admin']) => {

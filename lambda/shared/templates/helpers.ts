@@ -1,5 +1,8 @@
 import { Op } from 'sequelize';
-import { map, compact, flatten, uniq } from 'lodash';
+import map from 'lodash.map';
+import compact from 'lodash.compact';
+import flatten from 'lodash.flatten';
+import uniq from 'lodash.uniq';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { formatUrisForEmail, realmToIDP } from '@lambda-shared/utils/helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';

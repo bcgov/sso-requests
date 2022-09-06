@@ -1,4 +1,4 @@
-import { isNil } from 'lodash';
+import isNil from 'lodash.isnil';
 import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import FieldTermsAndConditions from '@app/form-components/FieldTermsAndConditions';
