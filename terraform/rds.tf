@@ -3,10 +3,9 @@ module "db" {
   source  = "terraform-aws-modules/rds-aurora/aws"
   version = "~> 3.0"
 
-  name           = "aurora-db-postgres"
-  engine         = "aurora-postgresql"
-  engine_version = "11.13"
-  engine_mode    = "serverless"
+  name        = "aurora-db-postgres"
+  engine      = "aurora-postgresql"
+  engine_mode = "serverless"
 
   vpc_id                 = data.aws_vpc.selected.id
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
