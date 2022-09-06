@@ -14,7 +14,7 @@ export const fetchClient = async (data: {
   return client;
 };
 
-export const disableClient = async (data: {
+const disableClient = async (data: {
   serviceType: string;
   environment: string;
   realmName: string;
