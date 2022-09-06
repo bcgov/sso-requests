@@ -7,6 +7,11 @@ import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2, AuthMock } from '
 import { Integration } from './helpers/integration';
 
 jest.mock('@lambda-app/authenticate');
+jest.mock('@lambda-app/keycloak/client', () => {
+  return {
+    disableIntegration: jest.fn(() => Promise.resolve()),
+  };
+});
 jest.mock('@lambda-app/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
