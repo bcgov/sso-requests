@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import { map, omitBy, startCase, isEmpty, throttle } from 'lodash';
+import map from 'lodash.map';
+import omitBy from 'lodash.omitby';
+import startCase from 'lodash.startcase';
+import isEmpty from 'lodash.isempty';
+import throttle from 'lodash.throttle';
 import Button from '@button-inc/bcgov-theme/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';

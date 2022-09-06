@@ -1,4 +1,4 @@
-import { isNil } from 'lodash';
+import isNil from 'lodash.isnil';
 import { JSONSchema6 } from 'json-schema';
 import getRequesterInfoSchema from '@app/schemas/requester-info';
 import termsAndConditionsSchema from '@app/schemas/terms-and-conditions';

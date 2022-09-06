@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
-import { noop } from 'lodash';
+import noop from 'lodash.noop';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { EVENTS, EMAILS } from '@lambda-shared/enums';
 import bceidProdApproved from './bceid-prod-approved';
@@ -29,7 +29,7 @@ const footer = fs.readFileSync(__dirname + '/footer.html', 'utf8');
 Handlebars.registerPartial('footer', footer);
 
 const getBuilder = (key: string) => {
-  let builder = { render: noop, send: noop };
+  let builder = { render: (v) => v, send: noop };
 
   switch (key) {
     case EMAILS.BCEID_PROD_APPROVED:

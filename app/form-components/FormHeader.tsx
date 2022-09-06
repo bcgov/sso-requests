@@ -1,5 +1,6 @@
 import styled from 'styled-components';
-import { padStart, isNil } from 'lodash';
+import padStart from 'lodash.padstart';
+import isNil from 'lodash.isnil';
 import { Schema } from '@app/schemas/index';
 
 const Header = styled.h1`

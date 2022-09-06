@@ -5,7 +5,8 @@ import { faCommentDots, faEnvelope, faFileAlt, faUserAlt } from '@fortawesome/fr
 import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
-import { startCase, isFunction } from 'lodash';
+import startCase from 'lodash.startcase';
+import isFunction from 'lodash.isfunction';
 import BCSans from './BCSans';
 import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';

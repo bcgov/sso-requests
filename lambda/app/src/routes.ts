@@ -1,4 +1,4 @@
-import { isString } from 'lodash';
+import isString from 'lodash.isstring';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
 import {

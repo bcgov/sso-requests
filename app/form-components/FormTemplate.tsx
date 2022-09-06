@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { isNil, throttle, padStart, difference, trim } from 'lodash';
+import isNil from 'lodash.isnil';
+import throttle from 'lodash.throttle';
+import padStart from 'lodash.padstart';
+import difference from 'lodash.difference';
+import trim from 'lodash.trim';
 import FormHeader from 'form-components/FormHeader';
 import FormStage from 'form-components/FormStage';
 import Form from 'form-components/GovForm';

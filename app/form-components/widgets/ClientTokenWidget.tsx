@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { JSONSchema6 } from 'json-schema';
 import { WidgetProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
-import { noop } from 'lodash';
+import noop from 'lodash.noop';
 import Input from '@button-inc/bcgov-theme/Input';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import InfoOverlay from 'components/InfoOverlay';

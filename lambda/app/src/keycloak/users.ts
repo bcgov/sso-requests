@@ -1,7 +1,10 @@
 import KcAdminClient from 'keycloak-admin';
 import RoleRepresentation from 'keycloak-admin/lib/defs/roleRepresentation';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
-import { forEach, map, get, difference } from 'lodash';
+import forEach from 'lodash.foreach';
+import map from 'lodash.map';
+import get from 'lodash.get';
+import difference from 'lodash.difference';
 import { getAdminClient, getClient } from './adminClient';
 import { fetchClient } from './client';
 import { Integration } from '@app/interfaces/Request';
@@ -362,10 +365,12 @@ export const manageUserRoles = async (
   const findRole = (roleName) => kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName });
 
   const addPromise = Promise.all(rolesToAdd.map((roleName) => findRole(roleName))).then((roles) =>
+    // @ts-ignore
     kcAdminClient.users.addClientRoleMappings({ ...roleMapping, roles }),
   );
 
   const delPromise = Promise.all(rolesToDel.map((roleName) => findRole(roleName))).then((roles) =>
+    // @ts-ignore
     kcAdminClient.users.delClientRoleMappings({ ...roleMapping, roles }),
   );
 

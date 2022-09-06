@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { isNil } from 'lodash';
+import isNil from 'lodash.isnil';
 import FormTemplate from 'form-components/FormTemplate';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';

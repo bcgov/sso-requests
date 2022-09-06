@@ -1,6 +1,6 @@
 import React, { CSSProperties, useState } from 'react';
 import styled from 'styled-components';
-import { noop } from 'lodash';
+import noop from 'lodash.noop';
 import Input from '@button-inc/bcgov-theme/Input';
 import Button from '@button-inc/bcgov-theme/Button';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';

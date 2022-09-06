@@ -1,4 +1,5 @@
-import { isNil, uniq } from 'lodash';
+import isNil from 'lodash.isnil';
+import uniq from 'lodash.uniq';
 import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';

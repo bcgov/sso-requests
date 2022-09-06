@@ -1,4 +1,6 @@
-import { isObject, omit, sortBy, compact } from 'lodash';
+import omit from 'lodash.omit';
+import sortBy from 'lodash.sortby';
+import compact from 'lodash.compact';
 import { Op } from 'sequelize';
 import { diff } from 'deep-diff';
 import { Integration } from '@app/interfaces/Request';

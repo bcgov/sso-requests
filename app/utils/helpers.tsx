@@ -1,4 +1,4 @@
-import { isEqual, isNil, isString } from 'lodash';
+import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from 'utils/constants';
 import { getSchemas } from 'schemas';
 import { Team, User } from 'interfaces/team';

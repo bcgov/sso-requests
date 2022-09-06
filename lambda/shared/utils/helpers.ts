@@ -1,4 +1,5 @@
-import { isNil, compact } from 'lodash';
+import isNil from 'lodash.isnil';
+import compact from 'lodash.compact';
 import { getUserById } from '@lambda-app/queries/user';
 import { User } from '../interfaces';
 

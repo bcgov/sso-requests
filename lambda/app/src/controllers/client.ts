@@ -1,5 +1,5 @@
 import { Session } from '../../../shared/interfaces';
-import { kebabCase } from 'lodash';
+import kebabCase from 'lodash.kebabcase';
 import { fetchClient } from '../keycloak/client';
 import { getMyOrTeamRequest } from '@lambda-app/queries/request';
 
