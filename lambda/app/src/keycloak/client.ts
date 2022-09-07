@@ -24,7 +24,7 @@ const disableClient = async (data: {
 
   const { kcAdminClient } = await getAdminClient({ serviceType, environment });
   const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });
-  if (!client) throw Error('client not found');
+  if (!client) return false;
 
   await kcAdminClient.clients.update(
     { realm: realm.realm, id: client.id },
@@ -33,6 +33,8 @@ const disableClient = async (data: {
       enabled: false,
     },
   );
+
+  return true;
 };
 
 export const disableIntegration = async (integration: Integration) => {

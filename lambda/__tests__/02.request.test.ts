@@ -14,7 +14,11 @@ jest.mock('../shared/utils/ches', () => {
     sendEmail: jest.fn(),
   };
 });
-
+jest.mock('@lambda-app/keycloak/client', () => {
+  return {
+    disableIntegration: jest.fn(() => Promise.resolve()),
+  };
+});
 jest.mock('../app/src/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
