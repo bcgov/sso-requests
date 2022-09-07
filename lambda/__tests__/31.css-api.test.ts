@@ -119,11 +119,6 @@ describe('create team and gold integration', () => {
     jest.clearAllMocks();
   });
 
-  afterAll(async () => {
-    const res = await integration.delete();
-    console.log(res);
-  });
-
   it('gets api heartbeat', async () => {
     await supertest(app).get(`${BASE_PATH}/heartbeat`).expect(200);
   });

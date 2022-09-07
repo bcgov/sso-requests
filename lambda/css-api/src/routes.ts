@@ -15,7 +15,6 @@ const responseHeaders = {
 const BASE_PATH = '/api/v1';
 
 const handleError = (res, err) => {
-  console.error(err);
   res.status(422).json({ success: false, message: err.message || err });
 };
 
