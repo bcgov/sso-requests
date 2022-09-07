@@ -12,6 +12,7 @@
   "devDependencies": {
     "@jest/test-sequencer": "^28.1.1",
     "@types/aws-lambda": "^8.10.99",
+    "@types/body-parser": "^1.19.2",
     "@types/jest": "^28.1.1",
     "@types/lodash.assign": "^4.2.7",
     "@types/lodash.castarray": "^4.4.7",
@@ -38,6 +39,7 @@
     "@types/pg-format": "^1.0.2",
     "@types/supertest": "^2.0.12",
     "@vercel/ncc": "^0.34.0",
+    "body-parser": "^1.20.0",
     "copyfiles": "^2.4.1",
     "express": "^4.18.1",
     "jest": "^28.1.1",
