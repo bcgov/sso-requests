@@ -49,10 +49,9 @@ GET /api/v1/integrations
     {
       "id": 2,
       "projectName": "test",
-      "protocol": "oidc",
-      "requester": "James Smith",
-      "teamId": 1,
+      "authType": "oidc",
       "environments": ["dev"],
+      "status": "applied",
       "createdAt": "2022-08-10T21:21:25.303Z",
       "updatedAt": "2022-08-10T21:21:53.598Z"
     }
@@ -103,10 +102,9 @@ GET /api/v1/integrations/{integrationId}
   "data": {
     "id": 2,
     "projectName": "test",
-    "protocol": "oidc",
-    "requester": "James Smith",
-    "teamId": 1,
+    "authType": "oidc",
     "environments": ["dev"],
+    "status": "applied",
     "createdAt": "2022-08-10T21:21:25.303Z",
     "updatedAt": "2022-08-10T21:21:53.598Z"
   }
@@ -156,10 +154,10 @@ GET /api/v1/integrations/{integrationId}/{environment}/roles
   "success": true,
   "data": [
     {
-      "roleName": "role1"
+      "name": "role1"
     },
     {
-      "roleName": "role2"
+      "name": "role2"
     }
   ]
 }
@@ -194,6 +192,7 @@ GET /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
   | --------------- | ------ | ---- | ----------------------- |
   | `integrationId` | number | path | The integration id      |
   | `environment`   | string | path | Integration Environment |
+  | `roleName`      | string | path | Role name               |
 
 - Responses
 
@@ -207,7 +206,7 @@ GET /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 {
   "success": true,
   "data": {
-    "roleName": "role1"
+    "name": "role1"
   }
 }
 ```
@@ -232,7 +231,7 @@ curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/integrations/2/dev/rol
 ### Create role for an Integration
 
 ```sh
-PUT /api/v1/integrations/{integrationId}/{environment}/roles
+POST /api/v1/integrations/{integrationId}/{environment}/roles
 ```
 
 - Parameters
@@ -246,7 +245,7 @@ PUT /api/v1/integrations/{integrationId}/{environment}/roles
 
 ```json
 {
-  "roleName": "role1"
+  "name": "role1"
 }
 ```
 
@@ -279,7 +278,7 @@ PUT /api/v1/integrations/{integrationId}/{environment}/roles
 </table>
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"roleName":"role1"}' -X PUT /api/v1/integrations/2/dev/roles
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"name":"role1"}' -X POST /api/v1/integrations/2/dev/roles
 ```
 
 ### Delete role for an Integration
@@ -331,7 +330,7 @@ curl -H "Authorization: Bearer $API_TOKEN" -X DELETE /api/v1/integrations/2/dev/
 ### Update role for an Integration
 
 ```sh
-POST /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
+PUT /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 ```
 
 - Parameters
@@ -346,7 +345,7 @@ POST /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 
 ```json
 {
-  "roleName": "role2"
+  "name": "role2"
 }
 ```
 
@@ -381,7 +380,7 @@ POST /api/v1/integrations/{integrationId}/{environment}/roles/{roleName}
 - Request Sample
 
 ```sh
-curl -H "Authorization: Bearer $API_TOKEN" --data '{"newRoleName":"role2"}' -X POST /api/v1/integrations/2/dev/roles/role1
+curl -H "Authorization: Bearer $API_TOKEN" --data '{"name":"role2"}' -X PUT /api/v1/integrations/2/dev/roles/role1
 ```
 
 ### Get all the user-role mappings for an Integration
@@ -414,13 +413,15 @@ GET /api/v1/integrations/{integrationId}/{environment}/user-role-mappings
         {
           "username": "username",
           "email": "email",
+          "firstName": "firstName",
+          "lastName": "lastName",
           "attributes": {
             "attributeKey1": ["attributeValue1"],
             "attributeKey1": ["attributeValue2"]
           }
         }
       ],
-      "roles": [{ "roleName": "role1" }]
+      "roles": [{ "name": "role1" }]
     }
   ]
 }
