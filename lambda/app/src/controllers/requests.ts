@@ -368,22 +368,19 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       throw Error('unauthorized request');
     }
 
-    const isMerged = await checkIfRequestMerged(id);
     const requester = await getRequester(session, current.id);
     current.requester = requester;
     current.status = 'submitted';
     current.archived = true;
 
-    if (isMerged) {
-      // Trigger workflow with empty environments to delete client
-      const ghResult = await dispatchRequestWorkflow(current);
-      if (ghResult.status !== 204) {
-        throw Error('failed to create a workflow dispatch event');
-      }
-
-      // disable the client while TF applying the changes
-      await disableIntegration(current.get({ plain: true, clone: true }));
+    // Trigger workflow with empty environments to delete client
+    const ghResult = await dispatchRequestWorkflow(current);
+    if (ghResult.status !== 204) {
+      throw Error('failed to create a workflow dispatch event');
     }
+
+    // disable the client while TF applying the changes
+    await disableIntegration(current.get({ plain: true, clone: true }));
 
     // Close any pr's if they exist
     await closeOpenPullRequests(id);
