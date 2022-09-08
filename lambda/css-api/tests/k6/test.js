@@ -67,8 +67,8 @@ export default function (data) {
 
   group('fetch integrations', () => {
     {
-      let url = BASE_URL + `/integrations`;
-      let response = http.get(url, options);
+      const url = BASE_URL + `/integrations`;
+      const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -101,9 +101,9 @@ export default function (data) {
 
   group('fetch integration by id', () => {
     {
-      let url = BASE_URL + `/integrations/${integrationId}`;
+      const url = BASE_URL + `/integrations/${integrationId}`;
 
-      let response = http.get(url, options);
+      const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -134,11 +134,11 @@ export default function (data) {
 
   group('create role', () => {
     {
-      let url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
-      let body = { name: 'role1' };
-      let requestOptions = Object.assign({}, options);
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const body = { name: 'role1' };
+      const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      let response = http.post(url, JSON.stringify(body), requestOptions);
+      const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -153,8 +153,8 @@ export default function (data) {
 
   group('fetch roles', () => {
     {
-      let url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
-      let response = http.get(url, options);
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -169,8 +169,8 @@ export default function (data) {
 
   group('fetch role by name', () => {
     {
-      let url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
-      let response = http.get(url, options);
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
+      const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -185,11 +185,11 @@ export default function (data) {
 
   group('create user role mapping', () => {
     {
-      let url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
-      let requestOptions = Object.assign({}, options);
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      let body = { roleName: 'role1', username: __ENV.username, operation: 'add' };
-      let response = http.post(url, JSON.stringify(body), requestOptions);
+      const body = { roleName: 'role1', username: __ENV.username, operation: 'add' };
+      const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -202,8 +202,8 @@ export default function (data) {
 
   group('fetch user role mappings', () => {
     {
-      let url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role1`;
-      let response = http.get(url, options);
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role1`;
+      const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -216,9 +216,9 @@ export default function (data) {
     }
 
     {
-      let url =
+      const url =
         BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?username=${__ENV.username}`;
-      let response = http.get(url, options);
+      const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -233,11 +233,11 @@ export default function (data) {
 
   group('delete role mapping', () => {
     {
-      let url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
-      let body = { roleName: 'role1', username: __ENV.username, operation: 'del' };
-      let requestOptions = Object.assign({}, options);
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const body = { roleName: 'role1', username: __ENV.username, operation: 'del' };
+      const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      let response = http.post(url, JSON.stringify(body), requestOptions);
+      const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -250,8 +250,8 @@ export default function (data) {
 
   group('delete role', () => {
     {
-      let url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
-      let response = http.del(url, null, options);
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
+      const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
