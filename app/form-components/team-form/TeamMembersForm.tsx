@@ -3,7 +3,7 @@ import Input from '@button-inc/bcgov-theme/Input';
 import DefaultDropdown from '@button-inc/bcgov-theme/Dropdown';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPlusCircle, faMinusCircle, faStar } from '@fortawesome/free-solid-svg-icons';
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import { Errors } from './CreateTeamForm';
@@ -51,6 +51,24 @@ const Icon = styled(FontAwesomeIcon)`
   align-self: center;
   color: red;
   cursor: pointer;
+`;
+
+const LightOutlinedStar = styled(FontAwesomeIcon)`
+  padding: 3px;
+  border-radius: 25px;
+  border-style: solid;
+  border-color: black;
+  border-width: thin;
+`;
+
+const DarkOutlinedStar = styled(FontAwesomeIcon)`
+  padding: 3px;
+  border-radius: 25px;
+  border-style: solid;
+  border-color: black;
+  border-width: thin;
+  color: white;
+  background-color: black;
 `;
 
 const EmailAddrValidHeader = styled.p`
@@ -109,9 +127,36 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
       <p>
         <span className="strong">Roles:</span>
         <br />
-        <span className="underline">Admin</span>: can manage integrations <span className="strong">and</span> teams
-        <br />
-        <span className="underline">Members</span>: can <span className="strong">only</span> manage integrations
+        <div>
+          <span>
+            <DarkOutlinedStar icon={faStar} />
+          </span>
+          &nbsp;&nbsp;
+          <span className="underline" style={{ verticalAlign: 'top' }}>
+            Admins
+          </span>
+          <span style={{ verticalAlign: 'top' }}>
+            &nbsp;have <b>managing</b> powers
+          </span>
+        </div>
+        <div>
+          <span>
+            <LightOutlinedStar icon={faStar} />
+          </span>
+          &nbsp;&nbsp;
+          <span className="underline" style={{ verticalAlign: 'top' }}>
+            Members
+          </span>
+          <span style={{ verticalAlign: 'top' }}>
+            &nbsp;have <b>viewing</b> powers
+          </span>
+        </div>
+        {/* <br />
+        <div>
+          <span className="underline">
+            <a href="#">View a detailed breakdown of roles on our wiki page</a>
+          </span>
+        </div> */}
       </p>
       <MembersSection>
         <Container>

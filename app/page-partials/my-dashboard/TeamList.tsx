@@ -75,7 +75,7 @@ const NoEntitiesMessage = ({ message }: { message: string }) => (
 const NewEntityButton = ({ handleNewTeamClick }: { handleNewTeamClick: Function }) => {
   return (
     <UnpaddedButton size="large" onClick={handleNewTeamClick} variant="callout">
-      + Create a new Team
+      + Create a New Team
     </UnpaddedButton>
   );
 };
@@ -222,7 +222,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
       <br />
       {content}
       <CenteredModal
-        title="Create a new team"
+        title="Create a New Team"
         icon={null}
         onConfirm={() => console.log('confirm')}
         id={createTeamModalId}
