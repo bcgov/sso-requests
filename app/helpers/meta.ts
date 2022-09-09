@@ -1,7 +1,8 @@
 export const idpMap: any = {
   idir: 'IDIR',
   azureidir: 'Azure IDIR',
-  bceidbasic: 'BCeID Basic',
-  bceidbusiness: 'BCeID Business',
-  bceidboth: 'BCeID Both',
+  bceidbasic: 'Basic BCeID',
+  bceidbusiness: 'Business BCeID',
+  bceidboth: 'Basic or Business BCeID',
+  github: 'GitHub',
 };

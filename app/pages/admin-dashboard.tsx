@@ -313,7 +313,7 @@ export default function AdminDashboard({ session }: PageProps) {
             {selectedRequest && (
               <AdminTabs
                 currentUser={session}
-                selectedRequest={selectedRequest}
+                integration={selectedRequest}
                 defaultTabKey={'details'}
                 setActiveKey={setActivePanel}
                 activeKey={activePanel}

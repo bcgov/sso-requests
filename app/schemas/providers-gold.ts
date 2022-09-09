@@ -61,8 +61,8 @@ export default function getSchema(integration: Integration) {
       title: 'Choose Identity Provider(s)',
       items: {
         type: 'string',
-        enum: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'],
-        enumNames: ['IDIR', 'IDIR (Azure)', 'BCeID Basic', 'BCeID Business', 'BCeID Both'],
+        enum: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'],
+        enumNames: ['IDIR', 'IDIR (Azure)', 'BCeID Basic', 'BCeID Business', 'BCeID Both', 'GitHub'],
       },
       tooltips: [
         null,

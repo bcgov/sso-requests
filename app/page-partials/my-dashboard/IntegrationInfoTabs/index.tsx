@@ -1,46 +1,29 @@
 import React, { Dispatch, SetStateAction, Children, cloneElement } from 'react';
 import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import SecretsPanel from 'page-partials/my-dashboard/SecretsPanel';
 import ClientRoles from 'page-partials/my-dashboard/ClientRoles';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
-import SubmittedStatusIndicator, { IntegrationProgressStatus } from 'components/SubmittedStatusIndicator';
+import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
-import { usesBceid, checkIfBceidProdApplying } from 'utils/helpers';
+import { usesBceid, usesGithub, checkIfBceidProdApplying, checkIfGithubProdApplying } from 'utils/helpers';
 import { Border, Header, Tabs, Tab } from '@bcgov-sso/common-react-components';
-import BceidStatus from 'components/BceidStatus';
-import DefaultTitle from 'components/SHeader3';
 import { $setPanelTab } from 'dispatchers/requestDispatcher';
 import { Integration } from 'interfaces/Request';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
 import padStart from 'lodash.padstart';
+import { SubTitle, ApprovalContext } from './shared';
+import BceidStatusPanel from './BceidStatusPanel';
+import GithubStatusPanel from './GithubStatusPanel';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
   padding-right: 1rem;
   ${(props) => (props.short ? 'max-width: 800px;' : '')}
-`;
-
-const SubTitle = styled.div`
-  font-size: 18px;
-  font-weight: bold;
-  color: #000;
-  border-bottom: 1px solid gray;
-`;
-
-const FlexStartBox = styled.div`
-  display: flex;
-  justify-content: flex-start;
-
-  & > *:nth-child(1) {
-    margin-right: 5px;
-  }
 `;
 
 const Requester = styled.div`
@@ -86,14 +69,11 @@ const IntegrationWrapper = ({ integration, children }: { integration: Integratio
 
 const getInstallationTab = ({
   integration,
-  awaitingBceidProd,
+  approvalContext,
 }: {
   integration: Integration;
-  awaitingBceidProd: boolean;
+  approvalContext: ApprovalContext;
 }) => {
-  const { bceidApproved } = integration;
-  const bceidInvolved = bceidApproved || awaitingBceidProd;
-
   return (
     <Tab key="installation-json" tab="Technical Details">
       <TabWrapper short={false}>
@@ -104,25 +84,8 @@ const getInstallationTab = ({
             </Grid.Col>
             <Grid.Col span={1}></Grid.Col>
             <Grid.Col span={7}>
-              {bceidInvolved && (
-                <>
-                  <br />
-                  <SubTitle>Access to BCeID Prod</SubTitle>
-                  <br />
-                  {bceidApproved ? (
-                    <FlexStartBox>
-                      <div>
-                        <FontAwesomeIcon icon={faCheckCircle} color="#2E8540" />
-                      </div>
-                      <div>
-                        <span>Your integration is approved and available.</span>
-                      </div>
-                    </FlexStartBox>
-                  ) : (
-                    <BceidStatus integration={integration} />
-                  )}
-                </>
-              )}
+              <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
+              <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -133,10 +96,10 @@ const getInstallationTab = ({
 
 const getProgressTab = ({
   integration,
-  awaitingBceidProd,
+  approvalContext,
 }: {
   integration: Integration;
-  awaitingBceidProd: boolean;
+  approvalContext: ApprovalContext;
 }) => {
   return (
     <Tab key="installation-json" tab="Technical Details">
@@ -151,14 +114,8 @@ const getProgressTab = ({
             </Grid.Col>
             <Grid.Col span={1}></Grid.Col>
             <Grid.Col span={7} align={'center'}>
-              {awaitingBceidProd && (
-                <>
-                  <br />
-                  <SubTitle>Access to BCeID Prod</SubTitle>
-                  <br />
-                  <BceidStatus integration={integration} />
-                </>
-              )}
+              <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
+              <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -167,7 +124,13 @@ const getProgressTab = ({
   );
 };
 
-const getApprovalProgressTab = ({ integration }: { integration: Integration }) => {
+const getApprovalProgressTab = ({
+  integration,
+  approvalContext,
+}: {
+  integration: Integration;
+  approvalContext: ApprovalContext;
+}) => {
   return (
     <Tab key="installation-json" tab="Technical Details">
       <TabWrapper short={false}>
@@ -178,22 +141,8 @@ const getApprovalProgressTab = ({ integration }: { integration: Integration }) =
             </Grid.Col>
             <Grid.Col span={1}></Grid.Col>
             <Grid.Col span={7} align={'center'}>
-              <br />
-              <SubTitle>Access to BCeID Prod</SubTitle>
-              <br />
-              <FlexStartBox>
-                <div>
-                  <FontAwesomeIcon icon={faCheckCircle} color="#2E8540" />
-                </div>
-                <div>
-                  <span>
-                    Your integration has been approved. Please wait approx. 10 min to get access to your installation
-                    information access again.
-                  </span>
-                  <SubTitle>Progress Update</SubTitle>
-                  <IntegrationProgressStatus integration={integration} />
-                </div>
-              </FlexStartBox>
+              <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
+              <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -260,10 +209,28 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   const { panelTab } = state;
   if (!integration) return null;
 
-  const { status, environments = [], bceidApproved } = integration;
+  const { status, environments = [], bceidApproved = false, githubApproved = false } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
-  const awaitingBceidProd = usesBceid(integration) && environments.includes('prod') && !bceidApproved;
+  const hasProd = environments.includes('prod');
+  const hasBceid = usesBceid(integration);
+  const hasGithub = usesGithub(integration);
+  const awaitingBceidProd = hasBceid && hasProd && !bceidApproved;
+  const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
   const bceidProdApplying = checkIfBceidProdApplying(integration);
+  const githubProdApplying = checkIfGithubProdApplying(integration);
+
+  const approvalContext = {
+    hasProd,
+    hasBceid,
+    hasGithub,
+    bceidApproved,
+    githubApproved,
+    awaitingBceidProd,
+    awaitingGithubProd,
+    bceidProdApplying,
+    githubProdApplying,
+  };
+
   const isGold = integration.serviceType === 'gold';
   const hasBrowserFlow = integration.authType !== 'service-account';
 
@@ -283,13 +250,13 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
   const tabs = [];
 
   if (displayStatus === 'Submitted') {
-    if (bceidProdApplying) {
-      tabs.push(getApprovalProgressTab({ integration }));
+    if (bceidProdApplying || githubProdApplying) {
+      tabs.push(getApprovalProgressTab({ integration, approvalContext }));
     } else {
-      tabs.push(getProgressTab({ integration, awaitingBceidProd }));
+      tabs.push(getProgressTab({ integration, approvalContext }));
     }
   } else if (displayStatus === 'Completed') {
-    tabs.push(getInstallationTab({ integration, awaitingBceidProd }));
+    tabs.push(getInstallationTab({ integration, approvalContext }));
 
     if (isGold && hasBrowserFlow) {
       tabs.push(getRoleManagementTab({ integration }), getUserAssignmentTab({ integration }));

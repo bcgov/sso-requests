@@ -94,6 +94,11 @@ const init = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: false,
       },
+      githubApproved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       status: {
         type: DataTypes.ENUM('draft', 'submitted', 'pr', 'prFailed', 'planned', 'planFailed', 'applied', 'applyFailed'),
         defaultValue: 'draft',

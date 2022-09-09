@@ -146,6 +146,10 @@ export const updateRequest = async (
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
     if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
+
+    const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
+    if (isApprovingGithub && !userIsAdmin) throw Error('unauthorized request');
+
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
