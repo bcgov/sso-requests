@@ -12,7 +12,7 @@ interface Props {
 }
 
 function BceidStatusPanel({ integration, approvalContext }: Props) {
-  const { hasProd, hasBceid, awaitingGithubProd, bceidProdApplying, bceidApproved } = approvalContext;
+  const { hasProd, hasBceid, awaitingBceidProd, bceidProdApplying, bceidApproved } = approvalContext;
   if (!hasProd || !hasBceid) return null;
 
   let content = null;
@@ -44,7 +44,7 @@ function BceidStatusPanel({ integration, approvalContext }: Props) {
         </div>
       </FlexStartBox>
     );
-  } else if (awaitingGithubProd) {
+  } else if (awaitingBceidProd) {
     content = <BceidStatus integration={integration} />;
   }
 
