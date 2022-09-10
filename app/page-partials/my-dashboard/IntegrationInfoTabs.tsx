@@ -20,6 +20,7 @@ import { DashboardReducerState } from 'reducers/dashboardReducer';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
 import padStart from 'lodash.padstart';
+import { UserSession } from '@app/interfaces/props';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -202,7 +203,7 @@ const getApprovalProgressTab = ({ integration }: { integration: Integration }) =
   );
 };
 
-const getRoleManagementTab = ({ integration }: { integration: Integration }) => {
+const getRoleManagementTab = ({ currentUser, integration }: { currentUser: UserSession; integration: Integration }) => {
   return (
     <Tab key="client-roles" tab="Role Management">
       <TabWrapper>
@@ -214,7 +215,7 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
           </Link>{' '}
           for more information on roles.
         </div>
-        <ClientRoles integration={integration} />
+        <ClientRoles currentUser={currentUser} integration={integration} />
       </TabWrapper>
     </Tab>
   );
@@ -251,12 +252,13 @@ const getHistoryTab = ({ integration }: { integration: Integration }) => {
 };
 
 interface Props {
+  currentUser: UserSession;
   integration: Integration;
   state: DashboardReducerState;
   dispatch: Dispatch<SetStateAction<any>>;
 }
 
-function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
+function IntegrationInfoTabs({ currentUser, integration, state, dispatch }: Props) {
   const { panelTab } = state;
   if (!integration) return null;
 
@@ -292,7 +294,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
     tabs.push(getInstallationTab({ integration, awaitingBceidProd }));
 
     if (isGold && hasBrowserFlow) {
-      tabs.push(getRoleManagementTab({ integration }), getUserAssignmentTab({ integration }));
+      tabs.push(getRoleManagementTab({ currentUser, integration }), getUserAssignmentTab({ integration }));
     }
 
     if (!integration.publicAccess) {

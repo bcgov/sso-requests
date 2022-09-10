@@ -27,6 +27,10 @@ import {
   manageUserRole,
   KeycloakUser,
 } from 'services/keycloak';
+import { User } from '@app/interfaces/team';
+import { getTeamMembers } from '@app/services/team';
+import { UserSession } from '@app/interfaces/props';
+import noop from 'lodash.noop';
 
 const StyledInput = styled(Input)`
   display: inline-block;
@@ -61,6 +65,7 @@ const optionize = (v: string) => ({ label: v, value: v });
 const optionizeAll = (vs: string[]) => vs.map(optionize);
 
 interface Props {
+  currentUser: UserSession;
   integration: Integration;
   alert: TopAlert;
 }
@@ -72,7 +77,7 @@ const LoaderContainer = () => (
   </AlignCenter>
 );
 
-const ClientRoles = ({ integration, alert }: Props) => {
+const ClientRoles = ({ currentUser, integration, alert }: Props) => {
   const modalRef = useRef<ModalRef>(emptyRef);
   const confirmModalRef = useRef<ModalRef>(emptyRef);
   const removeUserModalRef = useRef<ModalRef>(emptyRef);
@@ -91,6 +96,15 @@ const ClientRoles = ({ integration, alert }: Props) => {
   const [selectedRole, setSelctedRole] = useState<string | null>(null);
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
   const [rightPanelTab, setRightPanelTab] = useState<string>(rightPanelTabs[0]);
+  const [loggedInTeamMember, setLoggedInTeamMember] = useState<User | null>(null);
+
+  const getLoggedInTeamMember = async () => {
+    const teamMembersRes = await getTeamMembers(Number(integration.teamId));
+    const [members, err] = teamMembersRes;
+    setLoggedInTeamMember(members.find((member: any) => member?.idirEmail === currentUser.email));
+  };
+
+  const canCreateOrDeleteRole = loggedInTeamMember?.role === 'admin';
 
   const throttleCompositeRoleUpdate = useCallback(
     throttle(
@@ -122,11 +136,13 @@ const ClientRoles = ({ integration, alert }: Props) => {
   };
 
   useEffect(() => {
+    getLoggedInTeamMember();
     setEnvironment('dev');
     reset();
   }, [integration.id]);
 
   useEffect(() => {
+    getLoggedInTeamMember();
     reset();
   }, [environment]);
 
@@ -345,12 +361,15 @@ const ClientRoles = ({ integration, alert }: Props) => {
             <td>
               <AlignRight>
                 <ActionButton
+                  disabled={!canCreateOrDeleteRole}
                   icon={faTrash}
                   role="button"
                   aria-label="delete"
                   onClick={(event: MouseEvent) => {
-                    event.stopPropagation();
-                    handleDelete(role);
+                    if (canCreateOrDeleteRole) {
+                      event.stopPropagation();
+                      handleDelete(role);
+                    } else noop;
                   }}
                   title="Delete"
                   size="lg"
@@ -370,6 +389,7 @@ const ClientRoles = ({ integration, alert }: Props) => {
     <>
       <TopMargin />
       <Button
+        disabled={!canCreateOrDeleteRole}
         size="medium"
         variant="primary"
         onClick={() => {

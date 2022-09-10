@@ -4,8 +4,9 @@ import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import VerticalLayout from 'page-partials/my-dashboard/VerticalLayout';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { Integration } from 'interfaces/Request';
+import { PageProps } from 'interfaces/props';
 
-function MyIntegrations() {
+function MyIntegrations({ session }: PageProps) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [integrationCount, setIntegrationCount] = useState(1);
 
@@ -14,6 +15,7 @@ function MyIntegrations() {
       tab="integrations"
       leftPanel={(state: DashboardReducerState, dispatch: Dispatch<SetStateAction<any>>) => (
         <IntegrationList
+          currentUser={session}
           setIntegration={setIntegration}
           setIntegrationCount={setIntegrationCount}
           state={state}
@@ -21,7 +23,9 @@ function MyIntegrations() {
         />
       )}
       rightPanel={(state: DashboardReducerState, dispatch: Dispatch<SetStateAction<any>>) =>
-        integration && <RequestInfoTabs integration={integration} state={state} dispatch={dispatch} />
+        integration && (
+          <RequestInfoTabs currentUser={session} integration={integration} state={state} dispatch={dispatch} />
+        )
       }
       showResizable={integrationCount > 0}
     />

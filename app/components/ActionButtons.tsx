@@ -1,4 +1,4 @@
-import { MouseEvent } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,6 +7,9 @@ import { Integration } from 'interfaces/Request';
 import CenteredModal from 'components/CenteredModal';
 import { getRequests, deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
+import { UserSession } from '@app/interfaces/props';
+import { getTeamMembers } from 'services/team';
+import { User } from '@app/interfaces/team';
 
 export const ActionButtonContainer = styled.div`
   height: 100%;
@@ -36,6 +39,7 @@ export const VerticalLine = styled.div`
 `;
 
 interface Props {
+  currentUser: UserSession;
   request: Integration;
   onDelete?: Function;
   defaultActiveColor?: string;
@@ -45,6 +49,7 @@ interface Props {
 }
 
 export default function Actionbuttons({
+  currentUser,
   request,
   onDelete,
   defaultActiveColor,
@@ -52,11 +57,25 @@ export default function Actionbuttons({
   editIconStyle = {},
   delIconStyle = {},
 }: Props) {
+  const [loggedInTeamMember, setLoggedInTeamMember] = useState<User | null>(null);
   const router = useRouter();
   const { archived } = request || {};
-  const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
+  const canDelete =
+    !archived &&
+    !['pr', 'planned', 'submitted'].includes(request?.status || '') &&
+    loggedInTeamMember?.role === 'admin';
   const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
   const deleteModalId = `delete-modal-${request?.id}`;
+
+  useEffect(() => {
+    getLoggedInTeamMember();
+  }, [request]);
+
+  const getLoggedInTeamMember = async () => {
+    const teamMembersRes = await getTeamMembers(Number(request.teamId));
+    const [members, err] = teamMembersRes;
+    setLoggedInTeamMember(members.find((member: any) => member?.idirEmail === currentUser.email));
+  };
 
   const handleEdit = async (event: MouseEvent) => {
     event.stopPropagation();
