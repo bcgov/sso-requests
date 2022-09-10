@@ -10,6 +10,8 @@ import { PRIMARY_RED } from 'styles/theme';
 import { UserSession } from '@app/interfaces/props';
 import { getTeamMembers } from 'services/team';
 import { User } from '@app/interfaces/team';
+import { getLoggedInTeamMember } from '@app/helpers/util';
+import noop from 'lodash.noop';
 
 export const ActionButtonContainer = styled.div`
   height: 100%;
@@ -68,14 +70,10 @@ export default function Actionbuttons({
   const deleteModalId = `delete-modal-${request?.id}`;
 
   useEffect(() => {
-    getLoggedInTeamMember();
+    getLoggedInTeamMember(Number(request.teamId), currentUser).then((teamMember) => {
+      setLoggedInTeamMember(teamMember);
+    });
   }, [request]);
-
-  const getLoggedInTeamMember = async () => {
-    const teamMembersRes = await getTeamMembers(Number(request.teamId));
-    const [members, err] = teamMembersRes;
-    setLoggedInTeamMember(members.find((member: any) => member?.idirEmail === currentUser.email));
-  };
 
   const handleEdit = async (event: MouseEvent) => {
     event.stopPropagation();
@@ -116,7 +114,7 @@ export default function Actionbuttons({
           icon={faTrash}
           role="button"
           aria-label="delete"
-          onClick={handleDelete}
+          onClick={canDelete ? handleDelete : noop}
           disabled={!canDelete}
           activeColor={PRIMARY_RED}
           title="Delete"
