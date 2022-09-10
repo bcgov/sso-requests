@@ -31,6 +31,7 @@ import { User } from '@app/interfaces/team';
 import { getTeamMembers } from '@app/services/team';
 import { UserSession } from '@app/interfaces/props';
 import noop from 'lodash.noop';
+import { getLoggedInTeamMember } from '@app/helpers/util';
 
 const StyledInput = styled(Input)`
   display: inline-block;
@@ -98,10 +99,8 @@ const ClientRoles = ({ currentUser, integration, alert }: Props) => {
   const [rightPanelTab, setRightPanelTab] = useState<string>(rightPanelTabs[0]);
   const [loggedInTeamMember, setLoggedInTeamMember] = useState<User | null>(null);
 
-  const getLoggedInTeamMember = async () => {
-    const teamMembersRes = await getTeamMembers(Number(integration.teamId));
-    const [members, err] = teamMembersRes;
-    setLoggedInTeamMember(members.find((member: any) => member?.idirEmail === currentUser.email));
+  const fetchLoggedInTeamMember = async () => {
+    setLoggedInTeamMember(await getLoggedInTeamMember(Number(integration.teamId), currentUser));
   };
 
   const canCreateOrDeleteRole = loggedInTeamMember?.role === 'admin';
@@ -136,13 +135,13 @@ const ClientRoles = ({ currentUser, integration, alert }: Props) => {
   };
 
   useEffect(() => {
-    getLoggedInTeamMember();
+    fetchLoggedInTeamMember();
     setEnvironment('dev');
     reset();
   }, [integration.id]);
 
   useEffect(() => {
-    getLoggedInTeamMember();
+    fetchLoggedInTeamMember();
     reset();
   }, [environment]);
 

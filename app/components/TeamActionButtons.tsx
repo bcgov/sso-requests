@@ -1,3 +1,4 @@
+import { getLoggedInTeamMember } from '@app/helpers/util';
 import { UserSession } from '@app/interfaces/props';
 import { Team, User } from '@app/interfaces/team';
 import { getTeamMembers } from '@app/services/team';
@@ -18,14 +19,11 @@ export default function TeamActionButtons({ currentUser, team, showEditTeamNameM
   const canDelete = Number(team.integrationCount) === 0 && loggedInTeamMember?.role === 'admin';
   const canEdit = loggedInTeamMember?.role === 'admin';
   useEffect(() => {
-    getLoggedInTeamMember();
+    getLoggedInTeamMember(team.id, currentUser).then((teamMember) => {
+      setLoggedInTeamMember(teamMember);
+    });
   }, [team.id]);
 
-  const getLoggedInTeamMember = async () => {
-    const teamMembersRes = await getTeamMembers(team.id);
-    const [members, err] = teamMembersRes;
-    setLoggedInTeamMember(members.find((member: any) => member?.idirEmail === currentUser.email));
-  };
   return (
     <>
       <ActionButtonContainer>
