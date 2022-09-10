@@ -151,7 +151,7 @@ const getApprovalProgressTab = ({
   );
 };
 
-const getRoleManagementTab = ({ integration }: { integration: Integration }) => {
+const getRoleManagementTab = ({ currentUser, integration }: { currentUser: UserSession; integration: Integration }) => {
   return (
     <Tab key="client-roles" tab="Role Management">
       <TabWrapper>
@@ -163,7 +163,7 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
           </Link>{' '}
           for more information on roles.
         </div>
-        <ClientRoles integration={integration} />
+        <ClientRoles currentUser={currentUser} integration={integration} />
       </TabWrapper>
     </Tab>
   );
@@ -200,12 +200,13 @@ const getHistoryTab = ({ integration }: { integration: Integration }) => {
 };
 
 interface Props {
+  currentUser: UserSession;
   integration: Integration;
   state: DashboardReducerState;
   dispatch: Dispatch<SetStateAction<any>>;
 }
 
-function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
+function IntegrationInfoTabs({ currentUser, integration, state, dispatch }: Props) {
   const { panelTab } = state;
   if (!integration) return null;
 
@@ -259,7 +260,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
     tabs.push(getInstallationTab({ integration, approvalContext }));
 
     if (isGold && hasBrowserFlow) {
-      tabs.push(getRoleManagementTab({ integration }), getUserAssignmentTab({ integration }));
+      tabs.push(getRoleManagementTab({ currentUser, integration }), getUserAssignmentTab({ integration }));
     }
 
     if (!integration.publicAccess) {
