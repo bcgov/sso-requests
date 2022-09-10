@@ -58,6 +58,16 @@ const doc = {
       },
     },
     securitySchemes: {
+      oAuth2ClientCredentials: {
+        type: 'oauth2',
+        description: '',
+        flows: {
+          clientCredentials: {
+            tokenUrl: `https://${process.env.CUSTOM_DOMAIN_NAME}/api/v1/token`,
+            scopes: {},
+          },
+        },
+      },
       accessToken: {
         type: 'http',
         scheme: 'bearer',
@@ -67,6 +77,7 @@ const doc = {
   },
   security: [
     {
+      oAuth2ClientCredentials: [],
       accessToken: [],
     },
   ],

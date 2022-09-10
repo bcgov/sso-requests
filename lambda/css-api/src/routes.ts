@@ -5,7 +5,7 @@ import { RoleController } from './controllers/role-controller';
 import { UserRoleMappingController } from './controllers/user-role-mapping-controller';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
-import deleteIntegrationSubmitted from '@lambda-shared/templates/delete-integration-submitted';
+import { TokenController } from './controllers/token-controller';
 
 const responseHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
@@ -21,6 +21,7 @@ const handleError = (res, err) => {
 const integrationController = container.resolve(IntegrationController);
 const roleController = container.resolve(RoleController);
 const userRoleMappingController = container.resolve(UserRoleMappingController);
+const tokenController = container.resolve(TokenController);
 
 export const setRoutes = (app: any) => {
   app.use((req, res, next) => {
@@ -40,6 +41,16 @@ export const setRoutes = (app: any) => {
     //#swagger.ignore = true
     try {
       const result = await wakeUpAll();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`${BASE_PATH}/token`, async (req, res) => {
+    //#swagger.ignore = true
+    try {
+      const result = await tokenController.getToken(req.headers, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
