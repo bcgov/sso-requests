@@ -1,10 +1,7 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
-import { IntegrationProgressStatus } from 'components/SubmittedStatusIndicator';
 import BceidStatus from './BceidStatus';
 import { Integration } from 'interfaces/Request';
-import { SubTitle, FlexStartBox, ApprovalContext } from './shared';
+import { SubTitle, ApprovalContext, ApprovedAndWait, ApprovedAndAvailable } from './shared';
 
 interface Props {
   integration: Integration;
@@ -18,32 +15,9 @@ function BceidStatusPanel({ integration, approvalContext }: Props) {
   let content = null;
 
   if (bceidProdApplying) {
-    content = (
-      <FlexStartBox>
-        <div>
-          <FontAwesomeIcon icon={faCheckCircle} color="#2E8540" />
-        </div>
-        <div>
-          <span>
-            Your integration has been approved. Please wait approx. 10 min to get access to your installation
-            information access again.
-          </span>
-          <SubTitle>Progress Update</SubTitle>
-          <IntegrationProgressStatus integration={integration} />
-        </div>
-      </FlexStartBox>
-    );
+    content = <ApprovedAndWait integration={integration} />;
   } else if (bceidApproved) {
-    content = (
-      <FlexStartBox>
-        <div>
-          <FontAwesomeIcon icon={faCheckCircle} color="#2E8540" />
-        </div>
-        <div>
-          <span>Your integration is approved and available.</span>
-        </div>
-      </FlexStartBox>
-    );
+    content = <ApprovedAndAvailable />;
   } else if (awaitingBceidProd) {
     content = <BceidStatus integration={integration} />;
   }
