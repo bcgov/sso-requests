@@ -1,40 +1,14 @@
 import React from 'react';
 import { Integration } from 'interfaces/Request';
-import styled from 'styled-components';
+import Link from '@button-inc/bcgov-theme/Link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
-import Link from '@button-inc/bcgov-theme/Link';
 import StatusList from 'components/StatusList';
-import { ProgressBar } from 'react-bootstrap';
-import HelpText from 'components/HelpText';
+import { Circle, StyledLi } from './shared';
 
 interface Props {
   integration: Integration;
 }
-
-const CIRCLE_DIAMETER = '15px';
-const CIRCLE_MARGIN = '0';
-
-const Circle = styled.div`
-  height: ${CIRCLE_DIAMETER};
-  width: ${CIRCLE_DIAMETER};
-  border-radius: ${CIRCLE_DIAMETER};
-  margin: ${CIRCLE_MARGIN};
-  margin-left: 0;
-  border: 2px solid #b3b3b3;
-`;
-
-const StyledLi = styled.li`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0;
-
-  & p {
-    max-width: 90%;
-    margin: 5px 0;
-  }
-`;
 
 export default function Bceidstatus({ integration }: Props) {
   return (

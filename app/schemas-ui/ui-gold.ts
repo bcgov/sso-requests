@@ -33,6 +33,8 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
         if (idp === 'bceidbasic') idpDisabled.push('bceidbasic', 'bceidboth');
         else if (idp === 'bceidbusiness') idpDisabled.push('bceidbusiness', 'bceidboth');
         else if (idp === 'bceidboth') idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+      } else if (idp === 'github') {
+        idpDisabled.push('github');
       }
     });
   }

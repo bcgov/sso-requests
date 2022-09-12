@@ -60,6 +60,7 @@ export interface Integration {
   requester?: string;
   status?: Status;
   bceidApproved?: boolean;
+  githubApproved?: boolean;
   archived?: boolean;
   provisioned?: boolean;
   provisionedAt?: string;
