@@ -4,7 +4,7 @@ import { Integration } from '@app/interfaces/Request';
 
 const isValidKeycloakURI = (isProd: boolean, uri: string) => {
   try {
-    if (uri === '*' && !isProd) return true;
+    if (uri === '*') return !isProd;
 
     // Throws error if invalid url
     new URL(uri);
