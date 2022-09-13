@@ -15,7 +15,6 @@ function MyIntegrations({ session }: PageProps) {
       tab="integrations"
       leftPanel={(state: DashboardReducerState, dispatch: Dispatch<SetStateAction<any>>) => (
         <IntegrationList
-          currentUser={session}
           setIntegration={setIntegration}
           setIntegrationCount={setIntegrationCount}
           state={state}

@@ -1,28 +1,18 @@
-import { getLoggedInTeamMember } from '@app/helpers/util';
-import { UserSession } from '@app/interfaces/props';
-import { Team, User } from '@app/interfaces/team';
-import { getTeamMembers } from '@app/services/team';
+import { canDeleteTeam, canEditTeam } from '@app/helpers/permissions';
+import { Team } from '@app/interfaces/team';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import noop from 'lodash.noop';
-import { useEffect, useState } from 'react';
 import { ActionButtonContainer, ActionButton } from './ActionButtons';
 
 interface Props {
-  currentUser: UserSession;
   team: Team;
   showEditTeamNameModal: (team: Team) => void;
   showDeleteModal: (team: Team) => void;
 }
 
-export default function TeamActionButtons({ currentUser, team, showEditTeamNameModal, showDeleteModal }: Props) {
-  const [loggedInTeamMember, setLoggedInTeamMember] = useState<User | null>(null);
-  const canDelete = Number(team.integrationCount) === 0 && loggedInTeamMember?.role === 'admin';
-  const canEdit = loggedInTeamMember?.role === 'admin';
-  useEffect(() => {
-    getLoggedInTeamMember(team.id, currentUser).then((teamMember) => {
-      setLoggedInTeamMember(teamMember);
-    });
-  }, [team.id]);
+export default function TeamActionButtons({ team, showEditTeamNameModal, showDeleteModal }: Props) {
+  const canDelete = canDeleteTeam(team);
+  const canEdit = canEditTeam(team);
 
   return (
     <>

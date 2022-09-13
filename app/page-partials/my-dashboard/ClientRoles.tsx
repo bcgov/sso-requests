@@ -27,11 +27,8 @@ import {
   manageUserRole,
   KeycloakUser,
 } from 'services/keycloak';
-import { User } from '@app/interfaces/team';
-import { getTeamMembers } from '@app/services/team';
-import { UserSession } from '@app/interfaces/props';
 import noop from 'lodash.noop';
-import { getLoggedInTeamMember } from '@app/helpers/util';
+import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 
 const StyledInput = styled(Input)`
   display: inline-block;
@@ -66,7 +63,6 @@ const optionize = (v: string) => ({ label: v, value: v });
 const optionizeAll = (vs: string[]) => vs.map(optionize);
 
 interface Props {
-  currentUser: UserSession;
   integration: Integration;
   alert: TopAlert;
 }
@@ -78,7 +74,7 @@ const LoaderContainer = () => (
   </AlignCenter>
 );
 
-const ClientRoles = ({ currentUser, integration, alert }: Props) => {
+const ClientRoles = ({ integration, alert }: Props) => {
   const modalRef = useRef<ModalRef>(emptyRef);
   const confirmModalRef = useRef<ModalRef>(emptyRef);
   const removeUserModalRef = useRef<ModalRef>(emptyRef);
@@ -97,13 +93,8 @@ const ClientRoles = ({ currentUser, integration, alert }: Props) => {
   const [selectedRole, setSelctedRole] = useState<string | null>(null);
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
   const [rightPanelTab, setRightPanelTab] = useState<string>(rightPanelTabs[0]);
-  const [loggedInTeamMember, setLoggedInTeamMember] = useState<User | null>(null);
 
-  const fetchLoggedInTeamMember = async () => {
-    setLoggedInTeamMember(await getLoggedInTeamMember(Number(integration.teamId), currentUser));
-  };
-
-  const canCreateOrDeleteRole = loggedInTeamMember?.role === 'admin';
+  const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
 
   const throttleCompositeRoleUpdate = useCallback(
     throttle(
@@ -132,16 +123,15 @@ const ClientRoles = ({ currentUser, integration, alert }: Props) => {
     setUsers([]);
     setRoles([]);
     setSelctedRole(null);
+    setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration));
   };
 
   useEffect(() => {
-    fetchLoggedInTeamMember();
     setEnvironment('dev');
     reset();
   }, [integration.id]);
 
   useEffect(() => {
-    fetchLoggedInTeamMember();
     reset();
   }, [environment]);
 
