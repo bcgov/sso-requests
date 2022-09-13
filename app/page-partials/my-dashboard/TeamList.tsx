@@ -178,7 +178,6 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
                   <td>
                     <RightFloatButtons>
                       <TeamActionButtons
-                        currentUser={currentUser}
                         team={team}
                         showEditTeamNameModal={showEditTeamNameModal}
                         showDeleteModal={showDeleteModal}

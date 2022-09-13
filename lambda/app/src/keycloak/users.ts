@@ -8,6 +8,7 @@ import difference from 'lodash.difference';
 import { getAdminClient, getClient } from './adminClient';
 import { fetchClient } from './client';
 import { Integration } from '@app/interfaces/Request';
+import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 
 // Helpers
 // TODO: encapsulate admin client with user session and associated client infomation
@@ -424,9 +425,12 @@ export const bulkCreateRole = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+
+  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to create role');
+
   if (integration.authType === 'service-account') throw Error('invalid auth type');
 
-  // create 20 roles at a time
+  //create 20 roles at a time
   const rolesToCreate = roles.slice(0, 20);
 
   const byEnv = { dev: [], test: [], prod: [] };

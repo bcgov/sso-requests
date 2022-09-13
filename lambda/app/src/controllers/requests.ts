@@ -27,6 +27,8 @@ import {
   getIntegrationsByUserTeam,
 } from '@lambda-app/queries/request';
 import { disableIntegration } from '@lambda-app/keycloak/client';
+import format from 'pg-format';
+import { getUserTeamRole } from '@lambda-app/queries/literals';
 
 const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
 const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
@@ -348,6 +350,9 @@ export const getRequests = async (session: Session, user: User, include: string 
         required: false,
       },
     ],
+    attributes: {
+      include: [[sequelize.literal(getUserTeamRole(session.user.id)), 'userTeamRole']],
+    },
   });
 
   return requests;
@@ -364,7 +369,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
   try {
     const current = await getAllowedRequest(session, id);
 
-    if (!current) {
+    if (!current || current.userTeamRole !== 'admin') {
       throw Error('unauthorized request');
     }
 

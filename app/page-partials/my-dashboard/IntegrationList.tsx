@@ -133,14 +133,13 @@ const NewEntityButton = ({
 };
 
 interface Props {
-  currentUser: UserSession;
   setIntegration: Function;
   setIntegrationCount: (integrations: number) => void;
   state: DashboardReducerState;
   dispatch: Dispatch<SetStateAction<any>>;
 }
 
-export default function IntegrationList({ currentUser, setIntegration, setIntegrationCount, state, dispatch }: Props) {
+export default function IntegrationList({ setIntegration, setIntegrationCount, state, dispatch }: Props) {
   const router = useRouter();
   let { integr } = router.query;
 
@@ -242,7 +241,6 @@ export default function IntegrationList({ currentUser, setIntegration, setIntegr
                 <td>
                   <RightFloatButtons>
                     <ActionButtons
-                      currentUser={currentUser}
                       request={integration}
                       onDelete={() => {
                         loadIntegrations();

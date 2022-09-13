@@ -2,7 +2,7 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, User } from '../../../shared/interfaces';
 import { isAdmin } from '../utils/helpers';
-import { getMyTeamsLiteral } from './literals';
+import { getMyTeamsLiteral, getUserTeamRole } from './literals';
 
 const commonPopulation = [
   {
@@ -54,6 +54,9 @@ export const getMyOrTeamRequest = async (userId: number, requestId: number, role
   return models.request.findOne({
     where,
     include: commonPopulation,
+    attributes: {
+      include: [[sequelize.literal(getUserTeamRole(userId)), 'userTeamRole']],
+    },
   });
 };
 
@@ -66,7 +69,11 @@ export const findAllowedIntegrationInfo = async (
   const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
   where.id = integrationId;
 
-  return models.request.findOne({ where, attributes: ['id', 'clientId', 'devIdps'], ...options });
+  return models.request.findOne({
+    where,
+    attributes: ['id', 'clientId', 'devIdps', [sequelize.literal(getUserTeamRole(userId)), 'userTeamRole']],
+    ...options,
+  });
 };
 
 export const getAllowedRequest = async (session: Session, requestId: number, roles?: string[]) => {
@@ -117,6 +124,9 @@ export const getIntegrationsByUserTeam = async (
 
   return models.request.findAll({
     where,
+    attributes: {
+      include: [[sequelize.literal(getUserTeamRole(user.id)), 'userTeamRole']],
+    },
     ...options,
   });
 };

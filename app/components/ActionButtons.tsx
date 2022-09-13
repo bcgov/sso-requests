@@ -1,17 +1,14 @@
-import { MouseEvent, useEffect, useState } from 'react';
+import { MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Integration } from 'interfaces/Request';
 import CenteredModal from 'components/CenteredModal';
-import { getRequests, deleteRequest } from 'services/request';
+import { deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
-import { UserSession } from '@app/interfaces/props';
-import { getTeamMembers } from 'services/team';
-import { User } from '@app/interfaces/team';
-import { getLoggedInTeamMember } from '@app/helpers/util';
 import noop from 'lodash.noop';
+import { canDeleteIntegration, canEditIntegration } from '@app/helpers/permissions';
 
 export const ActionButtonContainer = styled.div`
   height: 100%;
@@ -41,7 +38,6 @@ export const VerticalLine = styled.div`
 `;
 
 interface Props {
-  currentUser: UserSession;
   request: Integration;
   onDelete?: Function;
   defaultActiveColor?: string;
@@ -51,7 +47,6 @@ interface Props {
 }
 
 export default function Actionbuttons({
-  currentUser,
   request,
   onDelete,
   defaultActiveColor,
@@ -59,21 +54,11 @@ export default function Actionbuttons({
   editIconStyle = {},
   delIconStyle = {},
 }: Props) {
-  const [loggedInTeamMember, setLoggedInTeamMember] = useState<User | null>(null);
   const router = useRouter();
   const { archived } = request || {};
-  const canDelete =
-    !archived &&
-    !['pr', 'planned', 'submitted'].includes(request?.status || '') &&
-    loggedInTeamMember?.role === 'admin';
-  const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
+  const canDelete = canDeleteIntegration(request);
+  const canEdit = canEditIntegration(request);
   const deleteModalId = `delete-modal-${request?.id}`;
-
-  useEffect(() => {
-    getLoggedInTeamMember(Number(request.teamId), currentUser).then((teamMember) => {
-      setLoggedInTeamMember(teamMember);
-    });
-  }, [request]);
 
   const handleEdit = async (event: MouseEvent) => {
     event.stopPropagation();

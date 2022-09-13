@@ -65,6 +65,7 @@ export interface Integration {
   provisionedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  userTeamRole?: string;
 }
 
 export interface Option {

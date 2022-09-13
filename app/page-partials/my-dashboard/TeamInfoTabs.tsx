@@ -633,7 +633,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         <td>
                           <RightFloat>
                             <ActionButtons
-                              currentUser={currentUser}
                               request={integration}
                               onDelete={() => {
                                 loadTeams();
