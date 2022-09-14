@@ -39,3 +39,12 @@ export const getTeamIdLiteralOutOfRange = (userId: number, teamId: number, roles
     castArray(roles),
   );
 };
+
+export const getUserTeamRole = (userId: number) => {
+  return format(
+    `(
+    SELECT role FROM USERS_TEAMS WHERE user_id = %L AND team_id = request.team_id
+  )`,
+    userId,
+  );
+};

@@ -16,6 +16,7 @@ import { getRequests, deleteRequest } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { authTypeDisplay } from 'metadata/display';
+import { UserSession } from '@app/interfaces/props';
 
 const RightAlignHeader = styled.th`
   text-align: right;

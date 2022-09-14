@@ -1,4 +1,5 @@
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
+import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import {
   listClientRoles,
   listUserRoles,
@@ -21,6 +22,7 @@ const validateIntegration = async (sessionUserId: number, role: any) => {
 
 export const createClientRole = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role);
+  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to create role');
   return await createRole(integration, role);
 };
 
@@ -31,5 +33,6 @@ export const listRoles = async (sessionUserId: number, role: any) => {
 
 export const deleteRoles = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role);
+  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to delete role');
   return await deleteRole(integration, role);
 };

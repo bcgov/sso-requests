@@ -424,9 +424,10 @@ export const bulkCreateRole = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+
   if (integration.authType === 'service-account') throw Error('invalid auth type');
 
-  // create 20 roles at a time
+  //create 20 roles at a time
   const rolesToCreate = roles.slice(0, 20);
 
   const byEnv = { dev: [], test: [], prod: [] };

@@ -5,8 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Integration } from 'interfaces/Request';
 import CenteredModal from 'components/CenteredModal';
-import { getRequests, deleteRequest } from 'services/request';
+import { deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
+import noop from 'lodash.noop';
+import { canDeleteIntegration, canEditIntegration } from '@app/helpers/permissions';
 
 export const ActionButtonContainer = styled.div`
   height: 100%;
@@ -54,8 +56,8 @@ export default function Actionbuttons({
 }: Props) {
   const router = useRouter();
   const { archived } = request || {};
-  const canDelete = !archived && !['pr', 'planned', 'submitted'].includes(request?.status || '');
-  const canEdit = !archived && ['draft', 'applied'].includes(request.status || '');
+  const canDelete = canDeleteIntegration(request);
+  const canEdit = canEditIntegration(request);
   const deleteModalId = `delete-modal-${request?.id}`;
 
   const handleEdit = async (event: MouseEvent) => {
@@ -97,7 +99,7 @@ export default function Actionbuttons({
           icon={faTrash}
           role="button"
           aria-label="delete"
-          onClick={handleDelete}
+          onClick={canDelete ? handleDelete : noop}
           disabled={!canDelete}
           activeColor={PRIMARY_RED}
           title="Delete"

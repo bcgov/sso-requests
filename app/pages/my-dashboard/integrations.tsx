@@ -4,8 +4,9 @@ import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import VerticalLayout from 'page-partials/my-dashboard/VerticalLayout';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { Integration } from 'interfaces/Request';
+import { PageProps } from 'interfaces/props';
 
-function MyIntegrations() {
+function MyIntegrations({ session }: PageProps) {
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [integrationCount, setIntegrationCount] = useState(1);
 

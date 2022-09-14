@@ -40,13 +40,13 @@ export default function FieldProjectTeam(props: FieldTemplateProps) {
     <>
       <Container onClick={handleClick}>
         <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Team" />
-        <Label>Create a new team (optional)</Label>
+        <Label>Create a New Team (optional)</Label>
         <Description>
           Add other members to help manage the integration, and re-use your teams across multiple integrations
         </Description>
       </Container>
       <CenteredModal
-        title="Create a new team"
+        title="Create a New Team"
         icon={null}
         id={createTeamModalId}
         content={

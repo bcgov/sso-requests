@@ -7,9 +7,9 @@ import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faExclamationCircle, faTrash, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
-import { Team } from 'interfaces/team';
+import { Team, User } from 'interfaces/team';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import { getMyTeams, deleteTeam, getServiceAccount, deleteServiceAccount } from 'services/team';
+import { getMyTeams, deleteTeam, getServiceAccount, deleteServiceAccount, getTeamMembers } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
@@ -19,6 +19,7 @@ import PageLoader from 'components/PageLoader';
 import WarningModalContents from 'components/WarningModalContents';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { Integration } from 'interfaces/Request';
+import TeamActionButtons from '@app/components/TeamActionButtons';
 
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
@@ -75,7 +76,7 @@ const NoEntitiesMessage = ({ message }: { message: string }) => (
 const NewEntityButton = ({ handleNewTeamClick }: { handleNewTeamClick: Function }) => {
   return (
     <UnpaddedButton size="large" onClick={handleNewTeamClick} variant="callout">
-      + Create a new Team
+      + Create a New Team
     </UnpaddedButton>
   );
 };
@@ -150,6 +151,12 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
 
     if (!teams || teams?.length === 0) return <NoEntitiesMessage message="You have not been added to any teams yet." />;
 
+    const getLoggedInTeamMember = async (teamId: number) => {
+      const teamMembersRes = await getTeamMembers(teamId);
+      const [members, err] = teamMembersRes;
+      return members.find((member: any) => member?.idirEmail === currentUser.email);
+    };
+
     return (
       <Table>
         <thead>
@@ -161,7 +168,6 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
         <tbody>
           {teams &&
             teams.map((team: Team) => {
-              const canDelete = Number(team.integrationCount) === 0;
               return (
                 <tr
                   className={activeTeamId === team.id ? 'active' : ''}
@@ -171,26 +177,11 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
                   <td>{team.name}</td>
                   <td>
                     <RightFloatButtons>
-                      <ActionButtonContainer>
-                        <ActionButton
-                          icon={faEdit}
-                          role="button"
-                          aria-label="edit"
-                          title="Edit"
-                          size="lg"
-                          onClick={() => showEditTeamNameModal(team)}
-                        />
-                        <ActionButton
-                          disabled={!canDelete}
-                          icon={faTrash}
-                          role="button"
-                          aria-label="delete"
-                          title="Delete"
-                          size="lg"
-                          onClick={() => (canDelete ? showDeleteModal(team) : noop)}
-                          style={{ marginLeft: '7px' }}
-                        />
-                      </ActionButtonContainer>
+                      <TeamActionButtons
+                        team={team}
+                        showEditTeamNameModal={showEditTeamNameModal}
+                        showDeleteModal={showDeleteModal}
+                      />
                     </RightFloatButtons>
                   </td>
                 </tr>
@@ -222,7 +213,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
       <br />
       {content}
       <CenteredModal
-        title="Create a new team"
+        title="Create a New Team"
         icon={null}
         onConfirm={() => console.log('confirm')}
         id={createTeamModalId}

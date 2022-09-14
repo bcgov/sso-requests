@@ -27,6 +27,8 @@ import {
   manageUserRole,
   KeycloakUser,
 } from 'services/keycloak';
+import noop from 'lodash.noop';
+import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 
 const StyledInput = styled(Input)`
   display: inline-block;
@@ -92,6 +94,8 @@ const ClientRoles = ({ integration, alert }: Props) => {
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
   const [rightPanelTab, setRightPanelTab] = useState<string>(rightPanelTabs[0]);
 
+  const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
+
   const throttleCompositeRoleUpdate = useCallback(
     throttle(
       async (newValues: Option[]) => {
@@ -119,6 +123,7 @@ const ClientRoles = ({ integration, alert }: Props) => {
     setUsers([]);
     setRoles([]);
     setSelctedRole(null);
+    setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration));
   };
 
   useEffect(() => {
@@ -345,12 +350,15 @@ const ClientRoles = ({ integration, alert }: Props) => {
             <td>
               <AlignRight>
                 <ActionButton
+                  disabled={!canCreateOrDeleteRole}
                   icon={faTrash}
                   role="button"
                   aria-label="delete"
                   onClick={(event: MouseEvent) => {
-                    event.stopPropagation();
-                    handleDelete(role);
+                    if (canCreateOrDeleteRole) {
+                      event.stopPropagation();
+                      handleDelete(role);
+                    } else noop;
                   }}
                   title="Delete"
                   size="lg"
@@ -370,6 +378,7 @@ const ClientRoles = ({ integration, alert }: Props) => {
     <>
       <TopMargin />
       <Button
+        disabled={!canCreateOrDeleteRole}
         size="medium"
         variant="primary"
         onClick={() => {
