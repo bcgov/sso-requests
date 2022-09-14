@@ -6,6 +6,7 @@ import { lowcase } from '@lambda-app/helpers/string';
 import { getDisplayName } from '../utils/helpers';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
+import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -133,4 +134,9 @@ export const listClientRolesByUsers = async (
     environment,
     username,
   });
+};
+
+export const isAllowedToManageRoles = async (session: Session, integrationId: number) => {
+  const integration = await findAllowedIntegrationInfo(session.user.id, integrationId);
+  return canCreateOrDeleteRoles(integration);
 };
