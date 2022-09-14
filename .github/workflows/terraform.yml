@@ -8,11 +8,13 @@ on:
     paths:
       - 'terraform/**'
       - '.github/**'
+      - 'app/**'
       - 'lambda/**'
   pull_request:
     paths:
       - 'terraform/**'
       - '.github/**'
+      - 'app/**'
       - 'lambda/**'
 
 env:
