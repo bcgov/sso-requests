@@ -18,15 +18,12 @@ export const EVENTS = {
 };
 
 export const EMAILS = {
+  PROD_APPROVED: 'prod-approved',
   CREATE_INTEGRATION_SUBMITTED: 'create-integration-submitted',
-  CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM: 'create-integration-submitted-bceid-nonprod-idim',
-  CREATE_INTEGRATION_SUBMITTED_BCEID_PROD: 'create-integration-submitted-bceid-prod',
-  CREATE_INTEGRATION_APPROVED: 'create-integration-approved',
+  CREATE_INTEGRATION_APPLIED: 'create-integration-applied',
   UPDATE_INTEGRATION_SUBMITTED: 'update-integration-submitted',
-  UPDATE_INTEGRATION_APPROVED: 'update-integration-approved',
-  BCEID_PROD_APPROVED: 'bceid-prod-approved',
+  UPDATE_INTEGRATION_APPLIED: 'update-integration-applied',
   DELETE_INTEGRATION_SUBMITTED: 'delete-integration-submitted',
-  DELETE_INTEGRATION_SUBMITTED_BCEID: 'delete-integration-submitted-bceid',
   TEAM_INVITATION: 'team-invitation',
   TEAM_MEMBER_DELETED_ADMINS: 'team-member-deleted-admins',
   TEAM_MEMBER_DELETED_USER_REMOVED: 'team-member-deleted-user-removed',

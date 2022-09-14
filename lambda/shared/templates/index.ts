@@ -3,19 +3,16 @@ import Handlebars = require('handlebars');
 import noop from 'lodash.noop';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { EVENTS, EMAILS } from '@lambda-shared/enums';
-import bceidProdApproved from './bceid-prod-approved';
-import createIntegrationApproved from './create-integration-approved';
+import prodApproved from './prod-approved';
+import createIntegrationApplied from './create-integration-applied';
 import createIntegrationSubmitted from './create-integration-submitted';
-import createIntegrationSubmittedBceidNonprodIdim from './create-integration-submitted-bceid-nonprod-idim';
-import createIntegrationSubmittedBceidProd from './create-integration-submitted-bceid-prod';
 import deleteIntegrationSubmitted from './delete-integration-submitted';
-import deleteIntegrationSubmittedBceid from './delete-integration-submitted-bceid';
 import requestLimitExceeded from './request-limit-exceeded';
 import teamDeleted from './team-deleted';
 import teamInvitation from './team-invitation';
 import teamMemberDeletedAdmins from './team-member-deleted-admins';
 import teamMemberDeletedUserRemoved from './team-member-deleted-user-removed';
-import updateIntegrationApproved from './update-integration-approved';
+import updateIntegrationApplied from './update-integration-applied';
 import updateIntegrationSubmitted from './update-integration-submitted';
 import createTeamApiAccountSubmitted from './create-team-api-account-submitted';
 import createTeamApiAccountApproved from './create-team-api-account-approved';
@@ -24,34 +21,38 @@ import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
 const APP_ENV = process.env.APP_ENV || 'development';
-const footer = fs.readFileSync(__dirname + '/footer.html', 'utf8');
+const readTemplate = (templateKey) => fs.readFileSync(__dirname + `/${templateKey}.html`, 'utf8');
+const footer = readTemplate('footer');
+const hr = readTemplate('hr');
+const createBceidBottom = readTemplate('create-bceid-bottom');
+const createGithubBottom = readTemplate('create-github-bottom');
+const integrationDetail = readTemplate('integration-detail');
+const dashboardLogin = readTemplate('dashboard-login');
+const processingTime = readTemplate('processing-time');
 
 Handlebars.registerPartial('footer', footer);
+Handlebars.registerPartial('hr', hr);
+Handlebars.registerPartial('createBceidBottom', createBceidBottom);
+Handlebars.registerPartial('createGithubBottom', createGithubBottom);
+Handlebars.registerPartial('integrationDetail', integrationDetail);
+Handlebars.registerPartial('dashboardLogin', dashboardLogin);
+Handlebars.registerPartial('processingTime', processingTime);
 
 const getBuilder = (key: string) => {
   let builder = { render: (v) => v, send: noop };
 
   switch (key) {
-    case EMAILS.BCEID_PROD_APPROVED:
-      builder = bceidProdApproved;
+    case EMAILS.PROD_APPROVED:
+      builder = prodApproved;
       break;
-    case EMAILS.CREATE_INTEGRATION_APPROVED:
-      builder = createIntegrationApproved;
+    case EMAILS.CREATE_INTEGRATION_APPLIED:
+      builder = createIntegrationApplied;
       break;
     case EMAILS.CREATE_INTEGRATION_SUBMITTED:
       builder = createIntegrationSubmitted;
       break;
-    case EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM:
-      builder = createIntegrationSubmittedBceidNonprodIdim;
-      break;
-    case EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD:
-      builder = createIntegrationSubmittedBceidProd;
-      break;
     case EMAILS.DELETE_INTEGRATION_SUBMITTED:
       builder = deleteIntegrationSubmitted;
-      break;
-    case EMAILS.DELETE_INTEGRATION_SUBMITTED_BCEID:
-      builder = deleteIntegrationSubmittedBceid;
       break;
     case EMAILS.TEAM_DELETED:
       builder = teamDeleted;
@@ -68,8 +69,8 @@ const getBuilder = (key: string) => {
     case EMAILS.TEAM_MEMBER_DELETED_USER_REMOVED:
       builder = teamMemberDeletedUserRemoved;
       break;
-    case EMAILS.UPDATE_INTEGRATION_APPROVED:
-      builder = updateIntegrationApproved;
+    case EMAILS.UPDATE_INTEGRATION_APPLIED:
+      builder = updateIntegrationApplied;
       break;
     case EMAILS.UPDATE_INTEGRATION_SUBMITTED:
       builder = updateIntegrationSubmitted;
@@ -120,6 +121,7 @@ export const sendTemplate = async (code: string, data: any) => {
   try {
     const builder = getBuilder(code);
     const rendered = await renderTemplate(code, data);
+
     await builder.send(data, rendered);
   } catch (err) {
     console.error(err);

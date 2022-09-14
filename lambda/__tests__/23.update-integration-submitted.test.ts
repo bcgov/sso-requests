@@ -63,14 +63,18 @@ describe('Feature: Submit Integration Update - User notification without BCeID p
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, { integration: integration.current });
+    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
+      integration: integration.current,
+      bceidProdAdded: false,
+      githubProdAdded: false,
+    });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
     expect(emailList[0].to.length).toEqual(1);
     expect(emailList[0].to[0]).toEqual(TEST_IDIR_EMAIL);
-    expect(emailList[0].cc.length).toEqual(1);
-    expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+    expect(emailList[0].cc.length).toEqual(2);
+    expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
   });
 });
 
@@ -100,14 +104,18 @@ describe('Feature: Submit Integration Update - Team notification without BCeID p
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, { integration: integration.current });
+    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
+      integration: integration.current,
+      bceidProdAdded: false,
+      githubProdAdded: false,
+    });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
     expect(emailList[0].to.length).toEqual(2);
     expect(emailList[0].to).toEqual([TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2]);
-    expect(emailList[0].cc.length).toEqual(1);
-    expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+    expect(emailList[0].cc.length).toEqual(2);
+    expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
   });
 });
 
@@ -138,8 +146,10 @@ describe('Feature: Submit Integration Update - User notification with BCeID prod
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD, {
+    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
+      bceidProdAdded: true,
+      githubProdAdded: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
@@ -147,7 +157,7 @@ describe('Feature: Submit Integration Update - User notification with BCeID prod
     expect(emailList[0].to.length).toEqual(1);
     expect(emailList[0].to[0]).toEqual(TEST_IDIR_EMAIL);
     expect(emailList[0].cc.length).toEqual(2);
-    expect(emailList[0].cc).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS]);
+    expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
   });
 });
 
@@ -178,8 +188,10 @@ describe('Feature: Submit Integration Update - Team notification with BCeID prod
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD, {
+    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
+      bceidProdAdded: true,
+      githubProdAdded: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
@@ -187,6 +199,6 @@ describe('Feature: Submit Integration Update - Team notification with BCeID prod
     expect(emailList[0].to.length).toEqual(2);
     expect(emailList[0].to).toEqual([TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2]);
     expect(emailList[0].cc.length).toEqual(2);
-    expect(emailList[0].cc).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS]);
+    expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
   });
 });

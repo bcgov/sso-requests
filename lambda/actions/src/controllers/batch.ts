@@ -69,7 +69,22 @@ export const updatePlannedItems = async (data) => {
 
   const integrations = await models.request.findAll({
     where,
-    attributes: ['id', 'projectName', 'requester', 'usesTeam', 'teamId', 'userId', 'archived', 'apiServiceAccount'],
+    attributes: [
+      'id',
+      'projectName',
+      'serviceType',
+      'requester',
+      'usesTeam',
+      'teamId',
+      'userId',
+      'archived',
+      'devIdps',
+      'environments',
+      'devValidRedirectUris',
+      'testValidRedirectUris',
+      'prodValidRedirectUris',
+      'apiServiceAccount',
+    ],
     raw: true,
   });
 
@@ -105,7 +120,7 @@ export const updatePlannedItems = async (data) => {
           integrations: teamIntegrations,
         });
       } else {
-        const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPROVED : EMAILS.CREATE_INTEGRATION_APPROVED;
+        const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
         await sendTemplate(emailCode, { integration });
       }
     }),

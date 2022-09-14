@@ -1,14 +1,16 @@
-import { Op } from 'sequelize';
+import { Op, Model } from 'sequelize';
 import map from 'lodash.map';
 import compact from 'lodash.compact';
 import flatten from 'lodash.flatten';
 import uniq from 'lodash.uniq';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { formatUrisForEmail, realmToIDP } from '@lambda-shared/utils/helpers';
+import { realmToIDP } from '@lambda-shared/utils/helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
-import { idpMap } from '@app/helpers/meta';
+import { idpMap, envMap } from '@app/helpers/meta';
+import { Integration } from '@app/interfaces/Request';
+import _ from 'lodash';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -26,37 +28,49 @@ export const processUser = async (user: any) => {
   return user;
 };
 
-export const processRequest = async (integration: any) => {
-  if (integration instanceof models.request) {
-    integration = integration.get({ plain: true });
+export const processRequest = async (integrationOrModel: any) => {
+  let integration!: Integration;
+  if (integrationOrModel instanceof models.request) {
+    integration = integrationOrModel.get({ plain: true });
+  } else {
+    integration = integrationOrModel;
   }
 
   let accountableEntity = '';
 
   if (integration.usesTeam === true) {
-    const team = integration.team ? integration.team : await getTeamById(integration.teamId);
+    const team = integration.team ? integration.team : await getTeamById(Number(integration.teamId));
     accountableEntity = team?.name || '';
   } else {
     const user = integration.user ? integration.user : await getUserById(integration.userId);
     accountableEntity = user?.displayName || '';
   }
 
-  const { realm, devValidRedirectUris = [], testValidRedirectUris = [], prodValidRedirectUris = [] } = integration;
-  const devUris = formatUrisForEmail(devValidRedirectUris, 'Development');
-  const testUris = formatUrisForEmail(testValidRedirectUris, 'Test');
-  const prodUris = formatUrisForEmail(prodValidRedirectUris, 'Production');
-  const idps =
-    integration.serviceType === 'gold' ? [integration.devIdps.map((idp) => idpMap[idp]).join(', ')] : realmToIDP(realm);
+  const {
+    realm,
+    devValidRedirectUris = [],
+    testValidRedirectUris = [],
+    prodValidRedirectUris = [],
+    environments = [],
+  } = integration;
+
+  const idps = integration.serviceType === 'gold' ? integration.devIdps : realmToIDP(realm);
+  const idpNames = idps.map((idp) => idpMap[idp]).join(', ');
+  const envNames = environments.map((env) => envMap[env]).join(', ');
+  const redirectUris = environments.map((env) => ({
+    name: envMap[env],
+    uris: integration[`${env}ValidRedirectUris`] || [],
+  }));
 
   return {
     ...integration,
     devValidRedirectUris,
     testValidRedirectUris,
     prodValidRedirectUris,
-    devUris,
-    testUris,
-    prodUris,
     idps,
+    idpNames,
+    envNames,
+    redirectUris,
     accountableEntity,
   };
 };
