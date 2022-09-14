@@ -20,7 +20,6 @@ import { DashboardReducerState } from 'reducers/dashboardReducer';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
 import padStart from 'lodash.padstart';
-import { UserSession } from '@app/interfaces/props';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
