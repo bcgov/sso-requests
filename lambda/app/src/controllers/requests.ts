@@ -196,6 +196,11 @@ export const updateRequest = async (
         }
       }
 
+      // prevent the TF from creating GitHub integration in prod environment if not approved
+      if (!current.githubApproved && hasGithub) {
+        tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('github'));
+      }
+
       const ghResult = await dispatchRequestWorkflow(tfData);
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
