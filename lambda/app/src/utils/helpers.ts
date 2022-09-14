@@ -33,17 +33,6 @@ export const omitNonFormFields = (data: Integration) =>
   ]);
 
 export type BceidEvent = 'submission' | 'deletion' | 'update';
-const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
-
-export const usesBceid = (integration: any) => {
-  if (!integration) return false;
-
-  if (integration.serviceType === 'gold') {
-    return integration.devIdps.some((idp) => idp.startsWith('bceid'));
-  } else {
-    return bceidRealms.includes(integration.realm);
-  }
-};
 
 const sortURIFields = (data: any) => {
   const sortedData = { ...data };

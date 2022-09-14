@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { FieldTemplateProps } from 'react-jsonschema-form';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import RequestPreview from 'components/RequestPreview';
-import { usesBceid } from 'utils/helpers';
+import { usesBceid } from '@app/helpers/integration';
 import FieldTemplate from './FieldTemplate';
 
 export default function FieldReviewAndSubmit(props: FieldTemplateProps) {

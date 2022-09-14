@@ -55,7 +55,12 @@ describe('Feature: Submit New Integration - User notification for non-BCeID', ()
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, { integration: integration.current });
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: integration.current,
+      bceidProdAdded: false,
+      githubProdAdded: false,
+    });
+
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
@@ -84,7 +89,11 @@ describe('Feature: Submit New Integration - Team notification for non-BCeID', ()
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, { integration: integration.current });
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: integration.current,
+      bceidProdAdded: false,
+      githubProdAdded: false,
+    });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
@@ -113,37 +122,19 @@ describe('Feature: Submit New Integration - User notification for BCeID in non-P
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const templates = await Promise.all([
-      renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, { integration: integration.current }),
-      renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM, { integration: integration.current }),
-    ]);
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: integration.current,
+      bceidProdAdded: false,
+      githubProdAdded: false,
+    });
 
-    expect(emailList.length).toEqual(2);
-
-    for (let x = 0; x < templates.length; x++) {
-      const template = templates[x];
-      const email = emailList.find((email) => email.subject === template.subject);
-      expect(email).toBeTruthy();
-
-      // CREATE_INTEGRATION_SUBMITTED
-      if (x === 0) {
-        expect(email.subject).toContain(template.subject);
-        expect(email.body).toContain(template.body);
-        expect(email.to.length).toEqual(1);
-        expect(email.to).toEqual([TEST_IDIR_EMAIL]);
-        expect(email.cc.length).toEqual(1);
-        expect(email.cc[0]).toEqual(SSO_EMAIL_ADDRESS);
-      }
-      // CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM
-      else {
-        expect(email.subject).toContain(template.subject);
-        expect(email.body).toContain(template.body);
-        expect(email.to.length).toEqual(1);
-        expect(email.to).toEqual([IDIM_EMAIL_ADDRESS]);
-        expect(email.cc.length).toEqual(1);
-        expect(email.cc[0]).toEqual(SSO_EMAIL_ADDRESS);
-      }
-    }
+    expect(emailList.length).toEqual(1);
+    expect(emailList[0].subject).toContain(template.subject);
+    expect(emailList[0].body).toContain(template.body);
+    expect(emailList[0].to.length).toEqual(1);
+    expect(emailList[0].to).toEqual([TEST_IDIR_EMAIL]);
+    expect(emailList[0].cc.length).toEqual(2);
+    expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
   });
 });
 
@@ -165,39 +156,19 @@ describe('Feature: Submit New Integration - Team notification for BCeID in non-P
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const templates = await Promise.all([
-      renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, { integration: integration.current }),
-      renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM, { integration: integration.current }),
-    ]);
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: integration.current,
+      bceidProdAdded: false,
+      githubProdAdded: false,
+    });
 
-    expect(emailList.length).toEqual(2);
-
-    for (let x = 0; x < templates.length; x++) {
-      const template = templates[x];
-      const email = emailList.find((email) => email.subject === template.subject);
-      expect(email).toBeTruthy();
-
-      // CREATE_INTEGRATION_SUBMITTED
-      if (x === 0) {
-        expect(email.subject).toEqual(template.subject);
-        expect(email.body).toEqual(template.body);
-        expect(email.to.length).toEqual(2);
-        expect(email.to).toEqual([TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2]);
-        expect(email.cc.length).toEqual(1);
-        expect(email.cc[0]).toEqual(SSO_EMAIL_ADDRESS);
-      }
-      // CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM
-      else {
-        expect(email.subject).toEqual(template.subject);
-        expect(email.body).toEqual(template.body);
-        expect(email.body).toContain(TEST_IDIR_EMAIL);
-        expect(email.body).toContain(TEST_IDIR_EMAIL_2);
-        expect(email.to.length).toEqual(1);
-        expect(email.to).toEqual([IDIM_EMAIL_ADDRESS]);
-        expect(email.cc.length).toEqual(1);
-        expect(email.cc[0]).toEqual(SSO_EMAIL_ADDRESS);
-      }
-    }
+    expect(emailList.length).toEqual(1);
+    expect(emailList[0].subject).toContain(template.subject);
+    expect(emailList[0].body).toContain(template.body);
+    expect(emailList[0].to.length).toEqual(2);
+    expect(emailList[0].to).toEqual([TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2]);
+    expect(emailList[0].cc.length).toEqual(2);
+    expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
   });
 });
 
@@ -219,8 +190,10 @@ describe('Feature: Submit New Integration - User notification for BCeID in Prod'
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD, {
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
+      bceidProdAdded: true,
+      githubProdAdded: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
@@ -232,7 +205,7 @@ describe('Feature: Submit New Integration - User notification for BCeID in Prod'
   });
 });
 
-describe('Feature: Submit New Integration - Team notification for non-BCeID', () => {
+describe('Feature: Submit New Integration - Team notification for BCeID in Prod', () => {
   let emailList;
 
   const integration = new Integration();
@@ -250,8 +223,10 @@ describe('Feature: Submit New Integration - Team notification for non-BCeID', ()
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD, {
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
+      bceidProdAdded: true,
+      githubProdAdded: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);

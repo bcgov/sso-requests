@@ -5,6 +5,7 @@ import { Team, User } from 'interfaces/team';
 import { Integration, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
+import { usesBceid } from '@app/helpers/integration';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   let realms: string[] | null = [];
@@ -14,23 +15,6 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
   let formattedEnvironments: string[] | null = envs.map((env: Option) => env.value as string);
   formattedEnvironments = formattedEnvironments.length > 0 ? formattedEnvironments : null;
   return [realms, formattedEnvironments];
-};
-
-const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
-export const usesBceid = (integration: any) => {
-  if (!integration) return false;
-
-  if (integration.serviceType === 'gold') {
-    return integration.devIdps.some((idp: string) => idp.startsWith('bceid'));
-  } else {
-    return bceidRealms.includes(integration.realm);
-  }
-};
-
-export const usesGithub = (integration: any) => {
-  if (!integration || integration.serviceType !== 'gold') return false;
-
-  return integration.devIdps.some((idp: string) => idp === 'github');
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {

@@ -23,6 +23,7 @@ let prNumber = 0;
 
 export class Integration {
   current: any = {
+    serviceType: 'gold',
     projectName: 'myproject',
     projectLead: true,
     usesTeam: false,
@@ -41,21 +42,24 @@ export class Integration {
   teamUsers: any[];
   firstTeamMember: any;
 
-  async create(args: { bceid?: boolean; prod?: boolean; usesTeam?: boolean; serviceType?: string }) {
-    const { bceid = false, prod = false, usesTeam = false } = args;
+  async create(args: { bceid?: boolean; github?: boolean; prod?: boolean; usesTeam?: boolean; serviceType?: string }) {
+    const { bceid = false, github = false, prod = false, usesTeam = false } = args;
 
     if (usesTeam) await this.createTeam();
 
     const environments = ['dev', 'test'];
     if (prod) environments.push('prod');
 
+    const devIdps = ['idir'];
+    if (bceid) devIdps.push('bceidbasic');
+    if (github) devIdps.push('github');
+
     if (args.serviceType) this.current.serviceType = args.serviceType;
 
     const otherData = {
-      realm: `onestopauth${bceid ? '-basic' : ''}`,
       publicAccess: false,
+      devIdps,
       environments,
-      serviceType: args.serviceType ?? 'silver',
       devValidRedirectUris: ['https://a'],
       testValidRedirectUris: ['https://a'],
       prodValidRedirectUris: prod ? ['https://a'] : [],

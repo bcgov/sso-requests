@@ -3,14 +3,7 @@ import { renderTemplate } from '@lambda-shared/templates';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { EMAILS } from '@lambda-shared/enums';
 import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS } from '@lambda-shared/local';
-import {
-  TEST_ADMIN_USERID,
-  TEST_ADMIN_EMAIL,
-  TEST_IDIR_USERID,
-  TEST_IDIR_EMAIL,
-  TEST_IDIR_EMAIL_2,
-  AuthMock,
-} from './00.db.test';
+import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2, AuthMock } from './00.db.test';
 import { Integration } from './helpers/integration';
 
 jest.mock('@lambda-app/authenticate');
@@ -24,15 +17,13 @@ jest.mock('@lambda-shared/utils/ches');
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 const mockedSendEmail = sendEmail as jest.Mock<any>;
 
-beforeEach(() => {
-  mockedAuthenticate.mockImplementation(() => {
-    return Promise.resolve({
-      idir_userid: TEST_IDIR_USERID,
-      email: TEST_IDIR_EMAIL,
-      client_roles: [],
-      given_name: '',
-      family_name: '',
-    });
+mockedAuthenticate.mockImplementation(() => {
+  return Promise.resolve({
+    idir_userid: TEST_IDIR_USERID,
+    email: TEST_IDIR_EMAIL,
+    client_roles: [],
+    given_name: '',
+    family_name: '',
   });
 });
 
@@ -46,13 +37,13 @@ const setMockedSendEmail = () => {
   return result;
 };
 
-describe('Feature: BCeID Prod Approved - User BCeID Prod Approval Email', () => {
+describe('Feature: New Integration Approved - User notification', () => {
   let emailList: any = [];
 
   const integration = new Integration();
 
   it('should create a DRAFT integration without a team', async () => {
-    const res = await integration.create({ bceid: true, prod: true });
+    const res = await integration.create({});
     expect(res.statusCode).toEqual(200);
   });
 
@@ -62,31 +53,12 @@ describe('Feature: BCeID Prod Approved - User BCeID Prod Approval Email', () => 
   });
 
   it('should update integration status to apply-success', async () => {
+    emailList = setMockedSendEmail();
     await integration.success();
   });
 
-  it('should approve the integration of BCeID prod', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({
-        idir_userid: TEST_ADMIN_USERID,
-        email: TEST_ADMIN_EMAIL,
-        client_roles: ['sso-admin'],
-        given_name: '',
-        family_name: '',
-      });
-    });
-
-    emailList = setMockedSendEmail();
-
-    integration.set({ bceidApproved: true });
-    const res = await integration.submit();
-    expect(res.statusCode).toEqual(200);
-  });
-
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.BCEID_PROD_APPROVED, {
-      integration: { ...integration.current, requester: 'SSO Admin' },
-    });
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, { integration: integration.current });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
@@ -97,13 +69,13 @@ describe('Feature: BCeID Prod Approved - User BCeID Prod Approval Email', () => 
   });
 });
 
-describe('Feature: BCeID Prod Approved - Team BCeID Prod Approval Email', () => {
+describe('Feature: New Integration Approved - Team notification', () => {
   let emailList: any = [];
 
   const integration = new Integration();
 
   it('should create a DRAFT integration with a team', async () => {
-    const res = await integration.create({ bceid: true, usesTeam: true });
+    const res = await integration.create({ bceid: true, prod: true, usesTeam: true });
     expect(res.statusCode).toEqual(200);
   });
 
@@ -113,31 +85,12 @@ describe('Feature: BCeID Prod Approved - Team BCeID Prod Approval Email', () => 
   });
 
   it('should update integration status to apply-success', async () => {
+    emailList = setMockedSendEmail();
     await integration.success();
   });
 
-  it('should approve the integration of BCeID prod', async () => {
-    mockedAuthenticate.mockImplementation(() => {
-      return Promise.resolve({
-        idir_userid: TEST_ADMIN_USERID,
-        email: TEST_ADMIN_EMAIL,
-        client_roles: ['sso-admin'],
-        given_name: '',
-        family_name: '',
-      });
-    });
-
-    emailList = setMockedSendEmail();
-
-    integration.set({ bceidApproved: true });
-    const res = await integration.submit();
-    expect(res.statusCode).toEqual(200);
-  });
-
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.BCEID_PROD_APPROVED, {
-      integration: { ...integration.current, requester: 'SSO Admin' },
-    });
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, { integration: integration.current });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
