@@ -287,6 +287,12 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      userTeamRole: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          return this.getDataValue('userTeamRole');
+        },
+      },
     },
     {
       underscored: true,

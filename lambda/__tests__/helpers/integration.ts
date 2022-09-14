@@ -27,6 +27,7 @@ export class Integration {
     projectLead: true,
     usesTeam: false,
     teamId: null,
+    apiServiceAccount: false,
   };
   createResponse: Response;
   teamResponse: Response;

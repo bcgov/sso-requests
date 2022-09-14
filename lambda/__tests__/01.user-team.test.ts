@@ -253,6 +253,23 @@ describe('User and Teams', () => {
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
+  it('should prevent non-admins from deleting the team', async () => {
+    createMockAuth(TEST_IDIR_USERID_2, TEST_IDIR_EMAIL_2);
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'DELETE',
+      path: `${baseUrl}/teams/1`,
+      body: JSON.stringify([
+        {
+          idirEmail: 'test2@email.com',
+          role: 'admin',
+        },
+      ]),
+    };
+    const response = await handler(event);
+    expect(response.statusCode).toEqual(401);
+  });
+
   it('should delete the first team successfully', async () => {
     createMockAuth(TEST_IDIR_USERID, TEST_IDIR_EMAIL);
     const event: APIGatewayProxyEvent = {

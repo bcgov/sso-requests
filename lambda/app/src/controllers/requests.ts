@@ -29,6 +29,7 @@ import {
 import { disableIntegration } from '@lambda-app/keycloak/client';
 import format from 'pg-format';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
+import { canDeleteIntegration } from '@app/helpers/permissions';
 
 const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
 const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
@@ -369,7 +370,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
   try {
     const current = await getAllowedRequest(session, id);
 
-    if (!current || current.userTeamRole !== 'admin') {
+    if (!current) {
       throw Error('unauthorized request');
     }
 
@@ -447,4 +448,9 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
   }
 
   return result[1].dataValues;
+};
+
+export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
+  const integration = await getAllowedRequest(session, integrationId);
+  return canDeleteIntegration(integration);
 };

@@ -71,7 +71,16 @@ export const findAllowedIntegrationInfo = async (
 
   return models.request.findOne({
     where,
-    attributes: ['id', 'clientId', 'devIdps', [sequelize.literal(getUserTeamRole(userId)), 'userTeamRole']],
+    attributes: [
+      'id',
+      'clientId',
+      'devIdps',
+      'apiServiceAccount',
+      'status',
+      'archived',
+      'usesTeam',
+      [sequelize.literal(getUserTeamRole(userId)), 'userTeamRole'],
+    ],
     ...options,
   });
 };

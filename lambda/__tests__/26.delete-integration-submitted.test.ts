@@ -62,7 +62,7 @@ describe('Feature: Delete Integration - User notification for non-BCeID', () => 
     await integration.success();
   });
 
-  it('should deletethe integration', async () => {
+  it('should delete the integration', async () => {
     emailList = setMockedSendEmail();
 
     const res = await integration.delete();
@@ -102,7 +102,7 @@ describe('Feature: Delete Integration - Team notification for non-BCeID', () => 
     await integration.success();
   });
 
-  it('should deletethe integration', async () => {
+  it('should delete the integration', async () => {
     emailList = setMockedSendEmail();
 
     const res = await integration.delete();
@@ -142,7 +142,7 @@ describe('Feature: Delete Integration - User notification for BCeID', () => {
     await integration.success();
   });
 
-  it('should deletethe integration', async () => {
+  it('should delete the integration', async () => {
     emailList = setMockedSendEmail();
 
     const res = await integration.delete();
@@ -182,7 +182,7 @@ describe('Feature: Delete Integration - Team notification for BCeID', () => {
     await integration.success();
   });
 
-  it('should deletethe integration', async () => {
+  it('should delete the integration', async () => {
     emailList = setMockedSendEmail();
 
     const res = await integration.delete();

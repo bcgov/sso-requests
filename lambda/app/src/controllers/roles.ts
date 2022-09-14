@@ -1,5 +1,5 @@
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
-import { canCreateOrDeleteRoles } from 'app/helpers/permissions';
+import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import {
   listClientRoles,
   listUserRoles,
