@@ -22,9 +22,7 @@ function MyIntegrations({ session }: PageProps) {
         />
       )}
       rightPanel={(state: DashboardReducerState, dispatch: Dispatch<SetStateAction<any>>) =>
-        integration && (
-          <RequestInfoTabs currentUser={session} integration={integration} state={state} dispatch={dispatch} />
-        )
+        integration && <RequestInfoTabs integration={integration} state={state} dispatch={dispatch} />
       }
       showResizable={integrationCount > 0}
     />
