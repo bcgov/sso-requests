@@ -12,6 +12,12 @@ const FieldContainer = styled.div`
   position: relative;
   width: 100%;
   max-width: ${MAX_STRING_FIELD_WIDTH};
+
+  & div,
+  & input {
+    width: 100%;
+    max-width: ${MAX_STRING_FIELD_WIDTH};
+  }
 `;
 
 const Description = styled.p`
@@ -28,6 +34,7 @@ const AddContainer = styled.div`
 
 const RemoveContainer = styled(AddContainer)`
   position: absolute;
+  width: 20px !important;
   right: 10px;
   top: 10px;
 `;
