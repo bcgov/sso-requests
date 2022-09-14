@@ -12,11 +12,6 @@ export const getEmailList = async (request: Request) => {
   return compact([owner.idirEmail, owner.additionalEmail]);
 };
 
-export const formatUrisForEmail = (uris: string[], prefix) => {
-  if (uris.length === 0) return '';
-  return `<li> ${prefix}: ${uris.join(', ')} </li>`;
-};
-
 export const realmToIDP = (realm?: string) => {
   let idps: string[] = [];
   if (realm === 'onestopauth') idps = ['idir'];

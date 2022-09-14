@@ -5,10 +5,11 @@ export const formDataDev: IntegrationData = {
   idirUserid: 'TEST',
   projectName: 'test',
   clientId: 'test',
-  realm: 'onestopauth',
+  serviceType: 'gold',
   publicAccess: true,
   devValidRedirectUris: ['https://b'],
   environments: ['dev'],
+  devIdps: ['idir'],
   projectLead: true,
   newToSso: true,
   agreeWithTerms: true,
@@ -26,9 +27,14 @@ export const formDataDev: IntegrationData = {
   },
 };
 
-export const formDataProd: IntegrationData = {
+export const formDataDevTest: IntegrationData = {
   ...formDataDev,
-  testValidRedirectUris: ['https://a'],
+  testValidRedirectUris: ['https://test'],
+  environments: ['dev', 'test'],
+};
+
+export const formDataProd: IntegrationData = {
+  ...formDataDevTest,
   prodValidRedirectUris: ['https://a'],
   environments: ['dev', 'test', 'prod'],
 };

@@ -9,7 +9,6 @@ import {
   getDifferences,
   isAdmin,
   getDisplayName,
-  usesBceid,
   getWhereClauseForAllRequests,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
@@ -27,9 +26,9 @@ import {
   getIntegrationsByUserTeam,
 } from '@lambda-app/queries/request';
 import { disableIntegration } from '@lambda-app/keycloak/client';
-import format from 'pg-format';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
+import { usesBceid, usesGithub } from '@app/helpers/integration';
 
 const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
 const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
@@ -173,9 +172,16 @@ export const updateRequest = async (
       current.status = 'submitted';
       let environments = current.environments.concat();
 
+      const hadProd = originalData.environments.includes('prod');
+      const hasProd = environments.includes('prod');
+
       const hasBceid = usesBceid(current);
-      const hadBceidProd = hasBceid && originalData.environments.includes('prod');
-      const hasBceidProd = hasBceid && environments.includes('prod');
+      const hadBceidProd = hasBceid && hadProd;
+      const hasBceidProd = hasBceid && hasProd;
+
+      const hasGithub = usesGithub(current);
+      const hadGithubProd = hasGithub && hadProd;
+      const hasGithubProd = hasGithub && hasProd;
 
       const tfData = getCurrentValue();
 
@@ -190,6 +196,11 @@ export const updateRequest = async (
         } else {
           tfData.environments = tfData.environments.filter((environment) => environment !== 'prod');
         }
+      }
+
+      // prevent the TF from creating GitHub integration in prod environment if not approved
+      if (!current.githubApproved && hasGithub) {
+        tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('github'));
       }
 
       const ghResult = await dispatchRequestWorkflow(tfData);
@@ -209,43 +220,29 @@ export const updateRequest = async (
       if (isMerged) {
         if (isApprovingBceid) {
           emails.push({
-            code: EMAILS.BCEID_PROD_APPROVED,
-            data: { integration: finalData },
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'BCeID' },
           });
-        } else if (!hadBceidProd && hasBceidProd) {
+        } else if (isApprovingGithub) {
           emails.push({
-            code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD,
-            data: { integration: finalData },
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'GitHub' },
           });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
-            data: { integration: finalData },
+            data: {
+              integration: finalData,
+              bceidProdAdded: !hadBceidProd && hasBceidProd,
+              githubProdAdded: !hadGithubProd && hasGithubProd,
+            },
           });
         }
       } else {
-        if (hasBceidProd) {
-          emails.push({
-            code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD,
-            data: { integration: finalData },
-          });
-        } else if (hasBceid) {
-          emails.push(
-            {
-              code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
-              data: { integration: finalData },
-            },
-            {
-              code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM,
-              data: { integration: finalData },
-            },
-          );
-        } else {
-          emails.push({
-            code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
-            data: { integration: finalData },
-          });
-        }
+        emails.push({
+          code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
+          data: { integration: finalData, bceidProdAdded: hasBceidProd, githubProdAdded: hasGithubProd },
+        });
       }
 
       await sendTemplates(emails);
@@ -396,20 +393,10 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     await closeOpenPullRequests(id);
 
     const result = await current.save();
-    const hasBceid = usesBceid(current);
-
-    let emailCode: string;
-    let emailData: any;
-
     const integration = result.get({ plain: true });
 
-    if (hasBceid) {
-      emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED_BCEID;
-      emailData = { integration };
-    } else {
-      emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED;
-      emailData = { integration };
-    }
+    const emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED;
+    const emailData = { integration };
 
     await sendTemplate(emailCode, emailData);
 

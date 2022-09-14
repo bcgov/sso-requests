@@ -68,7 +68,7 @@ describe('Feature: Update Integration Approved - User notification', () => {
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPROVED, { integration: integration.current });
+    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, { integration: integration.current });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
@@ -110,7 +110,7 @@ describe('Feature: Update Integration Approved - Team notification', () => {
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPROVED, { integration: integration.current });
+    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, { integration: integration.current });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);

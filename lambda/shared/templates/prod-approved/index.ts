@@ -8,8 +8,8 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO request approved`;
-const template = fs.readFileSync(__dirname + '/create-integration-approved.html', 'utf8');
+const SUBJECT_TEMPLATE = `BCeID Request ID {{integration.id}} approved and being processed`;
+const template = fs.readFileSync(__dirname + '/prod-approved.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
@@ -33,7 +33,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getIntegrationEmails(integration);
 
   return sendEmail({
-    code: EMAILS.CREATE_INTEGRATION_APPROVED,
+    code: EMAILS.PROD_APPROVED,
     to: emails,
     cc: [SSO_EMAIL_ADDRESS],
     ...rendered,

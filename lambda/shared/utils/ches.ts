@@ -1,6 +1,10 @@
-const axios = require('axios');
-const url = require('url');
+import axios from 'axios';
+import url from 'url';
+import compact from 'lodash.compact';
+import uniq from 'lodash.uniq';
 import { EmailOptions } from '../interfaces';
+
+const compactUniq = (v) => uniq(compact(v));
 
 const fetchChesToken = async (username, password) => {
   const tokenEndpoint = process.env.CHES_TOKEN_ENDPOINT;
@@ -20,7 +24,7 @@ const fetchChesToken = async (username, password) => {
   }
 };
 
-export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, body, ...rest }: EmailOptions) => {
+export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, body, ...rest }: EmailOptions) => {
   const { CHES_USERNAME: username, CHES_PASSWORD: password, CHES_API_ENDPOINT: chesAPIEndpoint } = process.env;
   const [accessToken, error] = await fetchChesToken(username, password);
   if (error) throw Error(error);
@@ -35,7 +39,8 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, body, 
       from,
       priority: 'normal',
       subject: 'CHES Email Message',
-      to,
+      to: compactUniq(to),
+      cc: compactUniq(cc),
       ...rest,
     },
     {
