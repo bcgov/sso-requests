@@ -1,21 +1,37 @@
 import { findUserByRealm } from '@lambda-app/keycloak/users';
+import { validate as getValidator } from '../schemas/get-user-role-mapping';
+import { validate as postValidator } from '../schemas/create-user-role-mapping';
 import { injectable } from 'tsyringe';
 import { UserRoleMappingService } from '../services/user-role-mapping-service';
+import { parseErrors } from '../util';
+
+type listQueryParams = {
+  roleName: string;
+  username: string;
+};
+
+type UserRoleMappingPayload = {
+  roleName: string;
+  username: string;
+  operation: string;
+};
 
 @injectable()
 export class UserRoleMappingController {
   constructor(private userRoleMappingService: UserRoleMappingService) {}
 
-  public async list(teamId: number, integrationId: number, environment: string, queryParams: any) {
+  public async list(teamId: number, integrationId: number, environment: string, queryParams: listQueryParams) {
     let users = [];
     let roles = [];
 
-    if (!queryParams.roleName && !queryParams.username) throw Error(`either roleName or username is required`);
+    const valid = getValidator(queryParams);
 
-    if (queryParams.roleName && !queryParams.username) {
+    if (!valid) throw Error(parseErrors(getValidator.errors));
+
+    if (queryParams?.roleName && !queryParams?.username) {
       users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
-      if (users.length > 0) roles = [{ name: queryParams.roleName }];
-    } else if (!queryParams.roleName && queryParams.username) {
+      if (users.length > 0) roles = [{ name: queryParams?.roleName }];
+    } else if (!queryParams?.roleName && queryParams?.username) {
       const userRoles = await this.userRoleMappingService.getAllByUser(
         teamId,
         integrationId,
@@ -58,17 +74,20 @@ export class UserRoleMappingController {
     teamId: number,
     integrationId: number,
     environment: string,
-    userName: string,
-    roleName: string,
-    operation: string,
+    userRoleMapping: UserRoleMappingPayload,
   ) {
+    const valid = postValidator(userRoleMapping);
+
+    if (!valid) throw Error(parseErrors(postValidator.errors));
+
+    const { username, roleName, operation } = userRoleMapping;
     if (operation !== 'add' && operation !== 'del')
       throw Error(`invalid operation #${operation}. valid values are (add, del)`);
     return await this.userRoleMappingService.manageRoleMapping(
       teamId,
       integrationId,
       environment,
-      userName,
+      username,
       roleName,
       operation,
     );

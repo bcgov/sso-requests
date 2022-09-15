@@ -6,6 +6,7 @@ import { UserRoleMappingController } from './controllers/user-role-mapping-contr
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { TokenController } from './controllers/token-controller';
+import { isEmpty } from 'lodash';
 
 const responseHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
@@ -94,6 +95,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
+      if (!isEmpty(req.query)) throw Error('invalid request');
       const result = await integrationController.listByTeam(req.teamId);
       res.status(200).json({ success: true, data: result });
     } catch (err) {
@@ -123,6 +125,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
+      if (!isEmpty(req.query)) throw Error('invalid request');
       const { integrationId } = req.params;
       const result = await integrationController.getIntegration(integrationId, req.teamId);
       res.status(200).json({ success: true, data: result });
@@ -158,6 +161,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
+      if (!isEmpty(req.query)) throw Error('invalid request');
       const { integrationId, environment } = req.params;
       const result = await roleController.list(req.teamId, integrationId, environment);
       res.status(200).json({ success: true, data: result });
@@ -198,6 +202,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
+      if (!isEmpty(req.query)) throw Error('invalid request');
       const { integrationId, environment, roleName } = req.params;
       const result = await roleController.get(req.teamId, integrationId, environment, roleName);
       res.status(200).json({ success: true, data: result });
@@ -237,8 +242,9 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
+      if (!isEmpty(req.query)) throw Error('invalid request');
       const { integrationId, environment } = req.params;
-      await roleController.create(req.teamId, integrationId, req.body.name, environment);
+      await roleController.create(req.teamId, integrationId, req.body, environment);
       res.status(201).json({ success: true, message: 'created' });
     } catch (err) {
       handleError(res, err);
@@ -281,8 +287,9 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
+      if (!isEmpty(req.query)) throw Error('invalid request');
       const { integrationId, environment, roleName } = req.params;
-      await roleController.update(req.teamId, integrationId, roleName, environment, req.body.name);
+      await roleController.update(req.teamId, integrationId, roleName, environment, req.body);
       res.status(200).json({ success: true, message: 'updated' });
     } catch (err) {
       handleError(res, err);
@@ -321,6 +328,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
+      if (!isEmpty(req.query)) throw Error('invalid request');
       const { integrationId, environment, roleName } = req.params;
       await roleController.delete(req.teamId, integrationId, roleName, environment);
       res.status(200).json({ success: true, message: 'deleted' });
@@ -393,6 +401,10 @@ export const setRoutes = (app: any) => {
         required: true,
         schema: { $ref: '#/components/schemas/userRoleMappingRequest' }
       }
+      #swagger.responses[201] = {
+        description: 'Created',
+        schema: { success: true, message: 'string' }
+      }
       #swagger.responses[200] = {
         description: 'OK',
         schema: { success: true, message: 'string' }
@@ -403,10 +415,10 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
+      if (!isEmpty(req.query)) throw Error('invalid request');
       const { integrationId, environment } = req.params;
-      const { username, roleName, operation } = req.body;
-      await userRoleMappingController.manage(req.teamId, integrationId, environment, username, roleName, operation);
-      operation === 'add'
+      await userRoleMappingController.manage(req.teamId, integrationId, environment, req.body);
+      req.body.operation === 'add'
         ? res.status(201).json({ success: true, message: 'created' })
         : res.status(200).json({ success: true, message: 'deleted' });
     } catch (err) {
