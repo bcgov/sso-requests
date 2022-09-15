@@ -49,7 +49,7 @@ function TabContent({ integration, type, canApproveProd, awaitingProdComplete, o
   const onConfirm = async () => {
     const [, err] = await updateRequest(
       {
-        id: integration.id,
+        ...integration,
         [`${type}Approved`]: true,
       },
       true,
