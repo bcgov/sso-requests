@@ -23,10 +23,6 @@ const POST_USER_ROLE_MAPPING_REQ = {
   errorMessage: 'invalid user-role-mapping',
 };
 
-validator.addSchema(GET_USER_ROLE_MAPPING_REQ, 'getUserRoleMappingReq');
+export const getValidator = validator.compile(GET_USER_ROLE_MAPPING_REQ);
 
-validator.addSchema(POST_USER_ROLE_MAPPING_REQ, 'postUserRoleMappingReq');
-
-export const getValidator = validator.getSchema('getUserRoleMappingReq');
-
-export const postValidator = validator.getSchema('postUserRoleMappingReq');
+export const postValidator = validator.compile(POST_USER_ROLE_MAPPING_REQ);
