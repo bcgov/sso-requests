@@ -7,6 +7,7 @@ import { faPlusCircle, faMinusCircle, faStar } from '@fortawesome/free-solid-svg
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import { Errors } from './CreateTeamForm';
+import { Link } from '@button-inc/bcgov-theme';
 
 const Container = styled.div`
   display: grid;
@@ -151,12 +152,14 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
             &nbsp;have <b>viewing</b> powers
           </span>
         </div>
-        {/* <br />
+        <br />
         <div>
           <span className="underline">
-            <a href="#">View a detailed breakdown of roles on our wiki page</a>
+            <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-App-My-Teams">
+              View a detailed breakdown of roles on our wiki page
+            </Link>
           </span>
-        </div> */}
+        </div>
       </p>
       <MembersSection>
         <Container>
