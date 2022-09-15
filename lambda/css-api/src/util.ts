@@ -7,3 +7,7 @@ export const createEvent = async (data: any) => {
     console.error(err);
   }
 };
+
+export const parseErrors = (validationErrors) => {
+  return validationErrors[0].message;
+};
