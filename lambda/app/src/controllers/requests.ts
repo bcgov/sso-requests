@@ -361,9 +361,6 @@ export const getRequests = async (session: Session, user: User, include: string 
 };
 
 export const getIntegrations = async (session: Session, teamId: number, user: User, include: string = 'active') => {
-  if (isAdmin(session)) {
-    return getIntegrationsByTeam(teamId);
-  }
   return getIntegrationsByUserTeam(user, teamId);
 };
 
@@ -442,6 +439,7 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
 };
 
 export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
+  if (isAdmin(session)) return true;
   const integration = await getAllowedRequest(session, integrationId);
   return canDeleteIntegration(integration);
 };
