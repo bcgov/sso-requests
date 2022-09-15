@@ -1,6 +1,5 @@
 import { findUserByRealm } from '@lambda-app/keycloak/users';
-import { validate as getValidator } from '../schemas/get-user-role-mapping';
-import { validate as postValidator } from '../schemas/create-user-role-mapping';
+import { getValidator, postValidator } from '../schemas/user-role-mapping';
 import { injectable } from 'tsyringe';
 import { UserRoleMappingService } from '../services/user-role-mapping-service';
 import { parseErrors } from '../util';
