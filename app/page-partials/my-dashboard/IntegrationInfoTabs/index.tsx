@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import SecretsPanel from 'page-partials/my-dashboard/SecretsPanel';
-import ClientRoles from 'page-partials/my-dashboard/ClientRoles';
+import ClientRoles from 'page-partials/my-dashboard/RoleManagement';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';

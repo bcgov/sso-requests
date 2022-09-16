@@ -3,10 +3,8 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import startCase from 'lodash.startcase';
 import throttle from 'lodash.throttle';
 import InfiniteScroll from 'react-infinite-scroller';
-import Input from '@button-inc/bcgov-theme/Input';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
@@ -16,9 +14,7 @@ import { ActionButton } from 'components/ActionButtons';
 import { Button, Table, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
-import CreateRoleContent from './roles/CreateRoleContent';
 import {
-  searchKeycloakUsers,
   listClientRoles,
   deleteRole,
   listRoleUsers,
@@ -29,14 +25,6 @@ import {
 } from 'services/keycloak';
 import noop from 'lodash.noop';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
-
-const StyledInput = styled(Input)`
-  display: inline-block;
-  input {
-    min-width: 200px;
-    height: 40px;
-  }
-`;
 
 const Label = styled.label`
   font-weight: bold;
@@ -63,6 +51,7 @@ const optionize = (v: string) => ({ label: v, value: v });
 const optionizeAll = (vs: string[]) => vs.map(optionize);
 
 interface Props {
+  environment: string;
   integration: Integration;
   alert: TopAlert;
 }
@@ -74,11 +63,9 @@ const LoaderContainer = () => (
   </AlignCenter>
 );
 
-const ClientRoles = ({ integration, alert }: Props) => {
-  const modalRef = useRef<ModalRef>(emptyRef);
+const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const confirmModalRef = useRef<ModalRef>(emptyRef);
   const removeUserModalRef = useRef<ModalRef>(emptyRef);
-  const [environment, setEnvironment] = useState('dev');
   const [roleLoading, setRoleLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
   const [compositeLoading, setCompositeLoading] = useState(false);
@@ -115,7 +102,7 @@ const ClientRoles = ({ integration, alert }: Props) => {
       2000,
       { trailing: true },
     ),
-    [integration?.id, selectedRole],
+    [selectedRole],
   );
 
   const reset = () => {
@@ -127,13 +114,8 @@ const ClientRoles = ({ integration, alert }: Props) => {
   };
 
   useEffect(() => {
-    setEnvironment('dev');
     reset();
-  }, [integration.id]);
-
-  useEffect(() => {
-    reset();
-  }, [environment]);
+  }, [integration]);
 
   useEffect(() => {
     if (!selectedRole) return;
@@ -248,10 +230,6 @@ const ClientRoles = ({ integration, alert }: Props) => {
     confirmModalRef.current.open(roleName);
   };
 
-  const handleTabSelect = (key: any) => {
-    setEnvironment(key);
-  };
-
   const handleRightPanelTabSelect = (key: any) => {
     setRightPanelTab(key);
   };
@@ -358,7 +336,7 @@ const ClientRoles = ({ integration, alert }: Props) => {
                     if (canCreateOrDeleteRole) {
                       event.stopPropagation();
                       handleDelete(role);
-                    } else noop;
+                    }
                   }}
                   title="Delete"
                   size="lg"
@@ -372,28 +350,8 @@ const ClientRoles = ({ integration, alert }: Props) => {
     </ControlledTable>
   );
 
-  const environments = integration?.environments || [];
-
   return (
     <>
-      <TopMargin />
-      <Button
-        disabled={!canCreateOrDeleteRole}
-        size="medium"
-        variant="primary"
-        onClick={() => {
-          modalRef.current.open();
-        }}
-      >
-        + Create a New Role
-      </Button>
-      <TopMargin />
-      <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30}>
-        {environments.map((env) => (
-          <Tab key={env} tab={startCase(env)} />
-        ))}
-      </Tabs>
-      <br />
       <Grid cols={10}>
         <Grid.Row collapse="1100" gutter={[15, 2]}>
           <Grid.Col span={4}>
@@ -435,31 +393,6 @@ const ClientRoles = ({ integration, alert }: Props) => {
           </Grid.Row>
         </Grid>
       )}
-
-      <GenericModal
-        ref={modalRef}
-        title="Create New Role"
-        icon={null}
-        onConfirm={async (contentRef: any) => {
-          const hasError = await contentRef.current.submit();
-          if (!hasError) {
-            await contentRef.current.reset();
-            reset();
-          } else {
-            modalRef.current.updateConfig({ confirmButtonText: 'Try Again' });
-            return false;
-          }
-        }}
-        onCancel={(contentRef: any) => {
-          contentRef.current.reset();
-        }}
-        confirmButtonText="Save"
-        confirmButtonVariant="primary"
-        cancelButtonVariant="secondary"
-        style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
-      >
-        <CreateRoleContent integrationId={integration.id as number} environments={environments} />
-      </GenericModal>
       <GenericModal
         ref={confirmModalRef}
         title="Delete Role"
@@ -516,4 +449,4 @@ const ClientRoles = ({ integration, alert }: Props) => {
   );
 };
 
-export default withTopAlert(ClientRoles);
+export default withTopAlert(RoleEnvironment);

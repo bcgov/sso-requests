@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import forEach from 'lodash.foreach';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
-import { searchKeycloakUsers, listClientRoles, listUserRoles, bulkCreateRole, KeycloakUser } from 'services/keycloak';
+import { bulkCreateRole } from 'services/keycloak';
 
 const Table = styled.table`
   .env {
