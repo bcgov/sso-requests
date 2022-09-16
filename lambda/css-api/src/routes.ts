@@ -7,6 +7,7 @@ import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { TokenController } from './controllers/token-controller';
 import { isEmpty } from 'lodash';
+import createHttpError from 'http-errors';
 
 const responseHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
@@ -16,7 +17,7 @@ const responseHeaders = {
 const BASE_PATH = '/api/v1';
 
 const handleError = (res, err) => {
-  res.status(422).json({ success: false, message: err.message || err });
+  res.status(err.status || 422).json({ message: err.message || err });
 };
 
 const integrationController = container.resolve(IntegrationController);
@@ -87,17 +88,17 @@ export const setRoutes = (app: any) => {
       #swagger.summary = 'Get integrations'
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { success: true, data: [{ $ref: '#/components/schemas/integration' }] }
+        schema: { data: [{ $ref: '#/components/schemas/integration' }] }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: { message: 'string'}
       }
     */
     try {
-      if (!isEmpty(req.query)) throw Error('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const result = await integrationController.listByTeam(req.teamId);
-      res.status(200).json({ success: true, data: result });
+      res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
@@ -117,18 +118,22 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { success: true, data: { $ref: '#/components/schemas/integration' } }
+        schema: { $ref: '#/components/schemas/integration' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: { message: 'string' }
       }
     */
     try {
-      if (!isEmpty(req.query)) throw Error('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId } = req.params;
       const result = await integrationController.getIntegration(integrationId, req.teamId);
-      res.status(200).json({ success: true, data: result });
+      res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
@@ -153,18 +158,18 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { success: true, data: [{ $ref: '#/components/schemas/role' }] }
+        schema: { data: [{ $ref: '#/components/schemas/role' }] }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: { message: 'string' }
       }
     */
     try {
-      if (!isEmpty(req.query)) throw Error('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment } = req.params;
       const result = await roleController.list(req.teamId, integrationId, environment);
-      res.status(200).json({ success: true, data: result });
+      res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
@@ -194,18 +199,22 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { success: true, data: [{ $ref: '#/components/schemas/role' }] }
+        schema: { data: [{ $ref: '#/components/schemas/role' }] }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: {message: 'string'}
       }
     */
     try {
-      if (!isEmpty(req.query)) throw Error('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment, roleName } = req.params;
       const result = await roleController.get(req.teamId, integrationId, environment, roleName);
-      res.status(200).json({ success: true, data: result });
+      res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
@@ -234,18 +243,26 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[201] = {
         description: 'Created',
-        schema: { success: true, message: 'string' }
+        schema: { message: 'string' }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[409] = {
+        description: 'Conflict',
+        schema: { message: 'string' }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: {message: 'string'}
       }
     */
     try {
-      if (!isEmpty(req.query)) throw Error('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment } = req.params;
-      await roleController.create(req.teamId, integrationId, req.body, environment);
-      res.status(201).json({ success: true, message: 'created' });
+      const result = await roleController.create(req.teamId, integrationId, req.body, environment);
+      res.status(201).json(result);
     } catch (err) {
       handleError(res, err);
     }
@@ -279,18 +296,30 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { success: true, message: 'string' }
+        schema: { message: 'string' }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[409] = {
+        description: 'Conflict',
+        schema: { message: 'string' }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: {message: 'string'}
       }
     */
     try {
-      if (!isEmpty(req.query)) throw Error('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment, roleName } = req.params;
-      await roleController.update(req.teamId, integrationId, roleName, environment, req.body);
-      res.status(200).json({ success: true, message: 'updated' });
+      const result = await roleController.update(req.teamId, integrationId, roleName, environment, req.body);
+      res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
@@ -318,20 +347,23 @@ export const setRoutes = (app: any) => {
         description: 'Role name',
         required: true
       }
-      #swagger.responses[200] = {
-        description: 'OK',
-        schema: { success: true, message: 'string' }
+      #swagger.responses[204] = {
+        description: 'No Content'
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: {message: 'string'}
       }
     */
     try {
-      if (!isEmpty(req.query)) throw Error('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment, roleName } = req.params;
       await roleController.delete(req.teamId, integrationId, roleName, environment);
-      res.status(200).json({ success: true, message: 'deleted' });
+      res.send(204);
     } catch (err) {
       handleError(res, err);
     }
@@ -364,17 +396,21 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { success: true, data: { users: [{ $ref: '#/components/schemas/user' }], roles: [{ $ref: '#/components/schemas/role' }]} }
+        schema: { users: [{ $ref: '#/components/schemas/user' }], roles: [{ $ref: '#/components/schemas/role' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: {message: 'string'}
       }
     */
     try {
       const { integrationId, environment } = req.params;
       const result = await userRoleMappingController.list(req.teamId, integrationId, environment, req.query);
-      res.status(200).json({ success: true, data: result });
+      res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
@@ -403,24 +439,29 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[201] = {
         description: 'Created',
-        schema: { success: true, message: 'string' }
+        schema: { users: [{ $ref: '#/components/schemas/user' }], roles: [{ $ref: '#/components/schemas/role' }] }
       }
-      #swagger.responses[200] = {
-        description: 'OK',
-        schema: { success: true, message: 'string' }
+      #swagger.responses[204] = {
+        description: 'No Content'
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
-        schema: {success: false, message: 'string'}
+        schema: {message: 'string'}
       }
     */
     try {
-      if (!isEmpty(req.query)) throw Error('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment } = req.params;
-      await userRoleMappingController.manage(req.teamId, integrationId, environment, req.body);
-      req.body.operation === 'add'
-        ? res.status(201).json({ success: true, message: 'created' })
-        : res.status(200).json({ success: true, message: 'deleted' });
+      const result = await userRoleMappingController.manage(req.teamId, integrationId, environment, req.body);
+      req.body.operation === 'add' ? res.status(201).json(result) : res.send(204);
     } catch (err) {
       handleError(res, err);
     }
