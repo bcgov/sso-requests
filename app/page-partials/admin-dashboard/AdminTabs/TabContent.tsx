@@ -16,11 +16,11 @@ interface Props {
   integration: Integration;
   type: 'bceid' | 'github';
   canApproveProd: boolean;
-  awaitingProdComplete: boolean;
+  awaitingTFComplete: boolean;
   onApproved?: () => void;
 }
 
-function TabContent({ integration, type, canApproveProd, awaitingProdComplete, onApproved }: Props) {
+function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onApproved }: Props) {
   if (!integration) return null;
 
   const displayType = startCase(type);
@@ -35,7 +35,7 @@ function TabContent({ integration, type, canApproveProd, awaitingProdComplete, o
         <Button onClick={openModal}>Approve Prod</Button>
       </>
     );
-  } else if (awaitingProdComplete) {
+  } else if (awaitingTFComplete) {
     content = (
       <SubmittedStatusIndicator
         integration={integration}
