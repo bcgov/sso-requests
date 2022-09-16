@@ -52,7 +52,7 @@ export const searchUsers = async ({
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
-  if (!['idir', 'bceidbasic', 'bceidbusiness', 'bceidboth'].includes(idp)) throw Error(`invalid idp ${idp}`);
+  if (!['idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'].includes(idp)) throw Error(`invalid idp ${idp}`);
   if (!['email', 'firstName', 'lastName', 'guid'].includes(property)) throw Error(`invalid property ${property}`);
 
   const query: any = {};
