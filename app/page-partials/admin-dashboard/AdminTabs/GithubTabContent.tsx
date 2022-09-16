@@ -11,14 +11,14 @@ function GithubTabContent({ integration, onApproved }: Props) {
   const { status, githubApproved } = integration;
 
   const canApproveProd = (status === 'applied' && !githubApproved) || false;
-  const awaitingProdComplete = (status !== 'applied' && githubApproved) || false;
+  const awaitingTFComplete = status !== 'applied';
 
   return (
     <TabContent
       type="github"
       integration={integration}
       canApproveProd={canApproveProd}
-      awaitingProdComplete={awaitingProdComplete}
+      awaitingTFComplete={awaitingTFComplete}
       onApproved={onApproved}
     />
   );

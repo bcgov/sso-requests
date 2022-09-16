@@ -5,7 +5,7 @@ import { Team, User } from 'interfaces/team';
 import { Integration, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
-import { usesBceid } from '@app/helpers/integration';
+import { usesBceid, usesGithub } from '@app/helpers/integration';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   let realms: string[] | null = [];
@@ -18,9 +18,10 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {
-  const { bceidApproved, environments = [], serviceType } = integration;
+  const { bceidApproved, githubApproved, environments = [], serviceType } = integration;
 
   const hasBceid = usesBceid(integration);
+  const hasGithub = usesGithub(integration);
   const options = environmentOptions.map((option) => {
     const idps = serviceType === 'gold' ? integration.devIdps : realmToIDP(integration.realm);
     return { ...option, idps: idps || [] };
@@ -28,10 +29,18 @@ export const getRequestedEnvironments = (integration: Integration) => {
 
   if (serviceType === 'gold') {
     const bceidApplying = checkIfBceidProdApplying(integration);
+    const githubApplying = checkIfGithubProdApplying(integration);
+
     let envs = options.filter((env) => environments.includes(env.name));
     if (hasBceid && (!bceidApproved || bceidApplying))
       envs = envs.map((env) => {
         if (env.name === 'prod') env.idps = env.idps.filter((idp) => !idp.startsWith('bceid'));
+        return env;
+      });
+
+    if (hasGithub && (!githubApproved || githubApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter((idp) => idp !== 'github');
         return env;
       });
 
