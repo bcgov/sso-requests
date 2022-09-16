@@ -336,7 +336,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                     if (canCreateOrDeleteRole) {
                       event.stopPropagation();
                       handleDelete(role);
-                    } else noop;
+                    }
                   }}
                   title="Delete"
                   size="lg"
