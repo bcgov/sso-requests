@@ -96,7 +96,7 @@ export class UserRoleMappingController {
     }
 
     if (operation !== 'add' && operation !== 'del')
-      throw Error(`invalid operation #${operation}. valid values are (add, del)`);
+      throw new createHttpError[400](`invalid operation #${operation}. valid values are (add, del)`);
 
     if (operation === 'del') {
       const users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, roleName);

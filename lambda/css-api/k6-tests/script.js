@@ -65,26 +65,32 @@ export default function (data) {
     },
   };
 
-  group('fetch integrations', () => {
+  group('GET list of integrations', () => {
     {
       const url = BASE_URL + `/integrations`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return count of integrations greater than zero': (r) => r.json().data.length > 0,
+      });
+
       response.json().data.forEach((int) => {
         if (
           !check(
             int,
             {
-              'has id': (r) => int.id,
-              'has projectName': (r) => int.projectName,
-              'has authType': (r) => int.authType,
-              'has environments': (r) => int.environments.length > 0,
-              'has dev environment': (r) => int.environments.includes('dev'),
-              'has status': (r) => int.status,
-              'has createdAt': (r) => int.createdAt,
-              'has updatedAt': (r) => int.updatedAt,
+              'return valid integration': (r) =>
+                int.id &&
+                int.projectName &&
+                int.authType &&
+                int.environments.length > 0 &&
+                int.environments.includes('dev') &&
+                int.status &&
+                int.createdAt &&
+                int.updatedAt,
             },
             { integrationId: int.id },
           )
@@ -97,9 +103,20 @@ export default function (data) {
 
       sleep(SLEEP_DURATION);
     }
+
+    {
+      const url = BASE_URL + `/integrations?param=1&param=2`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when passed arbitrary query params': (r) => r.status === 400,
+      });
+    }
   });
 
-  group('fetch integration by id', () => {
+  group('GET integration by id', () => {
     {
       const url = BASE_URL + `/integrations/${integrationId}`;
 
@@ -107,20 +124,23 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
       if (
         !check(
           response,
           {
-            'is status 200': (r) => r.status === 200,
-            'fetched integration': (r) => r.json().success === true,
-            'has id': (r) => r.json().data.id,
-            'has projectName': (r) => r.json().data.projectName,
-            'has authType': (r) => r.json().data.authType,
-            'has environments': (r) => r.json().data.environments.length > 0,
-            'has dev environment': (r) => r.json().data.environments.includes('dev'),
-            'has status': (r) => r.json().data.status,
-            'has createdAt': (r) => r.json().data.createdAt,
-            'has updatedAt': (r) => r.json().data.updatedAt,
+            'return valid integration': (r) =>
+              r.json().id &&
+              r.json().projectName &&
+              r.json().authType &&
+              r.json().environments.length > 0 &&
+              r.json().environments.includes('dev') &&
+              r.json().status &&
+              r.json().createdAt &&
+              r.json().updatedAt,
           },
           { integrationId },
         )
@@ -130,12 +150,40 @@ export default function (data) {
 
       sleep(SLEEP_DURATION);
     }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}?param=1&param=2`;
+
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary query params are passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/10000000`;
+
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when integration not found': (r) => r.status === 404,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
   });
 
-  group('create role', () => {
+  group('POST role', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
-      const body = { name: 'role1' };
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles?param1=1&param2=2`;
+      const body = { name: 'some-role' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       const response = http.post(url, JSON.stringify(body), requestOptions);
@@ -143,15 +191,175 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 201': (r) => r.status === 201,
-        'role created': (r) => r.json().success === true && r.json().message === 'created',
+        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const body = { name: '     ' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when role name with only spaces passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const body = {};
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid payload passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const body = { name: 'some-role' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 201 when success': (r) => r.status === 201,
+        'return name': (r) => r.json().name === 'some-role',
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const body = { name: 'some-role' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 409 when re-creating existing role': (r) => r.status === 409,
       });
 
       sleep(SLEEP_DURATION);
     }
   });
 
-  group('fetch roles', () => {
+  group('PUT role', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role?param1=1&param2=2`;
+      const body = { name: 'role1' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/nonexistentrole`;
+      const body = { name: 'role1' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when role not found': (r) => r.status === 404,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
+      const body = {};
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid payload passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
+      const body = { name: '     ' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when role name with only spaces passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
+      const body = { name: 'role1' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return name': (r) => r.json().name === 'role1',
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET list of roles', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles?param1=1&param2=2`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const response = http.get(url, options);
@@ -159,15 +367,41 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 200': (r) => r.status === 200,
-        'fetched roles': (r) => r.json().success === true && r.json().data.length > 0,
+        'should return 200 when success': (r) => r.status === 200,
+        'return count of roles': (r) => r.json().data.length > 0,
       });
 
       sleep(SLEEP_DURATION);
     }
   });
 
-  group('fetch role by name', () => {
+  group('GET role by name', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1?param1=1&param2=2`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/nonexistentrole`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when non-existent role name passed': (r) => r.status === 404,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
       const response = http.get(url, options);
@@ -175,15 +409,71 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 200': (r) => r.status === 200,
-        'fetched role': (r) => r.json().success === true && r.json().data.name === 'role1',
+        'should return 200 when success': (r) => r.status === 200,
+        'return name': (r) => r.json().name === 'role1',
       });
 
       sleep(SLEEP_DURATION);
     }
   });
 
-  group('create user role mapping', () => {
+  group('POST user role mapping', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const body = { roleName: 'role1', username: __ENV.username, operation: 'add' };
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+      });
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const body = {};
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid payload passed': (r) => r.status === 400,
+      });
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const body = { roleName: 'nonexistentrole', username: __ENV.username, operation: 'add' };
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when non-existent role name passed': (r) => r.status === 404,
+      });
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const body = { roleName: 'role1', username: 'nonexistentuser', operation: 'add' };
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when non-existent username passed': (r) => r.status === 404,
+      });
+    }
+
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const requestOptions = Object.assign({}, options);
@@ -194,13 +484,53 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 201': (r) => r.status === 201,
-        'user role mapping created': (r) => r.json().success === true && r.json().message === 'created',
+        'should return 201 when success': (r) => r.status === 201,
+        'return role name': (r) => r.json().roles[0].name === 'role1',
+        'return username': (r) => r.json().users[0].username === __ENV.username,
       });
     }
   });
 
-  group('fetch user role mappings', () => {
+  group('GET user role mappings', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when no query params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=somerole`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when success on passing role name': (r) => r.status === 404,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role1`;
       const response = http.get(url, options);
@@ -208,8 +538,23 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 200': (r) => r.status === 200,
-        'fetched user role mapping by role name': (r) => r.json().success === true,
+        'should return 200 when success on passing role name': (r) => r.status === 200,
+        'return role name': (r) => r.json().roles[0].name === 'role1',
+        'return username': (r) => r.json().users[0].username === __ENV.username,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url =
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?username=nonexistentuser`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when success on passing username': (r) => r.status === 404,
       });
 
       sleep(SLEEP_DURATION);
@@ -223,15 +568,103 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 200': (r) => r.status === 200,
-        'fetched user role mapping by username': (r) => r.json().success === true,
+        'should return 200 when success on passing username': (r) => r.status === 200,
+        'return role name': (r) => r.json().roles[0].name === 'role1',
+        'return username': (r) => r.json().users[0].username === __ENV.username,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role1&username=${__ENV.username}`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success on passing role name and username': (r) => r.status === 200,
+        'return role name': (r) => r.json().roles[0].name === 'role1',
+        'return username': (r) => r.json().users[0].username === __ENV.username,
       });
 
       sleep(SLEEP_DURATION);
     }
   });
 
-  group('delete role mapping', () => {
+  group('DELETE role mapping', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
+      const body = { roleName: 'role1', username: __ENV.username, operation: 'del' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+      });
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const body = { roleName: 'role100000', username: __ENV.username, operation: 'del' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when non-existent role name passed': (r) => r.status === 404,
+      });
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const body = { roleName: 'role1', username: 'nonexistentuser', operation: 'del' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when non-existent username passed': (r) => r.status === 404,
+      });
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const body = {};
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid payload passed': (r) => r.status === 400,
+      });
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const body = { roleName: 'role1', username: __ENV.username, operation: 'unknown' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid operation passed': (r) => r.status === 400,
+      });
+    }
+
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const body = { roleName: 'role1', username: __ENV.username, operation: 'del' };
@@ -242,13 +675,25 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 200': (r) => r.status === 200,
-        'user role mapping deleted': (r) => r.json().success === true && r.json().message === 'deleted',
+        'should return 204 when success': (r) => r.status === 204,
       });
     }
   });
 
-  group('delete role', () => {
+  group('DELETE role', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1?param1=1&param2=2`;
+      const response = http.del(url, null, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
       const response = http.del(url, null, options);
@@ -256,8 +701,20 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 200': (r) => r.status === 200,
-        'role deleted': (r) => r.json().success === true && r.json().message === 'deleted',
+        'should return 204 when success': (r) => r.status === 204,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
+      const response = http.del(url, null, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when role not found': (r) => r.status === 404,
       });
 
       sleep(SLEEP_DURATION);
