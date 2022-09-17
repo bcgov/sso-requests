@@ -112,15 +112,14 @@ export default function (data) {
           response,
           {
             'is status 200': (r) => r.status === 200,
-            'fetched integration': (r) => r.json().success === true,
-            'has id': (r) => r.json().data.id,
-            'has projectName': (r) => r.json().data.projectName,
-            'has authType': (r) => r.json().data.authType,
-            'has environments': (r) => r.json().data.environments.length > 0,
-            'has dev environment': (r) => r.json().data.environments.includes('dev'),
-            'has status': (r) => r.json().data.status,
-            'has createdAt': (r) => r.json().data.createdAt,
-            'has updatedAt': (r) => r.json().data.updatedAt,
+            'has id': (r) => r.json().id,
+            'has projectName': (r) => r.json().projectName,
+            'has authType': (r) => r.json().authType,
+            'has environments': (r) => r.json().environments.length > 0,
+            'has dev environment': (r) => r.json().environments.includes('dev'),
+            'has status': (r) => r.json().status,
+            'has createdAt': (r) => r.json().createdAt,
+            'has updatedAt': (r) => r.json().updatedAt,
           },
           { integrationId },
         )
@@ -144,7 +143,7 @@ export default function (data) {
 
       check(response, {
         'is status 201': (r) => r.status === 201,
-        'role created': (r) => r.json().success === true && r.json().message === 'created',
+        'role created': (r) => r.json().name === 'role1',
       });
 
       sleep(SLEEP_DURATION);
@@ -160,7 +159,7 @@ export default function (data) {
 
       check(response, {
         'is status 200': (r) => r.status === 200,
-        'fetched roles': (r) => r.json().success === true && r.json().data.length > 0,
+        'fetched roles': (r) => r.json().data.length > 0,
       });
 
       sleep(SLEEP_DURATION);
@@ -176,7 +175,7 @@ export default function (data) {
 
       check(response, {
         'is status 200': (r) => r.status === 200,
-        'fetched role': (r) => r.json().success === true && r.json().data.name === 'role1',
+        'fetched role': (r) => r.json().name === 'role1',
       });
 
       sleep(SLEEP_DURATION);
@@ -195,7 +194,8 @@ export default function (data) {
 
       check(response, {
         'is status 201': (r) => r.status === 201,
-        'user role mapping created': (r) => r.json().success === true && r.json().message === 'created',
+        'user role mapping created': (r) =>
+          r.json().roles[0].name === 'role1' && r.json().users[0].username === __ENV.username,
       });
     }
   });
@@ -209,7 +209,8 @@ export default function (data) {
 
       check(response, {
         'is status 200': (r) => r.status === 200,
-        'fetched user role mapping by role name': (r) => r.json().success === true,
+        'fetched user role mapping by role name': (r) =>
+          r.json().roles[0].name === 'role1' && r.json().users[0].username === __ENV.username,
       });
 
       sleep(SLEEP_DURATION);
@@ -224,7 +225,8 @@ export default function (data) {
 
       check(response, {
         'is status 200': (r) => r.status === 200,
-        'fetched user role mapping by username': (r) => r.json().success === true,
+        'fetched user role mapping by username': (r) =>
+          r.json().roles[0].name === 'role1' && r.json().users[0].username === __ENV.username,
       });
 
       sleep(SLEEP_DURATION);
@@ -242,8 +244,7 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 200': (r) => r.status === 200,
-        'user role mapping deleted': (r) => r.json().success === true && r.json().message === 'deleted',
+        'is status 204': (r) => r.status === 204,
       });
     }
   });
@@ -256,8 +257,7 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'is status 200': (r) => r.status === 200,
-        'role deleted': (r) => r.json().success === true && r.json().message === 'deleted',
+        'is status 200': (r) => r.status === 204,
       });
 
       sleep(SLEEP_DURATION);
