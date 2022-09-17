@@ -21,6 +21,15 @@ export const getAllowedTeams = async (): Promise<[Team[], null] | [null, AxiosEr
   }
 };
 
+export const getAllowedTeam = async (id: string): Promise<[Team, null] | [null, AxiosError]> => {
+  try {
+    const result = await instance.get(`allowed-teams/${id}`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
 export const createTeam = async (data: any): Promise<[Team, null] | [null, AxiosError]> => {
   try {
     const result = await instance.post('teams', data).then((res) => res.data);
