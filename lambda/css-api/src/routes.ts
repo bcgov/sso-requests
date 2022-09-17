@@ -199,7 +199,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/role' }] }
+        schema: { $ref: '#/components/schemas/role' }
       }
       #swagger.responses[404] = {
         description: 'Not Found',
@@ -214,7 +214,7 @@ export const setRoutes = (app: any) => {
       if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment, roleName } = req.params;
       const result = await roleController.get(req.teamId, integrationId, environment, roleName);
-      res.status(200).json({ data: result });
+      res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
@@ -363,7 +363,7 @@ export const setRoutes = (app: any) => {
       if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment, roleName } = req.params;
       await roleController.delete(req.teamId, integrationId, roleName, environment);
-      res.send(204);
+      res.status(204).send();
     } catch (err) {
       handleError(res, err);
     }
