@@ -28,7 +28,19 @@ const integrationRoleUsers = [
     notBefore: 0,
   },
 ];
+const createIntegrationRole = 'role4';
+const updateIntegrationRole = 'role4';
 const integrationUserRoles = ['role1'];
+const createUserRoleMapping = {
+  username: integrationRoleUsers[0].username,
+  roleName: 'role1',
+  operation: 'add',
+};
+const deleteUserRoleMapping = {
+  username: integrationRoleUsers[0].username,
+  roleName: 'role1',
+  operation: 'del',
+};
 let integration = new Integration();
 
 jest.mock('@lambda-app/authenticate');
@@ -43,7 +55,7 @@ jest.mock('@lambda-app/keycloak/users', () => {
     listClientRoles: jest.fn(() => {
       return Promise.resolve(integrationRoles);
     }),
-    createRole: jest.fn(() => Promise.resolve()),
+    createRole: jest.fn(() => Promise.resolve({ roleName: createIntegrationRole })),
     updateRole: jest.fn(() => Promise.resolve()),
     deleteRole: jest.fn(() => Promise.resolve()),
     listRoleUsers: jest.fn(() => {
@@ -55,7 +67,7 @@ jest.mock('@lambda-app/keycloak/users', () => {
     findUserByRealm: jest.fn(() => {
       return Promise.resolve(integrationRoleUsers);
     }),
-    manageUserRole: jest.fn(() => Promise.resolve()),
+    manageUserRole: jest.fn(() => Promise.resolve(['role1'])),
   };
 });
 jest.mock('@lambda-app/helpers/token', () => {
@@ -125,19 +137,16 @@ describe('create team and gold integration', () => {
 
   it('gets team integrations', async () => {
     const result = await supertest(app).get(`${BASE_PATH}/integrations`).expect(200);
-    expect(result.body.success).toBe(true);
     expect(result.body.data.length).toBe(1);
   });
 
   it('gets team integration by id', async () => {
     const result = await supertest(app).get(`${BASE_PATH}/integrations/${integration.int.id}`).expect(200);
-    expect(result.body.success).toBe(true);
-    expect(result.body.data.id).toBe(integration.int.id);
+    expect(result.body.id).toBe(integration.int.id);
   });
 
   it('gets team integration roles by environment', async () => {
     const result = await supertest(app).get(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles`).expect(200);
-    expect(result.body.success).toBe(true);
     result.body.data.forEach((role) => {
       expect(integrationRoles).toContain(role.name);
     });
@@ -147,43 +156,39 @@ describe('create team and gold integration', () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles/${integrationRoles[0]}`)
       .expect(200);
-    expect(result.body.success).toBe(true);
-    expect(integrationRoles[0]).toBe(result.body.data.name);
+    expect(integrationRoles[0]).toBe(result.body.name);
   });
 
   it('creates team integration role for an environment', async () => {
     const result = await supertest(app)
       .post(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles`)
-      .send({ name: 'role4' })
+      .send({ name: createIntegrationRole })
       .set('Accept', 'application/json')
       .expect(201);
-    expect(result.body.success).toBe(true);
-    expect(result.body.message).toBe('created');
+    expect(result.body.name).toBe(createIntegrationRole);
   });
 
   it('updates team integration role for an environment', async () => {
     const result = await supertest(app)
-      .put(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles/role4`)
-      .send({ name: 'role5' })
+      .put(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles/role3`)
+      .send({ name: updateIntegrationRole })
       .set('Accept', 'application/json')
       .expect(200);
-    expect(result.body.success).toBe(true);
-    expect(result.body.message).toBe('updated');
+    expect(result.body.name).toBe(updateIntegrationRole);
   });
 
   it('deletes team integration role for an environment', async () => {
-    const result = await supertest(app)
-      .delete(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles/role4`)
-      .expect(200);
-    expect(result.body.success).toBe(true);
-    expect(result.body.message).toBe('deleted');
+    await supertest(app).delete(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles/role3`).expect(204);
   });
 
   it('fails fetching team integration role mappings for an environment when role name and username is not supplied', async () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/integrations/${integration.int.id}/dev/user-role-mappings`)
-      .expect(422);
-    expect(result.body.success).toBe(false);
+      .expect(400);
+  });
+
+  it('fails fetching team integration role mappings for an environment when role name and username are not supplied', async () => {
+    await supertest(app).get(`${BASE_PATH}/integrations/${integration.int.id}/dev/user-role-mappings`).expect(400);
   });
 
   it('gets team integration role mappings for an environment when role name is supplied', async () => {
@@ -192,15 +197,14 @@ describe('create team and gold integration', () => {
       .query({ roleName: integrationUserRoles[0] })
       .expect(200);
 
-    expect(result.body.success).toBe(true);
-    expect(result.body.data.roles.length === 1).toBe(true);
-    expect(result.body.data.roles[0].name).toBe(integrationUserRoles[0]);
-    expect(result.body.data.users.length === 1).toBe(true);
-    expect(result.body.data.users[0].username).toBe(integrationRoleUsers[0].username);
-    expect(result.body.data.users[0].firstName).toBe(integrationRoleUsers[0].firstName);
-    expect(result.body.data.users[0].lastName).toBe(integrationRoleUsers[0].lastName);
-    expect(result.body.data.users[0].email).toBe(integrationRoleUsers[0].email);
-    expect(result.body.data.users[0].attributes).toEqual(integrationRoleUsers[0].attributes);
+    expect(result.body.roles.length === 1).toBe(true);
+    expect(result.body.roles[0].name).toBe(integrationUserRoles[0]);
+    expect(result.body.users.length === 1).toBe(true);
+    expect(result.body.users[0].username).toBe(integrationRoleUsers[0].username);
+    expect(result.body.users[0].firstName).toBe(integrationRoleUsers[0].firstName);
+    expect(result.body.users[0].lastName).toBe(integrationRoleUsers[0].lastName);
+    expect(result.body.users[0].email).toBe(integrationRoleUsers[0].email);
+    expect(result.body.users[0].attributes).toEqual(integrationRoleUsers[0].attributes);
   });
 
   it('gets team integration role mappings for an environment when username is supplied', async () => {
@@ -209,33 +213,43 @@ describe('create team and gold integration', () => {
       .query({ username: integrationRoleUsers[0].username })
       .expect(200);
 
-    expect(result.body.success).toBe(true);
-    expect(result.body.data.roles.length > 0).toBe(true);
-    expect(result.body.data.roles[0].name).toBe(integrationUserRoles[0]);
-    expect(result.body.data.users.length === 1).toBe(true);
-    expect(result.body.data.users[0].username).toBe(integrationRoleUsers[0].username);
-    expect(result.body.data.users[0].firstName).toBe(integrationRoleUsers[0].firstName);
-    expect(result.body.data.users[0].lastName).toBe(integrationRoleUsers[0].lastName);
-    expect(result.body.data.users[0].email).toBe(integrationRoleUsers[0].email);
-    expect(result.body.data.users[0].attributes).toEqual(integrationRoleUsers[0].attributes);
+    expect(result.body.roles.length > 0).toBe(true);
+    expect(result.body.roles[0].name).toBe(integrationUserRoles[0]);
+    expect(result.body.users.length === 1).toBe(true);
+    expect(result.body.users[0].username).toBe(integrationRoleUsers[0].username);
+    expect(result.body.users[0].firstName).toBe(integrationRoleUsers[0].firstName);
+    expect(result.body.users[0].lastName).toBe(integrationRoleUsers[0].lastName);
+    expect(result.body.users[0].email).toBe(integrationRoleUsers[0].email);
+    expect(result.body.users[0].attributes).toEqual(integrationRoleUsers[0].attributes);
+  });
+
+  it('fails creating team integration role mapping for an environment when payload not supplied', async () => {
+    await supertest(app)
+      .post(`${BASE_PATH}/integrations/${integration.int.id}/dev/user-role-mappings`)
+      .set('Accept', 'application/json')
+      .expect(400);
   });
 
   it('creates team integration role mapping for an environment', async () => {
     const result = await supertest(app)
       .post(`${BASE_PATH}/integrations/${integration.int.id}/dev/user-role-mappings`)
-      .send({ username: integrationRoleUsers[0].username, roleName: 'role5', operation: 'add' })
+      .send(createUserRoleMapping)
       .set('Accept', 'application/json')
       .expect(201);
-    expect(result.body.success).toBe(true);
-    expect(result.body.message).toBe('created');
+    expect(result.body.roles.length > 0).toBe(true);
+    expect(result.body.roles[0].name).toBe(integrationUserRoles[0]);
+    expect(result.body.users.length === 1).toBe(true);
+    expect(result.body.users[0].username).toBe(integrationRoleUsers[0].username);
+    expect(result.body.users[0].firstName).toBe(integrationRoleUsers[0].firstName);
+    expect(result.body.users[0].lastName).toBe(integrationRoleUsers[0].lastName);
+    expect(result.body.users[0].email).toBe(integrationRoleUsers[0].email);
+    expect(result.body.users[0].attributes).toEqual(integrationRoleUsers[0].attributes);
   });
   it('deletes team integration role mapping for an environment', async () => {
     const result = await supertest(app)
       .post(`${BASE_PATH}/integrations/${integration.int.id}/dev/user-role-mappings`)
-      .send({ username: integrationRoleUsers[0].username, roleName: 'role5', operation: 'del' })
+      .send(deleteUserRoleMapping)
       .set('Accept', 'application/json')
-      .expect(200);
-    expect(result.body.success).toBe(true);
-    expect(result.body.message).toBe('deleted');
+      .expect(204);
   });
 });

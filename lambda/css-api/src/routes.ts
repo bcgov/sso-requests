@@ -410,7 +410,7 @@ export const setRoutes = (app: any) => {
     try {
       const { integrationId, environment } = req.params;
       const result = await userRoleMappingController.list(req.teamId, integrationId, environment, req.query);
-      res.status(200).json({ data: result });
+      res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
@@ -461,7 +461,7 @@ export const setRoutes = (app: any) => {
       if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
       const { integrationId, environment } = req.params;
       const result = await userRoleMappingController.manage(req.teamId, integrationId, environment, req.body);
-      req.body.operation === 'add' ? res.status(201).json(result) : res.send(204);
+      req.body.operation === 'add' ? res.status(201).json(result) : res.status(204).send();
     } catch (err) {
       handleError(res, err);
     }
