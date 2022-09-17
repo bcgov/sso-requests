@@ -52,6 +52,28 @@ export const getAllowedTeams = async (user: User, options = { raw: true }) => {
   });
 };
 
+export const getAllowedTeam = async (teamId: number, user: User, options = { raw: true }) => {
+  const teamIdsLiteral = getMyTeamsLiteral(user.id);
+  const where = user.isAdmin
+    ? { id: teamId }
+    : {
+        [Op.and]: [
+          {
+            id: teamId,
+          },
+          {
+            id: { [Op.in]: sequelize.literal(`(${teamIdsLiteral})`) },
+          },
+        ],
+      };
+
+  return models.team.findOne({
+    where,
+    attributes: teamAttributes,
+    ...options,
+  });
+};
+
 const userTeamAttributes = [
   'id',
   'idirUserid',

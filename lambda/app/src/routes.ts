@@ -44,7 +44,7 @@ import { searchIdirUsers, importIdirUser } from './bceid-webservice-proxy/idir';
 import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
-import { getAllowedTeams } from '@lambda-app/queries/team';
+import { getAllowedTeam, getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
@@ -433,6 +433,16 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/allowed-teams`, async (req, res) => {
     try {
       const result = await getAllowedTeams(req.user, { raw: true });
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/allowed-teams/:id`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await getAllowedTeam(id, req.user, { raw: true });
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

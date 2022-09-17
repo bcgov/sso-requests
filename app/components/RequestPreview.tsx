@@ -91,18 +91,21 @@ function RequestPreview({ children, request, teams = [] }: Props) {
   const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request.realm);
   const isOIDC = request.protocol !== 'saml';
 
+  let teamName = '';
+  if (request.usesTeam) {
+    teamName =
+      teams.find((team) => String(team.id) === String(request.teamId))?.name || (request.team && request.team.name);
+  }
+
   return (
     <>
       <Table>
         <tbody>
-          {request.usesTeam ? (
+          {teamName ? (
             <tr>
               <td>Associated Team:</td>
               <td>
-                <SemiBold>
-                  {(request.team && request.team.name) ||
-                    teams.find((team) => String(team.id) === String(request.teamId))?.name}
-                </SemiBold>
+                <SemiBold>{teamName}</SemiBold>
               </td>
             </tr>
           ) : (
