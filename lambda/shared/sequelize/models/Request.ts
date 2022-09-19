@@ -36,11 +36,6 @@ const init = (sequelize, DataTypes) => {
         defaultValue: 'browser-login',
         allowNull: false,
       },
-      serviceAccountEnabled: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
       apiServiceAccount: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

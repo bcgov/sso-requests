@@ -10,7 +10,6 @@ import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
 import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
-import _ from 'lodash';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -52,6 +51,7 @@ export const processRequest = async (integrationOrModel: any) => {
     testValidRedirectUris = [],
     prodValidRedirectUris = [],
     environments = [],
+    authType = 'browser-login',
   } = integration;
 
   const idps = integration.serviceType === 'gold' ? integration.devIdps : realmToIDP(realm);
@@ -61,6 +61,7 @@ export const processRequest = async (integrationOrModel: any) => {
     name: envMap[env],
     uris: integration[`${env}ValidRedirectUris`] || [],
   }));
+  const browserLoginEnabled = authType !== 'service-account';
 
   return {
     ...integration,
@@ -72,6 +73,7 @@ export const processRequest = async (integrationOrModel: any) => {
     envNames,
     redirectUris,
     accountableEntity,
+    browserLoginEnabled,
   };
 };
 
