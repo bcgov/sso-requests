@@ -6,6 +6,7 @@ import { Integration, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
 import { usesBceid, usesGithub } from '@app/helpers/integration';
+import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   let realms: string[] | null = [];
@@ -23,7 +24,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
   const options = environmentOptions.map((option) => {
-    const idps = serviceType === 'gold' ? integration.devIdps : realmToIDP(integration.realm);
+    const idps = serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
     return { ...option, idps: idps || [] };
   });
 
@@ -115,15 +116,6 @@ export const hashToBase64url = (arrayBuffer: Iterable<number>) => {
   const decodedHash = btoa(stringifiedArrayHash);
 
   return decodedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-};
-
-export const realmToIDP = (realm?: string) => {
-  let idps: string[] = [];
-  if (realm === 'onestopauth') idps = ['idir'];
-  if (realm === 'onestopauth-basic') idps = ['idir', 'bceidbasic'];
-  if (realm === 'onestopauth-business') idps = ['idir', 'bceidbusiness'];
-  if (realm === 'onestopauth-both') idps = ['idir', 'bceidboth'];
-  return idps;
 };
 
 const changeNullToUndefined = (data: any) => {
