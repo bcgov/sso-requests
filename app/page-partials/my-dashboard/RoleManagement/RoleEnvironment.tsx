@@ -301,6 +301,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
               setCompositeRoles(newValues as Option[]);
               throttleCompositeRoleUpdate(newValues as Option[]);
             }}
+            isDisabled={!canCreateOrDeleteRole}
           />
           <LastSavedMessage saving={saving} content={savingMessage} />
         </>
