@@ -47,8 +47,28 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
+  it('Should return the expeted email for CREATE_INTEGRATION_SUBMITTED - no browser login', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: { ...formDataProd, authType: 'service-account' },
+      bceidProdAdded: true,
+      githubProdAdded: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
   it('Should return the expeted email for CREATE_INTEGRATION_APPLIED', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, { integration: formDataDev });
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expeted email for CREATE_INTEGRATION_APPLIED - no browser login', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...formDataDev, authType: 'service-account' },
+    });
+
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
   });

@@ -1,8 +1,11 @@
 <strong>Project name: </strong>{{integration.projectName}}<br />
+{{#if integration.browserLoginEnabled}}
 <strong>Identity Providers: </strong>{{integration.idpNames}}<br />
+{{/if}}
 <strong>Environments: </strong>{{integration.envNames}}<br />
 <strong>Accountable person(s): </strong>{{integration.accountableEntity}}<br />
 <strong>Submitted by: </strong>{{integration.requester}}<br />
+{{#if integration.browserLoginEnabled}}
 <strong>URIs:</strong>
 <ul>
   {{#each integration.redirectUris}}
@@ -16,3 +19,4 @@
   </li>
   {{/each}}
 </ul>
+{{/if}}

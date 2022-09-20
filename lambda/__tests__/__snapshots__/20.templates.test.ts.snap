@@ -1,5 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - no browser login 1`] = `"[DEV] Pathfinder SSO request approved"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - no browser login 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+ <p>
+  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
+  notify you of the request status.
+</p>
+ <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED 1`] = `"[DEV] Pathfinder SSO request approved"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED 2`] = `
@@ -38,86 +66,20 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO request submitted & Additional Important Information"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED - no browser login 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 2`] = `
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED - no browser login 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
-<strong>Identity Providers: </strong>IDIR<br />
-<strong>Environments: </strong>Development, Test<br />
-<strong>Accountable person(s): </strong>Test User<br />
-<strong>Submitted by: </strong>SSO Admin<br />
-<strong>URIs:</strong>
-<ul>
-  <li>
-    Development:
-    <ul>
-      <li>https://b</li>
-    </ul>
-  </li>
-  <li>
-    Test:
-    <ul>
-      <li>https://test</li>
-    </ul>
-  </li>
-</ul>
- <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
-</p>
-   <p>
-  If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
-    Rocket.Chat
-  </a>
-  or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
-</p>
-<p>Thank you.<br />Pathfinder SSO Team</p>
-
-"
-`;
-
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 1`] = `"[DEV] Pathfinder SSO request submitted & Additional Important Information"`;
-
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 2`] = `
-"<h3>Hello Pathfinder SSO friend,</h3>
-<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
-<p>Below is a summary of your integration request details:</p>
-<strong>Project name: </strong>test<br />
-<strong>Identity Providers: </strong>IDIR<br />
 <strong>Environments: </strong>Development, Test, Production<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
-<strong>URIs:</strong>
-<ul>
-  <li>
-    Development:
-    <ul>
-      <li>https://b</li>
-    </ul>
-  </li>
-  <li>
-    Test:
-    <ul>
-      <li>https://test</li>
-    </ul>
-  </li>
-  <li>
-    Production:
-    <ul>
-      <li>https://a</li>
-    </ul>
-  </li>
-</ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>
@@ -198,7 +160,167 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID 1`] = `"[DEV] Pathfinder SSO request submitted & Additional Important Information"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+   <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+  <li>
+    Production:
+    <ul>
+      <li>https://a</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with BCeID:</strong>
+<p>
+  As you've requested an integration with BCeID, any production integration request requires you to work with the
+  Identity and Information Management (IDIM) team.
+</p>
+<ol>
+  <li>
+    <strong
+      >On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an
+      on-boarding meeting.</strong
+    >
+  </li>
+  <li>
+    <strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong>
+    <ul>
+      <li>What is your estimated volume of initial users?</li>
+      <li>Do you anticipate your volume of users will grow over the next three years?</li>
+      <li>When do you need access to the production environment by?</li>
+      <li>When will your end users need access to the production environment?</li>
+    </ul>
+  </li>
+</ol>
+   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with GitHub:</strong>
+<p>
+  As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
+  to the IM/IT standards.
+  <a
+    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
+    title=\\"IM/IT Standards Frequently Asked Questions\\"
+    target=\\"_blank\\"
+    rel=\\"noreferrer\\"
+    >IM/IT Standards Frequently Asked Questions</a
+  >
+</p>
+<ol>
+  <li>
+    Please proceed to complete this form:
+    <a
+      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
+      title=\\"IIM/IT Standards Exemptions\\"
+      target=\\"_blank\\"
+      rel=\\"noreferrer\\"
+      >IIM/IT Standards Exemptions</a
+    >
+  </li>
+  <li>
+    Once the exemption has been granted, please email us with a copy of it and we will happily set you production
+    integration with GitHub
+  </li>
+</ol>
+  <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
@@ -231,9 +353,9 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   </li>
 </ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>
@@ -278,7 +400,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ GitHub 1`] = `"[DEV] Pathfinder SSO request submitted & Additional Important Information"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ GitHub 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
 
 exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ GitHub 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
@@ -311,9 +433,9 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   </li>
 </ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
    <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>
@@ -369,7 +491,7 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
 exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO request ID 1 is deleted.</p>
-<p>Below is a summary of your integration deleted:</p>
+<p>Below is a summary of your deleted integration:</p>
 <strong>Project name: </strong>test<br />
 <strong>Identity Providers: </strong>IDIR<br />
 <strong>Environments: </strong>Development<br />
@@ -421,9 +543,9 @@ exports[`Email template snapshots Should return the expeted email for PROD_APPRO
   </li>
 </ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
  <p>
   If you have any questions, please contact us by
@@ -438,7 +560,7 @@ exports[`Email template snapshots Should return the expeted email for PROD_APPRO
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for PROD_APPROVED w/ GitHub 1`] = `"[DEV] BCeID Request ID 1 approved and being processed"`;
+exports[`Email template snapshots Should return the expeted email for PROD_APPROVED w/ GitHub 1`] = `"[DEV] GitHub Request ID 1 approved and being processed"`;
 
 exports[`Email template snapshots Should return the expeted email for PROD_APPROVED w/ GitHub 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
@@ -462,9 +584,9 @@ exports[`Email template snapshots Should return the expeted email for PROD_APPRO
   </li>
 </ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
  <p>
   If you have any questions, please contact us by
@@ -576,7 +698,7 @@ exports[`Email template snapshots Should return the expeted email for TEAM_MEMBE
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPLIED 1`] = `"[DEV] Pathfinder SSO change request applied and can be downloaded"`;
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPLIED 1`] = `"[DEV] Pathfinder SSO change request approved and can be downloaded"`;
 
 exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPLIED 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
@@ -641,9 +763,9 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   </li>
 </ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
    <p>
   If you have any questions, please contact us by
@@ -691,9 +813,9 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   </li>
 </ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>
@@ -807,9 +929,9 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   </li>
 </ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>
@@ -887,9 +1009,9 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   </li>
 </ul>
  <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
-  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
-  notify you of the request status.
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
    <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>

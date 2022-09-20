@@ -8,7 +8,7 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `BCeID Request ID {{integration.id}} approved and being processed`;
+const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved and being processed`;
 const template = fs.readFileSync(__dirname + '/prod-approved.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

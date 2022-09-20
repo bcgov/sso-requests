@@ -13,7 +13,6 @@ export interface Integration {
   protocol?: string;
   authType?: string;
   serviceType?: string;
-  serviceAccountEnabled?: boolean;
   apiServiceAccount?: boolean;
   environments?: string[];
   prNumber?: number;
