@@ -7,7 +7,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { User, LoggedInUser } from 'interfaces/team';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import ErrorText from 'components/ErrorText';
-import TeamMembersForm from './TeamMembersForm';
+import TeamMembersForm, { Errors, validateTeam } from 'form-components/team-form/TeamMembersForm';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 
 const ButtonsContainer = styled.div`
@@ -22,11 +22,6 @@ const ButtonsContainer = styled.div`
 interface Props {
   onSubmit: (teamId: number) => void;
   alert: TopAlert;
-}
-
-export interface Errors {
-  name?: string;
-  members?: string[];
 }
 
 const emptyUser: User = {
@@ -44,24 +39,6 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>();
 
-  const validateTeam = (team: any) => {
-    const errors: any = { members: [] };
-    let hasError = false;
-    if (!team.name) {
-      errors.name = 'Please enter a name';
-      hasError = true;
-    }
-    team.members.forEach((member: User, i: number) => {
-      if (!member.idirEmail) {
-        errors.members[i] = 'Please enter an email';
-        hasError = true;
-      }
-    });
-    if (hasError) return errors;
-    setErrors(undefined);
-    return null;
-  };
-
   const handleNameChange = (e: any) => {
     setTeamName(e.target.value);
   };
@@ -72,8 +49,9 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
 
   const handleCreate = async () => {
     const team = { name: teamName, members };
-    const errors = validateTeam(team);
-    if (errors) return setErrors(errors);
+    const [hasError, errors] = validateTeam(team);
+    if (hasError) return setErrors(errors);
+
     setLoading(true);
     const [data, err] = await createTeam(team);
     if (err) {
