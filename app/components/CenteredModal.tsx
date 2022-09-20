@@ -33,6 +33,12 @@ const PaddedIcon = styled(FontAwesomeIcon)`
   height: 30px;
 `;
 
+const ContentContainer = styled.div`
+  color: #000;
+  cursor: default;
+  font-weight: 400;
+`;
+
 const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
   margin-top: 20px;
   display: flex;
@@ -120,7 +126,7 @@ const CenteredModal = ({
         )}
       </Header>
       <Modal.Content style={style}>
-        {content}
+        <ContentContainer>{content}</ContentContainer>
         {showButtons && (
           <ButtonContainer buttonAlign={buttonAlign}>
             {showCancel && (
