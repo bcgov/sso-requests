@@ -1,5 +1,6 @@
 import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
+import { idpMap } from '@app/helpers/meta';
 
 export default function getSchema(integration: Integration) {
   const { protocol, authType, status } = integration;
@@ -55,14 +56,17 @@ export default function getSchema(integration: Integration) {
   }
 
   if (authType !== 'service-account') {
+    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'];
+    const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
+
     properties.devIdps = {
       type: 'array',
       minItems: 1,
       title: 'Choose Identity Provider(s)',
       items: {
         type: 'string',
-        enum: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'],
-        enumNames: ['IDIR', 'IDIR (Azure)', 'BCeID Basic', 'BCeID Business', 'BCeID Both', 'GitHub'],
+        enum: idpEnum,
+        enumNames: idpEnumNames,
       },
       tooltips: [
         null,

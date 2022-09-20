@@ -65,7 +65,12 @@ export default function getSchema(integration: Integration) {
           content: 'The identity providers you add will let your users authenticate with those services.',
         },
         enum: ['onestopauth', 'onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
-        enumNames: ['IDIR + IDIR Azure Beta', 'IDIR + BCeID Basic', 'IDIR + BCeID Business', 'IDIR + BCeID Both'],
+        enumNames: [
+          'IDIR + IDIR Azure Beta',
+          'IDIR + Basic BCeID',
+          'IDIR + Business BCeID',
+          'IDIR + Basic or Business BCeID',
+        ],
       },
       environments: {
         type: 'array',

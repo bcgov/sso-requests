@@ -5,13 +5,17 @@ export const idpMap: any = {
   bceidbusiness: 'Business BCeID',
   bceidboth: 'Basic or Business BCeID',
   github: 'GitHub',
-  // covers idp keys in silver integrations
-  'bceid-basic': 'Basic BCeID',
-  'bceid-business': 'Business BCeID',
 };
 
 export const envMap: any = {
   dev: 'Development',
   test: 'Test',
   prod: 'Production',
+};
+
+export const silverRealmIdpsMap: { [key: string]: string[] } = {
+  onestopauth: ['idir'],
+  'onestopauth-basic': ['idir', 'bceidbasic'],
+  'onestopauth-business': ['idir', 'bceidbusiness'],
+  'onestopauth-both': ['idir', 'bceidboth'],
 };
