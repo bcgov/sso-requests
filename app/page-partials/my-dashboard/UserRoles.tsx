@@ -272,8 +272,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       label: string;
     }>,
   ) => {
-    let newRoles = [];
-    if (actionMeta.action === 'remove-value') {
+    let newRoles: string[] = [];
+    if (actionMeta.action === 'clear') {
+    } else if (actionMeta.action === 'remove-value') {
       newRoles = userRoles.filter((role) => role !== (actionMeta.removedValue?.value as string));
     } else {
       newRoles = [...userRoles, actionMeta.option?.value as string];
