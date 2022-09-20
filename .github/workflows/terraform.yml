@@ -133,41 +133,13 @@ jobs:
       - name: Create S3 Bucket in dev environment
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
-          cat >"buckets.tf" <<EOF
-          module "s3_keycloak_v2" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-dev-keycloak"
-          }
-          module "s3_sso_api_swagger" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-dev-api-swagger"
-            enable_encrytion = false
-          }
-          EOF
+          cp env-resources.tf_dev env-resources.tf
         working-directory: ./terraform
 
       - name: Create S3 Bucket in prod environment
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
         run: |
-          cat >"buckets.tf" <<EOF
-          module "s3_keycloak_v2" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-prod-keycloak"
-          }
-          module "s3_sysdig" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-prod-sysdig"
-          }
-          module "s3_ocp" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-prod-ocp"
-          }
-          module "s3_sso_api_swagger" {
-            source = "./s3-bucket"
-            bucket_name = "xgr00q-prod-api-swagger"
-            enable_encrytion = false
-          }
-          EOF
+          cp env-resources.tf_prod env-resources.tf
         working-directory: ./terraform
 
       - name: Terraform Variables

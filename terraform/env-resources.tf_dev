@@ -1,0 +1,9 @@
+module "s3_keycloak_v2" {
+  source      = "./s3-bucket"
+  bucket_name = "xgr00q-dev-keycloak"
+}
+module "s3_sso_api_swagger" {
+  source           = "./s3-bucket"
+  bucket_name      = "xgr00q-dev-api-swagger"
+  enable_encrytion = false
+}
