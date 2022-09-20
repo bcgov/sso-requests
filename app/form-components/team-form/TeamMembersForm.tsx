@@ -2,11 +2,11 @@ import React from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 import DefaultDropdown from '@button-inc/bcgov-theme/Dropdown';
 import styled from 'styled-components';
+import validator from 'validator';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle, faStar } from '@fortawesome/free-solid-svg-icons';
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
-import { Errors } from './CreateTeamForm';
 import Link from '@button-inc/bcgov-theme/Link';
 
 const Container = styled.div`
@@ -76,6 +76,11 @@ const EmailAddrValidHeader = styled.p`
   font-style: italic;
   font-size: 0.95em;
 `;
+
+export interface Errors {
+  name: string;
+  members: string[];
+}
 
 interface Props {
   errors?: Errors | null;
@@ -211,5 +216,20 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
     </div>
   );
 }
+
+export const validateTeam = (team: { name: string; members: User[] }) => {
+  const errors: any = { name: null, members: [] };
+
+  if (!team.name) {
+    errors.name = 'Please enter a name';
+  }
+
+  team.members.forEach((member: User, i: number) => {
+    if (!member.idirEmail || !validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter an email';
+  });
+
+  const hasError = errors.name || errors.members.length > 0;
+  return [hasError, errors];
+};
 
 export default TeamMembersForm;
