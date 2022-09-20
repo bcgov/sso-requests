@@ -394,6 +394,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     // Close any pr's if they exist
     await closeOpenPullRequests(id);
+
     const result = await current.save();
     const integration = result.get({ plain: true });
 
