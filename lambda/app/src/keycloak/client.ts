@@ -21,6 +21,7 @@ const disableClient = async (data: {
   clientId: string;
 }) => {
   const { serviceType, environment, realmName, clientId } = data;
+  if (!clientId) return false;
 
   const { kcAdminClient } = await getAdminClient({ serviceType, environment });
   const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });

@@ -374,8 +374,14 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     const requester = await getRequester(session, current.id);
     current.requester = requester;
-    current.status = 'submitted';
     current.archived = true;
+
+    if (current.status === 'draft') {
+      const result = await current.save();
+      return result.get({ plain: true });
+    }
+
+    current.status = 'submitted';
 
     // Trigger workflow with empty environments to delete client
     const ghResult = await dispatchRequestWorkflow(current);
