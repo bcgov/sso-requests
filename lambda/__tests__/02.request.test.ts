@@ -254,6 +254,22 @@ describe('Team member permissions', () => {
     expect(response.statusCode).toEqual(401);
   });
 
+  it('Should not allow team members to update composite role for an existing role of an integration belonging to a team', async () => {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'POST',
+      path: `${baseUrl}/keycloak/set-composite-roles`,
+      body: JSON.stringify({
+        integrationId: teamRequest.id,
+        roleName: 'test_role',
+        environment: 'dev',
+        compositeRoleNames: ['composite_role1', 'composite_role2'],
+      }),
+    };
+    const response = await handler(event);
+    expect(response.statusCode).toEqual(401);
+  });
+
   it('Should not allow team members to delete role for integration belonging to a team', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
