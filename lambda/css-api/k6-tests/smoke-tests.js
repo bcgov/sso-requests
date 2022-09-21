@@ -13,6 +13,7 @@
 import http from 'k6/http';
 import { group, check, sleep, fail } from 'k6';
 import encoding from 'k6/encoding';
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 const BASE_URL = 'https://api-dev.loginproxy.gov.bc.ca/api/v1';
 // Sleep duration between successive requests.
@@ -485,8 +486,8 @@ export default function (data) {
 
       check(response, {
         'should return 201 when success': (r) => r.status === 201,
-        'return role name': (r) => r.json().roles[0].name === 'role1',
-        'return username': (r) => r.json().users[0].username === __ENV.username,
+        'return role name': (r) => r.json().roles.find((role) => role.name === 'role1'),
+        'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
     }
   });
@@ -539,8 +540,8 @@ export default function (data) {
 
       check(response, {
         'should return 200 when success on passing role name': (r) => r.status === 200,
-        'return role name': (r) => r.json().roles[0].name === 'role1',
-        'return username': (r) => r.json().users[0].username === __ENV.username,
+        'return role name': (r) => r.json().roles.find((role) => role.name === 'role1'),
+        'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
 
       sleep(SLEEP_DURATION);
@@ -569,8 +570,8 @@ export default function (data) {
 
       check(response, {
         'should return 200 when success on passing username': (r) => r.status === 200,
-        'return role name': (r) => r.json().roles[0].name === 'role1',
-        'return username': (r) => r.json().users[0].username === __ENV.username,
+        'return role name': (r) => r.json().roles.find((role) => role.name === 'role1'),
+        'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
 
       sleep(SLEEP_DURATION);
@@ -586,8 +587,8 @@ export default function (data) {
 
       check(response, {
         'should return 200 when success on passing role name and username': (r) => r.status === 200,
-        'return role name': (r) => r.json().roles[0].name === 'role1',
-        'return username': (r) => r.json().users[0].username === __ENV.username,
+        'return role name': (r) => r.json().roles.find((role) => role.name === 'role1'),
+        'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
 
       sleep(SLEEP_DURATION);
@@ -720,4 +721,10 @@ export default function (data) {
       sleep(SLEEP_DURATION);
     }
   });
+}
+
+export function handleSummary(data) {
+  return {
+    stdout: textSummary(data, { indent: ' ', enableColors: true }),
+  };
 }
