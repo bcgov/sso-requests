@@ -5,6 +5,7 @@ import { authenticate } from '../app/src/authenticate';
 import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, AuthMock } from './00.db.test';
 import { models } from '../shared/sequelize/models/models';
 import { sendEmail } from '../shared/utils/ches';
+import { before } from 'lodash';
 
 const { path: baseUrl } = baseEvent;
 
@@ -14,7 +15,11 @@ jest.mock('../shared/utils/ches', () => {
     sendEmail: jest.fn(),
   };
 });
-
+jest.mock('@lambda-app/keycloak/client', () => {
+  return {
+    disableIntegration: jest.fn(() => Promise.resolve()),
+  };
+});
 jest.mock('../app/src/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
@@ -31,6 +36,13 @@ mockedAuthenticate.mockImplementation(() => {
     given_name: '',
     family_name: '',
   });
+});
+
+jest.mock('../app/src/keycloak/users', () => {
+  return {
+    bulkCreateRole: jest.fn(() => Promise.resolve()),
+    deleteRole: jest.fn(() => Promise.resolve()),
+  };
 });
 
 const memberEmail = 'newemail@new.com';
@@ -162,6 +174,7 @@ describe('Creating Teams', () => {
         projectLead: true,
         usesTeam: true,
         teamId: teamWithMember.id,
+        apiServiceAccount: false,
       }),
     };
 
@@ -221,7 +234,59 @@ describe('Team member permissions', () => {
     expect(JSON.parse(response.body).publicAccess).toBe(true);
   });
 
-  it('Should allow team members to delete a request belonging to a team', async () => {
+  it('Should not allow team members to create role for integration belonging to a team', async () => {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'POST',
+      path: `${baseUrl}/keycloak/bulk-roles`,
+      body: JSON.stringify({
+        integrationId: teamRequest.id,
+        roles: [
+          {
+            name: 'test_role',
+            envs: ['dev'],
+          },
+        ],
+      }),
+    };
+
+    const response = await handler(event);
+    expect(response.statusCode).toEqual(401);
+  });
+
+  it('Should not allow team members to update composite role for an existing role of an integration belonging to a team', async () => {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'POST',
+      path: `${baseUrl}/keycloak/set-composite-roles`,
+      body: JSON.stringify({
+        integrationId: teamRequest.id,
+        roleName: 'test_role',
+        environment: 'dev',
+        compositeRoleNames: ['composite_role1', 'composite_role2'],
+      }),
+    };
+    const response = await handler(event);
+    expect(response.statusCode).toEqual(401);
+  });
+
+  it('Should not allow team members to delete role for integration belonging to a team', async () => {
+    const event: APIGatewayProxyEvent = {
+      ...baseEvent,
+      httpMethod: 'POST',
+      path: `${baseUrl}/keycloak/delete-role`,
+      body: JSON.stringify({
+        integrationId: teamRequest.id,
+        roleName: 'test_role',
+        environment: 'dev',
+      }),
+    };
+
+    const response = await handler(event);
+    expect(response.statusCode).toEqual(401);
+  });
+
+  it('Should not allow team members to delete a request belonging to a team', async () => {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       httpMethod: 'DELETE',
@@ -230,8 +295,6 @@ describe('Team member permissions', () => {
     };
 
     const response = await handler(event);
-    expect(response.statusCode).toEqual(200);
-    const updatedRequest = await models.request.findOne({ where: { id: teamRequest.id } });
-    expect(updatedRequest.archived).toBe(true);
+    expect(response.statusCode).toEqual(401);
   });
 });

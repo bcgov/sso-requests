@@ -1,11 +1,4 @@
-<h1>Your Pathfinder SSO request ID {{integration.id}} is deleted.</h1>
-<p>
-  <strong>Project name: </strong>{{integration.projectName}}<br />
-  <strong>Deleted by: </strong>{{integration.requester}}
-</p>
-<p>This email serves only to notify you of the request status.</p>
-<p>
-  To view your integrations please
-  <a href="{{appUrl}}/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>.
-</p>
-{{> footer }}
+<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID {{integration.id}} is deleted.</p>
+<p>Below is a summary of your deleted integration:</p>
+{{> integrationDetail }} {{> footer }}

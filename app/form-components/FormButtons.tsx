@@ -1,6 +1,6 @@
 import Button from '@button-inc/bcgov-theme/Button';
 import styled from 'styled-components';
-import { noop } from 'lodash';
+import noop from 'lodash.noop';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import CancelButton from 'components/CancelButton';
 import { FORM_BUTTON_MIN_WIDTH, FORM_BUTTON_TOP_SPACING } from 'styles/theme';

@@ -1,7 +1,6 @@
 import React, { CSSProperties, useState } from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { isFunction } from 'lodash';
 import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -32,6 +31,12 @@ const Header = styled(Modal.Header)`
 const PaddedIcon = styled(FontAwesomeIcon)`
   margin-right: 5px;
   height: 30px;
+`;
+
+const ContentContainer = styled.div`
+  color: #000;
+  cursor: default;
+  font-weight: 400;
 `;
 
 const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
@@ -121,7 +126,7 @@ const CenteredModal = ({
         )}
       </Header>
       <Modal.Content style={style}>
-        {content}
+        <ContentContainer>{content}</ContentContainer>
         {showButtons && (
           <ButtonContainer buttonAlign={buttonAlign}>
             {showCancel && (

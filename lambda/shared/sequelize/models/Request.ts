@@ -36,11 +36,6 @@ const init = (sequelize, DataTypes) => {
         defaultValue: 'browser-login',
         allowNull: false,
       },
-      serviceAccountEnabled: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
       apiServiceAccount: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -92,6 +87,11 @@ const init = (sequelize, DataTypes) => {
       bceidApproved: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
+        defaultValue: false,
+      },
+      githubApproved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
       },
       status: {
@@ -286,6 +286,12 @@ const init = (sequelize, DataTypes) => {
       provisionedAt: {
         type: DataTypes.DATE,
         allowNull: true,
+      },
+      userTeamRole: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          return this.getDataValue('userTeamRole');
+        },
       },
     },
     {

@@ -1,10 +1,12 @@
-import { isEqual, isNil, isString } from 'lodash';
+import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from 'utils/constants';
 import { getSchemas } from 'schemas';
 import { Team, User } from 'interfaces/team';
 import { Integration, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
+import { usesBceid, usesGithub } from '@app/helpers/integration';
+import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   let realms: string[] | null = [];
@@ -16,32 +18,30 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
   return [realms, formattedEnvironments];
 };
 
-const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
-export const usesBceid = (integration: any) => {
-  if (!integration) return false;
-
-  if (integration.serviceType === 'gold') {
-    return integration.devIdps.some((idp: string) => idp.startsWith('bceid'));
-  } else {
-    return bceidRealms.includes(integration.realm);
-  }
-};
-
 export const getRequestedEnvironments = (integration: Integration) => {
-  const { bceidApproved, environments = [], serviceType } = integration;
+  const { bceidApproved, githubApproved, environments = [], serviceType } = integration;
 
   const hasBceid = usesBceid(integration);
+  const hasGithub = usesGithub(integration);
   const options = environmentOptions.map((option) => {
-    const idps = serviceType === 'gold' ? integration.devIdps : realmToIDP(integration.realm);
+    const idps = serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
     return { ...option, idps: idps || [] };
   });
 
   if (serviceType === 'gold') {
     const bceidApplying = checkIfBceidProdApplying(integration);
+    const githubApplying = checkIfGithubProdApplying(integration);
+
     let envs = options.filter((env) => environments.includes(env.name));
     if (hasBceid && (!bceidApproved || bceidApplying))
       envs = envs.map((env) => {
         if (env.name === 'prod') env.idps = env.idps.filter((idp) => !idp.startsWith('bceid'));
+        return env;
+      });
+
+    if (hasGithub && (!githubApproved || githubApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter((idp) => idp !== 'github');
         return env;
       });
 
@@ -116,15 +116,6 @@ export const hashToBase64url = (arrayBuffer: Iterable<number>) => {
   const decodedHash = btoa(stringifiedArrayHash);
 
   return decodedHash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-};
-
-export const realmToIDP = (realm?: string) => {
-  let idps: string[] = [];
-  if (realm === 'onestopauth') idps = ['idir'];
-  if (realm === 'onestopauth-basic') idps = ['idir', 'bceidbasic'];
-  if (realm === 'onestopauth-business') idps = ['idir', 'bceidbusiness'];
-  if (realm === 'onestopauth-both') idps = ['idir', 'bceidboth'];
-  return idps;
 };
 
 const changeNullToUndefined = (data: any) => {
@@ -268,12 +259,20 @@ export function canDeleteMember(members: User[], memberId?: number) {
 
 export const capitalize = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);
 
-export const checkIfBceidProdApplying = (integration: Integration) => {
+const checkIfProdApplying = (integration: Integration, target: string) => {
   const displayStatus = getStatusDisplayName(integration.status || 'draft');
   if (displayStatus !== 'Submitted') return false;
   if (!integration.lastChanges || integration.lastChanges.length === 0) return false;
 
   return integration.lastChanges.some((change) => {
-    return change.path[0] === 'bceidApproved' && change.lhs === false && change.rhs === true;
+    return change.path[0] === target && change.lhs === false && change.rhs === true;
   });
+};
+
+export const checkIfBceidProdApplying = (integration: Integration) => {
+  return checkIfProdApplying(integration, 'bceidApproved');
+};
+
+export const checkIfGithubProdApplying = (integration: Integration) => {
+  return checkIfProdApplying(integration, 'githubApproved');
 };

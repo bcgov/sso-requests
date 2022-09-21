@@ -1,12 +1,14 @@
 import { Op } from 'sequelize';
-import { kebabCase, assign, isEmpty, isString } from 'lodash';
+import kebabCase from 'lodash.kebabcase';
+import assign from 'lodash.assign';
+import isEmpty from 'lodash.isempty';
+import isString from 'lodash.isstring';
 import {
   validateRequest,
   processRequest,
   getDifferences,
   isAdmin,
   getDisplayName,
-  usesBceid,
   getWhereClauseForAllRequests,
 } from '../utils/helpers';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
@@ -23,6 +25,10 @@ import {
   getIntegrationsByTeam,
   getIntegrationsByUserTeam,
 } from '@lambda-app/queries/request';
+import { disableIntegration } from '@lambda-app/keycloak/client';
+import { getUserTeamRole } from '@lambda-app/queries/literals';
+import { canDeleteIntegration } from '@app/helpers/permissions';
+import { usesBceid, usesGithub } from '@app/helpers/integration';
 
 const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
 const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
@@ -142,6 +148,10 @@ export const updateRequest = async (
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
     if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
+
+    const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
+    if (isApprovingGithub && !userIsAdmin) throw Error('unauthorized request');
+
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -162,9 +172,16 @@ export const updateRequest = async (
       current.status = 'submitted';
       let environments = current.environments.concat();
 
+      const hadProd = originalData.environments.includes('prod');
+      const hasProd = environments.includes('prod');
+
       const hasBceid = usesBceid(current);
-      const hadBceidProd = hasBceid && originalData.environments.includes('prod');
-      const hasBceidProd = hasBceid && environments.includes('prod');
+      const hadBceidProd = hasBceid && hadProd;
+      const hasBceidProd = hasBceid && hasProd;
+
+      const hasGithub = usesGithub(current);
+      const hadGithubProd = hasGithub && hadProd;
+      const hasGithubProd = hasGithub && hasProd;
 
       const tfData = getCurrentValue();
 
@@ -179,6 +196,11 @@ export const updateRequest = async (
         } else {
           tfData.environments = tfData.environments.filter((environment) => environment !== 'prod');
         }
+      }
+
+      // prevent the TF from creating GitHub integration in prod environment if not approved
+      if (!current.githubApproved && hasGithub) {
+        tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('github'));
       }
 
       const ghResult = await dispatchRequestWorkflow(tfData);
@@ -198,43 +220,29 @@ export const updateRequest = async (
       if (isMerged) {
         if (isApprovingBceid) {
           emails.push({
-            code: EMAILS.BCEID_PROD_APPROVED,
-            data: { integration: finalData },
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'BCeID' },
           });
-        } else if (!hadBceidProd && hasBceidProd) {
+        } else if (isApprovingGithub) {
           emails.push({
-            code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD,
-            data: { integration: finalData },
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'GitHub' },
           });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
-            data: { integration: finalData },
+            data: {
+              integration: finalData,
+              bceidProdAdded: !hadBceidProd && hasBceidProd,
+              githubProdAdded: !hadGithubProd && hasGithubProd,
+            },
           });
         }
       } else {
-        if (hasBceidProd) {
-          emails.push({
-            code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_PROD,
-            data: { integration: finalData },
-          });
-        } else if (hasBceid) {
-          emails.push(
-            {
-              code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
-              data: { integration: finalData },
-            },
-            {
-              code: EMAILS.CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM,
-              data: { integration: finalData },
-            },
-          );
-        } else {
-          emails.push({
-            code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
-            data: { integration: finalData },
-          });
-        }
+        emails.push({
+          code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
+          data: { integration: finalData, bceidProdAdded: hasBceidProd, githubProdAdded: hasGithubProd },
+        });
       }
 
       await sendTemplates(emails);
@@ -344,15 +352,15 @@ export const getRequests = async (session: Session, user: User, include: string 
         required: false,
       },
     ],
+    attributes: {
+      include: [[sequelize.literal(getUserTeamRole(session.user.id)), 'userTeamRole']],
+    },
   });
 
   return requests;
 };
 
 export const getIntegrations = async (session: Session, teamId: number, user: User, include: string = 'active') => {
-  if (isAdmin(session)) {
-    return getIntegrationsByTeam(teamId);
-  }
   return getIntegrationsByUserTeam(user, teamId);
 };
 
@@ -364,38 +372,34 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       throw Error('unauthorized request');
     }
 
-    const isMerged = await checkIfRequestMerged(id);
     const requester = await getRequester(session, current.id);
     current.requester = requester;
-    current.status = 'submitted';
     current.archived = true;
 
-    if (isMerged) {
-      // Trigger workflow with empty environments to delete client
-      const ghResult = await dispatchRequestWorkflow(current);
-      if (ghResult.status !== 204) {
-        throw Error('failed to create a workflow dispatch event');
-      }
+    if (current.status === 'draft') {
+      const result = await current.save();
+      return result.get({ plain: true });
     }
+
+    current.status = 'submitted';
+
+    // Trigger workflow with empty environments to delete client
+    const ghResult = await dispatchRequestWorkflow(current);
+    if (ghResult.status !== 204) {
+      throw Error('failed to create a workflow dispatch event');
+    }
+
+    // disable the client while TF applying the changes
+    await disableIntegration(current.get({ plain: true, clone: true }));
 
     // Close any pr's if they exist
     await closeOpenPullRequests(id);
 
     const result = await current.save();
-    const hasBceid = usesBceid(current);
-
-    let emailCode: string;
-    let emailData: any;
-
     const integration = result.get({ plain: true });
 
-    if (hasBceid) {
-      emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED_BCEID;
-      emailData = { integration };
-    } else {
-      emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED;
-      emailData = { integration };
-    }
+    const emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED;
+    const emailData = { integration };
 
     await sendTemplate(emailCode, emailData);
 
@@ -438,4 +442,10 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
   }
 
   return result[1].dataValues;
+};
+
+export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
+  if (isAdmin(session)) return true;
+  const integration = await getAllowedRequest(session, integrationId);
+  return canDeleteIntegration(integration);
 };

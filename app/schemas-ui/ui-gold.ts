@@ -1,4 +1,5 @@
-import { isNil, uniq } from 'lodash';
+import isNil from 'lodash.isnil';
+import uniq from 'lodash.uniq';
 import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';
@@ -32,6 +33,8 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
         if (idp === 'bceidbasic') idpDisabled.push('bceidbasic', 'bceidboth');
         else if (idp === 'bceidbusiness') idpDisabled.push('bceidbusiness', 'bceidboth');
         else if (idp === 'bceidboth') idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+      } else if (idp === 'github') {
+        idpDisabled.push('github');
       }
     });
   }

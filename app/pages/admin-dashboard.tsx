@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
-import { padStart, startCase } from 'lodash';
+import padStart from 'lodash.padstart';
+import startCase from 'lodash.startcase';
 import { faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
@@ -312,7 +313,7 @@ export default function AdminDashboard({ session }: PageProps) {
             {selectedRequest && (
               <AdminTabs
                 currentUser={session}
-                selectedRequest={selectedRequest}
+                integration={selectedRequest}
                 defaultTabKey={'details'}
                 setActiveKey={setActivePanel}
                 activeKey={activePanel}

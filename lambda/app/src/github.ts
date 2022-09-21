@@ -1,7 +1,7 @@
 // migrate GitHub lambda here and call GitHub API directly to avoid multiple invocations.
 // see https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html
 const { Octokit } = require('octokit');
-import { pick } from 'lodash';
+import pick from 'lodash.pick';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 

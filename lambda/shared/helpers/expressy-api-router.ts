@@ -1,4 +1,4 @@
-import { isUndefined } from 'lodash';
+import isUndefined from 'lodash.isundefined';
 
 export const expressyApiRouter = (app) => {
   // since `lambda-api-router` is not 100% compatible with Express.js syntax

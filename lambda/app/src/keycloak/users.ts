@@ -1,7 +1,10 @@
 import KcAdminClient from 'keycloak-admin';
 import RoleRepresentation from 'keycloak-admin/lib/defs/roleRepresentation';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
-import { forEach, map, get, difference } from 'lodash';
+import forEach from 'lodash.foreach';
+import map from 'lodash.map';
+import get from 'lodash.get';
+import difference from 'lodash.difference';
 import { getAdminClient, getClient } from './adminClient';
 import { fetchClient } from './client';
 import { Integration } from '@app/interfaces/Request';
@@ -49,7 +52,7 @@ export const searchUsers = async ({
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
-  if (!['idir', 'bceidbasic', 'bceidbusiness', 'bceidboth'].includes(idp)) throw Error(`invalid idp ${idp}`);
+  if (!['idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'].includes(idp)) throw Error(`invalid idp ${idp}`);
   if (!['email', 'firstName', 'lastName', 'guid'].includes(property)) throw Error(`invalid property ${property}`);
 
   const query: any = {};
@@ -362,10 +365,12 @@ export const manageUserRoles = async (
   const findRole = (roleName) => kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName });
 
   const addPromise = Promise.all(rolesToAdd.map((roleName) => findRole(roleName))).then((roles) =>
+    // @ts-ignore
     kcAdminClient.users.addClientRoleMappings({ ...roleMapping, roles }),
   );
 
   const delPromise = Promise.all(rolesToDel.map((roleName) => findRole(roleName))).then((roles) =>
+    // @ts-ignore
     kcAdminClient.users.delClientRoleMappings({ ...roleMapping, roles }),
   );
 
@@ -419,9 +424,10 @@ export const bulkCreateRole = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+
   if (integration.authType === 'service-account') throw Error('invalid auth type');
 
-  // create 20 roles at a time
+  //create 20 roles at a time
   const rolesToCreate = roles.slice(0, 20);
 
   const byEnv = { dev: [], test: [], prod: [] };

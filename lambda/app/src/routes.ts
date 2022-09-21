@@ -1,4 +1,4 @@
-import { isString } from 'lodash';
+import isString from 'lodash.isstring';
 import { authenticate } from './authenticate';
 import { getEvents } from './controllers/events';
 import {
@@ -18,6 +18,7 @@ import {
 } from './controllers/team';
 import {
   findOrCreateUser,
+  isAllowedToManageRoles,
   listClientRolesByUsers,
   listUsersByRole,
   updateProfile,
@@ -33,6 +34,7 @@ import {
   deleteRequest,
   updateRequestMetadata,
   getIntegrations,
+  isAllowedToDeleteIntegration,
 } from './controllers/requests';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
@@ -42,7 +44,7 @@ import { searchIdirUsers, importIdirUser } from './bceid-webservice-proxy/idir';
 import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
-import { getAllowedTeams } from '@lambda-app/queries/team';
+import { getAllowedTeam, getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
@@ -75,8 +77,6 @@ const handleError = (res, err) => {
   if (isString(message)) {
     message = tryJSON(message);
   }
-
-  console.log(message);
   res.status(422).json({ success: false, message });
 };
 
@@ -218,6 +218,12 @@ export const setRoutes = (app: any) => {
   app.delete(`${BASE_PATH}/requests`, async (req, res) => {
     try {
       const { id } = req.query || {};
+
+      const authorized = await isAllowedToDeleteIntegration(req.session as Session, id);
+
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to delete this integration' });
+
       const result = await deleteRequest(req.session as Session, req.user, Number(id));
       res.status(200).json(result);
     } catch (err) {
@@ -317,6 +323,11 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/set-composite-roles`, async (req, res) => {
     try {
+      const authorized = await isAllowedToManageRoles(req.session as Session, req.body.integrationId);
+
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to update composite roles' });
+
       const result = await setCompositeClientRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
@@ -353,6 +364,11 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/bulk-roles`, async (req, res) => {
     try {
+      const authorized = await isAllowedToManageRoles(req.session as Session, req.body.integrationId);
+
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to create role' });
+
       const result = await bulkCreateRole((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
@@ -362,6 +378,11 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/delete-role`, async (req, res) => {
     try {
+      const authorized = await isAllowedToManageRoles(req.session as Session, req.body.integrationId);
+
+      if (!authorized)
+        return res.status(401).json({ success: false, message: 'You are not authorized to delete role' });
+
       const result = await deleteRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
@@ -423,6 +444,16 @@ export const setRoutes = (app: any) => {
     }
   });
 
+  app.get(`${BASE_PATH}/allowed-teams/:id`, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await getAllowedTeam(id, req.user, { raw: true });
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
   app.post(`${BASE_PATH}/teams`, async (req, res) => {
     try {
       const result = await createTeam(req.user, req.body);
@@ -436,8 +467,10 @@ export const setRoutes = (app: any) => {
     try {
       const { id } = req.params;
       const authorized = await userIsTeamAdmin(req.user, id);
+
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
+
       const result = await updateTeam(req.user, id, req.body);
       res.status(200).json(result);
     } catch (err) {
@@ -449,8 +482,10 @@ export const setRoutes = (app: any) => {
     try {
       const { id } = req.params;
       const authorized = await userIsTeamAdmin(req.user, id);
+
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
+
       const result = await addUsersToTeam(id, req.user.id, req.body);
       res.status(200).json(result);
     } catch (err) {

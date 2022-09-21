@@ -1,7 +1,8 @@
 import React from 'react';
 import { ArrayFieldTemplateProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
-import { isFunction, noop } from 'lodash';
+import isFunction from 'lodash.isfunction';
+import noop from 'lodash.noop';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { MAX_STRING_FIELD_WIDTH } from 'styles/theme';
@@ -11,6 +12,12 @@ const FieldContainer = styled.div`
   position: relative;
   width: 100%;
   max-width: ${MAX_STRING_FIELD_WIDTH};
+
+  & div,
+  & input {
+    width: 100%;
+    max-width: ${MAX_STRING_FIELD_WIDTH};
+  }
 `;
 
 const Description = styled.p`
@@ -27,6 +34,7 @@ const AddContainer = styled.div`
 
 const RemoveContainer = styled(AddContainer)`
   position: absolute;
+  width: 20px !important;
   right: 10px;
   top: 10px;
 `;

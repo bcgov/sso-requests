@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo } from 'react';
-import { isBoolean } from 'lodash';
+import isBoolean from 'lodash.isboolean';
 import { Alert } from '@bcgov-sso/common-react-components';
 import FadingAlert from 'html-components/FadingAlert';
 import TopAlertWrapper from 'components/TopAlertWrapper';

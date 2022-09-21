@@ -1,45 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Email template snapshots Should return the expeted email for BCEID_PROD_APPROVED 1`] = `"[DEV] BCeID Request ID 1 approved and being processed"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - no browser login 1`] = `"[DEV] Pathfinder SSO request approved"`;
 
-exports[`Email template snapshots Should return the expeted email for BCEID_PROD_APPROVED 2`] = `
-"<h1>Hello Pathfinder Friend,</h1>
-<p>
-  Your Pathfinder SSO production environment for BCeID <strong>integration request ID 1</strong> has
-  been approved.
-</p>
-<p>
-  Your resources will be available in the next 20 minutes or so, please log in to your dashboard to see the progress.
-</p>
-<p><strong>Project Name: </strong>test</p>
-<p><strong>Submitted By: </strong>SSO Admin</p>
-<p>If you are not the requester, this email serves only to notify you of the request status.</p>
-<p>
-  If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
-    Rocket.Chat
-  </a>
-  or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
-</p>
-<p>Thank you.<br />Pathfinder SSO Team</p>
-"
-`;
-
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPROVED 1`] = `"[DEV] Pathfinder SSO request approved"`;
-
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPROVED 2`] = `
-"<h1>Your Pathfinder SSO request ID 1 is approved.</h1>
-<p>
-  <strong>Project name: </strong>test<br />
-  <strong>Submitted by: </strong>SSO Admin
-</p>
-<p>
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - no browser login 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+ <p>
   Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
 </p>
-<p>
+ <p>
   If you have any questions, please contact us by
   <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
     Rocket.Chat
@@ -48,111 +24,130 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO request submitted"`;
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED 1`] = `"[DEV] Pathfinder SSO request approved"`;
 
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 2`] = `
-"<h1>Your Pathfinder SSO request ID 1 is successfully submitted.</h1>
-<p>
-  <strong>Project name: </strong>test<br />
-  <strong>Submitted by: </strong>SSO Admin
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
+  notify you of the request status.
 </p>
-<p>
+ <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED - no browser login 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED - no browser login 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+ <p>
   <strong>The expected processing time is 20 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-<p>
-  If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
-    Rocket.Chat
-  </a>
-  or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
-</p>
-<p>Thank you.<br />Pathfinder SSO Team</p>
-"
-`;
-
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM 1`] = `"[DEV] New BCeID Request ID 1"`;
-
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_NONPROD_IDIM 2`] = `
-"<h1>Hello IDIM Team,</h1>
-<p>
-  We are notifying you that a new dev and/or test integration request has been submitted. The request details are below:
-</p>
-<ul>
-  <li><strong>Project name: </strong>test</li>
-  <li><strong>Accountable person(s): </strong>Test User</li>
-  <li><strong>Associated Email(s): </strong>test@test.com</li>
-  <li>
-    <strong>URIs:</strong>
-    <ul>
-      <li> Development: https://b </li> 
-    </ul>
-  </li>
-  <li><strong>Identity Providers Required: </strong>idir</li>
-</ul>
-<p>
-  If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
-    Rocket.Chat
-  </a>
-  or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
-</p>
-<p>Thank you.<br />Pathfinder SSO Team</p>
-"
-`;
-
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_PROD 1`] = `"[DEV] New BCeID Request ID 1"`;
-
-exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED_BCEID_PROD 2`] = `
-"<h1>Hello Pathfinder SSO friend,</h1>
-<p>Thank you for your integration request. Below is a summary of your integration request details.</p>
-<ul>
-  <li><strong>Project name: </strong>test</li>
-  <li><strong>Accountable person(s): </strong>Test User</li>
-  <li>
-    <strong>URIs:</strong>
-    <ul>
-      <li> Development: https://b </li> <li> Test: https://a </li>
-    </ul>
-  </li>
-  <li><strong>Identity Providers Required: </strong>idir</li>
-</ul>
-<p><strong>Submitted by: </strong>SSO Admin</p>
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with BCeID:</strong>
 <p>
   As you've requested an integration with BCeID, any production integration request requires you to work with the
   Identity and Information Management (IDIM) team.
 </p>
-<ul>
-  <li>
-    <strong>URIs:</strong>
-    <ul>
-      <li> Production: https://a </li>
-    </ul>
-  </li>
-</ul>
-<h1>Next Steps</h1>
 <ol>
   <li>
-    <strong>
-      On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an
-      on-boarding meeting.
-    </strong>
+    <strong
+      >On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an
+      on-boarding meeting.</strong
+    >
   </li>
-  <li><strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong></li>
+  <li>
+    <strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong>
+    <ul>
+      <li>What is your estimated volume of initial users?</li>
+      <li>Do you anticipate your volume of users will grow over the next three years?</li>
+      <li>When do you need access to the production environment by?</li>
+      <li>When will your end users need access to the production environment?</li>
+    </ul>
+  </li>
 </ol>
-<ul>
-  <li>What is your estimated volume of initial users?</li>
-  <li>Do you anticipate your volume of users will grow over the next three years?</li>
-  <li>When do you need access to the production environment by?</li>
-  <li>When will your end users need access to the production environment?</li>
-</ul>
+   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with GitHub:</strong>
 <p>
+  As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
+  to the IM/IT standards.
+  <a
+    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
+    title=\\"IM/IT Standards Frequently Asked Questions\\"
+    target=\\"_blank\\"
+    rel=\\"noreferrer\\"
+    >IM/IT Standards Frequently Asked Questions</a
+  >
+</p>
+<ol>
+  <li>
+    Please proceed to complete this form:
+    <a
+      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
+      title=\\"IIM/IT Standards Exemptions\\"
+      target=\\"_blank\\"
+      rel=\\"noreferrer\\"
+      >IIM/IT Standards Exemptions</a
+    >
+  </li>
+  <li>
+    Once the exemption has been granted, please email us with a copy of it and we will happily set you production
+    integration with GitHub
+  </li>
+</ol>
+  <p>
   If you have any questions, please contact us by
   <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
     Rocket.Chat
@@ -161,23 +156,357 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+   <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+  <li>
+    Production:
+    <ul>
+      <li>https://a</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with BCeID:</strong>
+<p>
+  As you've requested an integration with BCeID, any production integration request requires you to work with the
+  Identity and Information Management (IDIM) team.
+</p>
+<ol>
+  <li>
+    <strong
+      >On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an
+      on-boarding meeting.</strong
+    >
+  </li>
+  <li>
+    <strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong>
+    <ul>
+      <li>What is your estimated volume of initial users?</li>
+      <li>Do you anticipate your volume of users will grow over the next three years?</li>
+      <li>When do you need access to the production environment by?</li>
+      <li>When will your end users need access to the production environment?</li>
+    </ul>
+  </li>
+</ol>
+   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with GitHub:</strong>
+<p>
+  As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
+  to the IM/IT standards.
+  <a
+    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
+    title=\\"IM/IT Standards Frequently Asked Questions\\"
+    target=\\"_blank\\"
+    rel=\\"noreferrer\\"
+    >IM/IT Standards Frequently Asked Questions</a
+  >
+</p>
+<ol>
+  <li>
+    Please proceed to complete this form:
+    <a
+      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
+      title=\\"IIM/IT Standards Exemptions\\"
+      target=\\"_blank\\"
+      rel=\\"noreferrer\\"
+      >IIM/IT Standards Exemptions</a
+    >
+  </li>
+  <li>
+    Once the exemption has been granted, please email us with a copy of it and we will happily set you production
+    integration with GitHub
+  </li>
+</ol>
+  <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+  <li>
+    Production:
+    <ul>
+      <li>https://a</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with BCeID:</strong>
+<p>
+  As you've requested an integration with BCeID, any production integration request requires you to work with the
+  Identity and Information Management (IDIM) team.
+</p>
+<ol>
+  <li>
+    <strong
+      >On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an
+      on-boarding meeting.</strong
+    >
+  </li>
+  <li>
+    <strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong>
+    <ul>
+      <li>What is your estimated volume of initial users?</li>
+      <li>Do you anticipate your volume of users will grow over the next three years?</li>
+      <li>When do you need access to the production environment by?</li>
+      <li>When will your end users need access to the production environment?</li>
+    </ul>
+  </li>
+</ol>
+   <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ GitHub 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ GitHub 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+  <li>
+    Production:
+    <ul>
+      <li>https://a</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with GitHub:</strong>
+<p>
+  As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
+  to the IM/IT standards.
+  <a
+    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
+    title=\\"IM/IT Standards Frequently Asked Questions\\"
+    target=\\"_blank\\"
+    rel=\\"noreferrer\\"
+    >IM/IT Standards Frequently Asked Questions</a
+  >
+</p>
+<ol>
+  <li>
+    Please proceed to complete this form:
+    <a
+      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
+      title=\\"IIM/IT Standards Exemptions\\"
+      target=\\"_blank\\"
+      rel=\\"noreferrer\\"
+      >IIM/IT Standards Exemptions</a
+    >
+  </li>
+  <li>
+    Once the exemption has been granted, please email us with a copy of it and we will happily set you production
+    integration with GitHub
+  </li>
+</ol>
+  <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
 exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO integration ID 1 deleted"`;
 
 exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED 2`] = `
-"<h1>Your Pathfinder SSO request ID 1 is deleted.</h1>
-<p>
-  <strong>Project name: </strong>test<br />
-  <strong>Deleted by: </strong>SSO Admin
-</p>
-<p>This email serves only to notify you of the request status.</p>
-<p>
-  To view your integrations please
-  <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>.
-</p>
-<p>
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is deleted.</p>
+<p>Below is a summary of your deleted integration:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+</ul>
+ <p>
   If you have any questions, please contact us by
   <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
     Rocket.Chat
@@ -186,32 +515,39 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
   <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED_BCEID 1`] = `"[DEV] BCeID Integration ID 1 deleted"`;
+exports[`Email template snapshots Should return the expeted email for PROD_APPROVED w/ BCeID 1`] = `"[DEV] BCeID Request ID 1 approved and being processed"`;
 
-exports[`Email template snapshots Should return the expeted email for DELETE_INTEGRATION_SUBMITTED_BCEID 2`] = `
-"<h1>Hello IDIM Team,</h1>
-<p>We are notifying you that we have received a request to delete an integration. The request details are below:</p>
+exports[`Email template snapshots Should return the expeted email for PROD_APPROVED w/ BCeID 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>
+  Your Pathfinder SSO production environment for BCeID <strong>integration request ID 1</strong> has
+  been approved.
+</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
 <ul>
-  <li><strong>Requester: </strong>SSO Admin</li>
-  <li><strong>Project name: </strong>test #(1)</li>
-  <li><strong>Accountable person(s): </strong>Test User</li>
-  <li><strong>Associated Email(s): </strong>test@test.com</li>
   <li>
-    <strong>URIs:</strong>
+    Development:
     <ul>
-      <li> Development: https://b </li>  
+      <li>https://b</li>
     </ul>
   </li>
-  <li><strong>Identity Providers Required: </strong>idir</li>
 </ul>
-<p>
-  To view your integrations please
-  <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>.
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
 </p>
-<p>
+ <p>
   If you have any questions, please contact us by
   <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
     Rocket.Chat
@@ -220,6 +556,48 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
   <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for PROD_APPROVED w/ GitHub 1`] = `"[DEV] GitHub Request ID 1 approved and being processed"`;
+
+exports[`Email template snapshots Should return the expeted email for PROD_APPROVED w/ GitHub 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>
+  Your Pathfinder SSO production environment for GitHub <strong>integration request ID 1</strong> has
+  been approved.
+</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+ <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -320,21 +698,32 @@ exports[`Email template snapshots Should return the expeted email for TEAM_MEMBE
 "
 `;
 
-exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPROVED 1`] = `"[DEV] Pathfinder SSO change request approved and can be downloaded"`;
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPLIED 1`] = `"[DEV] Pathfinder SSO change request approved and can be downloaded"`;
 
-exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPROVED 2`] = `
-"<h1>Your Pathfinder SSO change for integration ID 1 is approved.</h1>
-<p>
-  <strong>Project name: </strong>test<br />
-  <strong>Submitted by: </strong>SSO Admin
-</p>
-<p>
-  Please
-  <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_APPLIED 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO change for integration ID 1 is approved.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
 </p>
-<p>
+ <p>
   If you have any questions, please contact us by
   <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
     Rocket.Chat
@@ -343,23 +732,42 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
 exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED 1`] = `"[DEV] Pathfinder SSO change request submitted"`;
 
 exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED 2`] = `
-"<h1>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</h1>
-<p>
-  <strong>Project name: </strong>test<br />
-  <strong>Submitted by: </strong>SSO Admin
-</p>
-<p>
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+</ul>
+ <p>
   <strong>The expected processing time is 20 minutes</strong><br />
-  Once the request is approved, you will receive another email once your JSON Client Installation is ready. If you are
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-<p>
+   <p>
   If you have any questions, please contact us by
   <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
     Rocket.Chat
@@ -368,5 +776,288 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 1`] = `"[DEV] Pathfinder SSO change request submitted"`;
+
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+  <li>
+    Production:
+    <ul>
+      <li>https://a</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with BCeID:</strong>
+<p>
+  As you've requested an integration with BCeID, any production integration request requires you to work with the
+  Identity and Information Management (IDIM) team.
+</p>
+<ol>
+  <li>
+    <strong
+      >On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an
+      on-boarding meeting.</strong
+    >
+  </li>
+  <li>
+    <strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong>
+    <ul>
+      <li>What is your estimated volume of initial users?</li>
+      <li>Do you anticipate your volume of users will grow over the next three years?</li>
+      <li>When do you need access to the production environment by?</li>
+      <li>When will your end users need access to the production environment?</li>
+    </ul>
+  </li>
+</ol>
+   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with GitHub:</strong>
+<p>
+  As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
+  to the IM/IT standards.
+  <a
+    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
+    title=\\"IM/IT Standards Frequently Asked Questions\\"
+    target=\\"_blank\\"
+    rel=\\"noreferrer\\"
+    >IM/IT Standards Frequently Asked Questions</a
+  >
+</p>
+<ol>
+  <li>
+    Please proceed to complete this form:
+    <a
+      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
+      title=\\"IIM/IT Standards Exemptions\\"
+      target=\\"_blank\\"
+      rel=\\"noreferrer\\"
+      >IIM/IT Standards Exemptions</a
+    >
+  </li>
+  <li>
+    Once the exemption has been granted, please email us with a copy of it and we will happily set you production
+    integration with GitHub
+  </li>
+</ol>
+  <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID 1`] = `"[DEV] Pathfinder SSO change request submitted"`;
+
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+  <li>
+    Production:
+    <ul>
+      <li>https://a</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with BCeID:</strong>
+<p>
+  As you've requested an integration with BCeID, any production integration request requires you to work with the
+  Identity and Information Management (IDIM) team.
+</p>
+<ol>
+  <li>
+    <strong
+      >On a best effort basis, the BCeID team will endeavour to reach out to you within 2-3 business days to schedule an
+      on-boarding meeting.</strong
+    >
+  </li>
+  <li>
+    <strong>Please have answers to the questions below, before your meeting with the IDIM team.</strong>
+    <ul>
+      <li>What is your estimated volume of initial users?</li>
+      <li>Do you anticipate your volume of users will grow over the next three years?</li>
+      <li>When do you need access to the production environment by?</li>
+      <li>When will your end users need access to the production environment?</li>
+    </ul>
+  </li>
+</ol>
+   <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ GitHub 1`] = `"[DEV] Pathfinder SSO change request submitted"`;
+
+exports[`Email template snapshots Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ GitHub 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+  <li>
+    Production:
+    <ul>
+      <li>https://a</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 20 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <tr>
+    <td
+      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with GitHub:</strong>
+<p>
+  As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
+  to the IM/IT standards.
+  <a
+    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
+    title=\\"IM/IT Standards Frequently Asked Questions\\"
+    target=\\"_blank\\"
+    rel=\\"noreferrer\\"
+    >IM/IT Standards Frequently Asked Questions</a
+  >
+</p>
+<ol>
+  <li>
+    Please proceed to complete this form:
+    <a
+      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
+      title=\\"IIM/IT Standards Exemptions\\"
+      target=\\"_blank\\"
+      rel=\\"noreferrer\\"
+      >IIM/IT Standards Exemptions</a
+    >
+  </li>
+  <li>
+    Once the exemption has been granted, please email us with a copy of it and we will happily set you production
+    integration with GitHub
+  </li>
+</ol>
+  <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;

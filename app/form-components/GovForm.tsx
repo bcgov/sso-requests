@@ -1,5 +1,5 @@
 import Form from '@rjsf/core';
-import { omit } from 'lodash';
+import omit from 'lodash.omit';
 import { FormProps } from 'react-jsonschema-form';
 import Input from '@button-inc/bcgov-theme/Input';
 import Textarea from '@button-inc/bcgov-theme/Textarea';

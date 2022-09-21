@@ -1,4 +1,6 @@
-import { isObject, omit, sortBy, compact } from 'lodash';
+import omit from 'lodash.omit';
+import sortBy from 'lodash.sortby';
+import compact from 'lodash.compact';
 import { Op } from 'sequelize';
 import { diff } from 'deep-diff';
 import { Integration } from '@app/interfaces/Request';
@@ -31,17 +33,6 @@ export const omitNonFormFields = (data: Integration) =>
   ]);
 
 export type BceidEvent = 'submission' | 'deletion' | 'update';
-const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
-
-export const usesBceid = (integration: any) => {
-  if (!integration) return false;
-
-  if (integration.serviceType === 'gold') {
-    return integration.devIdps.some((idp) => idp.startsWith('bceid'));
-  } else {
-    return bceidRealms.includes(integration.realm);
-  }
-};
 
 const sortURIFields = (data: any) => {
   const sortedData = { ...data };

@@ -5,12 +5,11 @@ import { Table, Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-rea
 import Button from 'html-components/Button';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
-import TeamMembersForm from 'form-components/team-form/TeamMembersForm';
+import TeamMembersForm, { Errors, validateTeam } from 'form-components/team-form/TeamMembersForm';
 import { User, Team } from 'interfaces/team';
 import { Integration } from 'interfaces/Request';
 import { UserSession } from 'interfaces/props';
 import { getTeamIntegrations } from 'services/request';
-import validator from 'validator';
 import {
   addTeamMembers,
   getTeamMembers,
@@ -90,27 +89,6 @@ const deleteMemberModalId = 'delete-member-modal';
 const deleteServiceAccountModalId = 'delete-service-account-modal';
 
 export type TabKey = 'members';
-
-interface Errors {
-  members: string[];
-}
-
-const validateMembers = (members: User[], setErrors: Function) => {
-  let errors: Errors = { members: [] };
-
-  members.forEach((member, i) => {
-    if (!member.idirEmail || !validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter an email';
-    else if (!member.idirEmail.endsWith('@gov.bc.ca')) errors.members[i] = 'Please enter a government email address';
-  });
-
-  if (errors.members.length === 0) {
-    setErrors(null);
-    return null;
-  } else {
-    setErrors(errors);
-    return errors;
-  }
-};
 
 const emptyMember: User = { idirEmail: '', role: 'member', pending: true };
 interface Props {
@@ -305,8 +283,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   };
 
   const onConfirmAdd = async () => {
-    const errors = validateMembers(tempMembers, setErrors);
-    if (errors) return;
+    const [hasError, errors] = validateTeam({ name: team.name, members: tempMembers });
+    if (hasError) {
+      setErrors(errors);
+      return;
+    }
 
     const [, err] = await addTeamMembers({ members: tempMembers, id: team.id });
     if (err) {
@@ -424,7 +405,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   return (
     <>
       <Tabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'} tabBarGutter={30}>
-        {/* {enable_gold && isAdmin && (
+        {enable_gold && isAdmin && (
           <Tab key="service-accounts" tab="CSS API Account">
             <TabWrapper marginTop="10px">
               {serviceAccount ? (
@@ -524,7 +505,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               )}
             </TabWrapper>
           </Tab>
-        )} */}
+        )}
         <Tab key="members" tab="Members">
           <TabWrapper>
             {isAdmin ? (

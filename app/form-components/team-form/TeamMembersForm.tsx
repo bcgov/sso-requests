@@ -2,11 +2,12 @@ import React from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 import DefaultDropdown from '@button-inc/bcgov-theme/Dropdown';
 import styled from 'styled-components';
+import validator from 'validator';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPlusCircle, faMinusCircle, faStar } from '@fortawesome/free-solid-svg-icons';
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
-import { Errors } from './CreateTeamForm';
+import Link from '@button-inc/bcgov-theme/Link';
 
 const Container = styled.div`
   display: grid;
@@ -53,10 +54,33 @@ const Icon = styled(FontAwesomeIcon)`
   cursor: pointer;
 `;
 
+const LightOutlinedStar = styled(FontAwesomeIcon)`
+  padding: 3px;
+  border-radius: 25px;
+  border-style: solid;
+  border-color: black;
+  border-width: thin;
+`;
+
+const DarkOutlinedStar = styled(FontAwesomeIcon)`
+  padding: 3px;
+  border-radius: 25px;
+  border-style: solid;
+  border-color: black;
+  border-width: thin;
+  color: white;
+  background-color: black;
+`;
+
 const EmailAddrValidHeader = styled.p`
   font-style: italic;
   font-size: 0.95em;
 `;
+
+export interface Errors {
+  name: string;
+  members: string[];
+}
 
 interface Props {
   errors?: Errors | null;
@@ -109,9 +133,38 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
       <p>
         <span className="strong">Roles:</span>
         <br />
-        <span className="underline">Admin</span>: can manage integrations <span className="strong">and</span> teams
+        <div>
+          <span>
+            <DarkOutlinedStar icon={faStar} />
+          </span>
+          &nbsp;&nbsp;
+          <span className="underline" style={{ verticalAlign: 'top' }}>
+            Admins
+          </span>
+          <span style={{ verticalAlign: 'top' }}>
+            &nbsp;have <b>managing</b> powers
+          </span>
+        </div>
+        <div>
+          <span>
+            <LightOutlinedStar icon={faStar} />
+          </span>
+          &nbsp;&nbsp;
+          <span className="underline" style={{ verticalAlign: 'top' }}>
+            Members
+          </span>
+          <span style={{ verticalAlign: 'top' }}>
+            &nbsp;have <b>viewing</b> powers
+          </span>
+        </div>
         <br />
-        <span className="underline">Members</span>: can <span className="strong">only</span> manage integrations
+        <div>
+          <span className="underline">
+            <Link external href="https://github.com/bcgov/sso-keycloak/wiki/CSS-App-My-Teams">
+              View a detailed breakdown of roles on our wiki page
+            </Link>
+          </span>
+        </div>
       </p>
       <MembersSection>
         <Container>
@@ -163,5 +216,20 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
     </div>
   );
 }
+
+export const validateTeam = (team: { name: string; members: User[] }) => {
+  const errors: any = { name: null, members: [] };
+
+  if (!team.name) {
+    errors.name = 'Please enter a name';
+  }
+
+  team.members.forEach((member: User, i: number) => {
+    if (!member.idirEmail || !validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter an email';
+  });
+
+  const hasError = errors.name || errors.members.length > 0;
+  return [hasError, errors];
+};
 
 export default TeamMembersForm;

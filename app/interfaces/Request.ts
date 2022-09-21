@@ -13,7 +13,6 @@ export interface Integration {
   protocol?: string;
   authType?: string;
   serviceType?: string;
-  serviceAccountEnabled?: boolean;
   apiServiceAccount?: boolean;
   environments?: string[];
   prNumber?: number;
@@ -60,11 +59,13 @@ export interface Integration {
   requester?: string;
   status?: Status;
   bceidApproved?: boolean;
+  githubApproved?: boolean;
   archived?: boolean;
   provisioned?: boolean;
   provisionedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  userTeamRole?: string;
 }
 
 export interface Option {

@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import { map, omitBy, startCase, isEmpty, throttle } from 'lodash';
+import map from 'lodash.map';
+import omitBy from 'lodash.omitby';
+import startCase from 'lodash.startcase';
+import isEmpty from 'lodash.isempty';
+import throttle from 'lodash.throttle';
 import Button from '@button-inc/bcgov-theme/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
@@ -16,6 +20,7 @@ import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
 import InfoOverlay from 'components/InfoOverlay';
+import { idpMap } from 'helpers/meta';
 
 const Label = styled.label`
   font-weight: bold;
@@ -93,19 +98,15 @@ const PAGE_LIMIT = 15;
 
 const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
 
-const idpMap = {
-  idir: 'IDIR',
-  azureidir: 'Azure IDIR',
-  bceidbasic: 'BCeID Basic',
-  bceidbusiness: 'BCeID Business',
-  bceidboth: 'BCeID Both',
-};
-
 const propertyOptions = [
-  { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir'] },
-  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir'] },
-  { value: 'email', label: 'Email', allowed: ['idir', 'azureidir'] },
-  { value: 'guid', label: 'IDP GUID', allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth'] },
+  { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir', 'github'] },
+  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir', 'github'] },
+  { value: 'email', label: 'Email', allowed: ['idir', 'azureidir', 'github'] },
+  {
+    value: 'guid',
+    label: 'IDP GUID',
+    allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'],
+  },
 ];
 
 interface Props {
@@ -271,8 +272,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       label: string;
     }>,
   ) => {
-    let newRoles = [];
-    if (actionMeta.action === 'remove-value') {
+    let newRoles: string[] = [];
+    if (actionMeta.action === 'clear') {
+    } else if (actionMeta.action === 'remove-value') {
       newRoles = userRoles.filter((role) => role !== (actionMeta.removedValue?.value as string));
     } else {
       newRoles = [...userRoles, actionMeta.option?.value as string];

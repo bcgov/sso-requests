@@ -7,6 +7,11 @@ import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2, AuthMock } from '
 import { Integration } from './helpers/integration';
 
 jest.mock('@lambda-app/authenticate');
+jest.mock('@lambda-app/keycloak/client', () => {
+  return {
+    disableIntegration: jest.fn(() => Promise.resolve()),
+  };
+});
 jest.mock('@lambda-app/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
@@ -57,7 +62,7 @@ describe('Feature: Delete Integration - User notification for non-BCeID', () => 
     await integration.success();
   });
 
-  it('should deletethe integration', async () => {
+  it('should delete the integration', async () => {
     emailList = setMockedSendEmail();
 
     const res = await integration.delete();
@@ -97,7 +102,7 @@ describe('Feature: Delete Integration - Team notification for non-BCeID', () => 
     await integration.success();
   });
 
-  it('should deletethe integration', async () => {
+  it('should delete the integration', async () => {
     emailList = setMockedSendEmail();
 
     const res = await integration.delete();
@@ -137,7 +142,7 @@ describe('Feature: Delete Integration - User notification for BCeID', () => {
     await integration.success();
   });
 
-  it('should deletethe integration', async () => {
+  it('should delete the integration', async () => {
     emailList = setMockedSendEmail();
 
     const res = await integration.delete();
@@ -145,16 +150,16 @@ describe('Feature: Delete Integration - User notification for BCeID', () => {
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.DELETE_INTEGRATION_SUBMITTED_BCEID, {
+    const template = await renderTemplate(EMAILS.DELETE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
-    expect(emailList[0].to.length).toEqual(2);
-    expect(emailList[0].to).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS]);
-    expect(emailList[0].cc.length).toEqual(1);
-    expect(emailList[0].cc[0]).toEqual(TEST_IDIR_EMAIL);
+    expect(emailList[0].to.length).toEqual(1);
+    expect(emailList[0].to[0]).toEqual(TEST_IDIR_EMAIL);
+    expect(emailList[0].cc.length).toEqual(2);
+    expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
   });
 });
 
@@ -177,7 +182,7 @@ describe('Feature: Delete Integration - Team notification for BCeID', () => {
     await integration.success();
   });
 
-  it('should deletethe integration', async () => {
+  it('should delete the integration', async () => {
     emailList = setMockedSendEmail();
 
     const res = await integration.delete();
@@ -185,17 +190,15 @@ describe('Feature: Delete Integration - Team notification for BCeID', () => {
   });
 
   it('should render the expected template and send it to the expected emails', async () => {
-    const template = await renderTemplate(EMAILS.DELETE_INTEGRATION_SUBMITTED_BCEID, {
+    const template = await renderTemplate(EMAILS.DELETE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
     expect(emailList[0].body).toEqual(template.body);
-    expect(emailList[0].body).toContain(TEST_IDIR_EMAIL);
-    expect(emailList[0].body).toContain(TEST_IDIR_EMAIL_2);
     expect(emailList[0].to.length).toEqual(2);
-    expect(emailList[0].to).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS]);
+    expect(emailList[0].to).toEqual([TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2]);
     expect(emailList[0].cc.length).toEqual(2);
-    expect(emailList[0].cc).toEqual([TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2]);
+    expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
   });
 });

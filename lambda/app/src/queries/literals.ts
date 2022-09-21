@@ -1,4 +1,4 @@
-import { castArray } from 'lodash';
+import castArray from 'lodash.castarray';
 import format = require('pg-format');
 
 export const getMyTeamsLiteral = (userId: number, roles: string[] = ['member', 'admin']) => {
@@ -37,5 +37,14 @@ export const getTeamIdLiteralOutOfRange = (userId: number, teamId: number, roles
     teamId,
     userId,
     castArray(roles),
+  );
+};
+
+export const getUserTeamRole = (userId: number) => {
+  return format(
+    `(
+    SELECT role FROM USERS_TEAMS WHERE user_id = %L AND team_id = request.team_id
+  )`,
+    userId,
   );
 };

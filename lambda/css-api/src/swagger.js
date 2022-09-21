@@ -32,15 +32,14 @@ const doc = {
       integration: {
         id: 'number',
         projectName: 'string',
-        protocol: 'string',
-        requester: 'string',
-        teamId: 'number',
+        authType: 'string',
         environments: 'string[]',
+        status: 'string',
         createdAt: 'timestamp',
         updatedAt: 'timestamp',
       },
       role: {
-        roleName: 'string',
+        name: 'string',
       },
       userAttribute: {
         attributeKey: 'string[]',
@@ -48,8 +47,8 @@ const doc = {
       user: {
         username: 'string',
         email: 'string',
-        first_name: 'string',
-        last_name: 'string',
+        firstName: 'string',
+        lastName: 'string',
         attribues: [{ $ref: '#/components/schemas/userAttribute' }],
       },
       userRoleMappingRequest: {
@@ -59,6 +58,16 @@ const doc = {
       },
     },
     securitySchemes: {
+      oAuth2ClientCredentials: {
+        type: 'oauth2',
+        description: '',
+        flows: {
+          clientCredentials: {
+            tokenUrl: `https://${process.env.CUSTOM_DOMAIN_NAME}/api/v1/token`,
+            scopes: {},
+          },
+        },
+      },
       accessToken: {
         type: 'http',
         scheme: 'bearer',
@@ -68,6 +77,7 @@ const doc = {
   },
   security: [
     {
+      oAuth2ClientCredentials: [],
       accessToken: [],
     },
   ],

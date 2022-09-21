@@ -34,7 +34,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
 
   const fieldMap: any = {
     devValidRedirectUris: () => {
-      console.log('devValidRedirectUris', devValidRedirectUris);
       const isAllValid = devValidRedirectUris.every(isValidKeycloakURIDev);
       if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURIDev);
     },

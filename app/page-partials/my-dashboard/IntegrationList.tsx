@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Integration } from 'interfaces/Request';
-import { padStart, startCase } from 'lodash';
+import padStart from 'lodash.padstart';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Table, Button, NumberedContents, Header } from '@bcgov-sso/common-react-components';
 import { getStatusDisplayName } from 'utils/status';
@@ -16,6 +16,7 @@ import { getRequests, deleteRequest } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { authTypeDisplay } from 'metadata/display';
+import { UserSession } from '@app/interfaces/props';
 
 const RightAlignHeader = styled.th`
   text-align: right;

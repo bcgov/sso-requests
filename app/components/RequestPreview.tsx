@@ -1,8 +1,8 @@
 import { Integration } from 'interfaces/Request';
-import { realmToIDP } from 'utils/helpers';
 import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';
 import { Team } from 'interfaces/team';
+import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 const Table = styled.table`
   font-size: unset;
@@ -88,21 +88,24 @@ const hasUris = (uris: string[] | undefined) => {
 function RequestPreview({ children, request, teams = [] }: Props) {
   if (!request) return null;
   const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
-  const idpDisplay = serviceType === 'gold' ? request.devIdps : realmToIDP(request.realm);
+  const idpDisplay = serviceType === 'gold' ? request.devIdps : silverRealmIdpsMap[request.realm || 'onestopauth'];
   const isOIDC = request.protocol !== 'saml';
+
+  let teamName = '';
+  if (request.usesTeam) {
+    teamName =
+      teams.find((team) => String(team.id) === String(request.teamId))?.name || (request.team && request.team.name);
+  }
 
   return (
     <>
       <Table>
         <tbody>
-          {request.usesTeam ? (
+          {teamName ? (
             <tr>
               <td>Associated Team:</td>
               <td>
-                <SemiBold>
-                  {(request.team && request.team.name) ||
-                    teams.find((team) => String(team.id) === String(request.teamId))?.name}
-                </SemiBold>
+                <SemiBold>{teamName}</SemiBold>
               </td>
             </tr>
           ) : (
