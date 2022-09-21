@@ -16,9 +16,9 @@ let integrationId;
 
 export const options = {
   stages: [
-    { duration: '1m', target: 5 },
-    // { duration: '5m', target: 50 },
-    // { duration: '3m', target: 0 },
+    { duration: '3m', target: 50 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
+    { duration: '5m', target: 50 }, // stay at 50 users for 6 minutes
+    { duration: '3m', target: 0 }, // ramp-down to 0 users
   ],
 };
 
@@ -183,8 +183,9 @@ export default function (data) {
 
       check(response, {
         'should return 201 when success': (r) => r.status === 201,
-        'return role name': (r) => r.json().roles[0].name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
-        'return username': (r) => r.json().users[0].username === __ENV.username,
+        'return role name': (r) =>
+          r.json().roles.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
+        'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
     }
   });
@@ -200,8 +201,9 @@ export default function (data) {
 
       check(response, {
         'should return 200 when success on passing role name and username': (r) => r.status === 200,
-        'return role name': (r) => r.json().roles[0].name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
-        'return username': (r) => r.json().users[0].username === __ENV.username,
+        'return role name': (r) =>
+          r.json().roles.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
+        'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
 
       sleep(SLEEP_DURATION);
