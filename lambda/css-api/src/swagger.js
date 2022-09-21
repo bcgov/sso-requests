@@ -6,11 +6,7 @@ const doc = {
     title: 'CSS SSO API',
     description: 'CSS SSO API Service by BC Gov SSO Team',
   },
-  host: `${
-    process.env.APP_ENV === 'production'
-      ? 'kgodz1zmk2.execute-api.ca-central-1.amazonaws.com'
-      : 'api-dev.loginproxy.gov.bc.ca'
-  }`,
+  host: `${process.env.APP_ENV === 'production' ? 'api.loginproxy.gov.bc.ca' : 'api-dev.loginproxy.gov.bc.ca'}`,
   basePath: '/api/v1',
   schemes: ['https'],
   tags: [
