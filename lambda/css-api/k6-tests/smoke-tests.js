@@ -13,6 +13,7 @@
 import http from 'k6/http';
 import { group, check, sleep, fail } from 'k6';
 import encoding from 'k6/encoding';
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 const BASE_URL = 'https://api-dev.loginproxy.gov.bc.ca/api/v1';
 // Sleep duration between successive requests.
@@ -720,4 +721,10 @@ export default function (data) {
       sleep(SLEEP_DURATION);
     }
   });
+}
+
+export function handleSummary(data) {
+  return {
+    stdout: textSummary(data, { indent: ' ', enableColors: true }),
+  };
 }
