@@ -243,7 +243,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[201] = {
         description: 'Created',
-        schema: { message: 'string' }
+        schema: { $ref: '#/components/schemas/role' }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -296,7 +296,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { message: 'string' }
+        schema: { $ref: '#/components/schemas/role' }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -400,6 +400,10 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
         schema: { message: 'string' }
       }
       #swagger.responses[422] = {
