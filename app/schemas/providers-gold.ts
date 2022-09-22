@@ -96,6 +96,15 @@ export default function getSchema(integration: Integration) {
     },
   };
 
+  properties.additionalRoleAttribute = {
+    type: 'string',
+    title: 'Additional Role Attribute (optional)',
+    tooltip: {
+      content: `by default "client_roles" is the default attribute key name to include roles info, if you wish to include same info in another attribute, then use this`,
+    },
+    maxLength: 50,
+  };
+
   return {
     type: 'object',
     headerText: 'Choose providers',

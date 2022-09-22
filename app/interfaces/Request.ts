@@ -19,6 +19,7 @@ export interface Integration {
   actionNumber?: number;
   hasUnreadNotifications?: boolean;
   browserFlowOverride?: string;
+  additionalRoleAttribute?: string;
   usesTeam?: boolean;
   teamId?: number | string;
   userId?: number;
