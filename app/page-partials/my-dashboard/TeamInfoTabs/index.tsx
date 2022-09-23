@@ -18,8 +18,8 @@ import {
   inviteTeamMember,
   getServiceAccount,
   requestServiceAccount,
-  downloadServiceAccount,
   deleteServiceAccount,
+  getServiceAccounts,
 } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
@@ -39,14 +39,11 @@ import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
-import InfoMessage from 'components/InfoMessage';
-import Link from '@button-inc/bcgov-theme/Link';
-import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import getConfig from 'next/config';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
-import { PRIMARY_RED } from '@app/styles/theme';
+import ServiceAccountsList from './ServiceAccountsList';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -201,7 +198,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState<User[]>([]);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
-  const [serviceAccount, setServiceAccount] = useState<Integration | null>(null);
+  const [teamServiceAccounts, setTeamServiceAccounts] = useState<Integration[]>([]);
+  const [activeServiceAccount, setActiveServiceAccount] = useState<Integration | null>(null);
+  const [inProgressServiceAccount, setInProgressServiceAccount] = useState<Integration | null>(null);
   const [myself, setMyself] = useState<User | null>(null);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
@@ -209,66 +208,76 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
   const openModal = () => (window.location.hash = addMemberModalId);
-  const inProgressServiceAccount = serviceAccount?.status !== 'applied' && !serviceAccount?.archived;
-  const showDeleteServiceAccountModal = () => {
-    window.location.hash = deleteServiceAccountModalId;
-  };
-
-  const handleDeleteServiceAccount = async () => {
-    await deleteServiceAccount(team.id, serviceAccount?.id);
-    setServiceAccount(null);
-  };
 
   const getData = async (teamId: number) => {
     setLoading(true);
-    const [membersRes, integrationRes, serviceAccountRes] = await Promise.all([
-      getTeamMembers(teamId),
-      getTeamIntegrations(teamId),
-      getServiceAccount(teamId),
-    ]);
+    const [membersRes, integrationRes] = await Promise.all([getTeamMembers(teamId), getTeamIntegrations(teamId)]);
     const [members, err1] = membersRes;
     const [integrations, err2] = integrationRes;
-    const [serviceAccount, err3] = serviceAccountRes;
 
-    if (err1 || err2 || err3) {
+    if (err1 || err2) {
       setMembers([]);
       setMyself(null);
       setIntegrations([]);
-      setServiceAccount(null);
     } else {
       setMembers(members);
       setMyself(members.find((member: { idirEmail: string }) => member.idirEmail === currentUser.email));
       setIntegrations(integrations || []);
-      setServiceAccount(serviceAccount);
+    }
+
+    if (team.role === 'admin' && Number(team?.serviceAccountCount) > 0) {
+      const [serviceAccounts, err3] = await getServiceAccounts(teamId);
+      if (err3) {
+        setTeamServiceAccounts([]);
+      } else {
+        setTeamServiceAccounts(serviceAccounts);
+      }
+    } else {
+      setTeamServiceAccounts([]);
+      setActiveServiceAccount(null);
     }
     setLoading(false);
   };
 
+  const updateActiveServiceAccount = (activeServiceAccount: Integration | null) => {
+    setActiveServiceAccount(activeServiceAccount);
+  };
+
   useEffect(() => {
     getData(team.id);
-  }, [team?.id]);
+  }, [team.id]);
 
   let interval: any;
 
   useEffect(() => {
-    if (serviceAccount && serviceAccount.status !== 'applied') {
+    if (activeServiceAccount?.status !== 'applied' && !activeServiceAccount?.archived) {
+      setInProgressServiceAccount(activeServiceAccount);
+    } else {
+      setInProgressServiceAccount(null);
+    }
+  }, [activeServiceAccount?.id]);
+
+  useEffect(() => {
+    if (inProgressServiceAccount && inProgressServiceAccount.status !== 'applied') {
       clearInterval(interval);
 
       interval = setInterval(async () => {
-        const [data, err] = await getServiceAccount(team.id);
+        const [data, err] = await getServiceAccount(team.id, inProgressServiceAccount.id);
 
         if (err) {
           clearInterval(interval);
         } else {
-          setServiceAccount(data);
+          setInProgressServiceAccount(data);
         }
       }, 1000 * 5);
+    } else {
+      setInProgressServiceAccount(null);
     }
 
     return () => {
       interval && clearInterval(interval);
     };
-  }, [serviceAccount]);
+  }, [inProgressServiceAccount]);
 
   const handleDeleteClick = (memberId?: number) => {
     if (!memberId) return;
@@ -380,27 +389,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   };
 
   if (!team || !myself) return null;
-
   const isAdmin = myself.role === 'admin';
-
-  const fetchApiAccountCredentials = async (team: Team, serviceAccount: Integration, download: boolean) => {
-    setLoading(true);
-    let [data] = await downloadServiceAccount(team.id, serviceAccount.id);
-    data = data || {};
-
-    const text = {
-      tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
-      clientId: `${data.resource}`,
-      clientSecret: `${data.credentials?.secret}`,
-    };
-
-    if (download) {
-      downloadText(prettyJSON(text), `${serviceAccount.clientId}.json`);
-    } else {
-      copyTextToClipboard(prettyJSON(text));
-    }
-    setLoading(false);
-  };
 
   return (
     <>
@@ -408,100 +397,62 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         {enable_gold && isAdmin && (
           <Tab key="service-accounts" tab="CSS API Account">
             <TabWrapper marginTop="10px">
-              {serviceAccount ? (
-                inProgressServiceAccount ? (
-                  <Grid cols={15}>
-                    <Grid.Row gutter={[]}>
-                      <Grid.Col span={7} align={'center'}>
-                        {serviceAccount.requester && <Requester>Submitted by: {serviceAccount.requester}</Requester>}
-                        <SubTitle>CSS API Account will be provisioned in approx 20 min</SubTitle>
-                        <SubmittedStatusIndicator integration={serviceAccount} />
-                      </Grid.Col>
-                    </Grid.Row>
-                  </Grid>
-                ) : loading ? (
-                  <AlignCenter>
-                    <TopMargin />
-                    <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
-                  </AlignCenter>
-                ) : (
-                  <Grid cols={3}>
-                    <Grid.Row collapse="992" gutter={[]} align="center">
-                      Download the files to get access to the CSS App API &nbsp;
-                      <InfoOverlay
-                        title={''}
-                        content={`Create a CSS API Account for this team. <br /><br />
-                        The CSS API Account will only be available to teams created in the <b>Gold Keycloak</b>.<br /><br />
-                        If you <b>delete this Team</b>, then the <b>CSS API Account will also be deleted</b>.`}
-                        hide={200}
-                        style={{ maxWidth: 600 }}
-                      />
-                    </Grid.Row>
-                    <Grid.Row collapse="992" gutter={[0, 10]} align="center">
-                      <Grid.Col span={3}>
-                        <Button
-                          size="medium"
-                          variant="grey"
-                          onClick={() => fetchApiAccountCredentials(team, serviceAccount, false)}
-                        >
-                          Copy
-                        </Button>
-                        &nbsp;&nbsp;&nbsp;
-                        <Button
-                          size="medium"
-                          variant="grey"
-                          onClick={() => fetchApiAccountCredentials(team, serviceAccount, true)}
-                        >
-                          Download
-                        </Button>
-                        <ActionButton
-                          icon={faTrash}
-                          role="button"
-                          aria-label="delete"
-                          onClick={showDeleteServiceAccountModal}
-                          activeColor={PRIMARY_RED}
-                          title="Delete CSS API Account"
-                          size="lg"
-                          style={{ marginLeft: '7px' }}
-                        />
-                      </Grid.Col>
-                    </Grid.Row>
-                    <Grid.Row collapse="992" gutter={[]} align="center">
-                      <InfoMessage>
-                        For more information on how to use the CSS API Account with your integrations, see{' '}
-                        <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
-                          here
-                        </Link>
-                        .
-                      </InfoMessage>
-                    </Grid.Row>
-                  </Grid>
-                )
-              ) : loading ? (
+              {loading ? (
                 <AlignCenter>
                   <TopMargin />
                   <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
                 </AlignCenter>
               ) : (
-                <RequestButton
-                  onClick={async () => {
-                    setLoading(true);
-                    const [sa, err] = await requestServiceAccount(team.id);
-                    if (err) {
-                      alert.show({
-                        variant: 'danger',
-                        fadeOut: 10000,
-                        closable: true,
-                        content: err,
-                      });
-                    } else {
-                      setServiceAccount(sa);
-                    }
-                    setLoading(false);
-                  }}
-                >
-                  + Request CSS API Account
-                </RequestButton>
+                <Grid cols={10}>
+                  <Grid.Row collapse="1100" gutter={[15, 2]}>
+                    <Grid.Col span={4}>
+                      {teamServiceAccounts?.length > 0 ? (
+                        <ServiceAccountsList
+                          team={team}
+                          serviceAccounts={teamServiceAccounts}
+                          getActiveServiceAccount={updateActiveServiceAccount}
+                          serviceAccountInProgress={inProgressServiceAccount}
+                        />
+                      ) : (
+                        <RequestButton
+                          style={{ marginBottom: 10 }}
+                          onClick={async () => {
+                            setLoading(true);
+                            const [sa, err] = await requestServiceAccount(team.id);
+                            if (err) {
+                              alert.show({
+                                variant: 'danger',
+                                fadeOut: 10000,
+                                closable: true,
+                                content: err,
+                              });
+                            } else {
+                              setActiveServiceAccount(sa);
+                            }
+                            setLoading(false);
+                          }}
+                        >
+                          + Request CSS API Account
+                        </RequestButton>
+                      )}
+                    </Grid.Col>
+                    <Grid.Col span={6}>
+                      {inProgressServiceAccount && (
+                        <Grid cols={10}>
+                          <Grid.Row gutter={[]}>
+                            <Grid.Col span={10} align={'center'}>
+                              {inProgressServiceAccount.requester && (
+                                <Requester>Submitted by: {inProgressServiceAccount.requester}</Requester>
+                              )}
+                              <SubTitle>CSS API Account will be provisioned in approx 20 min</SubTitle>
+                              <SubmittedStatusIndicator integration={inProgressServiceAccount} />
+                            </Grid.Col>
+                          </Grid.Row>
+                        </Grid>
+                      )}
+                    </Grid.Col>
+                  </Grid.Row>
+                </Grid>
               )}
             </TabWrapper>
           </Tab>
@@ -689,21 +640,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         closable
       />
       <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
-      <CenteredModal
-        title="Delete CSS API Account"
-        icon={null}
-        onConfirm={handleDeleteServiceAccount}
-        id={deleteServiceAccountModalId}
-        content={
-          <ModalContents
-            title="Are you sure that you want to delete this CSS API Account?"
-            content={'Once you delete this CSS PI Account, this action cannot be undone.'}
-          />
-        }
-        buttonStyle={'danger'}
-        confirmText={'Delete CSS API Account'}
-        closable
-      />
     </>
   );
 }
