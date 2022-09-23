@@ -65,8 +65,8 @@ describe('Feature: Submit Integration Update - User notification without BCeID p
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: false,
-      githubProdAdded: false,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
@@ -106,8 +106,8 @@ describe('Feature: Submit Integration Update - Team notification without BCeID p
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: false,
-      githubProdAdded: false,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
@@ -148,8 +148,8 @@ describe('Feature: Submit Integration Update - User notification with BCeID prod
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: true,
-      githubProdAdded: false,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
@@ -190,8 +190,8 @@ describe('Feature: Submit Integration Update - Team notification with BCeID prod
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: true,
-      githubProdAdded: false,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);

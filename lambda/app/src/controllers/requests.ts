@@ -233,15 +233,19 @@ export const updateRequest = async (
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
             data: {
               integration: finalData,
-              bceidProdAdded: !hadBceidProd && hasBceidProd,
-              githubProdAdded: !hadGithubProd && hasGithubProd,
+              waitingBceidProdApproval: !hadBceidProd && hasBceidProd,
+              waitingGithubProdApproval: !hadGithubProd && hasGithubProd,
             },
           });
         }
       } else {
         emails.push({
           code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
-          data: { integration: finalData, bceidProdAdded: hasBceidProd, githubProdAdded: hasGithubProd },
+          data: {
+            integration: finalData,
+            waitingBceidProdApproval: hasBceidProd,
+            waitingGithubProdApproval: hasGithubProd,
+          },
         });
       }
 

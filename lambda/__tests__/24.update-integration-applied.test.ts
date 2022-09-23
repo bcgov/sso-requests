@@ -120,3 +120,48 @@ describe('Feature: Update Integration Approved - Team notification', () => {
     expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
   });
 });
+
+describe('Feature: Update Integration Approved w/ unapproved BCeID prod - User notification', () => {
+  let emailList: any = [];
+
+  const integration = new Integration();
+
+  it('should create a DRAFT integration without a team', async () => {
+    const res = await integration.create({ bceid: true, prod: true });
+    expect(res.statusCode).toEqual(200);
+  });
+
+  it('should submit the integration request', async () => {
+    const res = await integration.submit();
+    expect(res.statusCode).toEqual(200);
+  });
+
+  it('should update integration status to apply-success', async () => {
+    await integration.success();
+  });
+
+  it('should update the integration', async () => {
+    integration.set({ projectName: 'newproject' });
+    const res = await integration.submit();
+    expect(res.statusCode).toEqual(200);
+  });
+
+  it('should update integration status to apply-success', async () => {
+    emailList = setMockedSendEmail();
+    await integration.success();
+  });
+
+  it('should render the expected template and send it to the expected emails', async () => {
+    const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, {
+      integration: integration.current,
+      waitingBceidProdApproval: true,
+    });
+    expect(emailList.length).toEqual(1);
+    expect(emailList[0].subject).toEqual(template.subject);
+    expect(emailList[0].body).toEqual(template.body);
+    expect(emailList[0].to.length).toEqual(1);
+    expect(emailList[0].to[0]).toEqual(TEST_IDIR_EMAIL);
+    expect(emailList[0].cc.length).toEqual(1);
+    expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+  });
+});
