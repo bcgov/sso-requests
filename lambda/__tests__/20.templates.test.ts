@@ -73,6 +73,39 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
+  it('Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID prod', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...formDataDev },
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: false,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved GitHub prod', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...formDataDev },
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID & GitHub prod', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...formDataDev },
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
   it('Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED', async () => {
     const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: formDataDevTest,
