@@ -114,15 +114,6 @@ export const requestServiceAccount = async (teamId?: number) => {
   }
 };
 
-// export const getServiceAccount = async (teamId?: number) => {
-//   try {
-//     const result = await instance.get(`teams/${teamId}/service-accounts`).then((res) => res.data);
-//     return [result, null];
-//   } catch (err: any) {
-//     return handleAxiosError(err);
-//   }
-// };
-
 export const getServiceAccounts = async (teamId?: number) => {
   try {
     const result = await instance.get(`teams/${teamId}/service-accounts`).then((res) => res.data);
