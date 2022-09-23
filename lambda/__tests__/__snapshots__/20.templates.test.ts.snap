@@ -48,8 +48,8 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
 </ul>
-  <strong>* BCeID production integration is not approved and not ready to use yet</strong>
-   <strong>* GitHub production integration is not approved and not ready to use yet</strong>
+  <p><strong>* BCeID production integration is not approved and not ready to use yet</strong></p>
+   <p><strong>* GitHub production integration is not approved and not ready to use yet</strong></p>
   <p>
   Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
@@ -88,7 +88,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
 </ul>
-  <strong>* BCeID production integration is not approved and not ready to use yet</strong>
+  <p><strong>* BCeID production integration is not approved and not ready to use yet</strong></p>
    <p>
   Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
@@ -127,7 +127,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
 </ul>
-   <strong>* GitHub production integration is not approved and not ready to use yet</strong>
+   <p><strong>* GitHub production integration is not approved and not ready to use yet</strong></p>
   <p>
   Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to

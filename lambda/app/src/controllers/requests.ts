@@ -172,16 +172,16 @@ export const updateRequest = async (
       current.status = 'submitted';
       let environments = current.environments.concat();
 
-      const hadProd = originalData.environments.includes('prod');
       const hasProd = environments.includes('prod');
 
       const hasBceid = usesBceid(current);
-      const hadBceidProd = hasBceid && hadProd;
       const hasBceidProd = hasBceid && hasProd;
 
       const hasGithub = usesGithub(current);
-      const hadGithubProd = hasGithub && hadProd;
       const hasGithubProd = hasGithub && hasProd;
+
+      const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
+      const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
 
       const tfData = getCurrentValue();
 
@@ -233,8 +233,8 @@ export const updateRequest = async (
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
             data: {
               integration: finalData,
-              waitingBceidProdApproval: !hadBceidProd && hasBceidProd,
-              waitingGithubProdApproval: !hadGithubProd && hasGithubProd,
+              waitingBceidProdApproval,
+              waitingGithubProdApproval,
             },
           });
         }
@@ -243,8 +243,8 @@ export const updateRequest = async (
           code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
           data: {
             integration: finalData,
-            waitingBceidProdApproval: hasBceidProd,
-            waitingGithubProdApproval: hasGithubProd,
+            waitingBceidProdApproval,
+            waitingGithubProdApproval,
           },
         });
       }
