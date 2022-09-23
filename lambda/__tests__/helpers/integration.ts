@@ -223,7 +223,7 @@ export class Integration {
   async deleteServiceAccount() {
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
-      path: `${baseUrl}/teams/${this.current.teamId}/service-account/${this.serviceAccount.id}`,
+      path: `${baseUrl}/teams/${this.current.teamId}/service-accounts/${this.serviceAccount.id}`,
       httpMethod: 'DELETE',
     };
 

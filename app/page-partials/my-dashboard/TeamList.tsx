@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faExclamationCircle, faTrash, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { Team, User } from 'interfaces/team';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import { getMyTeams, deleteTeam, getServiceAccount, deleteServiceAccount, getTeamMembers } from 'services/team';
+import { deleteTeam, deleteServiceAccount, getTeamMembers, getServiceAccounts } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
@@ -20,6 +20,7 @@ import WarningModalContents from 'components/WarningModalContents';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { Integration } from 'interfaces/Request';
 import TeamActionButtons from '@app/components/TeamActionButtons';
+import isEmpty from 'lodash.isempty';
 
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
@@ -98,7 +99,7 @@ interface Props {
 export default function TeamList({ currentUser, setTeam, loading, teams, loadTeams, state, dispatch }: Props) {
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
-  const [serviceAccount, setServiceAccount] = useState<Integration | null>(null);
+  const [serviceAccounts, setServiceAccounts] = useState<Integration[]>([]);
   const { downloadError } = state;
 
   const deleteServiceAccontNote =
@@ -112,11 +113,9 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
     setTeam(team);
   };
 
-  const updateServiceAccount = async () => {
-    const [serviceAccount] = await getServiceAccount(activeTeamId);
-
-    if (serviceAccount) setServiceAccount(serviceAccount);
-    else setServiceAccount(null);
+  const updateServiceAccounts = async () => {
+    const [serviceAccounts] = await getServiceAccounts(activeTeamId);
+    setServiceAccounts(serviceAccounts);
   };
 
   useEffect(() => {
@@ -130,7 +129,9 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
   }, [teams]);
 
   useEffect(() => {
-    updateServiceAccount();
+    if (Number(activeTeam?.serviceAccountCount) > 0) {
+      updateServiceAccounts();
+    }
   }, [activeTeamId]);
 
   const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
@@ -197,7 +198,13 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
   const handleDeleteTeam = async () => {
     if (!canDelete) return;
 
-    if (serviceAccount) await deleteServiceAccount(activeTeamId, serviceAccount.id);
+    if (serviceAccounts.length > 0) {
+      Promise.all(
+        serviceAccounts.map((serviceAccount: Integration) => {
+          deleteServiceAccount(activeTeamId, serviceAccount.id);
+        }),
+      );
+    }
 
     await deleteTeam(activeTeamId);
     await loadTeams();
@@ -247,7 +254,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
           <WarningModalContents
             title="Are you sure that you want to delete this team?"
             content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-            note={canDelete && serviceAccount ? deleteServiceAccontNote : ''}
+            note={canDelete && !isEmpty(serviceAccounts) ? deleteServiceAccontNote : ''}
           />
         }
         buttonStyle={canDelete ? 'danger' : 'custom'}

@@ -21,6 +21,12 @@ const teamAttributes = [
     ),
     'integrationCount',
   ],
+  [
+    sequelize.literal(
+      '(select count(*) FROM requests WHERE "requests"."team_id"="team"."id" AND "requests"."archived"=false AND "api_service_account"=true)',
+    ),
+    'serviceAccountCount',
+  ],
 ];
 
 export const findTeamsForUser = async (userId: number, options = { raw: true }) => {

@@ -114,18 +114,45 @@ export const requestServiceAccount = async (teamId?: number) => {
   }
 };
 
-export const getServiceAccount = async (teamId?: number) => {
+// export const getServiceAccount = async (teamId?: number) => {
+//   try {
+//     const result = await instance.get(`teams/${teamId}/service-accounts`).then((res) => res.data);
+//     return [result, null];
+//   } catch (err: any) {
+//     return handleAxiosError(err);
+//   }
+// };
+
+export const getServiceAccounts = async (teamId?: number) => {
   try {
-    const result = await instance.get(`teams/${teamId}/service-account`).then((res) => res.data);
+    const result = await instance.get(`teams/${teamId}/service-accounts`).then((res) => res.data);
     return [result, null];
   } catch (err: any) {
     return handleAxiosError(err);
   }
 };
 
-export const downloadServiceAccount = async (teamId?: number, saId?: number) => {
+export const getServiceAccount = async (teamId?: number, saId?: number) => {
   try {
-    const result = await instance.get(`teams/${teamId}/service-account/${saId}`).then((res) => res.data);
+    const result = await instance.get(`teams/${teamId}/service-accounts/${saId}`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
+export const getServiceAccountCredentials = async (teamId?: number, saId?: number) => {
+  try {
+    const result = await instance.get(`teams/${teamId}/service-accounts/${saId}/credentials`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
+export const updateServiceAccountCredentials = async (teamId?: number, saId?: number) => {
+  try {
+    const result = await instance.put(`teams/${teamId}/service-accounts/${saId}/credentials`).then((res) => res.data);
     return [result, null];
   } catch (err: any) {
     return handleAxiosError(err);
@@ -134,7 +161,7 @@ export const downloadServiceAccount = async (teamId?: number, saId?: number) => 
 
 export const deleteServiceAccount = async (teamId?: number, saId?: number) => {
   try {
-    const result = await instance.delete(`teams/${teamId}/service-account/${saId}`).then((res) => res.data);
+    const result = await instance.delete(`teams/${teamId}/service-accounts/${saId}`).then((res) => res.data);
     return [result, null];
   } catch (err: any) {
     return handleAxiosError(err);
