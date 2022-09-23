@@ -6,8 +6,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for CREATE_INTEGRATION_SUBMITTED', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: formDataDevTest,
-      bceidProdAdded: false,
-      githubProdAdded: false,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -17,8 +17,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: formDataProd,
-      bceidProdAdded: true,
-      githubProdAdded: false,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: false,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -28,8 +28,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ GitHub', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: formDataProd,
-      bceidProdAdded: false,
-      githubProdAdded: true,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: true,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -39,8 +39,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for CREATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: formDataProd,
-      bceidProdAdded: true,
-      githubProdAdded: true,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: true,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -50,8 +50,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for CREATE_INTEGRATION_SUBMITTED - no browser login', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: { ...formDataProd, authType: 'service-account' },
-      bceidProdAdded: true,
-      githubProdAdded: true,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: true,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -76,8 +76,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED', async () => {
     const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: formDataDevTest,
-      bceidProdAdded: false,
-      githubProdAdded: false,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -87,8 +87,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID', async () => {
     const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: formDataProd,
-      bceidProdAdded: true,
-      githubProdAdded: false,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: false,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -98,8 +98,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ GitHub', async () => {
     const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: formDataProd,
-      bceidProdAdded: false,
-      githubProdAdded: true,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: true,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -109,8 +109,8 @@ describe('Email template snapshots', () => {
   it('Should return the expeted email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub', async () => {
     const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: formDataProd,
-      bceidProdAdded: true,
-      githubProdAdded: true,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: true,
     });
 
     expect(rendered.subject).toMatchSnapshot();
