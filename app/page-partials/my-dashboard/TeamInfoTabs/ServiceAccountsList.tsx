@@ -38,6 +38,7 @@ interface Props {
   serviceAccounts: Integration[];
   getActiveServiceAccount: (activeServiceAccount: Integration | null) => void;
   serviceAccountInProgress: Integration | null;
+  updateTeamServiceAccounts: (teamId: number) => void;
 }
 
 export default function ServiceAccountsList({
@@ -45,6 +46,7 @@ export default function ServiceAccountsList({
   serviceAccounts,
   getActiveServiceAccount,
   serviceAccountInProgress,
+  updateTeamServiceAccounts,
 }: Props) {
   const [activeServiceAccountId, setActiveServiceAccountId] = useState<number | undefined>(undefined);
   const [activeServiceAccount, setActiveServiceAccount] = useState<Integration | null>(null);
@@ -73,6 +75,7 @@ export default function ServiceAccountsList({
 
   const handleConfirmDelete = async () => {
     await deleteServiceAccount(team.id, activeServiceAccount?.id);
+    updateTeamServiceAccounts(team.id);
   };
 
   const handleUpdate = () => {
