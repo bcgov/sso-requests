@@ -3,6 +3,7 @@ export interface Team {
   id: number;
   integrationCount?: string;
   role?: string;
+  serviceAccountCount?: string;
 }
 
 export interface User {
