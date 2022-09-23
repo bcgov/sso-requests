@@ -225,8 +225,13 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       setIntegrations(integrations || []);
     }
 
+    await refreshTeamServiceAccounts(teamId);
+    setLoading(false);
+  };
+
+  const refreshTeamServiceAccounts = async (teamId: number) => {
     if (team.role === 'admin' && Number(team?.serviceAccountCount) > 0) {
-      const [serviceAccounts, err3] = await getServiceAccounts(teamId);
+      const [serviceAccounts, err3] = await getServiceAccounts(team.id);
       if (err3) {
         setTeamServiceAccounts([]);
       } else {
@@ -236,7 +241,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       setTeamServiceAccounts([]);
       setActiveServiceAccount(null);
     }
-    setLoading(false);
   };
 
   const updateActiveServiceAccount = (activeServiceAccount: Integration | null) => {
@@ -412,6 +416,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                           serviceAccounts={teamServiceAccounts}
                           getActiveServiceAccount={updateActiveServiceAccount}
                           serviceAccountInProgress={inProgressServiceAccount}
+                          updateTeamServiceAccounts={refreshTeamServiceAccounts}
                         />
                       ) : (
                         <RequestButton
@@ -428,6 +433,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               });
                             } else {
                               setActiveServiceAccount(sa);
+                              await refreshTeamServiceAccounts(team.id);
                             }
                             setLoading(false);
                           }}
