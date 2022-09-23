@@ -78,13 +78,6 @@ interface Props {
   children?: React.ReactNode;
 }
 
-const hasUris = (uris: string[] | undefined) => {
-  if (!uris) return false;
-  // URI arrays are initialized with an empty string to prompt an empty input in the rjsf array
-  if (uris.length === 1 && uris[0] === '') return false;
-  return true;
-};
-
 function RequestPreview({ children, request, teams = [] }: Props) {
   if (!request) return null;
   const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
@@ -142,14 +135,22 @@ function RequestPreview({ children, request, teams = [] }: Props) {
               <SemiBold>{request.projectName}</SemiBold>
             </td>
           </tr>
+          {request.additionalRoleAttribute && (
+            <tr>
+              <td>Additional Role Attribute:</td>
+              <td>
+                <SemiBold>{request.additionalRoleAttribute}</SemiBold>
+              </td>
+            </tr>
+          )}
           <FormattedList list={idpDisplay} title="Identity Providers Required:" inline />
-          {hasUris(request.devValidRedirectUris) && (
+          {request.environments?.includes('dev') && (
             <FormattedList list={request.devValidRedirectUris} title="Dev Redirect URIs:" />
           )}
-          {hasUris(request.testValidRedirectUris) && (
+          {request.environments?.includes('test') && (
             <FormattedList list={request.testValidRedirectUris} title="Test Redirect URIs:" />
           )}
-          {hasUris(request.prodValidRedirectUris) && (
+          {request.environments?.includes('prod') && (
             <FormattedList list={request.prodValidRedirectUris} title="Prod Redirect URIs:" />
           )}
           {children}

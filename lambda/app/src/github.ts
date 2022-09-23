@@ -34,6 +34,7 @@ const allowedFieldsForGithub = [
   'serviceType',
   'authType',
   'protocol',
+  'additionalRoleAttribute',
 
   'userId',
   'teamId',

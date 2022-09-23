@@ -146,6 +146,11 @@ const init = (sequelize, DataTypes) => {
         defaultValue: 'silver',
         allowNull: false,
       },
+      additionalRoleAttribute: {
+        type: DataTypes.STRING,
+        defaultValue: '',
+        allowNull: false,
+      },
       devIdps: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         defaultValue: [],
