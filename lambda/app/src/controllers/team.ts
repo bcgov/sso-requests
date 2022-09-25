@@ -206,12 +206,12 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
   serviceAccount.requester = requester;
 
-  const ghResult = await dispatchRequestWorkflow(serviceAccount);
+  // const ghResult = await dispatchRequestWorkflow(serviceAccount);
 
-  if (ghResult.status !== 204) {
-    await serviceAccount.destroy();
-    throw Error('failed to create a workflow dispatch event');
-  }
+  // if (ghResult.status !== 204) {
+  //   await serviceAccount.destroy();
+  //   throw Error('failed to create a workflow dispatch event');
+  // }
 
   await serviceAccount.save();
 
@@ -292,16 +292,16 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
 
-    if (isMerged) {
-      // Trigger workflow with empty environments to delete client
-      const ghResult = await dispatchRequestWorkflow(serviceAccount);
-      if (ghResult.status !== 204) {
-        throw Error('failed to create a workflow dispatch event');
-      }
-    }
+    // if (isMerged) {
+    //   // Trigger workflow with empty environments to delete client
+    //   const ghResult = await dispatchRequestWorkflow(serviceAccount);
+    //   if (ghResult.status !== 204) {
+    //     throw Error('failed to create a workflow dispatch event');
+    //   }
+    // }
 
     // Close any pr's if they exist
-    await closeOpenPullRequests(saId);
+    //await closeOpenPullRequests(saId);
 
     await serviceAccount.save();
 

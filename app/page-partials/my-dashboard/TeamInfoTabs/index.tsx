@@ -44,6 +44,7 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import ServiceAccountsList from './ServiceAccountsList';
+import isEmpty from 'lodash.isempty';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -200,7 +201,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [teamServiceAccounts, setTeamServiceAccounts] = useState<Integration[]>([]);
   const [activeServiceAccount, setActiveServiceAccount] = useState<Integration | null>(null);
-  const [inProgressServiceAccount, setInProgressServiceAccount] = useState<Integration | null>(null);
+  const [serviceAccountInProgress, setServiceAccountInProgress] = useState<Integration | null>(null);
   const [myself, setMyself] = useState<User | null>(null);
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
@@ -224,64 +225,60 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       setMyself(members.find((member: { idirEmail: string }) => member.idirEmail === currentUser.email));
       setIntegrations(integrations || []);
     }
-
-    await refreshTeamServiceAccounts(teamId);
+    await fetchTeamServiceAccounts(teamId);
     setLoading(false);
   };
 
-  const refreshTeamServiceAccounts = async (teamId: number) => {
-    if (team.role === 'admin' && Number(team?.serviceAccountCount) > 0) {
-      const [serviceAccounts, err3] = await getServiceAccounts(team.id);
+  const fetchTeamServiceAccounts = async (teamId: number) => {
+    setLoading(true);
+    if (team.role === 'admin') {
+      const [serviceAccounts, err3] = await getServiceAccounts(teamId);
       if (err3) {
         setTeamServiceAccounts([]);
       } else {
         setTeamServiceAccounts(serviceAccounts);
+        setActiveServiceAccount(serviceAccounts && serviceAccounts.length > 0 ? serviceAccounts[0] : null);
       }
     } else {
       setTeamServiceAccounts([]);
       setActiveServiceAccount(null);
     }
-  };
-
-  const updateActiveServiceAccount = (activeServiceAccount: Integration | null) => {
-    setActiveServiceAccount(activeServiceAccount);
+    setLoading(false);
   };
 
   useEffect(() => {
+    setServiceAccountInProgress(null);
     getData(team.id);
   }, [team.id]);
+
+  useEffect(() => {
+    if (activeServiceAccount && activeServiceAccount.status !== 'applied' && !activeServiceAccount.archived) {
+      setServiceAccountInProgress(activeServiceAccount);
+    }
+  }, [activeServiceAccount]);
 
   let interval: any;
 
   useEffect(() => {
-    if (activeServiceAccount?.status !== 'applied' && !activeServiceAccount?.archived) {
-      setInProgressServiceAccount(activeServiceAccount);
-    } else {
-      setInProgressServiceAccount(null);
-    }
-  }, [activeServiceAccount?.id]);
-
-  useEffect(() => {
-    if (inProgressServiceAccount && inProgressServiceAccount.status !== 'applied') {
+    if (serviceAccountInProgress && serviceAccountInProgress.status !== 'applied') {
       clearInterval(interval);
-
       interval = setInterval(async () => {
-        const [data, err] = await getServiceAccount(team.id, inProgressServiceAccount.id);
+        const [data, err] = await getServiceAccount(team.id, serviceAccountInProgress.id);
 
         if (err) {
           clearInterval(interval);
         } else {
-          setInProgressServiceAccount(data);
+          setServiceAccountInProgress(data);
         }
       }, 1000 * 5);
     } else {
-      setInProgressServiceAccount(null);
+      fetchTeamServiceAccounts(team.id);
+      setServiceAccountInProgress(null);
     }
-
     return () => {
       interval && clearInterval(interval);
     };
-  }, [inProgressServiceAccount]);
+  }, [serviceAccountInProgress]);
 
   const handleDeleteClick = (memberId?: number) => {
     if (!memberId) return;
@@ -410,13 +407,13 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 <Grid cols={10}>
                   <Grid.Row collapse="1100" gutter={[15, 2]}>
                     <Grid.Col span={4}>
-                      {teamServiceAccounts?.length > 0 ? (
+                      {teamServiceAccounts.length > 0 ? (
                         <ServiceAccountsList
                           team={team}
-                          serviceAccounts={teamServiceAccounts}
-                          getActiveServiceAccount={updateActiveServiceAccount}
-                          serviceAccountInProgress={inProgressServiceAccount}
-                          updateTeamServiceAccounts={refreshTeamServiceAccounts}
+                          selectedServiceAccount={activeServiceAccount}
+                          setSelectedServiceAccount={setActiveServiceAccount}
+                          teamServiceAccounts={teamServiceAccounts}
+                          getTeamServiceAccounts={fetchTeamServiceAccounts}
                         />
                       ) : (
                         <RequestButton
@@ -432,10 +429,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                                 content: err,
                               });
                             } else {
-                              setActiveServiceAccount(sa);
-                              await refreshTeamServiceAccounts(team.id);
+                              fetchTeamServiceAccounts(team.id);
                             }
-                            setLoading(false);
                           }}
                         >
                           + Request CSS API Account
@@ -443,15 +438,15 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                       )}
                     </Grid.Col>
                     <Grid.Col span={6}>
-                      {inProgressServiceAccount && (
+                      {serviceAccountInProgress && (
                         <Grid cols={10}>
                           <Grid.Row gutter={[]}>
                             <Grid.Col span={10} align={'center'}>
-                              {inProgressServiceAccount.requester && (
-                                <Requester>Submitted by: {inProgressServiceAccount.requester}</Requester>
+                              {activeServiceAccount?.requester && (
+                                <Requester>Submitted by: {activeServiceAccount?.requester}</Requester>
                               )}
                               <SubTitle>CSS API Account will be provisioned in approx 20 min</SubTitle>
-                              <SubmittedStatusIndicator integration={inProgressServiceAccount} />
+                              <SubmittedStatusIndicator integration={serviceAccountInProgress} />
                             </Grid.Col>
                           </Grid.Row>
                         </Grid>
