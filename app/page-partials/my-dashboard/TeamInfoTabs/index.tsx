@@ -422,6 +422,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             setLoading(true);
                             const [sa, err] = await requestServiceAccount(team.id);
                             if (err) {
+                              setLoading(false);
                               alert.show({
                                 variant: 'danger',
                                 fadeOut: 10000,
