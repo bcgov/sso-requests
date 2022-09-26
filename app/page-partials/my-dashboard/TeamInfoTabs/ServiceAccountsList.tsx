@@ -5,14 +5,18 @@ import { Integration } from '@app/interfaces/Request';
 import { Team } from '@app/interfaces/team';
 import {
   deleteServiceAccount,
+  getServiceAccount,
   getServiceAccountCredentials,
+  getServiceAccounts,
   updateServiceAccountCredentials,
 } from '@app/services/team';
 import { copyTextToClipboard, downloadText, prettyJSON } from '@app/utils/text';
 import { Table } from '@bcgov-sso/common-react-components';
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import isEmpty from 'lodash.isempty';
 import { useEffect, useState } from 'react';
+import ReactPlaceholder from 'react-placeholder';
 import styled from 'styled-components';
 
 const RightAlignHeader = styled.th`
@@ -35,61 +39,48 @@ const ModalContentContainer = styled.div`
 
 interface Props {
   team: Team;
-  serviceAccounts: Integration[];
-  getActiveServiceAccount: (activeServiceAccount: Integration | null) => void;
-  serviceAccountInProgress: Integration | null;
-  updateTeamServiceAccounts: (teamId: number) => void;
+  selectedServiceAccount: Integration | null;
+  setSelectedServiceAccount: (serviceAccount: Integration | null) => void;
+  teamServiceAccounts: Integration[];
+  getTeamServiceAccounts: (teamId: number) => void;
 }
 
 export default function ServiceAccountsList({
   team,
-  serviceAccounts,
-  getActiveServiceAccount,
-  serviceAccountInProgress,
-  updateTeamServiceAccounts,
+  selectedServiceAccount,
+  setSelectedServiceAccount,
+  teamServiceAccounts,
+  getTeamServiceAccounts,
 }: Props) {
-  const [activeServiceAccountId, setActiveServiceAccountId] = useState<number | undefined>(undefined);
-  const [activeServiceAccount, setActiveServiceAccount] = useState<Integration | null>(null);
   const deleteServiceAccountModalId = 'delete-service-account-modal';
   const updateServiceAccountSecretModalId = 'update-service-account-secret-modal';
-  const [actionsDisabled, setActionsDisabled] = useState<boolean>(false);
 
-  const updateActiveServiceAccount = (svcAcct: Integration | null) => {
-    setActiveServiceAccountId(svcAcct?.id);
-    setActiveServiceAccount(svcAcct);
-    getActiveServiceAccount(svcAcct);
+  const checkDisabled = (serviceAccount: Integration | null) => {
+    return serviceAccount && serviceAccount?.status !== 'applied' && !serviceAccount?.archived;
   };
 
-  useEffect(() => {
-    updateActiveServiceAccount(serviceAccounts[0]);
-  }, [team.id]);
-
-  useEffect(() => {
-    setActionsDisabled(serviceAccountInProgress && serviceAccountInProgress.status !== 'applied' ? true : false);
-  }, [serviceAccountInProgress]);
-
   const handleDelete = () => {
-    if (actionsDisabled) return;
+    if (checkDisabled(selectedServiceAccount)) return;
     window.location.hash = deleteServiceAccountModalId;
   };
 
   const handleConfirmDelete = async () => {
-    await deleteServiceAccount(team.id, activeServiceAccount?.id);
-    updateTeamServiceAccounts(team.id);
+    await deleteServiceAccount(team.id, selectedServiceAccount?.id);
+    getTeamServiceAccounts(team.id);
   };
 
   const handleUpdate = () => {
-    if (actionsDisabled) return;
+    if (checkDisabled(selectedServiceAccount)) return;
     window.location.hash = updateServiceAccountSecretModalId;
   };
 
   const handleConfirmUpdate = async () => {
-    await updateServiceAccountCredentials(team.id, activeServiceAccount?.id);
+    await updateServiceAccountCredentials(team.id, selectedServiceAccount?.id);
   };
 
   const copyOrDownloadServiceAccount = async (download: boolean) => {
-    if (actionsDisabled) return;
-    let [data] = await getServiceAccountCredentials(team.id, activeServiceAccount?.id);
+    if (checkDisabled(selectedServiceAccount)) return;
+    let [data] = await getServiceAccountCredentials(team.id, selectedServiceAccount?.id);
     data = data || {};
 
     const text = {
@@ -99,7 +90,7 @@ export default function ServiceAccountsList({
     };
 
     if (download) {
-      downloadText(prettyJSON(text), `${activeServiceAccount?.clientId}.json`);
+      downloadText(prettyJSON(text), `${selectedServiceAccount?.clientId}.json`);
     } else {
       copyTextToClipboard(prettyJSON(text));
     }
@@ -115,28 +106,27 @@ export default function ServiceAccountsList({
           </tr>
         </thead>
         <tbody>
-          {serviceAccounts &&
-            serviceAccounts.map((serviceAccount: Integration) => {
-              return (
-                <tr
-                  className={activeServiceAccountId === serviceAccount.id ? 'active' : ''}
-                  key={serviceAccount.id}
-                  onClick={() => updateActiveServiceAccount(serviceAccount)}
-                >
-                  <td>{serviceAccount.id}</td>
-                  <td>
-                    <RightFloatButtons>
-                      <ServiceAccountActionbuttons
-                        copyOrDownloadAction={copyOrDownloadServiceAccount}
-                        showUpdateModal={handleUpdate}
-                        showDeleteModal={handleDelete}
-                        actionsDisabled={actionsDisabled}
-                      />
-                    </RightFloatButtons>
-                  </td>
-                </tr>
-              );
-            })}
+          {teamServiceAccounts.map((serviceAccount: Integration) => {
+            return (
+              <tr
+                className={selectedServiceAccount?.id === serviceAccount.id ? 'active' : ''}
+                key={serviceAccount.id}
+                onClick={() => setSelectedServiceAccount(serviceAccount)}
+              >
+                <td>{serviceAccount.id}</td>
+                <td>
+                  <RightFloatButtons>
+                    <ServiceAccountActionbuttons
+                      copyOrDownloadAction={copyOrDownloadServiceAccount}
+                      showUpdateModal={handleUpdate}
+                      showDeleteModal={handleDelete}
+                      actionsDisabled={Boolean(checkDisabled(serviceAccount))}
+                    />
+                  </RightFloatButtons>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
       <CenteredModal

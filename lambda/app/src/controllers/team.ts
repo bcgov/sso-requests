@@ -185,6 +185,12 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
 };
 
 export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
+  const existingServiceAccounts = await getServiceAccounts(userId, teamId);
+
+  if (existingServiceAccounts.length > 0) {
+    throw Error('CSS API Account already generated for this team');
+  }
+
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
   const integrations = await getIntegrationsByTeam(teamId, 'gold');
   const team = await getTeamById(teamId);
