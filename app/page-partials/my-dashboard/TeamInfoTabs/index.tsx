@@ -45,6 +45,8 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import ServiceAccountsList from './ServiceAccountsList';
 import isEmpty from 'lodash.isempty';
+import InfoMessage from '@app/components/InfoMessage';
+import { Link } from '@button-inc/bcgov-theme';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;
 
@@ -454,6 +456,17 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                       )}
                     </Grid.Col>
                   </Grid.Row>
+                  {teamServiceAccounts.length > 0 && (
+                    <Grid.Row>
+                      <InfoMessage>
+                        For more information on how to use the CSS API Account with your integrations, see{' '}
+                        <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
+                          here
+                        </Link>
+                        .
+                      </InfoMessage>
+                    </Grid.Row>
+                  )}
                 </Grid>
               )}
             </TabWrapper>
