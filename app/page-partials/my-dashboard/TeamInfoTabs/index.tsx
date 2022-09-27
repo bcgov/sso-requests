@@ -457,7 +457,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     </Grid.Col>
                   </Grid.Row>
                   {teamServiceAccounts.length > 0 && (
-                    <Grid.Row collapse="1100" gutter={[15, 2]} align="center">
+                    <Grid.Row>
                       <InfoMessage>
                         For more information on how to use the CSS API Account with your integrations, see{' '}
                         <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
