@@ -34,7 +34,7 @@ jobs:
           ALLOW_SILVER=true
           ALLOW_GOLD=true
           TFC_WORKSPACE=xgr00q-dev-sso-requests
-          SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
+          SSO_ISSUER_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           SUBNET_A=App_Dev_aza_net
           SUBNET_B=App_Dev_azb_net
           GITHUB_REPO=sso-terraform-dev
@@ -69,7 +69,7 @@ jobs:
           ALLOW_SILVER=true
           ALLOW_GOLD=true
           TFC_WORKSPACE=xgr00q-prod-sso-requests
-          SSO_ISSUER_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
+          SSO_ISSUER_URL=https://loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           SUBNET_A=App_Prod_aza_net
           SUBNET_B=App_Prod_azb_net
           GITHUB_REPO=sso_terraform

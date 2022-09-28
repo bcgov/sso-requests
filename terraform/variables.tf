@@ -30,7 +30,7 @@ variable "configuration_endpoint" {
 variable "sso_client_id" {
   description = "The required audience for authentication"
   type        = string
-  default     = "sso-requests"
+  default     = "css-app-in-gold-4128"
   sensitive   = true
 }
 

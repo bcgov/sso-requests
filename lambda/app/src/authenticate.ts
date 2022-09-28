@@ -37,13 +37,20 @@ const validateJWTSignature = async (token) => {
 
     // jwt.verify throws error if invalid
     // If setting ignoreExpiration to true, you can control the maxAge on the backend
-    const { identity_provider, idir_userid, email, client_roles, family_name, given_name } = jwt.verify(token, pem, {
+    const {
+      identity_provider,
+      idir_user_guid: idir_userid,
+      email,
+      client_roles,
+      family_name,
+      given_name,
+    } = jwt.verify(token, pem, {
       audience,
       issuer,
       maxAge: '8h',
       ignoreExpiration: true,
     });
-    if (identity_provider !== 'idir' || !idir_userid) {
+    if (!['idir', 'azureidir'].includes(identity_provider) || !idir_userid) {
       throw new Error('IDP is not IDIR');
     }
 
