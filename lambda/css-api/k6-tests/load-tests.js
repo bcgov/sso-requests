@@ -2,6 +2,9 @@ import http from 'k6/http';
 import { group, check, sleep, fail } from 'k6';
 import encoding from 'k6/encoding';
 import exec from 'k6/execution';
+import { Counter } from 'k6/metrics';
+
+let errors_metrics = new Counter('testing_errors');
 
 const BASE_URL = 'https://api-dev.loginproxy.gov.bc.ca/api/v1';
 // Sleep duration between successive requests.
@@ -16,9 +19,7 @@ let integrationId;
 
 export const options = {
   stages: [
-    { duration: '3m', target: 50 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
-    { duration: '5m', target: 50 }, // stay at 50 users for 6 minutes
-    { duration: '3m', target: 0 }, // ramp-down to 0 users
+    { duration: '10m', target: 100 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
   ],
 };
 
@@ -69,9 +70,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       integrationId = response.json().data[0].id;
       sleep(SLEEP_DURATION);
@@ -86,9 +92,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -97,17 +108,26 @@ export default function (data) {
   group('POST role', () => {
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
-      const body = { name: `role${exec.vu.idInTest}${exec.vu.iterationInInstance}` };
+      const body = { name: `role${exec.vu.idInTest}.${exec.vu.iterationInInstance}` };
       const requestOptions = Object.assign({}, params);
       requestOptions.headers.Accept = 'application/json';
       const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 201 when success': (r) => r.status === 201,
-        'return name': (r) => r.json().name === `role${exec.vu.idInTest}${exec.vu.iterationInInstance}`,
+        'return name': (r) => r.json().name === `role${exec.vu.idInTest}.${exec.vu.iterationInInstance}`,
       });
+
+      if (!passed) {
+        console.log(
+          `Request to ${response.request.url} with payload ${JSON.stringify(response.request.body)} and status ${
+            response.status
+          } failed the checks!`,
+        );
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -117,7 +137,7 @@ export default function (data) {
     {
       const url =
         BASE_URL +
-        `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}${exec.vu.iterationInInstance}`;
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}.${exec.vu.iterationInInstance}`;
       const body = { name: `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}` };
       const requestOptions = Object.assign({}, params);
       requestOptions.headers.Accept = 'application/json';
@@ -125,10 +145,19 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
         'return name': (r) => r.json().name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
       });
+
+      if (!passed) {
+        console.log(
+          `Request to ${response.request.url} with payload ${JSON.stringify(response.request.body)} and status ${
+            response.status
+          } failed the checks!`,
+        );
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -141,9 +170,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -158,10 +192,15 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
         'return name': (r) => r.json().name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -181,12 +220,21 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 201 when success': (r) => r.status === 201,
         'return role name': (r) =>
           r.json().roles.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
         'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
+
+      if (!passed) {
+        console.log(
+          `Request to ${response.request.url} with payload ${JSON.stringify(response.request.body)} and status ${
+            response.status
+          } failed the checks!`,
+        );
+        errors_metrics.add(1, { url: response.request.url });
+      }
     }
   });
 
@@ -199,12 +247,17 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success on passing role name and username': (r) => r.status === 200,
         'return role name': (r) =>
           r.json().roles.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
         'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -224,9 +277,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 204 when success': (r) => r.status === 204,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
     }
   });
 
@@ -239,9 +297,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 204 when success': (r) => r.status === 204,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }

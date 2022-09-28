@@ -21,6 +21,10 @@ k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environm
 
 ## Run load tests
 
+- Increase the access token lifespan if you are going to run the tests for longer time periods
+- To increase the value, open keycloak navigate to `https://sso-keycloak-6-b861c7-test.apps.silver.devops.gov.bc.ca/auth` and select `standard` realm. Open `clients` and select your service account.
+- Go to `Advanced Settings` and update `Access Token Lifespan`
+
 ```sh
 # update options in the script to manage VUs and Iterations
 # remove --http-debug="full" option to hide the logs
