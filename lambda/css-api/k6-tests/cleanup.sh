@@ -4,7 +4,7 @@ ACCESS_TOKEN=$(curl -X POST -d grant_type=client_credentials -d client_id=$K6_CL
 
 LIST_OF_ROLES=$(curl -X GET https://api-dev.loginproxy.gov.bc.ca/api/v1/integrations/7890/dev/roles -H "Authorization: Bearer $ACCESS_TOKEN" | jq '.[] | .[].name' -r)
 
-for i in $(echo $LIST_OF_ROLES | tr ',' '\n')
+for i in $(echo "$LIST_OF_ROLES" | tr ',' '\n')
 do
     echo "https://api-dev.loginproxy.gov.bc.ca/api/v1/integrations/7890/dev/roles/$i"
     curl -X DELETE "https://api-dev.loginproxy.gov.bc.ca/api/v1/integrations/7890/dev/roles/$i" -H "Authorization: Bearer $ACCESS_TOKEN"
