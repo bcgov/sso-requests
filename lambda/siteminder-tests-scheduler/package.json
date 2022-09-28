@@ -1,0 +1,15 @@
+{
+  "name": "lambda-siteminder-tests-scheduler",
+  "version": "1.0.0",
+  "description": "lambda functions for scheduling siteminder tests",
+  "license": "Apache-2.0",
+  "author": "SSO Team",
+  "scripts": {
+    "compile": "../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias",
+    "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "@octokit/rest": "^18.12.0"
+  }
+}
