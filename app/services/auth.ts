@@ -38,7 +38,7 @@ const TWO_MIN = 2 * ONE_MIN;
 
 const refreshToken = async (tokens: any) => {
   const newTokens = await refreshSession({ refreshToken: tokens.refresh_token });
-  const newVerifiedIdToken = await verifyToken(newTokens?.id_token);
+  const [newVerifiedIdToken] = await verifyToken(newTokens?.id_token);
   if (newVerifiedIdToken) {
     setTokens(newTokens);
   } else {
@@ -50,7 +50,7 @@ const refreshToken = async (tokens: any) => {
 
 const refreshTokenIfExpiriesSoon = async () => {
   const tokens = getTokens();
-  const verifiedIdToken = await verifyToken(tokens.id_token);
+  const [verifiedIdToken] = await verifyToken(tokens.id_token);
   if (verifiedIdToken) {
     const expiresIn = verifiedIdToken.exp * 1000 - Date.now();
     if (expiresIn < TWO_MIN) refreshToken(tokens);

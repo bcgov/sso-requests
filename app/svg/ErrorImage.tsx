@@ -2,9 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 
 interface Props {
-  message: string;
+  title: string;
   children: React.ReactNode;
-  isError?: boolean;
 }
 
 const SVG = styled.svg.attrs({
@@ -23,7 +22,7 @@ const SVG = styled.svg.attrs({
   }
 `;
 
-const ErrorImage = ({ message, children, isError = true }: Props) => {
+const ErrorImage = ({ title, children }: Props) => {
   return (
     <SVG>
       <defs>
@@ -1130,15 +1129,14 @@ const ErrorImage = ({ message, children, isError = true }: Props) => {
               <text
                 id="An_error_has_occurred._"
                 data-name="An error has occurred. "
-                transform="translate(238 212)"
+                transform="translate(228 212)"
                 fill="#3e3e3e"
                 fontSize="20"
                 fontFamily="OpenSans-Semibold, Open Sans"
                 fontWeight="600"
               >
                 <tspan x="0" y="0">
-                  {isError && 'An error has occurred:'}
-                  {message ? ` ${message}` : '.'}{' '}
+                  {title}
                 </tspan>
               </text>
               {children}

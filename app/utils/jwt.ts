@@ -10,7 +10,7 @@ import { parseJWTPayload, parseJWTHeader } from './helpers';
 const h8 = 8 * 60 * 60;
 
 export const verifyToken = async (token: string) => {
-  if (!token) return false;
+  if (!token) return [undefined, 'e02'];
 
   const keys = meta.keys;
   const tokenHeader = parseJWTHeader(token);
@@ -19,14 +19,14 @@ export const verifyToken = async (token: string) => {
   const key = keys?.find((currentKey: { kid: string }) => currentKey.kid === tokenHeader.kid);
   if (key === undefined) {
     console.error('public key not found in JWK jwks.json');
-    return false;
+    return [undefined, 'e02'];
   }
 
   // verify token has not expired
   const tokenPayload = parseJWTPayload(token);
   if (Date.now() >= tokenPayload.exp * 1000) {
     console.log('token has expired');
-    return false;
+    return [undefined, 'e02'];
   }
 
   // TODO: see if validation results from API also invalid when having token issue again.
@@ -38,15 +38,25 @@ export const verifyToken = async (token: string) => {
   const isValid = rs.KJUR.jws.JWS.verifyJWT(token, keyObj, { alg: ['RS256'], gracePeriod: h8 });
   if (!isValid) {
     console.error('signature verification failed');
-    return false;
+    return [undefined, 'e02'];
   }
 
   // verify app_client_id
   const n = tokenPayload.aud.localeCompare(sso_client_id);
   if (n !== 0) {
     console.error('token was not issued for this audience');
-    return false;
+    return [undefined, 'e02'];
   }
 
-  return tokenPayload;
+  if (!['idir', 'azureidir'].includes(tokenPayload.identity_provider)) {
+    console.error(`invalid identity provider ${tokenPayload.identity_provider}`);
+    return [undefined, 'e03'];
+  }
+
+  if (!tokenPayload.idir_user_guid || !tokenPayload.email) {
+    console.error('invalid user account');
+    return [undefined, 'e03'];
+  }
+
+  return [tokenPayload];
 };
