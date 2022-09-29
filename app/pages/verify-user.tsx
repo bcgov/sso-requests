@@ -90,9 +90,7 @@ export default function VerifyUser({ currentUser }: Props) {
             </Button>
           </>
         ) : (
-          <ErrorImage message={errorTitle} isError={false}>
-            {content(errorContents)}
-          </ErrorImage>
+          <ErrorImage title={errorTitle}>{content(errorContents)}</ErrorImage>
         )}
       </ResponsiveContainer>
     </>
