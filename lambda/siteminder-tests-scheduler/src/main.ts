@@ -6,7 +6,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
     const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
     const triggerDispatch = (workflow_id) =>
-      octokit.request('POST /repos/{owner}/sso-keycloak/actions/workflows/{workflow_id}/dispatches', {
+      octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
         owner: process.env.GH_OWNER,
         repo: 'sso-keycloak',
         workflow_id,
