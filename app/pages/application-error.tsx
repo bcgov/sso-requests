@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import toLower from 'lodash.tolower';
 import ErrorImage from 'svg/ErrorImage';
 import { useRouter } from 'next/router';
 import { getEndSessionUrl } from 'utils/openid';
@@ -10,14 +11,16 @@ const Container = styled.div`
 
 export default function ApplicationError() {
   const router = useRouter();
-  const errorCode = router?.query?.error as string;
+  const errorCode = toLower(String(router?.query?.error || ''));
+  let title = 'An error has occurred: ';
   let content = null;
 
-  if (errorCode === 'E02') {
+  if (errorCode === 'e02') {
     removeTokens();
 
+    title += 'E02.';
     content = (
-      <text transform="translate(291 258)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
+      <text transform="translate(228 245)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
         <tspan x="0" y="0">
           Please try{' '}
         </tspan>
@@ -44,9 +47,10 @@ export default function ApplicationError() {
         <tspan y="26">.</tspan>
       </text>
     );
-  } else if (errorCode === 'E01') {
+  } else if (errorCode === 'e01') {
+    title += 'E01.';
     content = (
-      <text transform="translate(291 258)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
+      <text transform="translate(228 245)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
         <tspan x="0" y="0">
           SSO support Team is currently working on this issue.
         </tspan>
@@ -70,11 +74,35 @@ export default function ApplicationError() {
         <tspan y="52">.</tspan>
       </text>
     );
+  } else if (errorCode === 'e03') {
+    title = 'Your IDIR account does not have an associated email address.';
+    content = (
+      <text transform="translate(228 245)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
+        <tspan x="0" y="0">
+          Please contact your IDIR account creator or
+        </tspan>
+        <tspan x="0" y="26">
+          the Service Desk to have an email added to this IDIR.
+        </tspan>
+        <tspan x="130" y="55">
+          Service Desk
+        </tspan>
+        <tspan x="130" y="81">
+          Phone: 250-387-7000
+        </tspan>
+        <tspan x="130" y="107">
+          Email:&nbsp;
+          <a href="mailto:77000@gov.bc.ca" title="77000@gov.bc.ca" target="_blank" rel="noreferrer">
+            77000@gov.bc.ca
+          </a>
+        </tspan>
+      </text>
+    );
   }
 
   return (
     <Container>
-      <ErrorImage message={errorCode}>{content}</ErrorImage>
+      <ErrorImage title={title}>{content}</ErrorImage>
     </Container>
   );
 }
