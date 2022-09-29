@@ -5,15 +5,20 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
   try {
     const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
-    const triggerDispatch = (workflow_id) =>
+    const triggerDispatch = (workflow_id: string, inputs: any) =>
       octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
         owner: process.env.GH_OWNER,
         repo: 'sso-keycloak',
         workflow_id,
         ref: 'dev',
+        inputs,
       });
 
-    const data = await Promise.all([triggerDispatch('siteminder-tests.yml')]);
+    const data = await Promise.all([
+      triggerDispatch('siteminder-tests.yml', { environment: 'dev', cluster: 'gold' }),
+      triggerDispatch('siteminder-tests.yml', { environment: 'test', cluster: 'gold' }),
+      triggerDispatch('siteminder-tests.yml', { environment: 'prod', cluster: 'gold' }),
+    ]);
 
     const response = {
       statusCode: 200,
