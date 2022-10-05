@@ -8,11 +8,6 @@ const expectAllTexts = (texts: Text[]) => texts.forEach(expectText);
 const notExpectText = (text: Text) => expect(screen.queryByText(text)).toBeNull();
 const notExpectAllTexts = (texts: Text[]) => texts.forEach(notExpectText);
 
-const defaultProps = {
-  state: { panelTab: 'installation-json' },
-  dispatch: () => null,
-};
-
 const bceidApprovedLastChange = [{ lhs: false, rhs: true, kind: 'E', path: ['bceidApproved'] }];
 
 const DRAFT_MESSAGE = /Your request has not been submitted/;
@@ -27,7 +22,6 @@ describe('Draft Status', () => {
   it('should display draft integration screen', async () => {
     render(
       <IntegrationInfoTabs
-        {...defaultProps}
         integration={{
           status: 'draft',
           authType: 'browser-login',
@@ -56,7 +50,6 @@ describe('Submitted Status', () => {
   it('should display non-BCeID-prod integration screen', async () => {
     render(
       <IntegrationInfoTabs
-        {...defaultProps}
         integration={{
           status: 'submitted',
           authType: 'browser-login',
@@ -83,7 +76,6 @@ describe('Submitted Status', () => {
   it('should display BCeID-prod-integration screen', async () => {
     render(
       <IntegrationInfoTabs
-        {...defaultProps}
         integration={{
           status: 'submitted',
           authType: 'browser-login',
@@ -103,7 +95,6 @@ describe('Submitted Status', () => {
   it('should display BCeID-prod-being-approved integration screen', async () => {
     render(
       <IntegrationInfoTabs
-        {...defaultProps}
         integration={{
           status: 'submitted',
           authType: 'browser-login',
@@ -127,7 +118,6 @@ describe('Applied Status', () => {
   it('should display non-BCeID-prod integration screen', async () => {
     render(
       <IntegrationInfoTabs
-        {...defaultProps}
         integration={{
           status: 'applied',
           authType: 'browser-login',
@@ -154,7 +144,6 @@ describe('Applied Status', () => {
   it('should display BCeID-prod-integration screen', async () => {
     render(
       <IntegrationInfoTabs
-        {...defaultProps}
         integration={{
           status: 'applied',
           authType: 'browser-login',
@@ -174,7 +163,6 @@ describe('Applied Status', () => {
   it('should display BCeID-prod-approved integration screen', async () => {
     render(
       <IntegrationInfoTabs
-        {...defaultProps}
         integration={{
           status: 'applied',
           authType: 'browser-login',

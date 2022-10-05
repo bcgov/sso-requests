@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, Children, cloneElement } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Alert from 'html-components/Alert';
 import InstallationPanel from 'components/InstallationPanel';
@@ -11,9 +11,7 @@ import UserEventPanel from 'components/UserEventPanel';
 import { checkIfBceidProdApplying, checkIfGithubProdApplying } from 'utils/helpers';
 import { usesBceid, usesGithub } from '@app/helpers/integration';
 import { Border, Header, Tabs, Tab } from '@bcgov-sso/common-react-components';
-import { $setPanelTab } from 'dispatchers/requestDispatcher';
 import { Integration } from 'interfaces/Request';
-import { DashboardReducerState } from 'reducers/dashboardReducer';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
 import padStart from 'lodash.padstart';
@@ -34,7 +32,11 @@ const Requester = styled.div`
   margin-bottom: 1rem;
 `;
 
-export type TabKey = 'installation-json' | 'configuration-url' | 'history';
+const TAB_DETAILS = 'tech-details';
+const TAB_ROLE_MANAGEMENT = 'role-management';
+const TAB_USER_ROLE_MANAGEMENT = 'user-role-management';
+const TAB_SECRET = 'secret';
+const TAB_HISTORY = 'history';
 
 const joinEnvs = (integration: Integration) => {
   if (!integration?.environments) return '';
@@ -76,7 +78,7 @@ const getInstallationTab = ({
   approvalContext: ApprovalContext;
 }) => {
   return (
-    <Tab key="installation-json" tab="Technical Details">
+    <Tab key={TAB_DETAILS} tab="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <Grid.Row gutter={[]}>
@@ -103,7 +105,7 @@ const getProgressTab = ({
   approvalContext: ApprovalContext;
 }) => {
   return (
-    <Tab key="installation-json" tab="Technical Details">
+    <Tab key={TAB_DETAILS} tab="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <br />
@@ -133,7 +135,7 @@ const getApprovalProgressTab = ({
   approvalContext: ApprovalContext;
 }) => {
   return (
-    <Tab key="installation-json" tab="Technical Details">
+    <Tab key={TAB_DETAILS} tab="Technical Details">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <Grid.Row gutter={[]}>
@@ -154,7 +156,7 @@ const getApprovalProgressTab = ({
 
 const getRoleManagementTab = ({ integration }: { integration: Integration }) => {
   return (
-    <Tab key="client-roles" tab="Role Management">
+    <Tab key={TAB_ROLE_MANAGEMENT} tab="Role Management">
       <TabWrapper>
         <br />
         <div>
@@ -172,7 +174,7 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
 
 const getUserAssignmentTab = ({ integration }: { integration: Integration }) => {
   return (
-    <Tab key="user-roles" tab="Assign Users to Roles">
+    <Tab key={TAB_USER_ROLE_MANAGEMENT} tab="Assign Users to Roles">
       <TabWrapper>
         <UserRoles selectedRequest={integration} />
       </TabWrapper>
@@ -182,7 +184,7 @@ const getUserAssignmentTab = ({ integration }: { integration: Integration }) => 
 
 const getSecretsTab = ({ integration }: { integration: Integration }) => {
   return (
-    <Tab key="secret" tab="Secrets">
+    <Tab key={TAB_SECRET} tab="Secrets">
       <TabWrapper short={true}>
         <SecretsPanel selectedRequest={integration} />
       </TabWrapper>
@@ -192,7 +194,7 @@ const getSecretsTab = ({ integration }: { integration: Integration }) => {
 
 const getHistoryTab = ({ integration }: { integration: Integration }) => {
   return (
-    <Tab key="history" tab="Change History">
+    <Tab key={TAB_HISTORY} tab="Change History">
       <TabWrapper short={true}>
         <UserEventPanel requestId={integration.id} />
       </TabWrapper>
@@ -202,12 +204,10 @@ const getHistoryTab = ({ integration }: { integration: Integration }) => {
 
 interface Props {
   integration: Integration;
-  state: DashboardReducerState;
-  dispatch: Dispatch<SetStateAction<any>>;
 }
 
-function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
-  const { panelTab } = state;
+function IntegrationInfoTabs({ integration }: Props) {
+  const [activeTab, setActiveTab] = useState(TAB_DETAILS);
   if (!integration) return null;
 
   const { status, environments = [], bceidApproved = false, githubApproved = false } = integration;
@@ -234,6 +234,14 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
 
   const isGold = integration.serviceType === 'gold';
   const hasBrowserFlow = integration.authType !== 'service-account';
+
+  useEffect(() => {
+    setActiveTab(TAB_DETAILS);
+  }, [integration]);
+
+  const handleTabClick = (key: any) => {
+    setActiveTab(key);
+  };
 
   if (displayStatus === 'In Draft') {
     return (
@@ -272,12 +280,7 @@ function IntegrationInfoTabs({ integration, state, dispatch }: Props) {
 
   return (
     <IntegrationWrapper integration={integration}>
-      <Tabs
-        activeKey={panelTab}
-        onChange={(k: any) => dispatch($setPanelTab(k))}
-        tabBarGutter={30}
-        destroyInactiveTabPane={true}
-      >
+      <Tabs activeKey={activeTab} onChange={handleTabClick} tabBarGutter={30} destroyInactiveTabPane={true}>
         {tabs}
       </Tabs>
     </IntegrationWrapper>

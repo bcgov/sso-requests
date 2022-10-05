@@ -1,5 +1,5 @@
 import React, { useState, Dispatch, SetStateAction } from 'react';
-import RequestInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
+import IntegrationInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import VerticalLayout from 'page-partials/my-dashboard/VerticalLayout';
 import { DashboardReducerState } from 'reducers/dashboardReducer';
@@ -21,9 +21,7 @@ function MyIntegrations({ session }: PageProps) {
           dispatch={dispatch}
         />
       )}
-      rightPanel={(state: DashboardReducerState, dispatch: Dispatch<SetStateAction<any>>) =>
-        integration && <RequestInfoTabs integration={integration} state={state} dispatch={dispatch} />
-      }
+      rightPanel={() => integration && <IntegrationInfoTabs integration={integration} />}
       showResizable={integrationCount > 0}
     />
   );
