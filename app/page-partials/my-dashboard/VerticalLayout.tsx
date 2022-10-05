@@ -4,7 +4,6 @@ import { Resizable } from 're-resizable';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer from 'components/ResponsiveContainer';
-import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { mediaRules } from './Layout';
 
@@ -13,33 +12,19 @@ const InnerResizable = styled.div`
   overflow: auto;
 `;
 
-export interface DispatchAction {
-  type: string;
-  value: any;
-}
-export const RequestsContext = React.createContext(
-  {} as { dispatch: React.Dispatch<React.SetStateAction<any>>; state: DashboardReducerState },
-);
-
 interface Props {
   tab: 'integrations' | 'teams' | 's2g';
-  leftPanel?: (state: DashboardReducerState, dispatch: React.Dispatch<React.SetStateAction<any>>) => React.ReactNode;
-  rightPanel?: (state: DashboardReducerState, dispatch: React.Dispatch<React.SetStateAction<any>>) => React.ReactNode;
+  leftPanel?: () => React.ReactNode;
+  rightPanel?: () => React.ReactNode;
   showResizable?: boolean;
   children?: React.ReactNode;
 }
 
 function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, children }: Props) {
   const router = useRouter();
-  const [state, dispatch] = useReducer(reducer, initialState);
-
   const context = useContext<SessionContextInterface | null>(SessionContext);
   const { user, enableGold } = context || {};
   const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
-
-  const contextValue = useMemo(() => {
-    return { state, dispatch };
-  }, [state, dispatch]);
 
   const navigateTab = (key: any) => {
     router.replace(`/my-dashboard/${key}`);
@@ -55,26 +40,24 @@ function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, chil
 
   return (
     <ResponsiveContainer rules={mediaRules}>
-      <RequestsContext.Provider value={contextValue}>
-        {tabs}
-        {showResizable ? (
-          <Resizable
-            style={{ paddingTop: '2px', borderBottom: '3px solid black' }}
-            defaultSize={{
-              width: '100%',
-              height: window.innerHeight * 0.4,
-            }}
-            enable={{ bottom: true }}
-            handleStyles={{ bottom: { bottom: 0 } }}
-          >
-            <InnerResizable>{leftPanel && leftPanel(state, dispatch)}</InnerResizable>
-          </Resizable>
-        ) : (
-          leftPanel && leftPanel(state, dispatch)
-        )}
-        <br />
-        {rightPanel && rightPanel(state, dispatch)}
-      </RequestsContext.Provider>
+      {tabs}
+      {showResizable ? (
+        <Resizable
+          style={{ paddingTop: '2px', borderBottom: '3px solid black' }}
+          defaultSize={{
+            width: '100%',
+            height: window.innerHeight * 0.4,
+          }}
+          enable={{ bottom: true }}
+          handleStyles={{ bottom: { bottom: 0 } }}
+        >
+          <InnerResizable>{leftPanel && leftPanel()}</InnerResizable>
+        </Resizable>
+      ) : (
+        leftPanel && leftPanel()
+      )}
+      <br />
+      {rightPanel && rightPanel()}
     </ResponsiveContainer>
   );
 }

@@ -6,17 +6,15 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import { Table, Button, NumberedContents, Header } from '@bcgov-sso/common-react-components';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
-import { $setDownloadError } from 'dispatchers/requestDispatcher';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faExclamationCircle, faTrash, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faCheck } from '@fortawesome/free-solid-svg-icons';
 import PageLoader from 'components/PageLoader';
 import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import { getRequests, deleteRequest } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
-import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { authTypeDisplay } from 'metadata/display';
-import { UserSession } from '@app/interfaces/props';
+import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 
 const RightAlignHeader = styled.th`
   text-align: right;
@@ -30,40 +28,6 @@ const RightFloatButtons = styled.td`
 const PNoMargin = styled.p`
   margin: 0;
 `;
-
-const NotAvailable = styled.div`
-  color: #a12622;
-  height: 60px;
-  padding-left: 20px;
-  padding-top: 16px;
-  padding-bottom: 22px;
-  weight: 700;
-  background-color: #f2dede;
-`;
-
-const NoProjects = styled.div`
-  color: #006fc4;
-  height: 60px;
-  padding-left: 20px;
-  padding-top: 16px;
-  padding-bottom: 22px;
-  weight: 700;
-  background-color: #f8f8f8;
-`;
-
-const SystemUnavailableMessage = (
-  <NotAvailable>
-    <FontAwesomeIcon icon={faExclamationCircle} title="Unavailable" />
-    &nbsp; The system is unavailable at this moment. please refresh the page.
-  </NotAvailable>
-);
-
-const NoEntitiesMessage = ({ message }: { message: string }) => (
-  <NoProjects>
-    <FontAwesomeIcon icon={faInfoCircle} title="Information" />
-    &nbsp; {message}
-  </NoProjects>
-);
 
 const NewEntityButton = ({
   handleNewIntegrationClick,
@@ -135,28 +99,23 @@ const NewEntityButton = ({
 interface Props {
   setIntegration: Function;
   setIntegrationCount: (integrations: number) => void;
-  state: DashboardReducerState;
-  dispatch: Dispatch<SetStateAction<any>>;
 }
 
-export default function IntegrationList({ setIntegration, setIntegrationCount, state, dispatch }: Props) {
+export default function IntegrationList({ setIntegration, setIntegrationCount }: Props) {
   const router = useRouter();
   let { integr } = router.query;
 
   const [loading, setLoading] = useState<boolean>(true);
+  const [hasError, setHasError] = useState<boolean>(false);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
-  const [activeIntegration, setActiveIntegration] = useState<Integration | null>(null);
   const [activeIntegrationId, setActiveIntegrationId] = useState<number | undefined>(
     (integr && Number(integr)) || undefined,
   );
-  const { downloadError } = state;
-
   const handleNewIntegrationClick = async () => {
     router.push('/request');
   };
 
   const updateActiveIntegration = (integration: Integration) => {
-    setActiveIntegration(integration);
     setActiveIntegrationId(integration.id);
     setIntegration(integration);
   };
@@ -175,8 +134,8 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
   const loadIntegrations = async () => {
     setLoading(true);
     const [integrations, err] = await getRequests();
-    if (err) dispatch($setDownloadError(true));
-    else updateIntegrations(integrations || []);
+    setHasError(!!err);
+    updateIntegrations(integrations || []);
     setLoading(false);
   };
 
@@ -208,7 +167,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount, s
   }, [integrations, activeIntegrationId]);
 
   const getTableContents = () => {
-    if (downloadError) return SystemUnavailableMessage;
+    if (hasError) return <SystemUnavailableMessage />;
 
     if (!integrations || integrations.length === 0) return <NoEntitiesMessage message="No Requests Submitted" />;
 
