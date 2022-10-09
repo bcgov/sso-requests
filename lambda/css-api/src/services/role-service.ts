@@ -9,12 +9,11 @@ import {
 import { injectable } from 'tsyringe';
 import { IntegrationService } from './integration-service';
 import createHttpError from 'http-errors';
-import { validate } from '../schemas/role';
+import { roleValidator, listOfrolesValidator } from '../schemas/role';
 import { getAllowedRoleProps, updateRoleProps } from '../helpers/roles';
-
-export type Role = {
-  name: string;
-};
+import { Role, RolePayload } from '../types';
+import { Integration } from 'app/interfaces/Request';
+import { parseErrors } from '../util';
 
 @injectable()
 export class RoleService {
@@ -30,46 +29,52 @@ export class RoleService {
     const int = await this.integrationService.getById(integrationId, teamId);
     const role = await findClientRole(int, { environment, roleName });
     if (!role) throw new createHttpError[404](`role ${roleName} not found`);
-    return getAllowedRoleProps(role);
+    return getAllowedRoleProps(role as Role);
   }
 
-  public async createRole(teamId: number, integrationId: number, role: Role, environment: string) {
+  public async createRole(teamId: number, integrationId: number, role: RolePayload, environment: string) {
     this.validateRole(role);
-    if (await this.checkForExistingRole(teamId, integrationId, environment, role.name))
-      throw new createHttpError[409](`role ${role.name} already exists`);
     const int = await this.integrationService.getById(integrationId, teamId);
+    if (await this.checkForExistingRole(int, environment, role.name))
+      throw new createHttpError[409](`role ${role.name} already exists`);
     const roleObj: any = await createRole(int, { environment, integrationId, roleName: role.name });
-    return getAllowedRoleProps(roleObj);
+    return getAllowedRoleProps((await findClientRole(int, { environment, roleName: roleObj?.roleName })) as Role);
   }
 
   public async deleteRole(teamId: number, integrationId: number, roleName: string, environment: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    if (!(await this.checkForExistingRole(teamId, integrationId, environment, roleName)))
+    if (!(await this.checkForExistingRole(int, environment, roleName)))
       throw new createHttpError[404](`role ${roleName} not found`);
     return await deleteRole(int, { environment, integrationId, roleName });
   }
 
-  public async updateRole(teamId: number, integrationId: number, roleName: string, environment: string, role: Role) {
-    if (!(await this.checkForExistingRole(teamId, integrationId, environment, roleName)))
-      throw new createHttpError[404](`role ${roleName} not found`);
+  public async updateRole(
+    teamId: number,
+    integrationId: number,
+    roleName: string,
+    environment: string,
+    role: RolePayload,
+  ) {
     this.validateRole(role);
-    if (await this.checkForExistingRole(teamId, integrationId, environment, role.name))
-      throw new createHttpError[409](`role ${role.name} already exists`);
     const int = await this.integrationService.getById(integrationId, teamId);
+    if (!(await this.checkForExistingRole(int, environment, roleName)))
+      throw new createHttpError[404](`role ${roleName} not found`);
+    if (await this.checkForExistingRole(int, environment, role.name))
+      throw new createHttpError[409](`role ${role.name} already exists`);
     await updateRole(int, { environment, integrationId, roleName, newRoleName: role.name });
-    return role;
+    return getAllowedRoleProps((await findClientRole(int, { environment, roleName: role.name })) as Role);
   }
 
-  public validateRole(role: Role) {
-    const valid = validate(role);
-    if (!valid) throw new createHttpError[400]('invalid role');
+  public validateRole(role: RolePayload) {
+    const valid = roleValidator(role);
+    if (!valid) throw new createHttpError[400](parseErrors(roleValidator.errors));
     const roleName = role.name.trim();
     if (roleName.length === 0) throw new createHttpError[400]('invalid role');
   }
 
-  public async checkForExistingRole(teamId: number, integrationId: number, environment: string, roleName: string) {
-    const existingRole = await this.getByName(teamId, integrationId, environment, roleName);
-    return getAllowedRoleProps(existingRole);
+  public async checkForExistingRole(integration: Integration, environment: string, roleName: string) {
+    const existingRole = await findClientRole(integration, { environment, roleName });
+    return getAllowedRoleProps(existingRole as Role);
   }
 
   public async createCompositeRole(
@@ -77,7 +82,7 @@ export class RoleService {
     integrationId: number,
     roleName: string,
     environment: string,
-    compositeRoles: Role[],
+    compositeRoles: RolePayload[],
   ) {
     let rolesToAdd = [];
 
@@ -89,8 +94,11 @@ export class RoleService {
 
     if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
+    const valid = listOfrolesValidator(compositeRoles);
+    if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
+
     for (let role of compositeRoles) {
-      this.validateRole(role);
+      if (role.name.trim().length === 0) throw new createHttpError[400]('invalid role');
       if (role.name === roleName) throw new createHttpError[400](`role ${roleName} cannot be associated with itself`);
       if (!existingRoles.find((existingRole) => existingRole.name === role.name))
         throw new createHttpError[404](`role ${role.name} not found`);
@@ -107,7 +115,7 @@ export class RoleService {
 
     if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
-    return updateRoleProps(await manageRoleComposites(int, environment, role.id));
+    return updateRoleProps((await manageRoleComposites(int, environment, role.id)) as Role[]);
   }
 
   public async getCompositeRole(
@@ -134,7 +142,7 @@ export class RoleService {
     if (!compRoles.find((role) => role.name === compositeRoleName))
       throw new createHttpError[404](`role ${compositeRoleName} is not associated with ${roleName}`);
 
-    return getAllowedRoleProps(compRoles.find((role) => role.name === compositeRoleName));
+    return getAllowedRoleProps(compRoles.find((role) => role.name === compositeRoleName) as Role);
   }
 
   public async deleteCompositeRole(

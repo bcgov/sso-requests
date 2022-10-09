@@ -1,8 +1,6 @@
-import { validate } from '../schemas/role';
-import { parseErrors } from '../util';
 import { injectable } from 'tsyringe';
-import { Role, RoleService } from '../services/role-service';
-import createHttpError from 'http-errors';
+import { RoleService } from '../services/role-service';
+import { RolePayload } from '../types';
 
 @injectable()
 export class RoleController {
@@ -16,7 +14,7 @@ export class RoleController {
     return await this.roleService.getAllByEnvironment(teamId, integrationId, environment);
   }
 
-  public async create(teamId: number, integrationId: number, role: Role, environment: string) {
+  public async create(teamId: number, integrationId: number, role: RolePayload, environment: string) {
     return await this.roleService.createRole(teamId, integrationId, role, environment);
   }
 
@@ -24,7 +22,7 @@ export class RoleController {
     return await this.roleService.deleteRole(teamId, integrationId, roleName, environment);
   }
 
-  public async update(teamId: number, integrationId: number, roleName: string, environment: string, role: Role) {
+  public async update(teamId: number, integrationId: number, roleName: string, environment: string, role: RolePayload) {
     return await this.roleService.updateRole(teamId, integrationId, roleName, environment, role);
   }
 

@@ -92,7 +92,7 @@ export const listClientRoles = async (
     max = MAX_CLIENT_ROLE_COUNT,
   }: {
     environment: string;
-    integrationId: number;
+    integrationId?: number;
     search?: string;
     first?: number;
     max?: number;
@@ -268,7 +268,7 @@ export const listUserRoles = async (
     clientUniqueId: client.id,
   });
 
-  return roles.map((role) => role.name);
+  return roles;
 };
 
 export const manageUserRole = async (
@@ -314,7 +314,7 @@ export const manageUserRole = async (
   }
 
   const roles = await kcAdminClient.users.listClientRoleMappings(roleMapping);
-  return roles.map((role) => role.name);
+  return roles;
 };
 
 export const manageUserRoles = async (
@@ -670,11 +670,4 @@ export const manageRoleComposites = async (
       id: roleId,
     });
   }
-};
-
-export const getKcAdminClient = async (environment: string, clientId: string) => {
-  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
-  return clients[0];
 };

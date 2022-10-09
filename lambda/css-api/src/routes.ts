@@ -482,7 +482,7 @@ export const setRoutes = (app: any) => {
           environment,
           compositeRoleName,
         );
-        res.status(200).json({ data: result });
+        res.status(200).json(result);
       } catch (err) {
         handleError(res, err);
       }

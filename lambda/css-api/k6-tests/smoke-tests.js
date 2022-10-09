@@ -15,7 +15,7 @@ import { group, check, sleep, fail } from 'k6';
 import encoding from 'k6/encoding';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
-const BASE_URL = 'https://api-dev.loginproxy.gov.bc.ca/api/v1';
+const BASE_URL = 'http://localhost:8080/api/v1';
 // Sleep duration between successive requests.
 // You might want to edit the value of this variable or remove calls to the sleep function on the script.
 const SLEEP_DURATION = 0.1;
@@ -242,6 +242,7 @@ export default function (data) {
       check(response, {
         'should return 201 when success': (r) => r.status === 201,
         'return name': (r) => r.json().name === 'some-role',
+        'return composite': (r) => r.json().composite === false,
       });
 
       sleep(SLEEP_DURATION);
@@ -341,6 +342,7 @@ export default function (data) {
       check(response, {
         'should return 200 when success': (r) => r.status === 200,
         'return name': (r) => r.json().name === 'role1',
+        'return composite': (r) => r.json().composite === false,
       });
 
       sleep(SLEEP_DURATION);
@@ -412,6 +414,206 @@ export default function (data) {
       check(response, {
         'should return 200 when success': (r) => r.status === 200,
         'return name': (r) => r.json().name === 'role1',
+        'return composite': (r) => r.json().composite === false,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('PUT composite role', () => {
+    {
+      // adding an additional role to associate it with role1
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const body = { name: 'composite-role' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      http.post(url, JSON.stringify(body), requestOptions);
+    }
+    {
+      const url =
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites?param1=1&param2=2`;
+      const body = [{ name: 'composite-role' }];
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const body = [{ name: '     ' }];
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when composite role name with only spaces passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const body = [];
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid payload passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const body = [{ name: 'composite-role' }];
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return name': (r) => r.json().name === 'role1',
+        'return composite': (r) => r.json().composite === true,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET list of composite roles', () => {
+    {
+      const url =
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites?param1=1&param2=2`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return count of roles': (r) => r.json().data.length > 0,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET composite role by name', () => {
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/composite-role?param1=1&param2=2`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url =
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/nonexistentrole`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when non-existent role name passed': (r) => r.status === 404,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url =
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/composite-role`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return name': (r) => r.json().name === 'composite-role',
+        'return composite': (r) => r.json().composite === false,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('DELETE composite role by name', () => {
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/composite-role?param1=1&param2=2`;
+      const response = http.del(url, null, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when arbitrary params passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url =
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/nonexistentrole`;
+      const response = http.del(url, null, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 404 when non-existent role name passed': (r) => r.status === 404,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url =
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/composite-role`;
+      const response = http.del(url, null, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 204 when success': (r) => r.status === 204,
       });
 
       sleep(SLEEP_DURATION);
@@ -719,6 +921,13 @@ export default function (data) {
       });
 
       sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('cleanup', () => {
+    {
+      // delete composite-role
+      http.del(BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/composite-role`, null, options);
     }
   });
 }

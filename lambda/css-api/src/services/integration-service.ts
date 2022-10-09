@@ -10,7 +10,7 @@ export class IntegrationService {
   }
 
   public async getById(id: number, teamId: number) {
-    const int: IntegrationData = await getIntegrationByIdAndTeam(id, teamId);
+    const int = await getIntegrationByIdAndTeam(id, teamId);
     if (!int) throw new createHttpError[404](`integration #${id} not found`);
     return int;
   }
