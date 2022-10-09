@@ -27,4 +27,38 @@ export class RoleController {
   public async update(teamId: number, integrationId: number, roleName: string, environment: string, role: Role) {
     return await this.roleService.updateRole(teamId, integrationId, roleName, environment, role);
   }
+
+  public async createComposite(
+    teamId: number,
+    integrationId: number,
+    roleName: string,
+    environment: string,
+    compositeRoles: any,
+  ) {
+    return await this.roleService.createCompositeRole(teamId, integrationId, roleName, environment, compositeRoles);
+  }
+
+  public async getComposites(teamId: number, integrationId: number, roleName: string, environment: string) {
+    return await this.roleService.getCompositeRoles(teamId, integrationId, roleName, environment);
+  }
+
+  public async getComposite(
+    teamId: number,
+    integrationId: number,
+    roleName: string,
+    environment: string,
+    compositeRoleName: string,
+  ) {
+    return await this.roleService.getCompositeRole(teamId, integrationId, roleName, environment, compositeRoleName);
+  }
+
+  public async deleteComposite(
+    teamId: number,
+    integrationId: number,
+    roleName: string,
+    environment: string,
+    compositeRoleName: string,
+  ) {
+    return await this.roleService.deleteCompositeRole(teamId, integrationId, roleName, environment, compositeRoleName);
+  }
 }

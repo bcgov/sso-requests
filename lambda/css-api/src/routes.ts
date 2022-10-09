@@ -158,7 +158,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/role' }] }
+        schema: { data: [{ $ref: '#/components/schemas/roleResponse' }] }
       }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
@@ -199,7 +199,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { $ref: '#/components/schemas/role' }
+        schema: { $ref: '#/components/schemas/roleResponse' }
       }
       #swagger.responses[404] = {
         description: 'Not Found',
@@ -239,11 +239,11 @@ export const setRoutes = (app: any) => {
       }
       #swagger.requestBody = {
         required: true,
-        schema: { $ref: "#/components/schemas/role" }
+        schema: { $ref: "#/components/schemas/roleRequest" }
       }
       #swagger.responses[201] = {
         description: 'Created',
-        schema: { $ref: '#/components/schemas/role' }
+        schema: { $ref: '#/components/schemas/roleResponse' }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -292,11 +292,11 @@ export const setRoutes = (app: any) => {
       }
       #swagger.requestBody = {
         required: true,
-        schema: { $ref: "#/components/schemas/role" }
+        schema: { $ref: "#/components/schemas/roleRequest" }
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { $ref: '#/components/schemas/role' }
+        schema: { $ref: '#/components/schemas/roleResponse' }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -369,6 +369,244 @@ export const setRoutes = (app: any) => {
     }
   });
 
+  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composites`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Roles']
+      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composites'
+      #swagger.method = 'put'
+      #swagger.description = 'Get composite roles of a role for an integration'
+      #swagger.summary = 'Get composite roles'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true
+      }
+      #swagger.parameters['roleName'] = {
+        in: 'path',
+        description: 'Role name',
+        required: true
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { $ref: '#/components/schemas/roleResponse' }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[409] = {
+        description: 'Conflict',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+    try {
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      const { integrationId, environment, roleName } = req.params;
+      const result = await roleController.getComposites(req.teamId, integrationId, roleName, environment);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(
+    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composites/:compositeRoleName`,
+    async (req, res) => {
+      /*#swagger.auto = false
+      #swagger.tags = ['Roles']
+      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composites'
+      #swagger.method = 'put'
+      #swagger.description = 'Get composite role of a role for an integration'
+      #swagger.summary = 'Get composite role'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true
+      }
+      #swagger.parameters['roleName'] = {
+        in: 'path',
+        description: 'Role name',
+        required: true
+      }
+      #swagger.parameters['compositeRoleName'] = {
+        in: 'path',
+        description: 'Composite role name',
+        required: true
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { $ref: '#/components/schemas/roleResponse' }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[409] = {
+        description: 'Conflict',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+      try {
+        if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+        const { integrationId, environment, roleName, compositeRoleName } = req.params;
+        const result = await roleController.getComposite(
+          req.teamId,
+          integrationId,
+          roleName,
+          environment,
+          compositeRoleName,
+        );
+        res.status(200).json({ data: result });
+      } catch (err) {
+        handleError(res, err);
+      }
+    },
+  );
+
+  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composites`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Roles']
+      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composites'
+      #swagger.method = 'put'
+      #swagger.description = 'Set composite role for integration'
+      #swagger.summary = 'Set composite role'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true
+      }
+      #swagger.parameters['roleName'] = {
+        in: 'path',
+        description: 'Role name',
+        required: true
+      }
+      #swagger.requestBody = {
+        required: true,
+        schema: [{ $ref: "#/components/schemas/roleRequest" }]
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { $ref: '#/components/schemas/roleResponse' }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[409] = {
+        description: 'Conflict',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+    try {
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      const { integrationId, environment, roleName } = req.params;
+      const result = await roleController.createComposite(req.teamId, integrationId, roleName, environment, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.delete(
+    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composites/:compositeRoleName`,
+    async (req, res) => {
+      /*#swagger.auto = false
+      #swagger.tags = ['Roles']
+      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composites'
+      #swagger.method = 'put'
+      #swagger.description = 'Get composite role of a role for an integration'
+      #swagger.summary = 'Get composite role'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true
+      }
+      #swagger.parameters['roleName'] = {
+        in: 'path',
+        description: 'Role name',
+        required: true
+      }
+      #swagger.parameters['compositeRoleName'] = {
+        in: 'path',
+        description: 'Composite role name',
+        required: true
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { $ref: '#/components/schemas/roleResponse' }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[409] = {
+        description: 'Conflict',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+      try {
+        if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+        const { integrationId, environment, roleName, compositeRoleName } = req.params;
+        await roleController.deleteComposite(req.teamId, integrationId, roleName, environment, compositeRoleName);
+        res.status(204).send();
+      } catch (err) {
+        handleError(res, err);
+      }
+    },
+  );
+
   app.get(`${BASE_PATH}/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Role-Mapping']
@@ -396,7 +634,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { users: [{ $ref: '#/components/schemas/user' }], roles: [{ $ref: '#/components/schemas/role' }] }
+        schema: { users: [{ $ref: '#/components/schemas/user' }], roles: [{ $ref: '#/components/schemas/roleResponse' }] }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -443,7 +681,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[201] = {
         description: 'Created',
-        schema: { users: [{ $ref: '#/components/schemas/user' }], roles: [{ $ref: '#/components/schemas/role' }] }
+        schema: { users: [{ $ref: '#/components/schemas/user' }], roles: [{ $ref: '#/components/schemas/roleResponse' }] }
       }
       #swagger.responses[204] = {
         description: 'No Content'

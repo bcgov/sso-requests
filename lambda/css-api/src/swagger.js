@@ -34,8 +34,12 @@ const doc = {
         createdAt: 'timestamp',
         updatedAt: 'timestamp',
       },
-      role: {
+      roleRequest: {
         name: 'string',
+      },
+      roleResponse: {
+        name: 'string',
+        composite: 'boolean',
       },
       userAttribute: {
         attributeKey: 'string[]',
