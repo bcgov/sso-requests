@@ -224,7 +224,23 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 400 when invalid payload passed': (r) => r.status === 400,
+        'should return 400 when empty payload passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const body = { invalidNameProp: 'some-role' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid payload props passed': (r) => r.status === 400,
       });
 
       sleep(SLEEP_DURATION);
@@ -308,7 +324,7 @@ export default function (data) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 400 when invalid payload passed': (r) => r.status === 400,
+        'should return 400 when empty payload passed': (r) => r.status === 400,
       });
 
       sleep(SLEEP_DURATION);
@@ -325,6 +341,22 @@ export default function (data) {
 
       check(response, {
         'should return 400 when role name with only spaces passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
+      const body = { invalidNameProp: 'role1' };
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid payload props passed': (r) => r.status === 400,
       });
 
       sleep(SLEEP_DURATION);
@@ -474,6 +506,37 @@ export default function (data) {
 
       check(response, {
         'should return 400 when invalid payload passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const body = [{ invalidNameProp: 'composite-role' }];
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid payload props passed': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.put(url, null, requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when empty payload passed': (r) => r.status === 400,
       });
 
       sleep(SLEEP_DURATION);
@@ -646,6 +709,20 @@ export default function (data) {
 
       check(response, {
         'should return 400 when invalid payload passed': (r) => r.status === 400,
+      });
+    }
+
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const body = { roleName: 'role1', username: __ENV.username, operation: 'invalid_operation' };
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when invalid operation passed': (r) => r.status === 400,
       });
     }
 
