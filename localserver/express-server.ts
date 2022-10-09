@@ -24,8 +24,8 @@ const initExpresss = async () => {
   expressServer.disable('x-powered-by');
   expressServer.set('trust proxy', 1);
 
-  setRoutes(router);
-  actionRoutes.setRoutes(router);
+  // setRoutes(router);
+  // actionRoutes.setRoutes(router);
   apiRoutes.setRoutes(router);
   expressServer.use('/', router);
   return expressServer;

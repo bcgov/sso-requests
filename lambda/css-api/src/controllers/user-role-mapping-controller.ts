@@ -5,6 +5,8 @@ import { UserRoleMappingService } from '../services/user-role-mapping-service';
 import { parseErrors } from '../util';
 import { RoleService } from '../services/role-service';
 import createHttpError from 'http-errors';
+import { updateUserProps } from '../helpers/users';
+import { getAllowedRoleProps, updateRoleProps } from '../helpers/roles';
 
 type listQueryParams = {
   roleName: string;
@@ -14,7 +16,7 @@ type listQueryParams = {
 type UserRoleMappingPayload = {
   roleName: string;
   username: string;
-  operation: string;
+  operation: 'add' | 'del';
 };
 
 @injectable()
@@ -30,18 +32,18 @@ export class UserRoleMappingController {
     if (!valid) throw new createHttpError[400](parseErrors(getValidator.errors));
 
     if (queryParams?.roleName) {
-      if (!(await this.roleService.checkForExistingRole(teamId, integrationId, environment, queryParams?.roleName)))
-        throw new createHttpError[404](`role ${queryParams?.roleName} not found`);
+      const roleExists = await this.roleService.getByName(teamId, integrationId, environment, queryParams?.roleName);
+      if (!roleExists) throw new createHttpError[404](`role ${queryParams?.roleName} not found`);
     }
 
     if (queryParams?.username) {
-      const userFound = await findUserByRealm(environment, queryParams.username);
-      if (userFound.length === 0) throw new createHttpError[404](`user ${queryParams?.username} not found`);
+      users = await findUserByRealm(environment, queryParams.username);
+      if (users.length === 0) throw new createHttpError[404](`user ${queryParams?.username} not found`);
     }
 
     if (queryParams?.roleName && !queryParams?.username) {
       users = await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
-      if (users.length > 0) roles = [{ name: queryParams?.roleName }];
+      if (users.length > 0) roles = [updateRoleProps(roles)];
     } else if (!queryParams?.roleName && queryParams?.username) {
       const userRoles = await this.userRoleMappingService.getAllByUser(
         teamId,
@@ -50,11 +52,7 @@ export class UserRoleMappingController {
         queryParams.username,
       );
 
-      roles = userRoles.map((role) => {
-        return {
-          name: role,
-        };
-      });
+      roles = updateRoleProps(userRoles);
       if (roles.length > 0) users = await findUserByRealm(environment, queryParams.username);
     } else if (queryParams.roleName && queryParams.username) {
       const userRoles = await this.userRoleMappingService.getAllByUser(
@@ -66,10 +64,10 @@ export class UserRoleMappingController {
       await this.userRoleMappingService.getAllByRole(teamId, integrationId, environment, queryParams.roleName);
       if (userRoles.includes(queryParams.roleName)) {
         users = await findUserByRealm(environment, queryParams.username);
-        roles = [{ name: queryParams.roleName }];
+        roles = [updateRoleProps(roles)];
       }
     }
-    users = this.filterUserProps(users);
+    users = updateUserProps(users);
     return { users, roles };
   }
 
@@ -80,14 +78,16 @@ export class UserRoleMappingController {
     userRoleMapping: UserRoleMappingPayload,
   ) {
     let users;
+    let roles;
     const valid = postValidator(userRoleMapping);
     if (!valid) throw new createHttpError[400](parseErrors(postValidator.errors));
 
     const { username, roleName, operation } = userRoleMapping;
 
     if (roleName) {
-      if (!(await this.roleService.checkForExistingRole(teamId, integrationId, environment, roleName)))
-        throw new createHttpError[404](`role ${roleName} not found`);
+      roles = await this.roleService.getAllByEnvironment(teamId, integrationId, environment);
+      const roleExists = roles.find((role) => role.name === roleName);
+      if (!roleExists) throw new createHttpError[404](`role ${roleName} not found`);
     }
 
     if (username) {
@@ -95,7 +95,7 @@ export class UserRoleMappingController {
       if (users.length === 0) throw new createHttpError[404](`user ${username} not found`);
     }
 
-    if (operation !== 'add' && operation !== 'del')
+    if (!['add', 'del'].includes(operation))
       throw new createHttpError[400](`invalid operation #${operation}. valid values are (add, del)`);
 
     if (operation === 'del') {
@@ -103,7 +103,7 @@ export class UserRoleMappingController {
       if (users.length === 0) throw new createHttpError[404]('no user role mappings found');
     }
 
-    const roles = await this.userRoleMappingService.manageRoleMapping(
+    roles = await this.userRoleMappingService.manageRoleMapping(
       teamId,
       integrationId,
       environment,
@@ -113,22 +113,8 @@ export class UserRoleMappingController {
     );
 
     return {
-      users: this.filterUserProps(users),
-      roles: roles.map((role) => {
-        return { name: role };
-      }),
+      users: updateUserProps(users),
+      roles: updateRoleProps(roles),
     };
-  }
-
-  public filterUserProps(users: any) {
-    return users.map((user) => {
-      return {
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        attributes: user.attributes,
-      };
-    });
   }
 }
