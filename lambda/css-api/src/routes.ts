@@ -35,10 +35,6 @@ export const setRoutes = (app: any) => {
     res.status(200).json(null);
   });
 
-  app.get('/', async (req, res) => {
-    res.status(200);
-  });
-
   app.get(`${BASE_PATH}/heartbeat`, async (req, res) => {
     //#swagger.ignore = true
     try {
@@ -114,7 +110,9 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.responses[200] = {
         description: 'OK',
@@ -149,12 +147,15 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.responses[200] = {
         description: 'OK',
@@ -185,17 +186,21 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
         description: 'Role name',
-        required: true
+        required: true,
+        example: 'client-role'
       }
       #swagger.responses[200] = {
         description: 'OK',
@@ -230,12 +235,15 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.requestBody = {
         required: true,
@@ -278,17 +286,21 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
         description: 'Role name',
-        required: true
+        required: true,
+        example: 'client-role'
       }
       #swagger.requestBody = {
         required: true,
@@ -335,17 +347,21 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
         description: 'Role name',
-        required: true
+        required: true,
+        example: 'client-role'
       }
       #swagger.responses[204] = {
         description: 'No Content'
@@ -369,31 +385,35 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composites`, async (req, res) => {
+  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
-      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composites'
-      #swagger.method = 'put'
-      #swagger.description = 'Get composite roles of a role for an integration'
-      #swagger.summary = 'Get composite roles'
+      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles'
+      #swagger.method = 'get'
+      #swagger.description = 'Get associated roles of a role for an integration'
+      #swagger.summary = 'Get composite role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
         description: 'Role name',
-        required: true
+        required: true,
+        example: 'client-role'
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { $ref: '#/components/schemas/roleResponse' }
+        schema: { data: [{ $ref: '#/components/schemas/roleResponse' }] }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -414,106 +434,43 @@ export const setRoutes = (app: any) => {
     */
     try {
       if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
-      const { integrationId, environment, roleName } = req.params;
-      const result = await roleController.getComposites(req.teamId, integrationId, roleName, environment);
-      res.status(200).json({ data: result });
+      const { integrationId, environment, roleName, compositeRoleName } = req.params;
+      await roleController.deleteComposite(req.teamId, integrationId, roleName, environment, compositeRoleName);
+      res.status(204).send();
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.get(
-    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composites/:compositeRoleName`,
-    async (req, res) => {
-      /*#swagger.auto = false
-      #swagger.tags = ['Roles']
-      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composites'
-      #swagger.method = 'put'
-      #swagger.description = 'Get composite role of a role for an integration'
-      #swagger.summary = 'Get composite role'
-      #swagger.parameters['integrationId'] = {
-        in: 'path',
-        description: 'Integration Id',
-        required: true
-      }
-      #swagger.parameters['environment'] = {
-        in: 'path',
-        description: 'Environment',
-        required: true
-      }
-      #swagger.parameters['roleName'] = {
-        in: 'path',
-        description: 'Role name',
-        required: true
-      }
-      #swagger.parameters['compositeRoleName'] = {
-        in: 'path',
-        description: 'Composite role name',
-        required: true
-      }
-      #swagger.responses[200] = {
-        description: 'OK',
-        schema: { $ref: '#/components/schemas/roleResponse' }
-      }
-      #swagger.responses[400] = {
-        description: 'Bad Request',
-        schema: { message: 'string' }
-      }
-      #swagger.responses[404] = {
-        description: 'Not Found',
-        schema: { message: 'string' }
-      }
-      #swagger.responses[409] = {
-        description: 'Conflict',
-        schema: { message: 'string' }
-      }
-      #swagger.responses[422] = {
-        description: 'Unprocessable Entity',
-        schema: {message: 'string'}
-      }
-    */
-      try {
-        if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
-        const { integrationId, environment, roleName, compositeRoleName } = req.params;
-        const result = await roleController.getComposite(
-          req.teamId,
-          integrationId,
-          roleName,
-          environment,
-          compositeRoleName,
-        );
-        res.status(200).json(result);
-      } catch (err) {
-        handleError(res, err);
-      }
-    },
-  );
-
-  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composites`, async (req, res) => {
+  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
-      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composites'
+      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles'
       #swagger.method = 'put'
       #swagger.description = 'Set composite role for integration'
       #swagger.summary = 'Set composite role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
         description: 'Role name',
-        required: true
+        required: true,
+        example: 'client-role'
       }
       #swagger.requestBody = {
         required: true,
-        schema: [{ $ref: "#/components/schemas/roleRequest" }]
+        schema: { $ref: '#/components/schemas/compositeRoleRequest' }
       }
       #swagger.responses[200] = {
         description: 'OK',
@@ -547,37 +504,41 @@ export const setRoutes = (app: any) => {
   });
 
   app.delete(
-    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composites/:compositeRoleName`,
+    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
     async (req, res) => {
       /*#swagger.auto = false
       #swagger.tags = ['Roles']
-      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composites'
-      #swagger.method = 'put'
-      #swagger.description = 'Get composite role of a role for an integration'
-      #swagger.summary = 'Get composite role'
+      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles/{compositeRoleName}'
+      #swagger.method = 'delete'
+      #swagger.description = 'Delete composite role for an integration'
+      #swagger.summary = 'Delete composite role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
         description: 'Role name',
-        required: true
+        required: true,
+        example: 'client-role'
       }
       #swagger.parameters['compositeRoleName'] = {
         in: 'path',
         description: 'Composite role name',
-        required: true
+        required: true,
+        example: 'composite-client-role'
       }
-      #swagger.responses[200] = {
-        description: 'OK',
-        schema: { $ref: '#/components/schemas/roleResponse' }
+      #swagger.responses[204] = {
+        description: 'No Content',
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -617,20 +578,25 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        type: 'integer',
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.parameters['roleName'] = {
         in: 'query',
         description: 'Role name',
+        example: 'client-role'
       }
       #swagger.parameters['username'] = {
         in: 'query',
         description: 'Username',
+        example: '08fe81112408411081ea011cf0ec945d@idir'
       }
       #swagger.responses[200] = {
         description: 'OK',
@@ -668,12 +634,14 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
-        required: true
+        required: true,
+        example: 1234
       }
       #swagger.parameters['environment'] = {
         in: 'path',
         description: 'Environment',
-        required: true
+        required: true,
+        schema: { $ref: '#/components/schemas/environments' }
       }
       #swagger.requestBody = {
         required: true,

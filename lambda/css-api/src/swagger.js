@@ -25,36 +25,45 @@ const doc = {
   ],
   components: {
     schemas: {
+      // @ will ensure swagger-autogen shall not process it
+      environments: {
+        '@enum': ['dev', 'test', 'prod'],
+      },
+      operations: {
+        '@enum': ['add', 'del'],
+      },
       integration: {
-        id: 'number',
-        projectName: 'string',
-        authType: 'string',
-        environments: 'string[]',
-        status: 'string',
-        createdAt: 'timestamp',
-        updatedAt: 'timestamp',
+        id: '1000',
+        projectName: 'integration project name',
+        authType: 'browser-login',
+        environments: { $ref: '#/components/schemas/environments' },
+        status: 'applied',
+        createdAt: '2022-08-10T21:21:25.303Z',
+        updatedAt: '2022-08-10T21:21:53.598Z',
       },
       roleRequest: {
-        name: 'string',
+        $name: 'client-role',
       },
       roleResponse: {
-        name: 'string',
-        composite: 'boolean',
+        name: 'client-role',
+        composite: false,
       },
-      userAttribute: {
-        attributeKey: 'string[]',
+      compositeRoleRequest: [{ $ref: '#/components/schemas/roleRequest' }],
+      userAttributes: {
+        displayName: 'Test User',
+        idir_userid: 'AAAFEE111DD24C6D11111DFDC8BC51A1',
       },
       user: {
-        username: 'string',
-        email: 'string',
-        firstName: 'string',
-        lastName: 'string',
-        attribues: [{ $ref: '#/components/schemas/userAttribute' }],
+        username: '08fe81112408411081ea011cf0ec945d@idir',
+        email: 'testuser@gov.bc.ca',
+        firstName: 'Test',
+        lastName: 'User',
+        attribues: { $ref: '#/components/schemas/userAttributes' },
       },
       userRoleMappingRequest: {
-        roleName: 'string',
-        username: 'string',
-        operation: 'add | del',
+        $roleName: 'client-role',
+        $username: '08fe81112408411081ea011cf0ec945d@idir',
+        $operation: { $ref: '#/components/schemas/operations' },
       },
     },
     securitySchemes: {
