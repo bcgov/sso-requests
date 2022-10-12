@@ -56,7 +56,7 @@ resource "aws_lambda_function" "siteminder-tests-scheduler" {
 resource "aws_cloudwatch_event_rule" "siteminder-tests-scheduler" {
   name                = "siteminder-tests-scheduler"
   schedule_expression = "cron(0 15 * * ? *)"
-  # run every day at 05:00 AM PST (03:00 pm UTC)
+  # run every day at 08:00 AM PST (03:00 pm UTC)
 }
 
 resource "aws_cloudwatch_event_target" "siteminder-tests-scheduler" {
