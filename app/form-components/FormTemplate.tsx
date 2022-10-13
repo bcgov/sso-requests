@@ -15,7 +15,15 @@ import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import CenteredModal from 'components/CenteredModal';
 import { validateForm, customValidate } from 'utils/validate';
 import { parseError } from 'utils/helpers';
-import { hasGithub, hasNoGithub } from '@app/helpers/integration';
+import {
+  checkBceidBoth,
+  checkIdirGroup,
+  checkBceidRegularGroup,
+  checkIdirGroupAndNotBceidBoth,
+  checkIdirGroupAndNotBceidRegularGroup,
+  checkGithubGroup,
+  checkNotGithubGroup,
+} from '@app/helpers/integration';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
 import { getUISchema } from 'schemas-ui';
@@ -40,12 +48,6 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
-const isBceidBoth = (idp: string) => idp === 'bceidboth';
-const hasIdir = (idp: string) => ['idir', 'azureidir'].includes(idp);
-const hasBceidRegular = (idp: string) => ['bceidbasic', 'bceidbusiness'].includes(idp);
-const noBceidBoth = (idp: string) => hasIdir(idp) || idp !== 'bceidboth';
-const noBceidRegular = (idp: string) => hasIdir(idp) || !hasBceidRegular(idp);
-
 const filterIdps = (currentIdps: string[], updatedIdps: string[]) => {
   const idpAdded = currentIdps.length < updatedIdps.length;
   let idps = updatedIdps;
@@ -53,9 +55,9 @@ const filterIdps = (currentIdps: string[], updatedIdps: string[]) => {
   if (idpAdded) {
     const newIdp = difference(updatedIdps, currentIdps)[0];
 
-    if (hasBceidRegular(newIdp)) idps = updatedIdps.filter(noBceidBoth);
-    else if (isBceidBoth(newIdp)) idps = updatedIdps.filter(noBceidRegular);
-    else if (hasGithub(newIdp)) idps = updatedIdps.filter(hasNoGithub).concat(newIdp);
+    if (checkBceidRegularGroup(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidBoth);
+    else if (checkBceidBoth(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidRegularGroup);
+    else if (checkGithubGroup(newIdp)) idps = updatedIdps.filter(checkNotGithubGroup).concat(newIdp);
   }
 
   return idps;
