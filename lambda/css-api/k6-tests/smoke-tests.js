@@ -453,7 +453,7 @@ export default function (data) {
     }
   });
 
-  group('PUT composite role', () => {
+  group('POST composite role', () => {
     {
       // adding an additional role to associate it with role1
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
@@ -464,11 +464,11 @@ export default function (data) {
     }
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites?param1=1&param2=2`;
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles?param1=1&param2=2`;
       const body = [{ name: 'composite-role' }];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      const response = http.put(url, JSON.stringify(body), requestOptions);
+      const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -480,11 +480,11 @@ export default function (data) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const body = [{ name: '     ' }];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      const response = http.put(url, JSON.stringify(body), requestOptions);
+      const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -496,11 +496,11 @@ export default function (data) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const body = [];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      const response = http.put(url, JSON.stringify(body), requestOptions);
+      const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -512,11 +512,11 @@ export default function (data) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const body = [{ invalidNameProp: 'composite-role' }];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      const response = http.put(url, JSON.stringify(body), requestOptions);
+      const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -528,10 +528,10 @@ export default function (data) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      const response = http.put(url, null, requestOptions);
+      const response = http.post(url, null, requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -543,11 +543,11 @@ export default function (data) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const body = [{ name: 'composite-role' }];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
-      const response = http.put(url, JSON.stringify(body), requestOptions);
+      const response = http.post(url, JSON.stringify(body), requestOptions);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
@@ -564,7 +564,7 @@ export default function (data) {
   group('GET list of composite roles', () => {
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites?param1=1&param2=2`;
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles?param1=1&param2=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -577,7 +577,7 @@ export default function (data) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites`;
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -595,7 +595,7 @@ export default function (data) {
     {
       const url =
         BASE_URL +
-        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/composite-role?param1=1&param2=2`;
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role?param1=1&param2=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -609,7 +609,7 @@ export default function (data) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/nonexistentrole`;
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/nonexistentrole`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -623,7 +623,7 @@ export default function (data) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/composite-role`;
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -642,7 +642,7 @@ export default function (data) {
     {
       const url =
         BASE_URL +
-        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/composite-role?param1=1&param2=2`;
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role?param1=1&param2=2`;
       const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -656,7 +656,7 @@ export default function (data) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/nonexistentrole`;
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/nonexistentrole`;
       const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -670,7 +670,7 @@ export default function (data) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composites/composite-role`;
+        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role`;
       const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);

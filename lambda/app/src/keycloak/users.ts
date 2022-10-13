@@ -648,26 +648,29 @@ export const findUserByRealm = async (environment: string, username: string) => 
 };
 
 export const manageRoleComposites = async (
-  integration: Integration,
   environment: string,
   roleId: string,
-  compositeRoles?: any,
-  operation?: string,
+  compositeRoles?: RoleRepresentation[],
+  operation?: 'add' | 'del',
 ) => {
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+
+  if (operation === 'add') {
+    await kcAdminClient.roles.createComposite({ realm: 'standard', roleId }, compositeRoles);
+  } else {
+    await kcAdminClient.roles.delCompositeRoles({ realm: 'standard', id: roleId }, compositeRoles);
+  }
+};
+
+export const getRoleComposites = async (integration: Integration, environment: string, roleId: string) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
   const client = clients[0];
 
-  if (operation === 'add') {
-    await kcAdminClient.roles.createComposite({ realm: 'standard', roleId }, compositeRoles);
-  } else if (operation === 'del') {
-    await kcAdminClient.roles.delCompositeRoles({ realm: 'standard', id: roleId }, compositeRoles);
-  } else {
-    return await kcAdminClient.roles.getCompositeRolesForClient({
-      realm: 'standard',
-      clientId: client.id,
-      id: roleId,
-    });
-  }
+  return await kcAdminClient.roles.getCompositeRolesForClient({
+    realm: 'standard',
+    clientId: client.id,
+    id: roleId,
+  });
 };

@@ -11,7 +11,7 @@ const doc = {
   schemes: ['https'],
   tags: [
     {
-      name: 'Intergrations',
+      name: 'Integrations',
       description: 'Manage SSO Integrations',
     },
     {
@@ -26,18 +26,24 @@ const doc = {
   components: {
     schemas: {
       // @ will ensure swagger-autogen shall not process it
-      environments: {
+      authType: {
+        '@enum': ['browser-login', 'service-account', 'both'],
+      },
+      status: {
+        '@enum': ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'applied', 'applyFailed'],
+      },
+      environment: {
         '@enum': ['dev', 'test', 'prod'],
       },
-      operations: {
+      operation: {
         '@enum': ['add', 'del'],
       },
       integration: {
-        id: '1000',
+        id: 1234,
         projectName: 'integration project name',
-        authType: 'browser-login',
-        environments: { $ref: '#/components/schemas/environments' },
-        status: 'applied',
+        authType: { $ref: '#/components/schemas/authType' },
+        environments: { $ref: '#/components/schemas/environment' },
+        status: { $ref: '#/components/schemas/status' },
         createdAt: '2022-08-10T21:21:25.303Z',
         updatedAt: '2022-08-10T21:21:53.598Z',
       },
@@ -63,7 +69,7 @@ const doc = {
       userRoleMappingRequest: {
         $roleName: 'client-role',
         $username: '08fe81112408411081ea011cf0ec945d@idir',
-        $operation: { $ref: '#/components/schemas/operations' },
+        $operation: { $ref: '#/components/schemas/operation' },
       },
     },
     securitySchemes: {

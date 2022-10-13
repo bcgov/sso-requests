@@ -5,6 +5,7 @@ import {
   updateRole,
   findClientRole,
   manageRoleComposites,
+  getRoleComposites,
 } from '@lambda-app/keycloak/users';
 import { injectable } from 'tsyringe';
 import { IntegrationService } from './integration-service';
@@ -85,18 +86,12 @@ export class RoleService {
     compositeRoles: RolePayload[],
   ) {
     let rolesToAdd = [];
-
     const int = await this.integrationService.getById(integrationId, teamId);
-
     const existingRoles = await listClientRoles(int, { environment, integrationId });
-
     const role = existingRoles.find((role) => role.name === roleName);
-
     if (!role) throw new createHttpError[404](`role ${roleName} not found`);
-
     const valid = listOfrolesValidator(compositeRoles);
     if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
-
     for (let role of compositeRoles) {
       if (role.name.trim().length === 0) throw new createHttpError[400]('invalid role');
       if (role.name === roleName) throw new createHttpError[400](`role ${roleName} cannot be associated with itself`);
@@ -104,7 +99,7 @@ export class RoleService {
         throw new createHttpError[404](`role ${role.name} not found`);
       rolesToAdd.push(existingRoles.find((existingRole) => role.name === existingRole.name));
     }
-    await manageRoleComposites(int, environment, role.id, rolesToAdd, 'add');
+    await manageRoleComposites(environment, role.id, rolesToAdd, 'add');
     return await this.getByName(teamId, integrationId, environment, roleName);
   }
 
@@ -115,7 +110,7 @@ export class RoleService {
 
     if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
-    return updateRoleProps((await manageRoleComposites(int, environment, role.id)) as Role[]);
+    return updateRoleProps((await getRoleComposites(int, environment, role.id)) as Role[]);
   }
 
   public async getCompositeRole(
@@ -137,7 +132,7 @@ export class RoleService {
 
     if (!compositeRole) throw new createHttpError[404](`role ${compositeRoleName} not found`);
 
-    const compRoles = await manageRoleComposites(int, environment, role.id);
+    const compRoles = await getRoleComposites(int, environment, role.id);
 
     if (!compRoles.find((role) => role.name === compositeRoleName))
       throw new createHttpError[404](`role ${compositeRoleName} is not associated with ${roleName}`);
@@ -164,11 +159,11 @@ export class RoleService {
     if (roleName === compositeRoleName)
       throw new createHttpError[400](`role name and composite role name cannot be same`);
 
-    const compRoles = await manageRoleComposites(int, environment, role.id);
+    const compRoles = await getRoleComposites(int, environment, role.id);
 
     if (!compRoles.find((role) => role.name === compositeRoleName))
       throw new createHttpError[404](`role ${compositeRoleName} is not associated with ${roleName}`);
 
-    await manageRoleComposites(int, environment, role.id, [compositeRole], 'del');
+    await manageRoleComposites(environment, role.id, [compositeRole], 'del');
   }
 }

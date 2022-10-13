@@ -13,7 +13,6 @@ export const ROLE_REQ = {
 export const LIST_OF_ROLES_REQ = {
   type: 'array',
   items: ROLE_REQ,
-  additionalProperties: false,
   minItems: 1,
   errorMessage: 'invalid list of roles',
 };
