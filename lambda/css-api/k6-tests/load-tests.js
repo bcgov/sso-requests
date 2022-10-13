@@ -423,7 +423,7 @@ export default function (data) {
         BASE_URL +
           `/integrations/${integrationId}/${__ENV.environment}/roles/com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
         null,
-        options,
+        params,
       );
     }
   });

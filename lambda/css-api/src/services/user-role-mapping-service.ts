@@ -50,11 +50,11 @@ export class UserRoleMappingService {
       users = roles.length > 0 ? await findUserByRealm(environment, query.username) : [];
     } else if (query?.roleName && query?.username) {
       roles = await this.getAllRolesByUser(teamId, integrationId, environment, query.username);
-      console.log(roles);
-
       if (!(roles.length > 0) || !roles.find((role) => role.name === query.roleName)) {
         users = [];
         roles = [];
+      } else {
+        roles = [roles.find((role) => role.name === query.roleName)];
       }
     }
     users = updateUserProps(users);
