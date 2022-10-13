@@ -6,7 +6,7 @@ import { Counter } from 'k6/metrics';
 
 let errors_metrics = new Counter('testing_errors');
 
-const BASE_URL = 'https://api-dev.loginproxy.gov.bc.ca/api/v1';
+const BASE_URL = 'http://localhost:8080/api/v1';
 // Sleep duration between successive requests.
 // You might want to edit the value of this variable or remove calls to the sleep function on the script.
 const SLEEP_DURATION = 0.1;
@@ -206,6 +206,113 @@ export default function (data) {
     }
   });
 
+  group('POST composite role', () => {
+    {
+      // adding an additional role to associate it with role1
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const body = { name: `com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}` };
+      const requestOptions = Object.assign({}, params);
+      requestOptions.headers.Accept = 'application/json';
+      http.post(url, JSON.stringify(body), requestOptions);
+    }
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/composite-roles`;
+      const body = [{ name: `com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}` }];
+      const requestOptions = Object.assign({}, params);
+      requestOptions.headers.Accept = 'application/json';
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return name': (r) => r.json().name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
+        'return composite': (r) => r.json().composite === true,
+      });
+
+      if (!passed) {
+        console.log(
+          `Request to ${response.request.url} with payload ${JSON.stringify(response.request.body)} and status ${
+            response.status
+          } failed the checks!`,
+        );
+        errors_metrics.add(1, { url: response.request.url });
+      }
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET list of composite roles', () => {
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/composite-roles`;
+      const response = http.get(url, params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} and status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET composite role by name', () => {
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/composite-roles/com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`;
+      const response = http.get(url, params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return name': (r) => r.json().name === `com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
+        'return composite': (r) => r.json().composite === false,
+      });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} and status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('DELETE composite role by name', () => {
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/composite-roles/com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`;
+      const response = http.del(url, null, params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 204 when success': (r) => r.status === 204,
+      });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} and status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
   group('POST user role mapping', () => {
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
@@ -307,6 +414,17 @@ export default function (data) {
       }
 
       sleep(SLEEP_DURATION);
+    }
+  });
+  group('cleanup', () => {
+    {
+      // delete composite-role
+      http.del(
+        BASE_URL +
+          `/integrations/${integrationId}/${__ENV.environment}/roles/com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
+        null,
+        params,
+      );
     }
   });
 }

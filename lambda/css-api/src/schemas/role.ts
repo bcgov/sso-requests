@@ -10,4 +10,13 @@ export const ROLE_REQ = {
   errorMessage: 'invalid role',
 };
 
-export const validate = validator.compile(ROLE_REQ);
+export const LIST_OF_ROLES_REQ = {
+  type: 'array',
+  items: ROLE_REQ,
+  minItems: 1,
+  errorMessage: 'invalid list of roles',
+};
+
+export const roleValidator = validator.compile(ROLE_REQ);
+
+export const listOfrolesValidator = validator.compile(LIST_OF_ROLES_REQ);
