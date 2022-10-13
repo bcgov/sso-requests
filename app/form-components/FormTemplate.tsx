@@ -15,6 +15,7 @@ import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import CenteredModal from 'components/CenteredModal';
 import { validateForm, customValidate } from 'utils/validate';
 import { parseError } from 'utils/helpers';
+import { hasGithub, hasNoGithub } from '@app/helpers/integration';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
 import { getUISchema } from 'schemas-ui';
@@ -54,6 +55,7 @@ const filterIdps = (currentIdps: string[], updatedIdps: string[]) => {
 
     if (hasBceidRegular(newIdp)) idps = updatedIdps.filter(noBceidBoth);
     else if (isBceidBoth(newIdp)) idps = updatedIdps.filter(noBceidRegular);
+    else if (hasGithub(newIdp)) idps = updatedIdps.filter(hasNoGithub).concat(newIdp);
   }
 
   return idps;
@@ -163,6 +165,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       integration: request,
       formData,
       teams,
+      isAdmin,
     });
 
     setSchemas(schemas);

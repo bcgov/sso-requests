@@ -5,7 +5,7 @@ import { Team, User } from 'interfaces/team';
 import { Integration, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
-import { usesBceid, usesGithub } from '@app/helpers/integration';
+import { usesBceid, usesGithub, hasGithub, hasNoGithub } from '@app/helpers/integration';
 import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
@@ -41,7 +41,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
 
     if (hasGithub && (!githubApproved || githubApplying))
       envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter((idp) => idp !== 'github');
+        if (env.name === 'prod') env.idps = env.idps.filter(hasNoGithub);
         return env;
       });
 

@@ -2,7 +2,7 @@ import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 import { idpMap } from '@app/helpers/meta';
 
-export default function getSchema(integration: Integration) {
+export default function getSchema(integration: Integration, context: { isAdmin?: boolean } = { isAdmin: true }) {
   const { protocol, authType, status } = integration;
   const applied = status === 'applied';
 
@@ -56,7 +56,7 @@ export default function getSchema(integration: Integration) {
   }
 
   if (authType !== 'service-account') {
-    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'];
+    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github', 'githuball'];
     const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
 
     properties.devIdps = {

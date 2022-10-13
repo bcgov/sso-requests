@@ -13,13 +13,16 @@ export const usesBceid = (integration: Integration) => {
   }
 };
 
+export const hasGithub = (idp: string) => ['github', 'githuball'].includes(idp);
+export const hasNoGithub = (idp: string) => !hasGithub(idp);
+
 export const usesGithub = (integration: Integration) => {
   if (!integration) return false;
 
   const { serviceType = 'silver', devIdps = [] } = integration;
   if (serviceType !== 'gold') return false;
 
-  return devIdps.some((idp: string) => idp === 'github');
+  return devIdps.some(hasGithub);
 };
 
 export const usesBceidProd = (integration: Integration) => {
