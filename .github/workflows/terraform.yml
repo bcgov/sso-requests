@@ -146,11 +146,25 @@ jobs:
         run: |
           cat >"config.tf" <<EOF
           terraform {
+            required_version = ">= 0.15.3"
+
             backend "remote" {
               hostname     = "app.terraform.io"
               organization = "bcgov"
               workspaces {
                 name = "${{ env.TFC_WORKSPACE }}"
+              }
+            }
+
+            required_providers {
+              aws = {
+                source  = "hashicorp/aws"
+                version = ">= 4.34.0"
+              }
+
+              random = {
+                source  = "hashicorp/random"
+                version = ">= 3.4.3"
               }
             }
           }
