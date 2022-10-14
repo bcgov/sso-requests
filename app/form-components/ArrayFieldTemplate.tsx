@@ -89,7 +89,7 @@ export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
           </React.Fragment>
         );
       })}
-      {currentEnvironment == 'prod' ? (
+      {currentEnvironment === 'prod' ? (
         <RedirectInfoText>
           *Note: wildcard* redirect URIs are <strong>not</strong> allowed in Prod for security reasons.
         </RedirectInfoText>
