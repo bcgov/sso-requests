@@ -9,6 +9,7 @@ import FieldTermsAndConditions from '@app/form-components/FieldTermsAndCondition
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
 import FieldAccessTokenLifespan from '@app/form-components/FieldAccessTokenLifespan';
+import { checkBceidGroup, checkGithubGroup } from '@app/helpers/integration';
 import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 
@@ -27,18 +28,24 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
 
   const envDisabled = isApplied ? integration?.environments?.concat() || [] : ['dev'];
   let idpDisabled: string[] = [];
-  if (isApplied) {
-    idps.forEach((idp) => {
-      if (idp.startsWith('bceid')) {
-        if (idp === 'bceidbasic') idpDisabled.push('bceidbasic', 'bceidboth');
-        else if (idp === 'bceidbusiness') idpDisabled.push('bceidbusiness', 'bceidboth');
-        else if (idp === 'bceidboth') idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
-      } else if (idp === 'github') {
-        idpDisabled.push('github');
-      }
-    });
+  let idpHidden: string[] = [];
+
+  if (!isAdmin) {
+    if (isApplied) {
+      idps.forEach((idp) => {
+        if (checkBceidGroup(idp)) {
+          if (idp === 'bceidbasic') idpDisabled.push('bceidbasic', 'bceidboth');
+          else if (idp === 'bceidbusiness') idpDisabled.push('bceidbusiness', 'bceidboth');
+          else if (idp === 'bceidboth') idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+        } else if (checkGithubGroup(idp)) {
+          idpDisabled.push('github', 'githuball');
+        }
+      });
+    }
+    idpDisabled = uniq(idpDisabled);
+
+    if (!isApplied || !idps.includes('githuball')) idpHidden.push('githuball');
   }
-  idpDisabled = uniq(idpDisabled);
 
   const includeComment = isApplied && isAdmin;
 
@@ -101,6 +108,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     devIdps: {
       'ui:widget': TooltipCheckboxesWidget,
       'ui:enumDisabled': idpDisabled,
+      'ui:enumHidden': idpHidden,
     },
     bceidTo: {
       'ui:label': false,

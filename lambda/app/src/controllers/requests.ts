@@ -28,7 +28,7 @@ import {
 import { disableIntegration } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
-import { usesBceid, usesGithub } from '@app/helpers/integration';
+import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 
 const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
 const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
@@ -192,7 +192,7 @@ export const updateRequest = async (
       // prevent the TF from creating BCeID integration in prod environment if not approved
       if (!current.bceidApproved && hasBceid) {
         if (tfData.serviceType === 'gold') {
-          tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('bceid'));
+          tfData.prodIdps = tfData.prodIdps.filter(checkNotBceidGroup);
         } else {
           tfData.environments = tfData.environments.filter((environment) => environment !== 'prod');
         }
@@ -200,7 +200,7 @@ export const updateRequest = async (
 
       // prevent the TF from creating GitHub integration in prod environment if not approved
       if (!current.githubApproved && hasGithub) {
-        tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('github'));
+        tfData.prodIdps = tfData.prodIdps.filter(checkNotGithubGroup);
       }
 
       const ghResult = await dispatchRequestWorkflow(tfData);
