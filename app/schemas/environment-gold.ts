@@ -106,7 +106,7 @@ export default function getSchemas(formData: Integration) {
             },
             maxLength: 100,
           },
-          [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs' },
+          [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs', currentEnvironment: env },
         }
       : {};
 
