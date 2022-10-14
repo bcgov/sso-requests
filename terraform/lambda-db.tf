@@ -10,7 +10,7 @@ resource "aws_lambda_function" "db" {
   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
   source_code_hash = filebase64sha256("lambda-db.zip")
 
-  runtime = "nodejs12.x"
+  runtime = "nodejs16.x"
 
   vpc_config {
     subnet_ids         = [data.aws_subnet.a.id, data.aws_subnet.b.id]

@@ -4,5 +4,5 @@ python 3.8.6
 postgres 11.4
 terraform 1.1.4
 terraform-docs 0.12.1
-tflint 0.28.1
+tflint 0.41.0
 k6 0.34.1
