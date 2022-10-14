@@ -55,9 +55,14 @@ const Title = styled.legend`
   margin: 0;
 `;
 
+const RedirectInfoText = styled.p`
+  font-style: italic;
+  font-size: 0.9rem;
+`;
+
 export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
   const { formContext, title, items, schema } = props;
-  const { description, tooltip, deletableIndex = 1, addItemText } = schema as any;
+  const { description, tooltip, deletableIndex = 1, addItemText, currentEnvironment } = schema as any;
   const delIndex = isFunction(deletableIndex) ? deletableIndex(items) : parseInt(deletableIndex);
 
   return (
@@ -84,6 +89,16 @@ export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
           </React.Fragment>
         );
       })}
+      {currentEnvironment == 'prod' ? (
+        <RedirectInfoText>
+          *Note: wildcard* redirect URIs are <strong>not</strong> allowed in Prod for security reasons.
+        </RedirectInfoText>
+      ) : (
+        <RedirectInfoText>
+          *Note: wildcard* redirect URIs are <strong>only</strong> allowed in <strong>Dev</strong> and{' '}
+          <strong>Test</strong> environments (but not in Prod for security reasons).
+        </RedirectInfoText>
+      )}
       {props.canAdd && (
         <AddContainer onClick={props.onAddClick}>
           <FontAwesomeIcon
