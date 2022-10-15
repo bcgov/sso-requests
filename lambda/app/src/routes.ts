@@ -79,6 +79,7 @@ const handleError = (res, err) => {
   if (isString(message)) {
     message = tryJSON(message);
   }
+  console.log({ success: false, message });
   res.status(422).json({ success: false, message });
 };
 
