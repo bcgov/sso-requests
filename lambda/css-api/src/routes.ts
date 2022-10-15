@@ -8,6 +8,7 @@ import { container } from 'tsyringe';
 import { TokenController } from './controllers/token-controller';
 import { isEmpty } from 'lodash';
 import createHttpError from 'http-errors';
+import { UserController } from './controllers/user-controller';
 
 const responseHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
@@ -24,6 +25,7 @@ const integrationController = container.resolve(IntegrationController);
 const roleController = container.resolve(RoleController);
 const userRoleMappingController = container.resolve(UserRoleMappingController);
 const tokenController = container.resolve(TokenController);
+const userController = container.resolve(UserController);
 
 export const setRoutes = (app: any) => {
   app.use((req, res, next) => {
@@ -87,7 +89,7 @@ export const setRoutes = (app: any) => {
         schema: { data: [{ $ref: '#/components/schemas/integration' }] }
       }
       #swagger.responses[422] = {
-        description: 'Internal Server Error',
+        description: 'Unprocessable Entity',
         schema: { message: 'string'}
       }
     */
@@ -748,6 +750,303 @@ export const setRoutes = (app: any) => {
       const { integrationId, environment } = req.params;
       const result = await userRoleMappingController.manage(req.teamId, integrationId, environment, req.body);
       req.body.operation === 'add' ? res.status(201).json(result) : res.status(204).send();
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/:environment/idir/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/{environment}/idir/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of users for IDIR provider using query filters'
+      #swagger.summary = 'Get list of users for IDIR'
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['firstName'] = {
+        in: 'query',
+        description: 'First Name',
+        example: 'Julius'
+      }
+      #swagger.parameters['lastName'] = {
+        in: 'query',
+        description: 'Last Name',
+        example: 'Caesar'
+      }
+      #swagger.parameters['email'] = {
+        in: 'query',
+        description: 'Email',
+        example: 'julius.caesar@email.com'
+      }
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { environment } = req.params;
+      const result = await userController.listCommonUsers(environment, 'idir', req.query);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/:environment/azure-idir/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/{environment}/azure-idir/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of users for Azure IDIR provider using query filters'
+      #swagger.summary = 'Get list of users for Azure IDIR'
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['firstName'] = {
+        in: 'query',
+        description: 'First Name',
+        example: 'Julius'
+      }
+      #swagger.parameters['lastName'] = {
+        in: 'query',
+        description: 'Last Name',
+        example: 'Caesar'
+      }
+      #swagger.parameters['email'] = {
+        in: 'query',
+        description: 'Email',
+        example: 'julius.caesar@email.com'
+      }
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { environment } = req.params;
+      const result = await userController.listCommonUsers(environment, 'azureidir', req.query);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/:environment/github/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/{environment}/github/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of users for GitHub provider using query filters'
+      #swagger.summary = 'Get list of users for GitHub'
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['firstName'] = {
+        in: 'query',
+        description: 'First Name',
+        example: 'Julius'
+      }
+      #swagger.parameters['lastName'] = {
+        in: 'query',
+        description: 'Last Name',
+        example: 'Caesar'
+      }
+      #swagger.parameters['email'] = {
+        in: 'query',
+        description: 'Email',
+        example: 'julius.caesar@email.com'
+      }
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { environment } = req.params;
+      const result = await userController.listCommonUsers(environment, 'github', req.query);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/:environment/basic-bceid/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/{environment}/basic-bceid/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of users associated with Basic BCeID in the target environment'
+      #swagger.summary = 'Get list of users associated with Basic BCeID'
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { environment } = req.params;
+      const result = await userController.listBceidUsers(environment, 'bceidbasic', req.query);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/:environment/business-bceid/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/{environment}/business-bceid/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of users associated with Business BCeID in the target environment'
+      #swagger.summary = 'Get list of users associated with Business BCeID'
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { environment } = req.params;
+      const result = await userController.listBceidUsers(environment, 'bceidbusiness', req.query);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/:environment/basic-business-bceid/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/{environment}/basic-business-bceid/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of users associated with Basic or Business BCeID in the target environment'
+      #swagger.summary = 'Get list of users associated with Basic or Business BCeID'
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { environment } = req.params;
+      const result = await userController.listBceidUsers(environment, 'bceidboth', req.query);
+      res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }

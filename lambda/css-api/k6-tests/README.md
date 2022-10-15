@@ -15,6 +15,8 @@ export K6_USERNAME=
 ## Run smoke tests
 
 ```sh
+cd ./smoke-tests
+
 # remove --http-debug="full" option to hide the logs
 k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME smoke-tests.js --http-debug="full"
 ```

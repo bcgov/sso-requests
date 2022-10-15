@@ -22,6 +22,10 @@ const doc = {
       name: 'Role-Mapping',
       description: 'Manage Role-Mappings for an Integration',
     },
+    {
+      name: 'Users',
+      description: 'Manage Users for an IDP',
+    },
   ],
   components: {
     schemas: {
@@ -29,14 +33,17 @@ const doc = {
       authType: {
         '@enum': ['browser-login', 'service-account', 'both'],
       },
-      status: {
-        '@enum': ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'applied', 'applyFailed'],
-      },
       environment: {
         '@enum': ['dev', 'test', 'prod'],
       },
+      idp: {
+        '@enum': ['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'],
+      },
       operation: {
         '@enum': ['add', 'del'],
+      },
+      status: {
+        '@enum': ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'applied', 'applyFailed'],
       },
       integration: {
         id: 1234,
