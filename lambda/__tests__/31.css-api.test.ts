@@ -42,6 +42,16 @@ const integrationRoleUsers = [
     notBefore: 0,
   },
 ];
+
+const searchUsersByIdp = [
+  {
+    username: '1ef789deb11e4ba1ab11c0123a4560b0@idp',
+    firstName: 'Test',
+    lastName: 'User',
+    email: 'test.user@gov.bc.ca',
+  },
+];
+
 const createIntegrationRole = 'role4';
 const updateIntegrationRole = 'role5';
 const integrationUserRoles = [{ name: 'role1', composite: false }];
@@ -86,6 +96,12 @@ jest.mock('@lambda-app/keycloak/users', () => {
     manageRoleComposites: jest.fn(() => {}),
     getRoleComposites: jest.fn(() => {
       return Promise.resolve([{ name: 'role2', composite: false }]);
+    }),
+    searchUsersByIdp: jest.fn(() => {
+      return Promise.resolve({
+        count: 1,
+        rows: searchUsersByIdp,
+      });
     }),
   };
 });
@@ -276,6 +292,93 @@ describe('create team and gold integration', () => {
     await supertest(app)
       .delete(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles/role1/composite-roles/role2`)
       .expect(204);
+  });
+
+  it('get users associated with idir', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/dev/idir/users`)
+      .query({
+        firstName: searchUsersByIdp[0].firstName,
+        lastName: searchUsersByIdp[0].lastName,
+        email: searchUsersByIdp[0].email,
+        guid: searchUsersByIdp[0].username.split('@')[0],
+      })
+      .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+  });
+
+  it('get users associated with azure idir', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/dev/azure-idir/users`)
+      .query({
+        firstName: searchUsersByIdp[0].firstName,
+        lastName: searchUsersByIdp[0].lastName,
+        email: searchUsersByIdp[0].email,
+        guid: searchUsersByIdp[0].username.split('@')[0],
+      })
+      .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+  });
+
+  it('get users associated with github', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/dev/github/users`)
+      .query({
+        firstName: searchUsersByIdp[0].firstName,
+        lastName: searchUsersByIdp[0].lastName,
+        email: searchUsersByIdp[0].email,
+        guid: searchUsersByIdp[0].username.split('@')[0],
+      })
+      .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+  });
+
+  it('get users associated with basic bceid', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/dev/basic-bceid/users`)
+      .query({
+        guid: searchUsersByIdp[0].username.split('@')[0],
+      })
+      .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+  });
+
+  it('get users associated with business bceid', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/dev/business-bceid/users`)
+      .query({
+        guid: searchUsersByIdp[0].username.split('@')[0],
+      })
+      .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+  });
+
+  it('get users associated with basic or business', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/dev/basic-business-bceid/users`)
+      .query({
+        guid: searchUsersByIdp[0].username.split('@')[0],
+      })
+      .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
   });
 
   it('deletes team integration role for an environment', async () => {
