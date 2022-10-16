@@ -17,6 +17,7 @@ import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 import { testIntegrations } from './modules/integrations.js';
 import { testRoles } from './modules/roles.js';
 import { testUserRoleMapping } from './modules/user-role-mappings.js';
+import { testUsers } from './modules/users.js';
 
 const BASE_URL = 'http://localhost:8080/api/v1';
 // Sleep duration between successive requests.
@@ -68,9 +69,11 @@ export default function (data) {
       'Content-Type': 'application/json',
     },
   };
+
   testIntegrations(options);
   testRoles(options);
   testUserRoleMapping(options);
+  testUsers(options);
 }
 
 export function handleSummary(data) {
