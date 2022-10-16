@@ -70,14 +70,20 @@ const COMMON_USER_QUERY_REQ = {
     },
   ],
   errorMessage: {
-    additionalProperties: 'invalid user query',
+    additionalProperties: 'only firstName, lastName, email and guid are supported',
   },
 };
 
 const BCEID_USER_QUERY_REQ = {
   type: 'object',
   properties: {
-    guid: { type: 'string', minLength: 2 },
+    guid: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'guid should be string with length >= 2',
+      },
+    },
   },
   additionalProperties: false,
   required: ['guid'],
@@ -85,7 +91,7 @@ const BCEID_USER_QUERY_REQ = {
     required: {
       guid: 'guid is required',
     },
-    additionalProperties: 'invalid user query',
+    additionalProperties: 'only guid is supported',
   },
 };
 

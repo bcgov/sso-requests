@@ -82,8 +82,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Integrations']
       #swagger.path = '/integrations'
       #swagger.method = 'get'
-      #swagger.description = 'Get all gold integrations created by your team'
-      #swagger.summary = 'Get all gold integrations'
+      #swagger.description = 'Get list of gold standard integrations created by your team'
+      #swagger.summary = 'Get list of integrations'
       #swagger.responses[200] = {
         description: 'OK',
         schema: { data: [{ $ref: '#/components/schemas/integration' }] }
@@ -144,8 +144,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles'
       #swagger.method = 'get'
-      #swagger.description = 'Get all roles created for the integration of the target environment'
-      #swagger.summary = 'Get all roles created for your integration'
+      #swagger.description = 'Get list of roles created for your integration of target environment'
+      #swagger.summary = 'Get list of roles'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -183,8 +183,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
       #swagger.method = 'get'
-      #swagger.description = 'Get a role created for the integration of the target environment'
-      #swagger.summary = 'Get role by name'
+      #swagger.description = 'Get role by role name created for your integration of target environment'
+      #swagger.summary = 'Get role by role name'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -232,8 +232,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles'
       #swagger.method = 'post'
-      #swagger.description = 'Create a role for the integration of the target environment'
-      #swagger.summary = 'Create role for the integration'
+      #swagger.description = 'Create role for your integration of target environment'
+      #swagger.summary = 'Create role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -283,8 +283,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
       #swagger.method = 'put'
-      #swagger.description = 'Update role created for the integration of the target environment'
-      #swagger.summary = 'Update role of the integration'
+      #swagger.description = 'Update role created for your integration of target environment'
+      #swagger.summary = 'Update role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -344,8 +344,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
       #swagger.method = 'delete'
-      #swagger.description = 'Delete role created for the integration of the target environment'
-      #swagger.summary = 'Delete role of the integration'
+      #swagger.description = 'Delete role created for your integration of target environment'
+      #swagger.summary = 'Delete role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -392,8 +392,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles'
       #swagger.method = 'get'
-      #swagger.description = 'Get all the composites of a role created for the integration of the target environment'
-      #swagger.summary = 'Get all the composites of a role'
+      #swagger.description = 'Get list of composites of a role created for your integration of target environment'
+      #swagger.summary = 'Get list of composites of a role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -451,7 +451,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles/{compositeRoleName}'
       #swagger.method = 'get'
-      #swagger.description = 'Get composite of a role created for the integration of the target environment'
+      #swagger.description = 'Get composite of a role created for your integration of target environment'
       #swagger.summary = 'Get composite of a role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
@@ -523,8 +523,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles'
       #swagger.method = 'post'
-      #swagger.description = 'Add composite to role of the integration of the target environment'
-      #swagger.summary = 'Add composite to role of the integration'
+      #swagger.description = 'Add composite to role for your integration of target environment'
+      #swagger.summary = 'Add composite to role'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -587,8 +587,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles/{compositeRoleName}'
       #swagger.method = 'delete'
-      #swagger.description = 'Remove role from the role's composite created for the integration of the target environment'
-      #swagger.summary = "Remove role from the role's composite"
+      #swagger.description = 'Delete composite from a role created for your integration of target environment'
+      #swagger.summary = "Delete composite from a role"
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -650,7 +650,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
       #swagger.method = 'get'
-      #swagger.description = 'Get user role mappings by role or user names for integration <br><br> <b>Note:</b> Either roleName or username is required'
+      #swagger.description = 'Get user role mappings by role name or user name for your integration of target environment <br><br> <b>Note:</b> Either roleName or username is required'
       #swagger.summary = 'Get user role mappings by role name or user name'
       #swagger.parameters['integrationId'] = {
         in: 'path',
@@ -706,8 +706,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
       #swagger.method = 'post'
-      #swagger.description = 'Create or delete user role mapping for integration'
-      #swagger.summary = 'Manage user role mappings'
+      #swagger.description = 'Create or delete user role mappings for your integration of target environment'
+      #swagger.summary = 'Create or delete user role mappings'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -760,8 +760,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/idir/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for IDIR provider using query filters'
-      #swagger.summary = 'Get list of users for IDIR'
+      #swagger.description = 'Get list of users for IDIR by query for target environment'
+      #swagger.summary = 'Get list of users for IDIR by query'
 
       #swagger.parameters['environment'] = {
         in: 'path',
@@ -817,8 +817,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/azure-idir/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for Azure IDIR provider using query filters'
-      #swagger.summary = 'Get list of users for Azure IDIR'
+      #swagger.description = 'Get list of users for Azure IDIR by query for target environment'
+      #swagger.summary = 'Get list of users for Azure IDIR by query'
 
       #swagger.parameters['environment'] = {
         in: 'path',
@@ -874,8 +874,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/github/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for GitHub provider using query filters'
-      #swagger.summary = 'Get list of users for GitHub'
+      #swagger.description = 'Get list of users for GitHub by query for target environment'
+      #swagger.summary = 'Get list of users for GitHub by query'
 
       #swagger.parameters['environment'] = {
         in: 'path',
@@ -931,8 +931,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/basic-bceid/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users associated with Basic BCeID in the target environment'
-      #swagger.summary = 'Get list of users associated with Basic BCeID'
+      #swagger.description = 'Get list of users for Basic Bceid by query for target environment'
+      #swagger.summary = 'Get list of users for Basic BCeID by query'
 
       #swagger.parameters['environment'] = {
         in: 'path',
@@ -942,6 +942,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['guid'] = {
         in: 'query',
+        required: true,
         description: 'Guid',
         example: '1ef111deb11e4ba1ab11c0111a1110b0'
       }
@@ -973,8 +974,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/business-bceid/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users associated with Business BCeID in the target environment'
-      #swagger.summary = 'Get list of users associated with Business BCeID'
+      #swagger.description = 'Get list of users for Business BCeID by query for target environment'
+      #swagger.summary = 'Get list of users for Business BCeID by query'
 
       #swagger.parameters['environment'] = {
         in: 'path',
@@ -984,6 +985,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['guid'] = {
         in: 'query',
+        required: true,
         description: 'Guid',
         example: '1ef111deb11e4ba1ab11c0111a1110b0'
       }
@@ -1015,8 +1017,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/basic-business-bceid/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users associated with Basic or Business BCeID in the target environment'
-      #swagger.summary = 'Get list of users associated with Basic or Business BCeID'
+      #swagger.description = 'Get list of users for Basic or Business BCeID by query for target environment'
+      #swagger.summary = 'Get list of users for Basic or Business BCeID by query'
 
       #swagger.parameters['environment'] = {
         in: 'path',
@@ -1026,6 +1028,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['guid'] = {
         in: 'query',
+        required: true,
         description: 'Guid',
         example: '1ef111deb11e4ba1ab11c0111a1110b0'
       }
