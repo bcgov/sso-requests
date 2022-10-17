@@ -85,14 +85,6 @@ const HeaderTitle = styled.div`
   height: 100%;
 `;
 
-const Beta = styled.span`
-  vertical-align: text-top;
-  color: #fcba19;
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: 16px;
-`;
-
 interface Route {
   path: string;
   label: string | ((query: any) => string);
@@ -230,11 +222,7 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
     <TopAlertProvider>
       <BCSans />
       <Navigation
-        title={() => (
-          <HeaderTitle>
-            Common Hosted Single Sign-on (CSS)<Beta>Beta</Beta>
-          </HeaderTitle>
-        )}
+        title={() => <HeaderTitle>Common Hosted Single Sign-on (CSS)</HeaderTitle>}
         rightSide={rightSide}
         mobileMenu={MobileMenu}
         onBannerClick={console.log}

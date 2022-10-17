@@ -32,7 +32,7 @@ export default function InfoOverlay({
   hide = 250,
   icon = faInfoCircle,
   onClick = noop,
-  trigger = ['hover', 'focus'],
+  trigger = ['hover', 'focus', 'click'],
   style,
 }: Props) {
   const popover = (
