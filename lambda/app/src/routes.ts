@@ -132,9 +132,7 @@ export const setRoutes = (app: any) => {
   });
 
   app.use(async (req, res, next) => {
-    console.log(`DEBUG: authenticating...`, req.headers);
     const session = (await authenticate(req.headers)) as Session;
-    console.log(`DEBUG: authentication result...`, session);
     if (!session) {
       res.status(401).json({ success: false, message: 'not authorized' });
       return false;
@@ -151,16 +149,12 @@ export const setRoutes = (app: any) => {
       return false;
     }
 
-    console.log(`DEBUG: request user...`, req.user);
-
     if (next) next();
   });
 
   app.get(`${BASE_PATH}/me`, async (req, res) => {
     try {
-      console.log(`${BASE_PATH}/me1`, req.user);
       const integrations = await findMyOrTeamIntegrationsByService(req.user.id);
-      console.log(`${BASE_PATH}/me2`, integrations);
       res.status(200).json({ ...req.user, integrations });
     } catch (err) {
       handleError(res, err);

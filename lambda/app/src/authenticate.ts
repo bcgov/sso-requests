@@ -11,12 +11,10 @@ const getConfiguration = async () => {
   console.log(`DEBUG: _ssoConfig...`, _ssoConfig);
   if (_ssoConfig) return _ssoConfig;
 
-  console.log(`DEBUG: configurationEndpoint...`, configurationEndpoint);
   const { issuer, jwks_uri } = await axios.get(configurationEndpoint).then(
     (res) => res.data,
     () => null,
   );
-  console.log(`DEBUG: jwks_uri...`, jwks_uri);
 
   const jwk = await axios.get(jwks_uri).then(
     (res) => res.data,
@@ -31,11 +29,9 @@ const validateJWTSignature = async (token) => {
   try {
     // 1. Decode the ID token.
     const { header } = jws.decode(token);
-    console.log(`DEBUG: header...`, header);
 
     // 2. Compare the local key ID (kid) to the public kid.
     const { jwk, issuer } = await getConfiguration();
-    console.log(`DEBUG: issuer...`, issuer);
 
     const key = jwk.keys.find((jwkKey) => jwkKey.kid === header.kid);
     const isValidKid = !!key;
@@ -79,9 +75,7 @@ export const authenticate = async (headers) => {
   if (!authHeader) return false;
 
   const bearerToken = authHeader.split('Bearer ')[1];
-  console.log(`DEBUG: bearerToken...`, bearerToken);
   const currentUser = await validateJWTSignature(bearerToken);
-  console.log(`DEBUG: currentUser...`, currentUser);
   if (!currentUser) return currentUser;
 
   currentUser.bearerToken = bearerToken;

@@ -40,12 +40,6 @@ export const findMyOrTeamIntegrationsByService = async (userId: number, options 
   const where = getBaseWhereForMyOrTeamIntegrations(userId);
   where.archived = false;
 
-  console.log('findMyOrTeamIntegrationsByService', {
-    where,
-    attributes: ['id', 'serviceType'],
-    ...options,
-  });
-
   return models.request.findAll({
     where,
     attributes: ['id', 'serviceType'],
