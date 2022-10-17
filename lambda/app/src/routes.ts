@@ -132,6 +132,7 @@ export const setRoutes = (app: any) => {
   });
 
   app.use(async (req, res, next) => {
+    console.log(`DEBUG: authenticating...`, req.headers);
     const session = (await authenticate(req.headers)) as Session;
     if (!session) {
       res.status(401).json({ success: false, message: 'not authorized' });
