@@ -155,6 +155,7 @@ export const setRoutes = (app: any) => {
   app.get(`${BASE_PATH}/me`, async (req, res) => {
     try {
       const integrations = await findMyOrTeamIntegrationsByService(req.user.id);
+      console.log(`${BASE_PATH}/me`, integrations);
       res.status(200).json({ ...req.user, integrations });
     } catch (err) {
       handleError(res, err);
