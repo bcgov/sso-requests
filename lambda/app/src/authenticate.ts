@@ -5,16 +5,24 @@ const jwt = require('jsonwebtoken');
 const jws = require('jws');
 const jwkToPem = require('jwk-to-pem');
 
+let _ssoConfig: { jwk: any; issuer: string } = null;
+
 const getConfiguration = async () => {
+  console.log(`DEBUG: _ssoConfig...`, _ssoConfig);
+  if (_ssoConfig) return _ssoConfig;
+
   const { issuer, jwks_uri } = await axios.get(configurationEndpoint).then(
     (res) => res.data,
     () => null,
   );
+
   const jwk = await axios.get(jwks_uri).then(
     (res) => res.data,
     () => null,
   );
-  return { jwk, issuer };
+
+  _ssoConfig = { jwk, issuer };
+  return _ssoConfig;
 };
 
 const validateJWTSignature = async (token) => {
