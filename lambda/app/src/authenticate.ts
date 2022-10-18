@@ -7,23 +7,16 @@ const jwt = require('jsonwebtoken');
 const jws = require('jws');
 const jwkToPem = require('jwk-to-pem');
 
-let ssoConfiguration = null;
+let _ssoConfig: { jwks: any; issuer: string } = null;
+
 const ssoConfigurationPath = path.resolve(__dirname, 'sso-configuration.json');
 if (fs.existsSync(ssoConfigurationPath)) {
-  ssoConfiguration = require(ssoConfigurationPath);
+  _ssoConfig = require(ssoConfigurationPath);
 }
-
-let _ssoConfig: { jwks: any; issuer: string } = null;
 
 const getConfiguration = async () => {
   console.log(`DEBUG: _ssoConfig...`, _ssoConfig);
   if (_ssoConfig) return _ssoConfig;
-
-  // use the pre-fetched configuration if available
-  if (ssoConfiguration) {
-    _ssoConfig = JSON.parse(ssoConfiguration);
-    return _ssoConfig;
-  }
 
   const { issuer, jwks_uri } = await axios.get(ssoConfigurationEndpoint).then(
     (res) => res.data,
