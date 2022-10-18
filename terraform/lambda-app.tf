@@ -64,8 +64,8 @@ resource "aws_lambda_function" "app" {
     }
   }
 
-  timeout     = 5   # up to 900 seconds (15 minutes)
-  memory_size = 180 # 128 MB to 10,240 MB, in 1-MB increments
+  timeout     = 30  # up to 900 seconds (15 minutes)
+  memory_size = 240 # 128 MB to 10,240 MB, in 1-MB increments
   ephemeral_storage {
     size = 512 # Min 512 MB and the Max 10240 MB
   }
