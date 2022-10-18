@@ -1,10 +1,17 @@
-const ssoConfiguration = process.env.SSO_CONFIGURATION;
 const ssoConfigurationEndpoint = process.env.SSO_CONFIGURATION_ENDPOINT;
 const audience = process.env.SSO_CLIENT_ID;
+import * as fs from 'fs';
+import * as path from 'path';
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const jws = require('jws');
 const jwkToPem = require('jwk-to-pem');
+
+let ssoConfiguration = null;
+const ssoConfigurationPath = path.resolve(__dirname, 'sso-configuration.json');
+if (fs.existsSync(ssoConfigurationPath)) {
+  ssoConfiguration = require(ssoConfigurationPath);
+}
 
 let _ssoConfig: { jwks: any; issuer: string } = null;
 
