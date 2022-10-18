@@ -3,6 +3,7 @@ import { group, check, sleep, fail } from 'k6';
 import encoding from 'k6/encoding';
 import exec from 'k6/execution';
 import { Counter } from 'k6/metrics';
+import { URL } from 'https://jslib.k6.io/url/1.0.0/index.js';
 
 let errors_metrics = new Counter('testing_errors');
 
@@ -19,7 +20,7 @@ let integrationId;
 
 export const options = {
   stages: [
-    { duration: '10m', target: 100 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
+    { duration: '1m', target: 1 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
   ],
 };
 
@@ -416,6 +417,112 @@ export default function (data) {
       sleep(SLEEP_DURATION);
     }
   });
+
+  group('GET users associated to IDIR', () => {
+    {
+      const url = new URL(`${BASE_URL}/${__ENV.environment}/idir/users`);
+      url.searchParams.append('firstName', 'test');
+      url.searchParams.append('lastName', 'user');
+      url.searchParams.append('email', 'test.user@gov.bc.ca');
+      url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
+      const response = http.get(url.toString(), params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET users associated to Azure IDIR', () => {
+    {
+      const url = new URL(`${BASE_URL}/${__ENV.environment}/azure-idir/users`);
+      url.searchParams.append('firstName', 'test');
+      url.searchParams.append('lastName', 'user');
+      url.searchParams.append('email', 'test.user@gov.bc.ca');
+      url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
+      const response = http.get(url.toString(), params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET users associated to GitHub', () => {
+    {
+      const url = new URL(`${BASE_URL}/${__ENV.environment}/github/users`);
+      url.searchParams.append('firstName', 'test');
+      url.searchParams.append('lastName', 'user');
+      url.searchParams.append('email', 'test.user@gov.bc.ca');
+      url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
+      const response = http.get(url.toString(), params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET users associated to Basic BCeID', () => {
+    {
+      const url = new URL(`${BASE_URL}/${__ENV.environment}/basic-bceid/users`);
+      url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
+      const response = http.get(url.toString(), params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET users associated to Business BCeID', () => {
+    {
+      const url = new URL(`${BASE_URL}/${__ENV.environment}/business-bceid/users`);
+      url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
+      const response = http.get(url.toString(), params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET users associated to Basic/Business BCeID', () => {
+    {
+      const url = new URL(`${BASE_URL}/${__ENV.environment}/basic-business-bceid/users`);
+      url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
+      const response = http.get(url.toString(), params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
   group('cleanup', () => {
     {
       // delete composite-role
