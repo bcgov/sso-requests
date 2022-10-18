@@ -1,27 +1,34 @@
-const configurationEndpoint = process.env.CONFIGURATION_ENDPOINT;
+const ssoConfigurationEndpoint = process.env.SSO_CONFIGURATION_ENDPOINT;
 const audience = process.env.SSO_CLIENT_ID;
+import * as fs from 'fs';
+import * as path from 'path';
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const jws = require('jws');
 const jwkToPem = require('jwk-to-pem');
 
-let _ssoConfig: { jwk: any; issuer: string } = null;
+let _ssoConfig: { jwks: any; issuer: string } = null;
+
+const ssoConfigurationPath = path.resolve(__dirname, 'sso-configuration.json');
+if (fs.existsSync(ssoConfigurationPath)) {
+  _ssoConfig = require(ssoConfigurationPath);
+}
 
 const getConfiguration = async () => {
   console.log(`DEBUG: _ssoConfig...`, _ssoConfig);
   if (_ssoConfig) return _ssoConfig;
 
-  const { issuer, jwks_uri } = await axios.get(configurationEndpoint).then(
+  const { issuer, jwks_uri } = await axios.get(ssoConfigurationEndpoint).then(
     (res) => res.data,
     () => null,
   );
 
-  const jwk = await axios.get(jwks_uri).then(
+  const jwks = await axios.get(jwks_uri).then(
     (res) => res.data,
     () => null,
   );
 
-  _ssoConfig = { jwk, issuer };
+  _ssoConfig = { jwks, issuer };
   return _ssoConfig;
 };
 
@@ -31,9 +38,9 @@ const validateJWTSignature = async (token) => {
     const { header } = jws.decode(token);
 
     // 2. Compare the local key ID (kid) to the public kid.
-    const { jwk, issuer } = await getConfiguration();
+    const { jwks, issuer } = await getConfiguration();
 
-    const key = jwk.keys.find((jwkKey) => jwkKey.kid === header.kid);
+    const key = jwks.keys.find((jwkKey) => jwkKey.kid === header.kid);
     const isValidKid = !!key;
 
     if (!isValidKid) {

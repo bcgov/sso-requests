@@ -34,7 +34,7 @@ jobs:
           ALLOW_SILVER=true
           ALLOW_GOLD=true
           TFC_WORKSPACE=xgr00q-dev-sso-requests
-          SSO_ISSUER_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration
+          SSO_ISSUER_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           SUBNET_A=App_Dev_aza_net
           SUBNET_B=App_Dev_azb_net
           GITHUB_REPO=sso-terraform-dev
@@ -114,6 +114,18 @@ jobs:
       - name: Install dependencies for backend
         run: make server_install
 
+      - name: Fetch OIDC discovery configuration
+        id: discovery
+        uses: bcgov/sso-requests-actions/actions/wellknown@v0.52.0
+        with:
+          discovery-url: ${{ env.SSO_ISSUER_URL }}
+        continue-on-error: true
+
+      - name: Save OIDC discovery configration as JSON
+        run: |
+          echo '${{ steps.discovery.outputs.config }}' > sso-configuration.json
+        working-directory: ./lambda/app/src
+
       - name: Build lambda artifacts
         run: |
           make build_all
@@ -173,7 +185,7 @@ jobs:
           allow_gold="${{ env.ALLOW_GOLD }}"
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
           gh_secret="${{ secrets.GH_SECRET }}"
-          configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
+          sso_configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
           subnet_a="${{ env.SUBNET_A }}"
           subnet_b="${{ env.SUBNET_B }}"
           gh_repo="${{ env.GITHUB_REPO }}"

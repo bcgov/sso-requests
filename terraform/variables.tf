@@ -16,7 +16,7 @@ variable "db_name" {
   default     = "ssorequests"
 }
 
-variable "configuration_endpoint" {
+variable "sso_configuration_endpoint" {
   description = "The openid configuration endpoint url"
   type        = string
   default     = "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration"

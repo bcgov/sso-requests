@@ -31,7 +31,7 @@ resource "aws_lambda_function" "app" {
       DB_PASSWORD                    = random_password.db_password.result
       DB_NAME                        = var.db_name
       SSO_CLIENT_ID                  = var.sso_client_id
-      CONFIGURATION_ENDPOINT         = var.configuration_endpoint
+      SSO_CONFIGURATION_ENDPOINT     = var.sso_configuration_endpoint
       KEYCLOAK_DEV_URL               = var.keycloak_dev_url
       KEYCLOAK_DEV_CLIENT_ID         = var.keycloak_dev_client_id
       KEYCLOAK_DEV_CLIENT_SECRET     = var.keycloak_dev_client_secret
