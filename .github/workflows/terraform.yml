@@ -180,7 +180,6 @@ jobs:
           allow_gold="${{ env.ALLOW_GOLD }}"
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
           gh_secret="${{ secrets.GH_SECRET }}"
-          sso_configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
           sso_configuration="${{ steps.discovery.outputs.config }}"
           subnet_a="${{ env.SUBNET_A }}"
           subnet_b="${{ env.SUBNET_B }}"
@@ -203,6 +202,7 @@ jobs:
           ches_api_endpoint="${{ env.CHES_API_ENDPOINT }}"
           ches_token_endpoint="${{ env.CHES_TOKEN_ENDPOINT }}"
           custom_domain_name="${{ env.CUSTOM_DOMAIN_NAME }}"
+          sso_configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
           EOF
 
         working-directory: ./terraform
