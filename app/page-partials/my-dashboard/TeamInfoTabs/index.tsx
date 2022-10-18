@@ -397,81 +397,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   return (
     <>
       <Tabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'} tabBarGutter={30}>
-        {enable_gold && isAdmin && (
-          <Tab key="service-accounts" tab="CSS API Account">
-            <TabWrapper marginTop="10px">
-              {loading ? (
-                <AlignCenter>
-                  <TopMargin />
-                  <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
-                </AlignCenter>
-              ) : (
-                <Grid cols={10}>
-                  <Grid.Row collapse="1100" gutter={[15, 2]}>
-                    <Grid.Col span={4}>
-                      {teamServiceAccounts.length > 0 ? (
-                        <ServiceAccountsList
-                          team={team}
-                          selectedServiceAccount={activeServiceAccount}
-                          setSelectedServiceAccount={setActiveServiceAccount}
-                          teamServiceAccounts={teamServiceAccounts}
-                          getTeamServiceAccounts={fetchTeamServiceAccounts}
-                        />
-                      ) : (
-                        <RequestButton
-                          style={{ marginBottom: 10 }}
-                          onClick={async () => {
-                            setLoading(true);
-                            const [sa, err] = await requestServiceAccount(team.id);
-                            if (err) {
-                              setLoading(false);
-                              alert.show({
-                                variant: 'danger',
-                                fadeOut: 10000,
-                                closable: true,
-                                content: err,
-                              });
-                            } else {
-                              fetchTeamServiceAccounts(team.id);
-                            }
-                          }}
-                        >
-                          + Request CSS API Account
-                        </RequestButton>
-                      )}
-                    </Grid.Col>
-                    <Grid.Col span={6}>
-                      {serviceAccountInProgress && (
-                        <Grid cols={10}>
-                          <Grid.Row gutter={[]}>
-                            <Grid.Col span={10} align={'center'}>
-                              {activeServiceAccount?.requester && (
-                                <Requester>Submitted by: {activeServiceAccount?.requester}</Requester>
-                              )}
-                              <SubTitle>CSS API Account will be provisioned in approx 20 min</SubTitle>
-                              <SubmittedStatusIndicator integration={serviceAccountInProgress} />
-                            </Grid.Col>
-                          </Grid.Row>
-                        </Grid>
-                      )}
-                    </Grid.Col>
-                  </Grid.Row>
-                  {teamServiceAccounts.length > 0 && (
-                    <Grid.Row>
-                      <InfoMessage>
-                        For more information on how to use the CSS API Account with your integrations, see{' '}
-                        <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
-                          here
-                        </Link>
-                        .
-                      </InfoMessage>
-                    </Grid.Row>
-                  )}
-                </Grid>
-              )}
-            </TabWrapper>
-          </Tab>
-        )}
         <Tab key="members" tab="Members">
           <TabWrapper>
             {isAdmin ? (
@@ -635,6 +560,81 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
+        {enable_gold && isAdmin && (
+          <Tab key="service-accounts" tab="CSS API Account">
+            <TabWrapper marginTop="10px">
+              {loading ? (
+                <AlignCenter>
+                  <TopMargin />
+                  <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+                </AlignCenter>
+              ) : (
+                <Grid cols={10}>
+                  <Grid.Row collapse="1100" gutter={[15, 2]}>
+                    <Grid.Col span={4}>
+                      {teamServiceAccounts.length > 0 ? (
+                        <ServiceAccountsList
+                          team={team}
+                          selectedServiceAccount={activeServiceAccount}
+                          setSelectedServiceAccount={setActiveServiceAccount}
+                          teamServiceAccounts={teamServiceAccounts}
+                          getTeamServiceAccounts={fetchTeamServiceAccounts}
+                        />
+                      ) : (
+                        <RequestButton
+                          style={{ marginBottom: 10 }}
+                          onClick={async () => {
+                            setLoading(true);
+                            const [sa, err] = await requestServiceAccount(team.id);
+                            if (err) {
+                              setLoading(false);
+                              alert.show({
+                                variant: 'danger',
+                                fadeOut: 10000,
+                                closable: true,
+                                content: err,
+                              });
+                            } else {
+                              fetchTeamServiceAccounts(team.id);
+                            }
+                          }}
+                        >
+                          + Request CSS API Account
+                        </RequestButton>
+                      )}
+                    </Grid.Col>
+                    <Grid.Col span={6}>
+                      {serviceAccountInProgress && (
+                        <Grid cols={10}>
+                          <Grid.Row gutter={[]}>
+                            <Grid.Col span={10} align={'center'}>
+                              {activeServiceAccount?.requester && (
+                                <Requester>Submitted by: {activeServiceAccount?.requester}</Requester>
+                              )}
+                              <SubTitle>CSS API Account will be provisioned in approx 20 min</SubTitle>
+                              <SubmittedStatusIndicator integration={serviceAccountInProgress} />
+                            </Grid.Col>
+                          </Grid.Row>
+                        </Grid>
+                      )}
+                    </Grid.Col>
+                  </Grid.Row>
+                  {teamServiceAccounts.length > 0 && (
+                    <Grid.Row>
+                      <InfoMessage>
+                        For more information on how to use the CSS API Account with your integrations, see{' '}
+                        <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
+                          here
+                        </Link>
+                        .
+                      </InfoMessage>
+                    </Grid.Row>
+                  )}
+                </Grid>
+              )}
+            </TabWrapper>
+          </Tab>
+        )}
       </Tabs>
       <CenteredModal
         title="Add a New Team Member"
