@@ -760,7 +760,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/idir/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for IDIR by query for target environment'
+      #swagger.description = 'Get list of users for IDIR by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
       #swagger.summary = 'Get list of users for IDIR by query'
 
       #swagger.parameters['environment'] = {
@@ -817,7 +817,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/azure-idir/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for Azure IDIR by query for target environment'
+      #swagger.description = 'Get list of users for Azure IDIR by query for target environment  <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
       #swagger.summary = 'Get list of users for Azure IDIR by query'
 
       #swagger.parameters['environment'] = {
@@ -874,7 +874,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/github/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for GitHub by query for target environment'
+      #swagger.description = 'Get list of users for GitHub by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
       #swagger.summary = 'Get list of users for GitHub by query'
 
       #swagger.parameters['environment'] = {
