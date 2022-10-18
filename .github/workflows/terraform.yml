@@ -123,7 +123,7 @@ jobs:
 
       - name: Save OIDC discovery configration as JSON
         run: |
-          echo ${{ steps.discovery.outputs.config }} > sso-configuration.json
+          echo '${{ steps.discovery.outputs.config }}' > sso-configuration.json
         working-directory: ./lambda/app/src
 
       - name: Build lambda artifacts
