@@ -28,7 +28,7 @@ module "db" {
     auto_pause               = true
     min_capacity             = 2
     max_capacity             = 4
-    seconds_until_auto_pause = 3600
+    seconds_until_auto_pause = 28800
     timeout_action           = "ForceApplyCapacityChange"
   }
 
