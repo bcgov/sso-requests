@@ -142,6 +142,13 @@ jobs:
           cp env-resources.tf_prod env-resources.tf
         working-directory: ./terraform
 
+      - name: Fetch OIDC discovery configration
+        id: discovery
+        uses: bcgov/sso-requests-actions/actions/setup-terraform@v0.52.0
+        with:
+          discovery-url: ${{ env.SSO_ISSUER_URL }}
+        continue-on-error: true
+
       - name: Terraform Variables
         run: |
           cat >"config.tf" <<EOF
@@ -173,7 +180,8 @@ jobs:
           allow_gold="${{ env.ALLOW_GOLD }}"
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
           gh_secret="${{ secrets.GH_SECRET }}"
-          configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
+          sso_configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
+          sso_configuration="${{ steps.discovery.outputs.config }}"
           subnet_a="${{ env.SUBNET_A }}"
           subnet_b="${{ env.SUBNET_B }}"
           gh_repo="${{ env.GITHUB_REPO }}"
