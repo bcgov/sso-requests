@@ -67,7 +67,7 @@ export class RoleService {
   }
 
   public validateRole(role: RolePayload) {
-    const valid = roleValidator(role);
+    const valid = roleValidator(role || {});
     if (!valid) throw new createHttpError[400](parseErrors(roleValidator.errors));
     const roleName = role.name.trim();
     if (roleName.length === 0) throw new createHttpError[400]('invalid role');

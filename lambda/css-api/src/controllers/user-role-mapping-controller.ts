@@ -14,7 +14,7 @@ export class UserRoleMappingController {
   constructor(private userRoleMappingService: UserRoleMappingService, private roleService: RoleService) {}
 
   public async list(teamId: number, integrationId: number, environment: string, query: ListUserRoleMappingQuery) {
-    const valid = getValidator(query);
+    const valid = getValidator(query || {});
     if (!valid) throw new createHttpError[400](parseErrors(getValidator.errors));
     return await this.userRoleMappingService.getAllByQuery(teamId, integrationId, environment, query);
   }
@@ -25,7 +25,7 @@ export class UserRoleMappingController {
     environment: string,
     userRoleMapping: UserRoleMappingPayload,
   ) {
-    const valid = postValidator(userRoleMapping);
+    const valid = postValidator(userRoleMapping || {});
     if (!valid) throw new createHttpError[400](parseErrors(postValidator.errors));
 
     return await this.userRoleMappingService.manageRoleMapping(teamId, integrationId, environment, userRoleMapping);
