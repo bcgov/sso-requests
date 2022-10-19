@@ -76,7 +76,13 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
       tooltips: [
         null,
         {
-          content: `Using Azure IDIR adds the benefit of MFA (multi-factor authentication). This is a step up security-wise from regular IDIR.`,
+          content: `
+          To learn the difference between IDIR and Azure IDIR, please visit
+          <a href="https://github.com/bcgov/sso-keycloak/wiki/Useful-References#azure-idir-and-idir---whats-the-difference" target="_blank" title="IDIR vs Azure IDIR">
+          https://github.com/bcgov/sso-keycloak/wiki/Useful-References#azure-idir-and-idir---whats-the-difference
+          </a>
+          `,
+          hide: 3000,
         },
       ],
       uniqueItems: true,
