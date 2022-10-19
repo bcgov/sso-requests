@@ -12,9 +12,7 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
     enum: ['oidc', 'saml'],
     enumNames: ['OpenID Connect', 'SAML'],
     tooltip: {
-      content:
-        'The OpenID Connect (OIDC) client protocal is preferred. Visit our <a href="https://github.com/bcgov/sso-keycloak/discussions/136" style="color:blue">SSO Training Level 1 wiki page</a> to learn more OIDC & SAML.',
-      trigger: ['click'],
+      content: 'The OpenID Connect (OIDC) client protocol is recommended.',
     },
   };
 

@@ -343,14 +343,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           </Link>{' '}
           for more information.
         </Description>
-        &nbsp;
-        {schema.stepText === 'Basic Info' && (
-          <Description>
-            Visit our{' '}
-            <Link href="https://github.com/bcgov/sso-keycloak/discussions/136">SSO Training Level 1 wiki page</Link> to
-            understand which Client Protocal to use.
-          </Description>
-        )}
       </HeaderContainer>
       <Form
         schema={schema}
