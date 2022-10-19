@@ -51,8 +51,8 @@ jobs:
           KEYCLOAK_V2_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
           KEYCLOAK_V2_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_PROD_CLIENT_SECRET }}
           BCEID_WEBSERVICE_PROXY=${{ secrets.DEV_BCEID_WEBSERVICE_PROXY }}
-          CHES_TOKEN_ENDPOINT=https://dev.oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token
-          CHES_API_ENDPOINT=https://ches-dev.apps.silver.devops.gov.bc.ca/api/v1/email
+          CHES_TOKEN_ENDPOINT=https://oidc.gov.bc.ca/auth/realms/jbd6rnxw/protocol/openid-connect/token
+          CHES_API_ENDPOINT=https://ches.nrs.gov.bc.ca/api/v1/email
           CHES_USERNAME=${{secrets.CHES_USERNAME_DEV}}
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_DEV}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
