@@ -560,10 +560,6 @@ export const setRoutes = (app: any) => {
         description: 'Not Found',
         schema: { message: 'string' }
       }
-      #swagger.responses[409] = {
-        description: 'Conflict',
-        schema: { message: 'string' }
-      }
       #swagger.responses[422] = {
         description: 'Unprocessable Entity',
         schema: {message: 'string'}
@@ -760,7 +756,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/idir/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for IDIR by query for target environment'
+      #swagger.description = 'Get list of users for IDIR by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
       #swagger.summary = 'Get list of users for IDIR by query'
 
       #swagger.parameters['environment'] = {
@@ -817,7 +813,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/azure-idir/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for Azure IDIR by query for target environment'
+      #swagger.description = 'Get list of users for Azure IDIR by query for target environment  <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
       #swagger.summary = 'Get list of users for Azure IDIR by query'
 
       #swagger.parameters['environment'] = {
@@ -848,7 +844,17 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+        schema: {
+            data: [
+            {
+              username: '08fe81112408411081ea011cf0ec945d@azureidir',
+              email: 'azure.idir.user@gov.bc.ca',
+              firstName: 'Azure Idir',
+              lastName: 'User',
+              attribues: { $ref: '#/components/schemas/userAttributes' },
+            }
+          ]
+        }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -874,7 +880,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/github/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for GitHub by query for target environment'
+      #swagger.description = 'Get list of users for GitHub by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
       #swagger.summary = 'Get list of users for GitHub by query'
 
       #swagger.parameters['environment'] = {
@@ -905,7 +911,17 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+        schema: {
+            data: [
+            {
+              username: '08fe81112408411081ea011cf0ec945d@github',
+              email: 'github.user@gov.bc.ca',
+              firstName: 'GitHub',
+              lastName: 'User',
+              attribues: { $ref: '#/components/schemas/userAttributes' },
+            }
+          ]
+        }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -948,7 +964,17 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+        schema: {
+            data: [
+            {
+              username: '08fe81112408411081ea011cf0ec945d@bceidbasic',
+              email: 'basic.bceid.user@gov.bc.ca',
+              firstName: 'Basic Bceid',
+              lastName: 'User',
+              attribues: { $ref: '#/components/schemas/userAttributes' },
+            }
+          ]
+        }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -991,7 +1017,17 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+        schema: {
+            data: [
+            {
+              username: '08fe81112408411081ea011cf0ec945d@bceidbusiness',
+              email: 'business.bceid.user@gov.bc.ca',
+              firstName: 'Business Bceid',
+              lastName: 'User',
+              attribues: { $ref: '#/components/schemas/userAttributes' },
+            }
+          ]
+        }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -1034,7 +1070,17 @@ export const setRoutes = (app: any) => {
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+        schema: {
+            data: [
+            {
+              username: '08fe81112408411081ea011cf0ec945d@bceidboth',
+              email: 'basic.business.bceid.user@gov.bc.ca',
+              firstName: 'Basic/Business Bceid',
+              lastName: 'User',
+              attribues: { $ref: '#/components/schemas/userAttributes' },
+            }
+          ]
+        }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
