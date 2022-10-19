@@ -126,6 +126,18 @@ jobs:
           echo '${{ steps.discovery.outputs.config }}' > sso-configuration.json
         working-directory: ./lambda/app/src
 
+      - name: Fetch OIDC discovery configuration - API
+        id: discovery-api
+        uses: bcgov/sso-requests-actions/actions/wellknown@v0.52.0
+        with:
+          discovery-url: ${{ env.KEYCLOAK_V2_PROD_URL }}/auth/realms/standard/.well-known/openid-configuration
+        continue-on-error: true
+
+      - name: Save OIDC discovery configration as JSON - API
+        run: |
+          echo '${{ steps.discovery-api.outputs.config }}' > api-sso-configuration.json
+        working-directory: ./lambda/css-api/src
+
       - name: Build lambda artifacts
         run: |
           make build_all
