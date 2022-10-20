@@ -86,7 +86,7 @@ const handleError = (res, err) => {
 export const setRoutes = (app: any) => {
   app.use((req, res, next) => {
     res.set(responseHeaders);
-    if (next) next();
+    next();
   });
 
   app.options('(.*)', async (req, res) => {
@@ -149,7 +149,7 @@ export const setRoutes = (app: any) => {
       return false;
     }
 
-    if (next) next();
+    next();
   });
 
   app.get(`${BASE_PATH}/me`, async (req, res) => {
