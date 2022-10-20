@@ -57,11 +57,20 @@ const doc = {
       roleRequest: {
         $name: 'client-role',
       },
+      updatedRoleRequest: {
+        $name: 'updated-client-role',
+      },
       roleResponse: {
         name: 'client-role',
         composite: false,
       },
-      compositeRoleRequest: [{ $ref: '#/components/schemas/roleRequest' }],
+      compositeRoleRequest: {
+        $name: 'composite-role',
+      },
+      compositeRoleResponse: {
+        name: 'composite-role',
+        composite: false,
+      },
       userAttributes: {
         displayName: 'Test User',
         idir_userid: 'AAAFEE111DD24C6D11111DFDC8BC51A1',
