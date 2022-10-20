@@ -200,7 +200,7 @@ export const updateRequest = async (
 
       // prevent the TF from creating GitHub integration in prod environment if not approved
       if (!current.githubApproved && hasGithub) {
-        tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('github'));
+        tfData.prodIdps = tfData.prodIdps.filter((idp) => !idp.startsWith('githubbcgov'));
       }
 
       const ghResult = await dispatchRequestWorkflow(tfData);
