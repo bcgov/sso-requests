@@ -458,7 +458,7 @@ export default function (data) {
 
   group('GET users associated to GitHub', () => {
     {
-      const url = new URL(`${BASE_URL}/${__ENV.environment}/github/users`);
+      const url = new URL(`${BASE_URL}/${__ENV.environment}/github-bcgov/users`);
       url.searchParams.append('firstName', 'test');
       url.searchParams.append('lastName', 'user');
       url.searchParams.append('email', 'test.user@gov.bc.ca');
