@@ -41,7 +41,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
 
     if (hasGithub && (!githubApproved || githubApplying))
       envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter((idp) => idp !== 'github');
+        if (env.name === 'prod') env.idps = env.idps.filter((idp) => idp !== 'githubbcgov');
         return env;
       });
 

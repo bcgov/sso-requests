@@ -19,7 +19,7 @@ export const usesGithub = (integration: Integration) => {
   const { serviceType = 'silver', devIdps = [] } = integration;
   if (serviceType !== 'gold') return false;
 
-  return devIdps.some((idp: string) => idp === 'github');
+  return devIdps.some((idp: string) => idp === 'githubbcgov');
 };
 
 export const usesBceidProd = (integration: Integration) => {
