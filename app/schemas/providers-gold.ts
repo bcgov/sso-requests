@@ -56,7 +56,7 @@ export default function getSchema(integration: Integration) {
   }
 
   if (authType !== 'service-account') {
-    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'];
+    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubbcgov'];
     const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
 
     properties.devIdps = {
