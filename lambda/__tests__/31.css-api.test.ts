@@ -328,7 +328,7 @@ describe('create team and gold integration', () => {
 
   it('get users associated with github', async () => {
     const result = await supertest(app)
-      .get(`${BASE_PATH}/dev/github/users`)
+      .get(`${BASE_PATH}/dev/github-bcgov/users`)
       .query({
         firstName: searchUsersByIdp[0].firstName,
         lastName: searchUsersByIdp[0].lastName,
