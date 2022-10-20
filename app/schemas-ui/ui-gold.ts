@@ -44,7 +44,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     }
     idpDisabled = uniq(idpDisabled);
 
-    if (!isApplied || !idps.includes('githubbcgov')) idpHidden.push('githubbcgov');
+    if (!isApplied || !idps.includes('github')) idpHidden.push('github');
   }
 
   const includeComment = isApplied && isAdmin;
