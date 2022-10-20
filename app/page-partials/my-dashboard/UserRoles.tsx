@@ -92,20 +92,20 @@ const Loading = () => (
   </AlignCenter>
 );
 
-type IDPS = 'idir' | 'azureidir' | 'bceidbasic' | 'bceidbusiness' | 'bceidboth';
+type IDPS = 'idir' | 'azureidir' | 'bceidbasic' | 'bceidbusiness' | 'bceidboth' | 'githubbcgov';
 
 const PAGE_LIMIT = 15;
 
 const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
 
 const propertyOptions = [
-  { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir', 'github'] },
-  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir', 'github'] },
-  { value: 'email', label: 'Email', allowed: ['idir', 'azureidir', 'github'] },
+  { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir', 'githubbcgov'] },
+  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir', 'githubbcgov'] },
+  { value: 'email', label: 'Email', allowed: ['idir', 'azureidir', 'githubbcgov'] },
   {
     value: 'guid',
     label: 'IDP GUID',
-    allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'],
+    allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubbcgov'],
   },
 ];
 
