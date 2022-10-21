@@ -253,38 +253,38 @@ function IntegrationInfoTabs({ integration }: Props) {
   }
 
   const tabs = [];
-  const alloweTabs = [];
+  const allowedTabs = [];
 
   if (displayStatus === 'Submitted') {
     if (bceidProdApplying || githubProdApplying) {
       tabs.push(getApprovalProgressTab({ integration, approvalContext }));
-      alloweTabs.push(TAB_DETAILS);
+      allowedTabs.push(TAB_DETAILS);
     } else {
       tabs.push(getProgressTab({ integration, approvalContext }));
-      alloweTabs.push(TAB_DETAILS);
+      allowedTabs.push(TAB_DETAILS);
     }
   } else if (displayStatus === 'Completed') {
     tabs.push(getInstallationTab({ integration, approvalContext }));
-    alloweTabs.push(TAB_DETAILS);
+    allowedTabs.push(TAB_DETAILS);
 
     if (isGold && hasBrowserFlow) {
       tabs.push(getRoleManagementTab({ integration }), getUserAssignmentTab({ integration }));
-      alloweTabs.push(TAB_ROLE_MANAGEMENT, TAB_USER_ROLE_MANAGEMENT);
+      allowedTabs.push(TAB_ROLE_MANAGEMENT, TAB_USER_ROLE_MANAGEMENT);
     }
 
     if (!integration.publicAccess) {
       tabs.push(getSecretsTab({ integration }));
-      alloweTabs.push(TAB_SECRET);
+      allowedTabs.push(TAB_SECRET);
     }
 
     tabs.push(getHistoryTab({ integration }));
-    alloweTabs.push(TAB_HISTORY);
+    allowedTabs.push(TAB_HISTORY);
   }
 
   let activeKey = activeTab;
 
-  if (!alloweTabs.includes(activeTab)) {
-    activeKey = alloweTabs[0];
+  if (!allowedTabs.includes(activeTab)) {
+    activeKey = allowedTabs[0];
   }
 
   return (
