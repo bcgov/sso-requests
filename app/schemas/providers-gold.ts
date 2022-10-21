@@ -2,7 +2,7 @@ import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 import { idpMap } from '@app/helpers/meta';
 
-export default function getSchema(integration: Integration) {
+export default function getSchema(integration: Integration, context: { isAdmin?: boolean } = { isAdmin: true }) {
   const { protocol, authType, status } = integration;
   const applied = status === 'applied';
 
@@ -11,6 +11,9 @@ export default function getSchema(integration: Integration) {
     title: 'Select Client Protocol',
     enum: ['oidc', 'saml'],
     enumNames: ['OpenID Connect', 'SAML'],
+    tooltip: {
+      content: 'The OpenID Connect (OIDC) client protocol is recommended.',
+    },
   };
 
   const properties: any = {
@@ -56,7 +59,7 @@ export default function getSchema(integration: Integration) {
   }
 
   if (authType !== 'service-account') {
-    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubbcgov'];
+    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github', 'githubbcgov'];
     const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
 
     properties.devIdps = {
@@ -71,7 +74,13 @@ export default function getSchema(integration: Integration) {
       tooltips: [
         null,
         {
-          content: `Using Azure IDIR adds the benefit of MFA (multi-factor authentication). This is a step up security-wise from regular IDIR.`,
+          content: `
+          To learn the difference between IDIR and Azure IDIR,
+          <a href="https://github.com/bcgov/sso-keycloak/wiki/Useful-References#azure-idir-and-idir---whats-the-difference" target="_blank" title="IDIR vs Azure IDIR">
+          please visit our GitHub page about choosing an Identity Provider
+          </a>
+          `,
+          hide: 3000,
         },
       ],
       uniqueItems: true,
@@ -94,6 +103,15 @@ export default function getSchema(integration: Integration) {
     tooltip: {
       content: `We will provide a separate client for each environment you can select. Select the environments required for your project.`,
     },
+  };
+
+  properties.additionalRoleAttribute = {
+    type: 'string',
+    title: 'Additional Role Attribute (optional)',
+    tooltip: {
+      content: `by default "client_roles" is the default attribute key name to include roles info, if you wish to include same info in another attribute, then use this`,
+    },
+    maxLength: 50,
   };
 
   return {

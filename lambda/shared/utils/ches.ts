@@ -29,22 +29,23 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, bo
   const [accessToken, error] = await fetchChesToken(username, password);
   if (error) throw Error(error);
 
-  return axios.post(
-    chesAPIEndpoint,
-    {
-      // see https://ches.nrs.gov.bc.ca/api/v1/docs#operation/postEmail for options
-      bodyType: 'html',
-      body,
-      encoding: 'utf-8',
-      from,
-      priority: 'normal',
-      subject: 'CHES Email Message',
-      to: compactUniq(to),
-      cc: compactUniq(cc),
-      ...rest,
-    },
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    },
-  );
+  const reqPayload = {
+    // see https://ches.nrs.gov.bc.ca/api/v1/docs#operation/postEmail for options
+    bodyType: 'html',
+    body,
+    encoding: 'utf-8',
+    from,
+    priority: 'normal',
+    subject: 'CHES Email Message',
+    to: compactUniq(to),
+    cc: compactUniq(cc),
+    ...rest,
+  };
+
+  const reqOptions = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  };
+
+  console.log('DEBUG: ', chesAPIEndpoint, reqPayload, reqOptions);
+  return axios.post(chesAPIEndpoint, reqPayload, reqOptions);
 };

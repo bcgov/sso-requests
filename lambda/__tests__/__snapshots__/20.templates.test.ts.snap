@@ -10,7 +10,125 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
+   <p>
+  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
+  notify you of the request status.
+</p>
  <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID & GitHub prod 1`] = `"[DEV] Pathfinder SSO request approved"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID & GitHub prod 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+</ul>
+  <p><strong>*BCeID production integration is not approved and not ready to use yet</strong></p>
+   <p><strong>*GitHub production integration is not approved and not ready to use yet</strong></p>
+  <p>
+  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
+  notify you of the request status.
+</p>
+ <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID prod 1`] = `"[DEV] Pathfinder SSO request approved"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID prod 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+</ul>
+  <p><strong>*BCeID production integration is not approved and not ready to use yet</strong></p>
+   <p>
+  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
+  notify you of the request status.
+</p>
+ <p>
+  If you have any questions, please contact us by
+  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved GitHub prod 1`] = `"[DEV] Pathfinder SSO request approved"`;
+
+exports[`Email template snapshots Should return the expeted email for CREATE_INTEGRATION_APPLIED - w/ unapproved GitHub prod 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Identity Providers: </strong>IDIR<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+</ul>
+   <p><strong>*GitHub production integration is not approved and not ready to use yet</strong></p>
+  <p>
   Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
@@ -48,7 +166,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
 </ul>
- <p>
+   <p>
   Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
@@ -111,7 +229,8 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
 </ol>
-   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>
     <td
       style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
@@ -271,7 +390,8 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
 </ol>
-   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>
     <td
       style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
@@ -387,7 +507,8 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
     </ul>
   </li>
 </ol>
-   <p>
+
+  <p>
   If you have any questions, please contact us by
   <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
     Rocket.Chat
@@ -718,7 +839,7 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
     </ul>
   </li>
 </ul>
- <p>
+   <p>
   Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
@@ -847,7 +968,8 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
     </ul>
   </li>
 </ol>
-   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+
+  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
   <tr>
     <td
       style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
@@ -963,7 +1085,8 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
     </ul>
   </li>
 </ol>
-   <p>
+
+  <p>
   If you have any questions, please contact us by
   <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
     Rocket.Chat

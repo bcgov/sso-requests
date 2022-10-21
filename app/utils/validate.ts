@@ -76,7 +76,17 @@ export const createCustomValidate = (fields: string[]) => {
 
 const validateArrayFields = (arrayValues: any, errors: any, key: string, func: (val: string) => boolean) => {
   arrayValues.forEach((value: any, i: number) => {
-    if (!func(value)) errors[key][i].addError(validationMessage);
+    const valid = func(value);
+
+    let hasError = false;
+
+    if (i === 0 && !valid) {
+      hasError = true;
+    } else if (value !== '' && !valid) {
+      hasError = true;
+    }
+
+    if (hasError) errors[key][i].addError(validationMessage);
   });
 };
 

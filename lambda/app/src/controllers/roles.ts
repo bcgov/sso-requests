@@ -26,9 +26,15 @@ export const createClientRole = async (sessionUserId: number, role: any) => {
   return await createRole(integration, role);
 };
 
+export const getClientRole = async (sessionUserId: number, role: any) => {
+  const integration = await validateIntegration(sessionUserId, role);
+  return await findClientRole(integration, role);
+};
+
 export const listRoles = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role);
-  return await listClientRoles(integration, role);
+  const roles = await listClientRoles(integration, role);
+  return roles.map((role) => role.name);
 };
 
 export const deleteRoles = async (sessionUserId: number, role: any) => {

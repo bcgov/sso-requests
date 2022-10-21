@@ -4,7 +4,6 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
-import reducer, { DashboardReducerState, initialState } from 'reducers/dashboardReducer';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 
 export const mediaRules: MediaRule[] = [
@@ -35,32 +34,18 @@ const WholePage = styled.div`
   padding-top: 2px;
 `;
 
-export interface DispatchAction {
-  type: string;
-  value: any;
-}
-export const RequestsContext = React.createContext(
-  {} as { dispatch: React.Dispatch<React.SetStateAction<any>>; state: DashboardReducerState },
-);
-
 interface Props {
   tab: 'integrations' | 'teams' | 's2g';
-  leftPanel?: (state: DashboardReducerState, dispatch: React.Dispatch<React.SetStateAction<any>>) => React.ReactNode;
-  rightPanel?: (state: DashboardReducerState, dispatch: React.Dispatch<React.SetStateAction<any>>) => React.ReactNode;
+  leftPanel?: () => React.ReactNode;
+  rightPanel?: () => React.ReactNode;
   children?: React.ReactNode;
 }
 
 function MyDashboardLayout({ tab, leftPanel, rightPanel, children }: Props) {
   const router = useRouter();
-  const [state, dispatch] = useReducer(reducer, initialState);
-
   const context = useContext<SessionContextInterface | null>(SessionContext);
   const { user, enableGold } = context || {};
   const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
-
-  const contextValue = useMemo(() => {
-    return { state, dispatch };
-  }, [state, dispatch]);
 
   const navigateTab = (key: any) => {
     router.replace(`/my-dashboard/${key}`);
@@ -76,26 +61,24 @@ function MyDashboardLayout({ tab, leftPanel, rightPanel, children }: Props) {
 
   return (
     <ResponsiveContainer rules={mediaRules}>
-      <RequestsContext.Provider value={contextValue}>
-        {children ? (
-          <WholePage>
-            {tabs}
-            {children}
-          </WholePage>
-        ) : (
-          <Grid cols={10}>
-            <Grid.Row collapse="1100" gutter={[15, 2]}>
-              <Grid.Col span={6}>
-                <OverflowAuto>
-                  {tabs}
-                  {leftPanel && leftPanel(state, dispatch)}
-                </OverflowAuto>
-              </Grid.Col>
-              <Grid.Col span={4}>{rightPanel && rightPanel(state, dispatch)}</Grid.Col>
-            </Grid.Row>
-          </Grid>
-        )}
-      </RequestsContext.Provider>
+      {children ? (
+        <WholePage>
+          {tabs}
+          {children}
+        </WholePage>
+      ) : (
+        <Grid cols={10}>
+          <Grid.Row collapse="1100" gutter={[15, 2]}>
+            <Grid.Col span={6}>
+              <OverflowAuto>
+                {tabs}
+                {leftPanel && leftPanel()}
+              </OverflowAuto>
+            </Grid.Col>
+            <Grid.Col span={4}>{rightPanel && rightPanel()}</Grid.Col>
+          </Grid.Row>
+        </Grid>
+      )}
     </ResponsiveContainer>
   );
 }

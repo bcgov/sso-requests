@@ -20,6 +20,8 @@ if (config.databaseUrl) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
+console.log('sequelize initialized', !!sequelize);
+
 [Event, Request, Team, User, UserTeam].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;

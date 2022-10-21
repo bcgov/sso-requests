@@ -7,8 +7,27 @@ const GET_USER_ROLE_MAPPING_REQ = {
     username: { type: 'string' },
   },
   additionalProperties: false,
-  anyOf: [{ required: ['roleName'] }, { required: ['username'] }],
-  errorMessage: 'either roleName or username is required',
+  anyOf: [
+    {
+      required: ['roleName'],
+      errorMessage: {
+        required: {
+          roleName: 'roleName is required',
+        },
+      },
+    },
+    {
+      required: ['username'],
+      errorMessage: {
+        required: {
+          username: 'username is required',
+        },
+      },
+    },
+  ],
+  errorMessage: {
+    additionalProperties: 'only roleName and username are supported',
+  },
 };
 
 const POST_USER_ROLE_MAPPING_REQ = {

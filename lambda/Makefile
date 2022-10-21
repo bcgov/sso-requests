@@ -11,6 +11,7 @@ install_all:
 	@cd actions; make install
 	@cd scheduler; make install
 	@cd css-api; make install
+	@cd siteminder-tests-scheduler; make install
 
 .PHONY: build_all
 build_all:
@@ -21,3 +22,4 @@ build_all:
 	@cd actions; make build
 	@cd scheduler; make build
 	@cd css-api; make build
+	@cd siteminder-tests-scheduler; make build

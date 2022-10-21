@@ -1,4 +1,5 @@
 <h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO request ID {{integration.id}} is successfully approved.</p>
 <p>Below is a summary of your integration request details:</p>
-{{> integrationDetail }} {{> dashboardLogin }} {{> footer }}
+{{> integrationDetail }} {{#if waitingBceidProdApproval}} {{> applyBceidBottom }} {{/if}} {{#if
+waitingGithubProdApproval}} {{> applyGithubBottom }} {{/if}} {{> dashboardLogin }} {{> footer }}

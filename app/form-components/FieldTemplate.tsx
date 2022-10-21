@@ -42,7 +42,9 @@ export default function FieldTemplate(
           {displayLabel && label && (
             <Title data-test-id={`${id}_title`}>
               {label}&nbsp;
-              {tooltip && <InfoOverlay {...tooltip} onClick={() => tooltip?.onClick(formContext) || noop} />}
+              {tooltip && (
+                <InfoOverlay {...tooltip} trigger={tooltip?.trigger ? tooltip?.trigger : ['hover', 'focus']} />
+              )}
             </Title>
           )}
           <div data-test-id={`${id}_description`}>{descriptionToUse}</div>

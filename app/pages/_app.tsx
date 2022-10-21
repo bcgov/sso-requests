@@ -46,7 +46,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     console.log('app started...');
     async function handleTokens(tokens: any, loginWorkflow: boolean) {
-      const verifiedIdToken = await verifyToken(tokens.id_token);
+      const [verifiedIdToken, errCode] = await verifyToken(tokens.id_token);
       if (verifiedIdToken) {
         if (loginWorkflow) {
           setTokens(tokens);
@@ -60,7 +60,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           router.push({
             pathname: '/application-error',
             query: {
-              error: 'E02',
+              error: errCode,
             },
           });
         }

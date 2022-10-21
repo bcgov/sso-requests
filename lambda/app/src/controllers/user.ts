@@ -94,7 +94,8 @@ export const updateUserRoleMapping = async (
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
   if (integration.authType === 'service-account') throw Error('invalid auth type');
-  return await manageUserRole(integration, { environment, username, roleName, mode });
+  const roles = await manageUserRole(integration, { environment, username, roleName, mode });
+  return roles.map((role) => role.name);
 };
 
 export const updateUserRoleMappings = async (
@@ -130,10 +131,11 @@ export const listClientRolesByUsers = async (
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
   if (integration.authType === 'service-account') throw Error('invalid auth type');
-  return await listUserRoles(integration, {
+  const roles = await listUserRoles(integration, {
     environment,
     username,
   });
+  return roles.map((role) => role.name);
 };
 
 export const isAllowedToManageRoles = async (session: Session, integrationId: number) => {

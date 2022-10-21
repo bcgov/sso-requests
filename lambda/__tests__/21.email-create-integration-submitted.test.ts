@@ -57,8 +57,8 @@ describe('Feature: Submit New Integration - User notification for non-BCeID', ()
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: false,
-      githubProdAdded: false,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
     });
 
     expect(emailList.length).toEqual(1);
@@ -91,8 +91,8 @@ describe('Feature: Submit New Integration - Team notification for non-BCeID', ()
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: false,
-      githubProdAdded: false,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
@@ -124,8 +124,8 @@ describe('Feature: Submit New Integration - User notification for BCeID in non-P
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: false,
-      githubProdAdded: false,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
     });
 
     expect(emailList.length).toEqual(1);
@@ -158,8 +158,8 @@ describe('Feature: Submit New Integration - Team notification for BCeID in non-P
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: false,
-      githubProdAdded: false,
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
     });
 
     expect(emailList.length).toEqual(1);
@@ -192,8 +192,8 @@ describe('Feature: Submit New Integration - User notification for BCeID in Prod'
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: true,
-      githubProdAdded: false,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);
@@ -225,8 +225,8 @@ describe('Feature: Submit New Integration - Team notification for BCeID in Prod'
   it('should render the expected template and send it to the expected emails', async () => {
     const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: integration.current,
-      bceidProdAdded: true,
-      githubProdAdded: false,
+      waitingBceidProdApproval: true,
+      waitingGithubProdApproval: false,
     });
     expect(emailList.length).toEqual(1);
     expect(emailList[0].subject).toEqual(template.subject);

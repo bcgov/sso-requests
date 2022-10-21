@@ -22,10 +22,12 @@ export const getSchemas = ({
   integration,
   formData,
   teams = [],
+  isAdmin = false,
 }: {
   integration?: Integration | undefined;
   formData: Integration;
   teams: Team[];
+  isAdmin?: boolean;
 }) => {
   if (!integration) integration = formData;
 
@@ -38,7 +40,7 @@ export const getSchemas = ({
     if (enable_gold) {
       schemas.push(
         getRequesterInfoSchema(teams),
-        getProvidersGoldSchema(formData),
+        getProvidersGoldSchema(formData, { isAdmin }),
         ...environmentSchemas,
         termsAndConditionsSchema,
       );
@@ -47,7 +49,7 @@ export const getSchemas = ({
     }
   } else {
     if (integration.serviceType === 'gold') {
-      schemas.push(getRequesterInfoSchema(teams), getProvidersGoldSchema(formData), ...environmentSchemas);
+      schemas.push(getRequesterInfoSchema(teams), getProvidersGoldSchema(formData, { isAdmin }), ...environmentSchemas);
       if (!isApplied) schemas.push(termsAndConditionsSchema);
     } else {
       schemas.push(getRequesterInfoSchema(teams), getProvidersSchema(formData));

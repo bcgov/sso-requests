@@ -13,8 +13,10 @@ import {
   updateMemberInTeam,
   getServiceAccount,
   requestServiceAccount,
-  downloadServiceAccount,
   deleteServiceAccount,
+  getServiceAccounts,
+  getServiceAccountCredentials,
+  updateServiceAccountSecret,
 } from './controllers/team';
 import {
   findOrCreateUser,
@@ -39,7 +41,7 @@ import {
 import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
 import { wakeUpAll } from './controllers/heartbeat';
-import { bulkCreateRole, findClientRole, getCompositeClientRoles, setCompositeClientRoles } from './keycloak/users';
+import { bulkCreateRole, getCompositeClientRoles, setCompositeClientRoles } from './keycloak/users';
 import { searchIdirUsers, importIdirUser } from './bceid-webservice-proxy/idir';
 import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
@@ -48,7 +50,7 @@ import { getAllowedTeam, getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
-import { createClientRole, deleteRoles, listRoles } from './controllers/roles';
+import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
 import reportController from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 
@@ -77,13 +79,14 @@ const handleError = (res, err) => {
   if (isString(message)) {
     message = tryJSON(message);
   }
+  console.log({ success: false, message });
   res.status(422).json({ success: false, message });
 };
 
 export const setRoutes = (app: any) => {
   app.use((req, res, next) => {
     res.set(responseHeaders);
-    if (next) next();
+    next();
   });
 
   app.options('(.*)', async (req, res) => {
@@ -146,7 +149,7 @@ export const setRoutes = (app: any) => {
       return false;
     }
 
-    if (next) next();
+    next();
   });
 
   app.get(`${BASE_PATH}/me`, async (req, res) => {
@@ -355,7 +358,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`${BASE_PATH}/keycloak/role`, async (req, res) => {
     try {
-      const result = await findClientRole((req.session as Session).user.id, req.body);
+      const result = await getClientRole((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -559,6 +562,12 @@ export const setRoutes = (app: any) => {
   app.post(`${BASE_PATH}/teams/:id/service-accounts`, async (req, res) => {
     try {
       const { id: teamId } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, teamId);
+      if (!authorized)
+        return res.status(401).json({
+          success: false,
+          message: 'You are not authorized to create api account belonging to this team',
+        });
       const result = await requestServiceAccount(req.session as Session, req.user.id, teamId, req.user.displayName);
       res.status(200).json(result);
     } catch (err) {
@@ -566,34 +575,79 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/teams/:id/service-account`, async (req, res) => {
+  app.get(`${BASE_PATH}/teams/:id/service-accounts`, async (req, res) => {
     try {
       const { id: teamId } = req.params;
-      const result = await getServiceAccount(req.user.id, teamId);
+      const authorized = await userIsTeamAdmin(req.user, teamId);
+      if (!authorized)
+        return res.status(401).json({
+          success: false,
+          message: 'You are not authorized to access api accounts belonging to this team',
+        });
+      const result = await getServiceAccounts(req.user.id, teamId);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.get(`${BASE_PATH}/teams/:id/service-account/:saId`, async (req, res) => {
-    try {
-      const { id: teamId, saId } = req.params;
-      const result = await downloadServiceAccount(req.user.id, teamId, saId);
-      res.status(200).json(result);
-    } catch (err) {
-      handleError(res, err);
-    }
-  });
-
-  app.delete(`${BASE_PATH}/teams/:id/service-account/:saId`, async (req, res) => {
+  app.get(`${BASE_PATH}/teams/:id/service-accounts/:saId`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, teamId);
       if (!authorized)
-        return res
-          .status(401)
-          .json({ success: false, message: 'You are not authorized to delete this CSS API Account' });
+        return res.status(401).json({
+          success: false,
+          message: 'You are not authorized to access api account belonging to this team',
+        });
+      const result = await getServiceAccount(req.user.id, teamId, saId);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`${BASE_PATH}/teams/:id/service-accounts/:saId/credentials`, async (req, res) => {
+    try {
+      const { id: teamId, saId } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, teamId);
+      if (!authorized)
+        return res.status(401).json({
+          success: false,
+          message: 'You are not authorized to access api account credentials belonging to this team',
+        });
+      const result = await getServiceAccountCredentials(req.user.id, teamId, saId);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.put(`${BASE_PATH}/teams/:id/service-accounts/:saId/credentials`, async (req, res) => {
+    try {
+      const { id: teamId, saId } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, teamId);
+      if (!authorized)
+        return res.status(401).json({
+          success: false,
+          message: 'You are not authorized to update api account credentials belonging to this team',
+        });
+      const result = await updateServiceAccountSecret(req.user.id, teamId, saId);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.delete(`${BASE_PATH}/teams/:id/service-accounts/:saId`, async (req, res) => {
+    try {
+      const { id: teamId, saId } = req.params;
+      const authorized = await userIsTeamAdmin(req.user, teamId);
+      if (!authorized)
+        return res.status(401).json({
+          success: false,
+          message: 'You are not authorized to delete api account belonging to this team',
+        });
       const result = await deleteServiceAccount(req.session as Session, req.user.id, teamId, saId);
       res.status(200).json(result);
     } catch (err) {

@@ -10,7 +10,7 @@ on:
       - 'app/**'
 
 env:
-  SSO_CLIENT_ID: sso-requests
+  SSO_CLIENT_ID: css-app-in-gold-4128
   DEPLOY_REPO_BRANCH: gh-pages
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests-dev
           APP_BASE_PATH=/sso-requests-dev
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth
+          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-dev
           ENABLE_GOLD=false
           EOF
@@ -40,7 +40,7 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests-test
           APP_BASE_PATH=/sso-requests-test
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://dev.oidc.gov.bc.ca/auth/realms/onestopauth
+          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-test
           ENABLE_GOLD=true
           EOF
@@ -52,7 +52,7 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests
           APP_BASE_PATH=/sso-requests
           API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth
+          SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
           EOF
@@ -65,7 +65,7 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests-preview
           APP_BASE_PATH=/sso-requests-preview
           API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://oidc.gov.bc.ca/auth/realms/onestopauth
+          SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-preview
           ENABLE_GOLD=true
           EOF
@@ -83,7 +83,6 @@ jobs:
           API_URL: ${{ env.API_URL }}
           SSO_URL: ${{ env.SSO_URL }}
           SSO_CLIENT_ID: ${{ env.SSO_CLIENT_ID }}
-          KC_IDP_HINT: idir
         run: |
           yarn
           yarn build

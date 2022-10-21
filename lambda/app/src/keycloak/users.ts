@@ -5,9 +5,9 @@ import forEach from 'lodash.foreach';
 import map from 'lodash.map';
 import get from 'lodash.get';
 import difference from 'lodash.difference';
-import { getAdminClient, getClient } from './adminClient';
-import { fetchClient } from './client';
+import { getAdminClient } from './adminClient';
 import { Integration } from '@app/interfaces/Request';
+import { UserQuery } from 'keycloak-admin/lib/resources/users';
 
 // Helpers
 // TODO: encapsulate admin client with user session and associated client infomation
@@ -49,37 +49,9 @@ export const searchUsers = async ({
   searchKey: string;
 }) => {
   if (searchKey?.length < 2) return [];
-
-  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-
-  if (!['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubbcgov'].includes(idp))
-    throw Error(`invalid idp ${idp}`);
-  if (!['email', 'firstName', 'lastName', 'guid'].includes(property)) throw Error(`invalid property ${property}`);
-
-  const query: any = {};
-  if (property === 'guid') {
-    query.username = `${searchKey}@${idp}`;
-    query.exact = true;
-  } else {
-    query.username = `@${idp}`;
-    query[property] = searchKey;
-    query.max = 500;
-    query.first = 0;
-  }
-
-  const users = await kcAdminClient.users.find({ realm: 'standard', ...query });
-  const result: { count: number; rows: any[] } = {
-    count: users.length,
-    rows: users.map(({ username, firstName, lastName, email, attributes }) => ({
-      username,
-      firstName,
-      lastName,
-      email,
-      attributes,
-    })),
-  };
-
-  return result;
+  const userProperties = {};
+  userProperties[property] = searchKey;
+  return searchUsersByIdp({ environment, idp, userProperties });
 };
 
 const MAX_CLIENT_ROLE_COUNT = 5000;
@@ -93,7 +65,7 @@ export const listClientRoles = async (
     max = MAX_CLIENT_ROLE_COUNT,
   }: {
     environment: string;
-    integrationId: number;
+    integrationId?: number;
     search?: string;
     first?: number;
     max?: number;
@@ -108,8 +80,7 @@ export const listClientRoles = async (
 
   // @ts-ignore
   const roles: any[] = await kcAdminClient.clients.listRoles({ realm: 'standard', id: client.id, search, first, max });
-
-  return roles.map((role) => role.name);
+  return roles;
 };
 
 export const getCompositeClientRoles = async (
@@ -184,21 +155,16 @@ export const setCompositeClientRoles = async (
 };
 
 export const findClientRole = async (
-  sessionUserId: number,
+  integration: Integration,
   {
     environment,
-    integrationId,
     roleName,
   }: {
     environment: string;
-    integrationId: number;
     roleName: string;
   },
 ) => {
   if (roleName?.length < 2) return null;
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-  if (integration.authType === 'service-account') throw Error('invalid auth type');
-
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw Error('client not found');
@@ -275,7 +241,7 @@ export const listUserRoles = async (
     clientUniqueId: client.id,
   });
 
-  return roles.map((role) => role.name);
+  return roles;
 };
 
 export const manageUserRole = async (
@@ -321,7 +287,7 @@ export const manageUserRole = async (
   }
 
   const roles = await kcAdminClient.users.listClientRoleMappings(roleMapping);
-  return roles.map((role) => role.name);
+  return roles;
 };
 
 export const manageUserRoles = async (
@@ -652,4 +618,85 @@ export const createIdirUser = async ({
 export const findUserByRealm = async (environment: string, username: string) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   return await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
+};
+
+export const manageRoleComposites = async (
+  environment: string,
+  roleId: string,
+  compositeRoles?: RoleRepresentation[],
+  operation?: 'add' | 'del',
+) => {
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+
+  if (operation === 'add') {
+    await kcAdminClient.roles.createComposite({ realm: 'standard', roleId }, compositeRoles);
+  } else {
+    await kcAdminClient.roles.delCompositeRoles({ realm: 'standard', id: roleId }, compositeRoles);
+  }
+};
+
+export const getRoleComposites = async (integration: Integration, environment: string, roleId: string) => {
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
+  if (clients.length === 0) throw Error('client not found');
+  const client = clients[0];
+
+  return await kcAdminClient.roles.getCompositeRolesForClient({
+    realm: 'standard',
+    clientId: client.id,
+    id: roleId,
+  });
+};
+
+export const searchUsersByIdp = async ({
+  environment,
+  idp,
+  userProperties,
+}: {
+  environment: string;
+  idp: string;
+  userProperties: any;
+}) => {
+  for (let queryProp in userProperties) {
+    if (!['email', 'firstName', 'lastName', 'guid'].includes(queryProp)) throw Error(`invalid property ${queryProp}`);
+  }
+
+  if (idp.startsWith('bceid')) {
+    if (userProperties > 1 || Object.keys(userProperties)[0] !== 'guid') {
+      throw Error(`invalid user query - ${JSON.stringify(userProperties)}`);
+    }
+  }
+
+  if (!['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github', 'githubbcgov'].includes(idp))
+    throw Error(`invalid idp ${idp}`);
+
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+
+  const query: UserQuery = {};
+
+  if (userProperties.guid && userProperties.guid !== '') {
+    query.username = `${userProperties.guid}@${idp}`;
+    query.exact = 'true';
+  } else {
+    query.username = `@${idp}`;
+  }
+  query.firstName = userProperties?.firstName;
+  query.lastName = userProperties?.lastName;
+  query.email = userProperties?.email;
+  query.max = 500;
+  query.first = 0;
+
+  const users = await kcAdminClient.users.find({ realm: 'standard', ...query });
+  const result: { count: number; rows: any[] } = {
+    count: users.length,
+    rows: users.map(({ username, firstName, lastName, email, attributes }) => ({
+      username,
+      firstName,
+      lastName,
+      email,
+      attributes,
+    })),
+  };
+
+  return result;
 };

@@ -5,6 +5,7 @@ export const idpMap: any = {
   bceidbusiness: 'Business BCeID',
   bceidboth: 'Basic or Business BCeID',
   githubbcgov: 'GitHub BC Gov',
+  github: 'GitHub',
 };
 
 export const envMap: any = {

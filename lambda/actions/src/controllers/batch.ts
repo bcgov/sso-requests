@@ -3,6 +3,7 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EVENTS, EMAILS } from '@lambda-shared/enums';
 import { mergePR } from '../github';
+import { usesBceid, usesGithub } from '@app/helpers/integration';
 import { getTeamById } from '@lambda-app/queries/team';
 
 const createEvent = async (data) => {
@@ -71,6 +72,7 @@ export const updatePlannedItems = async (data) => {
     where,
     attributes: [
       'id',
+      'realm',
       'projectName',
       'serviceType',
       'requester',
@@ -84,6 +86,8 @@ export const updatePlannedItems = async (data) => {
       'testValidRedirectUris',
       'prodValidRedirectUris',
       'apiServiceAccount',
+      'bceidApproved',
+      'githubApproved',
     ],
     raw: true,
   });
@@ -120,8 +124,18 @@ export const updatePlannedItems = async (data) => {
           integrations: teamIntegrations,
         });
       } else {
+        const hasProd = integration.environments.includes('prod');
+        const hasBceid = usesBceid(integration);
+        const hasGithub = usesGithub(integration);
+        const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
+        const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
+
         const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
-        await sendTemplate(emailCode, { integration });
+        await sendTemplate(emailCode, {
+          integration,
+          waitingBceidProdApproval,
+          waitingGithubProdApproval,
+        });
       }
     }),
   );

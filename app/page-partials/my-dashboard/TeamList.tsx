@@ -1,15 +1,11 @@
-import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Table } from '@bcgov-sso/common-react-components';
 import styled from 'styled-components';
-import noop from 'lodash.noop';
-import { $setDownloadError } from 'dispatchers/requestDispatcher';
 import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
-import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faExclamationCircle, faTrash, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { Team, User } from 'interfaces/team';
-import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import { getMyTeams, deleteTeam, getServiceAccount, deleteServiceAccount, getTeamMembers } from 'services/team';
+import { deleteTeam, deleteServiceAccount, getTeamMembers, getServiceAccounts } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
@@ -17,9 +13,10 @@ import { createTeamModalId } from 'utils/constants';
 import { UserSession } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import WarningModalContents from 'components/WarningModalContents';
-import { DashboardReducerState } from 'reducers/dashboardReducer';
 import { Integration } from 'interfaces/Request';
 import TeamActionButtons from '@app/components/TeamActionButtons';
+import isEmpty from 'lodash.isempty';
+import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
@@ -33,45 +30,11 @@ const RightFloatButtons = styled.td`
   float: right;
 `;
 
-const NotAvailable = styled.div`
-  color: #a12622;
-  height: 60px;
-  padding-left: 20px;
-  padding-top: 16px;
-  padding-bottom: 22px;
-  weight: 700;
-  background-color: #f2dede;
-`;
-
-const NoProjects = styled.div`
-  color: #006fc4;
-  height: 60px;
-  padding-left: 20px;
-  padding-top: 16px;
-  padding-bottom: 22px;
-  weight: 700;
-  background-color: #f8f8f8;
-`;
-
 const UnpaddedButton = styled(Button)`
   &&& {
     margin: 0;
   }
 `;
-
-const SystemUnavailableMessage = (
-  <NotAvailable>
-    <FontAwesomeIcon icon={faExclamationCircle} title="Unavailable" />
-    &nbsp; The system is unavailable at this moment. please refresh the page.
-  </NotAvailable>
-);
-
-const NoEntitiesMessage = ({ message }: { message: string }) => (
-  <NoProjects>
-    <FontAwesomeIcon icon={faInfoCircle} title="Information" />
-    &nbsp; {message}
-  </NoProjects>
-);
 
 const NewEntityButton = ({ handleNewTeamClick }: { handleNewTeamClick: Function }) => {
   return (
@@ -91,15 +54,13 @@ interface Props {
   loading: boolean;
   teams: Team[];
   loadTeams: () => void;
-  state: DashboardReducerState;
-  dispatch: Dispatch<SetStateAction<any>>;
+  hasError: boolean;
 }
 
-export default function TeamList({ currentUser, setTeam, loading, teams, loadTeams, state, dispatch }: Props) {
+export default function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError }: Props) {
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
-  const [serviceAccount, setServiceAccount] = useState<Integration | null>(null);
-  const { downloadError } = state;
+  const [serviceAccounts, setServiceAccounts] = useState<Integration[]>([]);
 
   const deleteServiceAccontNote =
     '*By deleting this team, you are also deleting the CSS App API Account that belongs to this team.';
@@ -112,11 +73,9 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
     setTeam(team);
   };
 
-  const updateServiceAccount = async () => {
-    const [serviceAccount] = await getServiceAccount(activeTeamId);
-
-    if (serviceAccount) setServiceAccount(serviceAccount);
-    else setServiceAccount(null);
+  const updateServiceAccounts = async () => {
+    const [serviceAccounts] = await getServiceAccounts(activeTeamId);
+    setServiceAccounts(serviceAccounts);
   };
 
   useEffect(() => {
@@ -130,7 +89,9 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
   }, [teams]);
 
   useEffect(() => {
-    updateServiceAccount();
+    if (Number(activeTeam?.serviceAccountCount) > 0) {
+      updateServiceAccounts();
+    }
   }, [activeTeamId]);
 
   const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
@@ -147,15 +108,9 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
   };
 
   const getTableContents = () => {
-    if (downloadError) return SystemUnavailableMessage;
+    if (hasError) return <SystemUnavailableMessage />;
 
     if (!teams || teams?.length === 0) return <NoEntitiesMessage message="You have not been added to any teams yet." />;
-
-    const getLoggedInTeamMember = async (teamId: number) => {
-      const teamMembersRes = await getTeamMembers(teamId);
-      const [members, err] = teamMembersRes;
-      return members.find((member: any) => member?.idirEmail === currentUser.email);
-    };
 
     return (
       <Table>
@@ -197,7 +152,13 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
   const handleDeleteTeam = async () => {
     if (!canDelete) return;
 
-    if (serviceAccount) await deleteServiceAccount(activeTeamId, serviceAccount.id);
+    if (serviceAccounts.length > 0) {
+      Promise.all(
+        serviceAccounts.map((serviceAccount: Integration) => {
+          deleteServiceAccount(activeTeamId, serviceAccount.id);
+        }),
+      );
+    }
 
     await deleteTeam(activeTeamId);
     await loadTeams();
@@ -247,7 +208,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
           <WarningModalContents
             title="Are you sure that you want to delete this team?"
             content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-            note={canDelete && serviceAccount ? deleteServiceAccontNote : ''}
+            note={canDelete && !isEmpty(serviceAccounts) ? deleteServiceAccontNote : ''}
           />
         }
         buttonStyle={canDelete ? 'danger' : 'custom'}

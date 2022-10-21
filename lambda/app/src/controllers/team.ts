@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
-import { getDisplayName, inviteTeamMembers } from '@lambda-app/utils/helpers';
+import { getDisplayName, inviteTeamMembers, isAdmin } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
@@ -10,8 +10,8 @@ import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
-import { generateInstallation } from '../keycloak/installation';
-import { getIntegrationsByTeam } from '@lambda-app/queries/request';
+import { generateInstallation, updateClientSecret } from '../keycloak/installation';
+import { getAllowedRequest, getIntegrationsByTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent, getRequester } from './requests';
 
 const serviceAccountCommonPopulation = [
@@ -185,6 +185,12 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
 };
 
 export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
+  const existingServiceAccounts = await getServiceAccounts(userId, teamId);
+
+  if (existingServiceAccounts.length > 0) {
+    throw Error('CSS API Account already generated for this team');
+  }
+
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
   const integrations = await getIntegrationsByTeam(teamId, 'gold');
   const team = await getTeamById(teamId);
@@ -220,10 +226,10 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   return serviceAccount;
 };
 
-export const getServiceAccount = async (userId: number, teamId: number) => {
+export const getServiceAccounts = async (userId: number, teamId: number) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
 
-  return models.request.findOne({
+  return models.request.findAll({
     where: {
       serviceType: 'gold',
       usesTeam: true,
@@ -236,21 +242,25 @@ export const getServiceAccount = async (userId: number, teamId: number) => {
   });
 };
 
-export const downloadServiceAccount = async (userId: number, teamId: number, saId: number) => {
+export const getServiceAccount = async (userId: number, teamId: number, saId: number) => {
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
 
-  const integration = await models.request.findOne({
+  return await models.request.findOne({
     where: {
       id: saId,
       serviceType: 'gold',
       usesTeam: true,
       apiServiceAccount: true,
-      status: 'applied',
+      archived: false,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['clientId', 'serviceType'],
+    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived', 'requester', 'serviceType'],
     raw: true,
   });
+};
+
+export const getServiceAccountCredentials = async (userId: number, teamId: number, saId: number) => {
+  const integration = await getServiceAccount(userId, teamId, saId);
 
   const installation = await generateInstallation({
     serviceType: integration.serviceType,
@@ -320,4 +330,15 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
     });
     throw Error(err.message || err);
   }
+};
+
+export const updateServiceAccountSecret = async (userId: number, teamId: number, saId: number) => {
+  const integration = await getServiceAccount(userId, teamId, saId);
+
+  return await updateClientSecret({
+    serviceType: integration.serviceType,
+    environment: 'prod',
+    realmName: 'standard',
+    clientId: integration.clientId,
+  });
 };

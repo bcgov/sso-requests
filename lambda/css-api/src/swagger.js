@@ -11,7 +11,7 @@ const doc = {
   schemes: ['https'],
   tags: [
     {
-      name: 'Intergrations',
+      name: 'Integrations',
       description: 'Manage SSO Integrations',
     },
     {
@@ -22,35 +22,70 @@ const doc = {
       name: 'Role-Mapping',
       description: 'Manage Role-Mappings for an Integration',
     },
+    {
+      name: 'Users',
+      description: 'Manage Users for an IDP',
+    },
   ],
   components: {
     schemas: {
+      // @ will ensure swagger-autogen shall not process it
+      authType: {
+        '@enum': ['browser-login', 'service-account', 'both'],
+      },
+      environment: {
+        '@enum': ['dev', 'test', 'prod'],
+      },
+      idp: {
+        '@enum': ['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'],
+      },
+      operation: {
+        '@enum': ['add', 'del'],
+      },
+      status: {
+        '@enum': ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'applied', 'applyFailed'],
+      },
       integration: {
-        id: 'number',
-        projectName: 'string',
-        authType: 'string',
-        environments: 'string[]',
-        status: 'string',
-        createdAt: 'timestamp',
-        updatedAt: 'timestamp',
+        id: 1234,
+        projectName: 'integration project name',
+        authType: { $ref: '#/components/schemas/authType' },
+        environments: { $ref: '#/components/schemas/environment' },
+        status: { $ref: '#/components/schemas/status' },
+        createdAt: '2022-08-10T21:21:25.303Z',
+        updatedAt: '2022-08-10T21:21:53.598Z',
       },
-      role: {
-        name: 'string',
+      roleRequest: {
+        $name: 'client-role',
       },
-      userAttribute: {
-        attributeKey: 'string[]',
+      updatedRoleRequest: {
+        $name: 'updated-client-role',
+      },
+      roleResponse: {
+        name: 'client-role',
+        composite: false,
+      },
+      compositeRoleRequest: {
+        $name: 'composite-role',
+      },
+      compositeRoleResponse: {
+        name: 'composite-role',
+        composite: false,
+      },
+      userAttributes: {
+        displayName: 'Test User',
+        idir_userid: 'AAAFEE111DD24C6D11111DFDC8BC51A1',
       },
       user: {
-        username: 'string',
-        email: 'string',
-        firstName: 'string',
-        lastName: 'string',
-        attribues: [{ $ref: '#/components/schemas/userAttribute' }],
+        username: '08fe81112408411081ea011cf0ec945d@idir',
+        email: 'testuser@gov.bc.ca',
+        firstName: 'Test',
+        lastName: 'User',
+        attribues: { $ref: '#/components/schemas/userAttributes' },
       },
       userRoleMappingRequest: {
-        roleName: 'string',
-        username: 'string',
-        operation: 'add | del',
+        $roleName: 'client-role',
+        $username: '08fe81112408411081ea011cf0ec945d@idir',
+        $operation: { $ref: '#/components/schemas/operation' },
       },
     },
     securitySchemes: {

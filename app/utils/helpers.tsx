@@ -1,11 +1,10 @@
 import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from 'utils/constants';
-import { getSchemas } from 'schemas';
 import { Team, User } from 'interfaces/team';
 import { Integration, Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
-import { usesBceid, usesGithub } from '@app/helpers/integration';
+import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
@@ -35,13 +34,13 @@ export const getRequestedEnvironments = (integration: Integration) => {
     let envs = options.filter((env) => environments.includes(env.name));
     if (hasBceid && (!bceidApproved || bceidApplying))
       envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter((idp) => !idp.startsWith('bceid'));
+        if (env.name === 'prod') env.idps = env.idps.filter(checkNotBceidGroup);
         return env;
       });
 
     if (hasGithub && (!githubApproved || githubApplying))
       envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter((idp) => idp !== 'githubbcgov');
+        if (env.name === 'prod') env.idps = env.idps.filter(checkNotGithubGroup);
         return env;
       });
 
