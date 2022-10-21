@@ -235,10 +235,6 @@ function IntegrationInfoTabs({ integration }: Props) {
   const isGold = integration.serviceType === 'gold';
   const hasBrowserFlow = integration.authType !== 'service-account';
 
-  useEffect(() => {
-    setActiveTab(TAB_DETAILS);
-  }, [integration]);
-
   const handleTabClick = (key: any) => {
     setActiveTab(key);
   };
@@ -257,30 +253,43 @@ function IntegrationInfoTabs({ integration }: Props) {
   }
 
   const tabs = [];
+  const alloweTabs = [];
 
   if (displayStatus === 'Submitted') {
     if (bceidProdApplying || githubProdApplying) {
       tabs.push(getApprovalProgressTab({ integration, approvalContext }));
+      alloweTabs.push(TAB_DETAILS);
     } else {
       tabs.push(getProgressTab({ integration, approvalContext }));
+      alloweTabs.push(TAB_DETAILS);
     }
   } else if (displayStatus === 'Completed') {
     tabs.push(getInstallationTab({ integration, approvalContext }));
+    alloweTabs.push(TAB_DETAILS);
 
     if (isGold && hasBrowserFlow) {
       tabs.push(getRoleManagementTab({ integration }), getUserAssignmentTab({ integration }));
+      alloweTabs.push(TAB_ROLE_MANAGEMENT, TAB_USER_ROLE_MANAGEMENT);
     }
 
     if (!integration.publicAccess) {
       tabs.push(getSecretsTab({ integration }));
+      alloweTabs.push(TAB_SECRET);
     }
 
     tabs.push(getHistoryTab({ integration }));
+    alloweTabs.push(TAB_HISTORY);
+  }
+
+  let activeKey = activeTab;
+
+  if (!alloweTabs.includes(activeTab)) {
+    activeKey = alloweTabs[0];
   }
 
   return (
     <IntegrationWrapper integration={integration}>
-      <Tabs activeKey={activeTab} onChange={handleTabClick} tabBarGutter={30} destroyInactiveTabPane={true}>
+      <Tabs activeKey={activeKey} onChange={handleTabClick} tabBarGutter={30} destroyInactiveTabPane={true}>
         {tabs}
       </Tabs>
     </IntegrationWrapper>
