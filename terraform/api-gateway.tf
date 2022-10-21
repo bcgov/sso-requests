@@ -11,36 +11,6 @@ resource "aws_api_gateway_rest_api" "sso_backend" {
   }
 }
 
-# Proxy routes starting with /app to the app handler allowing any method
-resource "aws_api_gateway_resource" "app" {
-  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
-  parent_id   = aws_api_gateway_rest_api.sso_backend.root_resource_id
-  path_part   = "app"
-}
-
-resource "aws_api_gateway_resource" "proxy" {
-  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
-  parent_id   = aws_api_gateway_resource.app.id
-  path_part   = "{proxy+}"
-}
-
-resource "aws_api_gateway_method" "proxy" {
-  rest_api_id   = aws_api_gateway_rest_api.sso_backend.id
-  resource_id   = aws_api_gateway_resource.proxy.id
-  http_method   = "ANY"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "lambda" {
-  rest_api_id = aws_api_gateway_rest_api.sso_backend.id
-  resource_id = aws_api_gateway_method.proxy.resource_id
-  http_method = aws_api_gateway_method.proxy.http_method
-
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.app.invoke_arn
-}
-
 # Proxy put requests to /actions to the actions lambda
 resource "aws_api_gateway_resource" "actions" {
   rest_api_id = aws_api_gateway_rest_api.sso_backend.id
@@ -236,7 +206,7 @@ resource "aws_api_gateway_integration_response" "openapi_swagger_assets" {
 # Deploy API and authorize to use lambdas
 resource "aws_api_gateway_deployment" "this" {
   depends_on = [
-    aws_api_gateway_integration.lambda,
+    aws_api_gateway_integration.app,
     aws_api_gateway_integration.actions,
     aws_api_gateway_integration.api,
     aws_api_gateway_integration.openapi_swagger,
@@ -246,7 +216,7 @@ resource "aws_api_gateway_deployment" "this" {
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_integration.actions.id,
-      aws_api_gateway_integration.lambda.id,
+      aws_api_gateway_integration.app.id,
       aws_api_gateway_integration.api.id,
       aws_api_gateway_integration.openapi_swagger,
       aws_api_gateway_integration.openapi_swagger_assets
