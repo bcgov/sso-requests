@@ -52,7 +52,7 @@ export class Integration {
 
     const devIdps = ['idir'];
     if (bceid) devIdps.push('bceidbasic');
-    if (github) devIdps.push('github');
+    if (github) devIdps.push('githubbcgov');
 
     if (args.serviceType) this.current.serviceType = args.serviceType;
 
