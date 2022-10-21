@@ -396,7 +396,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   return (
     <>
-      <Tabs defaultActiveKey={isAdmin && enable_gold ? 'service-accounts' : 'members'} tabBarGutter={30}>
+      <Tabs defaultActiveKey={'members'} tabBarGutter={30}>
         <Tab key="members" tab="Members">
           <TabWrapper>
             {isAdmin ? (
