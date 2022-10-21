@@ -227,6 +227,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
+    <div style=\\"display: none\\">&nbsp;</div>
   </li>
 </ol>
 
@@ -388,6 +389,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
+    <div style=\\"display: none\\">&nbsp;</div>
   </li>
 </ol>
 
@@ -505,6 +507,7 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
+    <div style=\\"display: none\\">&nbsp;</div>
   </li>
 </ol>
 
@@ -966,6 +969,7 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
+    <div style=\\"display: none\\">&nbsp;</div>
   </li>
 </ol>
 
@@ -1083,6 +1087,7 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
+    <div style=\\"display: none\\">&nbsp;</div>
   </li>
 </ol>
 
