@@ -55,6 +55,15 @@ import reportController from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 
 const APP_URL = process.env.APP_URL || '';
+const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
+
+const responseHeaders = {
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+  'Access-Control-Allow-Origin': allowedOrigin,
+  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
+  'Access-Control-Allow-Credentials': 'true',
+};
+
 const BASE_PATH = '/app';
 
 const tryJSON = (str) => {
@@ -75,6 +84,11 @@ const handleError = (res, err) => {
 };
 
 export const setRoutes = (app: any) => {
+  app.use((req, res, next) => {
+    res.set(responseHeaders);
+    next();
+  });
+
   app.options('(.*)', async (req, res) => {
     res.status(200).json(null);
   });
