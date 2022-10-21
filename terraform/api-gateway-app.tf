@@ -40,9 +40,6 @@ resource "aws_api_gateway_method_response" "app_cors" {
     "method.response.header.Access-Control-Allow-Methods"     = true,
     "method.response.header.Access-Control-Allow-Credentials" = true,
   }
-  response_models = {
-    "application/json" = "Empty"
-  }
 
   depends_on = [aws_api_gateway_method.app_proxy]
 }
