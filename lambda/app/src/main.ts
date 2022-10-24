@@ -33,12 +33,18 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context) =>
     'Access-Control-Allow-Methods',
     'Access-Control-Allow-Credentials',
     'Location',
+    'Content-Type',
+    'Content-Length',
+    'ETag',
   ].forEach((headerKey) => {
     // copy the target header values again in terms of the known issues of api gateway
     // see https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-known-issues.html
     // > `in API Gateway, header names and query parameters are processed in a case-sensitive way.`
     const headerValue = result.headers[toLower(headerKey)];
-    if (headerValue) result.headers[headerKey] = headerValue;
+    if (headerValue) {
+      result.headers[headerKey] = headerValue;
+      delete result.headers[toLower(headerKey)];
+    }
   });
 
   delete result.headers['x-powered-by'];
