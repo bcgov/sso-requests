@@ -32,6 +32,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context) =>
     'Access-Control-Allow-Origin',
     'Access-Control-Allow-Methods',
     'Access-Control-Allow-Credentials',
+    'Accept',
     'Location',
     'Content-Type',
     'Content-Length',
