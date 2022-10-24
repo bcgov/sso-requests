@@ -10,7 +10,7 @@ export const checkBceidRegularGroup = (idp: string) => ['bceidbasic', 'bceidbusi
 export const checkIdirGroupAndNotBceidBoth = (idp: string) => checkIdirGroup(idp) || idp !== 'bceidboth';
 export const checkIdirGroupAndNotBceidRegularGroup = (idp: string) =>
   checkIdirGroup(idp) || !checkBceidRegularGroup(idp);
-export const checkGithubGroup = (idp: string) => ['github', 'githubbcgov'].includes(idp);
+export const checkGithubGroup = (idp: string) => ['githubpublic', 'githubbcgov'].includes(idp);
 export const checkNotGithubGroup = (idp: string) => !checkGithubGroup(idp);
 
 export const usesBceid = (integration: Integration) => {
