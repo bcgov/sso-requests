@@ -58,6 +58,7 @@ const APP_URL = process.env.APP_URL || '';
 const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
 
 const responseHeaders = {
+  Accept: 'application/json',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
   'Access-Control-Allow-Origin': allowedOrigin,
   'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',

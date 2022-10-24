@@ -5,16 +5,18 @@ export const getRawTeamIntegrations = async () => {
 SELECT
   r.id,
   r.client_name,
+  r.project_name,
+  r.status,
   r.service_type,
   r.team_id,
+  u.idir_email,
+  u.additional_email,
+  ut.user_id,
   r.realm,
   r.environments,
   r.dev_idps,
   r.test_idps,
-  r.prod_idps,
-  ut.user_id,
-  u.idir_email,
-  u.additional_email
+  r.prod_idps
 FROM
   requests as r
 INNER JOIN users_teams as ut ON r.team_id=ut.team_id
@@ -33,15 +35,17 @@ export const getRawUserIntegrations = async () => {
 SELECT
   r.id,
   r.client_name,
-  r.user_id,
+  r.project_name,
+  r.status,
   r.service_type,
+  u.idir_email,
+  u.additional_email,
+  r.user_id,
   r.realm,
   r.environments,
   r.dev_idps,
   r.test_idps,
-  r.prod_idps,
-  u.idir_email,
-  u.additional_email
+  r.prod_idps
 FROM
   requests as r
 INNER JOIN users as u ON u.id=r.user_id
