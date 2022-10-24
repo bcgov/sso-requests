@@ -37,7 +37,7 @@ const doc = {
         '@enum': ['dev', 'test', 'prod'],
       },
       idp: {
-        '@enum': ['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'github'],
+        '@enum': ['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubbcgov'],
       },
       operation: {
         '@enum': ['add', 'del'],
