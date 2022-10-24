@@ -18,6 +18,7 @@ app.use((req, res, next) => {
   req.body = tryJSON(req.body);
   next();
 });
+app.set('etag', false);
 setRoutes(app);
 
 const apiHandler = serverless(app);
@@ -36,7 +37,6 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context) =>
     'Location',
     'Content-Type',
     'Content-Length',
-    'ETag',
   ].forEach((headerKey) => {
     // copy the target header values again in terms of the known issues of api gateway
     // see https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-known-issues.html
