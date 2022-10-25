@@ -16,6 +16,10 @@ resource "aws_api_gateway_method" "app_proxy" {
   resource_id   = aws_api_gateway_resource.app_proxy.id
   http_method   = "ANY"
   authorization = "NONE"
+
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
 }
 
 resource "aws_api_gateway_integration" "app" {
@@ -26,6 +30,13 @@ resource "aws_api_gateway_integration" "app" {
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.app.invoke_arn
+
+  cache_key_parameters = ["method.request.path.proxy"]
+  timeout_milliseconds = 29000
+
+  request_parameters = {
+    "integration.request.path.proxy" = "method.request.path.proxy"
+  }
 }
 
 # resource "aws_api_gateway_method_response" "app_cors" {
