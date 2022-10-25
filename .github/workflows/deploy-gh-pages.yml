@@ -72,7 +72,7 @@ jobs:
 
       - name: Checkout 🛎️
         if: env.APP_ENV != ''
-        uses: actions/checkout@v2.5.0
+        uses: actions/checkout@v3
 
       - name: Install and Build
         if: env.APP_ENV != ''
