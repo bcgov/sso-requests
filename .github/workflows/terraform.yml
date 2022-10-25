@@ -95,7 +95,7 @@ jobs:
           EOF
 
       - uses: hmarr/debug-action@v2
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.5.0
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path

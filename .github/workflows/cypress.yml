@@ -12,7 +12,7 @@ jobs:
     env:
       APP_URL: https://bcgov.github.io/sso-requests-dev/
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.5.0
 
       # NPM PACKAGES
       - uses: actions/cache@v2
