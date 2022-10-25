@@ -55,17 +55,6 @@ import reportController from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 
 const APP_URL = process.env.APP_URL || '';
-const allowedOrigin = process.env.LOCAL_DEV === 'true' ? 'http://localhost:3000' : 'https://bcgov.github.io';
-
-const responseHeaders = {
-  Accept: 'application/json',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Origin': allowedOrigin,
-  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
-  'Access-Control-Allow-Credentials': 'true',
-};
-
-const BASE_PATH = '/app';
 
 const tryJSON = (str) => {
   try {
@@ -85,16 +74,11 @@ const handleError = (res, err) => {
 };
 
 export const setRoutes = (app: any) => {
-  app.use((req, res, next) => {
-    res.set(responseHeaders);
-    if (next) next();
-  });
-
-  app.options(`${BASE_PATH}/*`, async (req, res) => {
+  app.options(`/*`, async (req, res) => {
     res.status(200).json(null);
   });
 
-  app.get(`${BASE_PATH}/heartbeat`, async (req, res) => {
+  app.get(`/heartbeat`, async (req, res) => {
     try {
       const result = await wakeUpAll();
       res.status(200).json(result);
@@ -103,7 +87,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/verify-token`, async (req, res) => {
+  app.get(`/verify-token`, async (req, res) => {
     try {
       const session = (await authenticate(req.headers)) as Session;
       res.status(200).json(session);
@@ -113,7 +97,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/teams/verify`, async (req, res) => {
+  app.get(`/teams/verify`, async (req, res) => {
     try {
       const token = req.query.token;
       if (!token) return res.redirect(`${APP_URL}/verify-user?message=notoken`);
@@ -153,7 +137,7 @@ export const setRoutes = (app: any) => {
     if (next) next();
   });
 
-  app.get(`${BASE_PATH}/me`, async (req, res) => {
+  app.get(`/me`, async (req, res) => {
     try {
       const integrations = await findMyOrTeamIntegrationsByService(req.user.id);
       res.status(200).json({ ...req.user, integrations });
@@ -162,7 +146,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/me`, async (req, res) => {
+  app.post(`/me`, async (req, res) => {
     try {
       const result = await updateProfile(req.session, req.body);
       res.status(200).json(result);
@@ -171,7 +155,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/requests-all`, async (req, res) => {
+  app.post(`/requests-all`, async (req, res) => {
     try {
       const result = await getRequestAll(req.session as Session, req.body);
       res.status(200).json(result);
@@ -180,7 +164,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/requests`, async (req, res) => {
+  app.get(`/requests`, async (req, res) => {
     try {
       const { include } = req.query || {};
       const result = await getRequests(req.session as Session, req.user, include);
@@ -190,7 +174,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/team-integrations/:teamId`, async (req, res) => {
+  app.get(`/team-integrations/:teamId`, async (req, res) => {
     try {
       const { teamId } = req.params;
       const result = await getIntegrations(req.session as Session, teamId, req.user);
@@ -200,7 +184,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/requests`, async (req, res) => {
+  app.post(`/requests`, async (req, res) => {
     try {
       const result = await createRequest(req.session as Session, req.body);
       res.status(200).json(result);
@@ -209,7 +193,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/requests`, async (req, res) => {
+  app.put(`/requests`, async (req, res) => {
     try {
       const { submit } = req.query || {};
       const result = await updateRequest(req.session as Session, req.body, req.user, submit);
@@ -219,7 +203,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.delete(`${BASE_PATH}/requests`, async (req, res) => {
+  app.delete(`/requests`, async (req, res) => {
     try {
       const { id } = req.query || {};
 
@@ -235,7 +219,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/request`, async (req, res) => {
+  app.post(`/request`, async (req, res) => {
     try {
       const result = await getRequest(req.session as Session, req.user, req.body);
       res.status(200).json(result);
@@ -244,7 +228,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/request-metadata`, async (req, res) => {
+  app.put(`/request-metadata`, async (req, res) => {
     try {
       const result = await updateRequestMetadata(req.session as Session, req.user, req.body);
       res.status(200).json(result);
@@ -253,7 +237,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/installation`, async (req, res) => {
+  app.post(`/installation`, async (req, res) => {
     try {
       const result = await getInstallation(req.session as Session, req.body);
       res.status(200).json(result);
@@ -262,7 +246,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/installation`, async (req, res) => {
+  app.put(`/installation`, async (req, res) => {
     try {
       const result = await changeSecret(req.session as Session, req.body);
       res.status(200).json(result);
@@ -271,7 +255,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/users`, async (req, res) => {
+  app.post(`/keycloak/users`, async (req, res) => {
     try {
       const result = await searchKeycloakUsers(req.session as Session, req.body);
       res.status(200).json(result);
@@ -280,7 +264,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/roles`, async (req, res) => {
+  app.post(`/keycloak/roles`, async (req, res) => {
     try {
       const result = await listRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
@@ -289,7 +273,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/user-roles`, async (req, res) => {
+  app.post(`/keycloak/user-roles`, async (req, res) => {
     try {
       const result = await listClientRolesByUsers((req.session as Session).user.id, req.body);
       res.status(200).json(result);
@@ -298,7 +282,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/keycloak/user-role`, async (req, res) => {
+  app.put(`/keycloak/user-role`, async (req, res) => {
     try {
       const result = await updateUserRoleMapping((req.session as Session).user.id, req.body);
       res.status(200).json(result);
@@ -307,7 +291,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/keycloak/user-roles`, async (req, res) => {
+  app.put(`/keycloak/user-roles`, async (req, res) => {
     try {
       const result = await updateUserRoleMappings((req.session as Session).user.id, req.body);
       res.status(200).json(result);
@@ -316,7 +300,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/role-users`, async (req, res) => {
+  app.post(`/keycloak/role-users`, async (req, res) => {
     try {
       const result = await listUsersByRole((req.session as Session).user.id, req.body);
       res.status(200).json(result);
@@ -325,7 +309,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/set-composite-roles`, async (req, res) => {
+  app.post(`/keycloak/set-composite-roles`, async (req, res) => {
     try {
       const authorized = await isAllowedToManageRoles(req.session as Session, req.body.integrationId);
 
@@ -339,7 +323,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/get-composite-roles`, async (req, res) => {
+  app.post(`/keycloak/get-composite-roles`, async (req, res) => {
     try {
       const result = await getCompositeClientRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
@@ -348,7 +332,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/roles`, async (req, res) => {
+  app.post(`/keycloak/roles`, async (req, res) => {
     try {
       const result = await createClientRole((req.session as Session).user.id, req.body);
       res.status(200).json(result);
@@ -357,7 +341,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/role`, async (req, res) => {
+  app.post(`/keycloak/role`, async (req, res) => {
     try {
       const result = await getClientRole((req.session as Session).user.id, req.body);
       res.status(200).json(result);
@@ -366,7 +350,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/bulk-roles`, async (req, res) => {
+  app.post(`/keycloak/bulk-roles`, async (req, res) => {
     try {
       const authorized = await isAllowedToManageRoles(req.session as Session, req.body.integrationId);
 
@@ -380,7 +364,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/keycloak/delete-role`, async (req, res) => {
+  app.post(`/keycloak/delete-role`, async (req, res) => {
     try {
       const authorized = await isAllowedToManageRoles(req.session as Session, req.body.integrationId);
 
@@ -394,7 +378,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/bceid-webservice/idir/search`, async (req, res) => {
+  app.post(`/bceid-webservice/idir/search`, async (req, res) => {
     try {
       const result = await searchIdirUsers((req.session as Session).bearerToken, req.body);
       res.status(200).json(result);
@@ -403,7 +387,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/bceid-webservice/idir/import`, async (req, res) => {
+  app.post(`/bceid-webservice/idir/import`, async (req, res) => {
     try {
       const result = await importIdirUser((req.session as Session).bearerToken, req.body);
       res.status(200).json(result);
@@ -412,7 +396,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  // app.post(`${BASE_PATH}/client`, async (req, res) => {
+  // app.post(`/client`, async (req, res) => {
   //   try {
   //     const result = await getClient(req.session as Session, req.body);
   //     res.status(200).json(result);
@@ -421,7 +405,7 @@ export const setRoutes = (app: any) => {
   //   }
   // });
 
-  app.post(`${BASE_PATH}/events`, async (req, res) => {
+  app.post(`/events`, async (req, res) => {
     try {
       const result = await getEvents(req.session as Session, req.body);
       res.status(200).json(result);
@@ -430,7 +414,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/teams`, async (req, res) => {
+  app.get(`/teams`, async (req, res) => {
     try {
       const result = await listTeams(req.user);
       res.status(200).json(result);
@@ -439,7 +423,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/allowed-teams`, async (req, res) => {
+  app.get(`/allowed-teams`, async (req, res) => {
     try {
       const result = await getAllowedTeams(req.user, { raw: true });
       res.status(200).json(result);
@@ -448,7 +432,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/allowed-teams/:id`, async (req, res) => {
+  app.get(`/allowed-teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
       const result = await getAllowedTeam(id, req.user, { raw: true });
@@ -458,7 +442,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/teams`, async (req, res) => {
+  app.post(`/teams`, async (req, res) => {
     try {
       const result = await createTeam(req.user, req.body);
       res.status(200).json(result);
@@ -467,7 +451,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/teams/:id`, async (req, res) => {
+  app.put(`/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
       const authorized = await userIsTeamAdmin(req.user, id);
@@ -482,7 +466,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
+  app.post(`/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
       const authorized = await userIsTeamAdmin(req.user, id);
@@ -497,7 +481,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/teams/:id/members/:memberId`, async (req, res) => {
+  app.put(`/teams/:id/members/:memberId`, async (req, res) => {
     try {
       const { id, memberId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, id);
@@ -511,7 +495,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.delete(`${BASE_PATH}/teams/:id/members/:memberId`, async (req, res) => {
+  app.delete(`/teams/:id/members/:memberId`, async (req, res) => {
     try {
       const { id, memberId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, id);
@@ -524,7 +508,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/teams/:id/members`, async (req, res) => {
+  app.get(`/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
       const result = await findAllowedTeamUsers(id, req.user.id);
@@ -534,7 +518,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/teams/:id/invite`, async (req, res) => {
+  app.post(`/teams/:id/invite`, async (req, res) => {
     try {
       const { id } = req.params;
       const authorized = await userIsTeamAdmin(req.user, id);
@@ -547,7 +531,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.delete(`${BASE_PATH}/teams/:id`, async (req, res) => {
+  app.delete(`/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
       const authorized = await userIsTeamAdmin(req.user, id);
@@ -560,7 +544,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/teams/:id/service-accounts`, async (req, res) => {
+  app.post(`/teams/:id/service-accounts`, async (req, res) => {
     try {
       const { id: teamId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, teamId);
@@ -576,7 +560,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/teams/:id/service-accounts`, async (req, res) => {
+  app.get(`/teams/:id/service-accounts`, async (req, res) => {
     try {
       const { id: teamId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, teamId);
@@ -592,7 +576,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/teams/:id/service-accounts/:saId`, async (req, res) => {
+  app.get(`/teams/:id/service-accounts/:saId`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, teamId);
@@ -608,7 +592,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/teams/:id/service-accounts/:saId/credentials`, async (req, res) => {
+  app.get(`/teams/:id/service-accounts/:saId/credentials`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, teamId);
@@ -624,7 +608,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/teams/:id/service-accounts/:saId/credentials`, async (req, res) => {
+  app.put(`/teams/:id/service-accounts/:saId/credentials`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, teamId);
@@ -640,7 +624,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.delete(`${BASE_PATH}/teams/:id/service-accounts/:saId`, async (req, res) => {
+  app.delete(`/teams/:id/service-accounts/:saId`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
       const authorized = await userIsTeamAdmin(req.user, teamId);
@@ -656,7 +640,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/reports/team-integrations`, async (req, res) => {
+  app.get(`/reports/team-integrations`, async (req, res) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
       const result = await reportController.getRawTeamIntegrations();
@@ -666,7 +650,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/reports/user-integrations`, async (req, res) => {
+  app.get(`/reports/user-integrations`, async (req, res) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
       const result = await reportController.getRawUserIntegrations();
