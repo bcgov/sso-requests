@@ -90,7 +90,7 @@ export const setRoutes = (app: any) => {
     if (next) next();
   });
 
-  app.options('(.*)', async (req, res) => {
+  app.options(`${BASE_PATH}/*`, async (req, res) => {
     res.status(200).json(null);
   });
 
