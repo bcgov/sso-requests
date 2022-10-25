@@ -4,7 +4,7 @@ export const expressyApiRouter = (app) => {
   // since `lambda-api-router` is not 100% compatible with Express.js syntax
   // mock the expected behaviour in the first middleware.
   app._res.redirect = function redirect(url: string) {
-    app._res.headers({ Location: url }).status(301).send();
+    app._res.headers({ Location: url }).status(302).send();
   };
 
   app._res.set = app._res.headers;

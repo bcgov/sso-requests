@@ -38,13 +38,13 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
           else if (idp === 'bceidbusiness') idpDisabled.push('bceidbusiness', 'bceidboth');
           else if (idp === 'bceidboth') idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
         } else if (checkGithubGroup(idp)) {
-          idpDisabled.push('github', 'githubbcgov');
+          idpDisabled.push('githubpublic', 'githubbcgov');
         }
       });
     }
     idpDisabled = uniq(idpDisabled);
 
-    if (!isApplied || !idps.includes('github')) idpHidden.push('github');
+    if (!isApplied || !idps.includes('githubpublic')) idpHidden.push('githubpublic');
   }
 
   const includeComment = isApplied && isAdmin;
