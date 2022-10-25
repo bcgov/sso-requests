@@ -49,5 +49,6 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context) =>
   });
 
   delete result.headers['x-powered-by'];
+  console.log('Result: ', result);
   return result as any;
 };
