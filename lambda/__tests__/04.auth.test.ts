@@ -23,7 +23,7 @@ describe('/non-logged in user endpoints', () => {
 
     const response = await handler(event);
     expect(response.statusCode).toEqual(302);
-    expect(response.headers.Location).toEqual('/verify-user?message=notoken');
+    expect(response.headers.location).toEqual('/verify-user?message=notoken');
   });
 
   it('should have an error with invalid team invitation token', async () => {
@@ -35,7 +35,7 @@ describe('/non-logged in user endpoints', () => {
 
     const response = await handler(event);
     expect(response.statusCode).toEqual(302);
-    expect(response.headers.Location).toEqual('/verify-user?message=malformed');
+    expect(response.headers.location).toEqual('/verify-user?message=malformed');
   });
 });
 
