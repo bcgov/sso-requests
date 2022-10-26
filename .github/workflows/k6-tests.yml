@@ -1,0 +1,61 @@
+name: Run K6 Tests
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'lambda/**'
+
+jobs:
+  k6-tests:
+    name: K6 Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v2.3.1
+
+      - name: Setup Postgres
+        run: |
+          chmod +x ./db-setup.sh
+          ./db-setup.sh ssorequests
+        working-directory: ./.bin
+
+      - name: Load Test Data
+        run: |
+          psql -d postgresql://localhost:5432/ssorequests -f init.sql
+        working-directory: ./lambda/css-api/k6-tests/smoke-tests
+
+      - name: Install Dependencies for Frontend
+        run: make app_install
+
+      - name: Install Dependencies for Backend
+        run: make server_install
+
+      - name: Start Local Server
+        run: |
+          make server
+
+      - name: Run Smoke Tests
+        uses: grafana/k6-action@v0.2.0
+        env:
+          client_id: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
+          client_secret: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
+          environment: dev
+          username: dev-k6-cicd-tests-acct-8255
+          css_api_url: http://localhost:8080/api/v1
+        with:
+          filename: ./lambda/css-api/k6-tests/smoke-tests/smoke-tests.js
