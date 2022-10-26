@@ -48,9 +48,14 @@ jobs:
         run: make server_install
 
       - name: Setup postgres
+        env:
+          PGUSER: postgres
         run: |
           pg_ctl start
-          make local_db
+          createdb runner || true
+          chmod +x ./.bin/db-setup.sh
+          ./.bin/db-setup.sh
+          yarn --cwd ./localserver migrate-db
 
       - name: Load Test Data
         run: |
