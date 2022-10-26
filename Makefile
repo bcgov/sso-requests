@@ -7,7 +7,7 @@ app_install:
 .PHONY: setup_env
 setup_env:
 	@cd app; cp .env.example .env
-	@cd localserver; cp nodemon.example.json nodemon.json
+	@cd localserver; cp .env.example .env
 
 .PHONY: app_test
 app_test:

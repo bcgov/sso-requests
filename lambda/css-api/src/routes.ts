@@ -1,4 +1,5 @@
 import { Auth, authenticate } from './authenticate';
+import isString from 'lodash.isstring';
 import { wakeUpAll } from './controllers/heartbeat-controller';
 import { IntegrationController } from './controllers/integration-controller';
 import { RoleController } from './controllers/role-controller';
@@ -10,15 +11,21 @@ import { isEmpty } from 'lodash';
 import createHttpError from 'http-errors';
 import { UserController } from './controllers/user-controller';
 
-const responseHeaders = {
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
+const tryJSON = (str) => {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return str;
+  }
 };
 
-const BASE_PATH = '/api/v1';
-
 const handleError = (res, err) => {
-  res.status(err.status || 422).json({ message: err.message || err });
+  let message = err.message || err;
+  if (isString(message)) {
+    message = tryJSON(message);
+  }
+  console.log({ success: false, message });
+  res.status(err.status || 422).json({ message });
 };
 
 const integrationController = container.resolve(IntegrationController);
@@ -28,16 +35,11 @@ const tokenController = container.resolve(TokenController);
 const userController = container.resolve(UserController);
 
 export const setRoutes = (app: any) => {
-  app.use((req, res, next) => {
-    res.set(responseHeaders);
-    if (next) next();
-  });
-
   app.options('(.*)', async (req, res) => {
     res.status(200).json(null);
   });
 
-  app.get(`${BASE_PATH}/heartbeat`, async (req, res) => {
+  app.get(`/heartbeat`, async (req, res) => {
     //#swagger.ignore = true
     try {
       const result = await wakeUpAll();
@@ -47,7 +49,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/token`, async (req, res) => {
+  app.post(`/token`, async (req, res) => {
     //#swagger.ignore = true
     try {
       const result = await tokenController.getToken(req.headers, req.body);
@@ -68,7 +70,7 @@ export const setRoutes = (app: any) => {
     if (next) next();
   });
 
-  app.get(`${BASE_PATH}/verify-token`, async (req, res) => {
+  app.get(`/verify-token`, async (req, res) => {
     //#swagger.ignore = true
     try {
       res.status(200).json({ teamId: req.teamId });
@@ -77,7 +79,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations`, async (req, res) => {
+  app.get(`/integrations`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Integrations']
       #swagger.path = '/integrations'
@@ -102,7 +104,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId`, async (req, res) => {
+  app.get(`/integrations/:integrationId`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Integrations']
       #swagger.path = '/integrations/{integrationId}'
@@ -139,7 +141,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+  app.get(`/integrations/:integrationId/:environment/roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles'
@@ -178,7 +180,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
+  app.get(`/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
@@ -227,7 +229,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+  app.post(`/integrations/:integrationId/:environment/roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles'
@@ -278,7 +280,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
+  app.put(`/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
@@ -343,7 +345,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.delete(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
+  app.delete(`/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
@@ -391,7 +393,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles`, async (req, res) => {
+  app.get(`/integrations/:integrationId/:environment/roles/:roleName/composite-roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles'
@@ -449,7 +451,7 @@ export const setRoutes = (app: any) => {
   });
 
   app.get(
-    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
+    `/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
     async (req, res) => {
       /*#swagger.auto = false
       #swagger.tags = ['Roles']
@@ -523,10 +525,8 @@ export const setRoutes = (app: any) => {
     },
   );
 
-  app.post(
-    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles`,
-    async (req, res) => {
-      /*#swagger.auto = false
+  app.post(`/integrations/:integrationId/:environment/roles/:roleName/composite-roles`, async (req, res) => {
+    /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles'
       #swagger.method = 'post'
@@ -580,19 +580,18 @@ export const setRoutes = (app: any) => {
         schema: {message: 'string'}
       }
     */
-      try {
-        if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
-        const { integrationId, environment, roleName } = req.params;
-        const result = await roleController.createComposite(req.teamId, integrationId, roleName, environment, req.body);
-        res.status(200).json(result);
-      } catch (err) {
-        handleError(res, err);
-      }
-    },
-  );
+    try {
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      const { integrationId, environment, roleName } = req.params;
+      const result = await roleController.createComposite(req.teamId, integrationId, roleName, environment, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
 
   app.delete(
-    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
+    `/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
     async (req, res) => {
       /*#swagger.auto = false
       #swagger.tags = ['Roles']
@@ -656,7 +655,7 @@ export const setRoutes = (app: any) => {
     },
   );
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
+  app.get(`/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
@@ -712,7 +711,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
+  app.post(`/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
@@ -766,7 +765,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/idir/users`, async (req, res) => {
+  app.get(`/:environment/idir/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/idir/users'
@@ -823,7 +822,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/azure-idir/users`, async (req, res) => {
+  app.get(`/:environment/azure-idir/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/azure-idir/users'
@@ -890,7 +889,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/github-bcgov/users`, async (req, res) => {
+  app.get(`/:environment/github-bcgov/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/github-bcgov/users'
@@ -957,7 +956,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/basic-bceid/users`, async (req, res) => {
+  app.get(`/:environment/basic-bceid/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/basic-bceid/users'
@@ -1010,7 +1009,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/business-bceid/users`, async (req, res) => {
+  app.get(`/:environment/business-bceid/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/business-bceid/users'
@@ -1063,7 +1062,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/basic-business-bceid/users`, async (req, res) => {
+  app.get(`/:environment/basic-business-bceid/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/basic-business-bceid/users'

@@ -3,59 +3,73 @@ name: Run K6 Tests
 on:
   push:
     branches:
-      - dev
-    paths:
-      - 'lambda/**'
+      - feature/k6-cicd
 
 jobs:
   k6-tests:
     name: K6 Tests
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
+    runs-on: ubuntu-20.04
     steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v2.3.1
+      - uses: hmarr/debug-action@v2
+      - uses: actions/checkout@v3
 
-      - name: Setup Postgres
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - name: Cache Node dependencies
+        uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
+
+      - name: Install asdf
+        uses: asdf-vm/actions/setup@v1
+      - name: Cache asdf tools
+        uses: actions/cache@v3
+        with:
+          path: |
+            /home/runner/.asdf
+          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
+
+      - name: Install required tools
         run: |
-          chmod +x ./db-setup.sh
-          ./db-setup.sh ssorequests
-        working-directory: ./.bin
+          sudo apt install uuid uuid-dev
+          cat .tool-versions | cut -f 1 -d ' ' | xargs -n 1 asdf plugin-add || true
+          asdf plugin-update --all
+          asdf install
+          asdf reshim
+
+      - name: Install dependencies for frontend
+        run: make app_install
+
+      - name: Install dependencies for backend
+        run: make server_install
+
+      - name: Setup postgres
+        run: |
+          pg_ctl start
+          make local_db
 
       - name: Load Test Data
         run: |
           psql -d postgresql://localhost:5432/ssorequests -f init.sql
-        working-directory: ./lambda/css-api/k6-tests/smoke-tests
+        working-directory: ./lambda/css-api/k6-tests/.cicd
 
-      - name: Install Dependencies for Frontend
-        run: make app_install
-
-      - name: Install Dependencies for Backend
-        run: make server_install
-
-      - name: Start Local Server
-        run: |
-          make server
-
-      - name: Run Smoke Tests
-        uses: grafana/k6-action@v0.2.0
+      - name: Run CSS APP
         env:
-          client_id: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
-          client_secret: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
-          environment: dev
-          username: dev-k6-cicd-tests-acct-8255
-          css_api_url: http://localhost:8080/api/v1
-        with:
-          filename: ./lambda/css-api/k6-tests/smoke-tests/smoke-tests.js
+          KEYCLOAK_V2_DEV_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
+          KEYCLOAK_V2_TEST_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
+        run: nohup make server
+
+      # - name: Run Smoke Tests
+      #   uses: grafana/k6-action@v0.2.0
+      #   env:
+      #     client_id: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
+      #     client_secret: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
+      #     environment: dev
+      #     username: dev-k6-cicd-tests-acct-8255
+      #     css_api_url: http://localhost:8080/api/v1
+      #   with:
+      #     filename: ./lambda/css-api/k6-tests/smoke-tests/smoke-tests.js
