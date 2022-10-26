@@ -58,7 +58,10 @@ jobs:
           yarn --cwd ./localserver migrate-db
 
       - name: Load Test Data
+        env:
+          PGUSER: postgres
         run: |
+          createdb runner || true
           psql -d postgresql://localhost:5432/ssorequests -f init.sql
         working-directory: ./lambda/css-api/k6-tests/.cicd
 
