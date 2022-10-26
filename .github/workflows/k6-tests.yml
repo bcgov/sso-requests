@@ -69,7 +69,8 @@ jobs:
         env:
           KEYCLOAK_V2_DEV_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
           KEYCLOAK_V2_TEST_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
-        run: nohup make server
+        run: yarn dev &
+        working-directory: ./localserver
 
       # - name: Run Smoke Tests
       #   uses: grafana/k6-action@v0.2.0
