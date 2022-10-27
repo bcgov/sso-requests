@@ -56,7 +56,13 @@ jobs:
           createdb runner || true
           chmod +x ./.bin/db-setup.sh
           ./.bin/db-setup.sh
-          yarn --cwd ./localserver migrate-db & psql -d postgresql://localhost:5432/ssorequests -f ./lambda/css-api/k6-tests/.cicd/init.sql
+          yarn --cwd ./localserver migrate-db
+
+      - name: Load Test Data
+        env:
+          PGUSER: postgres
+        run: psql -d postgresql://localhost:5432/ssorequests -f init.sql
+        working-directory: ./lambda/css-api/k6-tests/.cicd
 
       - name: Run CSS API
         env:
