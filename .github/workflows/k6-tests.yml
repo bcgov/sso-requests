@@ -1,8 +1,9 @@
-name: Run K6 Tests
+name: Run K6 Tests for CSS API
 
 on:
   push:
     branches:
+      - dev
       - feature/k6-cicd
 
 jobs:
@@ -55,15 +56,7 @@ jobs:
           createdb runner || true
           chmod +x ./.bin/db-setup.sh
           ./.bin/db-setup.sh
-          yarn --cwd ./localserver migrate-db
-
-      - name: Load Test Data
-        env:
-          PGUSER: postgres
-        run: |
-          createdb runner || true
-          psql -d postgresql://localhost:5432/ssorequests -f init.sql
-        working-directory: ./lambda/css-api/k6-tests/.cicd
+          yarn --cwd ./localserver migrate-db & psql -d postgresql://localhost:5432/ssorequests -f ./lambda/css-api/k6-tests/.cicd/init.sql
 
       - name: Run CSS API
         env:
