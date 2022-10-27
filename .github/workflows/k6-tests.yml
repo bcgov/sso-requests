@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - dev
-      - feature/k6-cicd
+    paths:
+      - 'lambda/css-api/**'
 
 jobs:
   k6-tests:
@@ -83,7 +84,7 @@ jobs:
           K6_ENVIRONMENT: dev
           K6_USERNAME: osz5ls7vfd4wmuhaq661j2imez1finc5@idir
           K6_CSS_API_URL: http://localhost:8080/api/v1
-        run: k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL smoke-tests.js --http-debug="full"
+        run: k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL smoke-tests.js
         working-directory: ./lambda/css-api/k6-tests/smoke-tests
 
       - name: Cleanup Test Data
