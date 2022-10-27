@@ -27,7 +27,11 @@ const SLEEP_DURATION = 0.1;
 const TOKEN_URL =
   'https://sso-keycloak-6-b861c7-test.apps.silver.devops.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token';
 
-let integrationId;
+export const options = {
+  thresholds: {
+    checks: ['rate>=1'],
+  },
+};
 
 export function setup() {
   const encodedCredentials = encoding.b64encode(`${__ENV.client_id}:${__ENV.client_secret}`);
@@ -62,17 +66,17 @@ export default function (data) {
     fail('ERROR: No token available from setup step.');
   }
 
-  const options = {
+  const reqOptions = {
     headers: {
       Authorization: `Bearer ${data.token}`,
       'Content-Type': 'application/json',
     },
   };
 
-  testIntegrations(options);
-  testRoles(options);
-  testUserRoleMapping(options);
-  testUsers(options);
+  testIntegrations(reqOptions);
+  testRoles(reqOptions);
+  testUserRoleMapping(reqOptions);
+  testUsers(reqOptions);
 }
 
 export function handleSummary(data) {
