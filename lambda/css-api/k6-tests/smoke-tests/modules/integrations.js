@@ -2,7 +2,7 @@ import { group, check, sleep, fail } from 'k6';
 import http from 'k6/http';
 
 const SLEEP_DURATION = 0.1;
-let integrationId = 2;
+let integrationId;
 
 export function testIntegrations(options) {
   group('GET list of integrations', () => {
@@ -53,6 +53,7 @@ export function testIntegrations(options) {
       check(response, {
         'should return 400 when passed arbitrary query params': (r) => r.status === 400,
       });
+      sleep(SLEEP_DURATION);
     }
   });
 

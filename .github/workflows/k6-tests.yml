@@ -65,7 +65,7 @@ jobs:
           psql -d postgresql://localhost:5432/ssorequests -f init.sql
         working-directory: ./lambda/css-api/k6-tests/.cicd
 
-      - name: Run CSS APP
+      - name: Run CSS API
         env:
           KEYCLOAK_V2_DEV_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
           KEYCLOAK_V2_TEST_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}

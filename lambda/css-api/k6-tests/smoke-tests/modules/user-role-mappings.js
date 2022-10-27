@@ -2,9 +2,26 @@ import { group, check, sleep, fail } from 'k6';
 import http from 'k6/http';
 
 const SLEEP_DURATION = 0.1;
-let integrationId = 2;
+let integrationId;
 
 export function testUserRoleMapping(options) {
+  group('GET integration Id', () => {
+    {
+      const url = __ENV.css_api_url + `/integrations`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return count of integrations greater than zero': (r) => r.json().data.length > 0,
+      });
+
+      integrationId = response.json().data[0].id;
+
+      sleep(SLEEP_DURATION);
+    }
+  });
   group('setup', () => {
     {
       // create a role
@@ -29,6 +46,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 400 when arbitrary query params passed': (r) => r.status === 400,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -43,6 +62,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 400 when invalid payload passed': (r) => r.status === 400,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -57,6 +78,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 400 when invalid operation passed': (r) => r.status === 400,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -71,6 +94,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 404 when non-existent role name passed': (r) => r.status === 404,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -85,6 +110,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 404 when non-existent username passed': (r) => r.status === 404,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -101,6 +128,8 @@ export function testUserRoleMapping(options) {
         'return role name': (r) => r.json().roles.find((role) => role.name === 'role-mapping'),
         'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
       });
+
+      sleep(SLEEP_DURATION);
     }
   });
 
@@ -227,6 +256,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 400 when arbitrary query params passed': (r) => r.status === 400,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -241,6 +272,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 404 when non-existent role name passed': (r) => r.status === 404,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -255,6 +288,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 404 when non-existent username passed': (r) => r.status === 404,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -269,6 +304,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 400 when invalid payload passed': (r) => r.status === 400,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -283,6 +320,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 400 when invalid operation passed': (r) => r.status === 400,
       });
+
+      sleep(SLEEP_DURATION);
     }
 
     {
@@ -297,6 +336,8 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 204 when success': (r) => r.status === 204,
       });
+
+      sleep(SLEEP_DURATION);
     }
   });
 

@@ -2,9 +2,26 @@ import { group, check, sleep, fail } from 'k6';
 import http from 'k6/http';
 
 const SLEEP_DURATION = 0.1;
-let integrationId = 2;
+let integrationId;
 
 export function testRoles(options) {
+  group('GET integration Id', () => {
+    {
+      const url = __ENV.css_api_url + `/integrations`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return count of integrations greater than zero': (r) => r.json().data.length > 0,
+      });
+
+      integrationId = response.json().data[0].id;
+
+      sleep(SLEEP_DURATION);
+    }
+  });
   group('POST role', () => {
     {
       const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles?param1=1&param2=2`;
@@ -287,6 +304,8 @@ export function testRoles(options) {
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       http.post(url, JSON.stringify(body), requestOptions);
+
+      sleep(SLEEP_DURATION);
     }
     {
       const url =
