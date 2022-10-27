@@ -75,7 +75,7 @@ jobs:
           K6_USERNAME: dev-k6-cicd-tests-acct-8255
           K6_CSS_API_URL: http://localhost:8080/api/v1
         run: |
-          cp ./localserver/.env.example ./localserver/.env
+          cp .env.example .env
           yarn dev &
         working-directory: ./localserver
 
