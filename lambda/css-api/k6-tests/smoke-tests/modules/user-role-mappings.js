@@ -2,12 +2,13 @@ import { group, check, sleep, fail } from 'k6';
 import http from 'k6/http';
 
 const SLEEP_DURATION = 0.1;
+let integrationId = 2;
 
 export function testUserRoleMapping(options) {
   group('setup', () => {
     {
       // create a role
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const body = { name: 'role-mapping' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -16,7 +17,8 @@ export function testUserRoleMapping(options) {
   });
   group('POST user role mapping', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       const body = { roleName: 'role-mapping', username: __ENV.username, operation: 'add' };
@@ -30,7 +32,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       const body = {};
@@ -44,7 +46,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       const body = { roleName: 'role-mapping', username: __ENV.username, operation: 'invalid_operation' };
@@ -58,7 +60,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       const body = { roleName: 'nonexistentrole', username: __ENV.username, operation: 'add' };
@@ -72,7 +74,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       const body = { roleName: 'role-mapping', username: 'nonexistentuser', operation: 'add' };
@@ -86,7 +88,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       const body = { roleName: 'role-mapping', username: __ENV.username, operation: 'add' };
@@ -104,7 +106,7 @@ export function testUserRoleMapping(options) {
 
   group('GET user role mappings', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -117,7 +119,8 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -130,7 +133,8 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=somerole`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=somerole`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -144,7 +148,8 @@ export function testUserRoleMapping(options) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role-mapping`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role-mapping`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -160,7 +165,8 @@ export function testUserRoleMapping(options) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?username=nonexistentuser`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?username=nonexistentuser`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -174,7 +180,8 @@ export function testUserRoleMapping(options) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?username=${__ENV.username}`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?username=${__ENV.username}`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -190,7 +197,7 @@ export function testUserRoleMapping(options) {
 
     {
       const url =
-        BASE_URL +
+        __ENV.css_api_url +
         `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role-mapping&username=${__ENV.username}`;
       const response = http.get(url, options);
 
@@ -208,7 +215,8 @@ export function testUserRoleMapping(options) {
 
   group('DELETE role mapping', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?param1=1&param2=2`;
       const body = { roleName: 'role-mapping', username: __ENV.username, operation: 'del' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -222,7 +230,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const body = { roleName: 'role-mapping00000', username: __ENV.username, operation: 'del' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -236,7 +244,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const body = { roleName: 'role-mapping', username: 'nonexistentuser', operation: 'del' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -250,7 +258,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const body = {};
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -264,7 +272,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const body = { roleName: 'role-mapping', username: __ENV.username, operation: 'unknown' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -278,7 +286,7 @@ export function testUserRoleMapping(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
       const body = { roleName: 'role-mapping', username: __ENV.username, operation: 'del' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -295,7 +303,7 @@ export function testUserRoleMapping(options) {
   group('cleanup', () => {
     {
       // delete role
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role-mapping`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role-mapping`;
       http.del(url, null, options);
     }
   });

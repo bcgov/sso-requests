@@ -19,7 +19,6 @@ import { testRoles } from './modules/roles.js';
 import { testUserRoleMapping } from './modules/user-role-mappings.js';
 import { testUsers } from './modules/users.js';
 
-const BASE_URL = __ENV.css_api_url;
 // Sleep duration between successive requests.
 // You might want to edit the value of this variable or remove calls to the sleep function on the script.
 const SLEEP_DURATION = 0.1;

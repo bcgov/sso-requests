@@ -2,11 +2,12 @@ import { group, check, sleep, fail } from 'k6';
 import http from 'k6/http';
 
 const SLEEP_DURATION = 0.1;
+let integrationId = 2;
 
 export function testIntegrations(options) {
   group('GET list of integrations', () => {
     {
-      const url = BASE_URL + `/integrations`;
+      const url = __ENV.css_api_url + `/integrations`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -44,7 +45,7 @@ export function testIntegrations(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations?param=1&param=2`;
+      const url = __ENV.css_api_url + `/integrations?param=1&param=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -57,7 +58,7 @@ export function testIntegrations(options) {
 
   group('GET integration by id', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}`;
 
       const response = http.get(url, options);
 
@@ -91,7 +92,7 @@ export function testIntegrations(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}?param=1&param=2`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}?param=1&param=2`;
 
       const response = http.get(url, options);
 
@@ -105,7 +106,7 @@ export function testIntegrations(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/10000000`;
+      const url = __ENV.css_api_url + `/integrations/10000000`;
 
       const response = http.get(url, options);
 
