@@ -110,12 +110,12 @@ describe('Feature: New Integration (service account) Approved - User notificatio
   const integration = new Integration();
 
   it('should create a DRAFT integration without a team', async () => {
-    const res = await integration.create({});
+    const res = await integration.create({ authType: 'service-account' });
     expect(res.statusCode).toEqual(200);
   });
 
   it('should submit the integration request', async () => {
-    const res = await integration.submit({ authType: 'service-account' });
+    const res = await integration.submit();
     expect(res.statusCode).toEqual(200);
   });
 

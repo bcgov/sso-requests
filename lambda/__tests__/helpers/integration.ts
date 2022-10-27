@@ -43,7 +43,14 @@ export class Integration {
   teamUsers: any[];
   firstTeamMember: any;
 
-  async create(args: { bceid?: boolean; github?: boolean; prod?: boolean; usesTeam?: boolean; serviceType?: string }) {
+  async create(args: {
+    bceid?: boolean;
+    github?: boolean;
+    prod?: boolean;
+    usesTeam?: boolean;
+    serviceType?: string;
+    authType?: string;
+  }) {
     const { bceid = false, github = false, prod = false, usesTeam = false } = args;
 
     if (usesTeam) await this.createTeam();
@@ -65,6 +72,7 @@ export class Integration {
       testValidRedirectUris: ['https://a'],
       prodValidRedirectUris: prod ? ['https://a'] : [],
       agreeWithTerms: true,
+      authType: args.authType,
     };
 
     const event: APIGatewayProxyEvent = {
@@ -136,10 +144,9 @@ export class Integration {
     return { statusCode, data: JSON.parse(body) };
   }
 
-  async submit(extraProp = {}) {
+  async submit() {
     if (this.current.usesTeam) this.current.teamId = String(this.current.teamId);
 
-    assign(this.current, extraProp);
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: `${baseUrl}/requests`,
