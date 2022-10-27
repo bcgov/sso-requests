@@ -73,12 +73,11 @@ jobs:
         working-directory: ./localserver
 
       - name: Run Smoke Tests
-        uses: grafana/k6-action@v0.2.0
         env:
-          client_id: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
-          client_secret: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
-          environment: dev
-          username: dev-k6-cicd-tests-acct-8255
-          css_api_url: http://localhost:8080/api/v1
-        with:
-          filename: ./lambda/css-api/k6-tests/smoke-tests/smoke-tests.js
+          K6_CLIENT_ID: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
+          K6_CLIENT_SECRET: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
+          K6_ENVIRONMENT: dev
+          K6_USERNAME: dev-k6-cicd-tests-acct-8255
+          K6_CSS_API_URL: http://localhost:8080/api/v1
+        run: k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL smoke-tests.js
+        working-directory: ./lambda/css-api/k6-tests/smoke-tests
