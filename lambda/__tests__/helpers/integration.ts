@@ -4,6 +4,7 @@ import { handler as appHandler } from '@lambda-app/main';
 import { getMembersOnTeam } from '@lambda-app/queries/team';
 import { handler as actionsHandler } from '@lambda-actions/main';
 import baseEvent from '../base-event.json';
+import assign from 'lodash.assign';
 
 const { path: baseUrl } = baseEvent;
 const actionsBaseUrl = '/actions';
@@ -135,9 +136,10 @@ export class Integration {
     return { statusCode, data: JSON.parse(body) };
   }
 
-  async submit() {
+  async submit(extraProp = {}) {
     if (this.current.usesTeam) this.current.teamId = String(this.current.teamId);
 
+    assign(this.current, extraProp);
     const event: APIGatewayProxyEvent = {
       ...baseEvent,
       path: `${baseUrl}/requests`,
