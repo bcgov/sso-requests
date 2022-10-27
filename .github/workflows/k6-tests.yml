@@ -1,0 +1,100 @@
+name: Run K6 Tests for CSS API
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'lambda/css-api/**'
+
+jobs:
+  k6-tests:
+    name: K6 Tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: hmarr/debug-action@v2
+      - uses: actions/checkout@v3
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - name: Cache Node dependencies
+        uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
+
+      - name: Install asdf
+        uses: asdf-vm/actions/setup@v1
+      - name: Cache asdf tools
+        uses: actions/cache@v3
+        with:
+          path: |
+            /home/runner/.asdf
+          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
+
+      - name: Install required tools
+        run: |
+          sudo apt install uuid uuid-dev
+          cat .tool-versions | cut -f 1 -d ' ' | xargs -n 1 asdf plugin-add || true
+          asdf plugin-update --all
+          asdf install
+          asdf reshim
+
+      - name: Install dependencies for frontend
+        run: make app_install
+
+      - name: Install dependencies for backend
+        run: make server_install
+
+      - name: Setup postgres
+        env:
+          PGUSER: postgres
+        run: |
+          pg_ctl start
+          createdb runner || true
+          chmod +x ./.bin/db-setup.sh
+          ./.bin/db-setup.sh
+          yarn --cwd ./localserver migrate-db
+
+      - name: Load Test Data
+        run: psql -h localhost -d ssorequests -U postgres -p 5432 -a -q -f init.sql
+        working-directory: ./lambda/css-api/k6-tests/.cicd
+
+      - name: Run CSS API
+        env:
+          KEYCLOAK_V2_DEV_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
+          KEYCLOAK_V2_TEST_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
+          K6_CLIENT_ID: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
+          K6_CLIENT_SECRET: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
+          K6_ENVIRONMENT: dev
+          K6_USERNAME: dev-k6-cicd-tests-acct-8255
+          K6_CSS_API_URL: http://localhost:8080/api/v1
+        run: |
+          cp .env.example .env
+          yarn dev &
+        working-directory: ./localserver
+
+      - name: Run Smoke Tests
+        env:
+          K6_CLIENT_ID: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
+          K6_CLIENT_SECRET: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
+          K6_ENVIRONMENT: dev
+          K6_USERNAME: osz5ls7vfd4wmuhaq661j2imez1finc5@idir
+          K6_CSS_API_URL: http://localhost:8080/api/v1
+        run: k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL smoke-tests.js
+        working-directory: ./lambda/css-api/k6-tests/smoke-tests
+
+      - name: Cleanup Test Data
+        if: always()
+        env:
+          K6_CLIENT_ID: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
+          K6_CLIENT_SECRET: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
+          K6_ENVIRONMENT: dev
+          K6_CSS_API_URL: http://localhost:8080/api/v1
+        run: |
+          chmod +x ./cleanup.sh
+          ./cleanup.sh
+        working-directory: ./lambda/css-api/k6-tests

@@ -28,7 +28,7 @@ export class UserRoleMappingService {
     let users = [];
     let roles = [];
 
-    const int = this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, teamId);
 
     if (query?.roleName) {
       roles = await listClientRoles(int as Integration, { environment });

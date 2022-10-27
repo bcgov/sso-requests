@@ -429,9 +429,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -448,9 +453,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -467,9 +477,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -483,9 +498,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -499,9 +519,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }
@@ -515,9 +540,14 @@ export default function (data) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      check(response, {
+      let passed = check(response, {
         'should return 200 when success': (r) => r.status === 200,
       });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
 
       sleep(SLEEP_DURATION);
     }

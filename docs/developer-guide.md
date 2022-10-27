@@ -50,21 +50,23 @@ _**Note:** The defaults will get you up and running, but actual credentials are 
 
 - Start the local `postgres` server (`pg_ctl start` if you installed it with `asdf`)
 - Generate initial database schemas, fields, functions and related objects.
+
   ```sh
-   make local_db
+  make local_db
   ```
 
 _**Note:** If the script has logged `migration done` but won't close, you can exit with `ctrl + c`._
 
 - Start the server
 
-```sh
-make server
-```
+  ```sh
+  make server
+  ```
 
 - In another terminal, start the app
+
   ```sh
-   make app
+  make app
   ```
 
 ### Run in Docker Containers
@@ -77,8 +79,7 @@ make server
 
 - Run `make setup_env` from the root directory to generate,
 
-  - `.env` file under `./app` folder
-  - `nodemon.json` file under `./localserver`
+  - `.env` file under `./app` and `./localserver` folders
 
 - To build and start the containers (postgres, next app and backend app)
   ```bash

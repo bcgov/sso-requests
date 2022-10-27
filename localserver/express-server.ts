@@ -15,7 +15,8 @@ interface Props {
 const initExpresss = async () => {
   const expressServer = express();
   const appRouter = express.Router();
-  const otherRouter = express.Router();
+  const actionsRouter = express.Router();
+  const apiRouter = express.Router();
 
   expressServer.use(logger);
   expressServer.use(bodyParser.json());
@@ -26,10 +27,11 @@ const initExpresss = async () => {
   expressServer.set('trust proxy', 1);
 
   setRoutes(appRouter);
-  actionRoutes.setRoutes(otherRouter);
-  apiRoutes.setRoutes(otherRouter);
+  actionRoutes.setRoutes(actionsRouter);
+  apiRoutes.setRoutes(apiRouter);
   expressServer.use('/app', appRouter);
-  expressServer.use('/', otherRouter);
+  expressServer.use('/actions', actionsRouter);
+  expressServer.use('/api/v1', apiRouter);
   return expressServer;
 };
 
