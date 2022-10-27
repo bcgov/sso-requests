@@ -21,6 +21,7 @@ import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
+import omit from 'lodash.omit';
 
 const Label = styled.label`
   font-weight: bold;
@@ -99,8 +100,8 @@ const PAGE_LIMIT = 15;
 const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
 
 const propertyOptions = [
-  { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir', 'githubpublic', 'githubbcgov'] },
-  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir', 'githubpublic', 'githubbcgov'] },
+  { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir'] },
+  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir'] },
   { value: 'email', label: 'Email', allowed: ['idir', 'azureidir', 'githubpublic', 'githubbcgov'] },
   {
     value: 'guid',
@@ -306,6 +307,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }
 
   const showIdirLookupOption = selectedIdp === 'idir';
+  const isGithubUser = selectedIdp.startsWith('github');
 
   let content = null;
   if (!searched) {
@@ -318,6 +320,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     );
   } else if (rows.length > 0) {
     content = rows.map((row: KeycloakUser) => {
+      if (isGithubUser) {
+        row = omit(row, ['firstName', 'lastName']);
+      }
+
       return (
         <tr
           key={row.username}
