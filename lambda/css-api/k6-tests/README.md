@@ -31,5 +31,5 @@ k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environm
 ```sh
 # update options in the script to manage VUs and Iterations
 # remove --http-debug="full" option to hide the logs
-k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME load-tests.js --http-debug="full"
+k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL load-tests.js --http-debug="full"
 ```

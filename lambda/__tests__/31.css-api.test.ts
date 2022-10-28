@@ -326,9 +326,25 @@ describe('create team and gold integration', () => {
     expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
   });
 
-  it('get users associated with github', async () => {
+  it('get users associated with github bcgov', async () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/github-bcgov/users`)
+      .query({
+        firstName: searchUsersByIdp[0].firstName,
+        lastName: searchUsersByIdp[0].lastName,
+        email: searchUsersByIdp[0].email,
+        guid: searchUsersByIdp[0].username.split('@')[0],
+      })
+      .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+  });
+
+  it('get users associated with github public', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/dev/github-public/users`)
       .query({
         firstName: searchUsersByIdp[0].firstName,
         lastName: searchUsersByIdp[0].lastName,

@@ -6,6 +6,9 @@ on:
       - dev
     paths:
       - 'lambda/css-api/**'
+  pull_request:
+    paths:
+      - 'lambda/css-api/**'
 
 jobs:
   k6-tests:

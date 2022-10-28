@@ -11,7 +11,7 @@ import { isEmpty } from 'lodash';
 import createHttpError from 'http-errors';
 import { UserController } from './controllers/user-controller';
 
-const tryJSON = (str) => {
+const tryJSON = (str: string) => {
   try {
     return JSON.parse(str);
   } catch {
@@ -24,7 +24,6 @@ const handleError = (res, err) => {
   if (isString(message)) {
     message = tryJSON(message);
   }
-  console.log({ success: false, message });
   res.status(err.status || 422).json({ message });
 };
 
@@ -815,7 +814,7 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listCommonUsers(environment, 'idir', req.query);
+      const result = await userController.listUsers(environment, 'idir', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -882,7 +881,7 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listCommonUsers(environment, 'azureidir', req.query);
+      const result = await userController.listUsers(environment, 'azureidir', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -894,8 +893,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/github-bcgov/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for GitHub by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
-      #swagger.summary = 'Get list of users for GitHub by query'
+      #swagger.description = 'Get list of users for GitHub bcgov by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
+      #swagger.summary = 'Get list of users for GitHub bcgov by query'
 
       #swagger.parameters['environment'] = {
         in: 'path',
@@ -929,8 +928,8 @@ export const setRoutes = (app: any) => {
             data: [
             {
               username: '08fe81112408411081ea011cf0ec945d@githubbcgov',
-              email: 'github.user@gov.bc.ca',
-              firstName: 'GitHub',
+              email: 'github-bcgov.user@gov.bc.ca',
+              firstName: 'GitHub Bcgov',
               lastName: 'User',
               attribues: { $ref: '#/components/schemas/userAttributes' },
             }
@@ -949,7 +948,74 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listCommonUsers(environment, 'githubbcgov', req.query);
+      const result = await userController.listUsers(environment, 'githubbcgov', req.query);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/:environment/github-public/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/{environment}/github-public/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of users for GitHub public by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
+      #swagger.summary = 'Get list of users for GitHub public by query'
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['firstName'] = {
+        in: 'query',
+        description: 'First Name',
+        example: 'Julius'
+      }
+      #swagger.parameters['lastName'] = {
+        in: 'query',
+        description: 'Last Name',
+        example: 'Caesar'
+      }
+      #swagger.parameters['email'] = {
+        in: 'query',
+        description: 'Email',
+        example: 'julius.caesar@email.com'
+      }
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: {
+            data: [
+            {
+              username: '08fe81112408411081ea011cf0ec945d@githubpublic',
+              email: 'github-public.user@gov.bc.ca',
+              firstName: 'GitHub Public',
+              lastName: 'User',
+              attribues: { $ref: '#/components/schemas/userAttributes' },
+            }
+          ]
+        }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { environment } = req.params;
+      const result = await userController.listUsers(environment, 'githubpublic', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -1002,7 +1068,7 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listBceidUsers(environment, 'bceidbasic', req.query);
+      const result = await userController.listUsers(environment, 'bceidbasic', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -1055,7 +1121,7 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listBceidUsers(environment, 'bceidbusiness', req.query);
+      const result = await userController.listUsers(environment, 'bceidbusiness', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -1108,7 +1174,7 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listBceidUsers(environment, 'bceidboth', req.query);
+      const result = await userController.listUsers(environment, 'bceidboth', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
