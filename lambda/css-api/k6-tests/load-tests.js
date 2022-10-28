@@ -7,7 +7,7 @@ import { URL } from 'https://jslib.k6.io/url/1.0.0/index.js';
 
 let errors_metrics = new Counter('testing_errors');
 
-const BASE_URL = 'http://localhost:8080/api/v1';
+const BASE_URL = __ENV.css_api_url;
 // Sleep duration between successive requests.
 // You might want to edit the value of this variable or remove calls to the sleep function on the script.
 const SLEEP_DURATION = 0.1;
@@ -466,9 +466,33 @@ export default function (data) {
     }
   });
 
-  group('GET users associated to GitHub', () => {
+  group('GET users associated to GitHub bcgov', () => {
     {
       const url = new URL(`${BASE_URL}/${__ENV.environment}/github-bcgov/users`);
+      url.searchParams.append('firstName', 'test');
+      url.searchParams.append('lastName', 'user');
+      url.searchParams.append('email', 'test.user@gov.bc.ca');
+      url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
+      const response = http.get(url.toString(), params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+      });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET users associated to GitHub public', () => {
+    {
+      const url = new URL(`${BASE_URL}/${__ENV.environment}/github-public/users`);
       url.searchParams.append('firstName', 'test');
       url.searchParams.append('lastName', 'user');
       url.searchParams.append('email', 'test.user@gov.bc.ca');
