@@ -74,6 +74,7 @@ export const updatePlannedItems = async (data) => {
       'id',
       'realm',
       'projectName',
+      'authType',
       'serviceType',
       'requester',
       'usesTeam',
