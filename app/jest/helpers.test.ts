@@ -16,6 +16,8 @@ describe('kecloak URIs', () => {
     expect(isValidKeycloakURIProd(' http:/')).toBe(false);
     expect(isValidKeycloakURIProd('http://a ')).toBe(false);
     expect(isValidKeycloakURIProd('http://a b')).toBe(false);
+    expect(isValidKeycloakURIProd('http://a#b')).toBe(false);
+    expect(isValidKeycloakURIProd('http://ab#')).toBe(false);
 
     expect(isValidKeycloakURIProd('a://b')).toBe(true);
     expect(isValidKeycloakURIProd('://b')).toBe(false);
