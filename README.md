@@ -1,5 +1,7 @@
 # sso-requests
 
+![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)
+
 The request process workflow tool for the RedHat SSO Dev Exchange service
 
 ## About
