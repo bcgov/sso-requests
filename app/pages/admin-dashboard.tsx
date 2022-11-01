@@ -213,12 +213,12 @@ export default function AdminDashboard({ session }: PageProps) {
                 },
               ]}
               headers={[
-                { name: 'Request ID' },
-                { name: 'Project Name' },
-                { name: 'Request Status' },
-                { name: 'File Status' },
-                { name: 'Service Type' },
-                { name: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
+                { label: 'Request ID' },
+                { label: 'Project Name' },
+                { label: 'Request Status' },
+                { label: 'File Status' },
+                { label: 'Service Type' },
+                { label: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
               ]}
               pagination={true}
               pageLimits={pageLimits}

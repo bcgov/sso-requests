@@ -23,7 +23,6 @@ import {
   manageUserRole,
   KeycloakUser,
 } from 'services/keycloak';
-import noop from 'lodash.noop';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 
 const Label = styled.label`
@@ -312,7 +311,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const leftPanel = (
     <ControlledTable
       rows={roles}
-      headers={[{ name: 'Request ID' }]}
+      headers={[{ label: 'Request ID' }]}
       showFilters={false}
       rowPlaceholder="No roles found."
     >
