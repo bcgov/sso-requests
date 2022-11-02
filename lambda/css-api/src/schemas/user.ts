@@ -77,18 +77,18 @@ const COMMON_USER_QUERY_REQ = {
 const GITHUB_USER_QUERY_REQ = {
   type: 'object',
   properties: {
-    firstName: {
+    name: {
       type: 'string',
       minLength: 2,
       errorMessage: {
-        _: 'firstName should be string with length >= 2',
+        _: 'name should be string with length >= 2',
       },
     },
-    lastName: {
+    loginid: {
       type: 'string',
       minLength: 2,
       errorMessage: {
-        _: 'lastName should be string with length >= 2',
+        _: 'login id should be string with length >= 2',
       },
     },
     email: {
@@ -109,20 +109,20 @@ const GITHUB_USER_QUERY_REQ = {
   additionalProperties: false,
   anyOf: [
     {
-      required: ['firstName'],
+      required: ['name'],
       errorMessage: {
         required: {
-          firstName: 'firstName is required',
+          name: 'name is required',
         },
       },
     },
     {
-      required: ['lastName'],
+      required: ['loginid'],
       errorMessage: {
         required: {
-          lastName: 'lastName is required',
+          loginid: 'loginid is required',
         },
-        minLength: 'lastName should be string with length >= 2',
+        minLength: 'loginid should be string with length >= 2',
       },
     },
     {
@@ -144,7 +144,7 @@ const GITHUB_USER_QUERY_REQ = {
     },
   ],
   errorMessage: {
-    additionalProperties: 'only firstName, lastName, email and guid are supported',
+    additionalProperties: 'only name, loginid, email and guid are supported',
   },
 };
 

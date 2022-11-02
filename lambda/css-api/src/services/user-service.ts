@@ -11,7 +11,7 @@ import { parseErrors } from '../util';
 
 @injectable()
 export class UserService {
-  public async getUsers(environment: string, idp: string, query: ListUsersFilterQuery) {
+  public async getUsers(environment: string, idp: string, query: any) {
     let valid;
     if (idp.startsWith('bceid')) {
       valid = findBceidUserQueryValidator(query || {});
@@ -19,6 +19,10 @@ export class UserService {
     } else if (idp.startsWith('github')) {
       valid = findGithubUserQueryValidator(query || {});
       if (!valid) throw new createHttpError[400](parseErrors(findGithubUserQueryValidator.errors));
+      query.firstName = query?.name;
+      delete query?.name;
+      query.lastName = query?.loginid;
+      delete query?.loginid;
     } else {
       valid = findCommonUserQueryValidator(query || {});
       if (!valid) throw new createHttpError[400](parseErrors(findCommonUserQueryValidator.errors));

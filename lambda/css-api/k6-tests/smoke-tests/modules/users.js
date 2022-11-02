@@ -239,7 +239,7 @@ export const testUsers = (options) => {
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/github-bcgov/users?firstName=a&lastName=a&email=a&guid=a`;
+      const url = __ENV.css_api_url + `/${__ENV.environment}/github-bcgov/users?name=a&loginid=a&email=a&guid=a`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -251,7 +251,7 @@ export const testUsers = (options) => {
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/github-bcgov/users?firstName=test`;
+      const url = __ENV.css_api_url + `/${__ENV.environment}/github-bcgov/users?name=test`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -263,7 +263,7 @@ export const testUsers = (options) => {
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/github-bcgov/users?lastName=user`;
+      const url = __ENV.css_api_url + `/${__ENV.environment}/github-bcgov/users?loginid=user`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -301,8 +301,8 @@ export const testUsers = (options) => {
     }
     {
       const url = new URL(`${__ENV.css_api_url}/${__ENV.environment}/github-bcgov/users`);
-      url.searchParams.append('firstName', 'test');
-      url.searchParams.append('lastName', 'user');
+      url.searchParams.append('name', 'test');
+      url.searchParams.append('loginid', 'user');
       url.searchParams.append('email', 'test.user@gov.bc.ca');
       url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
       const response = http.get(url.toString(), options);
@@ -343,7 +343,7 @@ export const testUsers = (options) => {
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/github-public/users?firstName=a&lastName=a&email=a&guid=a`;
+      const url = __ENV.css_api_url + `/${__ENV.environment}/github-public/users?name=a&loginid=a&email=a&guid=a`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -355,7 +355,7 @@ export const testUsers = (options) => {
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/github-public/users?firstName=test`;
+      const url = __ENV.css_api_url + `/${__ENV.environment}/github-public/users?name=test`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -367,7 +367,7 @@ export const testUsers = (options) => {
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/github-public/users?lastName=user`;
+      const url = __ENV.css_api_url + `/${__ENV.environment}/github-public/users?loginid=user`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -405,8 +405,8 @@ export const testUsers = (options) => {
     }
     {
       const url = new URL(`${__ENV.css_api_url}/${__ENV.environment}/github-public/users`);
-      url.searchParams.append('firstName', 'test');
-      url.searchParams.append('lastName', 'user');
+      url.searchParams.append('name', 'test');
+      url.searchParams.append('loginid', 'user');
       url.searchParams.append('email', 'test.user@gov.bc.ca');
       url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
       const response = http.get(url.toString(), options);

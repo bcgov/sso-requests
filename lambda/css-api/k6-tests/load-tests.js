@@ -469,8 +469,8 @@ export default function (data) {
   group('GET users associated to GitHub bcgov', () => {
     {
       const url = new URL(`${BASE_URL}/${__ENV.environment}/github-bcgov/users`);
-      url.searchParams.append('firstName', 'test');
-      url.searchParams.append('lastName', 'user');
+      url.searchParams.append('name', 'test');
+      url.searchParams.append('loginid', 'user');
       url.searchParams.append('email', 'test.user@gov.bc.ca');
       url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
       const response = http.get(url.toString(), params);
@@ -493,8 +493,8 @@ export default function (data) {
   group('GET users associated to GitHub public', () => {
     {
       const url = new URL(`${BASE_URL}/${__ENV.environment}/github-public/users`);
-      url.searchParams.append('firstName', 'test');
-      url.searchParams.append('lastName', 'user');
+      url.searchParams.append('name', 'test');
+      url.searchParams.append('loginid', 'user');
       url.searchParams.append('email', 'test.user@gov.bc.ca');
       url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
       const response = http.get(url.toString(), params);
