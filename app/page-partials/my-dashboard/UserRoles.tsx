@@ -104,7 +104,7 @@ const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) 
 const propertyOptions = [
   { value: 'firstName', label: 'Full Name', allowed: ['githubpublic', 'githubbcgov'], showInResult: true },
   { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir'], showInResult: true },
-  { value: 'lastName', label: 'Username', allowed: ['githubpublic', 'githubbcgov'], showInResult: true },
+  { value: 'lastName', label: 'Login ID', allowed: ['githubpublic', 'githubbcgov'], showInResult: true },
   {
     value: 'lastName',
     label: 'Last Name',
