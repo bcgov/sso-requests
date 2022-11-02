@@ -32,7 +32,3 @@ export type ListUsersFilterQuery = {
   email?: string;
   guid?: string;
 };
-
-export type ListBceidUsersQuery = {
-  guid: string;
-};

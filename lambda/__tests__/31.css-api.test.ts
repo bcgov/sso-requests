@@ -330,8 +330,8 @@ describe('create team and gold integration', () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/github-bcgov/users`)
       .query({
-        firstName: searchUsersByIdp[0].firstName,
-        lastName: searchUsersByIdp[0].lastName,
+        name: searchUsersByIdp[0].firstName,
+        loginid: searchUsersByIdp[0].lastName,
         email: searchUsersByIdp[0].email,
         guid: searchUsersByIdp[0].username.split('@')[0],
       })
@@ -346,8 +346,8 @@ describe('create team and gold integration', () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/github-public/users`)
       .query({
-        firstName: searchUsersByIdp[0].firstName,
-        lastName: searchUsersByIdp[0].lastName,
+        name: searchUsersByIdp[0].firstName,
+        loginid: searchUsersByIdp[0].lastName,
         email: searchUsersByIdp[0].email,
         guid: searchUsersByIdp[0].username.split('@')[0],
       })
