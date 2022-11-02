@@ -64,7 +64,7 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
 `;
 
 export interface TableHeader {
-  name: string;
+  label: string;
   style?: CSSProperties;
 }
 
@@ -341,7 +341,7 @@ function Table({
                   {headers.map((header, index) => {
                     return (
                       <th key={index} style={header.style || {}}>
-                        {header.name}
+                        {header.label}
                       </th>
                     );
                   })}

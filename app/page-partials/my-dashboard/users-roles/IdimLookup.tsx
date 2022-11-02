@@ -167,7 +167,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
           options: propertyOptions.filter((v) => v.allowed.includes(selectedIdp)),
         },
       ]}
-      headers={[{ name: 'First name' }, { name: 'Last Name' }, { name: 'Email' }, { name: 'IDIR username' }]}
+      headers={[{ label: 'First name' }, { label: 'Last Name' }, { label: 'Email' }, { label: 'IDIR username' }]}
       searchKey={searchKey}
       searchPlaceholder="Enter search criteria"
       onSearch={handleSearch}
