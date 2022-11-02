@@ -108,7 +108,7 @@ export default function FaqItems({ children }: Props) {
             For example, <b>http://host.com/*</b> allows redirects to any subdirectories of the <b>http://host.com</b>
           </p>
         </Accordion.Panel>
-        <Accordion.Panel title="Q. How can I get all neccesary information to set up my integration?">
+        <Accordion.Panel title="Q. How can I get all necessary information to set up my integration?">
           <p>
             You can find the information in the <b>Installation JSON</b> downloaded from your dashboard.
           </p>
