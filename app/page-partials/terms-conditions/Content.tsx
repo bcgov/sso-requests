@@ -83,19 +83,28 @@ export default function FaqItems() {
       <StyledList>
         <li>Our service is available 24/7, with questions and answers addressed during business hours only.</li>
         <li>Client provisioning requests will be reviewed and handled during normal business hours.</li>
+        <li>
+          To learn more about our service uptime monitoring, please visit our{' '}
+          <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
+            uptime page on our wiki
+          </Link>
+          .
+        </li>
       </StyledList>
-      <p>
-        If you have any questions, please reach out to us on{' '}
-        <Link href="https://chat.developer.gov.bc.ca">Rocket.Chat</Link> or{' '}
-        <Link href="mailto:bcgov.sso@gov.bc.ca">Email</Link> the Pathfinder SSO Product Owner.
-      </p>
-      <p>
-        To learn more about our service, please visit our{' '}
-        <Link href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
-          uptime page on our wiki
-        </Link>
-        .
-      </p>
+      <Title>Contact Us</Title>
+      <StyledList>
+        <li>
+          If you have any questions, please reach out to us on{' '}
+          <Link external href="https://chat.developer.gov.bc.ca">
+            Rocket.Chat
+          </Link>{' '}
+          or{' '}
+          <Link external href="mailto:bcgov.sso@gov.bc.ca">
+            Email
+          </Link>{' '}
+          the Pathfinder SSO Product Owner.
+        </li>
+      </StyledList>
     </Container>
   );
 }
