@@ -10,7 +10,7 @@ function BceidTabContent({ integration, onApproved }: Props) {
   if (!integration) return null;
   const { status, bceidApproved } = integration;
 
-  const canApproveProd = (status === 'applied' && !bceidApproved) || false;
+  const canApproveProd = !bceidApproved || false;
   const awaitingTFComplete = status !== 'applied';
 
   return (
