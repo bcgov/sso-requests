@@ -6,6 +6,7 @@ import CenteredModal from 'components/CenteredModal';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
+import { checkIfBceidProdApplying, checkIfGithubProdApplying } from '@app/utils/helpers';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -27,15 +28,20 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
   const modalId = `${type}-approval-modal`;
   const openModal = () => (window.location.hash = modalId);
 
+  const typeApproved =
+    type === 'bceid' ? checkIfBceidProdApplying(integration) : checkIfGithubProdApplying(integration);
+
   let content;
   if (canApproveProd) {
     content = (
       <>
         <p>{`To begin the ${displayType} integration in production, Click Below.`}</p>
-        <Button onClick={openModal}>Approve Prod</Button>
+        <Button onClick={openModal} disabled={awaitingTFComplete}>
+          Approve Prod
+        </Button>
       </>
     );
-  } else if (awaitingTFComplete) {
+  } else if (awaitingTFComplete && typeApproved) {
     content = (
       <SubmittedStatusIndicator
         integration={integration}
