@@ -302,7 +302,7 @@ export default function AdminDashboard({ session }: PageProps) {
               })
             ) : (
               <tr>
-                <td colSpan={10}>
+                <td>
                   <RightAlign>No clients found.</RightAlign>
                 </td>
               </tr>
