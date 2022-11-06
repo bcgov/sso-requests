@@ -84,7 +84,7 @@ const GITHUB_USER_QUERY_REQ = {
         _: 'name should be string with length >= 2',
       },
     },
-    loginid: {
+    login: {
       type: 'string',
       minLength: 2,
       errorMessage: {
@@ -117,12 +117,12 @@ const GITHUB_USER_QUERY_REQ = {
       },
     },
     {
-      required: ['loginid'],
+      required: ['login'],
       errorMessage: {
         required: {
-          loginid: 'loginid is required',
+          login: 'login is required',
         },
-        minLength: 'loginid should be string with length >= 2',
+        minLength: 'login should be string with length >= 2',
       },
     },
     {
@@ -144,7 +144,7 @@ const GITHUB_USER_QUERY_REQ = {
     },
   ],
   errorMessage: {
-    additionalProperties: 'only name, loginid, email and guid are supported',
+    additionalProperties: 'only name, login, email and guid are supported',
   },
 };
 

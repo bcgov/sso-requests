@@ -19,16 +19,18 @@ export class UserService {
     } else if (idp.startsWith('github')) {
       valid = findGithubUserQueryValidator(query || {});
       if (!valid) throw new createHttpError[400](parseErrors(findGithubUserQueryValidator.errors));
-      query.firstName = query?.name;
-      delete query?.name;
-      query.lastName = query?.loginid;
-      delete query?.loginid;
+      delete Object.assign(query, { firstName: query.name })['name'];
+      delete Object.assign(query, { lastName: query.login })['login'];
     } else {
       valid = findCommonUserQueryValidator(query || {});
       if (!valid) throw new createHttpError[400](parseErrors(findCommonUserQueryValidator.errors));
     }
-
     const userRows = await searchUsersByIdp({ environment, idp, userProperties: query });
+    if (idp.startsWith('github')) {
+      return userRows.rows.map((row) => {
+        return { ...row, firstName: '', lastName: '' };
+      });
+    }
     return userRows.rows;
   }
 }

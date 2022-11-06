@@ -893,7 +893,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/github-bcgov/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for GitHub bcgov by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore name, loginid, and email query params'
+      #swagger.description = 'Get list of users for GitHub bcgov by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore name, login, and email query params'
       #swagger.summary = 'Get list of users for GitHub bcgov by query'
 
       #swagger.parameters['environment'] = {
@@ -907,9 +907,9 @@ export const setRoutes = (app: any) => {
         description: 'Full Name',
         example: 'Julius Caesar'
       }
-      #swagger.parameters['loginid'] = {
+      #swagger.parameters['login'] = {
         in: 'query',
-        description: 'GitHub Login Id',
+        description: 'GitHub Login',
         example: 'juliuscaesar'
       }
       #swagger.parameters['email'] = {
@@ -960,7 +960,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/github-public/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for GitHub public by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore name, loginid, and email query params'
+      #swagger.description = 'Get list of users for GitHub public by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore name, login, and email query params'
       #swagger.summary = 'Get list of users for GitHub public by query'
 
       #swagger.parameters['environment'] = {
@@ -974,9 +974,9 @@ export const setRoutes = (app: any) => {
         description: 'Full Name',
         example: 'Julius Caesar'
       }
-      #swagger.parameters['loginid'] = {
+      #swagger.parameters['login'] = {
         in: 'query',
-        description: 'GitHub Login Id',
+        description: 'GitHub Login',
         example: 'juliuscaesar'
       }
       #swagger.parameters['email'] = {

@@ -470,7 +470,7 @@ export default function (data) {
     {
       const url = new URL(`${BASE_URL}/${__ENV.environment}/github-bcgov/users`);
       url.searchParams.append('name', 'test');
-      url.searchParams.append('loginid', 'user');
+      url.searchParams.append('login', 'user');
       url.searchParams.append('email', 'test.user@gov.bc.ca');
       url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
       const response = http.get(url.toString(), params);
@@ -494,7 +494,7 @@ export default function (data) {
     {
       const url = new URL(`${BASE_URL}/${__ENV.environment}/github-public/users`);
       url.searchParams.append('name', 'test');
-      url.searchParams.append('loginid', 'user');
+      url.searchParams.append('login', 'user');
       url.searchParams.append('email', 'test.user@gov.bc.ca');
       url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3');
       const response = http.get(url.toString(), params);
