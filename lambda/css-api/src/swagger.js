@@ -72,8 +72,9 @@ const doc = {
         composite: false,
       },
       userAttributes: {
-        displayName: 'Test User',
-        idir_userid: 'AAAFEE111DD24C6D11111DFDC8BC51A1',
+        display_name: 'Test User',
+        idir_user_guid: 'AAAFEE111DD24C6D11111DFDC8BC51A1',
+        idir_username: 'TESTUSER',
       },
       user: {
         username: '08fe81112408411081ea011cf0ec945d@idir',

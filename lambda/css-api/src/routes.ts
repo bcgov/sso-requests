@@ -796,11 +796,25 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['guid'] = {
         in: 'query',
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67'
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+        schema: {
+            data: [
+            {
+              username: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67@idir',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                display_name: 'Julius Caesar',
+                idir_user_guid: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67',
+                idir_username: 'JULIUSCA'
+              },
+            }
+          ]
+        }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -853,18 +867,22 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['guid'] = {
         in: 'query',
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'uuz6y6mggxgfdhcqxm6kjho19krg7xle'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@azureidir',
-              email: 'azure.idir.user@gov.bc.ca',
-              firstName: 'Azure Idir',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'uuz6y6mggxgfdhcqxm6kjho19krg7xle@azureidir',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                display_name: 'Julius Caesar',
+                idir_user_guid: 'uuz6y6mggxgfdhcqxm6kjho19krg7xle',
+                idir_username: 'JULIUSCA'
+              },
             }
           ]
         }
@@ -920,18 +938,31 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['guid'] = {
         in: 'query',
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'vbnck6ivt91hag6g1xnuvdgp0lyuebl3'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@githubbcgov',
-              email: 'github-bcgov.user@gov.bc.ca',
-              firstName: 'GitHub Bcgov',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'vbnck6ivt91hag6g1xnuvdgp0lyuebl3@githubbcgov',
+              email: 'julius-caesar@email.com',
+              firstName: '',
+              lastName: '',
+              attribues: {
+                github_username: [
+                  "julius-caesar"
+                ],
+                github_id: [
+                  "12345678"
+                ],
+                org_verified: [
+                  "false"
+                ],
+                display_name: [
+                  "Julius Caesar"
+                ]
+              },
             }
           ]
         }
@@ -987,18 +1018,31 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['guid'] = {
         in: 'query',
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'b7valkf9208yudxfmr026wv6jhugwkht'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@githubpublic',
-              email: 'github-public.user@gov.bc.ca',
-              firstName: 'GitHub Public',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'b7valkf9208yudxfmr026wv6jhugwkht@githubpublic',
+              email: 'julius-caesar@email.com',
+              firstName: '',
+              lastName: '',
+              attribues: {
+                github_username: [
+                  "julius-caesar"
+                ],
+                github_id: [
+                  "12345678"
+                ],
+                org_verified: [
+                  "false"
+                ],
+                display_name: [
+                  "Julius Caesar"
+                ]
+              },
             }
           ]
         }
@@ -1040,18 +1084,22 @@ export const setRoutes = (app: any) => {
         in: 'query',
         required: true,
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'tb914nlltlo4mz05viha1b4hdyi4xnad'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@bceidbasic',
-              email: 'basic.bceid.user@gov.bc.ca',
-              firstName: 'Basic Bceid',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'tb914nlltlo4mz05viha1b4hdyi4xnad@bceidbasic',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                display_name: 'Julius Caesar',
+                bceid_user_guid: 'tb914nlltlo4mz05viha1b4hdyi4xnad',
+                bceid_username: 'JULIUSCA'
+              },
             }
           ]
         }
@@ -1093,18 +1141,24 @@ export const setRoutes = (app: any) => {
         in: 'query',
         required: true,
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: '1r1zui4qr1yfh73k6rku5q30qupgcvdt'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@bceidbusiness',
-              email: 'business.bceid.user@gov.bc.ca',
-              firstName: 'Business Bceid',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: '1r1zui4qr1yfh73k6rku5q30qupgcvdt@bceidbusiness',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                bceid_business_guid: '4t64xgki1pxqx61jxvri3i4uie1u61nk',
+                bceid_business_name: 'Julius Caesars Business Team',
+                display_name: 'Julius Caesar',
+                bceid_user_guid: '1r1zui4qr1yfh73k6rku5q30qupgcvdt',
+                bceid_username: 'JULIUSCA'
+              },
             }
           ]
         }
@@ -1146,18 +1200,24 @@ export const setRoutes = (app: any) => {
         in: 'query',
         required: true,
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'jj4vrfekurtzc2931k8mroqx3fgibrr3'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@bceidboth',
-              email: 'basic.business.bceid.user@gov.bc.ca',
-              firstName: 'Basic/Business Bceid',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'jj4vrfekurtzc2931k8mroqx3fgibrr3@bceidboth',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                bceid_business_guid: 'qplo4aqoffy2njxsaj8wwfa3qe6g3s40',
+                bceid_business_name: 'Julius Caesars Business Team',
+                display_name: 'Julius Caesar',
+                bceid_user_guid: 'jj4vrfekurtzc2931k8mroqx3fgibrr3',
+                bceid_username: 'JULIUSCA'
+              },
             }
           ]
         }
