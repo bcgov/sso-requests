@@ -5,7 +5,7 @@ import padStart from 'lodash.padstart';
 import startCase from 'lodash.startcase';
 import { faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
+import { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
@@ -16,6 +16,7 @@ import { PRIMARY_RED } from 'styles/theme';
 import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
+import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
 
 const RightAlign = styled.div`
   text-align: center;
@@ -170,159 +171,157 @@ export default function AdminDashboard({ session }: PageProps) {
   };
 
   return (
-    <ResponsiveContainer rules={mediaRules}>
-      <Grid cols={10}>
-        <Grid.Row collapse="1200" gutter={[15, 2]}>
-          <Grid.Col span={6}>
-            <Table
-              filters={[
-                {
-                  value: selectedEnvironments,
-                  multiselect: true,
-                  onChange: setSelectedEnvironments,
-                  options: environmentOptions,
-                  label: 'Environments',
-                },
-                {
-                  value: selectedIdp,
-                  multiselect: true,
-                  onChange: setSelectedIdp,
-                  options: idpOptions,
-                  label: 'IDPs',
-                },
-                {
-                  value: workflowStatus,
-                  multiselect: true,
-                  onChange: setWorkflowStatus,
-                  options: workflowStatusOptions,
-                  label: 'Workflow Status',
-                },
-                {
-                  value: archiveStatus,
-                  multiselect: true,
-                  onChange: setArchiveStatus,
-                  options: archiveStatusOptions,
-                  label: 'Archive Status',
-                },
-                {
-                  value: types,
-                  multiselect: true,
-                  onChange: setTypes,
-                  options: typeOptions,
-                  label: 'Service Type',
-                },
-              ]}
-              headers={[
-                { label: 'Request ID' },
-                { label: 'Project Name' },
-                { label: 'Request Status' },
-                { label: 'File Status' },
-                { label: 'Service Type' },
-                { label: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
-              ]}
-              pagination={true}
-              pageLimits={pageLimits}
-              searchKey={searchKey}
-              searchPlaceholder="Project ID or Name"
-              limit={limit}
-              page={page}
-              rowCount={count}
-              onSearch={(val) => {
-                setSearchKey(val);
-                setPage(1);
-              }}
-              onEnter={(val) => {
-                setSearchKey(val);
-                setPage(1);
-              }}
-              onLimit={(val) => {
-                setPage(1);
-                setLimit(val);
-              }}
-              onPrev={setPage}
-              onNext={setPage}
-              loading={loading}
-              totalColSpan={15}
-              searchColSpan={5}
-              headerAlign={'bottom'}
-              headerGutter={[5, 0]}
-            >
-              {rows.length > 0 ? (
-                rows.map((row: Integration) => {
-                  return (
-                    <tr
-                      key={row.id}
-                      className={selectedId === row.id ? 'active' : ''}
-                      onClick={() => {
-                        setSelectedId(row.id);
-                        setActivePanel('details');
-                      }}
-                    >
-                      <td>{padStart(String(row.id), 8, '0')}</td>
-                      <td>{row.projectName}</td>
-                      <td>{startCase(row.status)}</td>
-                      <td>{row.archived ? 'Deleted' : 'Active'}</td>
-                      <td>{row.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
-                      <td>
-                        <ActionButtonContainer>
-                          <ActionButton
-                            icon={faEye}
-                            role="button"
-                            aria-label="events"
-                            onClick={(event: any) => {
-                              event.stopPropagation();
-                              setSelectedId(row.id);
-                              setActivePanel('events');
-                            }}
-                            title="Events"
-                          />
-                          <VerticalLine />
-                          <ActionButton
-                            disabled={!canEdit(row)}
-                            icon={faEdit}
-                            role="button"
-                            aria-label="edit"
-                            onClick={() => handleEdit(row)}
-                            title="Edit"
-                          />
-                          <VerticalLine />
-                          <ActionButton
-                            icon={faTrash}
-                            role="button"
-                            aria-label="delete"
-                            onClick={() => handleDelete(row)}
-                            disabled={!canDelete(row)}
-                            activeColor={PRIMARY_RED}
-                            title="Delete"
-                          />
-                        </ActionButtonContainer>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={10}>
-                    <RightAlign>No clients found.</RightAlign>
-                  </td>
-                </tr>
-              )}
-            </Table>
-          </Grid.Col>
-          <Grid.Col span={4}>
-            {selectedRequest && (
-              <AdminTabs
-                currentUser={session}
-                integration={selectedRequest}
-                defaultTabKey={'details'}
-                setActiveKey={setActivePanel}
-                activeKey={activePanel}
-                setRows={loadData}
-              ></AdminTabs>
+    <>
+      <VerticalLayout
+        leftPanel={() => (
+          <Table
+            filters={[
+              {
+                value: selectedEnvironments,
+                multiselect: true,
+                onChange: setSelectedEnvironments,
+                options: environmentOptions,
+                label: 'Environments',
+              },
+              {
+                value: selectedIdp,
+                multiselect: true,
+                onChange: setSelectedIdp,
+                options: idpOptions,
+                label: 'IDPs',
+              },
+              {
+                value: workflowStatus,
+                multiselect: true,
+                onChange: setWorkflowStatus,
+                options: workflowStatusOptions,
+                label: 'Workflow Status',
+              },
+              {
+                value: archiveStatus,
+                multiselect: true,
+                onChange: setArchiveStatus,
+                options: archiveStatusOptions,
+                label: 'Archive Status',
+              },
+              {
+                value: types,
+                multiselect: true,
+                onChange: setTypes,
+                options: typeOptions,
+                label: 'Service Type',
+              },
+            ]}
+            headers={[
+              { label: 'Request ID' },
+              { label: 'Project Name' },
+              { label: 'Request Status' },
+              { label: 'File Status' },
+              { label: 'Service Type' },
+              { label: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
+            ]}
+            pagination={true}
+            pageLimits={pageLimits}
+            searchKey={searchKey}
+            searchPlaceholder="Project ID or Name"
+            limit={limit}
+            page={page}
+            rowCount={count}
+            onSearch={(val) => {
+              setSearchKey(val);
+              setPage(1);
+            }}
+            onEnter={(val) => {
+              setSearchKey(val);
+              setPage(1);
+            }}
+            onLimit={(val) => {
+              setPage(1);
+              setLimit(val);
+            }}
+            onPrev={setPage}
+            onNext={setPage}
+            loading={loading}
+            totalColSpan={15}
+            searchColSpan={5}
+            headerAlign={'bottom'}
+            headerGutter={[5, 0]}
+          >
+            {rows.length > 0 ? (
+              rows.map((row: Integration) => {
+                return (
+                  <tr
+                    key={row.id}
+                    className={selectedId === row.id ? 'active' : ''}
+                    onClick={() => {
+                      setSelectedId(row.id);
+                      setActivePanel('details');
+                    }}
+                  >
+                    <td>{padStart(String(row.id), 8, '0')}</td>
+                    <td>{row.projectName}</td>
+                    <td>{startCase(row.status)}</td>
+                    <td>{row.archived ? 'Deleted' : 'Active'}</td>
+                    <td>{row.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
+                    <td>
+                      <ActionButtonContainer>
+                        <ActionButton
+                          icon={faEye}
+                          role="button"
+                          aria-label="events"
+                          onClick={(event: any) => {
+                            event.stopPropagation();
+                            setSelectedId(row.id);
+                            setActivePanel('events');
+                          }}
+                          title="Events"
+                        />
+                        <VerticalLine />
+                        <ActionButton
+                          disabled={!canEdit(row)}
+                          icon={faEdit}
+                          role="button"
+                          aria-label="edit"
+                          onClick={() => handleEdit(row)}
+                          title="Edit"
+                        />
+                        <VerticalLine />
+                        <ActionButton
+                          icon={faTrash}
+                          role="button"
+                          aria-label="delete"
+                          onClick={() => handleDelete(row)}
+                          disabled={!canDelete(row)}
+                          activeColor={PRIMARY_RED}
+                          title="Delete"
+                        />
+                      </ActionButtonContainer>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={10}>
+                  <RightAlign>No clients found.</RightAlign>
+                </td>
+              </tr>
             )}
-          </Grid.Col>
-        </Grid.Row>
-      </Grid>
+          </Table>
+        )}
+        rightPanel={() =>
+          selectedRequest && (
+            <AdminTabs
+              currentUser={session}
+              integration={selectedRequest}
+              defaultTabKey={'details'}
+              setActiveKey={setActivePanel}
+              activeKey={activePanel}
+              setRows={loadData}
+            ></AdminTabs>
+          )
+        }
+      />
       <CenteredModal
         id="delete-modal"
         content="You are about to delete this integration request. This action cannot be undone."
@@ -330,6 +329,6 @@ export default function AdminDashboard({ session }: PageProps) {
         confirmText="Delete"
         title="Confirm Deletion"
       />
-    </ResponsiveContainer>
+    </>
   );
 }
