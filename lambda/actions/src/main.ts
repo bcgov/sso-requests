@@ -1,16 +1,48 @@
 import { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
-const Api = require('lambda-api-router');
 import { setRoutes } from './routes';
-import { expressyApiRouter } from '@lambda-shared/helpers/expressy-api-router';
+import serverless from 'serverless-http';
+import express from 'express';
+import cors from 'cors';
 
-const app = new Api();
-expressyApiRouter(app);
-setRoutes(app);
+const tryJSON = (str) => {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return str;
+  }
+};
 
+const app = express();
+const router = express.Router();
+app.set('etag', false);
+app.disable('x-powered-by');
+
+router.use((req, res, next) => {
+  req.body = req.body.toString();
+  req.body = tryJSON(req.body);
+  next();
+});
+
+router.use(
+  cors({
+    origin: process.env.LOCAL_DEV === 'true' ? '*' : 'https://bcgov.github.io',
+    methods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  }),
+);
+
+setRoutes(router);
+
+app.use('/actions', router);
+
+const apiHandler = serverless(app);
 export const handler = async (event: APIGatewayProxyEvent, context?: Context) => {
-  // Sequelize waits ~10seconds to drop connection, delaying API response.
-  // Use this to prevent, see https://forum.serverless.com/t/lambda-with-rds-using-vpc-works-slow/1261/7 for more
+  console.log('Event: ', event);
   if (context) context.callbackWaitsForEmptyEventLoop = false;
 
-  return app.listen(event, context);
+  const result: any = await apiHandler(event, context);
+
+  console.log('Result: ', result);
+  return result as any;
 };
