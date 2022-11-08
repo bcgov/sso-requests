@@ -55,7 +55,8 @@ export const searchUsers = async ({
   const userProperties = {};
   userProperties[property] = searchKey;
 
-  if (idp.startsWith('bceid')) return searchBCeIDusersByIntegration({ environment, idp, userProperties, clientId });
+  if (idp.startsWith('bceid') && clientId)
+    return searchBCeIDusersByIntegration({ environment, idp, userProperties, clientId });
   else return searchUsersByIdp({ environment, idp, userProperties });
 };
 
@@ -715,7 +716,7 @@ export const searchBCeIDusersByIntegration = async ({
   environment: string;
   idp: string;
   userProperties: any;
-  clientId?: string;
+  clientId: string;
 }) => {
   const props = Object.keys(userProperties);
   if (props.length === 0) throw Error(`no property`);
