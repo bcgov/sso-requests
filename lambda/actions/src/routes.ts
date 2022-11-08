@@ -1,5 +1,6 @@
 import { wakeUpAll } from './controllers/heartbeat';
 import { handlePRstage, getPlannedIds, updatePlannedItems } from './controllers/batch';
+import { authenticate } from './authenticate';
 import isString from 'lodash.isstring';
 
 const tryJSON = (str) => {
@@ -24,10 +25,6 @@ export const setRoutes = (app: any) => {
     res.status(200).json(null);
   });
 
-  app.options('(.*)', async (req, res) => {
-    res.status(200).json(null);
-  });
-
   app.get(`/heartbeat`, async (req, res) => {
     try {
       const result = await wakeUpAll();
@@ -37,16 +34,11 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.use((req, res, next) => {
-    try {
-      const { Authorization, authorization } = req.headers || {};
-      const authHeader = Authorization || authorization;
-      if (!authHeader || authHeader !== process.env.GH_SECRET) {
-        res.status(401).json({ success: false, message: 'not authorized' });
-        return false;
-      }
-    } catch (err) {
-      handleError(res, err);
+  app.use(async (req, res, next) => {
+    const valid = await authenticate(req.headers);
+    if (!valid) {
+      res.status(401).json({ success: false, message: 'not authorized' });
+      return false;
     }
 
     if (next) next();
