@@ -42,16 +42,19 @@ export const searchKeycloakUsers = async ({
   idp,
   property,
   searchKey,
+  integrationId,
 }: {
   environment: string;
   idp: string;
   property: string;
   searchKey: string;
+  integrationId: number;
 }): Promise<[RowsAndCount, null] | [null, Error]> => {
   try {
     const result: RowsAndCount = await instance
-      .post('keycloak/users', { environment, idp, property, searchKey })
+      .post('keycloak/users', { environment, idp, property, searchKey, integrationId })
       .then((res) => res.data);
+
     return [result, null];
   } catch (err: any) {
     console.error(err);
