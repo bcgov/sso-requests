@@ -2,11 +2,29 @@ import { group, check, sleep, fail } from 'k6';
 import http from 'k6/http';
 
 const SLEEP_DURATION = 0.1;
+let integrationId;
 
 export function testRoles(options) {
+  group('GET integration Id', () => {
+    {
+      const url = __ENV.css_api_url + `/integrations`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 200 when success': (r) => r.status === 200,
+        'return count of integrations greater than zero': (r) => r.json().data.length > 0,
+      });
+
+      integrationId = response.json().data[0].id;
+
+      sleep(SLEEP_DURATION);
+    }
+  });
   group('POST role', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles?param1=1&param2=2`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles?param1=1&param2=2`;
       const body = { name: 'some-role' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -22,7 +40,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const body = { name: '     ' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -38,7 +56,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const body = {};
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -54,7 +72,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const body = { invalidNameProp: 'some-role' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -70,7 +88,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const body = { name: 'some-role' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -88,7 +106,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const body = { name: 'some-role' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -106,7 +124,8 @@ export function testRoles(options) {
 
   group('PUT role', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role?param1=1&param2=2`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role?param1=1&param2=2`;
       const body = { name: 'role1' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -122,7 +141,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/nonexistentrole`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/nonexistentrole`;
       const body = { name: 'role1' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -138,7 +157,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
       const body = {};
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -154,7 +173,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
       const body = { name: '     ' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -170,7 +189,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
       const body = { invalidNameProp: 'role1' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -186,7 +205,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/some-role`;
       const body = { name: 'role1' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -206,7 +225,7 @@ export function testRoles(options) {
 
   group('GET list of roles', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles?param1=1&param2=2`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles?param1=1&param2=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -219,7 +238,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -235,7 +254,8 @@ export function testRoles(options) {
 
   group('GET role by name', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1?param1=1&param2=2`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1?param1=1&param2=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -248,7 +268,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/nonexistentrole`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/nonexistentrole`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -261,7 +281,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -279,15 +299,18 @@ export function testRoles(options) {
   group('POST composite role', () => {
     {
       // adding an additional role to associate it with role1
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles`;
       const body = { name: 'composite-role' };
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       http.post(url, JSON.stringify(body), requestOptions);
+
+      sleep(SLEEP_DURATION);
     }
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles?param1=1&param2=2`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles?param1=1&param2=2`;
       const body = [{ name: 'composite-role' }];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -303,7 +326,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const body = [{ name: '     ' }];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -319,7 +342,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const body = [];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -335,7 +358,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const body = [{ invalidNameProp: 'composite-role' }];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -351,7 +374,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
       const response = http.post(url, null, requestOptions);
@@ -366,7 +389,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const body = [{ name: 'composite-role' }];
       const requestOptions = Object.assign({}, options);
       requestOptions.headers.Accept = 'application/json';
@@ -387,7 +410,8 @@ export function testRoles(options) {
   group('GET list of composite roles', () => {
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles?param1=1&param2=2`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles?param1=1&param2=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -400,7 +424,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -417,7 +441,7 @@ export function testRoles(options) {
   group('GET composite role by name', () => {
     {
       const url =
-        BASE_URL +
+        __ENV.css_api_url +
         `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role?param1=1&param2=2`;
       const response = http.get(url, options);
 
@@ -432,7 +456,8 @@ export function testRoles(options) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/nonexistentrole`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/nonexistentrole`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -446,7 +471,8 @@ export function testRoles(options) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -464,7 +490,7 @@ export function testRoles(options) {
   group('DELETE composite role by name', () => {
     {
       const url =
-        BASE_URL +
+        __ENV.css_api_url +
         `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role?param1=1&param2=2`;
       const response = http.del(url, null, options);
 
@@ -479,7 +505,8 @@ export function testRoles(options) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/nonexistentrole`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/nonexistentrole`;
       const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -493,7 +520,8 @@ export function testRoles(options) {
 
     {
       const url =
-        BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role`;
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role1/composite-roles/composite-role`;
       const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -508,7 +536,8 @@ export function testRoles(options) {
 
   group('DELETE role', () => {
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1?param1=1&param2=2`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1?param1=1&param2=2`;
       const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -521,7 +550,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
       const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -534,7 +563,7 @@ export function testRoles(options) {
     }
 
     {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role1`;
       const response = http.del(url, null, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -549,7 +578,11 @@ export function testRoles(options) {
   group('cleanup', () => {
     {
       // delete composite-role
-      http.del(BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles/composite-role`, null, options);
+      http.del(
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/composite-role`,
+        null,
+        options,
+      );
     }
   });
 }

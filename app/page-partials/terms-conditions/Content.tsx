@@ -81,15 +81,29 @@ export default function FaqItems() {
       </StyledList>
       <Title>Understanding the service level</Title>
       <StyledList>
+        <li>Our service is available 24/7, with questions and answers addressed during business hours only.</li>
+        <li>Client provisioning requests will be reviewed and handled during normal business hours.</li>
         <li>
-          We are working towards enterprise service levels and in the interim the SSO Pathfinder service level is
-          &quot;best-effort&quot; during business hours (Monday to Friday, 9am to 5pm), and after-hours resolution time
-          is not guaranteed.
-          <p>
-            <strong>Please take this into account if you have a &quot;critical&quot; application</strong>
-          </p>
+          To learn more about our service uptime monitoring, please visit our{' '}
+          <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
+            uptime page on our wiki
+          </Link>
+          .
         </li>
-        <li>From time to time, we may contact you to confirm if your configuration is needed</li>
+      </StyledList>
+      <Title>Contact Us</Title>
+      <StyledList>
+        <li>
+          If you have any questions, please reach out to us on{' '}
+          <Link external href="https://chat.developer.gov.bc.ca">
+            Rocket.Chat
+          </Link>{' '}
+          or{' '}
+          <Link external href="mailto:bcgov.sso@gov.bc.ca">
+            Email
+          </Link>{' '}
+          the Pathfinder SSO Product Owner.
+        </li>
       </StyledList>
     </Container>
   );

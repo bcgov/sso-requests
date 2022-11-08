@@ -74,6 +74,80 @@ const COMMON_USER_QUERY_REQ = {
   },
 };
 
+const GITHUB_USER_QUERY_REQ = {
+  type: 'object',
+  properties: {
+    name: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'name should be string with length >= 2',
+      },
+    },
+    login: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'login id should be string with length >= 2',
+      },
+    },
+    email: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'email should be string with length >= 2',
+      },
+    },
+    guid: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'guid should be string with length >= 2',
+      },
+    },
+  },
+  additionalProperties: false,
+  anyOf: [
+    {
+      required: ['name'],
+      errorMessage: {
+        required: {
+          name: 'name is required',
+        },
+      },
+    },
+    {
+      required: ['login'],
+      errorMessage: {
+        required: {
+          login: 'login is required',
+        },
+        minLength: 'login should be string with length >= 2',
+      },
+    },
+    {
+      required: ['email'],
+      errorMessage: {
+        required: {
+          email: 'email is required',
+        },
+        minLength: 'email should be string with length >= 2',
+      },
+    },
+    {
+      required: ['guid'],
+      errorMessage: {
+        required: {
+          guid: 'guid is required',
+        },
+      },
+    },
+  ],
+  errorMessage: {
+    additionalProperties: 'only name, login, email and guid are supported',
+  },
+};
+
 const BCEID_USER_QUERY_REQ = {
   type: 'object',
   properties: {
@@ -96,5 +170,7 @@ const BCEID_USER_QUERY_REQ = {
 };
 
 export const findCommonUserQueryValidator = validator.compile(COMMON_USER_QUERY_REQ);
+
+export const findGithubUserQueryValidator = validator.compile(GITHUB_USER_QUERY_REQ);
 
 export const findBceidUserQueryValidator = validator.compile(BCEID_USER_QUERY_REQ);

@@ -1,4 +1,5 @@
 import { Auth, authenticate } from './authenticate';
+import isString from 'lodash.isstring';
 import { wakeUpAll } from './controllers/heartbeat-controller';
 import { IntegrationController } from './controllers/integration-controller';
 import { RoleController } from './controllers/role-controller';
@@ -10,15 +11,20 @@ import { isEmpty } from 'lodash';
 import createHttpError from 'http-errors';
 import { UserController } from './controllers/user-controller';
 
-const responseHeaders = {
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT,DELETE',
+const tryJSON = (str: string) => {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return str;
+  }
 };
 
-const BASE_PATH = '/api/v1';
-
 const handleError = (res, err) => {
-  res.status(err.status || 422).json({ message: err.message || err });
+  let message = err.message || err;
+  if (isString(message)) {
+    message = tryJSON(message);
+  }
+  res.status(err.status || 422).json({ message });
 };
 
 const integrationController = container.resolve(IntegrationController);
@@ -28,16 +34,11 @@ const tokenController = container.resolve(TokenController);
 const userController = container.resolve(UserController);
 
 export const setRoutes = (app: any) => {
-  app.use((req, res, next) => {
-    res.set(responseHeaders);
-    if (next) next();
-  });
-
   app.options('(.*)', async (req, res) => {
     res.status(200).json(null);
   });
 
-  app.get(`${BASE_PATH}/heartbeat`, async (req, res) => {
+  app.get(`/heartbeat`, async (req, res) => {
     //#swagger.ignore = true
     try {
       const result = await wakeUpAll();
@@ -47,7 +48,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/token`, async (req, res) => {
+  app.post(`/token`, async (req, res) => {
     //#swagger.ignore = true
     try {
       const result = await tokenController.getToken(req.headers, req.body);
@@ -68,7 +69,7 @@ export const setRoutes = (app: any) => {
     if (next) next();
   });
 
-  app.get(`${BASE_PATH}/verify-token`, async (req, res) => {
+  app.get(`/verify-token`, async (req, res) => {
     //#swagger.ignore = true
     try {
       res.status(200).json({ teamId: req.teamId });
@@ -77,7 +78,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations`, async (req, res) => {
+  app.get(`/integrations`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Integrations']
       #swagger.path = '/integrations'
@@ -102,7 +103,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId`, async (req, res) => {
+  app.get(`/integrations/:integrationId`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Integrations']
       #swagger.path = '/integrations/{integrationId}'
@@ -139,7 +140,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+  app.get(`/integrations/:integrationId/:environment/roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles'
@@ -178,7 +179,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
+  app.get(`/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
@@ -227,7 +228,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/integrations/:integrationId/:environment/roles`, async (req, res) => {
+  app.post(`/integrations/:integrationId/:environment/roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles'
@@ -278,7 +279,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.put(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
+  app.put(`/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
@@ -343,7 +344,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.delete(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
+  app.delete(`/integrations/:integrationId/:environment/roles/:roleName`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}'
@@ -391,7 +392,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles`, async (req, res) => {
+  app.get(`/integrations/:integrationId/:environment/roles/:roleName/composite-roles`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles'
@@ -449,7 +450,7 @@ export const setRoutes = (app: any) => {
   });
 
   app.get(
-    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
+    `/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
     async (req, res) => {
       /*#swagger.auto = false
       #swagger.tags = ['Roles']
@@ -523,10 +524,8 @@ export const setRoutes = (app: any) => {
     },
   );
 
-  app.post(
-    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles`,
-    async (req, res) => {
-      /*#swagger.auto = false
+  app.post(`/integrations/:integrationId/:environment/roles/:roleName/composite-roles`, async (req, res) => {
+    /*#swagger.auto = false
       #swagger.tags = ['Roles']
       #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/composite-roles'
       #swagger.method = 'post'
@@ -580,19 +579,18 @@ export const setRoutes = (app: any) => {
         schema: {message: 'string'}
       }
     */
-      try {
-        if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
-        const { integrationId, environment, roleName } = req.params;
-        const result = await roleController.createComposite(req.teamId, integrationId, roleName, environment, req.body);
-        res.status(200).json(result);
-      } catch (err) {
-        handleError(res, err);
-      }
-    },
-  );
+    try {
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      const { integrationId, environment, roleName } = req.params;
+      const result = await roleController.createComposite(req.teamId, integrationId, roleName, environment, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
 
   app.delete(
-    `${BASE_PATH}/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
+    `/integrations/:integrationId/:environment/roles/:roleName/composite-roles/:compositeRoleName`,
     async (req, res) => {
       /*#swagger.auto = false
       #swagger.tags = ['Roles']
@@ -656,7 +654,7 @@ export const setRoutes = (app: any) => {
     },
   );
 
-  app.get(`${BASE_PATH}/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
+  app.get(`/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
@@ -712,7 +710,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.post(`${BASE_PATH}/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
+  app.post(`/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
@@ -766,7 +764,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/idir/users`, async (req, res) => {
+  app.get(`/:environment/idir/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/idir/users'
@@ -798,11 +796,25 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['guid'] = {
         in: 'query',
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67'
       }
       #swagger.responses[200] = {
         description: 'OK',
-        schema: { data: [{ $ref: '#/components/schemas/user' }] }
+        schema: {
+            data: [
+            {
+              username: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67@idir',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                display_name: 'Julius Caesar',
+                idir_user_guid: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67',
+                idir_username: 'JULIUSCA'
+              },
+            }
+          ]
+        }
       }
       #swagger.responses[400] = {
         description: 'Bad Request',
@@ -816,14 +828,14 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listCommonUsers(environment, 'idir', req.query);
+      const result = await userController.listUsers(environment, 'idir', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/azure-idir/users`, async (req, res) => {
+  app.get(`/:environment/azure-idir/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/azure-idir/users'
@@ -855,18 +867,22 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['guid'] = {
         in: 'query',
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'uuz6y6mggxgfdhcqxm6kjho19krg7xle'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@azureidir',
-              email: 'azure.idir.user@gov.bc.ca',
-              firstName: 'Azure Idir',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'uuz6y6mggxgfdhcqxm6kjho19krg7xle@azureidir',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                display_name: 'Julius Caesar',
+                idir_user_guid: 'uuz6y6mggxgfdhcqxm6kjho19krg7xle',
+                idir_username: 'JULIUSCA'
+              },
             }
           ]
         }
@@ -883,20 +899,20 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listCommonUsers(environment, 'azureidir', req.query);
+      const result = await userController.listUsers(environment, 'azureidir', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/github-bcgov/users`, async (req, res) => {
+  app.get(`/:environment/github-bcgov/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/github-bcgov/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of users for GitHub by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params'
-      #swagger.summary = 'Get list of users for GitHub by query'
+      #swagger.description = 'Get list of users for GitHub bcgov by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore name, login, and email query params'
+      #swagger.summary = 'Get list of users for GitHub bcgov by query'
 
       #swagger.parameters['environment'] = {
         in: 'path',
@@ -904,15 +920,15 @@ export const setRoutes = (app: any) => {
         required: true,
         schema: { $ref: '#/components/schemas/environment' }
       }
-      #swagger.parameters['firstName'] = {
+      #swagger.parameters['name'] = {
         in: 'query',
-        description: 'First Name',
-        example: 'Julius'
+        description: 'Full Name',
+        example: 'Julius Caesar'
       }
-      #swagger.parameters['lastName'] = {
+      #swagger.parameters['login'] = {
         in: 'query',
-        description: 'Last Name',
-        example: 'Caesar'
+        description: 'GitHub Login',
+        example: 'juliuscaesar'
       }
       #swagger.parameters['email'] = {
         in: 'query',
@@ -922,18 +938,31 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['guid'] = {
         in: 'query',
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'vbnck6ivt91hag6g1xnuvdgp0lyuebl3'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@githubbcgov',
-              email: 'github.user@gov.bc.ca',
-              firstName: 'GitHub',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'vbnck6ivt91hag6g1xnuvdgp0lyuebl3@githubbcgov',
+              email: 'julius-caesar@email.com',
+              firstName: '',
+              lastName: '',
+              attribues: {
+                github_username: [
+                  "julius-caesar"
+                ],
+                github_id: [
+                  "12345678"
+                ],
+                org_verified: [
+                  "false"
+                ],
+                display_name: [
+                  "Julius Caesar"
+                ]
+              },
             }
           ]
         }
@@ -950,14 +979,94 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listCommonUsers(environment, 'githubbcgov', req.query);
+      const result = await userController.listUsers(environment, 'githubbcgov', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/basic-bceid/users`, async (req, res) => {
+  app.get(`/:environment/github-public/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/{environment}/github-public/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of users for GitHub public by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore name, login, and email query params'
+      #swagger.summary = 'Get list of users for GitHub public by query'
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['name'] = {
+        in: 'query',
+        description: 'Full Name',
+        example: 'Julius Caesar'
+      }
+      #swagger.parameters['login'] = {
+        in: 'query',
+        description: 'GitHub Login',
+        example: 'juliuscaesar'
+      }
+      #swagger.parameters['email'] = {
+        in: 'query',
+        description: 'Email',
+        example: 'julius.caesar@email.com'
+      }
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: 'b7valkf9208yudxfmr026wv6jhugwkht'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: {
+            data: [
+            {
+              username: 'b7valkf9208yudxfmr026wv6jhugwkht@githubpublic',
+              email: 'julius-caesar@email.com',
+              firstName: '',
+              lastName: '',
+              attribues: {
+                github_username: [
+                  "julius-caesar"
+                ],
+                github_id: [
+                  "12345678"
+                ],
+                org_verified: [
+                  "false"
+                ],
+                display_name: [
+                  "Julius Caesar"
+                ]
+              },
+            }
+          ]
+        }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { environment } = req.params;
+      const result = await userController.listUsers(environment, 'githubpublic', req.query);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/:environment/basic-bceid/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/basic-bceid/users'
@@ -975,18 +1084,22 @@ export const setRoutes = (app: any) => {
         in: 'query',
         required: true,
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'tb914nlltlo4mz05viha1b4hdyi4xnad'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@bceidbasic',
-              email: 'basic.bceid.user@gov.bc.ca',
-              firstName: 'Basic Bceid',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'tb914nlltlo4mz05viha1b4hdyi4xnad@bceidbasic',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                display_name: 'Julius Caesar',
+                bceid_user_guid: 'tb914nlltlo4mz05viha1b4hdyi4xnad',
+                bceid_username: 'JULIUSCA'
+              },
             }
           ]
         }
@@ -1003,14 +1116,14 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listBceidUsers(environment, 'bceidbasic', req.query);
+      const result = await userController.listUsers(environment, 'bceidbasic', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/business-bceid/users`, async (req, res) => {
+  app.get(`/:environment/business-bceid/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/business-bceid/users'
@@ -1028,18 +1141,24 @@ export const setRoutes = (app: any) => {
         in: 'query',
         required: true,
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: '1r1zui4qr1yfh73k6rku5q30qupgcvdt'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@bceidbusiness',
-              email: 'business.bceid.user@gov.bc.ca',
-              firstName: 'Business Bceid',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: '1r1zui4qr1yfh73k6rku5q30qupgcvdt@bceidbusiness',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                bceid_business_guid: '4t64xgki1pxqx61jxvri3i4uie1u61nk',
+                bceid_business_name: 'Julius Caesars Business Team',
+                display_name: 'Julius Caesar',
+                bceid_user_guid: '1r1zui4qr1yfh73k6rku5q30qupgcvdt',
+                bceid_username: 'JULIUSCA'
+              },
             }
           ]
         }
@@ -1056,14 +1175,14 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listBceidUsers(environment, 'bceidbusiness', req.query);
+      const result = await userController.listUsers(environment, 'bceidbusiness', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
     }
   });
 
-  app.get(`${BASE_PATH}/:environment/basic-business-bceid/users`, async (req, res) => {
+  app.get(`/:environment/basic-business-bceid/users`, async (req, res) => {
     /*#swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/basic-business-bceid/users'
@@ -1081,18 +1200,24 @@ export const setRoutes = (app: any) => {
         in: 'query',
         required: true,
         description: 'Guid',
-        example: '1ef111deb11e4ba1ab11c0111a1110b0'
+        example: 'jj4vrfekurtzc2931k8mroqx3fgibrr3'
       }
       #swagger.responses[200] = {
         description: 'OK',
         schema: {
             data: [
             {
-              username: '08fe81112408411081ea011cf0ec945d@bceidboth',
-              email: 'basic.business.bceid.user@gov.bc.ca',
-              firstName: 'Basic/Business Bceid',
-              lastName: 'User',
-              attribues: { $ref: '#/components/schemas/userAttributes' },
+              username: 'jj4vrfekurtzc2931k8mroqx3fgibrr3@bceidboth',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attribues: {
+                bceid_business_guid: 'qplo4aqoffy2njxsaj8wwfa3qe6g3s40',
+                bceid_business_name: 'Julius Caesars Business Team',
+                display_name: 'Julius Caesar',
+                bceid_user_guid: 'jj4vrfekurtzc2931k8mroqx3fgibrr3',
+                bceid_username: 'JULIUSCA'
+              },
             }
           ]
         }
@@ -1109,7 +1234,7 @@ export const setRoutes = (app: any) => {
 
     try {
       const { environment } = req.params;
-      const result = await userController.listBceidUsers(environment, 'bceidboth', req.query);
+      const result = await userController.listUsers(environment, 'bceidboth', req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);

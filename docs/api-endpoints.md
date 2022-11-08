@@ -1058,20 +1058,88 @@ GET /api/v1/environment/azure-idir/users
 curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/environment/azure-idir/users
 ```
 
-### Get List of Users associated with GitHub
+### Get List of Users associated with GitHub bcgov
 
 ```sh
-GET /api/v1/environment/github/users
+GET /api/v1/environment/github-bcgov/users
 ```
 
 - Parameters
 
-  | Name        | Type   | In    | Description     |
-  | ----------- | ------ | ----- | --------------- |
-  | `firstName` | string | query | User first name |
-  | `lastName`  | string | query | User last name  |
-  | `guid`      | string | query | User guid       |
-  | `email`     | string | query | User email      |
+  | Name      | Type   | In    | Description     |
+  | --------- | ------ | ----- | --------------- |
+  | `name`    | string | query | User first name |
+  | `loginid` | string | query | User last name  |
+  | `guid`    | string | query | User guid       |
+  | `email`   | string | query | User email      |
+
+- Responses
+
+<table style="margin-left: 2em;">
+<tr><td>Status Code</td><td>Description</td><td>Response</td></tr>
+<tr>
+<td>200</td>
+<td>OK</td>
+<td>
+
+```json
+{
+  "data": [
+    {
+      "username": "08fe81112408411081ea011cf0ec945d@github",
+      "email": "testuser@gov.bc.ca",
+      "firstName": "Test",
+      "lastName": "User",
+      "attribues": {
+        "displayName": "Test User",
+        "idir_userid": "AAAFEE111DD24C6D11111DFDC8BC51A1"
+      }
+    }
+  ]
+}
+```
+
+</td>
+</tr>
+<td>400</td>
+<td>Bad Request</td>
+<td>
+
+```json
+{ "message": "string" }
+```
+
+</td></tr>
+<tr>
+<td>422</td>
+<td>Unprocessable Entity</td>
+<td>
+
+```json
+{ "message": "string" }
+```
+
+</td></tr>
+</table>
+
+```sh
+curl -H "Authorization: Bearer $API_TOKEN" -X GET /api/v1/environment/github/users
+```
+
+### Get List of Users associated with GitHub public
+
+```sh
+GET /api/v1/environment/github-public/users
+```
+
+- Parameters
+
+  | Name      | Type   | In    | Description     |
+  | --------- | ------ | ----- | --------------- |
+  | `name`    | string | query | User first name |
+  | `loginid` | string | query | User last name  |
+  | `guid`    | string | query | User guid       |
+  | `email`   | string | query | User email      |
 
 - Responses
 

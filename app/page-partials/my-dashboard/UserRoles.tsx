@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
+import get from 'lodash.get';
 import map from 'lodash.map';
 import omitBy from 'lodash.omitby';
 import startCase from 'lodash.startcase';
 import isEmpty from 'lodash.isempty';
 import throttle from 'lodash.throttle';
+import omit from 'lodash.omit';
+import reduce from 'lodash.reduce';
 import Button from '@button-inc/bcgov-theme/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
@@ -99,13 +102,28 @@ const PAGE_LIMIT = 15;
 const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
 
 const propertyOptions = [
-  { value: 'lastName', label: 'Last Name', allowed: ['idir', 'azureidir', 'githubpublic', 'githubbcgov'] },
-  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir', 'githubpublic', 'githubbcgov'] },
-  { value: 'email', label: 'Email', allowed: ['idir', 'azureidir', 'githubpublic', 'githubbcgov'] },
+  { value: 'firstName', label: 'Full Name', allowed: ['githubpublic', 'githubbcgov'], showInResult: true },
+  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir'], showInResult: true },
+  { value: 'lastName', label: 'Login ID', allowed: ['githubpublic', 'githubbcgov'], showInResult: true },
+  {
+    value: 'lastName',
+    label: 'Last Name',
+    allowed: ['idir', 'azureidir'],
+    showInResult: true,
+    style: { minWidth: '170px' },
+  },
+  {
+    value: 'email',
+    label: 'Email',
+    allowed: ['idir', 'azureidir', 'githubpublic', 'githubbcgov'],
+    showInResult: true,
+    style: { minWidth: '170px' },
+  },
   {
     value: 'guid',
     label: 'IDP GUID',
     allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'],
+    showInResult: false,
   },
 ];
 
@@ -306,6 +324,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }
 
   const showIdirLookupOption = selectedIdp === 'idir';
+  const headers = propertyOptions.filter((v) => v.showInResult && v.allowed.includes(selectedIdp));
 
   let content = null;
   if (!searched) {
@@ -326,9 +345,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             setSelectedId(row.username);
           }}
         >
-          <td>{row.firstName}</td>
-          <td>{row.lastName}</td>
-          <td>{row.email}</td>
+          {headers.map((header) => {
+            return <td>{get(row, header.value)}</td>;
+          })}
           <td>
             <ActionButtonContainer>
               <ActionButton
@@ -341,9 +360,14 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   infoModalRef.current.open({
                     guid: row.username.split('@')[0],
                     attributes: {
-                      firstName: row.firstName,
-                      lastName: row.lastName,
-                      email: row.email,
+                      ...reduce(
+                        headers,
+                        (ret: { [key: string]: string }, header) => {
+                          ret[header.label] = get(row, header.value);
+                          return ret;
+                        },
+                        {},
+                      ),
                       ...row.attributes,
                     },
                   });
@@ -456,11 +480,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   options: propertyOptions.filter((v) => v.allowed.includes(selectedIdp)),
                 },
               ]}
-              headers={[
-                { name: 'First name' },
-                { name: 'Last Name', style: { minWidth: '170px' } },
-                { name: 'Email', style: { minWidth: '170px' } },
-              ]}
+              headers={headers}
               pagination={true}
               pageLimits={pageLimits}
               limit={PAGE_LIMIT}

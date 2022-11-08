@@ -4,6 +4,7 @@ import { handler as appHandler } from '@lambda-app/main';
 import { getMembersOnTeam } from '@lambda-app/queries/team';
 import { handler as actionsHandler } from '@lambda-actions/main';
 import baseEvent from '../base-event.json';
+import assign from 'lodash.assign';
 
 const { path: baseUrl } = baseEvent;
 const actionsBaseUrl = '/actions';
@@ -42,7 +43,14 @@ export class Integration {
   teamUsers: any[];
   firstTeamMember: any;
 
-  async create(args: { bceid?: boolean; github?: boolean; prod?: boolean; usesTeam?: boolean; serviceType?: string }) {
+  async create(args: {
+    bceid?: boolean;
+    github?: boolean;
+    prod?: boolean;
+    usesTeam?: boolean;
+    serviceType?: string;
+    authType?: string;
+  }) {
     const { bceid = false, github = false, prod = false, usesTeam = false } = args;
 
     if (usesTeam) await this.createTeam();
@@ -64,6 +72,7 @@ export class Integration {
       testValidRedirectUris: ['https://a'],
       prodValidRedirectUris: prod ? ['https://a'] : [],
       agreeWithTerms: true,
+      authType: args.authType,
     };
 
     const event: APIGatewayProxyEvent = {

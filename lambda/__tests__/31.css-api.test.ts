@@ -4,7 +4,7 @@ import { authenticate } from '@lambda-app/authenticate';
 import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, AuthMock } from './00.db.test';
 import { models } from '../shared/sequelize/models/models';
 import { Integration } from './helpers/integration';
-import { findClientRole } from '@lambda-app/keycloak/users';
+import { findClientRole, searchUsersByIdp } from '@lambda-app/keycloak/users';
 
 const BASE_PATH = '/api/v1';
 const TEST_TOKEN = 'testtoken';
@@ -43,7 +43,7 @@ const integrationRoleUsers = [
   },
 ];
 
-const searchUsersByIdp = [
+const searchUsersByIdpRows = [
   {
     username: '1ef789deb11e4ba1ab11c0123a4560b0@idp',
     firstName: 'Test',
@@ -100,7 +100,7 @@ jest.mock('@lambda-app/keycloak/users', () => {
     searchUsersByIdp: jest.fn(() => {
       return Promise.resolve({
         count: 1,
-        rows: searchUsersByIdp,
+        rows: searchUsersByIdpRows,
       });
     }),
   };
@@ -127,6 +127,8 @@ export type ApiAuthMock = Promise<{
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 
 const mockedFindClientRole = findClientRole as jest.Mock<any>;
+
+const mockedSearchUsersByIdp = searchUsersByIdp as jest.Mock<any>;
 
 mockedAuthenticate.mockImplementation(() => {
   return Promise.resolve({
@@ -298,87 +300,103 @@ describe('create team and gold integration', () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/idir/users`)
       .query({
-        firstName: searchUsersByIdp[0].firstName,
-        lastName: searchUsersByIdp[0].lastName,
-        email: searchUsersByIdp[0].email,
-        guid: searchUsersByIdp[0].username.split('@')[0],
+        firstName: searchUsersByIdpRows[0].firstName,
+        lastName: searchUsersByIdpRows[0].lastName,
+        email: searchUsersByIdpRows[0].email,
+        guid: searchUsersByIdpRows[0].username.split('@')[0],
       })
       .expect(200);
-    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
-    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
-    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
-    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+    expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdpRows[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdpRows[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdpRows[0].email);
   });
 
   it('get users associated with azure idir', async () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/azure-idir/users`)
       .query({
-        firstName: searchUsersByIdp[0].firstName,
-        lastName: searchUsersByIdp[0].lastName,
-        email: searchUsersByIdp[0].email,
-        guid: searchUsersByIdp[0].username.split('@')[0],
+        firstName: searchUsersByIdpRows[0].firstName,
+        lastName: searchUsersByIdpRows[0].lastName,
+        email: searchUsersByIdpRows[0].email,
+        guid: searchUsersByIdpRows[0].username.split('@')[0],
       })
       .expect(200);
-    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
-    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
-    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
-    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+    expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdpRows[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdpRows[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdpRows[0].email);
   });
 
-  it('get users associated with github', async () => {
+  it('get users associated with github bcgov', async () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/github-bcgov/users`)
       .query({
-        firstName: searchUsersByIdp[0].firstName,
-        lastName: searchUsersByIdp[0].lastName,
-        email: searchUsersByIdp[0].email,
-        guid: searchUsersByIdp[0].username.split('@')[0],
+        name: searchUsersByIdpRows[0].firstName,
+        login: searchUsersByIdpRows[0].lastName,
+        email: searchUsersByIdpRows[0].email,
+        guid: searchUsersByIdpRows[0].username.split('@')[0],
       })
       .expect(200);
-    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
-    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
-    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
-    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+    expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
+    expect(result.body.data[0].firstName).toBe('');
+    expect(result.body.data[0].lastName).toBe('');
+    expect(result.body.data[0].email).toBe(searchUsersByIdpRows[0].email);
+  });
+
+  it('get users associated with github public', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/dev/github-public/users`)
+      .query({
+        name: searchUsersByIdpRows[0].firstName,
+        login: searchUsersByIdpRows[0].lastName,
+        email: searchUsersByIdpRows[0].email,
+        guid: searchUsersByIdpRows[0].username.split('@')[0],
+      })
+      .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
+    expect(result.body.data[0].firstName).toBe('');
+    expect(result.body.data[0].lastName).toBe('');
+    expect(result.body.data[0].email).toBe(searchUsersByIdpRows[0].email);
   });
 
   it('get users associated with basic bceid', async () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/basic-bceid/users`)
       .query({
-        guid: searchUsersByIdp[0].username.split('@')[0],
+        guid: searchUsersByIdpRows[0].username.split('@')[0],
       })
       .expect(200);
-    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
-    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
-    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
-    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+    expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdpRows[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdpRows[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdpRows[0].email);
   });
 
   it('get users associated with business bceid', async () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/business-bceid/users`)
       .query({
-        guid: searchUsersByIdp[0].username.split('@')[0],
+        guid: searchUsersByIdpRows[0].username.split('@')[0],
       })
       .expect(200);
-    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
-    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
-    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
-    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+    expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdpRows[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdpRows[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdpRows[0].email);
   });
 
   it('get users associated with basic or business', async () => {
     const result = await supertest(app)
       .get(`${BASE_PATH}/dev/basic-business-bceid/users`)
       .query({
-        guid: searchUsersByIdp[0].username.split('@')[0],
+        guid: searchUsersByIdpRows[0].username.split('@')[0],
       })
       .expect(200);
-    expect(result.body.data[0].username).toBe(searchUsersByIdp[0].username);
-    expect(result.body.data[0].firstName).toBe(searchUsersByIdp[0].firstName);
-    expect(result.body.data[0].lastName).toBe(searchUsersByIdp[0].lastName);
-    expect(result.body.data[0].email).toBe(searchUsersByIdp[0].email);
+    expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdpRows[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdpRows[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdpRows[0].email);
   });
 
   it('deletes team integration role for an environment', async () => {

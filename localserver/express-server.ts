@@ -14,7 +14,9 @@ interface Props {
 
 const initExpresss = async () => {
   const expressServer = express();
-  const router = express.Router();
+  const appRouter = express.Router();
+  const actionsRouter = express.Router();
+  const apiRouter = express.Router();
 
   expressServer.use(logger);
   expressServer.use(bodyParser.json());
@@ -24,10 +26,12 @@ const initExpresss = async () => {
   expressServer.disable('x-powered-by');
   expressServer.set('trust proxy', 1);
 
-  setRoutes(router);
-  actionRoutes.setRoutes(router);
-  apiRoutes.setRoutes(router);
-  expressServer.use('/', router);
+  setRoutes(appRouter);
+  actionRoutes.setRoutes(actionsRouter);
+  apiRoutes.setRoutes(apiRouter);
+  expressServer.use('/app', appRouter);
+  expressServer.use('/actions', actionsRouter);
+  expressServer.use('/api/v1', apiRouter);
   return expressServer;
 };
 

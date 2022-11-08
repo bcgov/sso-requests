@@ -1,4 +1,4 @@
-import { authenticate } from '@lambda-app/authenticate';
+import { authenticate as appAuth } from '@lambda-app/authenticate';
 import { renderTemplate } from '@lambda-shared/templates';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { EMAILS } from '@lambda-shared/enums';
@@ -14,10 +14,10 @@ jest.mock('@lambda-app/github', () => {
 });
 jest.mock('@lambda-shared/utils/ches');
 
-const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
+const mockedAppAuth = appAuth as jest.Mock<AuthMock>;
 const mockedSendEmail = sendEmail as jest.Mock<any>;
 
-mockedAuthenticate.mockImplementation(() => {
+mockedAppAuth.mockImplementation(() => {
   return Promise.resolve({
     idir_userid: TEST_IDIR_USERID,
     email: TEST_IDIR_EMAIL,
@@ -99,6 +99,41 @@ describe('Feature: New Integration Approved - Team notification', () => {
     expect(emailList[0].body).toEqual(template.body);
     expect(emailList[0].to.length).toEqual(2);
     expect(emailList[0].to).toEqual([TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2]);
+    expect(emailList[0].cc.length).toEqual(1);
+    expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+  });
+});
+
+describe('Feature: New Integration (service account) Approved - User notification', () => {
+  let emailList: any = [];
+
+  const integration = new Integration();
+
+  it('should create a DRAFT integration without a team', async () => {
+    const res = await integration.create({ authType: 'service-account' });
+    expect(res.statusCode).toEqual(200);
+  });
+
+  it('should submit the integration request', async () => {
+    const res = await integration.submit();
+    expect(res.statusCode).toEqual(200);
+  });
+
+  it('should update integration status to apply-success', async () => {
+    emailList = setMockedSendEmail();
+    await integration.success();
+  });
+
+  it('should render the expected template and send it to the expected emails', async () => {
+    const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...integration.current, authType: 'service-account' },
+    });
+
+    expect(emailList.length).toEqual(1);
+    expect(emailList[0].subject).toEqual(template.subject);
+    expect(emailList[0].body).toEqual(template.body);
+    expect(emailList[0].to.length).toEqual(1);
+    expect(emailList[0].to[0]).toEqual(TEST_IDIR_EMAIL);
     expect(emailList[0].cc.length).toEqual(1);
     expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
   });

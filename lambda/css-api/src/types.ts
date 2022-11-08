@@ -26,13 +26,9 @@ export type Role = {
   composite: boolean;
 };
 
-export type ListCommonUsersQuery = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  guid: string;
-};
-
-export type ListBceidUsersQuery = {
-  guid: string;
+export type ListUsersFilterQuery = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  guid?: string;
 };
