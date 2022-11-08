@@ -1,5 +1,4 @@
 import { authenticate as appAuth } from '@lambda-app/authenticate';
-import { authenticate as actionAuth } from '@lambda-actions/authenticate';
 import { renderTemplate } from '@lambda-shared/templates';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { EMAILS } from '@lambda-shared/enums';
@@ -8,7 +7,6 @@ import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2, AuthMock } from '
 import { Integration } from './helpers/integration';
 
 jest.mock('@lambda-app/authenticate');
-jest.mock('@lambda-actions/authenticate');
 jest.mock('@lambda-app/keycloak/client', () => {
   return {
     disableIntegration: jest.fn(() => Promise.resolve()),
@@ -23,7 +21,6 @@ jest.mock('@lambda-app/github', () => {
 jest.mock('@lambda-shared/utils/ches');
 
 const mockedAppAuth = appAuth as jest.Mock<AuthMock>;
-const mockedActionAuth = actionAuth as jest.Mock<Promise<boolean>>;
 const mockedSendEmail = sendEmail as jest.Mock<any>;
 
 mockedAppAuth.mockImplementation(() => {
@@ -34,10 +31,6 @@ mockedAppAuth.mockImplementation(() => {
     given_name: '',
     family_name: '',
   });
-});
-
-mockedActionAuth.mockImplementation(() => {
-  return Promise.resolve(true);
 });
 
 const setMockedSendEmail = () => {

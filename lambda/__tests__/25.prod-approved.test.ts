@@ -1,5 +1,4 @@
 import { authenticate as appAuth } from '@lambda-app/authenticate';
-import { authenticate as actionAuth } from '@lambda-actions/authenticate';
 import { renderTemplate } from '@lambda-shared/templates';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { EMAILS } from '@lambda-shared/enums';
@@ -15,7 +14,6 @@ import {
 import { Integration } from './helpers/integration';
 
 jest.mock('@lambda-app/authenticate');
-jest.mock('@lambda-actions/authenticate');
 jest.mock('@lambda-app/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
@@ -24,7 +22,6 @@ jest.mock('@lambda-app/github', () => {
 jest.mock('@lambda-shared/utils/ches');
 
 const mockedAppAuth = appAuth as jest.Mock<AuthMock>;
-const mockedActionAuth = actionAuth as jest.Mock<Promise<boolean>>;
 const mockedSendEmail = sendEmail as jest.Mock<any>;
 
 beforeEach(() => {
@@ -37,10 +34,6 @@ beforeEach(() => {
       family_name: '',
     });
   });
-});
-
-mockedActionAuth.mockImplementation(() => {
-  return Promise.resolve(true);
 });
 
 const setMockedSendEmail = () => {
