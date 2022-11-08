@@ -39,13 +39,6 @@ resource "aws_api_gateway_integration" "actions" {
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.actions.invoke_arn
-
-  cache_key_parameters = ["method.request.path.proxy"]
-  timeout_milliseconds = 29000
-
-  request_parameters = {
-    "integration.request.path.proxy" = "method.request.path.proxy"
-  }
 }
 
 # Proxy requests to /api to the css-api lambda
