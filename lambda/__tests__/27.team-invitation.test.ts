@@ -2,7 +2,6 @@ import { authenticate } from '@lambda-app/authenticate';
 import { renderTemplate } from '@lambda-shared/templates';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { EMAILS } from '@lambda-shared/enums';
-import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { TEST_IDIR_USERID, TEST_IDIR_EMAIL, TEST_IDIR_EMAIL_2, AuthMock } from './00.db.test';
 import { Integration } from './helpers/integration';
 
