@@ -2,8 +2,11 @@ import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } 
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import throttle from 'lodash.throttle';
+import get from 'lodash.get';
+import reduce from 'lodash.reduce';
 import InfiniteScroll from 'react-infinite-scroller';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -14,6 +17,7 @@ import { ActionButton } from 'components/ActionButtons';
 import { Button, Table, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
+import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
   listClientRoles,
   deleteRole,
@@ -24,6 +28,7 @@ import {
   KeycloakUser,
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
+import { idpMap } from 'helpers/meta';
 
 const Label = styled.label`
   font-weight: bold;
@@ -46,6 +51,39 @@ const TopMargin = styled.div`
 
 const rightPanelTabs = ['Users', 'Composite Roles'];
 
+interface PropertyOption {
+  value: string;
+  label: string;
+}
+
+const idirPropertyOptions: PropertyOption[] = [
+  { value: 'firstName', label: 'First Name' },
+  { value: 'lastName', label: 'Last Name' },
+  { value: 'email', label: 'Email' },
+];
+
+const bceidPropertyOptions: PropertyOption[] = [
+  { value: 'firstName', label: 'Display Name' },
+  { value: 'lastName', label: 'Username' },
+  { value: 'email', label: 'Email' },
+];
+
+const githubPropertyOptions: PropertyOption[] = [
+  { value: 'firstName', label: 'Name' },
+  { value: 'lastName', label: 'Login' },
+  { value: 'email', label: 'Email' },
+];
+
+const propertyOptionMap: { [key: string]: PropertyOption[] } = {
+  idir: idirPropertyOptions,
+  azureidir: idirPropertyOptions,
+  bceidbasic: bceidPropertyOptions,
+  bceidbusiness: bceidPropertyOptions,
+  bceidboth: bceidPropertyOptions,
+  githubpublic: githubPropertyOptions,
+  githubbcgov: githubPropertyOptions,
+};
+
 const optionize = (v: string) => ({ label: v, value: v });
 const optionizeAll = (vs: string[]) => vs.map(optionize);
 
@@ -63,6 +101,7 @@ const LoaderContainer = () => (
 );
 
 const RoleEnvironment = ({ environment, integration, alert }: Props) => {
+  const infoModalRef = useRef<ModalRef>(emptyRef);
   const confirmModalRef = useRef<ModalRef>(emptyRef);
   const removeUserModalRef = useRef<ModalRef>(emptyRef);
   const [roleLoading, setRoleLoading] = useState(false);
@@ -242,10 +281,9 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
         <Table variant="mini">
           <thead>
             <tr>
-              <th>First Name</th>
-              <th>Last Name</th>
+              <th>IDP</th>
+              <th>GUID</th>
               <th>Email</th>
-              <th>Username</th>
               <th className="text-center">Actions</th>
             </tr>
           </thead>
@@ -257,15 +295,48 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
               loader={<LoaderContainer />}
             >
               {users.map((user) => {
+                const usernameSplit = user.username.split('@');
+                if (usernameSplit.length < 2) return null;
+
+                const [guid, idp] = usernameSplit;
+                const idpMeta = propertyOptionMap[idp];
+
                 return (
                   <tr>
-                    <td>{user.firstName}</td>
-                    <td>{user.lastName}</td>
+                    <td>{idpMap[idp]}</td>
+                    <td>{guid}</td>
                     <td>{user.email}</td>
-                    <td>{user.username}</td>
                     <td className="text-center">
+                      <span
+                        onClick={(event) => {
+                          event.stopPropagation();
+
+                          infoModalRef.current.open({
+                            guid: user.username.split('@')[0],
+                            attributes: {
+                              ...reduce(
+                                idpMeta,
+                                (ret: { [key: string]: string }, keyVal: PropertyOption) => {
+                                  ret[keyVal.label] = get(user, keyVal.value);
+                                  return ret;
+                                },
+                                {},
+                              ),
+                              ...user.attributes,
+                            },
+                          });
+                        }}
+                      >
+                        <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
+                      </span>
+                      &nbsp;&nbsp;
                       <span onClick={() => removeUserModalRef.current.open(user)}>
-                        <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} title="Remove User" />
+                        <FontAwesomeIcon
+                          style={{ color: '#FF0303' }}
+                          icon={faMinusCircle}
+                          size="lg"
+                          title="Remove User"
+                        />
                       </span>
                     </td>
                   </tr>
@@ -445,6 +516,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       >
         <div>Are you sure you want to remove this user from this role?</div>
       </GenericModal>
+      <UserDetailModal modalRef={infoModalRef} />
     </>
   );
 };

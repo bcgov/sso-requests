@@ -8,6 +8,7 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import Pagination from 'react-bootstrap/Pagination';
 import { Table as StyledTable, SearchBar } from '@bcgov-sso/common-react-components';
 import SectionHeader from 'components/SectionHeader';
+import InfoOverlay from 'components/InfoOverlay';
 import { MultiSelect } from 'react-multi-select-component';
 import { TextBlock } from 'react-placeholder/lib/placeholders';
 import ReactPlaceholder from 'react-placeholder';
@@ -90,6 +91,7 @@ interface Props {
   pageLimits?: TableFilterItem[];
   searchKey?: string;
   searchPlaceholder?: string;
+  searchTooltip?: string;
   page?: number;
   limit?: number;
   rowCount?: number;
@@ -198,6 +200,7 @@ function Table({
   pageLimits = [],
   searchKey = '',
   searchPlaceholder = 'Search...',
+  searchTooltip = '',
   page = 1,
   limit = 10,
   rowCount = 10,
@@ -255,9 +258,11 @@ function Table({
             />
           </Grid.Col>
           <Grid.Col span={4}>
-            <Button type="button" size="small" onClick={handleSearchSubmit}>
-              Search
-            </Button>
+            <InfoOverlay content={searchTooltip}>
+              <Button type="button" size="small" onClick={handleSearchSubmit}>
+                Search
+              </Button>
+            </InfoOverlay>
           </Grid.Col>
         </Grid.Row>
       </Grid>
