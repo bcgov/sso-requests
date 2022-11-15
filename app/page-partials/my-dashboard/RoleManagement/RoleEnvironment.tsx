@@ -70,7 +70,7 @@ const bceidPropertyOptions: PropertyOption[] = [
 
 const githubPropertyOptions: PropertyOption[] = [
   { value: 'firstName', label: 'Name' },
-  { value: 'lastName', label: 'Login ID' },
+  { value: 'lastName', label: 'Login' },
   { value: 'email', label: 'Email' },
 ];
 

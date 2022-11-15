@@ -172,7 +172,7 @@ const githubPropertyOptions: PropertyOption[] = [
   },
   {
     value: 'lastName',
-    label: 'Login ID',
+    label: 'Login',
     search: true,
     result: true,
     style: { minWidth: '170px' },
