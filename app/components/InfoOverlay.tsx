@@ -23,6 +23,7 @@ interface Props {
   onClick?: () => void;
   trigger?: OverlayTriggerType[];
   style?: CSSProperties;
+  children?: React.ReactElement;
 }
 
 export default function InfoOverlay({
@@ -34,6 +35,7 @@ export default function InfoOverlay({
   onClick = noop,
   trigger = ['hover', 'focus', 'click'],
   style,
+  children,
 }: Props) {
   const popover = (
     <Popover id="popover-basic" style={style}>
@@ -44,9 +46,7 @@ export default function InfoOverlay({
 
   return (
     <OverlayTrigger trigger={trigger} placement="right-start" overlay={popover} delay={{ show, hide }}>
-      <span>
-        <FontAwesomeIcon color="#777777" icon={icon} onClick={onClick} />
-      </span>
+      <span>{children ? children : <FontAwesomeIcon color="#777777" icon={icon} onClick={onClick} />}</span>
     </OverlayTrigger>
   );
 }

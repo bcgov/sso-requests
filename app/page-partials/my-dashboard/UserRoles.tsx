@@ -20,6 +20,7 @@ import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-comp
 import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
+import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
 import InfoOverlay from 'components/InfoOverlay';
@@ -136,13 +137,13 @@ const idirPropertyOptions: PropertyOption[] = [
 const bceidPropertyOptions: PropertyOption[] = [
   {
     value: 'firstName',
-    label: 'Name',
+    label: 'Display Name',
     search: true,
     result: true,
   },
   {
     value: 'lastName',
-    label: 'Bceid ID',
+    label: 'Username',
     search: true,
     result: true,
     style: { minWidth: '170px' },
@@ -515,6 +516,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const environments = selectedRequest?.environments || [];
   const idps = (selectedRequest?.devIdps || []) as IDPS[];
+  const searchTooltip =
+    selectedProperty === 'guid' || selectedIdp.startsWith('bceid')
+      ? 'Exact text match results will be displayed'
+      : 'Partial text match results will be displayed';
 
   return (
     <>
@@ -566,6 +571,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               page={page}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
+              searchTooltip={searchTooltip}
               onSearch={handleSearch}
               onEnter={handleSearch}
               loading={loading}
@@ -583,42 +589,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           <Grid.Col span={4}>{rightPanel}</Grid.Col>
         </Grid.Row>
       </Grid>
-      <GenericModal
-        ref={infoModalRef}
-        id="additiona-user-info"
-        title="Additional User Info"
-        icon={null}
-        cancelButtonText="Close"
-        cancelButtonVariant="primary"
-        showConfirmButton={false}
-        buttonAlign="right"
-        style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
-      >
-        {(context: { guid: string; attributes: any }) => {
-          if (!context) return <></>;
-
-          const attributes = omitBy(context.attributes, isEmpty);
-
-          return (
-            <div>
-              <Label>GUID</Label>
-              <ReadonlyItem width="400px">{context.guid}</ReadonlyItem>
-              <br />
-              <Label>Attributes</Label>
-              <ReadonlyContainer>
-                <ReadonlySubHeader width="200px">Key</ReadonlySubHeader>
-                <ReadonlySubHeader width="700px">Value</ReadonlySubHeader>
-              </ReadonlyContainer>
-              {map(attributes, (val, key) => (
-                <ReadonlyContainer>
-                  <ReadonlyItem width="200px">{startCase(key)}</ReadonlyItem>
-                  <ReadonlyItem width="700px">{val}</ReadonlyItem>
-                </ReadonlyContainer>
-              ))}
-            </div>
-          );
-        }}
-      </GenericModal>
+      <UserDetailModal modalRef={infoModalRef} />
       <GenericModal
         ref={idimSearchModalRef}
         id="idim-webservice-lookup"
