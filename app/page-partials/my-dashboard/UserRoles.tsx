@@ -20,6 +20,7 @@ import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-comp
 import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
+import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
 import InfoOverlay from 'components/InfoOverlay';
@@ -101,31 +102,105 @@ const PAGE_LIMIT = 15;
 
 const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
 
-const propertyOptions = [
-  { value: 'firstName', label: 'Full Name', allowed: ['githubpublic', 'githubbcgov'], showInResult: true },
-  { value: 'firstName', label: 'First Name', allowed: ['idir', 'azureidir'], showInResult: true },
-  { value: 'lastName', label: 'Login ID', allowed: ['githubpublic', 'githubbcgov'], showInResult: true },
+interface PropertyOption {
+  value: string;
+  label: string;
+  search: boolean;
+  result: boolean;
+  style?: any;
+}
+
+const idirPropertyOptions: PropertyOption[] = [
+  { value: 'firstName', label: 'First Name', search: true, result: true },
   {
     value: 'lastName',
     label: 'Last Name',
-    allowed: ['idir', 'azureidir'],
-    showInResult: true,
+    search: true,
+    result: true,
     style: { minWidth: '170px' },
   },
   {
     value: 'email',
     label: 'Email',
-    allowed: ['idir', 'azureidir', 'githubpublic', 'githubbcgov'],
-    showInResult: true,
+    search: true,
+    result: true,
     style: { minWidth: '170px' },
   },
   {
     value: 'guid',
     label: 'IDP GUID',
-    allowed: ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'],
-    showInResult: false,
+    search: true,
+    result: false,
   },
 ];
+
+const bceidPropertyOptions: PropertyOption[] = [
+  {
+    value: 'firstName',
+    label: 'Display Name',
+    search: true,
+    result: true,
+  },
+  {
+    value: 'lastName',
+    label: 'Username',
+    search: true,
+    result: true,
+    style: { minWidth: '170px' },
+  },
+  {
+    value: 'email',
+    label: 'Email',
+    search: true,
+    result: true,
+    style: { minWidth: '170px' },
+  },
+  {
+    value: 'guid',
+    label: 'IDP GUID',
+    search: true,
+    result: false,
+  },
+];
+
+const githubPropertyOptions: PropertyOption[] = [
+  {
+    value: 'firstName',
+    label: 'Name',
+    search: true,
+    result: true,
+  },
+  {
+    value: 'lastName',
+    label: 'Login',
+    search: true,
+    result: true,
+    style: { minWidth: '170px' },
+  },
+  {
+    value: 'email',
+    label: 'Email',
+    search: true,
+    result: true,
+    style: { minWidth: '170px' },
+  },
+  {
+    value: 'guid',
+    label: 'IDP GUID',
+    search: true,
+    result: false,
+  },
+];
+
+const propertyOptionMap: { [key: string]: PropertyOption[] } = {
+  idir: idirPropertyOptions,
+  azureidir: idirPropertyOptions,
+  bceidbasic: bceidPropertyOptions,
+  bceidbusiness: bceidPropertyOptions,
+  bceidboth: bceidPropertyOptions,
+  githubpublic: githubPropertyOptions,
+  githubbcgov: githubPropertyOptions,
+};
 
 interface Props {
   selectedRequest: Integration;
@@ -204,8 +279,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     if (selectedRequest.devIdps) {
       const idp = selectedRequest.devIdps.length > 0 ? selectedRequest.devIdps[0] : '';
       setSelectedIdp(idp);
-      const firstAllowedProperty = propertyOptions.find((v) => v.allowed.includes(idp));
-      setSelectedProperty(firstAllowedProperty?.value || '');
+      const propertyOptions = propertyOptionMap[idp] || [];
+      if (propertyOptions.length > 0) setSelectedProperty(propertyOptions[0].value);
     }
   };
 
@@ -239,11 +314,14 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   useEffect(() => {
     reset();
-    const currentPropertyOption = propertyOptions.find((v) => v.value === selectedProperty);
-    const isCurrentPropertyAllowed = currentPropertyOption?.allowed.includes(selectedIdp);
+
+    const propertyOptions = propertyOptionMap[selectedIdp] || [];
+    const isCurrentPropertyAllowed = propertyOptions.find(
+      (option) => option.search && option.value === selectedProperty,
+    );
+
     if (!isCurrentPropertyAllowed) {
-      const firstAllowedProperty = propertyOptions.find((v) => v.allowed.includes(selectedIdp));
-      setSelectedProperty(firstAllowedProperty?.value || '');
+      if (propertyOptions.length > 0) setSelectedProperty(propertyOptions[0].value);
     }
   }, [selectedIdp]);
 
@@ -269,6 +347,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       idp: selectedIdp,
       property,
       searchKey,
+      integrationId: selectedRequest.id || -1,
     });
 
     if (data) {
@@ -324,7 +403,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }
 
   const showIdirLookupOption = selectedIdp === 'idir';
-  const headers = propertyOptions.filter((v) => v.showInResult && v.allowed.includes(selectedIdp));
+  const propertyOptions = propertyOptionMap[selectedIdp] || [];
+  const headers = propertyOptions.length > 0 ? propertyOptions.filter((option) => option.result) : [];
 
   let content = null;
   if (!searched) {
@@ -436,6 +516,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const environments = selectedRequest?.environments || [];
   const idps = (selectedRequest?.devIdps || []) as IDPS[];
+  const searchTooltip =
+    selectedProperty === 'guid' || selectedIdp.startsWith('bceid')
+      ? 'Exact text match results will be displayed'
+      : 'Partial text match results will be displayed';
 
   return (
     <>
@@ -477,7 +561,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   value: selectedProperty,
                   multiselect: false,
                   onChange: setSelectedProperty,
-                  options: propertyOptions.filter((v) => v.allowed.includes(selectedIdp)),
+                  options: propertyOptions.filter((option) => option.search),
                 },
               ]}
               headers={headers}
@@ -487,6 +571,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               page={page}
               searchKey={searchKey}
               searchPlaceholder="Enter search criteria"
+              searchTooltip={searchTooltip}
               onSearch={handleSearch}
               onEnter={handleSearch}
               loading={loading}
@@ -504,42 +589,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           <Grid.Col span={4}>{rightPanel}</Grid.Col>
         </Grid.Row>
       </Grid>
-      <GenericModal
-        ref={infoModalRef}
-        id="additiona-user-info"
-        title="Additional User Info"
-        icon={null}
-        cancelButtonText="Close"
-        cancelButtonVariant="primary"
-        showConfirmButton={false}
-        buttonAlign="right"
-        style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
-      >
-        {(context: { guid: string; attributes: any }) => {
-          if (!context) return <></>;
-
-          const attributes = omitBy(context.attributes, isEmpty);
-
-          return (
-            <div>
-              <Label>GUID</Label>
-              <ReadonlyItem width="400px">{context.guid}</ReadonlyItem>
-              <br />
-              <Label>Attributes</Label>
-              <ReadonlyContainer>
-                <ReadonlySubHeader width="200px">Key</ReadonlySubHeader>
-                <ReadonlySubHeader width="700px">Value</ReadonlySubHeader>
-              </ReadonlyContainer>
-              {map(attributes, (val, key) => (
-                <ReadonlyContainer>
-                  <ReadonlyItem width="200px">{startCase(key)}</ReadonlyItem>
-                  <ReadonlyItem width="700px">{val}</ReadonlyItem>
-                </ReadonlyContainer>
-              ))}
-            </div>
-          );
-        }}
-      </GenericModal>
+      <UserDetailModal modalRef={infoModalRef} />
       <GenericModal
         ref={idimSearchModalRef}
         id="idim-webservice-lookup"
