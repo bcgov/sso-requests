@@ -73,7 +73,7 @@ const RightFloat = styled.td`
 
 const PaddedButton = styled(Button)`
   padding: 0 !important;
-  margin: 20px 0 !important;
+  margin: 10px 0 !important;
 `;
 
 const CenteredTD = styled.td`
@@ -400,8 +400,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         <Tab key="members" tab="Members">
           <TabWrapper>
             {isAdmin ? (
-              <PaddedButton variant="plainText" onClick={openModal}>
-                + Add new team members
+              <PaddedButton>
+                <RequestButton onClick={openModal}>+ Add new team members</RequestButton>
               </PaddedButton>
             ) : (
               <br />
