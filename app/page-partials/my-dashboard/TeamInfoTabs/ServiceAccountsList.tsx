@@ -101,7 +101,7 @@ export default function ServiceAccountsList({
       <Table>
         <thead>
           <tr>
-            <th>Api Account ID</th>
+            <th>API Account ID</th>
             <RightAlignHeader>Actions</RightAlignHeader>
           </tr>
         </thead>
