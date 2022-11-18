@@ -727,6 +727,7 @@ export const searchBCeIDusersByIntegration = async ({
   if (!['email', 'firstName', 'lastName', 'guid'].includes(prop)) throw Error(`invalid property ${prop}`);
 
   if (!idp.startsWith('bceid')) throw Error(`invalid idp ${idp}`);
+  if (!propValue) throw Error(`empty search value`);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
@@ -746,7 +747,10 @@ export const searchBCeIDusersByIntegration = async ({
   let users = await kcAdminClient.users.find({ realm: 'standard', ...query });
 
   if (!query.exact) {
-    users = users.filter((user) => user[prop] === propValue);
+    users = users.filter((user) => {
+      if (!user[prop]) return false;
+      return user[prop].toLowerCase() === propValue.toLowerCase();
+    });
   }
 
   users = await asyncFilter(users, async (user) => {
