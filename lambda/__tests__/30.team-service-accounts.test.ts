@@ -22,6 +22,12 @@ jest.mock('@lambda-app/helpers/token', () => {
 });
 jest.mock('@lambda-shared/utils/ches');
 
+jest.mock('@lambda-app/keycloak/client', () => {
+  return {
+    disableClient: jest.fn(() => Promise.resolve()),
+  };
+});
+
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 
 let serviceAccount;
