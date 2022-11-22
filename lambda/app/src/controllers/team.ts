@@ -13,6 +13,7 @@ import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
 import { getAllowedRequest, getIntegrationsByTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent, getRequester } from './requests';
+import { disableClient } from '@lambda-app/keycloak/client';
 
 const serviceAccountCommonPopulation = [
   {
@@ -305,6 +306,12 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
         throw Error('failed to create a workflow dispatch event');
       }
     }
+
+    // disable the client while TF applying the changes
+    const { serviceType, realmName, clientId } = serviceAccount;
+
+    // all css api service accounts exist only in prod
+    await disableClient({ serviceType, environment: 'prod', realmName, clientId });
 
     // Close any pr's if they exist
     await closeOpenPullRequests(saId);
