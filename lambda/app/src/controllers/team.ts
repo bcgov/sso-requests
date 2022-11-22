@@ -309,6 +309,8 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 
     // disable the client while TF applying the changes
     const { serviceType, realmName, clientId } = serviceAccount;
+
+    // all css api service accounts exist only in prod
     await disableClient({ serviceType, environment: 'prod', realmName, clientId });
 
     // Close any pr's if they exist

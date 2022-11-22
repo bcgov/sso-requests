@@ -15,9 +15,9 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
       });
 
     const data = await Promise.all([
-      triggerDispatch('siteminder-tests.yml', { environment: 'dev', cluster: 'gold' }),
-      triggerDispatch('siteminder-tests.yml', { environment: 'test', cluster: 'gold' }),
-      triggerDispatch('siteminder-tests.yml', { environment: 'prod', cluster: 'gold' }),
+      triggerDispatch('siteminder-tests.yml', { environment: 'DEV', cluster: 'GOLD' }),
+      triggerDispatch('siteminder-tests.yml', { environment: 'TEST', cluster: 'GOLD' }),
+      triggerDispatch('siteminder-tests.yml', { environment: 'PROD', cluster: 'GOLD' }),
     ]);
 
     const response = {
