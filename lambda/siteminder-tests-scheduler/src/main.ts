@@ -14,11 +14,17 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
         inputs,
       });
 
-    const data = await Promise.all([
-      triggerDispatch('siteminder-tests.yml', { environment: 'DEV', cluster: 'GOLD' }),
-      triggerDispatch('siteminder-tests.yml', { environment: 'TEST', cluster: 'GOLD' }),
-      triggerDispatch('siteminder-tests.yml', { environment: 'PROD', cluster: 'GOLD' }),
-    ]);
+    const promises = [];
+
+    promises.push(triggerDispatch('siteminder-tests.yml', { environment: 'DEV', cluster: 'GOLD' }));
+
+    promises.push(triggerDispatch('siteminder-tests.yml', { environment: 'TEST', cluster: 'GOLD' }));
+
+    // the days of week are represented in the range 0-6
+    if (new Date().getDay() === 0)
+      promises.push(triggerDispatch('siteminder-tests.yml', { environment: 'PROD', cluster: 'GOLD' }));
+
+    const data = await Promise.all(promises);
 
     const response = {
       statusCode: 200,
