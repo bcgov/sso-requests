@@ -1,6 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ClientRoles from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
+import RoleEnvironment from 'page-partials/my-dashboard/RoleManagement';
+
+const callBackFromSearch = jest.fn();
+
+const searchButton = screen.queryByText('Search');
+//screen.queryByTestId(`stage-1`)?.closest('div') as HTMLElement;
 
 describe('role management tab', () => {
   it('should be able to click the create new role button', () => {
@@ -9,9 +15,10 @@ describe('role management tab', () => {
     expect(screen.getByText('Create New Role')).toHaveStyle({ visibility: 'hidden' });
 
     fireEvent.click(screen.getByText('+ Create a New Role'));
-    //await waitFor(() => screen.getByTestId("someElemInMyModal"));
+    //expect(screen.getByText('Create New Role')).toHaveAttribute('disabled');
     //expect(screen.getByText('Role Name')).toHaveStyle({ visibility: 'visible' });
-    expect(screen.getByTitle('Create New Role')).toBeVisible();
+    //expect(screen.getByText('Create New Role')).toHaveStyle({ visibility: 'visible' });
+    //expect(screen.getByText('Create New Role')).toBeVisible();
   });
 
   it('should match the display data', async () => {
@@ -35,5 +42,8 @@ describe('role management tab', () => {
     render(<ClientRoles integration={{ ...sampleRequest }} />);
     fireEvent.click(screen.getByText('Search'));
     expect(screen.getByTestId('grid-loading'));
+    await expect(callBackFromSearch).toHaveBeenCalled();
   });
+
+  //mock function with sample data; find the calling function
 });

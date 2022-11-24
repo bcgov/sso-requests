@@ -14,5 +14,11 @@ describe('change client secret tab', () => {
     render(<ConfigurationUrlPanel selectedRequest={{ ...sampleRequest, publicAccess: false }} />);
     fireEvent.click(screen.getByText('Change your client secret'));
     expect(screen.getByTitle(`You're About to Change Your Client Secret`)).toBeVisible();
+    fireEvent.click(screen.getByText('Confirm'));
+    expect(screen.findByText(`Client Secret Successfully Updated`));
   });
+
+  //test integration with secret to test mock confirm
+  //fixture
+  //create a folder: mock; put all the mock function in
 });
