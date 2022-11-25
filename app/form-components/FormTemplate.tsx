@@ -18,6 +18,7 @@ import { parseError } from 'utils/helpers';
 import {
   checkBceidBoth,
   checkIdirGroup,
+  checkBceidGroup,
   checkBceidRegularGroup,
   checkIdirGroupAndNotBceidBoth,
   checkIdirGroupAndNotBceidRegularGroup,
@@ -48,16 +49,26 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
-const filterIdps = (currentIdps: string[], updatedIdps: string[]) => {
+const filterIdps = (currentIdps = [], updatedIdps = [], applied = true, bceidApproved = false) => {
+  if (currentIdps.length === updatedIdps.length) return updatedIdps;
+
   const idpAdded = currentIdps.length < updatedIdps.length;
   let idps = updatedIdps;
 
   if (idpAdded) {
     const newIdp = difference(updatedIdps, currentIdps)[0];
 
-    if (checkBceidRegularGroup(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidBoth);
-    else if (checkBceidBoth(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidRegularGroup);
-    else if (checkGithubGroup(newIdp)) idps = updatedIdps.filter(checkNotGithubGroup).concat(newIdp);
+    if (checkBceidGroup(newIdp)) {
+      if (applied && bceidApproved) idps = currentIdps;
+      else if (checkBceidRegularGroup(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidBoth);
+      else if (checkBceidBoth(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidRegularGroup);
+    } else if (checkGithubGroup(newIdp)) idps = updatedIdps.filter(checkNotGithubGroup).concat(newIdp);
+  } else {
+    // once the integration is created (applied) and until approved,
+    // only allow to switch over to another BCeID type; prevent them from unselecting all BCeID types.
+    if (applied && !bceidApproved && currentIdps.some(checkBceidGroup) && !updatedIdps.some(checkBceidGroup)) {
+      idps = currentIdps;
+    }
   }
 
   return idps;
@@ -133,7 +144,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const newData = trimFormData(e.formData);
     const currentIdps = formData?.devIdps || [];
     const updatedIdps = newData.devIdps || [];
-    const devIdps = filterIdps(currentIdps, updatedIdps);
+    const devIdps = filterIdps(currentIdps, updatedIdps, formData.status === 'applied', formData.bceidApproved);
 
     const showModal = newData.projectLead === false && newData.usesTeam === false;
     const togglingTeamToTrue = formData.usesTeam === false && newData.usesTeam === true;
