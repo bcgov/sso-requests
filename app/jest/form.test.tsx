@@ -218,7 +218,7 @@ describe('Admins', () => {
 });
 
 describe('Basic Info - Identity Providers', () => {
-  it('should be able to change BCeID type in draft', async () => {
+  it('should be able to change/unselect BCeID type in draft', async () => {
     setUpRouter('/', sandbox);
     const { getByText } = setUpRender({
       id: 0,
@@ -304,7 +304,7 @@ describe('Basic Info - Identity Providers', () => {
     expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked();
   });
 
-  it('should be able freezed after BCeID approved', async () => {
+  it('should be freezed after BCeID approved', async () => {
     setUpRouter('/', sandbox);
     const { getByText } = setUpRender({
       id: 0,
