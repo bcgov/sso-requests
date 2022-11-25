@@ -49,7 +49,7 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
-const filterIdps = (currentIdps = [], updatedIdps = [], applied = true, bceidApproved = false) => {
+const filterIdps = (currentIdps: string[] = [], updatedIdps: string[] = [], applied = true, bceidApproved = false) => {
   if (currentIdps.length === updatedIdps.length) return updatedIdps;
 
   const idpAdded = currentIdps.length < updatedIdps.length;
