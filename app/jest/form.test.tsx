@@ -26,14 +26,14 @@ const STEPPER_ERROR = 'Some additional fields require your attention.';
 let sandbox: any = {};
 
 const setUpRender = (request: Integration | object | null, currentUser = {}) => {
-  const { debug } = render(<FormTemplate currentUser={currentUser} request={request} />);
+  const result = render(<FormTemplate currentUser={currentUser} request={request} />);
   sandbox.firstStageBox = screen.queryByTestId(`stage-1`)?.closest('div') as HTMLElement;
   sandbox.secondStageBox = screen.queryByTestId(`stage-2`)?.closest('div') as HTMLElement;
   sandbox.thirdStageBox = screen.queryByTestId(`stage-3`)?.closest('div') as HTMLElement;
   sandbox.fourthStageBox = screen.queryByTestId(`stage-4`)?.closest('div') as HTMLElement;
   sandbox.fifthStageBox = screen.queryByTestId(`stage-5`)?.closest('div') as HTMLElement;
   sandbox.adminReview = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
-  return debug;
+  return result;
 };
 
 export const sampleRequest: Integration = {
@@ -214,5 +214,130 @@ describe('Admins', () => {
     formButtonText.forEach((title) => {
       expect(screen.queryByText(title)).toBeNull();
     });
+  });
+});
+
+describe('Basic Info - Identity Providers', () => {
+  it('should be able to change/unselect BCeID type in draft', async () => {
+    setUpRouter('/', sandbox);
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+      bceidApproved: false,
+    });
+
+    fireEvent.click(sandbox.secondStageBox);
+
+    const idpTitles = ['Basic BCeID', 'Business BCeID', 'Basic or Business BCeID'];
+
+    const idpCheckboxMap: { [key: string]: HTMLInputElement } = {};
+
+    for (let x = 0; x < idpTitles.length; x++) {
+      const elem = getByText(idpTitles[x])?.parentElement?.querySelector("input[type='checkbox']");
+      if (elem) idpCheckboxMap[idpTitles[x]] = elem as HTMLInputElement;
+    }
+
+    expect(idpCheckboxMap['Basic BCeID']).not.toBeDisabled();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeDisabled();
+    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeDisabled();
+
+    expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked();
+
+    // should select another BCeID type
+    fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
+    expect(idpCheckboxMap['Basic BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked();
+
+    // should not unselect all BCeID types
+    fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
+    expect(idpCheckboxMap['Basic BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked();
+  });
+
+  it('should be able to change BCeID type until approved', async () => {
+    setUpRouter('/', sandbox);
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bceidbasic'],
+      status: 'applied',
+      environments: ['dev', 'test', 'prod'],
+      bceidApproved: false,
+    });
+
+    fireEvent.click(sandbox.secondStageBox);
+
+    const idpTitles = ['Basic BCeID', 'Business BCeID', 'Basic or Business BCeID'];
+
+    const idpCheckboxMap: { [key: string]: HTMLInputElement } = {};
+
+    for (let x = 0; x < idpTitles.length; x++) {
+      const elem = getByText(idpTitles[x])?.parentElement?.querySelector("input[type='checkbox']");
+      if (elem) idpCheckboxMap[idpTitles[x]] = elem as HTMLInputElement;
+    }
+
+    expect(idpCheckboxMap['Basic BCeID']).not.toBeDisabled();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeDisabled();
+    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeDisabled();
+
+    expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked();
+
+    // should select another BCeID type
+    fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
+    expect(idpCheckboxMap['Basic BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked();
+
+    // should not unselect all BCeID types
+    fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
+    expect(idpCheckboxMap['Basic BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked();
+  });
+
+  it('should be freezed after BCeID approved', async () => {
+    setUpRouter('/', sandbox);
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bceidbasic'],
+      status: 'applied',
+      environments: ['dev', 'test', 'prod'],
+      bceidApproved: true,
+    });
+
+    fireEvent.click(sandbox.secondStageBox);
+
+    const idpTitles = ['Basic BCeID', 'Business BCeID', 'Basic or Business BCeID'];
+
+    const idpCheckboxMap: { [key: string]: HTMLInputElement } = {};
+
+    for (let x = 0; x < idpTitles.length; x++) {
+      const elem = getByText(idpTitles[x])?.parentElement?.querySelector("input[type='checkbox']");
+      if (elem) idpCheckboxMap[idpTitles[x]] = elem as HTMLInputElement;
+    }
+
+    expect(idpCheckboxMap['Basic BCeID']).toBeDisabled();
+    expect(idpCheckboxMap['Business BCeID']).toBeDisabled();
+    expect(idpCheckboxMap['Basic or Business BCeID']).toBeDisabled();
+
+    expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked();
+
+    // should select another BCeID type
+    fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
+    expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
+    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
+    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked();
   });
 });

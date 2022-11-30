@@ -22,29 +22,28 @@ interface Props {
 const envs = ['dev', 'test', 'prod'];
 
 const getUISchema = ({ integration, formData, isAdmin }: Props) => {
-  const isNew = isNil(integration?.id);
-  const isApplied = integration?.status === 'applied';
-  const idps = integration?.devIdps || [];
+  const { id, status, devIdps = [], environments = [], bceidApproved = false } = integration || {};
+  const isNew = isNil(id);
+  const isApplied = status === 'applied';
 
-  const envDisabled = isApplied ? integration?.environments?.concat() || [] : ['dev'];
+  const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
   let idpDisabled: string[] = [];
   let idpHidden: string[] = [];
 
   if (!isAdmin) {
     if (isApplied) {
-      idps.forEach((idp) => {
+      devIdps.forEach((idp) => {
         if (checkBceidGroup(idp)) {
-          if (idp === 'bceidbasic') idpDisabled.push('bceidbasic', 'bceidboth');
-          else if (idp === 'bceidbusiness') idpDisabled.push('bceidbusiness', 'bceidboth');
-          else if (idp === 'bceidboth') idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+          if (bceidApproved) idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
         } else if (checkGithubGroup(idp)) {
           idpDisabled.push('githubpublic', 'githubbcgov');
         }
       });
     }
+
     idpDisabled = uniq(idpDisabled);
 
-    if (!isApplied || !idps.includes('githubpublic')) idpHidden.push('githubpublic');
+    if (!isApplied || !devIdps.includes('githubpublic')) idpHidden.push('githubpublic');
   }
 
   const includeComment = isApplied && isAdmin;

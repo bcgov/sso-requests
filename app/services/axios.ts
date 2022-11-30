@@ -12,7 +12,7 @@ const instance = axios.create({
   withCredentials: true,
 });
 
-instance?.interceptors.request.use(
+instance.interceptors.request.use(
   async function (config) {
     const headers = config.headers as AxiosRequestHeaders & { skipAuth: boolean | undefined };
     if (headers.skipAuth) {
@@ -29,17 +29,42 @@ instance?.interceptors.request.use(
 
 const applicationBlockingErrors = ['E01'];
 
-export const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
-  if (!err.response) return [null, 'Unhandled Exception' as any];
+instance.interceptors.response.use(
+  function (response) {
+    return response;
+  },
+  function (error) {
+    if (error.response) {
+      switch (error.response.status) {
+        case 504:
+          Router.push({
+            pathname: '/application-error',
+            query: { error: 'E04' },
+          });
+        default:
+          const errorMessage = error.response.data?.message;
+          if (applicationBlockingErrors.includes(errorMessage))
+            Router.push({
+              pathname: '/application-error',
+              query: {
+                error: errorMessage,
+              },
+            });
+      }
+    }
 
-  const errorMessage = (err.response as AxiosResponse).data?.message || 'Unhandled Exception';
-  if (applicationBlockingErrors.includes(errorMessage))
-    Router.push({
-      pathname: '/application-error',
-      query: {
-        error: errorMessage,
-      },
-    });
+    return Promise.reject(error);
+  },
+);
+
+export const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
+  let errorMessage = null;
+  if (!err.response) errorMessage = 'Unhandled Exception';
+  else {
+    const errResponse: AxiosResponse = err.response;
+    errorMessage = errResponse.data?.message || 'Unhandled Exception';
+  }
+
   return [null, errorMessage as AxiosError];
 };
 
