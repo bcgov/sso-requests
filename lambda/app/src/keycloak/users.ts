@@ -550,42 +550,13 @@ export const createIdirUser = async ({
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
   const lowGuid = guid.toLowerCase();
-  let parentUser = null;
+  const username = `${lowGuid}@idir`;
+
   let standardUser = null;
-
-  const existingParentUsers = await kcAdminClient.users.find({ realm: 'idir', username: lowGuid, max: 1 });
-  if (existingParentUsers.length > 0) {
-    parentUser = existingParentUsers[0];
-  } else {
-    parentUser = await kcAdminClient.users.create({
-      realm: 'idir',
-      username: guid,
-      email,
-      firstName,
-      lastName,
-      attributes: {
-        display_name: displayName,
-        idir_user_guid: guid,
-        idir_username: userId,
-      },
-      enabled: true,
-    });
-
-    await kcAdminClient.users.addToFederatedIdentity({
-      realm: 'idir',
-      id: parentUser.id,
-      federatedIdentityId: 'idir',
-      federatedIdentity: {
-        userId: guid,
-        userName: guid,
-        identityProvider: 'idir',
-      },
-    });
-  }
 
   const existingStandardUsers = await kcAdminClient.users.find({
     realm: 'standard',
-    username: `${lowGuid}@idir`,
+    username,
     max: 1,
   });
 
@@ -594,7 +565,7 @@ export const createIdirUser = async ({
   } else {
     standardUser = await kcAdminClient.users.create({
       realm: 'standard',
-      username: `${guid}@idir`,
+      username,
       email,
       firstName,
       lastName,
@@ -611,8 +582,8 @@ export const createIdirUser = async ({
       id: standardUser.id,
       federatedIdentityId: 'idir',
       federatedIdentity: {
-        userId: parentUser.id,
-        userName: guid,
+        userId: lowGuid,
+        userName: lowGuid,
         identityProvider: 'idir',
       },
     });
