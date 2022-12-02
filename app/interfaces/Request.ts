@@ -67,6 +67,9 @@ export interface Integration {
   createdAt?: string;
   updatedAt?: string;
   userTeamRole?: string;
+  devDisplayHeaderTitle?: boolean;
+  testDisplayHeaderTitle?: boolean;
+  prodDisplayHeaderTitle?: boolean;
 }
 
 export interface Option {
