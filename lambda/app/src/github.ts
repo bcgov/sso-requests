@@ -8,6 +8,7 @@ import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
 const envFields = [
+  'DisplayHeaderTitle',
   'LoginTitle',
   'ValidRedirectUris',
   'Idps',

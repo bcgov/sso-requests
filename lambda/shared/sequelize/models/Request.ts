@@ -298,6 +298,21 @@ const init = (sequelize, DataTypes) => {
           return this.getDataValue('userTeamRole');
         },
       },
+      devDisplayHeaderTitle: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
+      testDisplayHeaderTitle: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
+      prodDisplayHeaderTitle: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
     },
     {
       underscored: true,
