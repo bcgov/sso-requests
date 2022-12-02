@@ -35,7 +35,7 @@ export const processRequest = async (integrationOrModel: any) => {
     integration = integrationOrModel;
   }
 
-  const accountableEntity = getAccountableEntity(integration) || '';
+  const accountableEntity = (await getAccountableEntity(integration)) || '';
 
   const {
     realm,

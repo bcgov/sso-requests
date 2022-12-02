@@ -55,8 +55,8 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     integration.serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
 
   const payload = pick(integration, allowedFieldsForGithub);
-  integration.accountableEntity = getAccountableEntity(integration);
-  integration.idpNames = idps.map((idp) => idpMap[idp]).join(', ');
+  integration.accountableEntity = (await getAccountableEntity(integration)) || '';
+  integration.idpNames = idps.map((idp) => idpMap[idp]).join(', ') || [];
   if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
 
   // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
