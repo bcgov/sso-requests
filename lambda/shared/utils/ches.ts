@@ -47,5 +47,10 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, bo
   };
 
   console.log('DEBUG: ', chesAPIEndpoint, reqPayload, reqOptions);
+
+  // see https://github.com/axios/axios/issues/1650#issuecomment-410403394
+  // see https://nodejs.org/api/cli.html#node_tls_reject_unauthorizedvalue
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
   return axios.post(chesAPIEndpoint, reqPayload, reqOptions);
 };
