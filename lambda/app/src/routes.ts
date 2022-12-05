@@ -33,6 +33,7 @@ import {
   getRequestAll,
   getRequest,
   updateRequest,
+  resubmitRequest,
   deleteRequest,
   updateRequestMetadata,
   getIntegrations,
@@ -197,6 +198,19 @@ export const setRoutes = (app: any) => {
     try {
       const { submit } = req.query || {};
       const result = await updateRequest(req.session as Session, req.body, req.user, submit);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/requests/:id/resubmit`, async (req, res) => {
+    try {
+      const { id } = req.params || {};
+      if (!id) {
+        throw Error('integration ID not found');
+      }
+      const result = await resubmitRequest(req.session as Session, Number(id));
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

@@ -195,27 +195,7 @@ export const updateRequest = async (
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
 
-      const tfData = getCurrentValue();
-
-      // let's use dev's idps until having a env-specific idp selections
-      if (tfData.environments.includes('test')) tfData.testIdps = tfData.devIdps;
-      if (tfData.environments.includes('prod')) tfData.prodIdps = tfData.devIdps;
-
-      // prevent the TF from creating BCeID integration in prod environment if not approved
-      if (!current.bceidApproved && hasBceid) {
-        if (tfData.serviceType === 'gold') {
-          tfData.prodIdps = tfData.prodIdps.filter(checkNotBceidGroup);
-        } else {
-          tfData.environments = tfData.environments.filter((environment) => environment !== 'prod');
-        }
-      }
-
-      // prevent the TF from creating GitHub integration in prod environment if not approved
-      if (!current.githubApproved && hasGithub) {
-        tfData.prodIdps = tfData.prodIdps.filter(checkNotGithubGroup);
-      }
-
-      const ghResult = await dispatchRequestWorkflow(tfData);
+      const ghResult = await dispatchRequestWorkflow(getCurrentValue());
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
@@ -305,6 +285,40 @@ export const updateRequest = async (
       await createEvent(eventData);
     }
 
+    throw Error(err.message || err);
+  }
+};
+
+export const resubmitRequest = async (session: Session, id: number) => {
+  const isMerged = await checkIfRequestMerged(id);
+  if (!isMerged) return;
+
+  try {
+    const current = await getAllowedRequest(session, id);
+    const getCurrentValue = () => current.get({ plain: true, clone: true });
+    const isAllowedStatus = ['submitted'].includes(current.status);
+
+    if (!current || !isAllowedStatus) {
+      throw Error('unauthorized request');
+    }
+
+    const ghResult = await dispatchRequestWorkflow(getCurrentValue());
+    if (ghResult.status !== 204) {
+      throw Error('failed to create a workflow dispatch event');
+    }
+
+    current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
+    current.requester = await getRequester(session, current.id);
+    current.changed('updatedAt', true);
+
+    const updated = await current.save();
+    if (!updated) {
+      throw Error('update failed');
+    }
+
+    return updated.get({ plain: true });
+  } catch (err) {
+    console.error(err);
     throw Error(err.message || err);
   }
 };

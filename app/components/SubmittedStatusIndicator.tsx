@@ -1,15 +1,19 @@
+import { useEffect, useState } from 'react';
 import { ProgressBar } from 'react-bootstrap';
 import DefaultTitle from 'components/SHeader3';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Link from '@button-inc/bcgov-theme/Link';
+import { Button } from '@bcgov-sso/common-react-components';
 import styled from 'styled-components';
 import { LINK_COLOR } from 'styles/theme';
 import HelpText from 'components/HelpText';
 import { Integration } from 'interfaces/Request';
 import getConfig from 'next/config';
 import StatusList from 'components/StatusList';
-import InfoMessage from 'components/InfoMessage';
+import { InfoMessage, ErrorMessage } from 'components/MessageBox';
+import { withTopAlert, TopAlert } from 'layout/TopAlert';
+import { resubmitRequest } from 'services/request';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
@@ -17,6 +21,7 @@ const { app_env } = publicRuntimeConfig;
 interface Props {
   integration: Integration;
   title?: string;
+  alert: TopAlert;
 }
 
 const Title = styled(DefaultTitle)`
@@ -98,10 +103,12 @@ const getStatusStatusCode = (status?: string) => {
   }
 };
 
-export function IntegrationProgressStatus({ integration }: { integration: Integration }) {
+const minToMs = (min: number) => min * 60000;
+
+export function IntegrationProgressStatus({ integration, hasError }: { integration: Integration; hasError: boolean }) {
   const { status, updatedAt } = integration;
-  const hasError = getStatusFailure(status);
-  const formattedUpdatedAt = new Date(updatedAt || '').toLocaleString();
+  const updatedAtDate = new Date(updatedAt || '');
+  const formattedUpdatedAt = updatedAtDate.toLocaleString();
 
   return (
     <>
@@ -111,9 +118,17 @@ export function IntegrationProgressStatus({ integration }: { integration: Integr
   );
 }
 
-export default function SubmittedStatusIndicator({ integration, title }: Props) {
-  const { status, prNumber } = integration;
+function SubmittedStatusIndicator({ integration, title, alert }: Props) {
+  const { id, status, updatedAt, prNumber } = integration;
+  const [isWaitingTooLong, setIsWaitingTooLong] = useState(false);
+  const hasError = getStatusFailure(status);
   const statusMessage = getStatusMessage(status);
+  const updatedAtDate = new Date(updatedAt || '');
+
+  useEffect(() => {
+    const waiting = minToMs(20) < new Date().getTime() - updatedAtDate.getTime();
+    setIsWaitingTooLong(waiting);
+  }, [integration]);
 
   // Step 1.
   const statusItems = [
@@ -212,14 +227,13 @@ export default function SubmittedStatusIndicator({ integration, title }: Props) 
     }
   }
 
-  return (
-    <>
-      {title && <Title>{title}</Title>}
-      <SubTitle>{statusMessage}</SubTitle>
-      <IntegrationProgressStatus integration={integration} />
-      <StatusList>{statusItems}</StatusList>
-      <InfoMessage>
-        If there is an error or the process takes longer than 20 mins then, please contact our SSO support team by{' '}
+  console.log('isWaitingTooLongisWaitingTooLong', isWaitingTooLong);
+
+  let bottomSection = null;
+  if (hasError) {
+    bottomSection = (
+      <ErrorMessage>
+        You have an unexpected error. Please contact our SSO support team by{' '}
         <SLink href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
           Rocket.Chat
         </SLink>{' '}
@@ -227,7 +241,45 @@ export default function SubmittedStatusIndicator({ integration, title }: Props) 
         <SLink href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="blank">
           Email us
         </SLink>{' '}
+      </ErrorMessage>
+    );
+  } else if (isWaitingTooLong) {
+    bottomSection = (
+      <InfoMessage>
+        <div>Your integration submission is taking longer than expected, please select resubmit.</div>
+        <Button
+          variant="bcPrimary"
+          size="small"
+          type="button"
+          onClick={async () => {
+            const [result, err] = await resubmitRequest(id as number);
+            const variant = err ? 'danger' : 'success';
+            const content = err ? 'failed to resubmit the request' : 'resubmitted the request successfully';
+            alert.show({
+              variant,
+              fadeOut: 10000,
+              closable: true,
+              content,
+            });
+
+            setIsWaitingTooLong(false);
+          }}
+        >
+          Resubmit
+        </Button>
       </InfoMessage>
+    );
+  }
+
+  return (
+    <>
+      {title && <Title>{title}</Title>}
+      <SubTitle>{statusMessage}</SubTitle>
+      <IntegrationProgressStatus integration={integration} hasError={hasError} />
+      <StatusList>{statusItems}</StatusList>
+      {bottomSection}
     </>
   );
 }
+
+export default withTopAlert(SubmittedStatusIndicator);
