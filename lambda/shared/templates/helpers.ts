@@ -35,15 +35,7 @@ export const processRequest = async (integrationOrModel: any) => {
     integration = integrationOrModel;
   }
 
-  let accountableEntity = '';
-
-  if (integration.usesTeam === true) {
-    const team = integration.team ? integration.team : await getTeamById(Number(integration.teamId));
-    accountableEntity = team?.name || '';
-  } else {
-    const user = integration.user ? integration.user : await getUserById(integration.userId);
-    accountableEntity = user?.displayName || '';
-  }
+  const accountableEntity = (await getAccountableEntity(integration)) || '';
 
   const {
     realm,
@@ -75,6 +67,16 @@ export const processRequest = async (integrationOrModel: any) => {
     accountableEntity,
     browserLoginEnabled,
   };
+};
+
+export const getAccountableEntity = async (integration) => {
+  if (integration.usesTeam === true) {
+    const team = integration.team ? integration.team : await getTeamById(Number(integration.teamId));
+    return team?.name || '';
+  } else {
+    const user = integration.user ? integration.user : await getUserById(integration.userId);
+    return user?.displayName || '';
+  }
 };
 
 export const getUserEmails = (user, primaryEmailOnly = false) =>
