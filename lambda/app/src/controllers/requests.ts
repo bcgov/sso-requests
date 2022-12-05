@@ -95,7 +95,16 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     throw Error('reached the day limit');
   }
 
-  let { projectName, projectLead, usesTeam, teamId, serviceType } = data;
+  let {
+    projectName,
+    projectLead,
+    usesTeam,
+    teamId,
+    serviceType,
+    devDisplayHeaderTitle,
+    testDisplayHeaderTitle,
+    prodDisplayHeaderTitle,
+  } = data;
   if (!serviceType) serviceType = 'silver';
   if (!['silver', 'gold'].includes(serviceType)) throw Error('invalid service type');
   if (serviceType === 'silver' && !ALLOW_SILVER) throw Error('invalid service type');
@@ -106,6 +115,9 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     devLoginTitle: projectName,
     testLoginTitle: projectName,
     prodLoginTitle: projectName,
+    devDisplayHeaderTitle,
+    testDisplayHeaderTitle,
+    prodDisplayHeaderTitle,
     projectLead,
     idirUserDisplayName,
     usesTeam,

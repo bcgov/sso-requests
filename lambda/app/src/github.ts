@@ -4,10 +4,13 @@ const { Octokit } = require('octokit');
 import pick from 'lodash.pick';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
+import { getAccountableEntity } from '@lambda-shared/templates/helpers';
+import { idpMap, silverRealmIdpsMap } from '@app/helpers/meta';
 
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
 const envFields = [
+  'DisplayHeaderTitle',
   'LoginTitle',
   'ValidRedirectUris',
   'Idps',
@@ -39,7 +42,7 @@ const allowedFieldsForGithub = [
   'userId',
   'teamId',
   'apiServiceAccount',
-
+  'requester',
   ...envFieldsAll,
 ];
 
@@ -48,7 +51,12 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     integration = integration.get({ plain: true, clone: true });
   }
 
+  const idps =
+    integration.serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
+
   const payload = pick(integration, allowedFieldsForGithub);
+  payload.accountableEntity = (await getAccountableEntity(integration)) || '';
+  payload.idpNames = idps.map((idp) => idpMap[idp]).join(', ') || [];
   if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
 
   // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
