@@ -56,7 +56,7 @@ export const dispatchRequestWorkflow = async (integration: any) => {
 
   const payload = pick(integration, allowedFieldsForGithub);
   payload.accountableEntity = (await getAccountableEntity(integration)) || '';
-  payload.idpNames = idps.map((idp) => idpMap[idp]).join(', ') || [];
+  payload.idpNames = idps || [];
   if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
 
   // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
