@@ -116,7 +116,7 @@ jobs:
 
       - name: Fetch OIDC discovery configuration
         id: discovery
-        uses: bcgov/sso-requests-actions/actions/wellknown@v0.53.0
+        uses: bcgov/sso-requests-actions/actions/wellknown@v0.54.0
         with:
           discovery-url: ${{ env.SSO_ISSUER_URL }}
         continue-on-error: true
@@ -128,7 +128,7 @@ jobs:
 
       - name: Fetch OIDC discovery configuration - API
         id: discovery-api
-        uses: bcgov/sso-requests-actions/actions/wellknown@v0.53.0
+        uses: bcgov/sso-requests-actions/actions/wellknown@v0.54.0
         with:
           discovery-url: ${{ env.KEYCLOAK_V2_PROD_URL }}/auth/realms/standard/.well-known/openid-configuration
         continue-on-error: true
