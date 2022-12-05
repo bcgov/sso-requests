@@ -105,8 +105,9 @@ const getStatusStatusCode = (status?: string) => {
 
 const minToMs = (min: number) => min * 60000;
 
-export function IntegrationProgressStatus({ integration, hasError }: { integration: Integration; hasError: boolean }) {
+export function IntegrationProgressStatus({ integration }: { integration: Integration }) {
   const { status, updatedAt } = integration;
+  const hasError = getStatusFailure(status);
   const updatedAtDate = new Date(updatedAt || '');
   const formattedUpdatedAt = updatedAtDate.toLocaleString();
 
@@ -275,7 +276,7 @@ function SubmittedStatusIndicator({ integration, title, alert }: Props) {
     <>
       {title && <Title>{title}</Title>}
       <SubTitle>{statusMessage}</SubTitle>
-      <IntegrationProgressStatus integration={integration} hasError={hasError} />
+      <IntegrationProgressStatus integration={integration} />
       <StatusList>{statusItems}</StatusList>
       {bottomSection}
     </>
