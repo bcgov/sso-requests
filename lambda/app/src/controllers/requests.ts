@@ -211,6 +211,7 @@ export const updateRequest = async (
       }
 
       const requester = await getRequester(session, current.id);
+      tfData.requester = requester;
       allowedData.requester = requester;
       current.requester = requester;
 
