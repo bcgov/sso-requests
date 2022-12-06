@@ -298,14 +298,14 @@ export const resubmitRequest = async (session: Session, id: number) => {
       throw Error('unauthorized request');
     }
 
+    current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
+    current.requester = await getRequester(session, current.id);
+    current.changed('updatedAt', true);
+
     const ghResult = await dispatchRequestWorkflow(getCurrentValue());
     if (ghResult.status !== 204) {
       throw Error('failed to create a workflow dispatch event');
     }
-
-    current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    current.requester = await getRequester(session, current.id);
-    current.changed('updatedAt', true);
 
     const updated = await current.save();
     if (!updated) {

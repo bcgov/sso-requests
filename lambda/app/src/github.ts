@@ -84,7 +84,6 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     integration.serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
 
   const payload = pick(integration, allowedFieldsForGithub);
-
   payload.accountableEntity = (await getAccountableEntity(integration)) || '';
   payload.idpNames = idps || [];
   if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
