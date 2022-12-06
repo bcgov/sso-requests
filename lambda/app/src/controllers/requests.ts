@@ -194,18 +194,14 @@ export const updateRequest = async (
 
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
+      current.requester = await getRequester(session, current.id);
 
       const ghResult = await dispatchRequestWorkflow(getCurrentValue());
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
 
-      const requester = await getRequester(session, current.id);
-      allowedData.requester = requester;
-      current.requester = requester;
-
       finalData = getCurrentValue();
-
       const emails: { code: string; data: any }[] = [];
 
       // updating...
