@@ -400,9 +400,8 @@ export const bulkCreateRole = async (
 
   if (integration.authType === 'service-account') throw Error('invalid auth type');
 
-  //create 20 roles at a time
+  // create 20 roles at a time
   const rolesToCreate = roles.slice(0, 20);
-
   const byEnv = { dev: [], test: [], prod: [] };
   forEach(rolesToCreate, (role) => {
     if (role.envs)
@@ -413,8 +412,13 @@ export const bulkCreateRole = async (
 
   const results = await Promise.all(
     map(byEnv, async (roleNames, env) => {
-      const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment: env });
       const result = { env, success: [], duplicate: [], failure: [], clientNotFound: false };
+
+      if (roleNames.length === 0) {
+        return result;
+      }
+
+      const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment: env });
 
       const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
       if (clients.length === 0) {

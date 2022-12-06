@@ -45,7 +45,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import ServiceAccountsList from './ServiceAccountsList';
 import isEmpty from 'lodash.isempty';
-import InfoMessage from '@app/components/InfoMessage';
+import { InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { enable_gold } = publicRuntimeConfig;

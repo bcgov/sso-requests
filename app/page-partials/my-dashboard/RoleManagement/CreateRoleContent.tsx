@@ -1,10 +1,10 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
-import Select, { MultiValue, ActionMeta } from 'react-select';
+import Select, { MultiValue, ActionMeta, CSSObjectWithLabel, MultiValueProps } from 'react-select';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
 import forEach from 'lodash.foreach';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlusCircle, faMinusCircle, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPlusCircle, faMinusCircle, faExclamationTriangle, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { bulkCreateRole } from 'services/keycloak';
 
 const Table = styled.table`
@@ -57,13 +57,14 @@ const emptyRole: NewRole = {
   envs: ['dev'],
 };
 
-interface Failures {
+interface Result {
   [key: string]: string[];
 }
 
 function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref: any) {
   const [submitted, setSubmitted] = useState(false);
-  const [failures, setFailures] = useState<Failures>({});
+  const [failures, setFailures] = useState<Result>({});
+  const [duplicates, setDuplicates] = useState<Result>({});
   const [roles, setRoles] = useState<NewRole[]>([emptyRole]);
 
   useImperativeHandle(ref, () => ({
@@ -78,8 +79,10 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
       }
 
       const [results, error] = await bulkCreateRole({ integrationId, roles: _roles });
-      const _failures: any = {};
+      const _failures: Result = {};
+      const _duplicates: Result = {};
       let hasError = false;
+      let hasDuplicate = false;
 
       // display failed ones if exists
       forEach(results, (env) => {
@@ -90,15 +93,25 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
             hasError = true;
           });
         }
+
+        if (env.duplicate.length > 0) {
+          forEach(env.duplicate, (role) => {
+            if (!_duplicates[role]) _duplicates[role] = [];
+            _duplicates[role].push(env.env);
+            hasDuplicate = true;
+          });
+        }
       });
 
       setFailures(_failures);
+      setDuplicates(_duplicates);
       setSubmitted(true);
-      return hasError;
+      return [hasError, hasDuplicate];
     },
     reset: () => {
       setRoles([emptyRole]);
       setFailures({});
+      setDuplicates({});
       setSubmitted(false);
     },
   }));
@@ -136,6 +149,71 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
     setRoles(newRoles);
   };
 
+  let bottomSection = null;
+
+  if (submitted) {
+    let duplicateSection = null;
+    let failureSection = null;
+
+    if (Object.keys(duplicates).length > 0) {
+      duplicateSection = (
+        <tr>
+          <td colSpan={3}>
+            <FlexBox>
+              <FlexItem>
+                <FontAwesomeIcon icon={faInfoCircle} color="#17a2b8" title="duplicated roles" size="lg" />
+              </FlexItem>
+              <FlexItem>There are duplicated roles and we've skipped adding them.</FlexItem>
+            </FlexBox>
+          </td>
+        </tr>
+      );
+    }
+
+    if (Object.keys(failures).length > 0) {
+      failureSection = (
+        <tr>
+          <td colSpan={3}>
+            <FlexBox>
+              <FlexItem>
+                <FontAwesomeIcon icon={faExclamationTriangle} color="#dc3545" title="failed roles" size="lg" />
+              </FlexItem>
+              <FlexItem>
+                We were unable to save some of your changes.
+                <br />
+                <div className="fw-bold">Please try submitting again.</div>
+              </FlexItem>
+            </FlexBox>
+          </td>
+        </tr>
+      );
+    }
+
+    bottomSection = (
+      <>
+        {duplicateSection}
+        {failureSection}
+      </>
+    );
+  } else {
+    bottomSection = (
+      <tr>
+        <td colSpan={3}>
+          {roles.length < 20 ? (
+            <AddNewButton onClick={handleAdd}>
+              <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Role" />
+              <span>Add another role</span>
+            </AddNewButton>
+          ) : (
+            <ErrorMessage>
+              You can only create 20 roles at a time. Please save before creating any new roles.
+            </ErrorMessage>
+          )}
+        </td>
+      </tr>
+    );
+  }
+
   return (
     <div>
       <Table>
@@ -149,6 +227,18 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
         <tbody>
           {roles.length > 0 ? (
             roles.map((role, index) => {
+              const transformStyles = (base: CSSObjectWithLabel, state: any) => {
+                if (failures[role.name] && failures[role.name].includes(state.children as string)) {
+                  return { ...base, color: '#fff', backgroundColor: '#dc3545' };
+                }
+
+                if (duplicates[role.name] && duplicates[role.name].includes(state.children as string)) {
+                  return { ...base, color: '#fff', backgroundColor: '#17a2b8' };
+                }
+
+                return base;
+              };
+
               return (
                 <tr>
                   <td className="role">
@@ -177,13 +267,8 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                         }>,
                       ) => handleRoleChange(index, newValue, actionMeta)}
                       styles={{
-                        multiValue: (base, state) => {
-                          if (failures[role.name] && failures[role.name].includes(state.children as string)) {
-                            return { ...base, backgroundColor: '#F1BFBF' };
-                          }
-
-                          return base;
-                        },
+                        multiValueLabel: transformStyles,
+                        multiValue: transformStyles,
                       }}
                     />
                   </td>
@@ -202,35 +287,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
               <td colSpan={3}>No roles added.</td>
             </tr>
           )}
-          <tr>
-            {submitted ? (
-              <td colSpan={3}>
-                <FlexBox>
-                  <FlexItem>
-                    <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
-                  </FlexItem>
-                  <FlexItem>
-                    We were unable to save some of your changes.
-                    <br />
-                    <div className="fw-bold">Please try submitting again.</div>
-                  </FlexItem>
-                </FlexBox>
-              </td>
-            ) : (
-              <td colSpan={3}>
-                {roles.length < 20 ? (
-                  <AddNewButton onClick={handleAdd}>
-                    <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Role" />
-                    <span>Add another role</span>
-                  </AddNewButton>
-                ) : (
-                  <ErrorMessage>
-                    You can only create 20 roles at a time. Please save before creating any new roles.
-                  </ErrorMessage>
-                )}
-              </td>
-            )}
-          </tr>
+          {bottomSection}
         </tbody>
       </Table>
     </div>

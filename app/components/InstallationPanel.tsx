@@ -12,7 +12,7 @@ import type { Environment } from 'interfaces/types';
 import { getRequestedEnvironments } from 'utils/helpers';
 import { DEFAULT_FONT_SIZE } from 'styles/theme';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import InfoMessage from 'components/InfoMessage';
+import { InfoMessage } from 'components/MessageBox';
 import { idpMap } from 'helpers/meta';
 import Link from '@button-inc/bcgov-theme/Link';
 
