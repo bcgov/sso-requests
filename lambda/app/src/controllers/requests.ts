@@ -210,6 +210,14 @@ export const updateRequest = async (
         }
       }
 
+      const requester = await getRequester(session, current.id);
+      allowedData.requester = requester;
+      current.requester = requester;
+
+      finalData = getCurrentValue();
+
+      const emails: { code: string; data: any }[] = [];
+
       // prevent the TF from creating GitHub integration in prod environment if not approved
       if (!current.githubApproved && hasGithub) {
         tfData.prodIdps = tfData.prodIdps.filter(checkNotGithubGroup);
@@ -219,14 +227,6 @@ export const updateRequest = async (
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
-
-      const requester = await getRequester(session, current.id);
-      allowedData.requester = requester;
-      current.requester = requester;
-
-      finalData = getCurrentValue();
-
-      const emails: { code: string; data: any }[] = [];
 
       // updating...
       if (isMerged) {
