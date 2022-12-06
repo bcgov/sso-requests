@@ -1,9 +1,11 @@
 // migrate GitHub lambda here and call GitHub API directly to avoid multiple invocations.
 // see https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html
-const { Octokit } = require('octokit');
+import { Octokit } from 'octokit';
 import pick from 'lodash.pick';
+import { IntegrationData } from '@lambda-shared/interfaces';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
+import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { getAccountableEntity } from '@lambda-shared/templates/helpers';
 import { idpMap, silverRealmIdpsMap } from '@app/helpers/meta';
 
@@ -46,10 +48,37 @@ const allowedFieldsForGithub = [
   ...envFieldsAll,
 ];
 
+const buildGitHubRequestData = (baseData: IntegrationData) => {
+  const hasBceid = usesBceid(baseData);
+  const hasGithub = usesGithub(baseData);
+
+  // let's use dev's idps until having a env-specific idp selections
+  if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
+  if (baseData.environments.includes('prod')) baseData.prodIdps = baseData.devIdps;
+
+  // prevent the TF from creating BCeID integration in prod environment if not approved
+  if (!baseData.bceidApproved && hasBceid) {
+    if (baseData.serviceType === 'gold') {
+      baseData.prodIdps = baseData.prodIdps.filter(checkNotBceidGroup);
+    } else {
+      baseData.environments = baseData.environments.filter((environment) => environment !== 'prod');
+    }
+  }
+
+  // prevent the TF from creating GitHub integration in prod environment if not approved
+  if (!baseData.githubApproved && hasGithub) {
+    baseData.prodIdps = baseData.prodIdps.filter(checkNotGithubGroup);
+  }
+
+  return baseData;
+};
+
 export const dispatchRequestWorkflow = async (integration: any) => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
   }
+
+  integration = buildGitHubRequestData(integration);
 
   const idps =
     integration.serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
