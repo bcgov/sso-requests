@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ConfigurationUrlPanel from 'page-partials/my-dashboard/SecretsPanel';
 import { sampleRequest } from '../../samples/integrations';
-import CenteredModal from 'components/CenteredModal';
+import handleSecretChange from 'page-partials/my-dashboard/SecretsPanel';
 
 const sampleIntegration = {
   ...sampleRequest,
@@ -9,11 +9,9 @@ const sampleIntegration = {
   publicAccess: false,
 };
 
-jest.mock('components/CenteredModal', () => {
-  return {
-    CenteredModal: jest.fn(),
-  };
-});
+jest.mock('page-partials/my-dashboard/SecretsPanel', () => ({
+  handleSecretChange: jest.fn(),
+}));
 
 describe('change client secret tab', () => {
   afterEach(() => {
@@ -28,13 +26,12 @@ describe('change client secret tab', () => {
   });
 
   it('should be able to click the button and return expect modal', () => {
-    render(<ConfigurationUrlPanel selectedRequest={sampleIntegration} />);
+    render(<ConfigurationUrlPanel selectedRequest={{ sampleIntegration, environments: ['dev'] }} />);
     fireEvent.click(screen.getByText('Change your client secret'));
     expect(screen.getByTitle(`You're About to Change Your Client Secret`)).toBeVisible();
-    expect(CenteredModal).toHaveBeenCalled();
-    fireEvent.click(screen.getByText('Confirm'));
-    expect(screen.findByText(`Client Secret Successfully Updated`));
-  });
 
-  //test integration with secret to test mock confirm
+    fireEvent.click(screen.getByText('Confirm'));
+    expect(handleSecretChange).toHaveBeenCalled();
+    //expect(screen.findByText(`Client Secret Successfully Updated`));
+  });
 });

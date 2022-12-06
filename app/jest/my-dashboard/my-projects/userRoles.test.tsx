@@ -1,8 +1,17 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
+import searchResults from 'page-partials/my-dashboard/UserRoles';
 import { sampleRequest } from '../../samples/integrations';
 
+jest.mock('page-partials/my-dashboard/UserRoles', () => ({
+  searchResults: jest.fn(() => 'mock search result'),
+}));
+
 describe('assign user to roles tab', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should display correct property options', async () => {
     render(<UserRoles selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['idir'] }} />);
     expect(screen.getByRole('option', { name: 'Dev' }));
@@ -18,11 +27,10 @@ describe('assign user to roles tab', () => {
     expect(screen.getByDisplayValue('sample_input')).toBeInTheDocument();
   });
 
-  it('click the Search button with empty input, will pop out warning info', async () => {
+  it('click the Search button, will return the mock search result', async () => {
     render(<UserRoles selectedRequest={{ ...sampleRequest }} />);
     fireEvent.click(screen.getByText('Search'));
-    expect(screen.findByLabelText('popover-basic'));
+    expect(searchResults).toEqual('mock search result');
+    //expect(screen.findByLabelText('popover-basic'));
   });
-
-  //mock function with sample data; find the calling function
 });

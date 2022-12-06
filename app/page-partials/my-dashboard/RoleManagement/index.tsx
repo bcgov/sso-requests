@@ -32,7 +32,7 @@ const RoleManagement = ({ integration }: Props) => {
   };
 
   const environments = integration?.environments || [];
-
+  console.log('canCreateOrDeleteRole--------', canCreateOrDeleteRole);
   return (
     <>
       <TopMargin />
