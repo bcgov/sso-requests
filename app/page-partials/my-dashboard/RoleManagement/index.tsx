@@ -65,7 +65,12 @@ const RoleManagement = ({ integration }: Props) => {
             modalRef.current.updateConfig({ confirmButtonText: 'Try Again' });
             return false;
           } else if (hasDuplicate) {
-            modalRef.current.updateConfig({ showConfirmButton: false, buttonAlign: 'right' });
+            modalRef.current.updateConfig({
+              showConfirmButton: false,
+              cancelButtonText: 'Close',
+              buttonAlign: 'right',
+            });
+            setUpdateKey((updateKey) => updateKey + 1);
             return false;
           } else {
             await contentRef.current.reset();
