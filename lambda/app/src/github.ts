@@ -127,7 +127,12 @@ export const dispatchRequestWorkflow = async (integration: any) => {
       inputs: { integration: JSON.stringify(payload) },
     });
   } else {
-    // skip call to github actions for local development
+    if (!integration.archived) {
+      // skip call to github actions for local development
+      setTimeout(() => {
+        skipGithubActionStep(integration.id);
+      }, 3000);
+    }
     return { status: 204 };
   }
 };
@@ -157,20 +162,26 @@ export const closeOpenPullRequests = async (id: number) => {
   }
 };
 
-export const skipGithubActionStep = async (integration) => {
+export const skipGithubActionStep = async (integrationId) => {
   try {
-    await handlePRstage({
-      id: integration.id,
-      success: true,
-      changes: {},
-      isEmpty: false,
-      isAllowedToMerge: false,
-    });
+    const integration = await models.request.findOne({ where: { id: integrationId } });
 
-    await updatePlannedItems({
-      ids: [integration.id],
-      success: true,
-    });
+    setTimeout(async () => {
+      await handlePRstage({
+        id: integration.id,
+        success: true,
+        changes: {},
+        isEmpty: false,
+        isAllowedToMerge: false,
+      });
+    }, 5000);
+
+    setTimeout(async () => {
+      await updatePlannedItems({
+        ids: [integration.id],
+        success: true,
+      });
+    }, 10000);
   } catch (err) {
     console.error(err);
   }
