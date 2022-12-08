@@ -124,19 +124,21 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
     const ints = integrations || [];
     setIntegrations(ints);
     setIntegrationCount(ints.length);
-    if (activeIntegrationId) {
-      const integration = integrations.find((integration) => integration?.id === activeIntegrationId);
-      if (integration) updateActiveIntegration(integration);
-      else if (integrations?.length > 0) updateActiveIntegration(integrations[0]);
-    } else if (integrations?.length > 0) updateActiveIntegration(integrations[0]);
+    // if (activeIntegrationId) {
+    //   const integration = integrations.find((integration) => integration?.id === activeIntegrationId);
+    //   if (integration) updateActiveIntegration(integration);
+    //   else if (integrations?.length > 0) updateActiveIntegration(integrations[0]);
+    // } else if (integrations?.length > 0) updateActiveIntegration(integrations[0]);
   };
 
   const loadIntegrations = async () => {
     setLoading(true);
+    console.log('-------loading-1------', loading);
     const [integrations, err] = await getRequests();
     setHasError(!!err);
     updateIntegrations(integrations || []);
     setLoading(false);
+    console.log('-------loading-2------', loading);
   };
 
   useEffect(() => {
@@ -218,6 +220,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
   };
 
   const content = getTableContents();
+  console.log('-------loading-3------', loading);
   if (loading) return <PageLoader />;
 
   return (

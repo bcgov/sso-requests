@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ConfigurationUrlPanel from 'page-partials/my-dashboard/SecretsPanel';
 import { sampleRequest } from '../../samples/integrations';
-import handleSecretChange from 'page-partials/my-dashboard/SecretsPanel';
+import { changeClientSecret } from 'services/keycloak';
 
 const sampleIntegration = {
   ...sampleRequest,
@@ -9,15 +9,11 @@ const sampleIntegration = {
   publicAccess: false,
 };
 
-jest.mock('page-partials/my-dashboard/SecretsPanel', () => ({
-  handleSecretChange: jest.fn(),
+jest.mock('services/keycloak', () => ({
+  changeClientSecret: jest.fn(() => Promise.resolve([[], null])),
 }));
 
 describe('change client secret tab', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should match the display data', () => {
     render(<ConfigurationUrlPanel selectedRequest={sampleIntegration} />);
     expect(screen.getByText('Development:'));
@@ -30,8 +26,10 @@ describe('change client secret tab', () => {
     fireEvent.click(screen.getByText('Change your client secret'));
     expect(screen.getByTitle(`You're About to Change Your Client Secret`)).toBeVisible();
 
+    fireEvent.click(screen.getByText('Cancel'));
+    expect(screen.getByTitle(`You're About to Change Your Client Secret`)).not.toBeVisible();
+
     fireEvent.click(screen.getByText('Confirm'));
-    expect(handleSecretChange).toHaveBeenCalled();
-    //expect(screen.findByText(`Client Secret Successfully Updated`));
+    expect(changeClientSecret).toHaveBeenCalled();
   });
 });

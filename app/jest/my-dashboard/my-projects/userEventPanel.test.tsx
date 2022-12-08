@@ -1,15 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import UserEventPanel from 'components/UserEventPanel';
-import EventContent from 'components/EventContent';
+import { getEvents } from 'services/event';
 
-jest.mock('components/EventContent', () => ({
-  EventContent: jest.fn(),
+jest.mock('services/event', () => ({
+  getEvents: jest.fn(() => Promise.resolve([[], null])),
 }));
 
 describe('change history tab', () => {
   it('should match the event content', () => {
-    render(<UserEventPanel requestId={undefined} />);
-    //expect(screen.getByText('No events found'));
-    expect(EventContent).toHaveBeenCalled();
+    render(<UserEventPanel requestId={1} />);
+    expect(getEvents).toHaveBeenCalled();
   });
 });

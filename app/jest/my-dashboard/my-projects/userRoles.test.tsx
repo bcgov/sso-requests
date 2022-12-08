@@ -1,23 +1,20 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
-import searchResults from 'page-partials/my-dashboard/UserRoles';
+import { searchKeycloakUsers } from 'services/keycloak';
 import { sampleRequest } from '../../samples/integrations';
 
-jest.mock('page-partials/my-dashboard/UserRoles', () => ({
-  searchResults: jest.fn(() => 'mock search result'),
+jest.mock('services/keycloak', () => ({
+  searchKeycloakUsers: jest.fn(() => Promise.resolve([[], null])),
+  listClientRoles: jest.fn(() => Promise.resolve([[], null])),
 }));
 
 describe('assign user to roles tab', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should display correct property options', async () => {
+  it('should display correct property options', () => {
     render(<UserRoles selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['idir'] }} />);
     expect(screen.getByRole('option', { name: 'Dev' }));
     expect(screen.getByRole('option', { name: 'Test' }));
     expect(screen.getByRole('option', { name: 'IDIR' }));
-    expect(screen.findByTitle('First Name'));
+    expect(screen.getByRole('option', { name: 'Email' }));
   });
 
   it('should be able to input some keywords in the input field', () => {
@@ -30,7 +27,6 @@ describe('assign user to roles tab', () => {
   it('click the Search button, will return the mock search result', async () => {
     render(<UserRoles selectedRequest={{ ...sampleRequest }} />);
     fireEvent.click(screen.getByText('Search'));
-    expect(searchResults).toEqual('mock search result');
-    //expect(screen.findByLabelText('popover-basic'));
+    expect(searchKeycloakUsers).toHaveBeenCalled();
   });
 });
