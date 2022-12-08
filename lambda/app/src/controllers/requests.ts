@@ -11,7 +11,7 @@ import {
   getDisplayName,
   getWhereClauseForAllRequests,
 } from '../utils/helpers';
-import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
+import { dispatchRequestWorkflow, closeOpenPullRequests, skipGithubActionStep } from '../github';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
 import { EMAILS } from '@lambda-shared/enums';
@@ -266,7 +266,7 @@ export const updateRequest = async (
 
       await createEvent(eventData);
     }
-
+    if (process.env.NODE_ENV === 'local_development') skipGithubActionStep(updated.get({ plain: true }));
     return updated.get({ plain: true });
   } catch (err) {
     console.error(err);

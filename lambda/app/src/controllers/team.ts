@@ -6,7 +6,7 @@ import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
-import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
+import { dispatchRequestWorkflow, closeOpenPullRequests, skipGithubActionStep } from '../github';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -223,6 +223,8 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   await serviceAccount.save();
 
   await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
+
+  if (process.env.NODE_ENV === 'local_development') skipGithubActionStep(serviceAccount.get({ plain: true }));
 
   return serviceAccount;
 };
