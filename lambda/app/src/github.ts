@@ -158,8 +158,6 @@ export const closeOpenPullRequests = async (id: number) => {
 };
 
 export const skipGithubActionStep = async (integration) => {
-  if (process.env.NODE_ENV === 'local_development') {
-  }
   try {
     await handlePRstage({
       id: integration.id,
