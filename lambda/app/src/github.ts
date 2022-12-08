@@ -1,7 +1,6 @@
 // migrate GitHub lambda here and call GitHub API directly to avoid multiple invocations.
 // see https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html
 import { Octokit } from 'octokit';
-import axios from 'axios';
 import pick from 'lodash.pick';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { models } from '@lambda-shared/sequelize/models/models';
