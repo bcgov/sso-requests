@@ -266,7 +266,6 @@ export const updateRequest = async (
 
       await createEvent(eventData);
     }
-
     return updated.get({ plain: true });
   } catch (err) {
     console.error(err);

@@ -1,6 +1,11 @@
 import * as pg from 'pg';
 
 const config = {
+  local_development: {
+    dialect: 'postgres',
+    dialectModule: pg,
+    use_env_variable: 'DATABASE_URL',
+  },
   development: {
     dialect: 'postgres',
     dialectModule: pg,
