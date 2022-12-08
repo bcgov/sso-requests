@@ -6,8 +6,8 @@ import noop from 'lodash.noop';
 import { getRequests } from 'services/request';
 import { sampleRequest } from '../../samples/integrations';
 
-const setIntegration = () => {};
-const setIntegrationCount = noop;
+const setIntegration = jest.fn();
+const setIntegrationCount = jest.fn();
 
 const mockClientRolesResult = { ...sampleRequest, serviceType: 'browser_login' };
 
@@ -27,7 +27,14 @@ describe('Integration list', () => {
     // const useLoadingMock: any = (useState: any) => [useState, setLoadingMock];
     // jest.spyOn(React, 'useState').mockImplementation(useLoadingMock);
 
-    render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
+    const { getByText } = render(
+      <IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />,
+    );
+
+    await waitFor(() => {
+      expect(getByText('+ Request SSO Integration')).toBeVisible();
+    });
+
     await expect(getRequests).toHaveBeenCalled();
     //expect(screen.getByText('Reque'));
     screen.logTestingPlaygroundURL();

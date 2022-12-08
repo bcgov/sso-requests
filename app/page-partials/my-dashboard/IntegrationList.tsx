@@ -23,6 +23,7 @@ const RightAlignHeader = styled.th`
 
 const RightFloatButtons = styled.td`
   float: right;
+  margin-top: 10px;
 `;
 
 const PNoMargin = styled.p`
@@ -124,11 +125,11 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
     const ints = integrations || [];
     setIntegrations(ints);
     setIntegrationCount(ints.length);
-    // if (activeIntegrationId) {
-    //   const integration = integrations.find((integration) => integration?.id === activeIntegrationId);
-    //   if (integration) updateActiveIntegration(integration);
-    //   else if (integrations?.length > 0) updateActiveIntegration(integrations[0]);
-    // } else if (integrations?.length > 0) updateActiveIntegration(integrations[0]);
+    if (activeIntegrationId) {
+      const integration = integrations.find((integration) => integration?.id === activeIntegrationId);
+      if (integration) updateActiveIntegration(integration);
+      else if (integrations?.length > 0) updateActiveIntegration(integrations[0]);
+    } else if (integrations?.length > 0) updateActiveIntegration(integrations[0]);
   };
 
   const loadIntegrations = async () => {
@@ -199,18 +200,16 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
                 <td>{getStatusDisplayName(integration.status || 'draft')}</td>
                 <td>{authTypeDisplay[integration.authType || 'browser-login']}</td>
                 <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
-                <td>
-                  <RightFloatButtons>
-                    <ActionButtons
-                      request={integration}
-                      onDelete={() => {
-                        loadIntegrations();
-                      }}
-                      defaultActiveColor="#fff"
-                      delIconStyle={{ marginLeft: '7px' }}
-                    />
-                  </RightFloatButtons>
-                </td>
+                <RightFloatButtons>
+                  <ActionButtons
+                    request={integration}
+                    onDelete={() => {
+                      loadIntegrations();
+                    }}
+                    defaultActiveColor="#fff"
+                    delIconStyle={{ marginLeft: '7px' }}
+                  />
+                </RightFloatButtons>
               </tr>
             ))}
           </tbody>
