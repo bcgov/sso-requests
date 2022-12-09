@@ -12,7 +12,6 @@ const fetchChesToken = async (username, password) => {
   try {
     const payload = await axios.post(tokenEndpoint, params.toString(), {
       headers: {
-        'Content-Type': 'application/json',
         'Accept-Encoding': 'application/json',
       },
       auth: {
