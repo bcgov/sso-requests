@@ -39,7 +39,7 @@ const config = {
       },
     },
     use_env_variable: 'DATABASE_URL',
-    logging: console.log,
+    logging: false,
   },
 };
 
