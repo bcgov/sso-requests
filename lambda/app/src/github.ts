@@ -183,6 +183,6 @@ export const skipGithubActionStep = async (integrationId) => {
       });
     }, 10000);
   } catch (err) {
-    console.error(err);
+    console.log(err);
   }
 };

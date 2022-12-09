@@ -19,7 +19,7 @@ const fetchChesToken = async (username, password) => {
     const { access_token: accessToken } = data;
     return [accessToken, null];
   } catch (err) {
-    console.error(err);
+    console.log(err);
     return [null, err];
   }
 };

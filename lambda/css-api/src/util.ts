@@ -5,7 +5,7 @@ export const createEvent = async (data: any) => {
   try {
     await models.event.create(data);
   } catch (err) {
-    console.error(err);
+    console.log(err);
   }
 };
 

@@ -10,7 +10,7 @@ const createEvent = async (data) => {
   try {
     await models.event.create(data);
   } catch (err) {
-    console.error(err);
+    console.log(err);
   }
 };
 

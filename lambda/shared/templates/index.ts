@@ -117,7 +117,7 @@ const createEvent = async (data) => {
   try {
     await models.event.create(data);
   } catch (err) {
-    console.error(err);
+    console.log(err);
   }
 };
 
@@ -128,7 +128,7 @@ export const sendTemplate = async (code: string, data: any) => {
 
     await builder.send(data, rendered);
   } catch (err) {
-    console.error(err);
+    console.log(err);
 
     if (data.integration) {
       createEvent({
