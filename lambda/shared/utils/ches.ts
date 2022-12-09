@@ -10,13 +10,15 @@ const fetchChesToken = async (username, password) => {
   const tokenEndpoint = process.env.CHES_TOKEN_ENDPOINT;
   const params = new url.URLSearchParams({ grant_type: 'client_credentials' });
   try {
-    const { data } = await axios.post(tokenEndpoint, params.toString(), {
+    const payload = await axios.post(tokenEndpoint, params.toString(), {
       auth: {
         username,
         password,
       },
     });
-    const { access_token: accessToken } = data;
+
+    console.log(JSON.stringify(payload, null, 2));
+    const { access_token: accessToken } = payload.data;
     return [accessToken, null];
   } catch (err) {
     console.log(err);
