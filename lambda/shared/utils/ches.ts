@@ -11,6 +11,10 @@ const fetchChesToken = async (username, password) => {
   const params = new url.URLSearchParams({ grant_type: 'client_credentials' });
   try {
     const payload = await axios.post(tokenEndpoint, params.toString(), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept-Encoding': 'application/json',
+      },
       auth: {
         username,
         password,
