@@ -26,7 +26,6 @@ if (fs.existsSync(ssoConfigurationPath)) {
 }
 
 const getConfiguration = async () => {
-  console.log(`DEBUG: _apiSsoConfig...`, _ssoConfig);
   if (_ssoConfig) return _ssoConfig;
 
   const { issuer, jwks_uri } = await axios

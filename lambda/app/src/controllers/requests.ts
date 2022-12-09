@@ -39,7 +39,7 @@ export const createEvent = async (data) => {
   try {
     await models.event.create(data);
   } catch (err) {
-    console.error(err);
+    console.log(err);
   }
 };
 
@@ -268,7 +268,7 @@ export const updateRequest = async (
     }
     return updated.get({ plain: true });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     if (submit) {
       const eventData = {
         eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
@@ -313,7 +313,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     throw Error(err.message || err);
   }
 };
@@ -436,7 +436,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     return integration;
   } catch (err) {
-    console.error(err);
+    console.log(err);
 
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
