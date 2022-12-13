@@ -8,6 +8,7 @@ import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { getAccountableEntity } from '@lambda-shared/templates/helpers';
 import { idpMap, silverRealmIdpsMap } from '@app/helpers/meta';
+import { handlePRstage, updatePlannedItems } from '@lambda-actions/controllers/batch';
 
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
@@ -88,63 +89,100 @@ export const dispatchRequestWorkflow = async (integration: any) => {
   payload.idpNames = idps || [];
   if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
 
-  // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
-  // sample successful response
-  // {
-  //   "status": 204,
-  //   "url": "https://api.github.com/repos/bcgov/sso-terraform-dev/actions/workflows/request.yml/dispatches",
-  //   "headers": {
-  //       "access-control-allow-origin": "*",
-  //       "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation, Sunset",
-  //       "connection": "close",
-  //       "content-security-policy": "default-src 'none'",
-  //       "date": "Tue, 10 Aug 2021 17:07:37 GMT",
-  //       "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
-  //       "server": "GitHub.com",
-  //       "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
-  //       "vary": "Accept-Encoding, Accept, X-Requested-With",
-  //       "x-accepted-oauth-scopes": "",
-  //       "x-content-type-options": "nosniff",
-  //       "x-frame-options": "deny",
-  //       "x-github-media-type": "github.v3; format=json",
-  //       "x-github-request-id": "1234:58DE:1673AFF:40BA874:6112B259",
-  //       "x-oauth-scopes": "repo, workflow, write:packages",
-  //       "x-ratelimit-limit": "5000",
-  //       "x-ratelimit-remaining": "4999",
-  //       "x-ratelimit-reset": "1628618857",
-  //       "x-ratelimit-resource": "core",
-  //       "x-ratelimit-used": "1",
-  //       "x-xss-protection": "0"
-  //   }
-  // }
-  return octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
-    owner: process.env.GH_OWNER,
-    repo: process.env.GH_REPO,
-    workflow_id: process.env.GH_WORKFLOW_ID,
-    ref: process.env.GH_BRANCH,
-    inputs: { integration: JSON.stringify(payload) },
-  });
+  if (['development', 'production'].includes(process.env.NODE_ENV)) {
+    // see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
+    // sample successful response
+    // {
+    //   "status": 204,
+    //   "url": "https://api.github.com/repos/bcgov/sso-terraform-dev/actions/workflows/request.yml/dispatches",
+    //   "headers": {
+    //       "access-control-allow-origin": "*",
+    //       "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation, Sunset",
+    //       "connection": "close",
+    //       "content-security-policy": "default-src 'none'",
+    //       "date": "Tue, 10 Aug 2021 17:07:37 GMT",
+    //       "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+    //       "server": "GitHub.com",
+    //       "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+    //       "vary": "Accept-Encoding, Accept, X-Requested-With",
+    //       "x-accepted-oauth-scopes": "",
+    //       "x-content-type-options": "nosniff",
+    //       "x-frame-options": "deny",
+    //       "x-github-media-type": "github.v3; format=json",
+    //       "x-github-request-id": "1234:58DE:1673AFF:40BA874:6112B259",
+    //       "x-oauth-scopes": "repo, workflow, write:packages",
+    //       "x-ratelimit-limit": "5000",
+    //       "x-ratelimit-remaining": "4999",
+    //       "x-ratelimit-reset": "1628618857",
+    //       "x-ratelimit-resource": "core",
+    //       "x-ratelimit-used": "1",
+    //       "x-xss-protection": "0"
+    //   }
+    // }
+    return octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
+      owner: process.env.GH_OWNER,
+      repo: process.env.GH_REPO,
+      workflow_id: process.env.GH_WORKFLOW_ID,
+      ref: process.env.GH_BRANCH,
+      inputs: { integration: JSON.stringify(payload) },
+    });
+  } else {
+    if (!integration.archived) {
+      // skip call to github actions for local development
+      setTimeout(() => {
+        skipGithubActionStep(integration.id);
+      }, 3000);
+    }
+    return { status: 204 };
+  }
 };
 
 export const closeOpenPullRequests = async (id: number) => {
-  const labels = ['auto_generated', 'request', String(id)];
+  if (['development', 'production'].includes(process.env.NODE_ENV)) {
+    const labels = ['auto_generated', 'request', String(id)];
 
-  // delete all open issues with the target client
-  const issuesRes = await octokit.rest.issues.listForRepo({
-    owner: process.env.GH_OWNER,
-    repo: process.env.GH_REPO,
-    state: 'open',
-    labels: labels.join(','),
-  });
+    // delete all open issues with the target client
+    const issuesRes = await octokit.rest.issues.listForRepo({
+      owner: process.env.GH_OWNER,
+      repo: process.env.GH_REPO,
+      state: 'open',
+      labels: labels.join(','),
+    });
 
-  return Promise.all(
-    issuesRes.data.map((issue) => {
-      return octokit.rest.issues.update({
-        owner: process.env.GH_OWNER,
-        repo: process.env.GH_REPO,
-        issue_number: issue.number,
-        state: 'closed',
+    return Promise.all(
+      issuesRes.data.map((issue) => {
+        return octokit.rest.issues.update({
+          owner: process.env.GH_OWNER,
+          repo: process.env.GH_REPO,
+          issue_number: issue.number,
+          state: 'closed',
+        });
+      }),
+    );
+  }
+};
+
+export const skipGithubActionStep = async (integrationId) => {
+  try {
+    const integration = await models.request.findOne({ where: { id: integrationId } });
+
+    setTimeout(async () => {
+      await handlePRstage({
+        id: integration.id,
+        success: true,
+        changes: {},
+        isEmpty: false,
+        isAllowedToMerge: false,
       });
-    }),
-  );
+    }, 5000);
+
+    setTimeout(async () => {
+      await updatePlannedItems({
+        ids: [integration.id],
+        success: true,
+      });
+    }, 10000);
+  } catch (err) {
+    console.log(err);
+  }
 };

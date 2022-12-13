@@ -10,6 +10,6 @@ export const mergePR = async ({ owner, repo, prNumber }) => {
       pull_number: prNumber,
     });
   } catch (err) {
-    console.error(err);
+    console.log(err);
   }
 };
