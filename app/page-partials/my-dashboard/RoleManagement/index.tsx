@@ -32,6 +32,7 @@ const RoleManagement = ({ integration }: Props) => {
   };
 
   const environments = integration?.environments || [];
+
   return (
     <>
       <TopMargin />
