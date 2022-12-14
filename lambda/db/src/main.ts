@@ -21,7 +21,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
 
     callback(null, response);
   } catch (err) {
-    console.error('errored out', err);
+    console.log('errored out', err);
 
     const response = {
       statusCode: 422,

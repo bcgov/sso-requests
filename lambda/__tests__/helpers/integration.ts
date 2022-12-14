@@ -73,6 +73,9 @@ export class Integration {
       prodValidRedirectUris: prod ? ['https://a'] : [],
       agreeWithTerms: true,
       authType: args.authType,
+      devDisplayHeaderTitle: true,
+      testDisplayHeaderTitle: true,
+      prodDisplayHeaderTitle: true,
     };
 
     const event: APIGatewayProxyEvent = {

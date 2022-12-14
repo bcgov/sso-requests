@@ -19,6 +19,7 @@ export const roles = {
 export default function getSchemas(formData: Integration) {
   return (formData.environments || []).map((env) => {
     const loginTitleField = `${env}LoginTitle`;
+    const displayHeaderTitleField = `${env}DisplayHeaderTitle`;
     const redirectUriField = `${env}ValidRedirectUris`;
     const roleField = `${env}Roles`;
 
@@ -105,6 +106,14 @@ export default function getSchemas(formData: Integration) {
               content: `Enter a name that you would like to be displayed for users, as they're logging into the Keycloak Login Page. If you leave this field blank, the page will automatically display "Standard"`,
             },
             maxLength: 100,
+          },
+          [displayHeaderTitleField]: {
+            type: 'boolean',
+            title: 'Display Pathfinder SSO Header Title',
+            tooltip: {
+              content: `Enable/Disable display of the header title "Pathfinder SSO" on Keycloak Login Page`,
+            },
+            default: true,
           },
           [redirectUriField]: { ...devValidRedirectUris, title: 'Redirect URIs', currentEnvironment: env },
         }

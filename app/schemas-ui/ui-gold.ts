@@ -79,6 +79,15 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     prodLoginTitle: {
       'ui:placeholder': 'Keycloak Login Page Name',
     },
+    devDisplayHeaderTitle: {
+      'ui:widget': 'radio',
+    },
+    testDisplayHeaderTitle: {
+      'ui:widget': 'radio',
+    },
+    prodDisplayHeaderTitle: {
+      'ui:widget': 'radio',
+    },
     usesTeam: {
       'ui:widget': 'radio',
       'ui:readonly': isApplied && integration?.usesTeam,

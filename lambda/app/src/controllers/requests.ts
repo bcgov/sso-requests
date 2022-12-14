@@ -39,7 +39,7 @@ export const createEvent = async (data) => {
   try {
     await models.event.create(data);
   } catch (err) {
-    console.error(err);
+    console.log(err);
   }
 };
 
@@ -95,7 +95,16 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     throw Error('reached the day limit');
   }
 
-  let { projectName, projectLead, usesTeam, teamId, serviceType } = data;
+  let {
+    projectName,
+    projectLead,
+    usesTeam,
+    teamId,
+    serviceType,
+    devDisplayHeaderTitle,
+    testDisplayHeaderTitle,
+    prodDisplayHeaderTitle,
+  } = data;
   if (!serviceType) serviceType = 'silver';
   if (!['silver', 'gold'].includes(serviceType)) throw Error('invalid service type');
   if (serviceType === 'silver' && !ALLOW_SILVER) throw Error('invalid service type');
@@ -106,6 +115,9 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     devLoginTitle: projectName,
     testLoginTitle: projectName,
     prodLoginTitle: projectName,
+    devDisplayHeaderTitle,
+    testDisplayHeaderTitle,
+    prodDisplayHeaderTitle,
     projectLead,
     idirUserDisplayName,
     usesTeam,
@@ -182,38 +194,14 @@ export const updateRequest = async (
 
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
+      current.requester = await getRequester(session, current.id);
 
-      const tfData = getCurrentValue();
-
-      // let's use dev's idps until having a env-specific idp selections
-      if (tfData.environments.includes('test')) tfData.testIdps = tfData.devIdps;
-      if (tfData.environments.includes('prod')) tfData.prodIdps = tfData.devIdps;
-
-      // prevent the TF from creating BCeID integration in prod environment if not approved
-      if (!current.bceidApproved && hasBceid) {
-        if (tfData.serviceType === 'gold') {
-          tfData.prodIdps = tfData.prodIdps.filter(checkNotBceidGroup);
-        } else {
-          tfData.environments = tfData.environments.filter((environment) => environment !== 'prod');
-        }
-      }
-
-      // prevent the TF from creating GitHub integration in prod environment if not approved
-      if (!current.githubApproved && hasGithub) {
-        tfData.prodIdps = tfData.prodIdps.filter(checkNotGithubGroup);
-      }
-
-      const ghResult = await dispatchRequestWorkflow(tfData);
+      const ghResult = await dispatchRequestWorkflow(getCurrentValue());
       if (ghResult.status !== 204) {
         throw Error('failed to create a workflow dispatch event');
       }
 
-      const requester = await getRequester(session, current.id);
-      allowedData.requester = requester;
-      current.requester = requester;
-
       finalData = getCurrentValue();
-
       const emails: { code: string; data: any }[] = [];
 
       // updating...
@@ -278,10 +266,9 @@ export const updateRequest = async (
 
       await createEvent(eventData);
     }
-
     return updated.get({ plain: true });
   } catch (err) {
-    console.error(err);
+    console.log(err);
     if (submit) {
       const eventData = {
         eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
@@ -293,6 +280,40 @@ export const updateRequest = async (
       await createEvent(eventData);
     }
 
+    throw Error(err.message || err);
+  }
+};
+
+export const resubmitRequest = async (session: Session, id: number) => {
+  const isMerged = await checkIfRequestMerged(id);
+  if (!isMerged) return;
+
+  try {
+    const current = await getAllowedRequest(session, id);
+    const getCurrentValue = () => current.get({ plain: true, clone: true });
+    const isAllowedStatus = ['submitted'].includes(current.status);
+
+    if (!current || !isAllowedStatus) {
+      throw Error('unauthorized request');
+    }
+
+    current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
+    current.requester = await getRequester(session, current.id);
+    current.changed('updatedAt', true);
+
+    const ghResult = await dispatchRequestWorkflow(getCurrentValue());
+    if (ghResult.status !== 204) {
+      throw Error('failed to create a workflow dispatch event');
+    }
+
+    const updated = await current.save();
+    if (!updated) {
+      throw Error('update failed');
+    }
+
+    return updated.get({ plain: true });
+  } catch (err) {
+    console.log(err);
     throw Error(err.message || err);
   }
 };
@@ -415,7 +436,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     return integration;
   } catch (err) {
-    console.error(err);
+    console.log(err);
 
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,

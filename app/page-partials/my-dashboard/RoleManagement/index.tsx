@@ -60,13 +60,21 @@ const RoleManagement = ({ integration }: Props) => {
         title="Create New Role"
         icon={null}
         onConfirm={async (contentRef: any) => {
-          const hasError = await contentRef.current.submit();
-          if (!hasError) {
-            await contentRef.current.reset();
-            setUpdateKey((updateKey) => updateKey + 1);
-          } else {
+          const [hasError, hasDuplicate] = await contentRef.current.submit();
+          if (hasError) {
             modalRef.current.updateConfig({ confirmButtonText: 'Try Again' });
             return false;
+          } else if (hasDuplicate) {
+            modalRef.current.updateConfig({
+              showConfirmButton: false,
+              cancelButtonText: 'Close',
+              buttonAlign: 'right',
+            });
+            setUpdateKey((updateKey) => updateKey + 1);
+            return false;
+          } else {
+            await contentRef.current.reset();
+            setUpdateKey((updateKey) => updateKey + 1);
           }
         }}
         onCancel={(contentRef: any) => {

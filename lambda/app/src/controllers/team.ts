@@ -328,7 +328,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 
     return serviceAccount;
   } catch (err) {
-    console.error(err);
+    console.log(err);
 
     createEvent({
       eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,
