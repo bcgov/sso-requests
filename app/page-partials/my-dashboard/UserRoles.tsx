@@ -434,7 +434,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 icon={faEye}
                 role="button"
                 aria-label="view"
-                onClick={(event) => {
+                onClick={(event: any) => {
                   event.stopPropagation();
 
                   infoModalRef.current.open({
