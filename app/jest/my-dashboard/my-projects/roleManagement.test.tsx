@@ -14,9 +14,9 @@ jest.mock('services/keycloak', () => ({
 describe('role management tab', () => {
   it('should match the display data', () => {
     render(<RoleManagement integration={{ ...sampleRequest, environments: ['dev', 'test', 'prod'] }} />);
-    expect(screen.getByText('Dev'));
-    expect(screen.getByText('Test'));
-    expect(screen.getByText('Prod'));
+    expect(screen.getByRole('tab', { name: 'Dev' }));
+    expect(screen.getByRole('tab', { name: 'Test' }));
+    expect(screen.getByRole('tab', { name: 'Prod' }));
     expect(screen.getByPlaceholderText('Search existing roles'));
     expect(screen.findByTitle('Request ID'));
     expect(screen.findByPlaceholderText('No roles found.'));
@@ -39,5 +39,8 @@ describe('role management tab', () => {
     render(<RoleManagement integration={{ ...sampleRequest }} />);
     fireEvent.click(screen.getByText('Search'));
     expect(listClientRoles).toHaveBeenCalled();
+    //screen.logTestingPlaygroundURL();
   });
+
+  //need further tests on role table
 });

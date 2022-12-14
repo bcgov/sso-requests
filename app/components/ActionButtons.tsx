@@ -102,6 +102,7 @@ export default function Actionbuttons({
         <ActionButton
           icon={faTrash}
           role="button"
+          data-testid="action-button-delete"
           aria-label="delete"
           onClick={canDelete ? handleDelete : noop}
           disabled={!canDelete}

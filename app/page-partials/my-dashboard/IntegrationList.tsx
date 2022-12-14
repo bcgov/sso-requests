@@ -134,12 +134,10 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
 
   const loadIntegrations = async () => {
     setLoading(true);
-    console.log('-------loading-1------', loading);
     const [integrations, err] = await getRequests();
     setHasError(!!err);
     updateIntegrations(integrations || []);
     setLoading(false);
-    console.log('-------loading-2------', loading);
   };
 
   useEffect(() => {
@@ -219,7 +217,6 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
   };
 
   const content = getTableContents();
-  console.log('-------loading-3------', loading);
   if (loading) return <PageLoader />;
 
   return (
