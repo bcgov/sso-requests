@@ -14,14 +14,15 @@ jest.mock('services/keycloak', () => ({
 }));
 
 describe('change client secret tab', () => {
-  it('should match the display data', () => {
+  it('Should match all the included environments and button name', () => {
     render(<ConfigurationUrlPanel selectedRequest={sampleIntegration} />);
     expect(screen.findByDisplayValue('Development:'));
     expect(screen.findByDisplayValue('Test:'));
     expect(screen.findByDisplayValue('Production:'));
+    expect(screen.getAllByRole('button', { name: 'Change your client secret' }));
   });
 
-  it('should be able to click the button and return expect modal', () => {
+  it('Should be able to click the button and return expect modal, and check the endpoint function been called when click Confirm;', () => {
     render(<ConfigurationUrlPanel selectedRequest={{ sampleIntegration, environments: ['dev'] }} />);
     fireEvent.click(screen.getByRole('button', { name: 'Change your client secret' }));
     expect(screen.getByTitle(`You're About to Change Your Client Secret`)).toBeVisible();
@@ -31,6 +32,6 @@ describe('change client secret tab', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Change your client secret' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
-    expect(changeClientSecret).toHaveBeenCalled();
+    expect(changeClientSecret).toHaveBeenCalledTimes(1);
   });
 });

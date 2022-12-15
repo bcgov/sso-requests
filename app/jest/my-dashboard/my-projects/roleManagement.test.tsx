@@ -8,38 +8,53 @@ const mockClientRolesResult = ({ email, username, attributes }: KeycloakUser) =>
 };
 
 jest.mock('services/keycloak', () => ({
-  listClientRoles: jest.fn(() => Promise.resolve([mockClientRolesResult, null])),
+  listClientRoles: jest.fn(() => Promise.resolve([[], null])),
 }));
 
 describe('role management tab', () => {
-  it('should match the display data', () => {
-    render(<RoleManagement integration={{ ...sampleRequest, environments: ['dev', 'test', 'prod'] }} />);
-    expect(screen.getByRole('tab', { name: 'Dev' }));
-    expect(screen.getByRole('tab', { name: 'Test' }));
-    expect(screen.getByRole('tab', { name: 'Prod' }));
-    expect(screen.getByPlaceholderText('Search existing roles'));
-    expect(screen.findByTitle('Request ID'));
-    expect(screen.findByPlaceholderText('No roles found.'));
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('should be able to input some keywords in the input field', () => {
+  it('Should match the expected button name, environment names, select/unselected env, table headers, table contents, place-holder-text in search bar', async () => {
+    render(<RoleManagement integration={{ ...sampleRequest, environments: ['dev', 'test', 'prod'] }} />);
+    expect(screen.getByRole('button', { name: '+ Create a New Role' }));
+    expect(screen.getByRole('tab', { selected: true, name: 'Dev' }));
+    expect(screen.getByRole('tab', { selected: false, name: 'Test' }));
+    expect(screen.getByRole('tab', { selected: false, name: 'Prod' }));
+    await waitFor(() => {
+      expect(screen.getByRole('columnheader', { name: 'Request ID' })).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('No roles found.'));
+    });
+    expect(screen.getByPlaceholderText('Search existing roles'));
+    //await waitFor(() => { expect(screen.getByTestId('modal')); });
+  });
+
+  it('Should be able to input keywords in Search Existing Role input field', async () => {
     render(<RoleManagement integration={{ ...sampleRequest }} />);
-
-    fireEvent.click(screen.getByText('+ Create a New Role'));
-    const roleNameInput = screen.getByRole('textbox');
-    fireEvent.change(roleNameInput, { target: { value: 'new_role' } });
-    expect(screen.getByDisplayValue('new_role')).toBeInTheDocument();
-
-    const searchInput = screen.getByRole('textbox');
-    fireEvent.change(searchInput, { target: { value: 'sample_role' } });
+    const searchRoleInput = screen.findByRole('textbox');
+    fireEvent.change(await searchRoleInput, { target: { value: 'sample_role' } });
     expect(screen.getByDisplayValue('sample_role')).toBeInTheDocument();
   });
 
-  it('click the Search button, will return the mock search result', () => {
+  it('Should be able to input keywords in Create New Role input field', async () => {
     render(<RoleManagement integration={{ ...sampleRequest }} />);
-    fireEvent.click(screen.getByText('Search'));
-    expect(listClientRoles).toHaveBeenCalled();
-    //screen.logTestingPlaygroundURL();
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('+ Create a New Role'));
+    });
+    const newRoleNameInput = screen.findByTestId('role-name-input-field');
+    fireEvent.change(await newRoleNameInput, { target: { value: 'new_role' } });
+    expect(screen.getByDisplayValue('new_role')).toBeInTheDocument();
+  });
+
+  it('Should be able to click the Search button, and check the endpoint function been called', async () => {
+    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Search'));
+    });
+    expect(listClientRoles).toHaveBeenCalledTimes(1);
   });
 
   //need further tests on role table

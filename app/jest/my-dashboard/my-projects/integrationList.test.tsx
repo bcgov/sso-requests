@@ -1,8 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import { useRouter } from 'next/router';
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
-import { getRequests, deleteRequest } from 'services/request';
 import { sampleRequest } from '../../samples/integrations';
 
 const setIntegration = jest.fn();
@@ -16,13 +14,17 @@ const mockClientRolesResult = {
   authType: 'browser-login',
 };
 
-jest.mock('next/router', () => ({
-  useRouter: jest.fn(() => ({ query: {}, push: jest.fn, replace: jest.fn })),
-}));
-
-jest.mock('services/request', () => ({
-  getRequests: jest.fn().mockImplementation(() => Promise.resolve([[mockClientRolesResult], null])),
-  deleteRequest: jest.fn(() => Promise.resolve([[], null])),
+const spyGetRequest = jest
+  .spyOn(require('services/request'), 'getRequests')
+  .mockImplementation(() => Promise.resolve([[mockClientRolesResult], null]));
+const spyDeleteRequest = jest
+  .spyOn(require('services/request'), 'deleteRequest')
+  .mockImplementation(() => Promise.resolve([[], null]));
+const spyUseRouter = jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => ({
+  pathname: '/request/1?status=applied',
+  query: '',
+  push: jest.fn(() => Promise.resolve(true)),
+  replace: jest.fn(() => Promise.resolve(true)),
 }));
 
 describe('Integration list', () => {
@@ -30,45 +32,39 @@ describe('Integration list', () => {
     jest.clearAllMocks();
   });
 
-  it('should display button and correct data', async () => {
+  it('Should match the expected button name, table headers, selected integration; expect the endpoint function been called', async () => {
     render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
-    expect(getRequests).toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(spyGetRequest).toHaveBeenCalled();
+    });
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '+ Request SSO Integration' })).toHaveClass('pg-button');
     });
+    expect(screen.getByRole('columnheader', { name: 'Request ID' })).toBeInTheDocument();
     expect(
       screen.getByRole('row', { name: '00000001 test project Completed Browser Login Gold Edit Delete' }),
     ).toHaveClass('active');
   });
 
-  it('should be able to click the Delete button', async () => {
+  it('Should be able to click the Delete button', async () => {
     render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
-    await waitFor(() => {
-      fireEvent.click(screen.getByTestId('action-button-delete'));
-    });
     await waitFor(() => {
       fireEvent.click(screen.getByTestId('confirm-delete'));
     });
-    expect(deleteRequest).toHaveBeenCalled();
+    expect(spyDeleteRequest).toHaveBeenCalledTimes(1);
   });
 
-  it('should be able to click the Edit button', async () => {
-    const mockRouter = jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => ({
-      pathname: '/request/1?status=applied',
-      query: '',
-      push: jest.fn(() => Promise.resolve(true)),
-      replace: jest.fn(() => Promise.resolve(true)),
-    }));
-
+  it('Should be able to click the Edit button', async () => {
     render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
     await waitFor(() => {
       fireEvent.click(screen.getByLabelText('edit'));
     });
-    expect(mockRouter).toHaveBeenCalled();
+    expect(spyUseRouter).toHaveBeenCalled();
   });
 
-  it('should be able to click the Create Integration button', async () => {
-    const mockRouter = jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => ({
+  it('Should be able to click the Create Integration button', async () => {
+    const spyRouter = jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => ({
       pathname: '/request',
       query: '',
       push: jest.fn(() => Promise.resolve(true)),
@@ -79,6 +75,6 @@ describe('Integration list', () => {
     await waitFor(() => {
       fireEvent.click(screen.getByRole('button', { name: '+ Request SSO Integration' }));
     });
-    expect(mockRouter).toHaveBeenCalled();
+    expect(spyRouter).toHaveBeenCalled();
   });
 });
