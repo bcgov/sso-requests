@@ -101,9 +101,9 @@ export default function getSchemas(formData: Integration) {
       ? {
           [loginTitleField]: {
             type: 'string',
-            title: 'Keycloak Login Page Name',
+            title: 'Pathfinder SSO Login Page Name',
             tooltip: {
-              content: `Enter a name that you would like to be displayed for users, as they're logging into the Keycloak Login Page. If you leave this field blank, the page will automatically display "Standard"`,
+              content: `Enter a name that you would like to be displayed for users, as they're logging into the Pathfinder SSO Login Page. If you leave this field blank, the page will automatically display "Standard"`,
             },
             maxLength: 100,
           },
@@ -111,7 +111,7 @@ export default function getSchemas(formData: Integration) {
             type: 'boolean',
             title: 'Display Pathfinder SSO Header Title',
             tooltip: {
-              content: `Enable/Disable display of the header title "Pathfinder SSO" on Keycloak Login Page`,
+              content: `Enable/Disable display of the header title "Pathfinder SSO" on Pathfinder SSO Login Page`,
             },
             default: true,
           },

@@ -109,9 +109,7 @@ export default function Home({ onLoginClick }: PageProps) {
                 <Accordion.Panel title="What is Pathfinder's Common Hosted Single Sign-On (CSS) App?">
                   <ul>
                     <li>We provide a login service that connects your users to your applications</li>
-                    <li>
-                      Your users can login with government identity providers, such as IDIR and BCeID (coming soon)
-                    </li>
+                    <li>Your users can login with government identity providers, such as IDIR and BCeID</li>
                     <li>We provide you with instant access to your development and test environments</li>
                   </ul>
                 </Accordion.Panel>
@@ -151,7 +149,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     <ul>
                       <li>Is a critical application</li>
                       <li>Will be experiencing high volume transactions</li>
-                      <li>Requires role management, session management, scopes or changes in token times</li>
+                      <li>Requires session management, scopes or changes in token times</li>
                     </ul>
                     If you would like to learn more about IM IT Standards,{' '}
                     <Link
