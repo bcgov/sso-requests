@@ -71,13 +71,13 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:placeholder': 'Project Name',
     },
     devLoginTitle: {
-      'ui:placeholder': 'Keycloak Login Page Name',
+      'ui:placeholder': 'Pathfinder SSO Login Page Name',
     },
     testLoginTitle: {
-      'ui:placeholder': 'Keycloak Login Page Name',
+      'ui:placeholder': 'Pathfinder SSO Login Page Name',
     },
     prodLoginTitle: {
-      'ui:placeholder': 'Keycloak Login Page Name',
+      'ui:placeholder': 'Pathfinder SSO Login Page Name',
     },
     devDisplayHeaderTitle: {
       'ui:widget': 'radio',
