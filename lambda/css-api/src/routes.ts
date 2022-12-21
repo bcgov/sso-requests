@@ -655,7 +655,9 @@ export const setRoutes = (app: any) => {
   );
 
   app.get(`/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
-    /*#swagger.auto = false
+    /*
+      #swagger.deprecated = true
+      #swagger.auto = false
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
       #swagger.method = 'get'
@@ -711,7 +713,8 @@ export const setRoutes = (app: any) => {
   });
 
   app.post(`/integrations/:integrationId/:environment/user-role-mappings`, async (req, res) => {
-    /*#swagger.auto = false
+    /*#swagger.deprecated = true
+      #swagger.auto = false
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
       #swagger.method = 'post'
@@ -808,9 +811,9 @@ export const setRoutes = (app: any) => {
               firstName: 'Julius',
               lastName: 'Caesar',
               attribues: {
-                display_name: 'Julius Caesar',
-                idir_user_guid: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67',
-                idir_username: 'JULIUSCA'
+                display_name: ['Julius Caesar'],
+                idir_user_guid: ['fohe4m5pn8clhkxmlho33sn1r7vr7m67'],
+                idir_username: ['JULIUSCA']
               },
             }
           ]
@@ -879,9 +882,9 @@ export const setRoutes = (app: any) => {
               firstName: 'Julius',
               lastName: 'Caesar',
               attribues: {
-                display_name: 'Julius Caesar',
-                idir_user_guid: 'uuz6y6mggxgfdhcqxm6kjho19krg7xle',
-                idir_username: 'JULIUSCA'
+                display_name: ['Julius Caesar'],
+                idir_user_guid: ['uuz6y6mggxgfdhcqxm6kjho19krg7xle'],
+                idir_username: ['JULIUSCA']
               },
             }
           ]
@@ -1096,9 +1099,9 @@ export const setRoutes = (app: any) => {
               firstName: 'Julius',
               lastName: 'Caesar',
               attribues: {
-                display_name: 'Julius Caesar',
-                bceid_user_guid: 'tb914nlltlo4mz05viha1b4hdyi4xnad',
-                bceid_username: 'JULIUSCA'
+                display_name: ['Julius Caesar'],
+                bceid_user_guid: ['tb914nlltlo4mz05viha1b4hdyi4xnad'],
+                bceid_username: ['JULIUSCA']
               },
             }
           ]
@@ -1153,11 +1156,11 @@ export const setRoutes = (app: any) => {
               firstName: 'Julius',
               lastName: 'Caesar',
               attribues: {
-                bceid_business_guid: '4t64xgki1pxqx61jxvri3i4uie1u61nk',
-                bceid_business_name: 'Julius Caesars Business Team',
-                display_name: 'Julius Caesar',
-                bceid_user_guid: '1r1zui4qr1yfh73k6rku5q30qupgcvdt',
-                bceid_username: 'JULIUSCA'
+                bceid_business_guid: ['4t64xgki1pxqx61jxvri3i4uie1u61nk'],
+                bceid_business_name: ['Julius Caesars Business Team'],
+                display_name: ['Julius Caesar'],
+                bceid_user_guid: ['1r1zui4qr1yfh73k6rku5q30qupgcvdt'],
+                bceid_username: ['JULIUSCA']
               },
             }
           ]
@@ -1212,11 +1215,11 @@ export const setRoutes = (app: any) => {
               firstName: 'Julius',
               lastName: 'Caesar',
               attribues: {
-                bceid_business_guid: 'qplo4aqoffy2njxsaj8wwfa3qe6g3s40',
-                bceid_business_name: 'Julius Caesars Business Team',
-                display_name: 'Julius Caesar',
-                bceid_user_guid: 'jj4vrfekurtzc2931k8mroqx3fgibrr3',
-                bceid_username: 'JULIUSCA'
+                bceid_business_guid: ['qplo4aqoffy2njxsaj8wwfa3qe6g3s40'],
+                bceid_business_name: ['Julius Caesars Business Team'],
+                display_name: ['Julius Caesar'],
+                bceid_user_guid: ['jj4vrfekurtzc2931k8mroqx3fgibrr3'],
+                bceid_username: ['JULIUSCA']
               },
             }
           ]
@@ -1236,6 +1239,264 @@ export const setRoutes = (app: any) => {
       const { environment } = req.params;
       const result = await userController.listUsers(environment, 'bceidboth', req.query);
       res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/integrations/:integrationId/:environment/users/:username/roles`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Role-Mapping']
+      #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles'
+      #swagger.method = 'get'
+      #swagger.description = 'Get roles associated with user for the integration of the target environment'
+      #swagger.summary = 'Get roles associated with user'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true,
+        type: 'number',
+        example: 1234
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['username'] = {
+        in: 'path',
+        description: 'Username',
+        required: true,
+        example: 'jj4vrfekurtzc2931k8mroqx3fgibrr3@idir'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { data: [{ $ref: '#/components/schemas/roleResponse' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+    try {
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      const { integrationId, environment, idp, username } = req.params;
+      const result = await userRoleMappingController.listRolesByUsername(
+        req.teamId,
+        integrationId,
+        environment,
+        username,
+      );
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/integrations/:integrationId/:environment/roles/:roleName/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Role-Mapping']
+      #swagger.path = '/integrations/{integrationId}/{environment}/roles/{roleName}/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get users associated with role for the integration of the target environment'
+      #swagger.summary = 'Get users associated with role'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true,
+        type: 'number',
+        example: 1234
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['roleName'] = {
+        in: 'path',
+        description: 'Role name',
+        required: true,
+        example: 'client-role'
+      }
+      #swagger.parameters['page'] = {
+        in: 'query',
+        description: 'Page',
+        example: '1'
+      }
+      #swagger.parameters['max'] = {
+        in: 'query',
+        description: 'Max Count',
+        example: '10'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { page: 1, data: [{ $ref: '#/components/schemas/user' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+    try {
+      const { integrationId, environment, roleName } = req.params;
+      const result = await userRoleMappingController.listUsersByRolename(
+        req.teamId,
+        integrationId,
+        environment,
+        roleName,
+        req.query,
+      );
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`/integrations/:integrationId/:environment/users/:username/roles`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Role-Mapping']
+      #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles'
+      #swagger.method = 'post'
+      #swagger.description = 'Assign roles to an user for the integration of the target environment'
+      #swagger.summary = 'Assign roles to an user'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true,
+        type: 'number',
+        example: 1234
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['username'] = {
+        in: 'path',
+        description: 'Username',
+        required: true,
+        example: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67@idir'
+      }
+      #swagger.requestBody = {
+        required: true,
+        schema: {
+          type: 'array',
+          items: {
+            $ref: '#/components/schemas/roleRequest'
+          }
+        }
+      }
+      #swagger.responses[201] = {
+        description: 'Created',
+        schema: { data: [{ $ref: '#/components/schemas/roleResponse' }] }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+    try {
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      const { integrationId, environment, username } = req.params;
+      const result = await userRoleMappingController.addRoleToUser(
+        req.teamId,
+        integrationId,
+        environment,
+        username,
+        req.body,
+      );
+      res.status(201).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.delete(`/integrations/:integrationId/:environment/users/:username/roles/:roleName`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Role-Mapping']
+      #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles/{roleName}'
+      #swagger.method = 'delete'
+      #swagger.description = 'Unassign role from an user for the integration of the target environment'
+      #swagger.summary = 'Unassign role from an user'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true,
+        type: 'number',
+        example: 1234
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['username'] = {
+        in: 'path',
+        description: 'Username',
+        required: true,
+        example: 'fohe4m5pn8clhkxmlho33sn1r7vr7m67@idir'
+      }
+      #swagger.parameters['roleName'] = {
+        in: 'path',
+        description: 'Role name',
+        required: true,
+        example: 'client-role'
+      }
+      #swagger.responses[204] = {
+        description: 'No Content',
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[404] = {
+        description: 'Not Found',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+    try {
+      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      const { integrationId, environment, username, roleName } = req.params;
+      const result = await userRoleMappingController.deleteRoleFromUser(
+        req.teamId,
+        integrationId,
+        environment,
+        username,
+        roleName,
+      );
+      res.status(204).send();
     } catch (err) {
       handleError(res, err);
     }

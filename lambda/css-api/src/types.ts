@@ -32,3 +32,8 @@ export type ListUsersFilterQuery = {
   email?: string;
   guid?: string;
 };
+
+export type ListUsersByRoleName = {
+  page?: number;
+  max?: number;
+};
