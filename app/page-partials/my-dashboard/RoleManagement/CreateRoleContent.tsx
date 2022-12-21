@@ -244,6 +244,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                   <td className="role">
                     <Input
                       size="small"
+                      data-testid="role-name-input-field"
                       minLength="2"
                       maxLength="100"
                       value={role.name}

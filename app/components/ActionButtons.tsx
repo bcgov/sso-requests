@@ -21,11 +21,15 @@ export const ActionButtonContainer = styled.div`
   }
 `;
 
-export const ActionButton = styled(FontAwesomeIcon)<{
+interface StyledActionButtonProps {
   disabled?: boolean;
   activeColor?: string;
   isUnread?: boolean;
-}>`
+}
+
+export const ActionButton = styled(({ disabled, activeColor, isUnread, ...props }) => (
+  <FontAwesomeIcon {...props} />
+))<StyledActionButtonProps>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
   ${(props) =>
     props.disabled ? `color: #CACACA;` : `color: inherit; &:hover { color: ${props.activeColor || '#000'}; }`}
@@ -98,6 +102,7 @@ export default function Actionbuttons({
         <ActionButton
           icon={faTrash}
           role="button"
+          data-testid="action-button-delete"
           aria-label="delete"
           onClick={canDelete ? handleDelete : noop}
           disabled={!canDelete}

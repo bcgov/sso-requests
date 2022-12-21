@@ -23,6 +23,7 @@ const RightAlignHeader = styled.th`
 
 const RightFloatButtons = styled.td`
   float: right;
+  margin-top: 10px;
 `;
 
 const PNoMargin = styled.p`
@@ -197,18 +198,16 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
                 <td>{getStatusDisplayName(integration.status || 'draft')}</td>
                 <td>{authTypeDisplay[integration.authType || 'browser-login']}</td>
                 <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
-                <td>
-                  <RightFloatButtons>
-                    <ActionButtons
-                      request={integration}
-                      onDelete={() => {
-                        loadIntegrations();
-                      }}
-                      defaultActiveColor="#fff"
-                      delIconStyle={{ marginLeft: '7px' }}
-                    />
-                  </RightFloatButtons>
-                </td>
+                <RightFloatButtons>
+                  <ActionButtons
+                    request={integration}
+                    onDelete={() => {
+                      loadIntegrations();
+                    }}
+                    defaultActiveColor="#fff"
+                    delIconStyle={{ marginLeft: '7px' }}
+                  />
+                </RightFloatButtons>
               </tr>
             ))}
           </tbody>
