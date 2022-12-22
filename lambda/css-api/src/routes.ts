@@ -1331,12 +1331,12 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['page'] = {
         in: 'query',
         description: 'Page',
-        example: '1'
+        default: '1'
       }
       #swagger.parameters['max'] = {
         in: 'query',
         description: 'Max Count',
-        example: '10'
+        default: '50'
       }
       #swagger.responses[200] = {
         description: 'OK',

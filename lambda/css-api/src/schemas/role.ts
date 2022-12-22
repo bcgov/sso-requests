@@ -7,7 +7,12 @@ export const ROLE_REQ = {
   },
   additionalProperties: false,
   required: ['name'],
-  errorMessage: 'invalid role',
+  errorMessage: {
+    required: {
+      name: 'name is required',
+    },
+    additionalProperties: 'only name is supported',
+  },
 };
 
 export const LIST_OF_ROLES_REQ = {
