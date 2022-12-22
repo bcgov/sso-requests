@@ -80,7 +80,7 @@ export const listClientRoles = async (
 ) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw new createHttpError[404]('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   if (max > MAX_CLIENT_ROLE_COUNT) max = MAX_CLIENT_ROLE_COUNT;
@@ -103,15 +103,16 @@ export const getCompositeClientRoles = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-  if (integration.authType === 'service-account') throw Error('invalid auth type');
+  if (integration.authType === 'service-account')
+    throw new createHttpError[400](`invalid auth type ${integration.authType}`);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const role = await getRoleByName(kcAdminClient, client.id, roleName);
-  if (!role) throw Error('role not found');
+  if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
   const populatedRole = await populateComposites(kcAdminClient, client.id, role);
   return populatedRole.composites;
@@ -132,15 +133,16 @@ export const setCompositeClientRoles = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-  if (integration.authType === 'service-account') throw Error('invalid auth type');
+  if (integration.authType === 'service-account')
+    throw new createHttpError[400](`invalid auth type ${integration.authType}`);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const role = await getRoleByName(kcAdminClient, client.id, roleName);
-  if (!role) throw Error('role not found');
+  if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
   const rolesToDel = await kcAdminClient.roles.getCompositeRolesForClient({
     realm: 'standard',
@@ -174,7 +176,7 @@ export const findClientRole = async (
   if (roleName?.length < 2) return null;
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const role = await kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName });
@@ -197,7 +199,7 @@ export const listRoleUsers = async (
 ) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw new createHttpError[404]('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const roles: any[] = await kcAdminClient.clients.listRoles({
@@ -209,7 +211,7 @@ export const listRoleUsers = async (
     max: MAX_CLIENT_ROLE_COUNT,
   });
 
-  if (!roles.find((role) => role.name === roleName)) throw new createHttpError[404](`role not found ${roleName}`);
+  if (!roles.find((role) => role.name === roleName)) throw new createHttpError[404](`role ${roleName} not found`);
 
   const users = await kcAdminClient.clients.findUsersWithRole({
     realm: 'standard',
@@ -236,11 +238,11 @@ export const listUserRoles = async (
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw new createHttpError[404](`client not found ${integration.clientId}`);
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const users = await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
-  if (users.length === 0) throw new createHttpError[404](`user not found ${username}`);
+  if (users.length === 0) throw new createHttpError[404](`user ${username} not found`);
 
   const roles = await kcAdminClient.users.listClientRoleMappings({
     realm: 'standard',
@@ -270,14 +272,14 @@ export const manageUserRole = async (
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw new createHttpError[404]('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const users = await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
-  if (users.length === 0) throw new createHttpError[404]('user not found');
+  if (users.length === 0) throw new createHttpError[404](`user ${username} not found`);
 
   const role = await kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName });
-  if (!role) throw new createHttpError[404]('role not found');
+  if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
   const roleMapping = {
     realm: 'standard',
@@ -310,15 +312,15 @@ export const manageUserRoles = async (
   },
 ) => {
   const idp = username.split('@')[1];
-  if (!integration.devIdps.includes(idp)) throw Error('invalid idp');
+  if (!integration.devIdps.includes(idp)) throw new createHttpError[400](`invalid idp ${idp}`);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const users = await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
-  if (users.length === 0) throw Error('user not found');
+  if (users.length === 0) throw new createHttpError[404](`user ${username} not found`);
 
   const roles = await kcAdminClient.users.listClientRoleMappings({
     realm: 'standard',
@@ -367,7 +369,7 @@ export const createRole = async (
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   return await kcAdminClient.clients.createRole({
@@ -399,7 +401,8 @@ export const bulkCreateRole = async (
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
 
-  if (integration.authType === 'service-account') throw Error('invalid auth type');
+  if (integration.authType === 'service-account')
+    throw new createHttpError[400](`invalid auth type ${integration.authType}`);
 
   // create 20 roles at a time
   const rolesToCreate = roles.slice(0, 20);
@@ -477,11 +480,11 @@ export const deleteRole = async (
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const role = await getRoleByName(kcAdminClient, client.id, roleName);
-  if (!role) throw Error('role not found');
+  if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
   const deletedRole = await kcAdminClient.clients.delRole({
     id: client.id,
@@ -510,11 +513,11 @@ export const updateRole = async (
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   const role = await getRoleByName(kcAdminClient, client.id, roleName);
-  if (!role) throw Error('role not found');
+  if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
   const updatedRole = await kcAdminClient.clients.updateRole(
     {
@@ -620,7 +623,7 @@ export const manageRoleComposites = async (
 export const getRoleComposites = async (integration: Integration, environment: string, roleId: string) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw Error('client not found');
+  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
   return await kcAdminClient.roles.getCompositeRolesForClient({
@@ -640,17 +643,18 @@ export const searchUsersByIdp = async ({
   userProperties: any;
 }) => {
   for (let queryProp in userProperties) {
-    if (!['email', 'firstName', 'lastName', 'guid'].includes(queryProp)) throw Error(`invalid property ${queryProp}`);
+    if (!['email', 'firstName', 'lastName', 'guid'].includes(queryProp))
+      throw new createHttpError[400](`invalid property ${queryProp}`);
   }
 
   if (idp.startsWith('bceid')) {
     if (userProperties > 1 || Object.keys(userProperties)[0] !== 'guid') {
-      throw Error(`invalid user query - ${JSON.stringify(userProperties)}`);
+      throw new createHttpError[400](`invalid user query - ${JSON.stringify(userProperties)}`);
     }
   }
 
   if (!['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'].includes(idp))
-    throw Error(`invalid idp ${idp}`);
+    throw new createHttpError[400](`invalid idp ${idp}`);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
@@ -695,15 +699,16 @@ export const searchBCeIDusersByIntegration = async ({
   clientId: string;
 }) => {
   const props = Object.keys(userProperties);
-  if (props.length === 0) throw Error(`no property`);
+  if (props.length === 0) throw new createHttpError[400]('no user properties are found');
 
   const prop = props[0];
   const propValue = userProperties[prop];
 
-  if (!['email', 'firstName', 'lastName', 'guid'].includes(prop)) throw Error(`invalid property ${prop}`);
+  if (!['email', 'firstName', 'lastName', 'guid'].includes(prop))
+    throw new createHttpError[400](`invalid property ${prop}`);
 
-  if (!idp.startsWith('bceid')) throw Error(`invalid idp ${idp}`);
-  if (!propValue) throw Error(`empty search value`);
+  if (!idp.startsWith('bceid')) throw new createHttpError[400](`invalid idp ${idp}`);
+  if (!propValue) throw new createHttpError[400](`empty search value`);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
