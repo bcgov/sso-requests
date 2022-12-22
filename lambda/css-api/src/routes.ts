@@ -661,7 +661,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/user-role-mappings'
       #swagger.method = 'get'
-      #swagger.description = 'Get user-role mappings by a role name or an username for the integration of the target environment <br><br> <b>Note:</b> Either roleName or username is required'
+      #swagger.description = 'Get user-role mappings by a role name or a username for the integration of the target environment <br><br> <b>Note:</b> Either roleName or username is required'
       #swagger.summary = 'Get user role mappings by role name or user name'
       #swagger.parameters['integrationId'] = {
         in: 'path',
@@ -1376,7 +1376,7 @@ export const setRoutes = (app: any) => {
       #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles'
       #swagger.method = 'post'
       #swagger.description = 'Assign roles to a user for the integration of the target environment'
-      #swagger.summary = 'Assign roles to an user'
+      #swagger.summary = 'Assign roles to a user'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
@@ -1444,7 +1444,7 @@ export const setRoutes = (app: any) => {
       #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles/{roleName}'
       #swagger.method = 'delete'
       #swagger.description = 'Unassign role from a user for the integration of the target environment'
-      #swagger.summary = 'Unassign role from an user'
+      #swagger.summary = 'Unassign role from a user'
       #swagger.parameters['integrationId'] = {
         in: 'path',
         description: 'Integration Id',
