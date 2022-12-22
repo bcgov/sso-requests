@@ -810,7 +810,7 @@ export const setRoutes = (app: any) => {
               email: 'julius-caesar@email.com',
               firstName: 'Julius',
               lastName: 'Caesar',
-              attribues: {
+              attributes: {
                 display_name: ['Julius Caesar'],
                 idir_user_guid: ['fohe4m5pn8clhkxmlho33sn1r7vr7m67'],
                 idir_username: ['JULIUSCA']
@@ -881,7 +881,7 @@ export const setRoutes = (app: any) => {
               email: 'julius-caesar@email.com',
               firstName: 'Julius',
               lastName: 'Caesar',
-              attribues: {
+              attributes: {
                 display_name: ['Julius Caesar'],
                 idir_user_guid: ['uuz6y6mggxgfdhcqxm6kjho19krg7xle'],
                 idir_username: ['JULIUSCA']
@@ -952,7 +952,7 @@ export const setRoutes = (app: any) => {
               email: 'julius-caesar@email.com',
               firstName: '',
               lastName: '',
-              attribues: {
+              attributes: {
                 github_username: [
                   "julius-caesar"
                 ],
@@ -1032,7 +1032,7 @@ export const setRoutes = (app: any) => {
               email: 'julius-caesar@email.com',
               firstName: '',
               lastName: '',
-              attribues: {
+              attributes: {
                 github_username: [
                   "julius-caesar"
                 ],
@@ -1098,7 +1098,7 @@ export const setRoutes = (app: any) => {
               email: 'julius-caesar@email.com',
               firstName: 'Julius',
               lastName: 'Caesar',
-              attribues: {
+              attributes: {
                 display_name: ['Julius Caesar'],
                 bceid_user_guid: ['tb914nlltlo4mz05viha1b4hdyi4xnad'],
                 bceid_username: ['JULIUSCA']
@@ -1155,7 +1155,7 @@ export const setRoutes = (app: any) => {
               email: 'julius-caesar@email.com',
               firstName: 'Julius',
               lastName: 'Caesar',
-              attribues: {
+              attributes: {
                 bceid_business_guid: ['4t64xgki1pxqx61jxvri3i4uie1u61nk'],
                 bceid_business_name: ['Julius Caesars Business Team'],
                 display_name: ['Julius Caesar'],
@@ -1214,7 +1214,7 @@ export const setRoutes = (app: any) => {
               email: 'julius-caesar@email.com',
               firstName: 'Julius',
               lastName: 'Caesar',
-              attribues: {
+              attributes: {
                 bceid_business_guid: ['qplo4aqoffy2njxsaj8wwfa3qe6g3s40'],
                 bceid_business_name: ['Julius Caesars Business Team'],
                 display_name: ['Julius Caesar'],
@@ -1331,12 +1331,12 @@ export const setRoutes = (app: any) => {
       #swagger.parameters['page'] = {
         in: 'query',
         description: 'Page',
-        example: '1'
+        default: '1'
       }
       #swagger.parameters['max'] = {
         in: 'query',
         description: 'Max Count',
-        example: '10'
+        default: '50'
       }
       #swagger.responses[200] = {
         description: 'OK',
@@ -1375,7 +1375,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles'
       #swagger.method = 'post'
-      #swagger.description = 'Assign roles to an user for the integration of the target environment'
+      #swagger.description = 'Assign roles to a user for the integration of the target environment'
       #swagger.summary = 'Assign roles to an user'
       #swagger.parameters['integrationId'] = {
         in: 'path',
@@ -1443,7 +1443,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles/{roleName}'
       #swagger.method = 'delete'
-      #swagger.description = 'Unassign role from an user for the integration of the target environment'
+      #swagger.description = 'Unassign role from a user for the integration of the target environment'
       #swagger.summary = 'Unassign role from an user'
       #swagger.parameters['integrationId'] = {
         in: 'path',
