@@ -71,7 +71,7 @@ const handleError = (res, err) => {
     message = tryJSON(message);
   }
   console.log({ success: false, message });
-  res.status(422).json({ success: false, message });
+  res.status(err.status || 422).json({ success: false, message });
 };
 
 export const setRoutes = (app: any) => {

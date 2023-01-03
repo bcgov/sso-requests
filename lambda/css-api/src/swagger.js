@@ -37,7 +37,15 @@ const doc = {
         '@enum': ['dev', 'test', 'prod'],
       },
       idp: {
-        '@enum': ['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubbcgov'],
+        '@enum': [
+          'azure-idir',
+          'idir',
+          'bceid-basic',
+          'bceid-business',
+          'bceid-basic-business',
+          'github-bcgov',
+          'github-public',
+        ],
       },
       operation: {
         '@enum': ['add', 'del'],
@@ -72,16 +80,16 @@ const doc = {
         composite: false,
       },
       userAttributes: {
-        display_name: 'Test User',
-        idir_user_guid: 'AAAFEE111DD24C6D11111DFDC8BC51A1',
-        idir_username: 'TESTUSER',
+        display_name: ['Test User'],
+        idir_user_guid: ['AAAFEE111DD24C6D11111DFDC8BC51A1'],
+        idir_username: ['TESTUSER'],
       },
       user: {
         username: '08fe81112408411081ea011cf0ec945d@idir',
         email: 'testuser@gov.bc.ca',
         firstName: 'Test',
         lastName: 'User',
-        attribues: { $ref: '#/components/schemas/userAttributes' },
+        attributes: { $ref: '#/components/schemas/userAttributes' },
       },
       userRoleMappingRequest: {
         $roleName: 'client-role',

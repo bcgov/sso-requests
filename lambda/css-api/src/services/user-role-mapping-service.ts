@@ -14,6 +14,9 @@ import createHttpError from 'http-errors';
 import { updateUserProps } from '../helpers/users';
 import { updateRoleProps } from '../helpers/roles';
 import { Integration } from 'app/interfaces/Request';
+import includes from 'lodash.includes';
+import { listOfrolesValidator } from '../schemas/role';
+import { parseErrors } from '../util';
 
 @injectable()
 export class UserRoleMappingService {
@@ -62,9 +65,16 @@ export class UserRoleMappingService {
     return { users, roles };
   }
 
-  public async getAllUsersByRole(teamId: number, integrationId: number, environment: string, roleName: string) {
+  public async getAllUsersByRole(
+    teamId: number,
+    integrationId: number,
+    environment: string,
+    roleName: string,
+    first?: number,
+    max?: number,
+  ) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    return await listRoleUsers(int, { environment, roleName });
+    return await listRoleUsers(int, { environment, roleName, first, max });
   }
 
   public async getAllRolesByUser(teamId: number, integrationId: number, environment: string, username: string) {
@@ -108,5 +118,58 @@ export class UserRoleMappingService {
       users: updateUserProps(users),
       roles: updateRoleProps(roles),
     };
+  }
+
+  public async listRolesByUsername(teamId: number, integrationId: number, environment: string, username: string) {
+    const user = await findUserByRealm(environment, username);
+    if (!user) throw new createHttpError[404](`user ${username} not found`);
+    const roles = await this.getAllRolesByUser(teamId, integrationId, environment, username);
+    return { data: updateRoleProps(roles as Role[]) };
+  }
+
+  public async listUsersByRolename(
+    teamId: number,
+    integrationId: number,
+    environment: string,
+    roleName: string,
+    page: number = 1,
+    max: number = 50,
+  ) {
+    const first = page > 1 ? max * (page - 1) : 0;
+    const userList = await this.getAllUsersByRole(teamId, integrationId, environment, roleName, first, max);
+    return { page, data: updateUserProps(userList as User[]) };
+  }
+
+  public async addRoleToUser(
+    teamId: number,
+    integrationId: number,
+    environment: string,
+    username: string,
+    roles: RolePayload[],
+  ) {
+    const valid = listOfrolesValidator(roles);
+    if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
+    const int = await this.integrationService.getById(integrationId, teamId);
+
+    for (let role of roles) {
+      this.roleService.validateRole(role);
+      await manageUserRole(int, { environment, username, roleName: role.name, mode: 'add' });
+    }
+    return await this.listRolesByUsername(teamId, integrationId, environment, username);
+  }
+
+  public async deleteRoleFromUser(
+    teamId: number,
+    integrationId: number,
+    environment: string,
+    username: string,
+    roleName: string,
+  ) {
+    this.roleService.validateRole({ name: roleName });
+    const int = await this.integrationService.getById(integrationId, teamId);
+    const existingUserRoles = await this.getAllRolesByUser(teamId, integrationId, environment, username);
+    if (!existingUserRoles.find((existingRole) => existingRole.name === roleName))
+      throw new createHttpError[400](`role ${roleName} is not associated with user ${username}`);
+    await manageUserRole(int, { environment, username, roleName, mode: 'del' });
   }
 }

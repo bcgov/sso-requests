@@ -20,7 +20,7 @@ let integrationId;
 
 export const options = {
   stages: [
-    { duration: '1m', target: 1 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
+    { duration: '1m', target: 3 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
   ],
 };
 
@@ -382,6 +382,104 @@ export default function (data) {
       const requestOptions = Object.assign({}, params);
       requestOptions.headers.Accept = 'application/json';
       const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 204 when success': (r) => r.status === 204,
+      });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
+    }
+  });
+
+  group('POST roles to user', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/users/${__ENV.username}/roles`;
+      const requestOptions = Object.assign({}, params);
+      requestOptions.headers.Accept = 'application/json';
+      const body = [
+        {
+          name: `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
+        },
+      ];
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 201 when success': (r) => r.status === 201,
+        'return role name': (r) =>
+          r.json().data.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
+      });
+
+      if (!passed) {
+        console.log(
+          `Request to ${response.request.url} with payload ${JSON.stringify(response.request.body)} and status ${
+            response.status
+          } failed the checks!`,
+        );
+        errors_metrics.add(1, { url: response.request.url });
+      }
+    }
+  });
+
+  group('GET users associated to role', () => {
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/users?page=1&max=50`;
+      const response = http.get(url, params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 200 when success on passing role name and username': (r) => r.status === 200,
+        'return page number': (r) => r.json().page === 1,
+        'return username': (r) => r.json().data.find((user) => user.username === __ENV.username),
+      });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('GET roles associated to an user', () => {
+    {
+      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/users/${__ENV.username}/roles`;
+      const response = http.get(url, params);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      let passed = check(response, {
+        'should return 200 when success on passing role name and username': (r) => r.status === 200,
+        'return role name': (r) =>
+          r.json().data.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
+      });
+
+      if (!passed) {
+        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+        errors_metrics.add(1, { url: response.request.url });
+      }
+
+      sleep(SLEEP_DURATION);
+    }
+  });
+
+  group('DELETE role associated to user', () => {
+    {
+      const url =
+        BASE_URL +
+        `/integrations/${integrationId}/${__ENV.environment}/users/${__ENV.username}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`;
+
+      const response = http.del(url, null, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 

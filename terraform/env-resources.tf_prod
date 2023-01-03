@@ -3,6 +3,11 @@ module "s3_keycloak_v2" {
   bucket_name = "xgr00q-prod-keycloak"
 }
 
+module "s3_sso_loki" {
+  source      = "./s3-bucket"
+  bucket_name = "xgr00q-prod-sso-loki"
+}
+
 module "s3_sysdig" {
   source      = "./s3-bucket"
   bucket_name = "xgr00q-prod-sysdig"

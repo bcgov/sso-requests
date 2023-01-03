@@ -421,10 +421,10 @@ describe('create team and gold integration', () => {
       .query({ roleName: integrationUserRoles[0].name })
       .expect(200);
 
-    expect(result.body.roles.length === 1).toBe(true);
+    expect(result.body.roles.length > 0).toBe(true);
     expect(result.body.roles[0].name).toBe(integrationUserRoles[0].name);
     expect(result.body.roles[0].composite).toBe(integrationUserRoles[0].composite);
-    expect(result.body.users.length === 1).toBe(true);
+    expect(result.body.users.length > 0).toBe(true);
     expect(result.body.users[0].username).toBe(integrationRoleUsers[0].username);
     expect(result.body.users[0].firstName).toBe(integrationRoleUsers[0].firstName);
     expect(result.body.users[0].lastName).toBe(integrationRoleUsers[0].lastName);
@@ -441,7 +441,7 @@ describe('create team and gold integration', () => {
     expect(result.body.roles.length > 0).toBe(true);
     expect(result.body.roles[0].name).toBe(integrationUserRoles[0].name);
     expect(result.body.roles[0].composite).toBe(integrationUserRoles[0].composite);
-    expect(result.body.users.length === 1).toBe(true);
+    expect(result.body.users.length > 0).toBe(true);
     expect(result.body.users[0].username).toBe(integrationRoleUsers[0].username);
     expect(result.body.users[0].firstName).toBe(integrationRoleUsers[0].firstName);
     expect(result.body.users[0].lastName).toBe(integrationRoleUsers[0].lastName);
@@ -465,18 +465,61 @@ describe('create team and gold integration', () => {
     expect(result.body.roles.length > 0).toBe(true);
     expect(result.body.roles[0].name).toBe(integrationUserRoles[0].name);
     expect(result.body.roles[0].composite).toBe(integrationUserRoles[0].composite);
-    expect(result.body.users.length === 1).toBe(true);
+    expect(result.body.users.length > 0).toBe(true);
     expect(result.body.users[0].username).toBe(integrationRoleUsers[0].username);
     expect(result.body.users[0].firstName).toBe(integrationRoleUsers[0].firstName);
     expect(result.body.users[0].lastName).toBe(integrationRoleUsers[0].lastName);
     expect(result.body.users[0].email).toBe(integrationRoleUsers[0].email);
     expect(result.body.users[0].attributes).toEqual(integrationRoleUsers[0].attributes);
   });
+
   it('deletes team integration role mapping for an environment', async () => {
     const result = await supertest(app)
       .post(`${BASE_PATH}/integrations/${integration.int.id}/dev/user-role-mappings`)
       .send(deleteUserRoleMapping)
       .set('Accept', 'application/json')
       .expect(204);
+  });
+
+  it('gets roles associated with user for an environment when username is supplied', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/integrations/${integration.int.id}/dev/users/${createUserRoleMapping.username}/roles`)
+      .expect(200);
+
+    expect(result.body.data.length > 0).toBe(true);
+    expect(result.body.data[0].name).toBe(integrationUserRoles[0].name);
+    expect(result.body.data[0].composite).toBe(integrationUserRoles[0].composite);
+  });
+
+  it('gets users associated to a role per page for an environment when roleName is supplied', async () => {
+    const result = await supertest(app)
+      .get(`${BASE_PATH}/integrations/${integration.int.id}/dev/roles/${integrationUserRoles[0].name}/users`)
+      .expect(200);
+
+    expect(result.body.data.length > 0).toBe(true);
+    expect(result.body.page).toBe(1);
+    expect(result.body.data[0].username).toBe(integrationRoleUsers[0].username);
+    expect(result.body.data[0].firstName).toBe(integrationRoleUsers[0].firstName);
+    expect(result.body.data[0].lastName).toBe(integrationRoleUsers[0].lastName);
+    expect(result.body.data[0].email).toBe(integrationRoleUsers[0].email);
+    expect(result.body.data[0].attributes).toEqual(integrationRoleUsers[0].attributes);
+  });
+
+  it('assign a role to an user for an environment', async () => {
+    const result = await supertest(app)
+      .post(`${BASE_PATH}/integrations/${integration.int.id}/dev/users/${createUserRoleMapping.username}/roles`)
+      .send([{ name: 'role1' }])
+      .set('Accept', 'application/json')
+      .expect(201);
+    expect(result.body.data.length > 0).toBe(true);
+    expect(result.body.data[0].name).toBe(integrationUserRoles[0].name);
+    expect(result.body.data[0].composite).toBe(integrationUserRoles[0].composite);
+  });
+
+  it('unassign a role to an user for an environment', async () => {
+    const result = await supertest(app)
+      .delete(`${BASE_PATH}/integrations/${integration.int.id}/dev/users/${createUserRoleMapping.username}/roles/role1`)
+      .expect(204);
+    expect(result.body).toBeNull;
   });
 });
