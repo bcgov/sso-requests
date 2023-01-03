@@ -1,37 +1,25 @@
-resource "helm_release" "sso-keycloak" {
-  name       = "sso-keycloak"
-  repository = "https://codecentric.github.io/helm-charts"
-  chart      = "sso-charts/sso-keycloak"
-  version    = "v1.14.2"
-
-  namespace = "c6af30-dev"
-
-  # Wait 10 minutes instead of default 5 mins
-  # because HA seems to take a bit longer to fully start
-  wait    = true
-  timeout = 720
-
-  values = [
-    <<EOT
-
 image:
-  pullPolicy: IfNotPresent
   repository: ghcr.io/bcgov/sso
   tag: 7.6.5-build.25
+  pullPolicy: IfNotPresent
 
-additionalServerOptions: "-Dkeycloak.profile.feature.impersonation=disabled -Djboss.persistent.log.dir=/var/log/eap"
+additionalServerOptions: '-Dkeycloak.profile.feature.impersonation=disabled -Djboss.persistent.log.dir=/var/log/eap'
 
 resources:
-  requests:
-    cpu: 150m
-    memory: 768Mi
   limits:
-    cpu: 250m
-    memory: 1024Mi
+    cpu: 2
+    memory: 4Gi
+  requests:
+    cpu: 100m
+    memory: 1Gi
 
 configuration:
   enabled: true
-  version: "7.6"
+  version: '7.6'
+
+admin:
+  username:
+  password:
 
 annotations:
   timeout: 90s
@@ -54,14 +42,14 @@ readinessProbe:
   successThreshold: 1
   failureThreshold: 6
 
-replicaCount: 1
+replicaCount: 5
 
 maintenancePage:
   enabled: false
   active: false
 
 patroni:
-  replicaCount: 2
+  replicaCount: 3
 
   persistentVolume:
     size: 1Gi
@@ -74,8 +62,3 @@ patroni:
 
 rollingUpdate:
   maxSurge: 2
-  maxUnavailable: 0
-
-EOT
-  ]
-}

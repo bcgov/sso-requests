@@ -72,3 +72,4 @@ terraform.rc
 note.md
 swagger-ui-dist
 *.tfvars
+.terraform*
