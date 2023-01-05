@@ -91,3 +91,47 @@
 
   terraform apply --auto-approve
   ```
+
+## Run Load Tests
+
+- Setup the environment variables
+
+  ```
+  cd sso-requests/lambda/css-api/k6-tests
+
+  export K6_CLIENT_ID=
+  export K6_CLIENT_SECRET=
+  export K6_ENVIRONMENT=
+  export K6_USERNAME=
+  export K6_CSS_API_URL=
+  export K6_KEYCLOAK_TOKEN_URL=
+  ```
+
+- Run the load tests
+
+  ```
+  k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL -e keycloak_token_url=$K6_KEYCLOAK_TOKEN_URL load-tests.js --http-debug="full"
+  ```
+
+## Uninstall Keycloak and AWS Resources
+
+- Login to openshift from your local terminal
+- Remove keycloak and associated resources
+
+  ```
+  export NAMESPACE=
+
+  helm uninstall sso-keycloak -n $NAMESPACE
+
+  kubectl delete pvc -n $NAMESPACE -l "app.kubernetes.io/name=sso-patroni"
+
+  kubectl delete configmap -n $NAMESPACE -l "app.kubernetes.io/name=sso-patroni"
+  ```
+
+- Remove AWS resources by running below commands
+
+  ```
+  cd sso-requests/loadtests/lambdas
+
+  terraform destroy --auto-approve
+  ```

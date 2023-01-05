@@ -36,6 +36,7 @@ resource "keycloak_openid_client" "standard_service_account" {
 
   access_type              = "CONFIDENTIAL"
   service_accounts_enabled = true
+  access_token_lifespan    = 36000
 }
 
 resource "keycloak_generic_client_protocol_mapper" "saml_hardcode_attribute_mapper" {
@@ -69,4 +70,14 @@ resource "keycloak_openid_client_service_account_realm_role" "tf_cli_service_acc
   realm_id                = data.keycloak_realm.master_realm.id
   service_account_user_id = keycloak_openid_client.tf_cli_service_account.service_account_user_id
   role                    = data.keycloak_role.realm_admin.name
+}
+
+resource "keycloak_user" "test_user" {
+  realm_id = keycloak_realm.standard_realm.id
+  username = "loadtest-user@idir"
+  enabled  = true
+
+  email      = "loadtest-user@domain.com"
+  first_name = "Loadtest"
+  last_name  = "User"
 }

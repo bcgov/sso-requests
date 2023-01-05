@@ -36,16 +36,12 @@ export class RoleService {
   public async createRole(teamId: number, integrationId: number, role: RolePayload, environment: string) {
     this.validateRole(role);
     const int = await this.integrationService.getById(integrationId, teamId);
-    if (await this.checkForExistingRole(int, environment, role.name))
-      throw new createHttpError[409](`role ${role.name} already exists`);
     const roleObj: any = await createRole(int, { environment, integrationId, roleName: role.name });
     return getAllowedRoleProps((await findClientRole(int, { environment, roleName: roleObj?.roleName })) as Role);
   }
 
   public async deleteRole(teamId: number, integrationId: number, roleName: string, environment: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    if (!(await this.checkForExistingRole(int, environment, roleName)))
-      throw new createHttpError[404](`role ${roleName} not found`);
     return await deleteRole(int, { environment, integrationId, roleName });
   }
 
@@ -58,10 +54,6 @@ export class RoleService {
   ) {
     this.validateRole(role);
     const int = await this.integrationService.getById(integrationId, teamId);
-    if (!(await this.checkForExistingRole(int, environment, roleName)))
-      throw new createHttpError[404](`role ${roleName} not found`);
-    if (await this.checkForExistingRole(int, environment, role.name))
-      throw new createHttpError[409](`role ${role.name} already exists`);
     await updateRole(int, { environment, integrationId, roleName, newRoleName: role.name });
     return getAllowedRoleProps((await findClientRole(int, { environment, roleName: role.name })) as Role);
   }
@@ -100,7 +92,7 @@ export class RoleService {
       rolesToAdd.push(existingRoles.find((existingRole) => role.name === existingRole.name));
     }
     await manageRoleComposites(environment, role.id, rolesToAdd, 'add');
-    return await this.getByName(teamId, integrationId, environment, roleName);
+    return getAllowedRoleProps((await findClientRole(int, { environment, roleName })) as Role);
   }
 
   public async getCompositeRoles(teamId: number, integrationId: number, roleName: string, environment: string) {

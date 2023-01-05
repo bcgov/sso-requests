@@ -13,15 +13,18 @@ const BASE_URL = __ENV.css_api_url;
 const SLEEP_DURATION = 0.1;
 // Global variables should be initialized.
 
-const TOKEN_URL =
-  'https://sso-keycloak-6-b861c7-test.apps.silver.devops.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token';
-
 let integrationId;
+
+// Set the response callback to be called to determine if a response was expected/successful or not. Determines http_req_failed
+http.setResponseCallback(http.expectedStatuses({ min: 200, max: 204 }));
 
 export const options = {
   stages: [
-    { duration: '1m', target: 3 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
+    { duration: '10m', target: 100 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
   ],
+  thresholds: {
+    'http_req_duration{status:504}': ['max=0'],
+  },
 };
 
 export function setup() {
@@ -34,7 +37,7 @@ export function setup() {
     },
   };
   const tokenResponse = http.post(
-    `${TOKEN_URL}`,
+    `${__ENV.keycloak_token_url}`,
     {
       grant_type: 'client_credentials',
     },
@@ -58,6 +61,7 @@ export default function (data) {
   }
 
   const params = {
+    timeout: '300s',
     headers: {
       Authorization: `Bearer ${data.token}`,
       'Content-Type': 'application/json',
@@ -67,6 +71,7 @@ export default function (data) {
   group('GET list of integrations', () => {
     {
       const url = BASE_URL + `/integrations`;
+
       const response = http.get(url, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -167,6 +172,7 @@ export default function (data) {
   group('GET list of roles', () => {
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/roles`;
+
       const response = http.get(url, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -189,6 +195,7 @@ export default function (data) {
       const url =
         BASE_URL +
         `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`;
+
       const response = http.get(url, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -251,6 +258,7 @@ export default function (data) {
       const url =
         BASE_URL +
         `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/composite-roles`;
+
       const response = http.get(url, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -273,6 +281,7 @@ export default function (data) {
       const url =
         BASE_URL +
         `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/composite-roles/com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`;
+
       const response = http.get(url, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -297,6 +306,7 @@ export default function (data) {
       const url =
         BASE_URL +
         `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/composite-roles/com-role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`;
+
       const response = http.del(url, null, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -314,87 +324,88 @@ export default function (data) {
     }
   });
 
-  group('POST user role mapping', () => {
-    {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
-      const requestOptions = Object.assign({}, params);
-      requestOptions.headers.Accept = 'application/json';
-      const body = {
-        roleName: `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
-        username: __ENV.username,
-        operation: 'add',
-      };
-      const response = http.post(url, JSON.stringify(body), requestOptions);
+  // commenting out deprecated endpoints
+  // group('POST user role mapping', () => {
+  //   {
+  //     const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+  //     const requestOptions = Object.assign({}, params);
+  //     requestOptions.headers.Accept = 'application/json';
+  //     const body = {
+  //       roleName: `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
+  //       username: __ENV.username,
+  //       operation: 'add',
+  //     };
+  //     const response = http.post(url, JSON.stringify(body), requestOptions);
 
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      let passed = check(response, {
-        'should return 201 when success': (r) => r.status === 201,
-        'return role name': (r) =>
-          r.json().roles.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
-        'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
-      });
+  //     let passed = check(response, {
+  //       'should return 201 when success': (r) => r.status === 201,
+  //       'return role name': (r) =>
+  //         r.json().roles.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
+  //       'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
+  //     });
 
-      if (!passed) {
-        console.log(
-          `Request to ${response.request.url} with payload ${JSON.stringify(response.request.body)} and status ${
-            response.status
-          } failed the checks!`,
-        );
-        errors_metrics.add(1, { url: response.request.url });
-      }
-    }
-  });
+  //     if (!passed) {
+  //       console.log(
+  //         `Request to ${response.request.url} with payload ${JSON.stringify(response.request.body)} and status ${
+  //           response.status
+  //         } failed the checks!`,
+  //       );
+  //       errors_metrics.add(1, { url: response.request.url });
+  //     }
+  //   }
+  // });
 
-  group('GET user role mappings', () => {
-    {
-      const url =
-        BASE_URL +
-        `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role${exec.vu.idInTest}-${exec.vu.iterationInInstance}&username=${__ENV.username}`;
-      const response = http.get(url, params);
+  // group('GET user role mappings', () => {
+  //   {
+  //     const url =
+  //       BASE_URL +
+  //       `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings?roleName=role${exec.vu.idInTest}-${exec.vu.iterationInInstance}&username=${__ENV.username}`;
+  //     const response = http.get(url, params);
 
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      let passed = check(response, {
-        'should return 200 when success on passing role name and username': (r) => r.status === 200,
-        'return role name': (r) =>
-          r.json().roles.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
-        'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
-      });
+  //     let passed = check(response, {
+  //       'should return 200 when success on passing role name and username': (r) => r.status === 200,
+  //       'return role name': (r) =>
+  //         r.json().roles.find((role) => role.name === `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`),
+  //       'return username': (r) => r.json().users.find((user) => user.username === __ENV.username),
+  //     });
 
-      if (!passed) {
-        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
-        errors_metrics.add(1, { url: response.request.url });
-      }
+  //     if (!passed) {
+  //       console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+  //       errors_metrics.add(1, { url: response.request.url });
+  //     }
 
-      sleep(SLEEP_DURATION);
-    }
-  });
+  //     sleep(SLEEP_DURATION);
+  //   }
+  // });
 
-  group('DELETE role mapping', () => {
-    {
-      const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
-      const body = {
-        roleName: `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
-        username: __ENV.username,
-        operation: 'del',
-      };
-      const requestOptions = Object.assign({}, params);
-      requestOptions.headers.Accept = 'application/json';
-      const response = http.post(url, JSON.stringify(body), requestOptions);
+  // group('DELETE role mapping', () => {
+  //   {
+  //     const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/user-role-mappings`;
+  //     const body = {
+  //       roleName: `role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`,
+  //       username: __ENV.username,
+  //       operation: 'del',
+  //     };
+  //     const requestOptions = Object.assign({}, params);
+  //     requestOptions.headers.Accept = 'application/json';
+  //     const response = http.post(url, JSON.stringify(body), requestOptions);
 
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
-      let passed = check(response, {
-        'should return 204 when success': (r) => r.status === 204,
-      });
+  //     let passed = check(response, {
+  //       'should return 204 when success': (r) => r.status === 204,
+  //     });
 
-      if (!passed) {
-        console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
-        errors_metrics.add(1, { url: response.request.url });
-      }
-    }
-  });
+  //     if (!passed) {
+  //       console.log(`Request to ${response.request.url} with status ${response.status} failed the checks!`);
+  //       errors_metrics.add(1, { url: response.request.url });
+  //     }
+  //   }
+  // });
 
   group('POST roles to user', () => {
     {
@@ -432,6 +443,7 @@ export default function (data) {
       const url =
         BASE_URL +
         `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}/users?page=1&max=50`;
+
       const response = http.get(url, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -454,6 +466,7 @@ export default function (data) {
   group('GET roles associated to an user', () => {
     {
       const url = BASE_URL + `/integrations/${integrationId}/${__ENV.environment}/users/${__ENV.username}/roles`;
+
       const response = http.get(url, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -499,6 +512,7 @@ export default function (data) {
       const url =
         BASE_URL +
         `/integrations/${integrationId}/${__ENV.environment}/roles/role${exec.vu.idInTest}-${exec.vu.iterationInInstance}`;
+
       const response = http.del(url, null, params);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
