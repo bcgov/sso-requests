@@ -363,25 +363,31 @@ export const createRole = async (
     roleName: string;
   },
 ) => {
-  const { roleName, environment } = role;
+  try {
+    const { roleName, environment } = role;
 
-  if (roleName?.length < 2) return [];
+    if (roleName?.length < 2) return [];
 
-  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
-  const client = clients[0];
+    const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+    const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
+    if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
+    const client = clients[0];
 
-  return await kcAdminClient.clients.createRole({
-    id: client.id,
-    realm: 'standard',
-    name: roleName,
-    description: '',
-    composite: false,
-    clientRole: true,
-    containerId: client.id,
-    attributes: {},
-  });
+    const result = await kcAdminClient.clients.createRole({
+      id: client.id,
+      realm: 'standard',
+      name: roleName,
+      description: '',
+      composite: false,
+      clientRole: true,
+      containerId: client.id,
+      attributes: {},
+    });
+
+    return result;
+  } catch (err) {
+    throw new createHttpError[err.response.status](err.response.data.errorMessage);
+  }
 };
 
 interface NewRole {
@@ -518,6 +524,9 @@ export const updateRole = async (
 
   const role = await getRoleByName(kcAdminClient, client.id, roleName);
   if (!role) throw new createHttpError[404](`role ${roleName} not found`);
+
+  const newRoleExists = await getRoleByName(kcAdminClient, client.id, newRoleName);
+  if (newRoleExists) throw new createHttpError[409](`role ${newRoleName} already exists`);
 
   const updatedRole = await kcAdminClient.clients.updateRole(
     {

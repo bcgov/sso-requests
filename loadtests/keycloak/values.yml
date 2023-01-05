@@ -1,0 +1,64 @@
+image:
+  repository: ghcr.io/bcgov/sso
+  tag: 7.6.5-build.25
+  pullPolicy: IfNotPresent
+
+additionalServerOptions: '-Dkeycloak.profile.feature.impersonation=disabled -Djboss.persistent.log.dir=/var/log/eap'
+
+resources:
+  limits:
+    cpu: 2
+    memory: 4Gi
+  requests:
+    cpu: 100m
+    memory: 1Gi
+
+configuration:
+  enabled: true
+  version: '7.6'
+
+admin:
+  username:
+  password:
+
+annotations:
+  timeout: 90s
+
+livenessProbe:
+  enabled: true
+  verification: script
+  initialDelaySeconds: 240
+  periodSeconds: 20
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  verification: script
+  initialDelaySeconds: 180
+  periodSeconds: 20
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 6
+
+replicaCount: 5
+
+maintenancePage:
+  enabled: false
+  active: false
+
+patroni:
+  replicaCount: 3
+
+  persistentVolume:
+    size: 1Gi
+
+  podDisruptionBudget:
+    enabled: true
+
+  transportServerClaim:
+    enabled: true
+
+rollingUpdate:
+  maxSurge: 2
