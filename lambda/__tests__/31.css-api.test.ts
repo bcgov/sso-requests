@@ -210,9 +210,6 @@ describe('create team and gold integration', () => {
 
   it('creates team integration role for an environment', async () => {
     mockedFindClientRole.mockImplementationOnce(() => {
-      return Promise.resolve();
-    });
-    mockedFindClientRole.mockImplementationOnce(() => {
       return Promise.resolve({
         name: 'role4',
         composite: false,
@@ -228,15 +225,6 @@ describe('create team and gold integration', () => {
   });
 
   it('updates team integration role for an environment', async () => {
-    mockedFindClientRole.mockImplementationOnce(() => {
-      return Promise.resolve({
-        name: 'role4',
-        composite: false,
-      });
-    });
-    mockedFindClientRole.mockImplementationOnce(() => {
-      return Promise.resolve(undefined);
-    });
     mockedFindClientRole.mockImplementationOnce(() => {
       return Promise.resolve({
         name: 'role5',
