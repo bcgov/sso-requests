@@ -20,6 +20,7 @@
     "@fortawesome/fontawesome-svg-core": "6.2.0",
     "@fortawesome/free-solid-svg-icons": "6.2.0",
     "@fortawesome/react-fontawesome": "0.2.0",
+    "@giscus/react": "^2.2.6",
     "@rjsf/core": "4.2.0",
     "axios": "0.27.2",
     "backslash": "0.2.0",

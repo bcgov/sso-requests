@@ -18,6 +18,7 @@ module.exports = {
     sso_token_grant_type: process.env.SSO_TOKEN_GRANT_TYPE || 'authorization_code',
     kc_idp_hint: process.env.KC_IDP_HINT || '',
     enable_gold: process.env.ENABLE_GOLD === 'true',
+    gh_secret_manage_discussions: process.env.GH_SECRET_MANAGE_DISCUSSIONS || '',
   },
   env: {},
   assetPrefix: APP_URL,

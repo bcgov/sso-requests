@@ -12,6 +12,7 @@ on:
 env:
   SSO_CLIENT_ID: css-app-in-gold-4128
   DEPLOY_REPO_BRANCH: gh-pages
+  GH_SECRET_MANAGE_DISCUSSIONS: ${{ secrets.GH_SECRET_MANAGE_DISCUSSIONS }}
 
 jobs:
   build-and-deploy:
@@ -31,6 +32,7 @@ jobs:
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-dev
           ENABLE_GOLD=false
+          GH_SECRET_MANAGE_DISCUSSIONS=${{ env.GH_SECRET_MANAGE_DISCUSSIONS }}
           EOF
       - name: Set env to test
         if: endsWith(github.ref, '/dev') && matrix.env == 'test'
@@ -43,6 +45,7 @@ jobs:
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-test
           ENABLE_GOLD=true
+          GH_SECRET_MANAGE_DISCUSSIONS=${{ env.GH_SECRET_MANAGE_DISCUSSIONS }}
           EOF
       - name: Set env to production
         if: endsWith(github.ref, '/main') && matrix.env == 'prod'
@@ -55,6 +58,7 @@ jobs:
           SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
+          GH_SECRET_MANAGE_DISCUSSIONS=${{ env.GH_SECRET_MANAGE_DISCUSSIONS }}
           EOF
 
       - name: Set env to preview
