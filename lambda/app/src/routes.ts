@@ -54,6 +54,7 @@ import { isAdmin } from './utils/helpers';
 import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
 import reportController from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
+import { fetchDiscussions } from './graphql';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -82,6 +83,15 @@ export const setRoutes = (app: any) => {
   app.get(`/heartbeat`, async (req, res) => {
     try {
       const result = await wakeUpAll();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/github/discussions`, async (req, res) => {
+    try {
+      const result = await fetchDiscussions();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

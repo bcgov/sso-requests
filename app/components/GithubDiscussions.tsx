@@ -4,6 +4,7 @@ import { Accordion } from '@bcgov-sso/common-react-components';
 import axios from 'axios';
 import Giscus from '@giscus/react';
 import getConfig from 'next/config';
+import { fetchDiscussions } from '@app/services/github';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { gh_secret_manage_discussions } = publicRuntimeConfig;
@@ -17,42 +18,15 @@ export default function GithubDiscussions({ children }: Props) {
   const [nodes, setNodes] = useState([]);
 
   useEffect(() => {
-    fetchDiscussions();
+    fetchGithubDiscussions();
   }, []);
 
-  const fetchDiscussions = () => {
-    axios({
-      url: 'https://api.github.com/graphql',
-      method: 'post',
-      data: {
-        query: `{
-            repository(owner: "bcgov", name: "sso-keycloak") {
-              id
-              nameWithOwner
-              discussions(first: 10) {
-                # type: DiscussionConnection
-                totalCount # Int!
-                nodes {
-                  title
-                  number
-                  category {
-                    id
-                    name
-                  }
-                }
+  const fetchGithubDiscussions = async () => {
+    const [result, err]: any = await fetchDiscussions();
+    console.log(result);
 
-              }
-            }
-          }
-          `,
-      },
-      headers: {
-        Authorization: `bearer ${gh_secret_manage_discussions}`,
-      },
-    }).then((result) => {
-      setRepo(result?.data?.data?.repository);
-      setNodes(result?.data?.data?.repository?.discussions?.nodes);
-    });
+    setRepo(result?.data?.repository);
+    setNodes(result?.data?.repository?.discussions?.nodes);
   };
 
   return (
