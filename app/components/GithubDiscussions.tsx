@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
-import axios from 'axios';
 import Giscus from '@giscus/react';
-import getConfig from 'next/config';
 import { fetchDiscussions } from '@app/services/github';
-
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { gh_secret_manage_discussions } = publicRuntimeConfig;
 
 interface Props {
   children?: React.ReactNode;
