@@ -52,7 +52,6 @@ resource "aws_lambda_function" "app" {
       KEYCLOAK_V2_PROD_CLIENT_SECRET = var.keycloak_v2_prod_client_secret
       BCEID_WEBSERVICE_PROXY         = var.bceid_webservice_proxy
       GH_ACCESS_TOKEN                = var.gh_access_token
-      GH_SECRET                      = var.gh_secret
       GH_REPO                        = var.gh_repo
       GH_WORKFLOW_ID                 = var.gh_workflow_id
       GH_BRANCH                      = var.gh_branch
