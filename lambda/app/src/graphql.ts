@@ -9,7 +9,7 @@ export const fetchDiscussions = async () => {
         repository(owner: "bcgov", name: "sso-keycloak") {
           id
           nameWithOwner
-          discussions(first: 10) {
+          discussions(first: 80) {
             # type: DiscussionConnection
             totalCount # Int!
             nodes {

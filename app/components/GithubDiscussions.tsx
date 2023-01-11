@@ -9,6 +9,7 @@ interface Props {
 }
 
 export default function GithubDiscussions({ children }: Props) {
+  const requiredCategory = 'Getting Started with our Common Hosted Single Sign on(CSS)';
   const [repo, setRepo] = useState<any>({});
   const [nodes, setNodes] = useState([]);
 
@@ -21,7 +22,9 @@ export default function GithubDiscussions({ children }: Props) {
     console.log(result);
 
     setRepo(result?.data?.repository);
-    setNodes(result?.data?.repository?.discussions?.nodes);
+    setNodes(
+      result?.data?.repository?.discussions?.nodes.filter((node: any) => node.category.name.includes(requiredCategory)),
+    );
   };
 
   return (
