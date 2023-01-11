@@ -27,7 +27,7 @@ export const fetchDiscussions = async () => {
       variables: {},
     }),
     headers: {
-      Authorization: `bearer ${process.env.GH_SECRET}`,
+      Authorization: `bearer ${process.env.GH_ACCESS_TOKEN}`,
       'Content-Type': 'application/json',
     },
   });
