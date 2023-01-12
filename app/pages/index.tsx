@@ -10,6 +10,7 @@ import main from 'svg/main';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
+import GithubDiscussions from '@app/components/GithubDiscussions';
 
 interface PanelProps {
   marginLeft?: boolean;
@@ -162,7 +163,8 @@ export default function Home({ onLoginClick }: PageProps) {
                 </Accordion.Panel>
               </Accordion>
               <br />
-              <FaqItems></FaqItems>
+              <GithubDiscussions />
+              {/* <FaqItems /> */}
               <br />
               <h2>Need Help?</h2>
               Message us on{' '}

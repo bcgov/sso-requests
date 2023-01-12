@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import styled from 'styled-components';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import Giscus from '@giscus/react';
@@ -7,6 +8,11 @@ import { fetchDiscussions } from '@app/services/github';
 interface Props {
   children?: React.ReactNode;
 }
+
+// const CommentsContainer = styled.div`
+//   max-height: 300px;
+//   overflow-y: scroll;
+// `;
 
 export default function GithubDiscussions({ children }: Props) {
   const requiredCategory = 'Getting Started with our Common Hosted Single Sign on(CSS)';
@@ -31,16 +37,18 @@ export default function GithubDiscussions({ children }: Props) {
     <>
       <h2>Frequently Asked Questions</h2>
       <Accordion>
-        {nodes.map((a: any) => (
-          <Accordion.Panel key={a.number} title={a.title}>
-            <div style={{ maxHeight: '300px', overflowY: 'scroll' }}>
+        {nodes.map((a: any, index) => (
+          <Accordion.Panel key={a.id} title={a.title}>
+            <div className="comments-container">
               <Giscus
+                id={index.toString()}
+                key={index}
                 repo={repo.nameWithOwner}
                 repoId={repo.id}
                 category={a.category.name}
                 categoryId={a.category.id}
-                mapping="number"
-                term={a.number}
+                mapping="specific"
+                term={a.title}
                 reactionsEnabled="0"
                 emitMetadata="0"
                 inputPosition="bottom"

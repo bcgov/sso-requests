@@ -13,6 +13,7 @@ export const fetchDiscussions = async () => {
             # type: DiscussionConnection
             totalCount # Int!
             nodes {
+              id
               title
               number
               category {
