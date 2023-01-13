@@ -150,3 +150,30 @@ export const getTeamMembers = async (id?: number) => {
 1. Most error handling can be done at the route level with `try` and `catch`, see `lambda/app/src/routes.ts`.
    Controllers will then be caught. More custom error-handling in controller or helper functions should only
    be added if the specific function failing should still return a 200 status.
+
+## Public ACM certificates
+
+The AWS API Gateway is served on custom domains with free public AWS certificates; the main point here is to validate the ownership of the domains via AWS ACM to issue the valid certificate. The steps to attach the validated certificate to the API Gateway servies are:
+
+1. `Request a certificate`: the following Terraform script creates the certificate:
+
+   - [aws_acm_certificate](../terraform/certificates.tf)
+
+1. `Create a CNAME record for validation`: once the certificate is created, create a `CNAME` record based on the DNS configuration in DNS panel.
+
+   - the DNS configuration, `CNAME name` and `CNAME value`, can be found in the `AWS Certificate Manager (ACM)`.
+
+1. Wait for the DNS lookup change applied; you can use the online DNS lookup tool to confirm the change:
+
+   - see https://toolbox.googleapps.com/apps/dig/
+
+1. `Domain name & API Gateway service binding`: after the `AWS Certificate Manager (ACM)` flags the status of the domain certificate as `Success`, then you can attach the domain address to the API Gateway service.
+
+   - [aws_apigatewayv2_api_mapping](../terraform/certificates.tf)
+
+1. `Create a CNAME record for the domain`: once the API Gateway is properly configured with the random domain endpoint created, create another `CNAME` that points to the random domain endpoint.
+
+### References
+
+- see https://docs.aws.amazon.com/acm/latest/userguide/dns-validation.html
+- see https://aws.amazon.com/blogs/security/easier-certificate-validation-using-dns-with-aws-certificate-manager/
