@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import IntegrationInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import { getInstallation } from 'services/keycloak';
-import { downloadText } from 'utils/text';
+import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 
 type Text = string | RegExp;
 const expectText = (text: Text) => expect(screen.getByText(text)).toBeTruthy();
@@ -20,7 +20,7 @@ const BCEID_PROD_LABEL = /Access to BCeID Prod/;
 const BCEID_PROD_REQUESTED_MESSAGE = /Please reach out to IDIM/;
 const BCEID_PROD_APPROVED = /Your integration has been approved/;
 const BCEID_PROD_AVAILABLE = /Your integration is approved and available/;
-const ENV_HEADER_EXAMPLE = /Development \(IDIR\)/;
+const IDIR_BCEID_ENV_HEADER = /Development \(IDIR, Basic BCeID\)/;
 
 jest.mock('services/keycloak', () => ({
   getInstallation: jest.fn(() => Promise.resolve([['installation_data'], null])),
@@ -29,6 +29,12 @@ jest.mock('services/keycloak', () => ({
 jest.mock('utils/text', () => ({
   downloadText: jest.fn(() => {
     return true;
+  }),
+  prettyJSON: jest.fn(() => {
+    ('');
+  }),
+  copyTextToClipboard: jest.fn(() => {
+    true;
   }),
 }));
 
@@ -143,7 +149,6 @@ describe('Applied Status', () => {
     );
 
     expectText(INSTALLATION_LABEL);
-    expectText(ENV_HEADER_EXAMPLE);
     notExpectAllTexts([
       DRAFT_MESSAGE,
       PROGRESS_MESSAGE,
@@ -193,7 +198,26 @@ describe('Applied Status', () => {
   });
 });
 
-describe('Applied Status button and link test', () => {
+describe('Applied Status header, button and link test', () => {
+  it('should display correct environment header; and match the correct attribute of the hyper link', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev'],
+          devIdps: ['idir', 'bceidbasic'],
+          lastChanges: null,
+          bceidApproved: false,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectText(IDIR_BCEID_ENV_HEADER);
+    expect(screen.getByRole('link', { name: 'here' })).toHaveAttribute('href', HYPERLINK);
+  });
+
   it('should expect the correct end-point function been called with expected return data, after clicking on the Copy button', async () => {
     render(
       <IntegrationInfoTabs
@@ -212,7 +236,6 @@ describe('Applied Status button and link test', () => {
     expectText(INSTALLATION_LABEL);
     fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
     expect(getInstallation).toHaveBeenCalledTimes(1);
-    //await waitFor(() => { expect(screen.findByText('Installation copied to clipboard')).toBeInTheDocument(); });
   });
 
   it('should expect the correct end-point function been called with expected return data, after clicking on the Download button', async () => {
@@ -233,25 +256,5 @@ describe('Applied Status button and link test', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Download' }));
     expect(getInstallation).toHaveBeenCalledTimes(2);
     //await waitFor(() => { expect(screen.findByText('Installation copied to clipboard')).toBeInTheDocument(); });
-
-    //fireEvent.click(screen.getByRole('button', { name: 'Download' }));
-  });
-
-  it('should ***********************, after clicking on the hyper link', async () => {
-    render(
-      <IntegrationInfoTabs
-        integration={{
-          status: 'applied',
-          authType: 'browser-login',
-          environments: ['dev'],
-          devIdps: ['idir'],
-          lastChanges: null,
-          bceidApproved: false,
-          serviceType: 'gold',
-        }}
-      />,
-    );
-
-    expect(screen.getByRole('link', { name: 'here' })).toHaveAttribute('href', HYPERLINK);
   });
 });

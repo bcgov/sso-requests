@@ -55,7 +55,6 @@ const InstallationPanel = ({ integration, alert }: Props) => {
     setLoading(true);
     const [data] = await getInstallation(integration.id as number, environment);
     setLoading(false);
-    console.log('----------data---------------', data);
     return data;
   };
 
@@ -74,7 +73,6 @@ const InstallationPanel = ({ integration, alert }: Props) => {
 
   const handleDownloadClick = async (env: Environment) => {
     const inst = await handleInstallationClick(env);
-    console.log('------inst***------', inst);
     downloadText(prettyJSON(inst), `${integration.projectName}-installation-${env}.json`);
   };
 
