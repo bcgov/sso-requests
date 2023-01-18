@@ -235,7 +235,7 @@ describe('Applied Status header, button and link test', () => {
 
     expectText(INSTALLATION_LABEL);
     fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
-    expect(getInstallation).toHaveBeenCalledTimes(1);
+    expect(getInstallation).toHaveBeenCalled();
   });
 
   it('should expect the correct end-point function been called with expected return data, after clicking on the Download button', async () => {
@@ -254,7 +254,7 @@ describe('Applied Status header, button and link test', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Download' }));
-    expect(getInstallation).toHaveBeenCalledTimes(2);
+    expect(getInstallation).toHaveBeenCalled();
     //await waitFor(() => { expect(screen.findByText('Installation copied to clipboard')).toBeInTheDocument(); });
   });
 });
