@@ -1,0 +1,17 @@
+resource "helm_release" "sso-keycloak" {
+  name       = "sso-keycloak"
+  repository = "sso-charts"
+  chart      = "sso-keycloak"
+  version    = "v1.14.2"
+
+  namespace = "c6af30-dev"
+
+  # Wait 10 minutes instead of default 5 mins
+  # because HA seems to take a bit longer to fully start
+  wait    = true
+  timeout = 720
+
+  values = [
+    templatefile("${path.module}/values.yml", {})
+  ]
+}

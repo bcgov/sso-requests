@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import GenericModal from 'components/GenericModal';
+import { mapKeys } from 'lodash';
 
 const Label = styled.label`
   font-weight: bold;
@@ -68,7 +69,10 @@ const UserDetailModal = ({ modalRef }: Props) => {
       {(context: { guid: string; attributes: any }) => {
         if (!context) return <></>;
 
-        const attributes = omitBy(context.attributes, isEmpty);
+        let attributes = omitBy(context.attributes, isEmpty);
+        attributes = mapKeys(attributes, function (val, key) {
+          return startCase(key);
+        });
 
         return (
           <div>
@@ -82,7 +86,7 @@ const UserDetailModal = ({ modalRef }: Props) => {
             </ReadonlyContainer>
             {map(attributes, (val, key) => (
               <ReadonlyContainer>
-                <ReadonlyItem width="200px">{startCase(key)}</ReadonlyItem>
+                <ReadonlyItem width="200px">{key}</ReadonlyItem>
                 <ReadonlyItem width="700px">{val}</ReadonlyItem>
               </ReadonlyContainer>
             ))}

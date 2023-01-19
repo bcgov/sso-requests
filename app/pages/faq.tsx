@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import FaqItems from 'page-partials/faq/FaqItems';
+import GithubDiscussions from '@app/components/GithubDiscussions';
 
 export default function FAQ() {
   return (
@@ -15,7 +16,8 @@ export default function FAQ() {
         <Grid cols={2} gutter={[5, 2]}>
           <Grid.Row>
             <Grid.Col span="2">
-              <FaqItems />
+              <GithubDiscussions />
+              {/* <FaqItems /> */}
             </Grid.Col>
           </Grid.Row>
         </Grid>

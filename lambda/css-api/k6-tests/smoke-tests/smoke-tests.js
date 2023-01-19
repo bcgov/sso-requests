@@ -24,9 +24,6 @@ import { testUsers } from './modules/users.js';
 const SLEEP_DURATION = 0.1;
 // Global variables should be initialized.
 
-const TOKEN_URL =
-  'https://sso-keycloak-6-b861c7-test.apps.silver.devops.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token';
-
 export const options = {
   thresholds: {
     checks: ['rate>=1'],
@@ -43,7 +40,7 @@ export function setup() {
     },
   };
   const tokenResponse = http.post(
-    `${TOKEN_URL}`,
+    `${__ENV.keycloak_token_url}`,
     {
       grant_type: 'client_credentials',
     },
