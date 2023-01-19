@@ -37,7 +37,7 @@ jest.mock('utils/text', () => ({
     ('');
   }),
   copyTextToClipboard: jest.fn(() => {
-    true;
+    return true;
   }),
 }));
 
