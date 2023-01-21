@@ -61,7 +61,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     additionalRoleAttribute: () => {
       if (preservedClaims.includes(additionalRoleAttribute.trim())) {
         errors['additionalRoleAttribute'].addError(
-          `Please use a different name as existing claim '${additionalRoleAttribute}' cannot be overwritten`,
+          `Please use a different name as existing claim '${additionalRoleAttribute.trim()}' cannot be overwritten`,
         );
       }
     },
