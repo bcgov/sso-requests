@@ -241,18 +241,14 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
           <TopAlertWrapper>
             <Alert variant="info" closable={true}>
               <span className="normal">
-                Please complete a{' '}
-                <a
-                  href="https://docs.google.com/forms/d/1MMPeMB0A2076xkXIZRaErAwZe9QDsSwSAWqe-uvm3ys"
-                  target="_blank"
-                  title="Change Impact Assessment"
-                  className="strong"
-                >
-                  Change Impact Assessment
-                </a>
-                , for each of your projects in the{' '}
+                Thank you to teams who have migrated to our Gold Service. Those of you remaining on Silver, please reach
+                out to us{' '}
                 <span className="strong">
-                  Silver realms. At this time, Silver realms will not be supported as of Jan. 30 2023*.
+                  <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>{' '}
+                </span>
+                on your timelines to migrate.{' '}
+                <span className="strong">
+                  Please note that Silver realms will not be supported as of February 3, 2023*.
                 </span>
               </span>
             </Alert>
