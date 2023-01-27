@@ -1,6 +1,7 @@
 import { FormValidation } from 'react-jsonschema-form';
 import validate from 'react-jsonschema-form/lib/validate';
 import { Integration } from '@app/interfaces/Request';
+import { preservedClaims } from './constants';
 
 const isValidKeycloakURI = (isProd: boolean, uri: string) => {
   try {
@@ -30,6 +31,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     environments = [],
     usesTeam,
     teamId,
+    additionalRoleAttribute = '',
   } = formData;
 
   const fieldMap: any = {
@@ -54,6 +56,13 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     createTeam: () => {
       if (usesTeam && !teamId) {
         errors['createTeam'].addError('Please select or create a team');
+      }
+    },
+    additionalRoleAttribute: () => {
+      if (preservedClaims.includes(additionalRoleAttribute.trim())) {
+        errors['additionalRoleAttribute'].addError(
+          `Please use a different name as existing claim '${additionalRoleAttribute.trim()}' cannot be overwritten`,
+        );
       }
     },
   };

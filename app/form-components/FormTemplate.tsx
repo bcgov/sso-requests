@@ -385,7 +385,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         id={`confirmation-modal`}
         content={
           <>
-            <p>Are you sure you're ready to submit your request?</p>
+            <p>Are you sure you&apos;re ready to submit your request?</p>
             {!isAdmin && (
               <p>
                 If you need to change anything after submitting your request, please contact our{' '}

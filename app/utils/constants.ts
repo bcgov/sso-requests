@@ -1,4 +1,4 @@
-import type { EnvironmentOption, ErrorMessages } from 'interfaces/form';
+import { EnvironmentOption, ErrorMessages } from '@app/interfaces/form';
 
 export const createTeamModalId = `create-team-modal`;
 
@@ -44,3 +44,27 @@ Estimated volume of initial users:\n
 Forecast of anticipated growth over the next three years:\n
 Date of release in production environment:\n
 Date of first use by citizens or end users:`;
+
+export const preservedClaims = [
+  'exp',
+  'iat',
+  'auth_time',
+  'jti',
+  'iss',
+  'aud',
+  'sub',
+  'typ',
+  'azp',
+  'nonce',
+  'session_state',
+  'sid',
+  'email_verified',
+  'name',
+  'preferred_username',
+  'display_name',
+  'given_name',
+  'family_name',
+  'email',
+  'scope',
+  'at_hash',
+];
