@@ -382,7 +382,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const leftPanel = (
     <ControlledTable
       rows={roles}
-      headers={[{ label: 'Request ID' }]}
+      headers={[{ label: 'Role Name' }]}
       showFilters={false}
       rowPlaceholder="No roles found."
     >
