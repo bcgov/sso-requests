@@ -241,10 +241,9 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
           <TopAlertWrapper>
             <Alert variant="info" closable={true}>
               <span className="normal">
-                Thank you to teams who have migrated to our Gold Service. Those of you remaining on Silver, please reach
-                out to us{' '}
+                Kudos to those who completed their Gold Service Migration. For those still on Silver, reach out to{' '}
                 <span className="strong">
-                  <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>{' '}
+                  <Link href="mailto:bcgov.sso@gov.bc.ca">us</Link>{' '}
                 </span>
                 on your timelines to migrate.{' '}
                 <span className="strong">
