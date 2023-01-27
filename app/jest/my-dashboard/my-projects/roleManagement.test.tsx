@@ -23,7 +23,7 @@ describe('role management tab', () => {
     expect(screen.getByRole('tab', { selected: false, name: 'Test' }));
     expect(screen.getByRole('tab', { selected: false, name: 'Prod' }));
     await waitFor(() => {
-      expect(screen.getByRole('columnheader', { name: 'Request ID' })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: 'Role Name' })).toBeInTheDocument();
     });
     await waitFor(() => {
       expect(screen.getByText('No roles found.'));
