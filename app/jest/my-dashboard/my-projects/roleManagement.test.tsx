@@ -1,14 +1,34 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
-import { listClientRoles, KeycloakUser } from 'services/keycloak';
-
-const mockClientRolesResult = ({ email, username, attributes }: KeycloakUser) => {
-  return [(email = 'mockEmail@gov.bc.ca'), (username = 'mockUserName'), (attributes = null)];
-};
+import { listClientRoles, listRoleUsers, getCompositeClientRoles, deleteRole, manageUserRole } from 'services/keycloak';
 
 jest.mock('services/keycloak', () => ({
-  listClientRoles: jest.fn(() => Promise.resolve([[], null])),
+  listClientRoles: jest.fn(() => Promise.resolve([['role1'], null])),
+  listRoleUsers: jest.fn(() =>
+    Promise.resolve([
+      [
+        {
+          id: '01',
+          username: 'user01@idir',
+          enabled: true,
+          totp: false,
+          emailVerified: false,
+          firstName: 'fn',
+          lastName: 'ln',
+          email: 'role1@gov.bc.ca',
+          attributes: { idir_userid: ['01'] },
+          disableableCredentialTypes: [],
+          requiredActions: [],
+          notBefore: 0,
+        },
+      ],
+      null,
+    ]),
+  ),
+  getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
+  deleteRole: jest.fn(() => Promise.resolve([[''], null])),
+  manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
 }));
 
 describe('role management tab', () => {
@@ -26,10 +46,9 @@ describe('role management tab', () => {
       expect(screen.getByRole('columnheader', { name: 'Role Name' })).toBeInTheDocument();
     });
     await waitFor(() => {
-      expect(screen.getByText('No roles found.'));
+      expect(screen.getByText('role1'));
     });
     expect(screen.getByPlaceholderText('Search existing roles'));
-    //await waitFor(() => { expect(screen.getByTestId('modal')); });
   });
 
   it('Should be able to input keywords in Search Existing Role input field', async () => {
@@ -57,5 +76,56 @@ describe('role management tab', () => {
     expect(listClientRoles).toHaveBeenCalledTimes(1);
   });
 
-  //need further tests on role table
+  it('Should be able to click the Delete Role button, and corresponding modal showing up', async () => {
+    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('role1'));
+    });
+    await waitFor(() => {
+      fireEvent.click(screen.getByLabelText('delete'));
+    });
+    expect(screen.findByText('Delete Role')).toBeTruthy();
+  });
+
+  it('Should be able to click the User Details button, and corresponding modal showing up', async () => {
+    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('role1'));
+    });
+    expect(listRoleUsers).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(screen.getByText('user01')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole('img', { name: 'User Detail' }));
+    expect(screen.getByText('Additional User Info')).toBeVisible();
+  });
+
+  it('Should be able to click the Remove User button, and corresponding modal showing up', async () => {
+    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('role1'));
+    });
+    await waitFor(() => {
+      expect(screen.getByText('user01')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole('img', { name: 'Remove User' }));
+    expect(screen.getByText('Remove User from Role')).toBeVisible();
+    fireEvent.click(screen.getByText('Remove'));
+    expect(manageUserRole).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should be able to show all existing composite roles, after clicking on the Composite Roles tab', async () => {
+    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('role1'));
+    });
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Composite Roles'));
+    });
+
+    expect(screen.getByText('Select the roles to be nested under the Parent role')).toBeTruthy();
+    expect(getCompositeClientRoles).toHaveBeenCalled();
+    expect(screen.getByText('compositeRole1')).toBeTruthy();
+    expect(screen.getByText('compositeRole2')).toBeTruthy();
+  });
 });
