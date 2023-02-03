@@ -50,6 +50,10 @@ describe('Integration list', () => {
   it('Should be able to click the Delete button', async () => {
     render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
     await waitFor(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    });
+    expect(screen.getByTitle('Confirm Deletion'));
+    await waitFor(() => {
       fireEvent.click(screen.getByTestId('confirm-delete'));
     });
     expect(spyDeleteRequest).toHaveBeenCalledTimes(1);
