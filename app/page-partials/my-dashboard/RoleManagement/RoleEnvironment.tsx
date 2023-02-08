@@ -118,6 +118,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const [selectedRole, setSelctedRole] = useState<string | null>(null);
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
   const [rightPanelTab, setRightPanelTab] = useState<string>(rightPanelTabs[0]);
+  const [currentIntegrationID, setCurrentIntegrationID] = useState<number>();
 
   const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
 
@@ -152,7 +153,8 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   };
 
   useEffect(() => {
-    reset();
+    setCurrentIntegrationID(integration.id);
+    if (integration.id !== currentIntegrationID) reset();
   }, [integration]);
 
   useEffect(() => {
