@@ -1,9 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import TeamInfoTabs from 'page-partials/my-dashboard/TeamInfoTabs';
 import { getTeamMembers } from 'services/team';
 import { processRequest } from 'utils/helpers';
 import { getTeamIntegrations } from 'services/request';
+import MyTeams from '@app/pages/my-dashboard/teams';
 
 const sampleSession = {
   at_hash: '',
@@ -47,6 +48,20 @@ const loadTeams = jest.fn();
 const getByRole = (role: string, roleName: string) => screen.getByRole(role, { name: roleName });
 
 jest.mock('services/team', () => ({
+  getMyTeams: jest.fn(() => [
+    [
+      {
+        createdAt: '',
+        id: 1,
+        integrationCount: '0',
+        name: 'test-team',
+        role: 'admin',
+        serviceAccountCount: '0',
+        updatedAt: '',
+      },
+    ],
+    null,
+  ]),
   getTeamMembers: jest.fn(() => [
     [
       {
@@ -93,9 +108,14 @@ jest.mock('services/request', () => ({
 
 describe('Integrations tab', () => {
   it('Should match the expected button name,', async () => {
-    render(<TeamInfoTabs team={sampleTeam} currentUser={sampleSession} loadTeams={loadTeams} />);
+    //render(<TeamInfoTabs team={sampleTeam} currentUser={sampleSession} loadTeams={loadTeams} />);
     //expect(asFragment()).toMatchSnapshot();
     //expect(screen.getByText('Email'));
     //const addNewMemberButton = getByRole('button', '+ Add New Team Members');
+    const { asFragment } = render(
+      <MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />,
+    );
+    await screen.findByText('+ Add new team members');
+    expect(asFragment()).toMatchSnapshot();
   });
 });
