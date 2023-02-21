@@ -29,6 +29,8 @@ import {
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { idpMap } from 'helpers/meta';
+import { getRequest } from '@app/services/request';
+import { checkIfUserIsServiceAccount } from '@app/helpers/users';
 
 const Label = styled.label`
   font-weight: bold;
@@ -48,8 +50,6 @@ const AlignRight = styled.div`
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
 `;
-
-const rightPanelTabs = ['Users', 'Composite Roles'];
 
 interface PropertyOption {
   value: string;
@@ -100,10 +100,16 @@ const LoaderContainer = () => (
   </AlignCenter>
 );
 
+type SvcAcctUserIntegrationMapType = {
+  username: string;
+  integration: Integration;
+};
+
 const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const infoModalRef = useRef<ModalRef>(emptyRef);
   const confirmModalRef = useRef<ModalRef>(emptyRef);
   const removeUserModalRef = useRef<ModalRef>(emptyRef);
+  const removeServiceAccountModalRef = useRef<ModalRef>(emptyRef);
   const [roleLoading, setRoleLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
   const [compositeLoading, setCompositeLoading] = useState(false);
@@ -117,10 +123,24 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const [users, setUsers] = useState<KeycloakUser[]>([]);
   const [selectedRole, setSelctedRole] = useState<string | null>(null);
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
-  const [rightPanelTab, setRightPanelTab] = useState<string>(rightPanelTabs[0]);
+  const [rightPanelTabs, setRightPanelTabs] = useState<string[]>([]);
   const [currentIntegrationID, setCurrentIntegrationID] = useState<number>();
-
   const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
+  const [rightPanelTab, setRightPanelTab] = useState<string>('');
+  const [serviceAccountIntMap, setServiceAccountIntMap] = useState<SvcAcctUserIntegrationMapType[]>([]);
+
+  const populateTabs = () => {
+    if (integration.authType === 'service-account') {
+      setRightPanelTabs(['Service Accounts', 'Composite Roles']);
+      setRightPanelTab('Service Accounts');
+    } else if (integration.authType === 'browser-login') {
+      setRightPanelTabs(['Users', 'Composite Roles']);
+      setRightPanelTab('Users');
+    } else {
+      setRightPanelTabs(['Users', 'Service Accounts', 'Composite Roles']);
+      setRightPanelTab('Users');
+    }
+  };
 
   const throttleCompositeRoleUpdate = useCallback(
     throttle(
@@ -153,13 +173,15 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   };
 
   useEffect(() => {
+    setServiceAccountIntMap([]);
+    populateTabs();
     setCurrentIntegrationID(integration.id);
     if (integration.id !== currentIntegrationID) reset();
   }, [integration]);
 
   useEffect(() => {
+    setServiceAccountIntMap([]);
     if (!selectedRole) return;
-
     fetchUsers(true, selectedRole);
     fetchComposite(selectedRole);
     setSaving(false);
@@ -224,6 +246,21 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     });
 
     const _data = data || [];
+
+    if (_data.length > 0) {
+      _data.map(async (user) => {
+        if (checkIfUserIsServiceAccount(user.username)) {
+          const a = user.username.split('-');
+          const [data, err] = await getRequest(a[a.length - 1]);
+          setServiceAccountIntMap([
+            ...serviceAccountIntMap,
+            { username: user.username, integration: data as Integration },
+          ]);
+        }
+      });
+    } else {
+      setServiceAccountIntMap([]);
+    }
 
     setHasMoreUser(_data.length === maxUser);
     setUsers(_users.concat(_data));
@@ -304,7 +341,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                 const idpMeta = propertyOptionMap[idp];
 
                 return (
-                  <tr>
+                  <tr key={guid}>
                     <td>{idpMap[idp]}</td>
                     <td>{guid}</td>
                     <td>{user.email}</td>
@@ -349,6 +386,49 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
             <tbody>
               <tr>
                 <td colSpan={5}>No users found.</td>
+              </tr>
+            </tbody>
+          )}
+        </Table>
+      );
+    } else if (rightPanelTab === 'Service Accounts') {
+      rightPanel = (
+        <Table variant="mini">
+          <thead>
+            <tr>
+              <th>Project Name</th>
+              <th className="text-center">Actions</th>
+            </tr>
+          </thead>
+          {users.length > 0 ? (
+            <InfScroll
+              element="tbody"
+              loadMore={() => fetchUsers(false, selectedRole)}
+              hasMore={hasMoreUser}
+              loader={<LoaderContainer />}
+            >
+              {users.map((user) => {
+                return (
+                  <tr key={user.username}>
+                    <td>{serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName}</td>
+                    <td className="text-center">
+                      <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
+                        <FontAwesomeIcon
+                          style={{ color: '#FF0303' }}
+                          icon={faMinusCircle}
+                          size="lg"
+                          title="Remove Service Account"
+                        />
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </InfScroll>
+          ) : (
+            <tbody>
+              <tr>
+                <td colSpan={5}>No service accounts found.</td>
               </tr>
             </tbody>
           )}
@@ -517,6 +597,39 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
         cancelButtonVariant="secondary"
       >
         <div>Are you sure you want to remove this user from this role?</div>
+      </GenericModal>
+      <GenericModal
+        id="remove-service-account"
+        ref={removeServiceAccountModalRef}
+        title="Remove Service Account from Role"
+        icon={faExclamationTriangle}
+        onConfirm={async (contentRef: any, user: KeycloakUser) => {
+          if (!selectedRole) return;
+
+          const [, err] = await manageUserRole({
+            environment,
+            integrationId: integration.id as number,
+            username: user.username as string,
+            roleName: selectedRole,
+            mode: 'del',
+          });
+
+          if (err) {
+            alert.show({
+              variant: 'danger',
+              fadeOut: 5000,
+              closable: true,
+              content: err,
+            });
+          }
+
+          fetchUsers(true, selectedRole);
+        }}
+        confirmButtonText="Remove"
+        confirmButtonVariant="primary"
+        cancelButtonVariant="secondary"
+      >
+        <div>Are you sure you want to remove this service account from this role?</div>
       </GenericModal>
       <UserDetailModal modalRef={infoModalRef} />
     </>
