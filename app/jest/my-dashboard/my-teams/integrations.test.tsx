@@ -1,51 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
-import TeamInfoTabs from 'page-partials/my-dashboard/TeamInfoTabs';
-import { getTeamMembers } from 'services/team';
-import { processRequest } from 'utils/helpers';
-import { getTeamIntegrations } from 'services/request';
+import { render, screen, fireEvent } from '@testing-library/react';
 import MyTeams from '@app/pages/my-dashboard/teams';
+import { deleteRequest } from 'services/request';
 
 const sampleSession = {
-  at_hash: '',
-  aud: '',
-  auth_time: 1,
-  azp: '',
-  client_roles: ['sso-admin'],
-  display_name: '',
   email: 'admin01@gov.bc.ca',
-  email_verified: false,
-  exp: 0,
-  family_name: '',
-  given_name: '',
-  iat: 0,
-  identity_provider: 'idir',
-  idir_user_guid: '',
-  idir_username: '',
   isAdmin: true,
-  iss: '',
-  jti: '',
-  name: '',
-  nonce: '',
-  preferred_username: '',
-  roles: ['sso-admin'],
-  session_state: '',
-  sid: '',
-  sub: '',
-  typ: 'ID',
 };
-const sampleTeam = {
-  createdAt: '',
-  id: 1,
-  integrationCount: '0',
-  name: 'SAMPLE_TEAM',
-  role: 'member',
-  serviceAccountCount: '0',
-  updatedAt: '',
-};
-const loadTeams = jest.fn();
-
-const getByRole = (role: string, roleName: string) => screen.getByRole(role, { name: roleName });
 
 jest.mock('services/team', () => ({
   getMyTeams: jest.fn(() => [
@@ -53,7 +14,7 @@ jest.mock('services/team', () => ({
       {
         createdAt: '',
         id: 1,
-        integrationCount: '0',
+        integrationCount: '1',
         name: 'test-team',
         role: 'admin',
         serviceAccountCount: '0',
@@ -76,9 +37,9 @@ jest.mock('services/team', () => ({
       {
         createdAt: '',
         id: 2,
-        idirEmail: 'sampleMember01@gov.bc.ca',
+        idirEmail: 'member01@gov.bc.ca',
         idirUserid: '',
-        pending: false,
+        pending: true,
         role: 'member',
         updatedAt: '',
       },
@@ -103,19 +64,78 @@ jest.mock('services/team', () => ({
 }));
 
 jest.mock('services/request', () => ({
-  getTeamIntegrations: jest.fn(() => [[], null]),
+  getTeamIntegrations: jest.fn(() => [
+    [
+      {
+        id: 1,
+        devValidRedirectUris: ['http://dev1.com'],
+        testValidRedirectUris: ['http://test.com'],
+        prodValidRedirectUris: ['http://prod.com'],
+        publicAccess: true,
+        realm: 'onestopauth',
+        projectName: 'test project',
+        projectLead: true,
+        agreeWithTerms: true,
+        environments: ['dev'],
+        archived: false,
+        usesTeam: true,
+        serviceType: 'silver',
+        status: 'applied',
+      },
+    ],
+    null,
+  ]),
+  deleteRequest: jest.fn(() => Promise.resolve([[''], null])),
+}));
+
+const spyUseRouter = jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => ({
+  pathname: '/my-dashboard/integrations',
+  query: '',
+  push: jest.fn(() => Promise.resolve(true)),
 }));
 
 describe('Integrations tab', () => {
-  it('Should match the expected button name,', async () => {
-    //render(<TeamInfoTabs team={sampleTeam} currentUser={sampleSession} loadTeams={loadTeams} />);
-    //expect(asFragment()).toMatchSnapshot();
-    //expect(screen.getByText('Email'));
-    //const addNewMemberButton = getByRole('button', '+ Add New Team Members');
-    const { asFragment } = render(
-      <MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />,
-    );
-    await screen.findByText('+ Add new team members');
-    expect(asFragment()).toMatchSnapshot();
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('Should match the expected table column headers, and corresponding integrations in the list', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
+
+    await screen.findByRole('columnheader', { name: 'Status' });
+    await screen.findByRole('columnheader', { name: 'Request ID' });
+    await screen.findByRole('columnheader', { name: 'Project Name' });
+    await screen.findAllByRole('columnheader', { name: 'Actions' });
+    screen.getByRole('row', { name: 'applied 1 test project Edit Delete' });
+  });
+
+  it('Should turn to correct page when click on the view integration icon', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
+
+    const viewIntegrationButton = screen.getByLabelText('view');
+    fireEvent.click(viewIntegrationButton);
+    expect(spyUseRouter).toHaveBeenCalled();
+  });
+
+  it('Should turn to correct page when click on the edit integration icon', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
+
+    const viewIntegrationButton = screen.getAllByLabelText('edit');
+    fireEvent.click(viewIntegrationButton[1]);
+    expect(spyUseRouter).toHaveBeenCalled();
+  });
+
+  it('Should be able to click the Delete button', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
+
+    fireEvent.click(await screen.getByTestId('action-button-delete'));
+    expect(screen.findByTitle('Confirm Deletion'));
+    const confirmDeleteButton = screen.getAllByTestId('confirm-delete');
+    fireEvent.click(confirmDeleteButton[1]);
+    expect(deleteRequest).toHaveBeenCalledTimes(1);
   });
 });
