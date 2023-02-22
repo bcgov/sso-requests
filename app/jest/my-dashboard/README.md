@@ -233,7 +233,6 @@ under path `/sso-requests/app`
     2.  WHEN client click on the `+ Add New Team Members` button to add member(s),
         THEN the `Add a New Team Member` modal will show up,
         AND within the modal, client should be able to open correct hyper link page after click on the link,
-        AND client should be able to input an email address under `Member` column,
         AND client should be able to select either `Admin` or `Member` from the `Role` drop-down box,
         WHEN client click on the `Confirm` button,
         THEN the new member will be invited to the team, if the email address is valid;
@@ -285,7 +284,7 @@ under path `/sso-requests/app`
         THEN the infomation should be correct and ready to use;
     4.  WHEN client click on the `Download` button to download the token information file,
         THEN the information file should be ready to download;
-    5.  WHEN client click on the `Update secrets` icon to update the token secrets,
+    5.  WHEN client click on the `Update secret` icon to update the token secrets,
         THEN the `Request a new secret for CSS API Account` modal will show up to let client confirm update,
         WHEN client click on `Confirm` button to confirm update,
         THEN the token secrets will be updated;
@@ -294,5 +293,3 @@ under path `/sso-requests/app`
         WHEN client click on `Delete CSS API Account` button to confirm deletion,
         THEN the API Account will be deleted;
     7.  AND client should be able to open correct hyper link page after click on the `here` link
-
-    <!-- ADD MORE TEST CASES FOR CSS API ACCOUNT TAB -->
