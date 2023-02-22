@@ -397,7 +397,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           <thead>
             <tr>
               <th>Project Name</th>
-              <th className="text-center">Actions</th>
+              <th className="text-right">Actions</th>
             </tr>
           </thead>
           {filterServiceAccountUsers(users).length > 0 ? (
@@ -412,7 +412,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                 return (
                   <tr key={user.username}>
                     <td>{serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName}</td>
-                    <td className="text-center">
+                    <td className="text-right">
                       <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
                         <FontAwesomeIcon
                           style={{ color: '#FF0303' }}
