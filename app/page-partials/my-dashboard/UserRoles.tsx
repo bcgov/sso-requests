@@ -22,9 +22,10 @@ import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
-import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
+import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
+import { KeycloakUser } from 'interfaces/team';
 
 const Label = styled.label`
   font-weight: bold;

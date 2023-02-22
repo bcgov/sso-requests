@@ -1,5 +1,6 @@
 import { instance } from './axios';
 import { ClientRole } from 'interfaces/Request';
+import { KeycloakUser } from 'interfaces/team';
 
 export const getInstallation = async (requestId: number, environment: string) => {
   try {
@@ -27,14 +28,6 @@ export const changeClientSecret = async (
 interface RowsAndCount {
   count: number;
   rows: KeycloakUser[];
-}
-
-export interface KeycloakUser {
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  username: string;
-  attributes: any;
 }
 
 export const searchKeycloakUsers = async ({
