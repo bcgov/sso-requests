@@ -10,6 +10,7 @@ import { Integration } from '@app/interfaces/Request';
 import { UserQuery } from 'keycloak-admin/lib/resources/users';
 import { asyncFilter } from '../helpers/array';
 import createHttpError from 'http-errors';
+import { checkIfUserIsServiceAccount } from '@app/helpers/users';
 
 // Helpers
 // TODO: encapsulate admin client with user session and associated client infomation
@@ -233,8 +234,10 @@ export const listUserRoles = async (
     username: string;
   },
 ) => {
-  const idp = username.split('@')[1];
-  if (!integration.devIdps.includes(idp)) throw new createHttpError[400](`invalid idp ${idp}`);
+  if (!checkIfUserIsServiceAccount(username)) {
+    const idp = username.split('@')[1];
+    if (!integration.devIdps.includes(idp)) throw new createHttpError[400](`invalid idp ${idp}`);
+  }
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -267,8 +270,10 @@ export const manageUserRole = async (
     mode: 'add' | 'del';
   },
 ) => {
-  const idp = username.split('@')[1];
-  if (!integration.devIdps.includes(idp)) throw new createHttpError[400](`invalid idp ${idp}`);
+  if (!checkIfUserIsServiceAccount(username)) {
+    const idp = username.split('@')[1];
+    if (!integration.devIdps.includes(idp)) throw new createHttpError[400](`invalid idp ${idp}`);
+  }
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
@@ -311,8 +316,10 @@ export const manageUserRoles = async (
     roleNames: string[];
   },
 ) => {
-  const idp = username.split('@')[1];
-  if (!integration.devIdps.includes(idp)) throw new createHttpError[400](`invalid idp ${idp}`);
+  if (!checkIfUserIsServiceAccount(username)) {
+    const idp = username.split('@')[1];
+    if (!integration.devIdps.includes(idp)) throw new createHttpError[400](`invalid idp ${idp}`);
+  }
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
