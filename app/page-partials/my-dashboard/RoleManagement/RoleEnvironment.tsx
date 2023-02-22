@@ -251,7 +251,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       _data.map(async (user) => {
         if (checkIfUserIsServiceAccount(user.username)) {
           const a = user.username.split('-');
-          const [data, err] = await getRequest(a[a.length - 1]);
+          const [data] = await getRequest(a[a.length - 1]);
           setServiceAccountIntMap([
             ...serviceAccountIntMap,
             { username: user.username, integration: data as Integration },

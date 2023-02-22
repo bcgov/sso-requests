@@ -3,14 +3,12 @@ import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import startCase from 'lodash.startcase';
 import throttle from 'lodash.throttle';
-import { Tabs, Tab, Alert } from '@bcgov-sso/common-react-components';
+import { Table, Tabs, Tab, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { LastSavedMessage } from '@bcgov-sso/common-react-components';
 import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
-import { Table } from '@bcgov-sso/common-react-components';
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@button-inc/bcgov-theme/Link';
 
@@ -128,7 +126,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
 
   const fetchUserRoles = async (username: string) => {
     await setLoadingRight(true);
-    const [data, err] = await listUserRoles({
+    const [data] = await listUserRoles({
       environment: environment,
       integrationId: selectedRequest.id as number,
       username,

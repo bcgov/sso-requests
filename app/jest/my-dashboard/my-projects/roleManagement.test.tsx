@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
 import { listClientRoles, listRoleUsers, getCompositeClientRoles, manageUserRole } from 'services/keycloak';
-import { getRequest } from '@app/services/request';
 
 const mockResult = () => {
   return { ...sampleRequest, authType: 'both' };

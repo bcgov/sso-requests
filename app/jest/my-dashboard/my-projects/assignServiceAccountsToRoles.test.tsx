@@ -1,5 +1,5 @@
 import ServiceAccountRoles from '@app/page-partials/my-dashboard/ServiceAccountRoles';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { sampleRequest } from '@app/jest/samples/integrations';
 
 function ServiceAccountRolesComponent() {
