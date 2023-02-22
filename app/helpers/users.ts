@@ -1,5 +1,4 @@
-import { User } from '@app/interfaces/team';
-import { KeycloakUser } from '@app/services/keycloak';
+import { KeycloakUser } from '@app/interfaces/team';
 
 export const checkIfUserIsServiceAccount = (username: string) => {
   return username.startsWith('service-account-');
@@ -10,5 +9,5 @@ export const getServiceAccountUsername = (clientId: string) => {
 };
 
 export const filterServiceAccountUsers = (users: KeycloakUser[]) => {
-  return users.filter((user) => user.username.startsWith('service-account-'));
+  return users.filter((user: KeycloakUser) => user.username.startsWith('service-account-'));
 };

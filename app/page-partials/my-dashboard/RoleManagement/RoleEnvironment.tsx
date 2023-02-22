@@ -25,12 +25,12 @@ import {
   getCompositeClientRoles,
   setCompositeClientRoles,
   manageUserRole,
-  KeycloakUser,
 } from 'services/keycloak';
-import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
+import { canCreateOrDeleteRoles } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
-import { getRequest } from '@app/services/request';
-import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from '@app/helpers/users';
+import { getRequest } from 'services/request';
+import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
+import { KeycloakUser } from 'interfaces/team';
 
 const Label = styled.label`
   font-weight: bold;
