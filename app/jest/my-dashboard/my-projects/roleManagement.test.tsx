@@ -1,7 +1,18 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
-import { listClientRoles, listRoleUsers, getCompositeClientRoles, deleteRole, manageUserRole } from 'services/keycloak';
+import { listClientRoles, listRoleUsers, getCompositeClientRoles, manageUserRole } from 'services/keycloak';
+import { getRequest } from '@app/services/request';
+
+const mockResult = () => {
+  return { ...sampleRequest, authType: 'both' };
+};
+
+jest.mock('services/request', () => {
+  return {
+    getRequest: jest.fn(() => Promise.resolve([mockResult(), null])),
+  };
+});
 
 jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([['role1'], null])),
@@ -18,6 +29,20 @@ jest.mock('services/keycloak', () => ({
           lastName: 'ln',
           email: 'role1@gov.bc.ca',
           attributes: { idir_userid: ['01'] },
+          disableableCredentialTypes: [],
+          requiredActions: [],
+          notBefore: 0,
+        },
+        {
+          id: '02',
+          username: 'service-account-user02',
+          enabled: true,
+          totp: false,
+          emailVerified: false,
+          firstName: '',
+          lastName: '',
+          email: '',
+          attributes: {},
           disableableCredentialTypes: [],
           requiredActions: [],
           notBefore: 0,
@@ -110,7 +135,40 @@ describe('role management tab', () => {
     });
     fireEvent.click(screen.getByRole('img', { name: 'Remove User' }));
     expect(screen.getByText('Remove User from Role')).toBeVisible();
-    fireEvent.click(screen.getByText('Remove'));
+    fireEvent.click(screen.getByTestId('modal-confirm-btn-remove-user'));
+    expect(manageUserRole).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should be able to show service accounts assigned to a role inside service accounts tab', async () => {
+    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('role1'));
+    });
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Service Accounts'));
+    });
+    expect(listRoleUsers).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => {
+      expect(screen.getByText(sampleRequest.projectName as string)).toBeTruthy();
+    });
+  });
+
+  it('Should be able to click the remove service account button, and corresponding modal showing up', async () => {
+    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('role1'));
+    });
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Service Accounts'));
+    });
+    expect(listRoleUsers).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(screen.getByText(sampleRequest.projectName as string)).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole('img', { name: 'Remove Service Account' }));
+    expect(screen.getByText('Remove Service Account from Role')).toBeVisible();
+    fireEvent.click(screen.getByTestId('modal-confirm-btn-remove-service-account'));
     expect(manageUserRole).toHaveBeenCalledTimes(1);
   });
 

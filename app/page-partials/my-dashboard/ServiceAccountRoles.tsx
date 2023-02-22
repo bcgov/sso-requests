@@ -1,18 +1,15 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import startCase from 'lodash.startcase';
 import throttle from 'lodash.throttle';
 import { Tabs, Tab, Alert } from '@bcgov-sso/common-react-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLock } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { LastSavedMessage } from '@bcgov-sso/common-react-components';
-import { ModalRef, emptyRef } from 'components/GenericModal';
-import { listClientRoles, listUserRoles, manageUserRoles, KeycloakUser } from 'services/keycloak';
+import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
 import { Table } from '@bcgov-sso/common-react-components';
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from 'next/link';
@@ -156,7 +153,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
   return (
     <>
       <TopAlertWrapper>
-        <Alert variant="info" closable={true}>
+        <Alert variant="info" closable={true} data-testid={`assign-svc-acct-role-risk-alert`}>
           <span className="normal">
             Please be advised that relying on client roles of a service account may involve security risk. Follow{' '}
             <Link href="mailto:bcgov.sso@gov.bc.ca">here</Link> to know more.
@@ -189,14 +186,17 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
                   ) : (
                     <div>
                       <Label>Assign Service Account to a Role</Label>
-                      <Select
-                        value={userRoles.map((role) => ({ value: role, label: role }))}
-                        options={roles.map((role) => ({ value: role, label: role }))}
-                        isMulti={true}
-                        placeholder="Select..."
-                        noOptionsMessage={() => 'No roles'}
-                        onChange={handleRoleChange}
-                      />
+                      <div data-testid="assign-svc-acct-to-role-select">
+                        <Select
+                          value={userRoles.map((role) => ({ value: role, label: role }))}
+                          options={roles.map((role) => ({ value: role, label: role }))}
+                          isMulti={true}
+                          placeholder="Select..."
+                          noOptionsMessage={() => 'No roles'}
+                          onChange={handleRoleChange}
+                        />
+                      </div>
+
                       <LastSavedMessage saving={saving} content={savingMessage} />
                     </div>
                   )}

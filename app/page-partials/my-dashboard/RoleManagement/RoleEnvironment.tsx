@@ -245,7 +245,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       max: maxUser,
     });
 
-    const _data = data || [];
+    let _data = data || [];
 
     if (_data.length > 0) {
       _data.map(async (user) => {
@@ -408,6 +408,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
               loader={<LoaderContainer />}
             >
               {users.map((user) => {
+                if (!user.username.startsWith('service-account-')) return null;
                 return (
                   <tr key={user.username}>
                     <td>{serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName}</td>

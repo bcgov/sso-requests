@@ -99,6 +99,7 @@ const GenericModal = (
   ref?: any,
 ) => {
   const initialConfig = {
+    id,
     confirmButtonText,
     cancelButtonText,
     confirmButtonVariant,
@@ -177,12 +178,23 @@ const GenericModal = (
         {_children}
         <ButtonContainer buttonAlign={config.buttonAlign}>
           {config.showCancelButton && (
-            <Button variant={config.cancelButtonVariant} onClick={handleCancel} type="button">
+            <Button
+              variant={config.cancelButtonVariant}
+              onClick={handleCancel}
+              type="button"
+              data-testid={`modal-cancel-btn-${config.id}`}
+            >
               {config.cancelButtonText}
             </Button>
           )}
           {config.showConfirmButton && (
-            <Button onClick={handleConfirm} variant={config.confirmButtonVariant} type="button" className="text-center">
+            <Button
+              onClick={handleConfirm}
+              variant={config.confirmButtonVariant}
+              type="button"
+              className="text-center"
+              data-testid={`modal-confirm-btn-${config.id}`}
+            >
               {loading ? (
                 <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
               ) : (
