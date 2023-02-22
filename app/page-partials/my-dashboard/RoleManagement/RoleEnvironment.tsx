@@ -326,7 +326,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
               <th className="text-center">Actions</th>
             </tr>
           </thead>
-          {users.length > 0 ? (
+          {users.filter((user) => !user.username.startsWith('service-account-')).length > 0 ? (
             <InfScroll
               element="tbody"
               loadMore={() => fetchUsers(false, selectedRole)}
