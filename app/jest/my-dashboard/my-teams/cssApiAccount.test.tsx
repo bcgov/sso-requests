@@ -1,52 +1,37 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import TeamInfoTabs from 'page-partials/my-dashboard/TeamInfoTabs';
-import { getTeamMembers } from 'services/team';
-import { processRequest } from 'utils/helpers';
-import { getTeamIntegrations } from 'services/request';
+import { render, screen, fireEvent } from '@testing-library/react';
+import MyTeams from '@app/pages/my-dashboard/teams';
+import {
+  deleteServiceAccount,
+  getServiceAccountCredentials,
+  updateServiceAccountCredentials,
+} from '@app/services/team';
 
 const sampleSession = {
-  at_hash: '',
-  aud: '',
-  auth_time: 1,
-  azp: '',
-  client_roles: ['sso-admin'],
-  display_name: '',
   email: 'admin01@gov.bc.ca',
-  email_verified: false,
-  exp: 0,
-  family_name: '',
-  given_name: '',
-  iat: 0,
-  identity_provider: 'idir',
-  idir_user_guid: '',
-  idir_username: '',
   isAdmin: true,
-  iss: '',
-  jti: '',
-  name: '',
-  nonce: '',
-  preferred_username: '',
-  roles: ['sso-admin'],
-  session_state: '',
-  sid: '',
-  sub: '',
-  typ: 'ID',
 };
-const sampleTeam = {
-  createdAt: '',
-  id: 1,
-  integrationCount: '0',
-  name: 'SAMPLE_TEAM',
-  role: 'member',
-  serviceAccountCount: '0',
-  updatedAt: '',
-};
-const loadTeams = jest.fn();
+const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account';
 
-const getByRole = (role: string, roleName: string) => screen.getByRole(role, { name: roleName });
+jest.mock('next/config', () => () => ({
+  publicRuntimeConfig: { enable_gold: true },
+}));
 
 jest.mock('services/team', () => ({
+  getMyTeams: jest.fn(() => [
+    [
+      {
+        createdAt: '',
+        id: 1,
+        integrationCount: '0',
+        name: 'test-team',
+        role: 'admin',
+        serviceAccountCount: '1',
+        updatedAt: '',
+      },
+    ],
+    null,
+  ]),
   getTeamMembers: jest.fn(() => [
     [
       {
@@ -61,9 +46,9 @@ jest.mock('services/team', () => ({
       {
         createdAt: '',
         id: 2,
-        idirEmail: 'sampleMember01@gov.bc.ca',
+        idirEmail: 'member01@gov.bc.ca',
         idirUserid: '',
-        pending: false,
+        pending: true,
         role: 'member',
         updatedAt: '',
       },
@@ -85,17 +70,79 @@ jest.mock('services/team', () => ({
     ],
     null,
   ]),
+  getServiceAccountCredentials: jest.fn(() => Promise.resolve([[''], null])),
+  updateServiceAccountCredentials: jest.fn(() => Promise.resolve([[''], null])),
+  deleteServiceAccount: jest.fn(() => Promise.resolve([[''], null])),
 }));
 
 jest.mock('services/request', () => ({
-  getTeamIntegrations: jest.fn(() => [[], null]),
+  getTeamIntegrations: jest.fn(() => [[{}], null]),
+}));
+
+jest.mock('utils/text', () => ({
+  downloadText: jest.fn(() => {
+    return true;
+  }),
+  prettyJSON: jest.fn(() => {
+    ('');
+  }),
+  copyTextToClipboard: jest.fn(() => {
+    return true;
+  }),
 }));
 
 describe('CSS API Account tab', () => {
-  it('Should match the expected button name,', async () => {
-    render(<TeamInfoTabs team={sampleTeam} currentUser={sampleSession} loadTeams={loadTeams} />);
-    //expect(asFragment()).toMatchSnapshot();
-    //expect(screen.getByText('Email'));
-    //const addNewMemberButton = getByRole('button', '+ Add New Team Members');
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('Should match the expected table column headers, and corresponding API account in the list, and turn to correct page when click on the hyperlink', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
+
+    await screen.findByRole('columnheader', { name: 'API Account ID' });
+    await screen.findAllByRole('columnheader', { name: 'Actions' });
+    screen.getByRole('row', { name: '1 Copy to clipboard Download Update secret Delete' });
+    expect(screen.getByRole('link', { name: 'here' })).toHaveAttribute('href', HYPERLINK);
+  });
+
+  it('Should be able to click the Copy to clipboard icon to copy token information', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
+
+    const copyButton = screen.getByRole('button', { name: 'Copy to clipboard' });
+    fireEvent.click(copyButton);
+    expect(getServiceAccountCredentials).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should be able to click the Download icon to download token information', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
+
+    const downloadButton = screen.getByRole('button', { name: 'Download' });
+    fireEvent.click(downloadButton);
+    expect(getServiceAccountCredentials).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should be able to click the Update secret icon to update token information', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
+
+    const updateSecretButton = screen.getByRole('button', { name: 'Update secret' });
+    fireEvent.click(updateSecretButton);
+    expect(screen.getByTitle('Request a new secret for CSS API Account'));
+    fireEvent.click(await screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateServiceAccountCredentials).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should be able to click the Delete icon to delete the API Account', async () => {
+    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
+
+    const deleteButton = screen.getAllByRole('button', { name: 'Delete' });
+    fireEvent.click(await deleteButton[1]);
+    await screen.findByTitle('Delete CSS API Account');
+    fireEvent.click(screen.getByRole('button', { name: 'Delete CSS API Account' }));
+    expect(deleteServiceAccount).toHaveBeenCalledTimes(1);
   });
 });
