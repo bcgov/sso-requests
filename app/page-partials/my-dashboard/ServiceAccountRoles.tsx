@@ -12,7 +12,7 @@ import { LastSavedMessage } from '@bcgov-sso/common-react-components';
 import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
 import { Table } from '@bcgov-sso/common-react-components';
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
-import Link from 'next/link';
+import Link from '@button-inc/bcgov-theme/Link';
 
 const Label = styled.label`
   font-weight: bold;
@@ -156,7 +156,13 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
         <Alert variant="info" closable={true} data-testid={`assign-svc-acct-role-risk-alert`}>
           <span className="normal">
             Please be advised that relying on client roles of a service account may involve security risk. Follow{' '}
-            <Link href="mailto:bcgov.sso@gov.bc.ca">here</Link> to know more.
+            <Link
+              external
+              href="https://github.com/bcgov/sso-keycloak/wiki/Security-risk-with-assigning-service-account-to-a-role"
+            >
+              here
+            </Link>{' '}
+            to know more.
           </span>
         </Alert>
       </TopAlertWrapper>
