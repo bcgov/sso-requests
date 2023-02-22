@@ -11,6 +11,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@button-inc/bcgov-theme/Link';
+import { getServiceAccountUsername } from '@app/helpers/users';
 
 const Label = styled.label`
   font-weight: bold;
@@ -63,10 +64,6 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
   const [environment, setEnvironment] = useState('dev');
 
   const environments = selectedRequest?.environments || [];
-
-  const getServiceAccountUsername = (clientId: string) => {
-    return `service-account-${clientId}`;
-  };
 
   const throttleUpdate = useCallback(
     throttle(

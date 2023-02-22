@@ -30,7 +30,7 @@ import {
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { idpMap } from 'helpers/meta';
 import { getRequest } from '@app/services/request';
-import { checkIfUserIsServiceAccount } from '@app/helpers/users';
+import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from '@app/helpers/users';
 
 const Label = styled.label`
   font-weight: bold;
@@ -400,7 +400,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
               <th className="text-center">Actions</th>
             </tr>
           </thead>
-          {users.length > 0 ? (
+          {filterServiceAccountUsers(users).length > 0 ? (
             <InfScroll
               element="tbody"
               loadMore={() => fetchUsers(false, selectedRole)}
@@ -408,7 +408,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
               loader={<LoaderContainer />}
             >
               {users.map((user) => {
-                if (!user.username.startsWith('service-account-')) return null;
+                if (!checkIfUserIsServiceAccount(user.username)) return null;
                 return (
                   <tr key={user.username}>
                     <td>{serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName}</td>
