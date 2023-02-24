@@ -401,7 +401,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           <TabWrapper>
             {isAdmin ? (
               <PaddedButton>
-                <RequestButton onClick={openModal}>+ Add new team members</RequestButton>
+                <RequestButton onClick={openModal}>+ Add New Team Members</RequestButton>
               </PaddedButton>
             ) : (
               <br />
@@ -511,7 +511,12 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                                 getData(team?.id);
                               }}
                             >
-                              <ActionButton icon={faEye} onClick={() => viewProject(integration.id)} size="lg" />
+                              <ActionButton
+                                icon={faEye}
+                                aria-label="view"
+                                onClick={() => viewProject(integration.id)}
+                                size="lg"
+                              />
                             </ActionButtons>
                           </RightFloat>
                         </td>

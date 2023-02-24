@@ -192,6 +192,105 @@ under path `/sso-requests/app`
 ## My Teams
 
 - ### Team List
+
+  - Background:
+    GIVEN I login as a client
+    WHEN I am at the `My Dashboard -> My Teams` panel
+    AND there exists team(s) in the `Teams` list which the client is an `Admin`
+
+  - Test Coverage:
+    1.  THEN there should have the button name displaied as `+ Create a New Team`;
+    2.  WHEN client click on the `+ Create a New Team` button to create a team,
+        THEN the `Create a New Team` modal will show up,
+        AND within the modal, client should be able to input some words as `Team Name`,
+        AND client should be able to input an email address under `Member` column,
+        AND client should be able to select either `Admin` or `Member` from the `Role` drop-down box,
+        AND client should be able to open correct hyper link page after click on the link,
+        WHEN client click on the `Send Invitation` button,
+        THEN the invitation will be sent, if the email address is valid;
+    3.  THEN there should have the table column headers displaied as `Team Name` and `Actions`;
+    4.  THEN there should have the team been highlighted when client click on a specific team;
+    5.  WHEN client click on the trash bin icon to delete the team,
+        THEN the `Delete team` modal will show up to let client confirm deletion,
+        WHEN client click on `Delete Team` button to confirm deletion,
+        THEN the team will be deleted;
+    6.  WHEN client click on the pencil-shape icon to edit the team,
+        THEN the `Edit Team Name` modal will show up to let client edit the `New Team Name`,
+        WHEN client click on `Save` button to confirm edition,
+        THEN the new team name will be saved;
+
 - ### Members tab
+
+  - Background:
+    GIVEN I login as a client
+    WHEN I am at the `My Dashboard -> My Teams` panel
+    AND there exists team(s) in the `Teams` list which the client is an `Admin`
+    WHEN I click on a team
+    AND I am at the `Members` tab
+
+  - Test Coverage:
+    1.  THEN there should have the button name displaied as `+ Add New Team Members`;
+    2.  WHEN client click on the `+ Add New Team Members` button to add member(s),
+        THEN the `Add a New Team Member` modal will show up,
+        AND within the modal, client should be able to open correct hyper link page after click on the link,
+        AND client should be able to select either `Admin` or `Member` from the `Role` drop-down box,
+        WHEN client click on the `Confirm` button,
+        THEN the new member will be invited to the team, if the email address is valid;
+    3.  THEN there should have the table column headers displaied as `Status`, `Email`, `Role`, and `Actions`;
+    4.  THEN corresponding members from the team should be listed in the member table;
+    5.  WHEN client click on the trash bin icon to delete a member,
+        THEN the `Delete Team Member` modal will show up to let client confirm deletion,
+        WHEN client click on `Delete` button to confirm deletion,
+        THEN the member will be deleted;
+    6.  WHEN client click on the arrow icon to resend invitation,
+        THEN the invitation will be send to the member again;
+
 - ### Integrations tab
+
+  - Background:
+    GIVEN I login as a client
+    WHEN I am at the `My Dashboard -> My Teams` panel
+    AND there exists team(s) in the `Teams` list which the client is an `Admin` AND there are integration(s) associated with this team
+    WHEN I click on a team
+    AND I am at the `Integrations` tab
+
+  - Test Coverage:
+    1.  THEN there should have the table column headers displaied as `Status`, `Request ID`, `Project Name`, and `Actions`;
+    2.  THEN corresponding integrations from the team should be listed in the integration table,
+        AND with correct status indication;
+    3.  WHEN client click on the eye-shape button to view on the integration,
+        THEN the page will be turn to `My Projects` panel -> `INTEGRATIONS` list
+        AND the corresponding integration will be highlighted;
+    4.  WHEN client click on the pencil-shape icon to edit the integration,
+        THEN the page will turn to integration configuration page;
+    5.  WHEN client click on the trash bin icon to delete the integration,
+        THEN the `Confirm Deletion` modal will show up to let client confirm deletion,
+        WHEN client click on `Delete` button to confirm deletion,
+        THEN the integration will be deleted;
+
 - ### CSS API Account tab
+
+  - Background:
+    GIVEN I login as a client
+    WHEN I am at the `My Dashboard -> My Teams` panel
+    AND there exists team(s) in the `Teams` list which the client is an `Admin`
+    WHEN I click on a team
+    AND I am at the `CSS API Account` tab
+
+  - Test Coverage:
+
+    1.  THEN there should have the table column headers displaied as `API Account ID` and `Actions`;
+    2.  THEN there should have the API Account ID been highlighted when client click on a specific API Account ID;
+    3.  WHEN client click on the `Copy to clipboard` icon to copy token information,
+        THEN the infomation should be correct and ready to use;
+    4.  WHEN client click on the `Download` button to download the token information file,
+        THEN the information file should be ready to download;
+    5.  WHEN client click on the `Update secret` icon to update the token secrets,
+        THEN the `Request a new secret for CSS API Account` modal will show up to let client confirm update,
+        WHEN client click on `Confirm` button to confirm update,
+        THEN the token secrets will be updated;
+    6.  WHEN client click on the trash bin icon to delete an API account,
+        THEN the `Delete CSS API Account` modal will show up to let client confirm deletion,
+        WHEN client click on `Delete CSS API Account` button to confirm deletion,
+        THEN the API Account will be deleted;
+    7.  AND client should be able to open correct hyper link page after click on the `here` link
