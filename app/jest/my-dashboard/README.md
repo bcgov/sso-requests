@@ -256,7 +256,8 @@ under path `/sso-requests/app`
 
   - Test Coverage:
     1.  THEN there should have the table column headers displaied as `Status`, `Request ID`, `Project Name`, and `Actions`;
-    2.  THEN corresponding integrations from the team should be listed in the integration table;
+    2.  THEN corresponding integrations from the team should be listed in the integration table,
+        AND with correct status indication;
     3.  WHEN client click on the eye-shape button to view on the integration,
         THEN the page will be turn to `My Projects` panel -> `INTEGRATIONS` list
         AND the corresponding integration will be highlighted;
