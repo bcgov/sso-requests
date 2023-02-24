@@ -1,12 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import MyTeams from '@app/pages/my-dashboard/teams';
 import { deleteRequest } from 'services/request';
-
-const sampleSession = {
-  email: 'admin01@gov.bc.ca',
-  isAdmin: true,
-};
+import { MyTeamsComponent } from './helpers';
 
 jest.mock('services/team', () => ({
   getMyTeams: jest.fn(() => [
@@ -68,7 +63,7 @@ jest.mock('services/request', () => ({
     [
       {
         id: 1,
-        devValidRedirectUris: ['http://dev1.com'],
+        devValidRedirectUris: ['http://dev.com'],
         testValidRedirectUris: ['http://test.com'],
         prodValidRedirectUris: ['http://prod.com'],
         publicAccess: true,
@@ -81,6 +76,54 @@ jest.mock('services/request', () => ({
         usesTeam: true,
         serviceType: 'silver',
         status: 'applied',
+      },
+      {
+        id: 2,
+        devValidRedirectUris: ['http://dev.com'],
+        testValidRedirectUris: ['http://test.com'],
+        prodValidRedirectUris: ['http://prod.com'],
+        publicAccess: true,
+        realm: 'onestopauth',
+        projectName: 'test project 02',
+        projectLead: true,
+        agreeWithTerms: true,
+        environments: ['dev'],
+        archived: false,
+        usesTeam: true,
+        serviceType: 'gold',
+        status: 'draft',
+      },
+      {
+        id: 3,
+        devValidRedirectUris: ['http://dev.com'],
+        testValidRedirectUris: ['http://test.com'],
+        prodValidRedirectUris: ['http://prod.com'],
+        publicAccess: true,
+        realm: 'onestopauth',
+        projectName: 'test project 03',
+        projectLead: true,
+        agreeWithTerms: true,
+        environments: ['dev'],
+        archived: false,
+        usesTeam: true,
+        serviceType: 'gold',
+        status: 'submitted',
+      },
+      {
+        id: 4,
+        devValidRedirectUris: ['http://dev.com'],
+        testValidRedirectUris: ['http://test.com'],
+        prodValidRedirectUris: ['http://prod.com'],
+        publicAccess: true,
+        realm: 'onestopauth',
+        projectName: 'test project 04',
+        projectLead: true,
+        agreeWithTerms: true,
+        environments: ['dev'],
+        archived: false,
+        usesTeam: true,
+        serviceType: 'gold',
+        status: 'prFailed',
       },
     ],
     null,
@@ -100,7 +143,7 @@ describe('Integrations tab', () => {
   });
 
   it('Should match the expected table column headers, and corresponding integrations in the list', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
 
     await screen.findByRole('columnheader', { name: 'Status' });
@@ -108,31 +151,39 @@ describe('Integrations tab', () => {
     await screen.findByRole('columnheader', { name: 'Project Name' });
     await screen.findAllByRole('columnheader', { name: 'Actions' });
     screen.getByRole('row', { name: 'applied 1 test project Edit Delete' });
+    screen.getByRole('row', { name: 'draft 2 test project 02 Edit Delete' });
+    screen.getByRole('row', { name: 'submitted 3 test project 03 Edit Delete' });
+    screen.getByRole('row', { name: 'prFailed 4 test project 04 Edit Delete' });
+    expect(screen.getByRole('img', { name: 'applied' })).toHaveStyle('color: rgb(46, 133, 64)');
+    expect(screen.getByRole('img', { name: 'draft' })).toHaveStyle('color: rgb(26, 90, 150)');
+    expect(screen.getByRole('img', { name: 'submitted' })).toHaveStyle('color: rgb(252, 186, 25)');
+    expect(screen.getByRole('img', { name: 'prFailed' })).toHaveStyle('color: rgb(255, 3, 3)');
   });
 
   it('Should turn to correct page when click on the view integration icon', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
 
-    const viewIntegrationButton = screen.getByLabelText('view');
-    fireEvent.click(viewIntegrationButton);
+    const viewIntegrationButton = screen.getAllByLabelText('view');
+    fireEvent.click(viewIntegrationButton[0]);
     expect(spyUseRouter).toHaveBeenCalled();
   });
 
   it('Should turn to correct page when click on the edit integration icon', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
 
-    const viewIntegrationButton = screen.getAllByLabelText('edit');
-    fireEvent.click(viewIntegrationButton[1]);
+    const editIntegrationButton = screen.getAllByLabelText('edit');
+    fireEvent.click(editIntegrationButton[1]);
     expect(spyUseRouter).toHaveBeenCalled();
   });
 
   it('Should be able to click the Delete button', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
 
-    fireEvent.click(await screen.getByTestId('action-button-delete'));
+    const actionDeleteButton = screen.getAllByTestId('action-button-delete');
+    fireEvent.click(actionDeleteButton[0]);
     expect(screen.findByTitle('Confirm Deletion'));
     const confirmDeleteButton = screen.getAllByTestId('confirm-delete');
     fireEvent.click(confirmDeleteButton[1]);

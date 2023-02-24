@@ -1,16 +1,12 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import MyTeams from '@app/pages/my-dashboard/teams';
 import {
   deleteServiceAccount,
   getServiceAccountCredentials,
   updateServiceAccountCredentials,
 } from '@app/services/team';
+import { MyTeamsComponent } from './helpers';
 
-const sampleSession = {
-  email: 'admin01@gov.bc.ca',
-  isAdmin: true,
-};
 const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account';
 
 jest.mock('next/config', () => () => ({
@@ -97,7 +93,7 @@ describe('CSS API Account tab', () => {
   });
 
   it('Should match the expected table column headers, and corresponding API account in the list, and turn to correct page when click on the hyperlink', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
     await screen.findByRole('columnheader', { name: 'API Account ID' });
@@ -107,7 +103,7 @@ describe('CSS API Account tab', () => {
   });
 
   it('Should be able to click the Copy to clipboard icon to copy token information', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
     const copyButton = screen.getByRole('button', { name: 'Copy to clipboard' });
@@ -116,7 +112,7 @@ describe('CSS API Account tab', () => {
   });
 
   it('Should be able to click the Download icon to download token information', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
     const downloadButton = screen.getByRole('button', { name: 'Download' });
@@ -125,7 +121,7 @@ describe('CSS API Account tab', () => {
   });
 
   it('Should be able to click the Update secret icon to update token information', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
     const updateSecretButton = screen.getByRole('button', { name: 'Update secret' });
@@ -136,7 +132,7 @@ describe('CSS API Account tab', () => {
   });
 
   it('Should be able to click the Delete icon to delete the API Account', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
     const deleteButton = screen.getAllByRole('button', { name: 'Delete' });

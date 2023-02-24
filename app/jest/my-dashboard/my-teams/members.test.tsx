@@ -1,12 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/team';
-import MyTeams from '@app/pages/my-dashboard/teams';
-
-const sampleSession = {
-  email: 'admin01@gov.bc.ca',
-  isAdmin: true,
-};
+import { MyTeamsComponent } from './helpers';
 
 const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-App-My-Teams';
 
@@ -82,7 +77,7 @@ describe('Members tab', () => {
   });
 
   it('Should match the expected button name, and testing on all drop-down-box, hyperlink, and button functionality in the modal', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
     const addNewMemberButton = screen.findByText('+ Add New Team Members');
@@ -103,7 +98,7 @@ describe('Members tab', () => {
   });
 
   it('Should match the expected table column headers, and corresponding members in the list', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
     await screen.findByRole('columnheader', { name: 'Status' });
@@ -115,7 +110,7 @@ describe('Members tab', () => {
   });
 
   it('Should be able to click the resend invitation button', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
     const resendButton = screen.findByRole('img', { name: 'Resend Invitation' });
@@ -124,7 +119,7 @@ describe('Members tab', () => {
   });
 
   it('Should be able to click the Delete button', async () => {
-    render(<MyTeams session={sampleSession} onLoginClick={jest.fn()} onLogoutClick={jest.fn()} key={'teams'} />);
+    render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
     const deleteButton = screen.getByRole('img', { name: 'Delete User' });

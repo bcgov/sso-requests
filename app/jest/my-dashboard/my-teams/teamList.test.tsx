@@ -3,6 +3,19 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 
+function TeamListComponent() {
+  return (
+    <TeamList
+      currentUser={sampleSession}
+      setTeam={setTeam}
+      loading={false}
+      teams={sampleTeam}
+      loadTeams={loadTeams}
+      hasError={false}
+    />
+  );
+}
+
 const sampleSession = { email: 'sampleSession@gov.bc.ca', isAdmin: true };
 const sampleTeam = [
   {
@@ -52,16 +65,7 @@ jest.mock('services/team', () => ({
 
 describe('Team List', () => {
   it('Should match the expected button name, and testing on all text-input-box, drop-down-box, hyperlink, and button functionality in the modal', async () => {
-    render(
-      <TeamList
-        currentUser={sampleSession}
-        setTeam={setTeam}
-        loading={false}
-        teams={sampleTeam}
-        loadTeams={loadTeams}
-        hasError={false}
-      />,
-    );
+    render(<TeamListComponent />);
 
     const createTeamButton = getByRole('button', '+ Create a New Team');
     expect(createTeamButton).toBeInTheDocument();
@@ -89,32 +93,14 @@ describe('Team List', () => {
   });
 
   it('Should match the correct table headers, selected team', () => {
-    render(
-      <TeamList
-        currentUser={sampleSession}
-        setTeam={setTeam}
-        loading={false}
-        teams={sampleTeam}
-        loadTeams={loadTeams}
-        hasError={false}
-      />,
-    );
+    render(<TeamListComponent />);
     expect(getByRole('columnheader', 'Team Name'));
     expect(getByRole('columnheader', 'Actions'));
     expect(getByRole('row', 'SAMPLE_TEAM Edit Delete')).toHaveClass('active');
   });
 
   it('Should be able to click the Delete button, and confirm deletion', async () => {
-    render(
-      <TeamList
-        currentUser={sampleSession}
-        setTeam={setTeam}
-        loading={false}
-        teams={sampleTeam}
-        loadTeams={loadTeams}
-        hasError={false}
-      />,
-    );
+    render(<TeamListComponent />);
     fireEvent.click(getByRole('button', 'Delete'));
     expect(screen.getByTitle('Delete team'));
     await waitFor(() => {
@@ -124,16 +110,7 @@ describe('Team List', () => {
   });
 
   it('Should be able to click the Edit button, and save the new team name', async () => {
-    render(
-      <TeamList
-        currentUser={sampleSession}
-        setTeam={setTeam}
-        loading={false}
-        teams={sampleTeam}
-        loadTeams={loadTeams}
-        hasError={false}
-      />,
-    );
+    render(<TeamListComponent />);
     fireEvent.click(getByRole('button', 'Edit'));
     expect(screen.getByTitle('Edit Team Name'));
     const newTeamNameInputField = getByLabelText('New Team Name');
