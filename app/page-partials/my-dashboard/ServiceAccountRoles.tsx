@@ -148,9 +148,9 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
   return (
     <>
       <TopAlertWrapper>
-        <Alert variant="info" closable={true} data-testid={`assign-svc-acct-role-risk-alert`}>
+        <Alert variant="info" closable={false} data-testid={`assign-svc-acct-role-risk-alert`}>
           <span className="normal">
-            Advise: There may be a security risk if you rely on client roles of a service account,{' '}
+            There may be a security risk if you rely on client roles of a service account,{' '}
             <Link
               external
               href="https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role#service-account-role-management"
