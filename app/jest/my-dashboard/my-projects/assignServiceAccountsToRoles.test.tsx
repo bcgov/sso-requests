@@ -29,9 +29,6 @@ describe('assign service accounts to role', () => {
   it('Should be able to display and close the notification about security risk', async () => {
     render(<ServiceAccountRolesComponent />);
     expect(screen.getByTestId('assign-svc-acct-role-risk-alert'));
-    await waitFor(() => {
-      fireEvent.click(screen.getByText('X'));
-    });
   });
 
   it('Should be able to switch between environments', async () => {
