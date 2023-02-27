@@ -67,7 +67,7 @@ export default function FaqItems() {
               OR
               <br />
             </SubItem>
-            <SubItem>if you need to conduct load testing in TEST only</SubItem>
+            <SubItem>if you need to conduct load testing or security scans please do in TEST only</SubItem>
           </ul>
         </li>
       </StyledList>

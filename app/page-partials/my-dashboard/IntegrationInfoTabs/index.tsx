@@ -18,6 +18,7 @@ import padStart from 'lodash.padstart';
 import { SubTitle, ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
+import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -35,6 +36,7 @@ const Requester = styled.div`
 const TAB_DETAILS = 'tech-details';
 const TAB_ROLE_MANAGEMENT = 'role-management';
 const TAB_USER_ROLE_MANAGEMENT = 'user-role-management';
+const TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT = 'service-account-role-management';
 const TAB_SECRET = 'secret';
 const TAB_HISTORY = 'history';
 
@@ -182,6 +184,16 @@ const getUserAssignmentTab = ({ integration }: { integration: Integration }) => 
   );
 };
 
+const getServiceAccountAssignmentTab = ({ integration }: { integration: Integration }) => {
+  return (
+    <Tab key={TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT} tab="Assign Service Account to Roles">
+      <TabWrapper>
+        <ServiceAccountRoles selectedRequest={integration} />
+      </TabWrapper>
+    </Tab>
+  );
+};
+
 const getSecretsTab = ({ integration }: { integration: Integration }) => {
   return (
     <Tab key={TAB_SECRET} tab="Secrets">
@@ -234,6 +246,7 @@ function IntegrationInfoTabs({ integration }: Props) {
 
   const isGold = integration.serviceType === 'gold';
   const hasBrowserFlow = integration.authType !== 'service-account';
+  const hasBothFlows = integration.authType === 'both';
 
   const handleTabClick = (key: any) => {
     setActiveTab(key);
@@ -264,12 +277,17 @@ function IntegrationInfoTabs({ integration }: Props) {
       allowedTabs.push(TAB_DETAILS);
     }
   } else if (displayStatus === 'Completed') {
-    tabs.push(getInstallationTab({ integration, approvalContext }));
-    allowedTabs.push(TAB_DETAILS);
+    tabs.push(getInstallationTab({ integration, approvalContext }), getRoleManagementTab({ integration }));
+    allowedTabs.push(TAB_DETAILS, TAB_ROLE_MANAGEMENT);
 
     if (isGold && hasBrowserFlow) {
-      tabs.push(getRoleManagementTab({ integration }), getUserAssignmentTab({ integration }));
-      allowedTabs.push(TAB_ROLE_MANAGEMENT, TAB_USER_ROLE_MANAGEMENT);
+      tabs.push(getUserAssignmentTab({ integration }));
+      allowedTabs.push(TAB_USER_ROLE_MANAGEMENT);
+    }
+
+    if (isGold && (!hasBrowserFlow || hasBothFlows)) {
+      tabs.push(getServiceAccountAssignmentTab({ integration }));
+      allowedTabs.push(TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT);
     }
 
     if (!integration.publicAccess) {

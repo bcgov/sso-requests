@@ -11,7 +11,7 @@ setup_env:
 
 .PHONY: app_test
 app_test:
-	yarn --cwd ./app test
+	yarn --cwd ./app test --collectCoverage
 
 .PHONY: server_test
 server_test:

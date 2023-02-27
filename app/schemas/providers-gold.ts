@@ -76,7 +76,7 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
         {
           content: `
           To learn the difference between IDIR and Azure IDIR,
-          <a href="https://github.com/bcgov/sso-keycloak/wiki/Useful-References#azure-idir-and-idir---whats-the-difference" target="_blank" title="IDIR vs Azure IDIR">
+          <a href="https://github.com/bcgov/sso-keycloak/wiki/Our-Partners-and-Useful-Information#azure-idir-and-idir" target="_blank" title="IDIR vs Azure IDIR" target="_blank" title="IDIR vs Azure IDIR">
           please visit our GitHub page about choosing an Identity Provider
           </a>
           `,

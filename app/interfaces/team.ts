@@ -28,3 +28,11 @@ export interface LoggedInUser {
   family_name?: string;
   isAdmin?: boolean;
 }
+
+export interface KeycloakUser {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  username: string;
+  attributes: any;
+}
