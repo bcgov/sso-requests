@@ -45,7 +45,7 @@
     "express": "^4.18.2",
     "jest": "^28.1.1",
     "supertest": "^6.3.3",
-    "ts-jest": "^28.0.4",
+    "ts-jest": "^29.0.5",
     "ts-node": "^10.8.1",
     "tsc-alias": "^1.6.9",
     "typescript": "^4.8.2"
@@ -79,7 +79,7 @@
     "pg": "^8.7.3",
     "pg-format": "^1.0.4",
     "reflect-metadata": "^0.1.13",
-    "sequelize": "^6.20.1"
+    "sequelize": "^6.29.0"
   },
   "resolutions": {
     "minimist": ">=1.2.6",

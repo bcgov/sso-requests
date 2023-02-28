@@ -8,9 +8,7 @@
     "compile": "../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias",
     "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m"
   },
-  "devDependencies": {
-    "sqlite3": "^5.0.8"
-  },
+  "devDependencies": {},
   "dependencies": {
     "umzug": "^3.1.1"
   }
