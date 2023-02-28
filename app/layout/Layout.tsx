@@ -117,11 +117,7 @@ const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentP
         .map((route) => {
           return (
             <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
-              <Link href={route.path}>
-                <a className={isCurrent(route.path) ? 'current' : ''}>
-                  {isFunction(route.label) ? route.label(query) : route.label}
-                </a>
-              </Link>
+              <Link href={route.path}>{isFunction(route.label) ? route.label(query) : route.label}</Link>
             </li>
           );
         })}
