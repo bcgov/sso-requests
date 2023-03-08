@@ -37,7 +37,7 @@ export default function GithubDiscussions({ children }: Props) {
     <>
       <h2>Frequently Asked Questions</h2>
       <Accordion>
-        {nodes.map((a: any, index) => (
+        {nodes?.map((a: any, index) => (
           <Accordion.Panel key={a.id} title={a.title}>
             <div className="comments-container">
               <Giscus
