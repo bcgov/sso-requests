@@ -45,7 +45,7 @@ under path `/sso-requests/app`
     3.  THEN there should have the table column headers displaied as `Reqiest ID`, `Project Name`, `Status`, `Usecase`, `Service Type`, and `Actions`;
     4.  THEN there should have the integration been highlighted when client click on a specific integration;
     5.  WHEN client click on the trash bin icon to delete the integration,
-        THEN a modal will show up to let client confirm deletion,
+        THEN a module will show up to let client confirm deletion,
         WHEN client click on `Delete` button to confirm deletion,
         THEN the integration will be deleted;
     6.  WHEN client click on the pencil-shape icon to edit the integration,
@@ -109,7 +109,7 @@ under path `/sso-requests/app`
   - Test Coverage:
     1.  THEN there should have the button name displaied as `+ Create a New Role`;
     2.  WHEN client click on the `+ Create a New Role` button,
-        THEN the `Create New Role` modal will show up,
+        THEN the `Create New Role` module will show up,
         THEN client should be able to input some keywords into the text-input-bar;
     3.  THEN there should have corresponding environment tab(s) been displaied in the tab list, such as `Dev`, `Test`, `Prod`;
     4.  THEN there should have the table column header displaied as `Role Name`;
@@ -120,17 +120,17 @@ under path `/sso-requests/app`
     8.  WHEN client input some keywords AND click the `Search` button,
         THEN the corresponding role(s) will be listed;
     9.  WHEN client click on the trash bin icon to delete a specific role,
-        THEN the `Delete Role` modal will show up to let client confirm deletion,
+        THEN the `Delete Role` module will show up to let client confirm deletion,
         WHEN client click on `Delete` button to confirm deletion,
         THEN the role will be deleted;
     10. WHEN client click on a specific role,
         THEN the right panel which consistes of `Users` and `Composite Roles` tabs will show up,
         WHEN client click on the `Users` tab AND then click on the `User Detail` eye-shape button,
-        THEN the `Additional User Info` modal will show up to let client review the user details;
+        THEN the `Additional User Info` module will show up to let client review the user details;
     11. WHEN client click on a specific role,
         THEN the right panel which consistes of `Users` and `Composite Roles` tabs will show up,
         WHEN client click on the `Users` tab AND then click on the `Remove User` button,
-        THEN the `Remove User from Role` modal will show up to let client confirm removal,
+        THEN the `Remove User from Role` module will show up to let client confirm removal,
         WHEN client click on `Remove` button to confirm removal,
         THEN the user of that role will be removed;
     12. WHEN client click on a specific role,
@@ -154,11 +154,11 @@ under path `/sso-requests/app`
     3.  WHEN client input some keywords AND click the `Search` button,
         THEN the corresponding user(s) will be listed;
         WHEN client click on a listed user AND then click on the `View` eye-shape button,
-        THEN the `Additional User Info` modal will show up to let client review the user details;
+        THEN the `Additional User Info` module will show up to let client review the user details;
     4.  WHEN client input some keywords AND click the `Search` button,
         THEN the `Search in IDIM Web Service Lookup` button will show up after the search process,
         WHEN client click on the `Search in IDIM Web Service Lookup` button,
-        THEN the `IDIM Web Service Lookup` modal will show up;
+        THEN the `IDIM Web Service Lookup` module will show up;
 
 - ### Secrets tab
 
@@ -173,7 +173,7 @@ under path `/sso-requests/app`
     1.  THEN there should have corresponding environment(s) been displaied in the list, such as `Development:`, `Test:`, `Production:`;
         AND there should have `Change your client secret` button under each evvironment;
     2.  WHEN client click on the `Change your client secret` button,
-        THEN the `You're About to Change Your Client Secret` modal will show up to let client confirm change;
+        THEN the `You're About to Change Your Client Secret` module will show up to let client confirm change;
         WHEN client click on the `Confirm` button,
         THEN the `JSON details` of that selected integration will be changed;
 
@@ -201,8 +201,8 @@ under path `/sso-requests/app`
   - Test Coverage:
     1.  THEN there should have the button name displaied as `+ Create a New Team`;
     2.  WHEN client click on the `+ Create a New Team` button to create a team,
-        THEN the `Create a New Team` modal will show up,
-        AND within the modal, client should be able to input some words as `Team Name`,
+        THEN the `Create a New Team` module will show up,
+        AND within the module, client should be able to input some words as `Team Name`,
         AND client should be able to input an email address under `Member` column,
         AND client should be able to select either `Admin` or `Member` from the `Role` drop-down box,
         AND client should be able to open correct hyper link page after click on the link,
@@ -211,11 +211,11 @@ under path `/sso-requests/app`
     3.  THEN there should have the table column headers displaied as `Team Name` and `Actions`;
     4.  THEN there should have the team been highlighted when client click on a specific team;
     5.  WHEN client click on the trash bin icon to delete the team,
-        THEN the `Delete team` modal will show up to let client confirm deletion,
+        THEN the `Delete team` module will show up to let client confirm deletion,
         WHEN client click on `Delete Team` button to confirm deletion,
         THEN the team will be deleted;
     6.  WHEN client click on the pencil-shape icon to edit the team,
-        THEN the `Edit Team Name` modal will show up to let client edit the `New Team Name`,
+        THEN the `Edit Team Name` module will show up to let client edit the `New Team Name`,
         WHEN client click on `Save` button to confirm edition,
         THEN the new team name will be saved;
 
@@ -231,15 +231,15 @@ under path `/sso-requests/app`
   - Test Coverage:
     1.  THEN there should have the button name displaied as `+ Add New Team Members`;
     2.  WHEN client click on the `+ Add New Team Members` button to add member(s),
-        THEN the `Add a New Team Member` modal will show up,
-        AND within the modal, client should be able to open correct hyper link page after click on the link,
+        THEN the `Add a New Team Member` module will show up,
+        AND within the module, client should be able to open correct hyper link page after click on the link,
         AND client should be able to select either `Admin` or `Member` from the `Role` drop-down box,
         WHEN client click on the `Confirm` button,
         THEN the new member will be invited to the team, if the email address is valid;
     3.  THEN there should have the table column headers displaied as `Status`, `Email`, `Role`, and `Actions`;
     4.  THEN corresponding members from the team should be listed in the member table;
     5.  WHEN client click on the trash bin icon to delete a member,
-        THEN the `Delete Team Member` modal will show up to let client confirm deletion,
+        THEN the `Delete Team Member` module will show up to let client confirm deletion,
         WHEN client click on `Delete` button to confirm deletion,
         THEN the member will be deleted;
     6.  WHEN client click on the arrow icon to resend invitation,
@@ -264,7 +264,7 @@ under path `/sso-requests/app`
     4.  WHEN client click on the pencil-shape icon to edit the integration,
         THEN the page will turn to integration configuration page;
     5.  WHEN client click on the trash bin icon to delete the integration,
-        THEN the `Confirm Deletion` modal will show up to let client confirm deletion,
+        THEN the `Confirm Deletion` module will show up to let client confirm deletion,
         WHEN client click on `Delete` button to confirm deletion,
         THEN the integration will be deleted;
 
@@ -286,11 +286,11 @@ under path `/sso-requests/app`
     4.  WHEN client click on the `Download` button to download the token information file,
         THEN the information file should be ready to download;
     5.  WHEN client click on the `Update secret` icon to update the token secrets,
-        THEN the `Request a new secret for CSS API Account` modal will show up to let client confirm update,
+        THEN the `Request a new secret for CSS API Account` module will show up to let client confirm update,
         WHEN client click on `Confirm` button to confirm update,
         THEN the token secrets will be updated;
     6.  WHEN client click on the trash bin icon to delete an API account,
-        THEN the `Delete CSS API Account` modal will show up to let client confirm deletion,
+        THEN the `Delete CSS API Account` module will show up to let client confirm deletion,
         WHEN client click on `Delete CSS API Account` button to confirm deletion,
         THEN the API Account will be deleted;
     7.  AND client should be able to open correct hyper link page after click on the `here` link
