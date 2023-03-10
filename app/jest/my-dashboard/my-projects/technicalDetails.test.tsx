@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-li
 import IntegrationInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import { getInstallation } from 'services/keycloak';
-import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import { sampleRequest } from '../../samples/integrations';
 import type { Status } from 'interfaces/types';
 
@@ -15,6 +14,7 @@ const notExpectAllTexts = (texts: Text[]) => texts.forEach(notExpectText);
 
 const bceidApprovedLastChange = [{ lhs: false, rhs: true, kind: 'E', path: ['bceidApproved'] }];
 const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#setting-up-your-keycloak-client';
+const WIKI_PAGE_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role';
 
 const DRAFT_MESSAGE = /Your request has not been submitted/;
 const PROGRESS_MESSAGE = /Access to environment\(s\) will be provided/;
@@ -23,7 +23,8 @@ const BCEID_PROD_LABEL = /Access to BCeID Prod/;
 const BCEID_PROD_REQUESTED_MESSAGE = /Please reach out to IDIM/;
 const BCEID_PROD_APPROVED = /Your integration has been approved/;
 const BCEID_PROD_AVAILABLE = /Your integration is approved and available/;
-const IDIR_BCEID_ENV_HEADER = /Development \(IDIR, Basic BCeID\)/;
+const DEV_IDIR_BCEID_ENV_HEADER = /Development \(IDIR, Basic BCeID\)/;
+const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR, Basic BCeID\)/;
 
 jest.mock('services/keycloak', () => ({
   getInstallation: jest.fn(() => Promise.resolve([['installation_data'], null])),
@@ -208,7 +209,7 @@ describe('Applied Status header, button and link test', () => {
         integration={{
           status: 'applied',
           authType: 'browser-login',
-          environments: ['dev'],
+          environments: ['dev', 'test'],
           devIdps: ['idir', 'bceidbasic'],
           lastChanges: null,
           bceidApproved: false,
@@ -217,8 +218,11 @@ describe('Applied Status header, button and link test', () => {
       />,
     );
 
-    expectText(IDIR_BCEID_ENV_HEADER);
+    expectText(DEV_IDIR_BCEID_ENV_HEADER);
+    expectText(TEST_IDIR_BCEID_ENV_HEADER);
     expect(screen.getByRole('link', { name: 'here' })).toHaveAttribute('href', HYPERLINK);
+    fireEvent.click(screen.getByRole('tab', { name: 'Role Management' }));
+    expect(screen.getByRole('link', { name: 'wiki page' })).toHaveAttribute('href', WIKI_PAGE_HYPERLINK);
   });
 
   it('should expect the correct end-point function been called with expected return data, after clicking on the Copy button', async () => {

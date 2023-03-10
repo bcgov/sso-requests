@@ -2,10 +2,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
 import { listClientRoles, listRoleUsers, getCompositeClientRoles, manageUserRole } from 'services/keycloak';
+import CreateRoleContent from 'page-partials/my-dashboard/RoleManagement/CreateRoleContent';
 
 const mockResult = () => {
   return { ...sampleRequest, authType: 'both' };
 };
+
+function RoleManagementComponent() {
+  return <RoleManagement integration={{ ...sampleRequest }} />;
+}
 
 jest.mock('services/request', () => {
   return {
@@ -67,23 +72,37 @@ describe('role management tab', () => {
     expect(screen.getByRole('tab', { selected: false, name: 'Test' }));
     expect(screen.getByRole('tab', { selected: false, name: 'Prod' }));
     await waitFor(() => {
-      expect(screen.getByRole('columnheader', { name: 'Role Name' })).toBeInTheDocument();
+      expect(screen.getByRole('row', { name: 'Role Name' })).toBeInTheDocument();
     });
     await waitFor(() => {
-      expect(screen.getByText('role1'));
+      expect(screen.findByRole('cell', { name: 'role1' }));
     });
     expect(screen.getByPlaceholderText('Search existing roles'));
   });
 
   it('Should be able to input keywords in Search Existing Role input field', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     const searchRoleInput = screen.findByRole('textbox');
-    fireEvent.change(await searchRoleInput, { target: { value: 'sample_role' } });
-    expect(screen.getByDisplayValue('sample_role')).toBeInTheDocument();
+    fireEvent.change(await searchRoleInput, { target: { value: 'role' } });
+    expect(screen.getByDisplayValue('role')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role1' }));
+    });
+  });
+
+  it('Testing on the headers, buttons and input field in the modal', async () => {
+    render(<CreateRoleContent integrationId={sampleRequest.id as number} environments={['dev', 'test', 'prod']} />);
+    screen.getByRole('row', { name: 'Role Name Environments' });
+    fireEvent.click(screen.getByRole('img', { name: 'Add Role' }));
+    expect(screen.queryAllByTestId('role-name-input-field')).toHaveLength(2);
+    const removeRoleNameInput = screen.getAllByRole('img', { name: 'Remove Role' });
+    fireEvent.click(removeRoleNameInput[1]);
+    expect(screen.queryAllByTestId('role-name-input-field')).toHaveLength(1);
   });
 
   it('Should be able to input keywords in Create New Role input field', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByText('+ Create a New Role'));
     });
@@ -93,15 +112,15 @@ describe('role management tab', () => {
   });
 
   it('Should be able to click the Search button, and check the endpoint function been called', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     await waitFor(() => {
-      fireEvent.click(screen.getByText('Search'));
+      fireEvent.click(screen.getByRole('button', { name: 'Search' }));
     });
     expect(listClientRoles).toHaveBeenCalledTimes(1);
   });
 
   it('Should be able to click the Delete Role button, and corresponding modal showing up', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByText('role1'));
     });
@@ -112,7 +131,7 @@ describe('role management tab', () => {
   });
 
   it('Should be able to click the User Details button, and corresponding modal showing up', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByText('role1'));
     });
@@ -125,7 +144,7 @@ describe('role management tab', () => {
   });
 
   it('Should be able to click the Remove User button, and corresponding modal showing up', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByText('role1'));
     });
@@ -139,7 +158,7 @@ describe('role management tab', () => {
   });
 
   it('Should be able to show service accounts assigned to a role inside service accounts tab', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByText('role1'));
     });
@@ -154,7 +173,7 @@ describe('role management tab', () => {
   });
 
   it('Should be able to click the remove service account button, and corresponding modal showing up', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByText('role1'));
     });
@@ -172,7 +191,7 @@ describe('role management tab', () => {
   });
 
   it('Should be able to show all existing composite roles, after clicking on the Composite Roles tab', async () => {
-    render(<RoleManagement integration={{ ...sampleRequest }} />);
+    render(<RoleManagementComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByText('role1'));
     });

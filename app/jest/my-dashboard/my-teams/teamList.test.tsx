@@ -84,6 +84,12 @@ describe('Team List', () => {
     expect(getByRole('option', 'Member'));
     expect(getByRole('link', 'View a detailed breakdown of roles on our wiki page')).toHaveAttribute('href', HYPERLINK);
 
+    fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
+    expect(screen.queryAllByPlaceholderText('Enter email address')).toHaveLength(2);
+    const removeMember = screen.getAllByRole('img', { name: 'Delete' });
+    fireEvent.click(removeMember[1]);
+    expect(screen.queryAllByPlaceholderText('Enter email address')).toHaveLength(1);
+
     const sendInvitationButton = getByRole('button', 'Send Invitation');
     expect(sendInvitationButton).toBeInTheDocument();
     await waitFor(() => {
