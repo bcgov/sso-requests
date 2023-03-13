@@ -32,6 +32,12 @@ describe('kecloak URIs', () => {
     expect(isValidKeycloakURIProd('ab.://c')).toBe(true);
     expect(isValidKeycloakURIProd('a.b.://c')).toBe(true);
     expect(isValidKeycloakURIProd('.ab://c')).toBe(false);
+
+    expect(isValidKeycloakURIProd('https://example.com/apple')).toBe(true);
+    expect(isValidKeycloakURIProd('https://example.com/*')).toBe(true);
+    expect(isValidKeycloakURIProd('https://example*')).toBe(false);
+    expect(isValidKeycloakURIProd('https://example.com*')).toBe(false);
+    expect(isValidKeycloakURIProd('https://exam***ple.com*')).toBe(false);
   });
 });
 
