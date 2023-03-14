@@ -113,12 +113,14 @@ describe('Members tab', () => {
     fireEvent.click(removeMember[1]);
     expect(screen.queryAllByPlaceholderText('Enter email address')).toHaveLength(2);
 
-    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
+    const confirmButton = await screen.findByRole('button', { name: 'Confirm' });
+    fireEvent.click(confirmButton);
     await waitFor(() => {
-      fireEvent.click(confirmButton);
+      expect(spyValidateTeam).toHaveBeenCalledTimes(1);
     });
-    expect(spyValidateTeam).toHaveBeenCalledTimes(1);
-    expect(addTeamMembers).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(addTeamMembers).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('Should match the expected table column headers, and corresponding members in the list', async () => {
@@ -148,9 +150,13 @@ describe('Members tab', () => {
 
     const deleteButton = screen.getByRole('img', { name: 'Delete User' });
     fireEvent.click(deleteButton);
-    expect(screen.findByTitle('Delete Team Member'));
-    const confirmDeleteButton = screen.getAllByTestId('confirm-delete');
+    await waitFor(() => {
+      expect(screen.getByTitle('Delete Team Member'));
+    });
+    const confirmDeleteButton = await screen.findAllByTestId('confirm-delete');
     fireEvent.click(confirmDeleteButton[2]);
-    expect(deleteTeamMember).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(deleteTeamMember).toHaveBeenCalledTimes(1);
+    });
   });
 });

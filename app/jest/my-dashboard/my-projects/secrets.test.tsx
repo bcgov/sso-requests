@@ -10,7 +10,7 @@ const sampleIntegration = {
 };
 
 jest.mock('services/keycloak', () => ({
-  changeClientSecret: jest.fn(() => Promise.resolve([[], null])),
+  changeClientSecret: jest.fn(() => Promise.resolve(['', null])),
 }));
 
 describe('change client secret tab', () => {

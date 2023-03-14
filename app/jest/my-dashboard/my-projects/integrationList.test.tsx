@@ -56,14 +56,17 @@ describe('Integration list', () => {
 
   it('Should be able to click the Delete button', async () => {
     render(<IntegrationListComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+      expect(screen.getByTitle('Confirm Deletion'));
     });
-    expect(screen.getByTitle('Confirm Deletion'));
+
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByTestId('confirm-delete'));
+    });
     await waitFor(() => {
-      fireEvent.click(screen.getByTestId('confirm-delete'));
+      expect(spyDeleteRequest).toHaveBeenCalledTimes(1);
     });
-    expect(spyDeleteRequest).toHaveBeenCalledTimes(1);
   });
 
   it('Should be able to click the Edit button', async () => {
