@@ -70,15 +70,21 @@ describe('Team List', () => {
     const createTeamButton = getByRole('button', '+ Create a New Team');
     expect(createTeamButton).toBeInTheDocument();
     fireEvent.click(createTeamButton);
-    expect(screen.getByTitle('Create a New Team')).toBeVisible();
+    await waitFor(() => {
+      expect(screen.getByTitle('Create a New Team')).toBeVisible();
+    });
 
     const teamNameInputField = getByLabelText('Team Name');
     fireEvent.change(await teamNameInputField, { target: { value: 'SAMPLE TEAM 01' } });
-    expect(screen.getByDisplayValue('SAMPLE TEAM 01')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('SAMPLE TEAM 01')).toBeInTheDocument();
+    });
 
     const memberEmailInputField = screen.getByPlaceholderText('Enter email address');
     fireEvent.change(await memberEmailInputField, { target: { value: 'sampleMember01@gov.bc.ca' } });
-    expect(screen.getByDisplayValue('sampleMember01@gov.bc.ca')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('sampleMember01@gov.bc.ca')).toBeInTheDocument();
+    });
 
     expect(getByRole('option', 'Admin'));
     expect(getByRole('option', 'Member'));
@@ -91,38 +97,55 @@ describe('Team List', () => {
     expect(screen.queryAllByPlaceholderText('Enter email address')).toHaveLength(1);
 
     const sendInvitationButton = getByRole('button', 'Send Invitation');
-    expect(sendInvitationButton).toBeInTheDocument();
     await waitFor(() => {
+      expect(sendInvitationButton).toBeInTheDocument();
+    });
+
+    await waitFor(async () => {
       fireEvent.click(sendInvitationButton);
     });
-    expect(createTeam).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(createTeam).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('Should match the correct table headers, selected team', () => {
+  it('Should match the correct table headers, selected team', async () => {
     render(<TeamListComponent />);
-    expect(getByRole('columnheader', 'Team Name'));
-    expect(getByRole('columnheader', 'Actions'));
-    expect(getByRole('row', 'SAMPLE_TEAM Edit Delete')).toHaveClass('active');
+    await waitFor(() => {
+      expect(getByRole('columnheader', 'Team Name'));
+    });
+    await waitFor(() => {
+      expect(getByRole('columnheader', 'Actions'));
+    });
+    await waitFor(() => {
+      expect(getByRole('row', 'SAMPLE_TEAM Edit Delete')).toHaveClass('active');
+    });
   });
 
   it('Should be able to click the Delete button, and confirm deletion', async () => {
     render(<TeamListComponent />);
     fireEvent.click(getByRole('button', 'Delete'));
-    expect(screen.getByTitle('Delete team'));
     await waitFor(() => {
-      fireEvent.click(screen.getByTestId('confirm-delete'));
+      expect(screen.getByTitle('Delete team'));
     });
-    expect(deleteTeam).toHaveBeenCalledTimes(1);
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete Team' }));
+    await waitFor(() => {
+      expect(deleteTeam).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('Should be able to click the Edit button, and save the new team name', async () => {
     render(<TeamListComponent />);
     fireEvent.click(getByRole('button', 'Edit'));
-    expect(screen.getByTitle('Edit Team Name'));
+    await waitFor(() => {
+      expect(screen.getByTitle('Edit Team Name'));
+    });
     const newTeamNameInputField = getByLabelText('New Team Name');
-    fireEvent.change(await newTeamNameInputField, { target: { value: 'NEW TEAM NAME' } });
+    fireEvent.change(newTeamNameInputField, { target: { value: 'NEW TEAM NAME' } });
     expect(screen.getByDisplayValue('NEW TEAM NAME')).toBeInTheDocument();
-    fireEvent.click(getByRole('button', 'Save'));
+    await waitFor(async () => {
+      fireEvent.click(getByRole('button', 'Save'));
+    });
     expect(editTeamName).toHaveBeenCalledTimes(1);
   });
 });

@@ -3,13 +3,14 @@ import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
 import { listClientRoles, listRoleUsers, getCompositeClientRoles, manageUserRole } from 'services/keycloak';
 import CreateRoleContent from 'page-partials/my-dashboard/RoleManagement/CreateRoleContent';
+import RoleEnvironment from 'page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 
 const mockResult = () => {
   return { ...sampleRequest, authType: 'both' };
 };
 
-function RoleManagementComponent() {
-  return <RoleManagement integration={{ ...sampleRequest }} />;
+function RoleEnvironmentComponent() {
+  return <RoleEnvironment environment={'dev'} integration={mockResult} />;
 }
 
 jest.mock('services/request', () => {
@@ -81,7 +82,7 @@ describe('role management tab', () => {
   });
 
   it('Should be able to input keywords in Search Existing Role input field', async () => {
-    render(<RoleManagementComponent />);
+    render(<RoleManagement integration={{ ...sampleRequest }} />);
     const searchRoleInput = screen.findByRole('textbox');
     fireEvent.change(await searchRoleInput, { target: { value: 'role' } });
     expect(screen.getByDisplayValue('role')).toBeInTheDocument();
@@ -102,70 +103,90 @@ describe('role management tab', () => {
   });
 
   it('Should be able to input keywords in Create New Role input field', async () => {
-    render(<RoleManagementComponent />);
+    render(<CreateRoleContent integrationId={1} environments={['dev']} />);
+
+    const newRoleNameInput = screen.getByTestId('role-name-input-field');
+    fireEvent.change(newRoleNameInput, { target: { value: 'new_role' } });
     await waitFor(() => {
-      fireEvent.click(screen.getByText('+ Create a New Role'));
+      expect(screen.getByDisplayValue('new_role')).toBeInTheDocument();
     });
-    const newRoleNameInput = screen.findByTestId('role-name-input-field');
-    fireEvent.change(await newRoleNameInput, { target: { value: 'new_role' } });
-    expect(screen.getByDisplayValue('new_role')).toBeInTheDocument();
   });
 
   it('Should be able to click the Search button, and check the endpoint function been called', async () => {
-    render(<RoleManagementComponent />);
+    render(<RoleEnvironmentComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+      expect(listClientRoles).toHaveBeenCalledTimes(1);
     });
-    expect(listClientRoles).toHaveBeenCalledTimes(1);
   });
 
   it('Should be able to click the Delete Role button, and corresponding modal showing up', async () => {
-    render(<RoleManagementComponent />);
+    render(<RoleEnvironmentComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByText('role1'));
+      expect(screen.getByText('role1'));
     });
-    await waitFor(() => {
-      fireEvent.click(screen.getByLabelText('delete'));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
+    await waitFor(async () => {
+      expect(await screen.findByTitle('Delete Role')).toBeInTheDocument();
     });
-    expect(screen.findByText('Delete Role')).toBeTruthy();
   });
 
   it('Should be able to click the User Details button, and corresponding modal showing up', async () => {
-    render(<RoleManagementComponent />);
+    render(<RoleEnvironmentComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByText('role1'));
+      expect(screen.getByRole('cell', { name: 'role1' }));
     });
-    expect(listRoleUsers).toHaveBeenCalledTimes(1);
     await waitFor(() => {
-      expect(screen.getByText('user01')).toBeTruthy();
+      expect(screen.getByRole('cell', { name: 'user01' }));
     });
+
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledTimes(1);
+    });
+    fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     fireEvent.click(screen.getByRole('img', { name: 'User Detail' }));
-    expect(screen.getByText('Additional User Info')).toBeVisible();
+    expect(await screen.findByTitle('Additional User Info')).toBeVisible();
   });
 
   it('Should be able to click the Remove User button, and corresponding modal showing up', async () => {
-    render(<RoleManagementComponent />);
+    render(<RoleEnvironmentComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByText('role1'));
+      expect(screen.getByText('role1'));
+    });
+
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('tab', { name: 'Users' }));
+    });
+    fireEvent.click(await screen.findByRole('img', { name: 'Remove User' }));
+
+    await waitFor(async () => {
+      expect(await screen.findByText('Remove User from Role')).toBeVisible();
+    });
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
     });
     await waitFor(() => {
-      expect(screen.getByText('user01')).toBeTruthy();
+      expect(manageUserRole).toHaveBeenCalledTimes(1);
     });
-    fireEvent.click(screen.getByRole('img', { name: 'Remove User' }));
-    expect(screen.getByText('Remove User from Role')).toBeVisible();
-    fireEvent.click(screen.getByTestId('modal-confirm-btn-remove-user'));
-    expect(manageUserRole).toHaveBeenCalledTimes(1);
   });
 
   it('Should be able to show service accounts assigned to a role inside service accounts tab', async () => {
-    render(<RoleManagementComponent />);
+    render(<RoleEnvironmentComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByText('role1'));
+      expect(screen.getByText('role1'));
+    });
+
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('tab', { name: 'Service Accounts' }));
     });
     await waitFor(() => {
-      fireEvent.click(screen.getByText('Service Accounts'));
+      expect(listRoleUsers).toHaveBeenCalledTimes(1);
     });
-    expect(listRoleUsers).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(screen.getByText(sampleRequest.projectName as string)).toBeTruthy();
@@ -173,33 +194,43 @@ describe('role management tab', () => {
   });
 
   it('Should be able to click the remove service account button, and corresponding modal showing up', async () => {
-    render(<RoleManagementComponent />);
+    render(<RoleEnvironmentComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByText('role1'));
+      expect(screen.getByText('role1'));
     });
-    await waitFor(() => {
-      fireEvent.click(screen.getByText('Service Accounts'));
+
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('tab', { name: 'Service Accounts' }));
     });
-    expect(listRoleUsers).toHaveBeenCalledTimes(1);
     await waitFor(() => {
       expect(screen.getByText(sampleRequest.projectName as string)).toBeTruthy();
     });
     fireEvent.click(screen.getByRole('img', { name: 'Remove Service Account' }));
-    expect(screen.getByText('Remove Service Account from Role')).toBeVisible();
-    fireEvent.click(screen.getByTestId('modal-confirm-btn-remove-service-account'));
-    expect(manageUserRole).toHaveBeenCalledTimes(1);
+    await waitFor(async () => {
+      expect(await screen.findByText('Remove Service Account from Role')).toBeInTheDocument();
+    });
+    await waitFor(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    });
+    await waitFor(() => {
+      expect(manageUserRole).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('Should be able to show all existing composite roles, after clicking on the Composite Roles tab', async () => {
-    render(<RoleManagementComponent />);
+    render(<RoleEnvironmentComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByText('role1'));
-    });
-    await waitFor(() => {
-      fireEvent.click(screen.getByText('Composite Roles'));
+      expect(screen.getByText('role1'));
     });
 
-    expect(screen.getByText('Select the roles to be nested under the Parent role')).toBeTruthy();
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('tab', { name: 'Composite Roles' }));
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Select the roles to be nested under the Parent role')).toBeTruthy();
+    });
     expect(getCompositeClientRoles).toHaveBeenCalled();
     expect(screen.getByText('compositeRole1')).toBeTruthy();
     expect(screen.getByText('compositeRole2')).toBeTruthy();

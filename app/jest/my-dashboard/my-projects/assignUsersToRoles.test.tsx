@@ -56,23 +56,28 @@ jest.mock('services/bceid-webservice', () => ({
 describe('assign user to roles tab', () => {
   it('Should be able to list search results, after click on the Search button; Should be able to click the View button for listed search result, and corresponding modal showing up', async () => {
     render(<UserRoles selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['idir'] }} />);
-    fireEvent.click(screen.getByRole('option', { name: 'Dev' }));
-    fireEvent.click(screen.getByRole('option', { name: 'IDIR' }));
-    fireEvent.click(screen.getByRole('option', { name: 'Email' }));
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('option', { name: 'Dev' }));
+    });
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('option', { name: 'IDIR' }));
+    });
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('option', { name: 'Email' }));
+    });
 
     const searchUserInput = screen.getByRole('textbox');
     fireEvent.change(searchUserInput, { target: { value: 'sample' } });
-
     await waitFor(() => {
       fireEvent.click(screen.getByRole('button', { name: 'Search' }));
     });
-    expect(searchKeycloakUsers).toHaveBeenCalled();
     await waitFor(() => {
-      expect(screen.getByRole('row', { name: 'fn ln sampleResult@gov.bc.ca View' }));
+      expect(searchKeycloakUsers).toHaveBeenCalled();
     });
+    screen.findByRole('row', { name: 'fn ln sampleResult@gov.bc.ca View' });
 
-    fireEvent.click(screen.getByRole('button', { name: 'View' }));
-    expect(screen.getByTitle('Additional User Info')).toBeVisible();
+    fireEvent.click(await screen.findByRole('button', { name: 'View' }));
+    expect(await screen.findByTitle('Additional User Info')).toBeVisible();
   });
 
   it('Should be able to click the Search in IDIM button, and corresponding modal showing up', async () => {
@@ -83,16 +88,22 @@ describe('assign user to roles tab', () => {
     );
     const searchUserInput = screen.getByRole('textbox');
     fireEvent.change(searchUserInput, { target: { value: 'sample_user' } });
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Search in IDIM Web Service Lookup' }));
-    await screen.findByTitle('IDIM Web Service Lookup');
+    fireEvent.click(screen.getByRole('button', { name: 'Search in IDIM Web Service Lookup' }));
+    await waitFor(() => {
+      expect(screen.getByTitle('IDIM Web Service Lookup')).toBeInTheDocument();
+    });
 
-    await screen.findByRole('row', { name: 'First name Last Name Email IDIR username' });
+    await waitFor(() => {
+      screen.getByRole('row', { name: 'First name Last Name Email IDIR username' });
+    });
     const idimSearchInput = screen.getAllByPlaceholderText('Enter search criteria');
     fireEvent.change(idimSearchInput[1], { target: { value: 'sample' } });
     const idimSearchButton = screen.getAllByRole('button', { name: 'Search' });
     fireEvent.click(idimSearchButton[1]);
-    expect(searchIdirUsers).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(searchIdirUsers).toHaveBeenCalled();
+    });
   });
 });
