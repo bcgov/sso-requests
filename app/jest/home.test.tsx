@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Home from 'pages/index';
+import { session } from './utils/helpers';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
@@ -12,35 +13,6 @@ const LEARN_MORE_HERE_HYPERLINK =
   'https://github.com/bcgov/sso-keycloak/wiki/Useful-References#imit-identity-standards';
 const ROCKETCHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
 const HELPFUL_DOCUMENTATION_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki';
-
-const session = {
-  at_hash: '',
-  aud: '',
-  auth_time: 1,
-  azp: '',
-  client_roles: ['sso-admin'],
-  display_name: 'display_name',
-  email: 'email@gov.bc.ca',
-  email_verified: false,
-  exp: 1,
-  family_name: 'FN',
-  given_name: 'GN',
-  iat: 1,
-  identity_provider: 'idir',
-  idir_user_guid: '',
-  idir_username: 'username',
-  isAdmin: true,
-  iss: '',
-  jti: '',
-  name: 'name',
-  nonce: '',
-  preferred_username: '',
-  roles: ['sso-admin'],
-  session_state: '',
-  sid: '',
-  sub: '',
-  typ: 'ID',
-};
 
 describe('Home panel', () => {
   it('testing on the headings, button, external links', () => {

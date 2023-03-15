@@ -66,7 +66,7 @@ describe('assign service accounts to roles', () => {
     });
 
     // step: 1 Opens the dropdown options list
-    const selectWrapper = screen.getByTestId('assign-svc-acct-to-role-select');
+    const selectWrapper = getByTestId('assign-svc-acct-to-role-select');
     const input = selectWrapper.firstChild;
     fireEvent.keyDown(input as HTMLElement, { keyCode: 40 });
 

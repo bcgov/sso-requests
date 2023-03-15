@@ -103,13 +103,19 @@ describe('role management tab', () => {
   });
 
   it('Should be able to input keywords in Create New Role input field', async () => {
-    render(<CreateRoleContent integrationId={1} environments={['dev']} />);
+    render(<RoleManagement integration={{ ...sampleRequest, environments: ['dev', 'test'] }} />);
+    fireEvent.click(screen.getByRole('button', { name: '+ Create a New Role' }));
+    await waitFor(() => {
+      expect(screen.getByTitle('Create New Role')).toBeTruthy();
+    });
 
-    const newRoleNameInput = screen.getByTestId('role-name-input-field');
+    const newRoleNameInput = await screen.findByTestId('role-name-input-field');
     fireEvent.change(newRoleNameInput, { target: { value: 'new_role' } });
     await waitFor(() => {
       expect(screen.getByDisplayValue('new_role')).toBeInTheDocument();
     });
+
+    //await waitFor(async () => { fireEvent.click(await screen.findByRole('button', {name:'Save'})) });
   });
 
   it('Should be able to click the Search button, and check the endpoint function been called', async () => {
