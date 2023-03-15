@@ -1,13 +1,27 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Layout from 'layout/Layout';
+import { session } from './utils/helpers';
+import UserProfileModal from 'layout/UserProfileModal';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
+const user = {
+  additionalEmail: 'test@gov.bc.ca',
+  createdAt: '',
+  displayName: 'display_name',
+  hasReadGoldNotification: true,
+  id: 1,
+  idirEmail: 'kuro.chen@gov.bc.ca',
+  idirUserid: '',
+  integrations: [],
+  isAdmin: true,
+  updatedAt: '',
+};
 
 function LayoutComponent() {
   return (
-    <Layout session={session} user={null} enableGold={true} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+    <Layout session={session} user={user} enableGold={true} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
   );
 }
 
@@ -18,35 +32,6 @@ const DISCLAIMER_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/disclaimer
 const PRIVACY_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/privacy';
 const ACCESSIBILITY_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/accessible-government';
 const COPYRIGHT_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/copyright';
-
-const session = {
-  at_hash: '',
-  aud: '',
-  auth_time: 1,
-  azp: '',
-  client_roles: ['sso-admin'],
-  display_name: 'display_name',
-  email: 'email@gov.bc.ca',
-  email_verified: false,
-  exp: 1,
-  family_name: 'FN',
-  given_name: 'GN',
-  iat: 1,
-  identity_provider: 'idir',
-  idir_user_guid: '',
-  idir_username: 'username',
-  isAdmin: true,
-  iss: '',
-  jti: '',
-  name: 'name',
-  nonce: '',
-  preferred_username: '',
-  roles: ['sso-admin'],
-  session_state: '',
-  sid: '',
-  sub: '',
-  typ: 'ID',
-};
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(() => ({
@@ -83,10 +68,10 @@ describe('Layout page', () => {
   it('testing on the My Profile module', async () => {
     const { asFragment } = render(<LayoutComponent />);
 
-    //Navigation -> MobileMenu
-    //expect(asFragment()).toMatchSnapshot();
-    //const myProfileModule = screen.getByText('My Profile');
-    // fireEvent.click(myProfileModule)
+    //await waitFor(async () => {await screen.findByText('My Profile') });
+    const myProfileModule = await screen.findByRole('img', { name: 'My Profile' });
+    //fireEvent.click(myProfileModule);
+    expect(asFragment()).toMatchSnapshot();
   });
 
   it('testing on the log out button', () => {

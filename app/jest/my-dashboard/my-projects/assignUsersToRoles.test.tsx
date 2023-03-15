@@ -54,18 +54,97 @@ jest.mock('services/bceid-webservice', () => ({
 }));
 
 describe('assign user to roles tab', () => {
-  it('Should be able to list search results, after click on the Search button; Should be able to click the View button for listed search result, and corresponding modal showing up', async () => {
-    render(<UserRoles selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['idir'] }} />);
-    await waitFor(async () => {
-      fireEvent.click(await screen.findByRole('option', { name: 'Dev' }));
+  it('Should display correct user selection criteria for different idps', async () => {
+    render(
+      <UserRoles
+        selectedRequest={{
+          ...sampleRequest,
+          environments: ['dev', 'test'],
+          devIdps: ['idir', 'bceidbasic', 'githubpublic'],
+        }}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
     });
+
+    const selectIdpWrapper = screen.getByTestId('user-role-filter-idp');
+    const idirIdp = selectIdpWrapper.childNodes[0];
+    const bceidIdp = selectIdpWrapper.childNodes[1];
+    const githubIdp = selectIdpWrapper.childNodes[2];
+
+    fireEvent.keyDown(idirIdp as HTMLElement, { keyCode: 40 });
     await waitFor(async () => {
       fireEvent.click(await screen.findByRole('option', { name: 'IDIR' }));
     });
-    await waitFor(async () => {
-      fireEvent.click(await screen.findByRole('option', { name: 'Email' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('user-role-filter-prop')).toHaveTextContent('First Name');
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('user-role-filter-prop')).toHaveTextContent('Last Name');
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('user-role-filter-prop')).toHaveTextContent('Email');
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('user-role-filter-prop')).toHaveTextContent('IDP GUID');
+    });
+  });
+
+  it('Should display correct user selection criteria for bceid idps', async () => {
+    render(
+      <UserRoles selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['bceidbasic'] }} />,
+    );
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
     });
 
+    fireEvent.click(await screen.findByRole('option', { name: 'Basic BCeID' }));
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Display Name' })).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Username' })).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Email' })).toBeInTheDocument();
+    });
+  });
+
+  it('Should display correct user selection criteria for github idps', async () => {
+    render(
+      <UserRoles selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['githubpublic'] }} />,
+    );
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
+    });
+
+    fireEvent.click(await screen.findByRole('option', { name: 'GitHub' }));
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Name' })).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Login' })).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Email' })).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'IDP GUID' })).toBeInTheDocument();
+    });
+  });
+
+  it('Should be able to list search results, after click on the Search button; Should be able to click the View button for listed search result, and corresponding modal showing up', async () => {
+    render(
+      <UserRoles
+        selectedRequest={{
+          ...sampleRequest,
+          environments: ['dev', 'test'],
+          devIdps: ['idir', 'bceidbasic', 'githubpublic'],
+        }}
+      />,
+    );
     const searchUserInput = screen.getByRole('textbox');
     fireEvent.change(searchUserInput, { target: { value: 'sample' } });
     await waitFor(() => {
