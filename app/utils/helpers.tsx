@@ -1,20 +1,22 @@
 import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from 'utils/constants';
 import { Team, User } from 'interfaces/team';
-import { Integration, Option } from 'interfaces/Request';
+import { Integration, Option, IDP_Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { silverRealmIdpsMap } from '@app/helpers/meta';
 
-export const formatFilters = (idps: Option[], envs: Option[]) => {
+export const formatFilters = (idps: IDP_Option[], envs: Option[]) => {
   let realms: string[] | null = [];
-  idps.forEach((idp: Option) => (realms = realms?.concat(idp.value) || null));
+  let devIdps: string[] | null = [];
+  idps.forEach((idp: IDP_Option) => (realms = realms?.concat(idp.value) || null));
   realms = realms.length > 0 ? realms : null;
-
+  idps.forEach((idp: IDP_Option) => (devIdps = devIdps?.concat(idp.value_gold) || null));
+  devIdps = devIdps.length > 0 ? devIdps : null;
   let formattedEnvironments: string[] | null = envs.map((env: Option) => env.value as string);
   formattedEnvironments = formattedEnvironments.length > 0 ? formattedEnvironments : null;
-  return [realms, formattedEnvironments];
+  return [devIdps, realms, formattedEnvironments];
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {
