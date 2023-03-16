@@ -9,7 +9,7 @@ import { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
-import { Integration, Option } from 'interfaces/Request';
+import { Integration, Option, IDP_Option } from 'interfaces/Request';
 import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
@@ -23,19 +23,13 @@ const RightAlign = styled.div`
 `;
 
 const idpOptions = [
-  { value: ['onestopauth', 'idir', 'azureidir'], label: 'IDIR' },
+  { value: ['onestopauth'], value_gold: ['idir', 'azureidir'], label: 'IDIR' },
   {
-    value: [
-      'onestopauth-basic',
-      'onestopauth-business',
-      'onestopauth-both',
-      'bceidbasic',
-      'bceidbusiness',
-      'bceidboth',
-    ],
+    value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
+    value_gold: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
     label: 'BCeID',
   },
-  { value: ['githubbcgov', 'githubpublic'], label: 'GitHub' },
+  { value_gold: ['githubbcgov', 'githubpublic'], label: 'GitHub' },
 ];
 
 const archiveStatusOptions = [
@@ -93,7 +87,7 @@ export default function AdminDashboard({ session }: PageProps) {
   const [page, setPage] = useState<number>(1);
   const [selectedId, setSelectedId] = useState<number | undefined>(Number(router.query?.id) || undefined);
   const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
-  const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
+  const [selectedIdp, setSelectedIdp] = useState<IDP_Option[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
   const [archiveStatus, setArchiveStatus] = useState<Option[]>([]);
   const [types, setTypes] = useState<Option[]>([]);
@@ -101,10 +95,7 @@ export default function AdminDashboard({ session }: PageProps) {
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
   const getData = async () => {
-    const [realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
-
-    // the realms argument is passed to both the realm and devIdps since
-    // gold and silver store their idp config in separate places.
+    const [devIdps, realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
     return getRequestAll({
       searchField: ['id', 'projectName'],
       searchKey,
@@ -119,7 +110,7 @@ export default function AdminDashboard({ session }: PageProps) {
       realms,
       environments,
       types: types.map((v) => v.value) as string[],
-      devIdps: realms,
+      devIdps,
     });
   };
 

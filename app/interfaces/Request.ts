@@ -80,6 +80,12 @@ export interface Option {
   label: string;
 }
 
+export interface IDP_Option {
+  value: string | string[];
+  value_gold: string | string[];
+  label: string;
+}
+
 export interface ClientRole {
   name: string;
   composites: string[];
