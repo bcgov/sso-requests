@@ -133,7 +133,7 @@ export const getWhereClauseForAllRequests = (data: {
     where.archived = archiveStatus[0] === 'archived';
   }
 
-  // silver and gold IDPs are in different columns requiring an and or query
+  // silver and gold IDPs are in different columns requiring an `and or` query
   if (realms && !devIdps) {
     where.realm = {
       [Op.in]: realms,
@@ -148,36 +148,7 @@ export const getWhereClauseForAllRequests = (data: {
         [Op.or]: [{ realm: { [Op.in]: realms } }, { dev_idps: { [Op.overlap]: devIdps } }],
       },
     ];
-
-    // where[Op.or] = [
-    //     {realm: {[Op.in]: realms,}},
-    //     {dev_idps: {[Op.overlap]: devIdps,}}
-    //   ]
-
-    // where.idpsgoldsilber = {
-    //   [Op.or]:[
-    //     {realm: {[Op.in]: realms,}},
-    //     {dev_idps: {[Op.overlap]: devIdps,}}
-    //   ]
-    // }
-
-    // where[Op.and] = [];
-    // where[Op.and].push({
-    //   [Op.or]: [
-    //     where.realm = {
-    //       [Op.in]: realms,
-    //     },
-    //     where.dev_idps = {
-    //       [Op.overlap]: devIdps,
-    //     }
-    //   ]
-    // })
   }
-
-  // where[Op.or].push({
-  //   realm: {[Op.in]: realms},
-  //   dev_idps:{[Op.overlap]: devIdps}
-  // });
 
   if (environments)
     where.environments = {
