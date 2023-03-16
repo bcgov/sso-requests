@@ -104,7 +104,7 @@ export default function AdminDashboard({ session }: PageProps) {
     const [realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
 
     // the realms argument is passed to both the realm and devIdps since
-    // gold and silver store their idp confid in separate places.
+    // gold and silver store their idp config in separate places.
     return getRequestAll({
       searchField: ['id', 'projectName'],
       searchKey,
