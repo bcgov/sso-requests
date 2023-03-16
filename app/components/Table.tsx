@@ -14,7 +14,7 @@ import { TextBlock } from 'react-placeholder/lib/placeholders';
 import ReactPlaceholder from 'react-placeholder';
 import 'react-placeholder/lib/reactPlaceholder.css';
 import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
-import { Option } from 'interfaces/Request';
+import { Option, IDP_Option } from 'interfaces/Request';
 
 const StyledInput = styled(Input)`
   input {
@@ -76,10 +76,10 @@ export interface TableFilterItem {
 
 export interface TableFilter {
   key?: string;
-  value?: string | Option[];
+  value?: string | Option[] | IDP_Option[];
   multiselect?: boolean;
   onChange?: Function;
-  options: Option[];
+  options: Option[] | IDP_Option[];
   label?: string;
 }
 

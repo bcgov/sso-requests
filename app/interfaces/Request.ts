@@ -78,7 +78,7 @@ export interface Option {
 }
 
 export interface IDP_Option {
-  value: string | string[];
+  value?: string | string[];
   value_gold: string | string[];
   label: string;
 }

@@ -10,7 +10,7 @@ import { silverRealmIdpsMap } from '@app/helpers/meta';
 export const formatFilters = (idps: IDP_Option[], envs: Option[]) => {
   let realms: string[] | null = [];
   let devIdps: string[] | null = [];
-  idps.forEach((idp: IDP_Option) => (realms = realms?.concat(idp.value) || null));
+  idps.forEach((idp: IDP_Option) => (realms = idp?.value ? realms?.concat(idp?.value) || null : realms));
   realms = realms.length > 0 ? realms : null;
   idps.forEach((idp: IDP_Option) => (devIdps = devIdps?.concat(idp.value_gold) || null));
   devIdps = devIdps.length > 0 ? devIdps : null;
