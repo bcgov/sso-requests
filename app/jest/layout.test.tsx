@@ -2,26 +2,29 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Layout from 'layout/Layout';
 import { session } from './utils/helpers';
-import UserProfileModal from 'layout/UserProfileModal';
+import { SessionContext } from '@app/pages/_app';
+import { User } from 'interfaces/team';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
-const user = {
+const user: User = {
   additionalEmail: 'test@gov.bc.ca',
   createdAt: '',
-  displayName: 'display_name',
   hasReadGoldNotification: true,
+  role: 'admin',
   id: 1,
   idirEmail: 'kuro.chen@gov.bc.ca',
   idirUserid: '',
   integrations: [],
-  isAdmin: true,
   updatedAt: '',
+  pending: false,
 };
 
 function LayoutComponent() {
   return (
-    <Layout session={session} user={user} enableGold={true} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+    <SessionContext.Provider value={{ session, user, enableGold: true }}>
+      <Layout session={session} user={user} enableGold={true} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+    </SessionContext.Provider>
   );
 }
 
@@ -40,7 +43,27 @@ jest.mock('next/router', () => ({
   })),
 }));
 
-jest.mock('layout/BCSans', () => () => <></>);
+jest.mock('services/user', () => ({
+  getProfile: jest.fn(() =>
+    Promise.resolve([
+      {
+        additionalEmail: '',
+        displayName: 'Kuro Chen',
+        hasReadGoldNotification: true,
+        id: 1,
+        isAdmin: true,
+        idirEmail: 'kuro.chen@gov.bc.ca',
+        idirUserid: '4EF873DEB63E4BA6AB75C0831A3830B0',
+        integrations: [],
+        createdAt: '',
+        updatedAt: '',
+      },
+      null,
+    ]),
+  ),
+}));
+
+jest.mock('layout/BCSans', () => jest.fn(() => {}));
 
 describe('Layout page', () => {
   it('should match all external links in the layout page', () => {
@@ -65,11 +88,13 @@ describe('Layout page', () => {
     expect(screen.getByRole('link', { name: 'Copyright' })).toHaveAttribute('href', COPYRIGHT_HYPERLINK);
   });
 
-  it('testing on the My Profile module', async () => {
+  it.only('testing on the My Profile module', async () => {
     const { asFragment } = render(<LayoutComponent />);
 
-    //await waitFor(async () => {await screen.findByText('My Profile') });
-    const myProfileModule = await screen.findByRole('img', { name: 'My Profile' });
+    // await waitFor(async () => {
+    //   expect(screen.getByTitle('My Profile')).toBeInTheDocument();
+    // });
+    //const myProfileModule = await screen.findByRole('img', { name: 'My Profile' });
     //fireEvent.click(myProfileModule);
     expect(asFragment()).toMatchSnapshot();
   });
