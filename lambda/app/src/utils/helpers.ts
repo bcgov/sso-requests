@@ -106,9 +106,10 @@ export const getWhereClauseForAllRequests = (data: {
   realms?: string[];
   environments?: string[];
   types?: string[];
+  devIdps?: string[];
 }) => {
   const where: any = {};
-  const { searchField, searchKey, status = [], archiveStatus = [], realms, environments, types } = data;
+  const { searchField, searchKey, status = [], archiveStatus = [], realms, devIdps, environments, types } = data;
 
   if (searchKey && searchField && searchField.length > 0) {
     where[Op.or] = [];
@@ -132,10 +133,51 @@ export const getWhereClauseForAllRequests = (data: {
     where.archived = archiveStatus[0] === 'archived';
   }
 
-  if (realms)
+  // silver and gold IDPs are in different columns requiring an and or query
+  if (realms && !devIdps) {
     where.realm = {
       [Op.in]: realms,
     };
+  } else if (!realms && devIdps) {
+    where.dev_idps = {
+      [Op.overlap]: devIdps,
+    };
+  } else if (realms && devIdps) {
+    where[Op.and] = [
+      {
+        [Op.or]: [{ realm: { [Op.in]: realms } }, { dev_idps: { [Op.overlap]: devIdps } }],
+      },
+    ];
+
+    // where[Op.or] = [
+    //     {realm: {[Op.in]: realms,}},
+    //     {dev_idps: {[Op.overlap]: devIdps,}}
+    //   ]
+
+    // where.idpsgoldsilber = {
+    //   [Op.or]:[
+    //     {realm: {[Op.in]: realms,}},
+    //     {dev_idps: {[Op.overlap]: devIdps,}}
+    //   ]
+    // }
+
+    // where[Op.and] = [];
+    // where[Op.and].push({
+    //   [Op.or]: [
+    //     where.realm = {
+    //       [Op.in]: realms,
+    //     },
+    //     where.dev_idps = {
+    //       [Op.overlap]: devIdps,
+    //     }
+    //   ]
+    // })
+  }
+
+  // where[Op.or].push({
+  //   realm: {[Op.in]: realms},
+  //   dev_idps:{[Op.overlap]: devIdps}
+  // });
 
   if (environments)
     where.environments = {

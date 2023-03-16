@@ -337,6 +337,7 @@ export const getRequestAll = async (
     realms?: string[];
     environments?: string[];
     types?: string[];
+    devIdps: string[];
   },
 ) => {
   if (!isAdmin(session)) {
