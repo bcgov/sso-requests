@@ -23,8 +23,19 @@ const RightAlign = styled.div`
 `;
 
 const idpOptions = [
-  { value: ['onestopauth'], label: 'IDIR' },
-  { value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'], label: 'BCeID' },
+  { value: ['onestopauth', 'idir', 'azureidir'], label: 'IDIR' },
+  {
+    value: [
+      'onestopauth-basic',
+      'onestopauth-business',
+      'onestopauth-both',
+      'bceidbasic',
+      'bceidbusiness',
+      'bceidboth',
+    ],
+    label: 'BCeID',
+  },
+  { value: ['githubbcgov', 'githubpublic'], label: 'GitHub' },
 ];
 
 const archiveStatusOptions = [
@@ -91,6 +102,9 @@ export default function AdminDashboard({ session }: PageProps) {
 
   const getData = async () => {
     const [realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
+
+    // the realms argument is passed to both the realm and devIdps since
+    // gold and silver store their idp confid in separate places.
     return getRequestAll({
       searchField: ['id', 'projectName'],
       searchKey,
@@ -105,6 +119,7 @@ export default function AdminDashboard({ session }: PageProps) {
       realms,
       environments,
       types: types.map((v) => v.value) as string[],
+      devIdps: realms,
     });
   };
 
