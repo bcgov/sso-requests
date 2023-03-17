@@ -30,7 +30,7 @@
     "octokit": "^1.7.2",
     "reflect-metadata": "^0.1.13",
     "serverless-http": "^3.1.0",
-    "swagger-autogen": "^2.21.5",
+    "swagger-autogen": "^2.23.1",
     "swagger-ui-dist": "^4.14.0",
     "tsyringe": "^4.7.0"
   },

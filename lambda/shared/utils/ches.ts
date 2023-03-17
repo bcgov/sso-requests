@@ -3,8 +3,13 @@ import url from 'url';
 import compact from 'lodash.compact';
 import uniq from 'lodash.uniq';
 import { EmailOptions } from '../interfaces';
+import https from 'https';
 
 const compactUniq = (v) => uniq(compact(v));
+
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 const fetchChesToken = async (username, password) => {
   const tokenEndpoint = process.env.CHES_TOKEN_ENDPOINT;
@@ -14,6 +19,7 @@ const fetchChesToken = async (username, password) => {
       headers: {
         'Accept-Encoding': 'application/json',
       },
+      httpsAgent,
       auth: {
         username,
         password,
@@ -48,13 +54,14 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, bo
 
   const reqOptions = {
     headers: { Authorization: `Bearer ${accessToken}` },
+    httpsAgent,
   };
 
   console.log('DEBUG: ', chesAPIEndpoint, reqPayload, reqOptions);
 
   // see https://github.com/axios/axios/issues/1650#issuecomment-410403394
   // see https://nodejs.org/api/cli.html#node_tls_reject_unauthorizedvalue
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  // process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
   return axios.post(chesAPIEndpoint, reqPayload, reqOptions);
 };
