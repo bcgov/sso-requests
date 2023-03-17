@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Layout from 'layout/Layout';
+import { updateProfile } from 'services/user';
 import { session } from './utils/helpers';
 import { SessionContext } from '@app/pages/_app';
 import { User } from 'interfaces/team';
@@ -8,12 +9,12 @@ import { User } from 'interfaces/team';
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
 const user: User = {
-  additionalEmail: 'test@gov.bc.ca',
+  additionalEmail: 'addition_email@gov.bc.ca',
   createdAt: '',
   hasReadGoldNotification: true,
   role: 'admin',
   id: 1,
-  idirEmail: 'kuro.chen@gov.bc.ca',
+  idirEmail: 'email@gov.bc.ca',
   idirUserid: '',
   integrations: [],
   updatedAt: '',
@@ -28,6 +29,7 @@ function LayoutComponent() {
   );
 }
 
+const MY_PROFILE_HYPERLINK = '#user-profile';
 const ROCKET_CHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
 const PATHFINDER_SSO_HYPERLINK = 'mailto:bcgov.sso@gov.bc.ca';
 const DOCUMENTATION_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki';
@@ -47,13 +49,13 @@ jest.mock('services/user', () => ({
   getProfile: jest.fn(() =>
     Promise.resolve([
       {
-        additionalEmail: '',
-        displayName: 'Kuro Chen',
+        additionalEmail: 'addition_email@gov.bc.ca',
+        displayName: 'display_name',
         hasReadGoldNotification: true,
         id: 1,
         isAdmin: true,
-        idirEmail: 'kuro.chen@gov.bc.ca',
-        idirUserid: '4EF873DEB63E4BA6AB75C0831A3830B0',
+        idirEmail: 'email@gov.bc.ca',
+        idirUserid: '',
         integrations: [],
         createdAt: '',
         updatedAt: '',
@@ -61,6 +63,7 @@ jest.mock('services/user', () => ({
       null,
     ]),
   ),
+  updateProfile: jest.fn(() => Promise.resolve([{}, null])),
 }));
 
 jest.mock('layout/BCSans', () => jest.fn(() => {}));
@@ -79,6 +82,7 @@ describe('Layout page', () => {
     expect(screen.getByRole('link', { name: 'SSO Reports' })).toHaveAttribute('href', '/admin-reports');
     expect(screen.getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
 
+    expect(screen.getByRole('link', { name: 'My Profile' })).toHaveAttribute('href', MY_PROFILE_HYPERLINK);
     expect(screen.getByRole('link', { name: 'Rocket Chat' })).toHaveAttribute('href', ROCKET_CHAT_HYPERLINK);
     expect(screen.getByRole('link', { name: 'Pathfinder SSO' })).toHaveAttribute('href', PATHFINDER_SSO_HYPERLINK);
     expect(screen.getByRole('link', { name: 'Documentation' })).toHaveAttribute('href', DOCUMENTATION_HYPERLINK);
@@ -88,15 +92,29 @@ describe('Layout page', () => {
     expect(screen.getByRole('link', { name: 'Copyright' })).toHaveAttribute('href', COPYRIGHT_HYPERLINK);
   });
 
-  it.only('testing on the My Profile module', async () => {
-    const { asFragment } = render(<LayoutComponent />);
+  it('testing on the My Profile module', async () => {
+    render(<LayoutComponent />);
 
-    // await waitFor(async () => {
-    //   expect(screen.getByTitle('My Profile')).toBeInTheDocument();
-    // });
-    //const myProfileModule = await screen.findByRole('img', { name: 'My Profile' });
-    //fireEvent.click(myProfileModule);
-    expect(asFragment()).toMatchSnapshot();
+    const myProfileModule = screen.getByRole('link', { name: 'My Profile' });
+    fireEvent.click(myProfileModule);
+    await waitFor(() => {
+      expect(screen.getAllByTitle('My Profile')).toHaveLength(2);
+    });
+
+    expect(screen.getByText('Default Email')).toBeInTheDocument();
+    expect(screen.getByText('Additional Email')).toBeInTheDocument();
+    const additionEmailInput = screen.getByTestId('addi-email');
+    fireEvent.change(additionEmailInput, { target: { value: 'addition_email@gov.bc.ca' } });
+    await waitFor(() => {
+      expect(screen.getByTestId('addi-email')).toHaveValue('addition_email@gov.bc.ca');
+    });
+
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    });
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalled();
+    });
   });
 
   it('testing on the log out button', () => {

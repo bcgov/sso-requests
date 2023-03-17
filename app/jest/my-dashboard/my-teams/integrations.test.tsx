@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { deleteRequest } from 'services/request';
 import { MyTeamsComponent } from './helpers';
 
@@ -144,6 +144,9 @@ describe('Integrations tab', () => {
 
   it('Should match the expected table column headers, and corresponding integrations in the list', async () => {
     render(<MyTeamsComponent />);
+    await waitFor(() => {
+      screen.getByRole('button', { name: '+ Create a New Team' });
+    });
     fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
 
     await screen.findByRole('columnheader', { name: 'Status' });

@@ -96,6 +96,9 @@ describe('Members tab', () => {
 
   it('Should match the expected button name, and testing on all drop-down-box, hyperlink, and button functionality in the modal', async () => {
     render(<MyTeamsComponent />);
+    await waitFor(() => {
+      screen.getByRole('button', { name: '+ Create a New Team' });
+    });
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
     const addNewMemberButton = screen.findByText('+ Add New Team Members');

@@ -1,7 +1,13 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
-import { listClientRoles, listRoleUsers, getCompositeClientRoles, manageUserRole } from 'services/keycloak';
+import {
+  listClientRoles,
+  listRoleUsers,
+  getCompositeClientRoles,
+  manageUserRole,
+  bulkCreateRole,
+} from 'services/keycloak';
 import CreateRoleContent from 'page-partials/my-dashboard/RoleManagement/CreateRoleContent';
 import RoleEnvironment from 'page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 
@@ -59,6 +65,7 @@ jest.mock('services/keycloak', () => ({
   getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
   manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
+  bulkCreateRole: jest.fn(() => Promise.resolve([{}, null])),
 }));
 
 describe('role management tab', () => {
@@ -102,11 +109,20 @@ describe('role management tab', () => {
     expect(screen.queryAllByTestId('role-name-input-field')).toHaveLength(1);
   });
 
-  it('Should be able to input keywords in Create New Role input field', async () => {
+  it('Should be able to input keywords in Create New Role input field, and corresponding end-point should be called', async () => {
     render(<RoleManagement integration={{ ...sampleRequest, environments: ['dev', 'test'] }} />);
     fireEvent.click(screen.getByRole('button', { name: '+ Create a New Role' }));
     await waitFor(() => {
       expect(screen.getByTitle('Create New Role')).toBeTruthy();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Role Name')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Environments')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Add another role')).toBeInTheDocument();
     });
 
     const newRoleNameInput = await screen.findByTestId('role-name-input-field');
@@ -115,7 +131,12 @@ describe('role management tab', () => {
       expect(screen.getByDisplayValue('new_role')).toBeInTheDocument();
     });
 
-    //await waitFor(async () => { fireEvent.click(await screen.findByRole('button', {name:'Save'})) });
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Save'));
+    });
+    await waitFor(() => {
+      expect(bulkCreateRole).toHaveBeenCalled();
+    });
   });
 
   it('Should be able to click the Search button, and check the endpoint function been called', async () => {
