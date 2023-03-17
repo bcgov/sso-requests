@@ -112,6 +112,9 @@ describe('CSS API Account tab', () => {
 
   it('Should match the expected table column headers, and corresponding API account in the list, and turn to correct page when click on the hyperlink', async () => {
     render(<MyTeamsComponent />);
+    await waitFor(() => {
+      screen.getByRole('button', { name: '+ Create a New Team' });
+    });
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
     await screen.findByRole('columnheader', { name: 'API Account ID' });
