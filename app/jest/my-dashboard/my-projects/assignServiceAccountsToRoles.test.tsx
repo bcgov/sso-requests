@@ -18,6 +18,7 @@ function ServiceAccountRolesComponent() {
 }
 
 const listClientRolesResponse = ['role1'];
+const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role#service-account-role-management';
 
 jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[...listClientRolesResponse], null])),
@@ -25,10 +26,16 @@ jest.mock('services/keycloak', () => ({
   manageUserRoles: jest.fn(() => Promise.resolve([true, null])),
 }));
 
-describe('assign service accounts to role', () => {
+describe('assign service accounts to roles', () => {
   it('Should be able to display and close the notification about security risk', async () => {
     render(<ServiceAccountRolesComponent />);
     expect(screen.getByTestId('assign-svc-acct-role-risk-alert'));
+  });
+
+  it('Should match the correct table headers, external link address', () => {
+    render(<ServiceAccountRolesComponent />);
+    expect(screen.getByRole('row', { name: 'Service Account' }));
+    expect(screen.getByRole('link', { name: 'learn more' })).toHaveAttribute('href', HYPERLINK);
   });
 
   it('Should be able to switch between environments', async () => {
@@ -59,7 +66,7 @@ describe('assign service accounts to role', () => {
     });
 
     // step: 1 Opens the dropdown options list
-    const selectWrapper = await getByTestId('assign-svc-acct-to-role-select');
+    const selectWrapper = getByTestId('assign-svc-acct-to-role-select');
     const input = selectWrapper.firstChild;
     fireEvent.keyDown(input as HTMLElement, { keyCode: 40 });
 
