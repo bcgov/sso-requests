@@ -1,13 +1,12 @@
 import { formatFilters } from 'utils/helpers';
 
 const allIdpOptions = [
-  { value: ['onestopauth'], value_gold: ['idir', 'azureidir'], label: 'IDIR' },
+  { value: 'idir', label: 'IDIR' },
   {
-    value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
-    value_gold: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
+    value: 'bceid',
     label: 'BCeID',
   },
-  { value_gold: ['githubbcgov', 'githubpublic'], label: 'GitHub' },
+  { value: 'github', label: 'GitHub' },
 ];
 
 const allEnvironmentOptions = [
