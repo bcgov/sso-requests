@@ -1,18 +1,40 @@
 import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from 'utils/constants';
 import { Team, User } from 'interfaces/team';
-import { Integration, Option, IDP_Option } from 'interfaces/Request';
+import { Integration, Option, Silver_IDP_Option, Gold_IDP_Option } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { silverRealmIdpsMap } from '@app/helpers/meta';
 
-export const formatFilters = (idps: IDP_Option[], envs: Option[]) => {
+export const formatFilters = (idps: Option[], envs: Option[]) => {
+  const silver_realms: Silver_IDP_Option = {
+    idir: ['onestopauth'],
+    bceid: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
+  };
+
+  const gold_realms: Gold_IDP_Option = {
+    idir: ['idir', 'azureidir'],
+    bceid: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
+    github: ['githubbcgov', 'githubpublic'],
+  };
+
   let realms: string[] | null = [];
   let devIdps: string[] | null = [];
-  idps.forEach((idp: IDP_Option) => (realms = idp?.value ? realms?.concat(idp?.value) || null : realms));
+
+  idps.forEach((idp: Option) => {
+    if (idp.value == 'github') {
+      devIdps = devIdps?.concat(gold_realms['github']) || null;
+    } else if (idp.value == 'idir') {
+      devIdps = devIdps?.concat(gold_realms['idir']) || null;
+      realms = realms?.concat(silver_realms['idir']) || null;
+    } else if (idp.value == 'bceid') {
+      devIdps = devIdps?.concat(gold_realms['bceid']) || null;
+      realms = realms?.concat(silver_realms['bceid']) || null;
+    }
+  });
+
   realms = realms.length > 0 ? realms : null;
-  idps.forEach((idp: IDP_Option) => (devIdps = devIdps?.concat(idp.value_gold) || null));
   devIdps = devIdps.length > 0 ? devIdps : null;
   let formattedEnvironments: string[] | null = envs.map((env: Option) => env.value as string);
   formattedEnvironments = formattedEnvironments.length > 0 ? formattedEnvironments : null;

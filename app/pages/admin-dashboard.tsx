@@ -9,7 +9,7 @@ import { MediaRule } from 'components/ResponsiveContainer';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
-import { Integration, Option, IDP_Option } from 'interfaces/Request';
+import { Integration, Option } from 'interfaces/Request';
 import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
@@ -23,13 +23,9 @@ const RightAlign = styled.div`
 `;
 
 const idpOptions = [
-  { value: ['onestopauth'], value_gold: ['idir', 'azureidir'], label: 'IDIR' },
-  {
-    value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
-    value_gold: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
-    label: 'BCeID',
-  },
-  { value_gold: ['githubbcgov', 'githubpublic'], label: 'GitHub' },
+  { value: 'idir', label: 'IDIR' },
+  { value: 'bceid', label: 'BCeID' },
+  { value: 'github', label: 'GitHub' },
 ];
 
 const archiveStatusOptions = [
@@ -87,12 +83,22 @@ export default function AdminDashboard({ session }: PageProps) {
   const [page, setPage] = useState<number>(1);
   const [selectedId, setSelectedId] = useState<number | undefined>(Number(router.query?.id) || undefined);
   const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
-  const [selectedIdp, setSelectedIdp] = useState<IDP_Option[]>([]);
+  const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
   const [archiveStatus, setArchiveStatus] = useState<Option[]>([]);
   const [types, setTypes] = useState<Option[]>([]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
   const selectedRequest = rows.find((v) => v.id === selectedId);
+
+  const idpOptionsSilverGold2 = {
+    idir: { value: ['onestopauth'], value_gold: ['idir', 'azureidir'], label: 'IDidiidirIR' },
+    bceid: {
+      value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
+      value_gold: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
+      label: 'BCeID',
+    },
+    github: { value_gold: ['githubbcgov', 'githubpublic'], label: 'GitHub' },
+  };
 
   const getData = async () => {
     const [devIdps, realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
