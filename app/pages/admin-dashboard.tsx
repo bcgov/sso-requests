@@ -90,16 +90,6 @@ export default function AdminDashboard({ session }: PageProps) {
   const [activePanel, setActivePanel] = useState<TabKey>('details');
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
-  const idpOptionsSilverGold2 = {
-    idir: { value: ['onestopauth'], value_gold: ['idir', 'azureidir'], label: 'IDidiidirIR' },
-    bceid: {
-      value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
-      value_gold: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
-      label: 'BCeID',
-    },
-    github: { value_gold: ['githubbcgov', 'githubpublic'], label: 'GitHub' },
-  };
-
   const getData = async () => {
     const [devIdps, realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
     return getRequestAll({
