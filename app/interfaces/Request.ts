@@ -80,10 +80,14 @@ export interface Option {
   label: string;
 }
 
-export interface IDP_Option {
-  value?: string | string[];
-  value_gold: string | string[];
-  label: string;
+export interface Silver_IDP_Option {
+  idir: string | string[];
+  bceid: string | string[];
+}
+export interface Gold_IDP_Option {
+  idir: string | string[];
+  bceid: string | string[];
+  github: string | string[];
 }
 
 export interface ClientRole {
