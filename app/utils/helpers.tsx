@@ -1,19 +1,19 @@
 import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from 'utils/constants';
 import { Team, User } from 'interfaces/team';
-import { Integration, Option, Silver_IDP_Option, Gold_IDP_Option } from 'interfaces/Request';
+import { Integration, Option, SilverIDPOption, GoldIDPOption } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
-  const silver_realms: Silver_IDP_Option = {
+  const silver_realms: SilverIDPOption = {
     idir: ['onestopauth'],
     bceid: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
   };
 
-  const gold_realms: Gold_IDP_Option = {
+  const gold_realms: GoldIDPOption = {
     idir: ['idir', 'azureidir'],
     bceid: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
     github: ['githubbcgov', 'githubpublic'],

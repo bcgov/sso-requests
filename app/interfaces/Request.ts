@@ -80,11 +80,11 @@ export interface Option {
   label: string;
 }
 
-export interface Silver_IDP_Option {
+export interface SilverIDPOption {
   idir: string | string[];
   bceid: string | string[];
 }
-export interface Gold_IDP_Option {
+export interface GoldIDPOption {
   idir: string | string[];
   bceid: string | string[];
   github: string | string[];
