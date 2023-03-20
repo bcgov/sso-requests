@@ -23,8 +23,9 @@ const RightAlign = styled.div`
 `;
 
 const idpOptions = [
-  { value: ['onestopauth'], label: 'IDIR' },
-  { value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'], label: 'BCeID' },
+  { value: 'idir', label: 'IDIR' },
+  { value: 'bceid', label: 'BCeID' },
+  { value: 'github', label: 'GitHub' },
 ];
 
 const archiveStatusOptions = [
@@ -90,7 +91,7 @@ export default function AdminDashboard({ session }: PageProps) {
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
   const getData = async () => {
-    const [realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
+    const [devIdps, realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
     return getRequestAll({
       searchField: ['id', 'projectName'],
       searchKey,
@@ -105,6 +106,7 @@ export default function AdminDashboard({ session }: PageProps) {
       realms,
       environments,
       types: types.map((v) => v.value) as string[],
+      devIdps,
     });
   };
 

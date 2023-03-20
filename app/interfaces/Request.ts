@@ -77,6 +77,16 @@ export interface Option {
   label: string;
 }
 
+export interface SilverIDPOption {
+  idir: string | string[];
+  bceid: string | string[];
+}
+export interface GoldIDPOption {
+  idir: string | string[];
+  bceid: string | string[];
+  github: string | string[];
+}
+
 export interface ClientRole {
   name: string;
   composites: string[];
