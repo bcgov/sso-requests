@@ -72,19 +72,28 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       }
     },
     devSamlLogoutPostBindingUri: () => {
-      if (!isValidKeycloakURI(false, devSamlLogoutPostBindingUri)) {
-        errors['devSamlLogoutPostBindingUri']?.addError(validationMessage);
-      }
+      if (
+        devSamlLogoutPostBindingUri !== '' &&
+        devSamlLogoutPostBindingUri !== null &&
+        !isValidKeycloakURIDev(devSamlLogoutPostBindingUri)
+      )
+        errors['devSamlLogoutPostBindingUri'].addError(validationMessage);
     },
     testSamlLogoutPostBindingUri: () => {
-      if (!isValidKeycloakURI(false, testSamlLogoutPostBindingUri)) {
-        errors['testSamlLogoutPostBindingUri']?.addError(validationMessage);
-      }
+      if (
+        testSamlLogoutPostBindingUri !== '' &&
+        testSamlLogoutPostBindingUri !== null &&
+        !isValidKeycloakURIDev(testSamlLogoutPostBindingUri)
+      )
+        errors['testSamlLogoutPostBindingUri'].addError(validationMessage);
     },
     prodSamlLogoutPostBindingUri: () => {
-      if (!isValidKeycloakURI(true, prodSamlLogoutPostBindingUri)) {
-        errors['prodSamlLogoutPostBindingUri']?.addError(validationMessage);
-      }
+      if (
+        prodSamlLogoutPostBindingUri !== '' &&
+        prodSamlLogoutPostBindingUri !== null &&
+        !isValidKeycloakURIProd(prodSamlLogoutPostBindingUri)
+      )
+        errors['prodSamlLogoutPostBindingUri'].addError(validationMessage);
     },
   };
 

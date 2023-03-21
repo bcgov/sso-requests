@@ -120,7 +120,7 @@ export default function getSchemas(formData: Integration) {
         }
       : {};
 
-    const customValidation = hasLoginFlow ? [redirectUriField] : [];
+    const customValidation = hasLoginFlow ? [redirectUriField, samlLogoutPostBindingUriField] : [];
 
     let fineGrainEndpointConfig: any = {};
 
@@ -135,6 +135,7 @@ export default function getSchemas(formData: Integration) {
           maxLength: 250,
           description: 'You may want to have your logout service enabled from your application',
           placeholder: 'e.g. https://example.com/logout/callback',
+          default: '',
         },
       };
     }
