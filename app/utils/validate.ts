@@ -71,12 +71,20 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
         );
       }
     },
-    samlLogoutPostBindingUri: () => {
-      ['dev', 'test', 'prod'].forEach((env) => {
-        if (!isValidKeycloakURI(env === 'prod', eval(`${env}SamlLogoutPostBindingUri`))) {
-          errors[`${env}SamlLogoutPostBindingUri`]?.addError(validationMessage);
-        }
-      });
+    devSamlLogoutPostBindingUri: () => {
+      if (!isValidKeycloakURI(false, devSamlLogoutPostBindingUri)) {
+        errors['devSamlLogoutPostBindingUri']?.addError(validationMessage);
+      }
+    },
+    testSamlLogoutPostBindingUri: () => {
+      if (!isValidKeycloakURI(false, testSamlLogoutPostBindingUri)) {
+        errors['testSamlLogoutPostBindingUri']?.addError(validationMessage);
+      }
+    },
+    prodSamlLogoutPostBindingUri: () => {
+      if (!isValidKeycloakURI(true, prodSamlLogoutPostBindingUri)) {
+        errors['prodSamlLogoutPostBindingUri']?.addError(validationMessage);
+      }
     },
   };
 
