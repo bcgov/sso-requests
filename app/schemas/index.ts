@@ -71,3 +71,5 @@ export const oidcDurationAdditionalFields = [
 ];
 
 export const samlDurationAdditionalFields = ['AssertionLifespan'];
+
+export const samlFineGrainEndpointConfig = ['SamlLogoutPostBindingUri'];

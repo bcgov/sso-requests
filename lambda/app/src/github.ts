@@ -4,7 +4,7 @@ import { Octokit } from 'octokit';
 import pick from 'lodash.pick';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
+import { oidcDurationAdditionalFields, samlDurationAdditionalFields, samlFineGrainEndpointConfig } from '@app/schemas';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { getAccountableEntity } from '@lambda-shared/templates/helpers';
 import { idpMap, silverRealmIdpsMap } from '@app/helpers/meta';
@@ -19,6 +19,7 @@ const envFields = [
   'Idps',
   ...oidcDurationAdditionalFields,
   ...samlDurationAdditionalFields,
+  ...samlFineGrainEndpointConfig,
 ];
 
 const envFieldsAll = [];
@@ -41,7 +42,6 @@ const allowedFieldsForGithub = [
   'authType',
   'protocol',
   'additionalRoleAttribute',
-
   'userId',
   'teamId',
   'apiServiceAccount',
