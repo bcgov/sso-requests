@@ -158,7 +158,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const currentIdps = formData?.devIdps || [];
     const updatedIdps = newData.devIdps || [];
 
-    const devIdps = filterIdps(
+    let devIdps = filterIdps(
       currentIdps,
       updatedIdps,
       formData.status === 'applied',
@@ -169,7 +169,17 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const showModal = newData.projectLead === false && newData.usesTeam === false;
     const togglingTeamToTrue = formData.usesTeam === false && newData.usesTeam === true;
 
+    if (formData.protocol !== newData.protocol && devIdps.length > 1) {
+      devIdps = [];
+    }
     const processed = { ...newData, devIdps };
+
+    if (newData.protocol !== 'saml') {
+      processed.devSamlLogoutPostBindingUri = null;
+      processed.testSamlLogoutPostBindingUri = null;
+      processed.prodSamlLogoutPostBindingUri = null;
+    }
+
     if (newData.authType !== 'browser-login') processed.publicAccess = false;
 
     if (togglingTeamToTrue) processed.projectLead = undefined;

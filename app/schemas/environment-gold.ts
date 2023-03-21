@@ -22,6 +22,7 @@ export default function getSchemas(formData: Integration) {
     const displayHeaderTitleField = `${env}DisplayHeaderTitle`;
     const redirectUriField = `${env}ValidRedirectUris`;
     const roleField = `${env}Roles`;
+    const samlLogoutPostBindingUriField = `${env}SamlLogoutPostBindingUri`;
 
     let tokenSchemas: any = {};
 
@@ -121,6 +122,23 @@ export default function getSchemas(formData: Integration) {
 
     const customValidation = hasLoginFlow ? [redirectUriField] : [];
 
+    let fineGrainEndpointConfig: any = {};
+
+    if (formData?.protocol === 'saml') {
+      fineGrainEndpointConfig = {
+        [samlLogoutPostBindingUriField]: {
+          type: 'string',
+          title: 'Logout Service URL',
+          tooltip: {
+            content: `SAML POST Binding URL for the client's single logout service. You can leave this blank if you are using a different binding`,
+          },
+          maxLength: 250,
+          description: 'You may want to have your logout service enabled from your application',
+          placeholder: 'e.g. https://example.com/logout/callback',
+        },
+      };
+    }
+
     return {
       type: 'object',
       customValidation,
@@ -129,6 +147,7 @@ export default function getSchemas(formData: Integration) {
       required: [],
       properties: {
         ...loginFlowSchemas,
+        ...fineGrainEndpointConfig,
         ...tokenSchemas,
       },
     } as any;

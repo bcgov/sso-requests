@@ -35,6 +35,9 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     usesTeam,
     teamId,
     additionalRoleAttribute = '',
+    devSamlLogoutPostBindingUri = '',
+    testSamlLogoutPostBindingUri = '',
+    prodSamlLogoutPostBindingUri = '',
   } = formData;
 
   const fieldMap: any = {
@@ -67,6 +70,13 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
           `Please use a different name as existing claim '${additionalRoleAttribute.trim()}' cannot be overwritten`,
         );
       }
+    },
+    samlLogoutPostBindingUri: () => {
+      ['dev', 'test', 'prod'].forEach((env) => {
+        if (!isValidKeycloakURI(env === 'prod', eval(`${env}SamlLogoutPostBindingUri`))) {
+          errors[`${env}SamlLogoutPostBindingUri`]?.addError(validationMessage);
+        }
+      });
     },
   };
 

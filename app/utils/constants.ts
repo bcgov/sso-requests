@@ -29,6 +29,7 @@ export const errorMessages: ErrorMessages = {
   projectName: 'Please enter a project name',
   teamId: 'Please select an existing team',
   devIdps: 'Please select an identity provider',
+  samlLogoutPostBindingUri: 'Please enter a valid URI',
 };
 
 export const bceidBody = `Organization Details (Organization/Division/Branch/Program): \n

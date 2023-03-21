@@ -86,7 +86,7 @@ label.pg-textarea-label {
 }
 
 /* override default input width */
-.field-string {
+.short-field-string {
   display: block;
   width: 100%;
   max-width: 400px;

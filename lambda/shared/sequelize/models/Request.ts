@@ -313,6 +313,18 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: true,
       },
+      devSamlLogoutPostBindingUri: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      testSamlLogoutPostBindingUri: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      prodSamlLogoutPostBindingUri: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
     {
       underscored: true,
