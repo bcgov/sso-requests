@@ -3,31 +3,14 @@ import { useRouter } from 'next/router';
 import { Resizable } from 're-resizable';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
-import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
+import ResponsiveContainer from 'components/ResponsiveContainer';
+import { SessionContext, SessionContextInterface } from 'pages/_app';
+import { mediaRules } from './Layout';
 
 const InnerResizable = styled.div`
   height: 100%;
   overflow: auto;
 `;
-
-const mediaRules: MediaRule[] = [
-  {
-    maxWidth: 900,
-    marginTop: 0,
-    marginLeft: 10,
-    marginRight: 10,
-    marginUnit: 'px',
-    horizontalAlign: 'none',
-  },
-  {
-    width: 480,
-    marginTop: 0,
-    marginLeft: 2.5,
-    marginRight: 2.5,
-    marginUnit: 'rem',
-    horizontalAlign: 'none',
-  },
-];
 
 interface Props {
   tab: 'integrations' | 'teams';
@@ -39,6 +22,9 @@ interface Props {
 
 function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, children }: Props) {
   const router = useRouter();
+  const context = useContext<SessionContextInterface | null>(SessionContext);
+  const { user, enableGold } = context || {};
+  const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
 
   const navigateTab = (key: any) => {
     router.replace(`/my-dashboard/${key}`);
