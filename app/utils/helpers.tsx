@@ -174,7 +174,7 @@ export const transformErrors = (errors: any) => {
     if (propertiesToTransform.includes(error.property)) {
       const errorMessageKey = error.property.slice(1);
       error.message = errorMessages[errorMessageKey] || error.message;
-    } else if (error.property.includes('ValidRedirectUris')) {
+    } else if (error.property.includes('ValidRedirectUris') || error.property.includes('SamlLogoutPostBindingUri')) {
       if (error.message === 'should be string') error.message = '';
       else error.message = errorMessages.redirectUris;
     }

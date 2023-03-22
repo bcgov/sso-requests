@@ -70,6 +70,9 @@ export interface Integration {
   devDisplayHeaderTitle?: boolean;
   testDisplayHeaderTitle?: boolean;
   prodDisplayHeaderTitle?: boolean;
+  devSamlLogoutPostBindingUri?: string;
+  testSamlLogoutPostBindingUri?: string;
+  prodSamlLogoutPostBindingUri?: string;
 }
 
 export interface Option {

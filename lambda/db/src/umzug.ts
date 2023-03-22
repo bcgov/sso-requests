@@ -43,6 +43,7 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2022.09.9T09.00.00.add-github-approved-in-request-table'),
       await import('./migrations/2022.09.22T11.00.00.add-additional-role-attribute-in-request-table'),
       await import('./migrations/2022.12.01T13.36.60.add-flag-loginpage-header-title'),
+      await import('./migrations/2023.03.17T11.00.00.add-saml-post-logout-uri'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({
