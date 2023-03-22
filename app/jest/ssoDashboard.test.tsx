@@ -9,14 +9,19 @@ const sampleSession = {
   isAdmin: true,
 };
 
-const mockRequestAllResult: Integration[] = [
-  { ...sampleRequest, id: 1, projectName: 'project_name_1', status: 'applied', serviceType: 'gold' },
-  { ...sampleRequest, id: 2, projectName: 'project_name_2', status: 'applied', serviceType: 'gold' },
-  { ...sampleRequest, id: 3, projectName: 'project_name_3', status: 'applied', serviceType: 'gold' },
-  { ...sampleRequest, id: 4, projectName: 'project_name_4', status: 'applied', serviceType: 'gold' },
-  { ...sampleRequest, id: 5, projectName: 'project_name_5', status: 'applied', serviceType: 'gold' },
-  { ...sampleRequest, id: 6, projectName: 'project_name_6', status: 'applied', serviceType: 'gold' },
-];
+function MockRequestAllResult() {
+  let requestAllResult: Integration[] = [];
+  for (let i = 1; i <= 6; i++) {
+    requestAllResult.push({
+      ...sampleRequest,
+      id: i,
+      projectName: `project_name_${i}`,
+      status: 'applied',
+      serviceType: 'gold',
+    });
+  }
+  return requestAllResult;
+}
 
 const spyUseRouter = jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => ({
   pathname: '',
@@ -26,7 +31,7 @@ const spyUseRouter = jest.spyOn(require('next/router'), 'useRouter').mockImpleme
 
 jest.mock('services/request', () => {
   return {
-    getRequestAll: jest.fn(() => Promise.resolve([{ count: 6, rows: mockRequestAllResult }, null])),
+    getRequestAll: jest.fn(() => Promise.resolve([{ count: 6, rows: MockRequestAllResult() }, null])),
     deleteRequest: jest.fn(() => Promise.resolve([[''], null])),
   };
 });
