@@ -9,7 +9,7 @@ export const downloadAllStandardIntegrationsReport = async (): Promise<void | [n
     const result = await instance.get('reports/all-standard-integrations').then((res) => res.data);
 
     const options = result.length > 0 ? {} : { fields: [] };
-    downloadText(parse(result, options), 'All Standard Integrations.xls', 'application/vnd.ms-excel');
+    downloadText(parse(result, options), 'All Standard Integrations.csv', 'text/csv');
   } catch (err: any) {
     console.log(err);
     return handleAxiosError(err);
