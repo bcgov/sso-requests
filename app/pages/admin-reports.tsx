@@ -5,7 +5,7 @@ import { Button } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { downloadTeamIntegrationsReport, downloadUserIntegrationsReport } from '../services/report';
+import { downloadAllStandardIntegrationsReport } from '../services/report';
 
 const mediaRules: MediaRule[] = [
   {
@@ -29,15 +29,9 @@ const mediaRules: MediaRule[] = [
 export default function AdminReports({ session }: PageProps) {
   const [loading, setLoading] = useState<boolean>(false);
 
-  const handleTeamReportClick = async () => {
+  const handleAllStandardReportClick = async () => {
     setLoading(true);
-    await downloadTeamIntegrationsReport();
-    setLoading(false);
-  };
-
-  const handleUserReportClick = async () => {
-    setLoading(true);
-    await downloadUserIntegrationsReport();
+    await downloadAllStandardIntegrationsReport();
     setLoading(false);
   };
 
@@ -48,14 +42,8 @@ export default function AdminReports({ session }: PageProps) {
         <SpinnerGrid color="#000" height={25} width={25} wrapperClass="d-block" visible={loading} />
       ) : (
         <>
-          <Button variant="primary" type="button" className="text-center" onClick={handleTeamReportClick}>
-            <span>Integration users associated to a team&nbsp;</span>
-            <FontAwesomeIcon icon={faDownload} />
-          </Button>
-          <br />
-          <br />
-          <Button variant="primary" type="button" className="text-center" onClick={handleUserReportClick}>
-            <span>Integration users with no team&nbsp;</span>
+          <Button variant="primary" type="button" className="text-center" onClick={handleAllStandardReportClick}>
+            <span>All Standard Integrations&nbsp;</span>
             <FontAwesomeIcon icon={faDownload} />
           </Button>
         </>

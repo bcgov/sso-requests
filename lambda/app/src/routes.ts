@@ -664,20 +664,10 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`/reports/team-integrations`, async (req, res) => {
+  app.get(`/reports/all-standard-integrations`, async (req, res) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
-      const result = await reportController.getRawTeamIntegrations();
-      res.status(200).json(result);
-    } catch (err) {
-      handleError(res, err);
-    }
-  });
-
-  app.get(`/reports/user-integrations`, async (req, res) => {
-    try {
-      assertSessionRole(req.session, 'sso-admin');
-      const result = await reportController.getRawUserIntegrations();
+      const result = await reportController.getAllStandardIntegrations();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
