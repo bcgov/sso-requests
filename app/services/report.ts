@@ -1,6 +1,5 @@
 import { instance } from './axios';
 import { AxiosError } from 'axios';
-import { parse } from 'json2csv';
 import { handleAxiosError } from 'services/axios';
 
 const XLSX = require('xlsx');
