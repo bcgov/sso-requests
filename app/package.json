@@ -61,7 +61,8 @@
     "react-select": "5.4.0",
     "react-typography": "0.16.20",
     "styled-components": "5.3.5",
-    "validator": "13.7.0"
+    "validator": "13.7.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/preset-env": "7.19.1",
