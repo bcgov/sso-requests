@@ -16,10 +16,10 @@ export const getAllStandardIntegrations = async () => {
     WHEN r.uses_team = TRUE THEN ut.role
     END AS role,
     r.realm,
-    r.environments,
-    r.dev_idps,
-    r.test_idps,
-    r.prod_idps
+    ARRAY_TO_STRING(r.environments, ', ') as environments,
+    ARRAY_TO_STRING(r.dev_idps, ', ') as dev_idps,
+    ARRAY_TO_STRING(r.test_idps, ', ') as test_idps,
+    ARRAY_TO_STRING(r.prod_idps, ', ') as prod_idps
   FROM requests as r
     LEFT JOIN users as u ON u.id=r.user_id
     LEFT JOIN users_teams as ut ON r.user_id=ut.user_id AND r.team_id=ut.team_id
