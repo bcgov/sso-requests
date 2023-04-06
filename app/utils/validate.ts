@@ -28,6 +28,7 @@ const validationMessage = 'Please enter a valid URI';
 
 export const customValidate = (formData: any, errors: FormValidation, fields?: string[]) => {
   const {
+    projectName = '',
     devValidRedirectUris = [],
     testValidRedirectUris = [],
     prodValidRedirectUris = [],
@@ -41,6 +42,11 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
   } = formData;
 
   const fieldMap: any = {
+    projectName: () => {
+      if (/^\d/.test(projectName)) {
+        errors['projectName'].addError('Please have your project name start with a letter');
+      }
+    },
     devValidRedirectUris: () => {
       const isAllValid = devValidRedirectUris.every(isValidKeycloakURIDev);
       if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURIDev);
