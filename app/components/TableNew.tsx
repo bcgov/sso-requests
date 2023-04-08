@@ -23,6 +23,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Integration, Option } from 'interfaces/Request';
 import noop from 'lodash.noop';
 import InfoOverlay from './InfoOverlay';
+import ReactPlaceholder from 'react-placeholder/lib';
+import { TextBlock } from 'react-placeholder/lib/placeholders';
+import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
 
 const StyledMultiSelect = styled(MultiSelect)`
   font-size: 0.9rem;
@@ -146,6 +149,9 @@ interface Props {
   rowCount?: number;
   onEnter?: (val: string) => void;
   onSearch?: (val: string) => void;
+  pageLimits?: number[];
+  onLimit?: (val: number) => void;
+  limit?: number;
 }
 
 function Table({
@@ -169,6 +175,10 @@ function Table({
   rowCount = 10,
   searchKey = '',
   onSearch = noop,
+  loading,
+  pageLimits = [],
+  onLimit = noop,
+  limit = 10,
 }: Props) {
   const pageItemsSize = [5, 10, 15, 30, 50, 100];
   const columns: Column[] = React.useMemo(() => headers, [headers]);
@@ -216,13 +226,29 @@ function Table({
       data: rowsData,
       initialState: { pageIndex: 0 },
       manualPagination: true,
-      pageCount: Math.ceil(rowCount / pageItemsSize[0]),
+      pageCount: Math.ceil(rowCount / limit),
       autoResetPage: false,
     },
     useFilters,
     useGlobalFilter,
     useSortBy,
     usePagination,
+  );
+
+  let rowSpaces = rowCount || pageSize;
+  if (rowCount > pageSize) rowSpaces = pageSize;
+
+  const awesomePlaceholder = (
+    <td colSpan={100}>
+      <div
+        style={{
+          height: `${rowSpaces * (TABLE_ROW_HEIGHT + TABLE_ROW_SPACING) - TABLE_ROW_SPACING}px`,
+          paddingTop: '10px',
+        }}
+      >
+        <TextBlock rows={rowSpaces * 2} color="#CCC" />
+      </div>
+    </td>
   );
 
   const PaginationItemsDetail = () => {
@@ -265,6 +291,10 @@ function Table({
 
   const handlePageSizeChange = (numOfItems: any) => {
     setPageSize(numOfItems.value);
+  };
+
+  const handlePageLimitChange = (val: number) => {
+    onLimit(val);
   };
 
   const updateSelectedRow = (row: any) => {
@@ -363,61 +393,63 @@ function Table({
         </SectionHeader>
       )}
       <StyledTable variant={variant} {...getTableProps()}>
-        <thead>
-          {
-            // Loop over the header rows
-            headerGroups.map((headerGroup, index) => (
-              // Apply the header row props
-              <tr {...headerGroup.getHeaderGroupProps()} key={index}>
-                {
-                  // Loop over the headers in each row
-                  headerGroup.headers.map((column, index) => (
-                    // Apply the header cell props
-                    <th {...column.getHeaderProps(column.getSortByToggleProps())} key={index}>
-                      {
-                        // Render the header
-                        column.render('Header')
-                      }
-                      &nbsp;
-                      <span>
-                        {column.isSorted ? (
-                          column.isSortedDesc ? (
-                            <FontAwesomeIcon style={{ color: '#000' }} icon={faSortDown} size="sm" />
+        <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
+          <thead>
+            {
+              // Loop over the header rows
+              headerGroups.map((headerGroup, index) => (
+                // Apply the header row props
+                <tr {...headerGroup.getHeaderGroupProps()} key={index}>
+                  {
+                    // Loop over the headers in each row
+                    headerGroup.headers.map((column, index) => (
+                      // Apply the header cell props
+                      <th {...column.getHeaderProps(column.getSortByToggleProps())} key={index}>
+                        {
+                          // Render the header
+                          column.render('Header')
+                        }
+                        &nbsp;
+                        <span>
+                          {column.isSorted ? (
+                            column.isSortedDesc ? (
+                              <FontAwesomeIcon style={{ color: '#000' }} icon={faSortDown} size="sm" />
+                            ) : (
+                              <FontAwesomeIcon style={{ color: '#000' }} icon={faSortUp} size="sm" />
+                            )
                           ) : (
-                            <FontAwesomeIcon style={{ color: '#000' }} icon={faSortUp} size="sm" />
-                          )
-                        ) : (
-                          ''
-                        )}
-                      </span>
-                    </th>
-                  ))
-                }
-              </tr>
-            ))
-          }
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          {page.map((row, index: number) => {
-            prepareRow(row);
-            return (
-              <tr
-                {...row.getRowProps()}
-                className={selectedRow?.id === row?.id ? 'active' : ''}
-                key={index}
-                onClick={() => updateSelectedRow(row)}
-              >
-                {row.cells.map((cell, index) => {
-                  return (
-                    <td {...cell.getCellProps()} key={index}>
-                      {cell.render('Cell')}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
+                            ''
+                          )}
+                        </span>
+                      </th>
+                    ))
+                  }
+                </tr>
+              ))
+            }
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            {page.map((row, index: number) => {
+              prepareRow(row);
+              return (
+                <tr
+                  {...row.getRowProps()}
+                  className={selectedRow?.id === row?.id ? 'active' : ''}
+                  key={index}
+                  onClick={() => updateSelectedRow(row)}
+                >
+                  {row.cells.map((cell, index) => {
+                    return (
+                      <td {...cell.getCellProps()} key={index}>
+                        {cell.render('Cell')}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </ReactPlaceholder>
       </StyledTable>
       <Grid cols={12}>
         <Grid.Row collapse="992" gutter={[]} align="center">
@@ -432,7 +464,7 @@ function Table({
                 menuPosition="fixed"
                 defaultValue={pageIndex || numOfItemsPerPage()[0]}
                 options={numOfItemsPerPage()}
-                onChange={(v: any) => handlePageSizeChange(v)}
+                onChange={(v: any) => handlePageLimitChange(v.value)}
               ></StyledSelect>
             </div>
           </Grid.Col>

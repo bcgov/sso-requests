@@ -44,14 +44,16 @@ const typeOptions = [
   { value: 'gold', label: 'Gold' },
 ];
 
-const pageLimits = [
-  { value: 5, text: '5 per page' },
-  { value: 10, text: '10 per page' },
-  { value: 15, text: '15 per page' },
-  { value: 30, text: '30 per page' },
-  { value: 50, text: '50 per page' },
-  { value: 100, text: '100 per page' },
-];
+// const pageLimits = [
+//   { value: 5, text: '5 per page' },
+//   { value: 10, text: '10 per page' },
+//   { value: 15, text: '15 per page' },
+//   { value: 30, text: '30 per page' },
+//   { value: 50, text: '50 per page' },
+//   { value: 100, text: '100 per page' },
+// ];
+
+const pageLimits = [5, 10, 15, 30, 50, 100];
 
 const mediaRules: MediaRule[] = [
   {
@@ -436,7 +438,7 @@ export default function AdminDashboard({ session }: PageProps) {
               },
             ]}
             showFilters={true}
-            loading
+            loading={loading}
             totalColSpan={15}
             searchColSpan={5}
             headerAlign={'bottom'}
@@ -449,6 +451,12 @@ export default function AdminDashboard({ session }: PageProps) {
             }}
             onEnter={(val) => {
               setSearchKey(val);
+            }}
+            pageLimits={pageLimits}
+            limit={limit}
+            onLimit={(val) => {
+              setPage(1);
+              setLimit(val);
             }}
           ></Table>
         )}
