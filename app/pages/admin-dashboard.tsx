@@ -343,15 +343,7 @@ export default function AdminDashboard({ session }: PageProps) {
               },
               {
                 accessor: 'actions',
-                Header: () => (
-                  <div
-                    style={{
-                      textAlign: 'center',
-                    }}
-                  >
-                    Actions
-                  </div>
-                ),
+                Header: () => <span style={{ marginLeft: '40%' }}>Actions</span>,
                 disableSortBy: true,
               },
             ]}

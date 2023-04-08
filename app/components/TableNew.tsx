@@ -342,22 +342,14 @@ function Table({
             ) : (
               <>
                 {filter.label}
-                <Dropdown
-                  data-testid={filter.key}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    filter?.onChange && filter.onChange(event.target.value)
-                  }
-                  value={typeof filter.value === 'string' ? filter.value : ''}
-                >
-                  {filter.options.map((option) => (
-                    <option
-                      value={option.value}
-                      key={Array.isArray(option.value) ? JSON.stringify(option.value) : option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </Dropdown>
+                <Select
+                  className="basic-single"
+                  classNamePrefix="select"
+                  options={filter.options}
+                  onChange={(val) => filter.onChange && filter.onChange([val])}
+                  defaultValue={typeof filter.value === 'string' ? filter.value : ''}
+                  isSearchable={true}
+                />
               </>
             )}
           </Label>
