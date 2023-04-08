@@ -1,5 +1,5 @@
-import { Table as StyledTable, SearchBar, Button } from '@bcgov-sso/common-react-components';
-import camelCase from 'lodash.camelcase';
+import { Table as StyledTable, SearchBar } from '@bcgov-sso/common-react-components';
+import Button from '@button-inc/bcgov-theme/Button';
 import React, { useEffect, useState } from 'react';
 import {
   useTable,
@@ -8,19 +8,21 @@ import {
   useGlobalFilter,
   useAsyncDebounce,
   Column,
-  Row,
   useSortBy,
+  Row,
 } from 'react-table';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Pagination from 'react-bootstrap/Pagination';
 import styled from 'styled-components';
 import Select from 'react-select';
 import SectionHeader from './SectionHeader';
-import InfoOverlay from './InfoOverlay';
 import { MultiSelect } from 'react-multi-select-component';
 import { Dropdown } from '@button-inc/bcgov-theme';
 import { faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Integration, Option } from 'interfaces/Request';
+import noop from 'lodash.noop';
+import InfoOverlay from './InfoOverlay';
 
 const StyledMultiSelect = styled(MultiSelect)`
   font-size: 0.9rem;
@@ -74,34 +76,35 @@ const overrideStrings = {
   selectSomeItems: '',
 };
 
-function GlobalFilter({ preGlobalFilteredRows, globalFilter, setGlobalFilter, searchPlaceholder }: any) {
-  const count = preGlobalFilteredRows.length;
-  const [value, setValue] = React.useState(globalFilter);
-  const onChange = useAsyncDebounce((value) => {
-    setGlobalFilter(value || undefined);
-  }, 200);
+// function GlobalFilter({ preGlobalFilteredRows, globalFilter, setGlobalFilter, searchPlaceholder }: any) {
+//   const count = preGlobalFilteredRows.length;
+//   const [value, setValue] = React.useState(globalFilter);
+//   const onChange = useAsyncDebounce((value) => {
+//     setGlobalFilter(value || undefined);
+//   }, 200);
 
-  return (
-    <SearchBar
-      type="text"
-      size="small"
-      maxLength="1000"
-      placeholder={searchPlaceholder}
-      onChange={(e) => {
-        setValue(e.target.value);
-        onChange(e.target.value);
-      }}
-    />
-  );
-}
+//   return (
+//     <SearchBar
+//       type="text"
+//       size="small"
+//       maxLength="1000"
+//       placeholder={searchPlaceholder}
+//       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+//         setValue(e.target.value);
+//         onChange(e.target.value);
+//       }}
+//     />
+//   );
+// }
 
-function SelectColumnFilter({ setFilter, options, value, setValue }) {
+function SelectColumnFilter({ setFilter, options, setValue }: any) {
   return (
     <>
       <Select
         className="basic-multi-select"
         classNamePrefix="select"
         onChange={(val) => {
+          //const allValues = Array.from(val.map((o: any) => o.value).filter(Boolean));
           setFilter('status', val);
           setValue(val);
         }}
@@ -112,12 +115,44 @@ function SelectColumnFilter({ setFilter, options, value, setValue }) {
   );
 }
 
+export interface TableFilter {
+  key?: string;
+  value?: string | Option[];
+  multiselect?: boolean;
+  onChange?: Function;
+  options: Option[];
+  label?: string;
+}
+
+interface Props {
+  variant?: string;
+  headers: Column[];
+  data: any;
+  activateRow?: (row: Row) => void;
+  searchKey?: string;
+  searchPlaceholder?: string;
+  searchTooltip?: string;
+  colfilters: TableFilter[];
+  searchLocation?: 'left' | 'right';
+  totalColSpan?: number;
+  searchColSpan?: number;
+  filterColSpan?: number;
+  showFilters?: boolean;
+  showContent?: boolean;
+  headerAlign?: string;
+  headerGutter?: number[];
+  loading?: boolean;
+  onPage?: (val: number) => void;
+  rowCount?: number;
+  onEnter?: (val: string) => void;
+  onSearch?: (val: string) => void;
+}
+
 function Table({
   variant = 'medium',
   headers,
   data,
-  pagination = false,
-  manageRowSelection,
+  activateRow = noop,
   searchLocation = 'left',
   colfilters = [],
   showFilters = false,
@@ -129,22 +164,30 @@ function Table({
   headerGutter = [],
   filterColSpan = 10,
   searchColSpan = 4,
-}: any) {
+  onPage = noop,
+  onEnter = noop,
+  rowCount = 10,
+  searchKey = '',
+  onSearch = noop,
+}: Props) {
   const pageItemsSize = [5, 10, 15, 30, 50, 100];
-
-  const columns = React.useMemo(() => headers, [headers]);
-
+  const columns: Column[] = React.useMemo(() => headers, [headers]);
   const rowsData = React.useMemo(() => data, [data]);
+  const [selectedRow, setSelectedRow] = useState<Row>();
+  const [_searchKey, setSearchKey] = useState(searchKey);
+  const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchKey(event.target.value);
+  };
 
-  const [selectedRow, setSelectedRow] = useState({});
+  const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      onEnter(_searchKey);
+    }
+  };
 
-  const tableInstance = useTable(
-    { columns, data: rowsData, initialState: { pageIndex: 0, pageSize: pageItemsSize[0] } },
-    useFilters,
-    useGlobalFilter,
-    useSortBy,
-    usePagination,
-  );
+  const handleSearchSubmit = () => {
+    onSearch(_searchKey);
+  };
 
   const {
     getTableProps,
@@ -167,15 +210,44 @@ function Table({
     setGlobalFilter,
     preFilteredRows,
     setFilter,
-  } = tableInstance;
+  } = useTable(
+    {
+      columns,
+      data: rowsData,
+      initialState: { pageIndex: 0 },
+      manualPagination: true,
+      pageCount: Math.ceil(rowCount / pageItemsSize[0]),
+      autoResetPage: false,
+    },
+    useFilters,
+    useGlobalFilter,
+    useSortBy,
+    usePagination,
+  );
 
-  const PaginationItemsDetail = ({ rowCount, limit, page, onPage, onPrev, onNext }: any) => {
+  const PaginationItemsDetail = () => {
     return (
       <>
-        <Pagination.Item key="prev" disabled={!canPreviousPage} onClick={() => previousPage()}>
+        <Pagination.Item
+          key="prev"
+          disabled={!canPreviousPage}
+          onClick={() => {
+            previousPage();
+            //setCurrPage(currPage > 1 ? currPage - 1 : 1);
+            //onPage(currentPage !== 1 ? currentPage - 1 : 1);
+          }}
+        >
           Previous
         </Pagination.Item>
-        <Pagination.Item key="next" disabled={!canNextPage} onClick={() => nextPage()}>
+        <Pagination.Item
+          key="next"
+          disabled={!canNextPage}
+          onClick={() => {
+            nextPage();
+            //setCurrPage(currPage + 1);
+            //onPage((currentPage += 1));
+          }}
+        >
           Next
         </Pagination.Item>
         <PageInfo>{`${pageIndex + 1} of ${pageOptions.length}`}</PageInfo>
@@ -196,21 +268,31 @@ function Table({
   };
 
   const updateSelectedRow = (row: any) => {
-    manageRowSelection(row);
+    activateRow(row);
     setSelectedRow(row);
   };
 
   const searchCol = (
     <Grid.Col span={searchColSpan}>
       <Grid cols={12}>
-        <Grid.Row gutter={[]} align="center">
+        <Grid.Row gutter={[5, 0]} align="center">
           <Grid.Col span={8}>
-            <GlobalFilter
-              preGlobalFilteredRows={preGlobalFilteredRows}
-              globalFilter={globalFilter}
-              setGlobalFilter={setGlobalFilter}
-              searchPlaceholder={searchPlaceholder}
+            <SearchBar
+              type="text"
+              size="small"
+              maxLength="1000"
+              placeholder={searchPlaceholder}
+              value={_searchKey}
+              onChange={handleSearchKeyChange}
+              onKeyUp={handleKeyUp}
             />
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <InfoOverlay content={searchTooltip}>
+              <Button type="button" size="small" onClick={handleSearchSubmit}>
+                Search
+              </Button>
+            </InfoOverlay>
           </Grid.Col>
         </Grid.Row>
       </Grid>
@@ -220,17 +302,12 @@ function Table({
   const filterCol = (
     <Grid.Col span={filterColSpan} style={{ textAlign: 'right' }}>
       <FiltersContainer itemsLength={colfilters.length}>
-        {colfilters.map((filter, index) => (
+        {colfilters.map((filter: TableFilter, index: number) => (
           <Label key={index}>
             {filter.multiselect ? (
               <>
                 {filter.label}
-                <SelectColumnFilter
-                  setFilter={setFilter}
-                  options={filter.options}
-                  value={filter.value}
-                  setValue={filter.onChange}
-                />
+                <SelectColumnFilter setFilter={setFilter} options={filter.options} setValue={filter.onChange} />
               </>
             ) : (
               <>
@@ -268,6 +345,10 @@ function Table({
     leftCol = filterCol;
     rightCol = searchCol;
   }
+
+  useEffect(() => {
+    onPage(pageIndex + 1);
+  }, [pageIndex]);
 
   return (
     <>

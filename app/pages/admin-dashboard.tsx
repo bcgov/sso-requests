@@ -173,9 +173,7 @@ export default function AdminDashboard({ session }: PageProps) {
     window.location.hash = '#';
   };
 
-  const manageRowSelection = (request: any) => {
-    console.log(request);
-
+  const activateRow = (request: any) => {
     setSelectedId(request['cells'][0].value);
     setActivePanel('details');
   };
@@ -319,6 +317,7 @@ export default function AdminDashboard({ session }: PageProps) {
           //   )}
           // </Table>
           <Table
+            searchPlaceholder="Project ID or Name"
             headers={[
               {
                 accessor: 'id',
@@ -398,7 +397,7 @@ export default function AdminDashboard({ session }: PageProps) {
                 ),
               };
             })}
-            manageRowSelection={manageRowSelection}
+            activateRow={activateRow}
             colfilters={[
               {
                 value: selectedEnvironments,
@@ -442,6 +441,15 @@ export default function AdminDashboard({ session }: PageProps) {
             searchColSpan={5}
             headerAlign={'bottom'}
             headerGutter={[5, 0]}
+            onPage={setPage}
+            rowCount={count}
+            searchKey={searchKey}
+            onSearch={(val) => {
+              setSearchKey(val);
+            }}
+            onEnter={(val) => {
+              setSearchKey(val);
+            }}
           ></Table>
         )}
         rightPanel={() =>
