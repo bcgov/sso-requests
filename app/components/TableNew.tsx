@@ -1,26 +1,16 @@
 import { Table as StyledTable, SearchBar } from '@bcgov-sso/common-react-components';
 import Button from '@button-inc/bcgov-theme/Button';
 import React, { useEffect, useState } from 'react';
-import {
-  useTable,
-  usePagination,
-  useFilters,
-  useGlobalFilter,
-  useAsyncDebounce,
-  Column,
-  useSortBy,
-  Row,
-} from 'react-table';
+import { useTable, usePagination, useFilters, useGlobalFilter, Column, useSortBy, Row } from 'react-table';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Pagination from 'react-bootstrap/Pagination';
 import styled from 'styled-components';
 import Select from 'react-select';
 import SectionHeader from './SectionHeader';
 import { MultiSelect } from 'react-multi-select-component';
-import { Dropdown } from '@button-inc/bcgov-theme';
 import { faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Integration, Option } from 'interfaces/Request';
+import { Option } from 'interfaces/Request';
 import noop from 'lodash.noop';
 import InfoOverlay from './InfoOverlay';
 import ReactPlaceholder from 'react-placeholder/lib';
@@ -345,6 +335,7 @@ function Table({
                 <Select
                   className="basic-single"
                   classNamePrefix="select"
+                  //@ts-ignore
                   options={filter.options}
                   onChange={(val) => filter.onChange && filter.onChange([val])}
                   defaultValue={typeof filter.value === 'string' ? filter.value : ''}
