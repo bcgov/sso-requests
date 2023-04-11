@@ -213,6 +213,7 @@ function Table({
     previousPage,
     state: { pageIndex, pageSize },
     setFilter,
+    setPageSize,
   } = useTable(
     {
       columns,
@@ -221,6 +222,7 @@ function Table({
       manualPagination: true,
       pageCount: Math.ceil(rowCount / limit),
       autoResetPage: false,
+      autoResetSortBy: false,
     },
     useFilters,
     useGlobalFilter,
@@ -254,6 +256,7 @@ function Table({
 
   const handlePageLimitChange = (val: number) => {
     onLimit(val);
+    setPageSize(val);
   };
 
   const updateSelectedRow = (row: any) => {
