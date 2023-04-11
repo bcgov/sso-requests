@@ -7,7 +7,6 @@ import Pagination from 'react-bootstrap/Pagination';
 import styled from 'styled-components';
 import Select from 'react-select';
 import SectionHeader from './SectionHeader';
-import { MultiSelect } from 'react-multi-select-component';
 import { faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Option } from 'interfaces/Request';
@@ -16,18 +15,6 @@ import InfoOverlay from './InfoOverlay';
 import ReactPlaceholder from 'react-placeholder/lib';
 import { TextBlock } from 'react-placeholder/lib/placeholders';
 import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
-
-const StyledMultiSelect = styled(MultiSelect)`
-  font-size: 0.9rem;
-
-  .dropdown-container {
-    border: 1.8px solid black !important;
-
-    .dropdown-heading {
-      height: 32px;
-    }
-  }
-`;
 
 const StyledPagination = styled(Pagination)`
   margin: 0 !important;
@@ -64,32 +51,6 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   }
 `;
 
-const overrideStrings = {
-  allItemsAreSelected: 'All',
-  selectSomeItems: '',
-};
-
-// function GlobalFilter({ preGlobalFilteredRows, globalFilter, setGlobalFilter, searchPlaceholder }: any) {
-//   const count = preGlobalFilteredRows.length;
-//   const [value, setValue] = React.useState(globalFilter);
-//   const onChange = useAsyncDebounce((value) => {
-//     setGlobalFilter(value || undefined);
-//   }, 200);
-
-//   return (
-//     <SearchBar
-//       type="text"
-//       size="small"
-//       maxLength="1000"
-//       placeholder={searchPlaceholder}
-//       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-//         setValue(e.target.value);
-//         onChange(e.target.value);
-//       }}
-//     />
-//   );
-// }
-
 function SelectColumnFilter({ setFilter, options, setValue }: any) {
   return (
     <>
@@ -97,7 +58,6 @@ function SelectColumnFilter({ setFilter, options, setValue }: any) {
         className="basic-multi-select"
         classNamePrefix="select"
         onChange={(val) => {
-          //const allValues = Array.from(val.map((o: any) => o.value).filter(Boolean));
           setFilter('status', val);
           setValue(val);
         }}
@@ -116,6 +76,48 @@ export interface TableFilter {
   options: Option[];
   label?: string;
 }
+
+export interface PaginationItemsDetailProps {
+  pageOptions: number[];
+  canPreviousPage: boolean;
+  canNextPage: boolean;
+  previousPage: () => void;
+  nextPage: () => void;
+  pageIndex: number;
+}
+
+const PaginationItemsDetail = ({
+  canPreviousPage,
+  previousPage,
+  canNextPage,
+  nextPage,
+  pageOptions = [],
+  pageIndex,
+}: PaginationItemsDetailProps) => {
+  return (
+    <>
+      <Pagination.Item
+        key="prev"
+        disabled={!canPreviousPage}
+        onClick={() => {
+          previousPage();
+        }}
+      >
+        Previous
+      </Pagination.Item>
+      <Pagination.Item
+        key="next"
+        disabled={!canNextPage}
+        onClick={() => {
+          nextPage();
+        }}
+      >
+        Next
+      </Pagination.Item>
+      <PageInfo>{`${pageIndex + 1} of ${pageOptions.length}`}</PageInfo>
+    </>
+  );
+};
 
 interface Props {
   variant?: string;
@@ -152,7 +154,6 @@ function Table({
   searchLocation = 'left',
   colfilters = [],
   showFilters = false,
-  showContent = true,
   searchPlaceholder = 'Search...',
   searchTooltip = '',
   totalColSpan = 14,
@@ -166,7 +167,6 @@ function Table({
   searchKey = '',
   onSearch = noop,
   loading,
-  pageLimits = [],
   onLimit = noop,
   limit = 10,
 }: Props) {
@@ -193,22 +193,14 @@ function Table({
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    rows,
     prepareRow,
     page,
     canPreviousPage,
     canNextPage,
     pageOptions,
-    pageCount,
-    gotoPage,
     nextPage,
     previousPage,
-    setPageSize,
-    state: { pageIndex, pageSize, globalFilter, filters },
-    visibleColumns,
-    preGlobalFilteredRows,
-    setGlobalFilter,
-    preFilteredRows,
+    state: { pageIndex, pageSize },
     setFilter,
   } = useTable(
     {
@@ -241,46 +233,12 @@ function Table({
     </td>
   );
 
-  const PaginationItemsDetail = () => {
-    return (
-      <>
-        <Pagination.Item
-          key="prev"
-          disabled={!canPreviousPage}
-          onClick={() => {
-            previousPage();
-            //setCurrPage(currPage > 1 ? currPage - 1 : 1);
-            //onPage(currentPage !== 1 ? currentPage - 1 : 1);
-          }}
-        >
-          Previous
-        </Pagination.Item>
-        <Pagination.Item
-          key="next"
-          disabled={!canNextPage}
-          onClick={() => {
-            nextPage();
-            //setCurrPage(currPage + 1);
-            //onPage((currentPage += 1));
-          }}
-        >
-          Next
-        </Pagination.Item>
-        <PageInfo>{`${pageIndex + 1} of ${pageOptions.length}`}</PageInfo>
-      </>
-    );
-  };
-
   const numOfItemsPerPage = () => {
     const options = pageItemsSize.map((val) => {
       return { value: val, label: `${val} per page` };
     });
 
     return options;
-  };
-
-  const handlePageSizeChange = (numOfItems: any) => {
-    setPageSize(numOfItems.value);
   };
 
   const handlePageLimitChange = (val: number) => {
@@ -438,7 +396,14 @@ function Table({
         <Grid.Row collapse="992" gutter={[]} align="center">
           <Grid.Col span={8}>
             <StyledPagination>
-              <PaginationItemsDetail />
+              <PaginationItemsDetail
+                canNextPage={canNextPage}
+                nextPage={nextPage}
+                canPreviousPage={canPreviousPage}
+                previousPage={previousPage}
+                pageIndex={pageIndex}
+                pageOptions={pageOptions}
+              />
             </StyledPagination>
           </Grid.Col>
           <Grid.Col span={4}>
