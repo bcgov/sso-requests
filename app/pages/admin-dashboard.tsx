@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import startCase from 'lodash.startcase';
 import { faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
@@ -38,6 +37,10 @@ const typeOptions = [
 ];
 
 const pageLimits = [5, 10, 15, 30, 50, 100];
+
+function ActionsHeader() {
+  return <span style={{ marginLeft: '40%' }}>Actions</span>;
+}
 
 export default function AdminDashboard({ session }: PageProps) {
   const router = useRouter();
@@ -174,7 +177,7 @@ export default function AdminDashboard({ session }: PageProps) {
               },
               {
                 accessor: 'actions',
-                Header: () => <span style={{ marginLeft: '40%' }}>Actions</span>,
+                Header: <ActionsHeader />,
                 disableSortBy: true,
               },
             ]}

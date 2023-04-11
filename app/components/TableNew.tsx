@@ -1,7 +1,7 @@
 import { Table as StyledTable, SearchBar } from '@bcgov-sso/common-react-components';
 import Button from '@button-inc/bcgov-theme/Button';
 import React, { useEffect, useState } from 'react';
-import { useTable, usePagination, useFilters, useGlobalFilter, Column, useSortBy, Row } from 'react-table';
+import { useTable, usePagination, useFilters, useGlobalFilter, Column, useSortBy, Row, Cell } from 'react-table';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Pagination from 'react-bootstrap/Pagination';
 import styled from 'styled-components';
@@ -15,6 +15,11 @@ import InfoOverlay from './InfoOverlay';
 import ReactPlaceholder from 'react-placeholder/lib';
 import { TextBlock } from 'react-placeholder/lib/placeholders';
 import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
+import { getRandomKey } from '@app/utils/helpers';
+
+const PaginationIcon = styled(FontAwesomeIcon)`
+  color: '#000';
+`;
 
 const StyledPagination = styled(Pagination)`
   margin: 0 !important;
@@ -117,6 +122,13 @@ const PaginationItemsDetail = ({
       <PageInfo>{`${pageIndex + 1} of ${pageOptions.length}`}</PageInfo>
     </>
   );
+};
+
+const getColumnSortedIcon = (isSorted: boolean, isSortedDesc: boolean | undefined) => {
+  if (isSorted) {
+    return <PaginationIcon icon={isSortedDesc ? faSortDown : faSortUp} size="sm" />;
+  }
+  return null;
 };
 
 interface Props {
@@ -280,8 +292,8 @@ function Table({
   const filterCol = (
     <Grid.Col span={filterColSpan} style={{ textAlign: 'right' }}>
       <FiltersContainer itemsLength={colfilters.length}>
-        {colfilters.map((filter: TableFilter, index: number) => (
-          <Label key={index}>
+        {colfilters.map((filter: TableFilter) => (
+          <Label key={filter.label}>
             {filter.multiselect ? (
               <>
                 {filter.label}
@@ -338,30 +350,20 @@ function Table({
           <thead>
             {
               // Loop over the header rows
-              headerGroups.map((headerGroup, index) => (
+              headerGroups.map((headerGroup) => (
                 // Apply the header row props
-                <tr {...headerGroup.getHeaderGroupProps()} key={index}>
+                <tr {...headerGroup.getHeaderGroupProps()} key={getRandomKey()}>
                   {
                     // Loop over the headers in each row
-                    headerGroup.headers.map((column, index) => (
+                    headerGroup.headers.map((column) => (
                       // Apply the header cell props
-                      <th {...column.getHeaderProps(column.getSortByToggleProps())} key={index}>
+                      <th {...column.getHeaderProps(column.getSortByToggleProps())} key={getRandomKey()}>
                         {
                           // Render the header
                           column.render('Header')
                         }
                         &nbsp;
-                        <span>
-                          {column.isSorted ? (
-                            column.isSortedDesc ? (
-                              <FontAwesomeIcon style={{ color: '#000' }} icon={faSortDown} size="sm" />
-                            ) : (
-                              <FontAwesomeIcon style={{ color: '#000' }} icon={faSortUp} size="sm" />
-                            )
-                          ) : (
-                            ''
-                          )}
-                        </span>
+                        <span>{getColumnSortedIcon(column.isSorted, column.isSortedDesc)}</span>
                       </th>
                     ))
                   }
@@ -370,18 +372,18 @@ function Table({
             }
           </thead>
           <tbody {...getTableBodyProps()}>
-            {page.map((row, index: number) => {
+            {page.map((row: Row) => {
               prepareRow(row);
               return (
                 <tr
                   {...row.getRowProps()}
                   className={selectedRow?.id === row?.id ? 'active' : ''}
-                  key={index}
+                  key={row?.id}
                   onClick={() => updateSelectedRow(row)}
                 >
-                  {row.cells.map((cell, index) => {
+                  {row.cells.map((cell: Cell) => {
                     return (
-                      <td {...cell.getCellProps()} key={index}>
+                      <td {...cell.getCellProps()} key={cell.value}>
                         {cell.render('Cell')}
                       </td>
                     );
