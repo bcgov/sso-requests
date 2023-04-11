@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { useRouter } from 'next/router';
-import padStart from 'lodash.padstart';
 import startCase from 'lodash.startcase';
 import { faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
-import Grid from '@button-inc/bcgov-theme/Grid';
-import { MediaRule } from 'components/ResponsiveContainer';
-import Table from 'components/Table';
+import Table from 'components/TableNew';
 import { getRequestAll, deleteRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Integration, Option } from 'interfaces/Request';
@@ -17,10 +13,6 @@ import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
-
-const RightAlign = styled.div`
-  text-align: center;
-`;
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -44,33 +36,11 @@ const typeOptions = [
   { value: 'gold', label: 'Gold' },
 ];
 
-const pageLimits = [
-  { value: 5, text: '5 per page' },
-  { value: 10, text: '10 per page' },
-  { value: 15, text: '15 per page' },
-  { value: 30, text: '30 per page' },
-  { value: 50, text: '50 per page' },
-  { value: 100, text: '100 per page' },
-];
+const pageLimits = [5, 10, 15, 30, 50, 100];
 
-const mediaRules: MediaRule[] = [
-  {
-    maxWidth: 900,
-    marginTop: 0,
-    marginLeft: 10,
-    marginRight: 10,
-    marginUnit: 'px',
-    horizontalAlign: 'none',
-  },
-  {
-    width: 480,
-    marginTop: 0,
-    marginLeft: 2.5,
-    marginRight: 2.5,
-    marginUnit: 'rem',
-    horizontalAlign: 'none',
-  },
-];
+function ActionsHeader() {
+  return <span style={{ marginLeft: '40%' }}>Actions</span>;
+}
 
 export default function AdminDashboard({ session }: PageProps) {
   const router = useRouter();
@@ -113,6 +83,7 @@ export default function AdminDashboard({ session }: PageProps) {
   const loadData = async () => {
     setLoading(true);
     const [data, err] = await getData();
+
     if (err) {
       setHasError(true);
     } else if (data) {
@@ -172,12 +143,90 @@ export default function AdminDashboard({ session }: PageProps) {
     window.location.hash = '#';
   };
 
+  const activateRow = (request: any) => {
+    setSelectedId(request['cells'][0].value);
+    setActivePanel('details');
+  };
+
   return (
     <>
       <VerticalLayout
         leftPanel={() => (
           <Table
-            filters={[
+            searchPlaceholder="Project ID or Name"
+            headers={[
+              {
+                accessor: 'id',
+                Header: 'Request ID',
+              },
+              {
+                accessor: 'projectName',
+                Header: 'Project Name',
+              },
+              {
+                accessor: 'status',
+                Header: 'Request Status',
+              },
+              {
+                accessor: 'archived',
+                Header: 'File Status',
+              },
+              {
+                accessor: 'serviceType',
+                Header: 'Service Type',
+              },
+              {
+                accessor: 'actions',
+                Header: <ActionsHeader />,
+                disableSortBy: true,
+              },
+            ]}
+            data={rows.map((row) => {
+              return {
+                id: row.id,
+                projectName: row.projectName,
+                status: startCase(row.status),
+                archived: row.archived ? 'Deleted' : 'Active',
+                serviceType: row.serviceType === 'gold' ? 'Gold' : 'Silver',
+                environments: row.environments,
+                actions: (
+                  <ActionButtonContainer>
+                    <ActionButton
+                      icon={faEye}
+                      role="button"
+                      aria-label="events"
+                      onClick={(event: any) => {
+                        event.stopPropagation();
+                        setSelectedId(row.id);
+                        setActivePanel('events');
+                      }}
+                      title="Events"
+                    />
+                    <VerticalLine />
+                    <ActionButton
+                      disabled={!canEdit(row)}
+                      icon={faEdit}
+                      role="button"
+                      aria-label="edit"
+                      onClick={() => handleEdit(row)}
+                      title="Edit"
+                    />
+                    <VerticalLine />
+                    <ActionButton
+                      icon={faTrash}
+                      role="button"
+                      aria-label="delete"
+                      onClick={() => handleDelete(row)}
+                      disabled={!canDelete(row)}
+                      activeColor={PRIMARY_RED}
+                      title="Delete"
+                    />
+                  </ActionButtonContainer>
+                ),
+              };
+            })}
+            activateRow={activateRow}
+            colfilters={[
               {
                 value: selectedEnvironments,
                 multiselect: true,
@@ -214,102 +263,28 @@ export default function AdminDashboard({ session }: PageProps) {
                 label: 'Service Type',
               },
             ]}
-            headers={[
-              { label: 'Request ID' },
-              { label: 'Project Name' },
-              { label: 'Request Status' },
-              { label: 'File Status' },
-              { label: 'Service Type' },
-              { label: 'Actions', style: { textAlign: 'center', minWidth: '140px' } },
-            ]}
-            pagination={true}
-            pageLimits={pageLimits}
-            searchKey={searchKey}
-            searchPlaceholder="Project ID or Name"
-            limit={limit}
-            page={page}
-            rowCount={count}
-            onSearch={(val) => {
-              setSearchKey(val);
-              setPage(1);
-            }}
-            onEnter={(val) => {
-              setSearchKey(val);
-              setPage(1);
-            }}
-            onLimit={(val) => {
-              setPage(1);
-              setLimit(val);
-            }}
-            onPrev={setPage}
-            onNext={setPage}
+            showFilters={true}
             loading={loading}
             totalColSpan={15}
             searchColSpan={5}
             headerAlign={'bottom'}
             headerGutter={[5, 0]}
-          >
-            {rows.length > 0 ? (
-              rows.map((row: Integration) => {
-                return (
-                  <tr
-                    key={row.id}
-                    className={selectedId === row.id ? 'active' : ''}
-                    onClick={() => {
-                      setSelectedId(row.id);
-                      setActivePanel('details');
-                    }}
-                  >
-                    <td>{padStart(String(row.id), 8, '0')}</td>
-                    <td>{row.projectName}</td>
-                    <td>{startCase(row.status)}</td>
-                    <td>{row.archived ? 'Deleted' : 'Active'}</td>
-                    <td>{row.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
-                    <td>
-                      <ActionButtonContainer>
-                        <ActionButton
-                          icon={faEye}
-                          role="button"
-                          aria-label="events"
-                          onClick={(event: any) => {
-                            event.stopPropagation();
-                            setSelectedId(row.id);
-                            setActivePanel('events');
-                          }}
-                          title="Events"
-                        />
-                        <VerticalLine />
-                        <ActionButton
-                          disabled={!canEdit(row)}
-                          icon={faEdit}
-                          role="button"
-                          aria-label="edit"
-                          onClick={() => handleEdit(row)}
-                          title="Edit"
-                        />
-                        <VerticalLine />
-                        <ActionButton
-                          icon={faTrash}
-                          role="button"
-                          aria-label="delete"
-                          onClick={() => handleDelete(row)}
-                          disabled={!canDelete(row)}
-                          activeColor={PRIMARY_RED}
-                          title="Delete"
-                        />
-                      </ActionButtonContainer>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={10}>
-                  <RightAlign>No clients found.</RightAlign>
-                </td>
-              </tr>
-            )}
-          </Table>
+            onPage={setPage}
+            rowCount={count}
+            searchKey={searchKey}
+            onSearch={(val) => {
+              setSearchKey(val);
+            }}
+            onEnter={(val) => {
+              setSearchKey(val);
+            }}
+            pageLimits={pageLimits}
+            limit={limit}
+            onLimit={(val) => {
+              setPage(1);
+              setLimit(val);
+            }}
+          ></Table>
         )}
         rightPanel={() =>
           selectedRequest && (
