@@ -299,7 +299,3 @@ export const checkIfBceidProdApplying = (integration: Integration) => {
 export const checkIfGithubProdApplying = (integration: Integration) => {
   return checkIfProdApplying(integration, 'githubApproved');
 };
-
-export const getRandomKey = () => {
-  return Math.random().toString(36).slice(2);
-};
