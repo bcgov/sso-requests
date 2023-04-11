@@ -15,7 +15,6 @@ import InfoOverlay from './InfoOverlay';
 import ReactPlaceholder from 'react-placeholder/lib';
 import { TextBlock } from 'react-placeholder/lib/placeholders';
 import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
-import { getRandomKey } from '@app/utils/helpers';
 
 const PaginationIcon = styled(FontAwesomeIcon)`
   color: '#000';
@@ -352,12 +351,12 @@ function Table({
               // Loop over the header rows
               headerGroups.map((headerGroup) => (
                 // Apply the header row props
-                <tr {...headerGroup.getHeaderGroupProps()} key={getRandomKey()}>
+                <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
                   {
                     // Loop over the headers in each row
                     headerGroup.headers.map((column) => (
                       // Apply the header cell props
-                      <th {...column.getHeaderProps(column.getSortByToggleProps())} key={getRandomKey()}>
+                      <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
                         {
                           // Render the header
                           column.render('Header')
