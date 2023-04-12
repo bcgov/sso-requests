@@ -28,6 +28,7 @@ const validationMessage = 'Please enter a valid URI';
 
 export const customValidate = (formData: any, errors: FormValidation, fields?: string[]) => {
   const {
+    projectName = '',
     devValidRedirectUris = [],
     testValidRedirectUris = [],
     prodValidRedirectUris = [],
@@ -35,9 +36,17 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     usesTeam,
     teamId,
     additionalRoleAttribute = '',
+    devSamlLogoutPostBindingUri = '',
+    testSamlLogoutPostBindingUri = '',
+    prodSamlLogoutPostBindingUri = '',
   } = formData;
 
   const fieldMap: any = {
+    projectName: () => {
+      if (/^\d/.test(projectName)) {
+        errors['projectName'].addError('Please have your project name start with a letter');
+      }
+    },
     devValidRedirectUris: () => {
       const isAllValid = devValidRedirectUris.every(isValidKeycloakURIDev);
       if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURIDev);
@@ -67,6 +76,30 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
           `Please use a different name as existing claim '${additionalRoleAttribute.trim()}' cannot be overwritten`,
         );
       }
+    },
+    devSamlLogoutPostBindingUri: () => {
+      if (
+        devSamlLogoutPostBindingUri !== '' &&
+        devSamlLogoutPostBindingUri !== null &&
+        !isValidKeycloakURIDev(devSamlLogoutPostBindingUri)
+      )
+        errors['devSamlLogoutPostBindingUri'].addError(validationMessage);
+    },
+    testSamlLogoutPostBindingUri: () => {
+      if (
+        testSamlLogoutPostBindingUri !== '' &&
+        testSamlLogoutPostBindingUri !== null &&
+        !isValidKeycloakURIDev(testSamlLogoutPostBindingUri)
+      )
+        errors['testSamlLogoutPostBindingUri'].addError(validationMessage);
+    },
+    prodSamlLogoutPostBindingUri: () => {
+      if (
+        prodSamlLogoutPostBindingUri !== '' &&
+        prodSamlLogoutPostBindingUri !== null &&
+        !isValidKeycloakURIProd(prodSamlLogoutPostBindingUri)
+      )
+        errors['prodSamlLogoutPostBindingUri'].addError(validationMessage);
     },
   };
 

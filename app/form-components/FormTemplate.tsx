@@ -49,7 +49,13 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
-const filterIdps = (currentIdps: string[] = [], updatedIdps: string[] = [], applied = true, bceidApproved = false) => {
+const filterIdps = (
+  currentIdps: string[] = [],
+  updatedIdps: string[] = [],
+  applied = true,
+  bceidApproved = false,
+  protocol = 'oidc',
+) => {
   if (currentIdps.length === updatedIdps.length) return updatedIdps;
 
   const idpAdded = currentIdps.length < updatedIdps.length;
@@ -58,7 +64,14 @@ const filterIdps = (currentIdps: string[] = [], updatedIdps: string[] = [], appl
   if (idpAdded) {
     const newIdp = difference(updatedIdps, currentIdps)[0];
 
-    if (checkBceidGroup(newIdp)) {
+    if (protocol === 'saml') {
+      if (applied && bceidApproved) {
+        idps = currentIdps;
+      } else {
+        idps = [];
+        idps.push(newIdp);
+      }
+    } else if (checkBceidGroup(newIdp)) {
       if (applied && bceidApproved) idps = currentIdps;
       else if (checkBceidRegularGroup(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidBoth);
       else if (checkBceidBoth(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidRegularGroup);
@@ -144,12 +157,29 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const newData = trimFormData(e.formData);
     const currentIdps = formData?.devIdps || [];
     const updatedIdps = newData.devIdps || [];
-    const devIdps = filterIdps(currentIdps, updatedIdps, formData.status === 'applied', formData.bceidApproved);
+
+    let devIdps = filterIdps(
+      currentIdps,
+      updatedIdps,
+      formData.status === 'applied',
+      formData.bceidApproved,
+      formData.protocol,
+    );
 
     const showModal = newData.projectLead === false && newData.usesTeam === false;
     const togglingTeamToTrue = formData.usesTeam === false && newData.usesTeam === true;
 
+    if (formData.protocol !== newData.protocol && devIdps.length > 1) {
+      devIdps = [];
+    }
     const processed = { ...newData, devIdps };
+
+    if (newData.protocol !== 'saml') {
+      processed.devSamlLogoutPostBindingUri = null;
+      processed.testSamlLogoutPostBindingUri = null;
+      processed.prodSamlLogoutPostBindingUri = null;
+    }
+
     if (newData.authType !== 'browser-login') processed.publicAccess = false;
 
     if (togglingTeamToTrue) processed.projectLead = undefined;

@@ -291,7 +291,7 @@ function Table({
               <>
                 {filter.label}
                 <Dropdown
-                  data-test-id={filter.key}
+                  data-testid={filter.key}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                     filter?.onChange && filter.onChange(event.target.value)
                   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import {
   deleteServiceAccount,
   getServiceAccountCredentials,
@@ -112,6 +112,9 @@ describe('CSS API Account tab', () => {
 
   it('Should match the expected table column headers, and corresponding API account in the list, and turn to correct page when click on the hyperlink', async () => {
     render(<MyTeamsComponent />);
+    await waitFor(() => {
+      screen.getByRole('button', { name: '+ Create a New Team' });
+    });
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
     await screen.findByRole('columnheader', { name: 'API Account ID' });
@@ -145,7 +148,9 @@ describe('CSS API Account tab', () => {
     const updateSecretButton = screen.getByRole('button', { name: 'Update secret' });
     fireEvent.click(updateSecretButton);
     expect(screen.getByTitle('Request a new secret for CSS API Account'));
-    fireEvent.click(await screen.getByRole('button', { name: 'Confirm' }));
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: 'Confirm' }));
+    });
     expect(updateServiceAccountCredentials).toHaveBeenCalledTimes(1);
   });
 
@@ -154,9 +159,11 @@ describe('CSS API Account tab', () => {
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
     const deleteButton = screen.getAllByRole('button', { name: 'Delete' });
-    fireEvent.click(await deleteButton[1]);
+    fireEvent.click(deleteButton[1]);
     await screen.findByTitle('Delete CSS API Account');
-    fireEvent.click(screen.getByRole('button', { name: 'Delete CSS API Account' }));
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: 'Delete CSS API Account' }));
+    });
     expect(deleteServiceAccount).toHaveBeenCalledTimes(1);
   });
 });

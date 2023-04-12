@@ -5,6 +5,11 @@ import { sampleRequest } from '../../samples/integrations';
 
 const setIntegration = jest.fn();
 const setIntegrationCount = jest.fn();
+const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#confidential-vs-private-client';
+
+function IntegrationListComponent() {
+  return <IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />;
+}
 
 const mockClientRolesResult = {
   ...sampleRequest,
@@ -33,7 +38,7 @@ describe('Integration list', () => {
   });
 
   it('Should match the expected button name, table headers, selected integration; expect the endpoint function been called', async () => {
-    render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
+    render(<IntegrationListComponent />);
 
     await waitFor(() => {
       expect(spyGetRequest).toHaveBeenCalled();
@@ -41,26 +46,31 @@ describe('Integration list', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '+ Request SSO Integration' })).toHaveClass('pg-button');
     });
-    expect(screen.getByRole('columnheader', { name: 'Request ID' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('row', { name: 'Request ID Project Name Status Usecase Service Type Actions' }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('row', { name: '00000001 test project Completed Browser Login Gold Edit Delete' }),
     ).toHaveClass('active');
   });
 
   it('Should be able to click the Delete button', async () => {
-    render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
+    render(<IntegrationListComponent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
     await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+      expect(screen.getByTitle('Confirm Deletion'));
     });
-    expect(screen.getByTitle('Confirm Deletion'));
+
+    await waitFor(async () => {
+      fireEvent.click(await screen.findByTestId('confirm-delete'));
+    });
     await waitFor(() => {
-      fireEvent.click(screen.getByTestId('confirm-delete'));
+      expect(spyDeleteRequest).toHaveBeenCalledTimes(1);
     });
-    expect(spyDeleteRequest).toHaveBeenCalledTimes(1);
   });
 
   it('Should be able to click the Edit button', async () => {
-    render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
+    render(<IntegrationListComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByLabelText('edit'));
     });
@@ -75,10 +85,24 @@ describe('Integration list', () => {
       replace: jest.fn(() => Promise.resolve(true)),
     }));
 
-    render(<IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />);
+    render(<IntegrationListComponent />);
     await waitFor(() => {
       fireEvent.click(screen.getByRole('button', { name: '+ Request SSO Integration' }));
     });
     expect(spyRouter).toHaveBeenCalled();
+  });
+
+  it('testing on the external link with empty integration list', async () => {
+    const spyGetRequest = jest
+      .spyOn(require('services/request'), 'getRequests')
+      .mockImplementation(() => Promise.resolve([[], null]));
+
+    render(<IntegrationListComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Public or Confidential, learn more' })).toHaveAttribute(
+        'href',
+        HYPERLINK,
+      );
+    });
   });
 });

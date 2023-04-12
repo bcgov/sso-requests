@@ -1,20 +1,44 @@
 import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from 'utils/constants';
 import { Team, User } from 'interfaces/team';
-import { Integration, Option } from 'interfaces/Request';
+import { Integration, Option, SilverIDPOption, GoldIDPOption } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
-  let realms: string[] | null = [];
-  idps.forEach((idp: Option) => (realms = realms?.concat(idp.value) || null));
-  realms = realms.length > 0 ? realms : null;
+  const silver_realms: SilverIDPOption = {
+    idir: ['onestopauth'],
+    bceid: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
+  };
 
+  const gold_realms: GoldIDPOption = {
+    idir: ['idir', 'azureidir'],
+    bceid: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
+    github: ['githubbcgov', 'githubpublic'],
+  };
+
+  let realms: string[] | null = [];
+  let devIdps: string[] | null = [];
+
+  idps.forEach((idp: Option) => {
+    if (idp.value == 'github') {
+      devIdps = devIdps?.concat(gold_realms['github']) || null;
+    } else if (idp.value == 'idir') {
+      devIdps = devIdps?.concat(gold_realms['idir']) || null;
+      realms = realms?.concat(silver_realms['idir']) || null;
+    } else if (idp.value == 'bceid') {
+      devIdps = devIdps?.concat(gold_realms['bceid']) || null;
+      realms = realms?.concat(silver_realms['bceid']) || null;
+    }
+  });
+
+  realms = realms.length > 0 ? realms : null;
+  devIdps = devIdps.length > 0 ? devIdps : null;
   let formattedEnvironments: string[] | null = envs.map((env: Option) => env.value as string);
   formattedEnvironments = formattedEnvironments.length > 0 ? formattedEnvironments : null;
-  return [realms, formattedEnvironments];
+  return [devIdps, realms, formattedEnvironments];
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {
@@ -150,7 +174,7 @@ export const transformErrors = (errors: any) => {
     if (propertiesToTransform.includes(error.property)) {
       const errorMessageKey = error.property.slice(1);
       error.message = errorMessages[errorMessageKey] || error.message;
-    } else if (error.property.includes('ValidRedirectUris')) {
+    } else if (error.property.includes('ValidRedirectUris') || error.property.includes('SamlLogoutPostBindingUri')) {
       if (error.message === 'should be string') error.message = '';
       else error.message = errorMessages.redirectUris;
     }

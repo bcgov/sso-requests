@@ -69,6 +69,7 @@ interface RequestAllData {
   realms: string[] | null;
   environments: string[] | null;
   types: string[] | null;
+  devIdps: string[] | null;
 }
 
 interface RequestAllResult {

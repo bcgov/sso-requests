@@ -1,8 +1,12 @@
 import { formatFilters } from 'utils/helpers';
 
 const allIdpOptions = [
-  { value: ['onestopauth'], label: 'IDIR' },
-  { value: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'], label: 'BCeID' },
+  { value: 'idir', label: 'IDIR' },
+  {
+    value: 'bceid',
+    label: 'BCeID',
+  },
+  { value: 'github', label: 'GitHub' },
 ];
 
 const allEnvironmentOptions = [
@@ -13,13 +17,26 @@ const allEnvironmentOptions = [
 
 describe('Format filters', () => {
   it('Should return the expected format', () => {
-    const [realms, environments] = formatFilters(allIdpOptions, allEnvironmentOptions);
+    const [devIdps, realms, environments] = formatFilters(allIdpOptions, allEnvironmentOptions);
+    expect(devIdps).toEqual([
+      'idir',
+      'azureidir',
+      'bceidbasic',
+      'bceidbusiness',
+      'bceidboth',
+      'githubbcgov',
+      'githubpublic',
+    ]);
     expect(realms).toEqual(['onestopauth', 'onestopauth-basic', 'onestopauth-business', 'onestopauth-both']);
     expect(environments).toEqual(['dev', 'test', 'prod']);
 
-    const [filteredRealms, filteredEnvironments] = formatFilters([allIdpOptions[0]], [allEnvironmentOptions[0]]);
+    const [filteredDevIdps, filteredRealms, filteredEnvironments] = formatFilters(
+      [allIdpOptions[0]],
+      [allEnvironmentOptions[0]],
+    );
 
     expect(filteredRealms).toEqual(['onestopauth']);
+    expect(filteredDevIdps).toEqual(['idir', 'azureidir']);
     expect(filteredEnvironments).toEqual(['dev']);
   });
 

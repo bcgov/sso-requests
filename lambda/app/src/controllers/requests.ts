@@ -104,6 +104,9 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     devDisplayHeaderTitle,
     testDisplayHeaderTitle,
     prodDisplayHeaderTitle,
+    devSamlLogoutPostBindingUri,
+    testSamlLogoutPostBindingUri,
+    prodSamlLogoutPostBindingUri,
   } = data;
   if (!serviceType) serviceType = 'silver';
   if (!['silver', 'gold'].includes(serviceType)) throw Error('invalid service type');
@@ -118,6 +121,9 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     devDisplayHeaderTitle,
     testDisplayHeaderTitle,
     prodDisplayHeaderTitle,
+    devSamlLogoutPostBindingUri,
+    testSamlLogoutPostBindingUri,
+    prodSamlLogoutPostBindingUri,
     projectLead,
     idirUserDisplayName,
     usesTeam,
@@ -337,6 +343,7 @@ export const getRequestAll = async (
     realms?: string[];
     environments?: string[];
     types?: string[];
+    devIdps: string[];
   },
 ) => {
   if (!isAdmin(session)) {

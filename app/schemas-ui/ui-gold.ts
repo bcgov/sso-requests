@@ -69,15 +69,25 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
   return {
     projectName: {
       'ui:placeholder': 'Project Name',
+      classNames: 'short-field-string',
+    },
+    teamId: {
+      classNames: 'short-field-string',
+    },
+    additionalRoleAttribute: {
+      classNames: 'short-field-string',
     },
     devLoginTitle: {
       'ui:placeholder': 'Pathfinder SSO Login Page Name',
+      classNames: 'short-field-string',
     },
     testLoginTitle: {
       'ui:placeholder': 'Pathfinder SSO Login Page Name',
+      classNames: 'short-field-string',
     },
     prodLoginTitle: {
       'ui:placeholder': 'Pathfinder SSO Login Page Name',
+      classNames: 'short-field-string',
     },
     devDisplayHeaderTitle: {
       'ui:widget': 'radio',

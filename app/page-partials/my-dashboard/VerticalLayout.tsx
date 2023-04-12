@@ -13,7 +13,7 @@ const InnerResizable = styled.div`
 `;
 
 interface Props {
-  tab: 'integrations' | 'teams' | 's2g';
+  tab: 'integrations' | 'teams';
   leftPanel?: () => React.ReactNode;
   rightPanel?: () => React.ReactNode;
   showResizable?: boolean;
@@ -34,7 +34,6 @@ function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, chil
     <Tabs onChange={navigateTab} activeKey={tab} tabBarGutter={30}>
       <Tab key="integrations" tab="My Projects" />
       <Tab key="teams" tab="My Teams" />
-      {enableGold && hasSilverIntegration && <Tab key="s2g" tab="*New - Silver to Gold Upgrade" />}
     </Tabs>
   );
 

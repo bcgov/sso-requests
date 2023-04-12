@@ -19,7 +19,7 @@ export default function getSchema(teams: any[] = []) {
 
   return {
     type: 'object',
-    customValidation: ['createTeam'],
+    customValidation: ['createTeam', 'projectName'],
     headerText: 'Enter requester information',
     stepText: 'Requester Info',
     properties: {

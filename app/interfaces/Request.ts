@@ -70,11 +70,24 @@ export interface Integration {
   devDisplayHeaderTitle?: boolean;
   testDisplayHeaderTitle?: boolean;
   prodDisplayHeaderTitle?: boolean;
+  devSamlLogoutPostBindingUri?: string;
+  testSamlLogoutPostBindingUri?: string;
+  prodSamlLogoutPostBindingUri?: string;
 }
 
 export interface Option {
   value: string | string[];
   label: string;
+}
+
+export interface SilverIDPOption {
+  idir: string | string[];
+  bceid: string | string[];
+}
+export interface GoldIDPOption {
+  idir: string | string[];
+  bceid: string | string[];
+  github: string | string[];
 }
 
 export interface ClientRole {
