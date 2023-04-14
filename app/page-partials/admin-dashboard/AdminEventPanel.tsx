@@ -88,7 +88,12 @@ export default function AdminEventPanel({ requestId }: Props) {
     <>
       <SectionHeader>
         <br />
-        <Dropdown style={{ display: 'inline-block', width: '250px' }} value={eventCode} onChange={handleFilterChange}>
+        <Dropdown
+          data-testid="events-dropdown"
+          style={{ display: 'inline-block', width: '250px' }}
+          value={eventCode}
+          onChange={handleFilterChange}
+        >
           {generateOptions(filterItems)}
         </Dropdown>
       </SectionHeader>
