@@ -183,6 +183,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       expect(screen.getByText('Request ID')).toBeInTheDocument();
     });
+    const pageSelection = screen.getByLabelText('page-select');
     expect(screen.getByText('5 per page')).toBeInTheDocument();
     expect(screen.getByText('1 of 2')).toBeInTheDocument();
 
@@ -195,6 +196,14 @@ describe('SSO Dashboard', () => {
     const previousButton = screen.getByRole('button', { name: 'Previous' });
     fireEvent.click(previousButton);
     expect(screen.getByText('1 of 2')).toBeInTheDocument();
+
+    //select page limit
+    fireEvent.keyDown(pageSelection as HTMLElement, { keyCode: 40 });
+    const pageOption = await screen.findByText('10 per page');
+    await waitFor(() => {
+      fireEvent.click(pageOption);
+    });
+    expect(screen.getByText('1 of 1')).toBeInTheDocument();
   });
 
   it('testing on Details tab', async () => {
@@ -249,7 +258,6 @@ describe('SSO Dashboard', () => {
     expect(eventsDropdown).toHaveTextContent('All Events');
     fireEvent.change(eventsDropdown, { target: { value: 'REQUEST_PR_SUCCESS' } });
     expect(eventsDropdown).toHaveTextContent('REQUEST_PR_SUCCESS');
-    //expect(asFragment()).toMatchSnapshot();
   });
 
   it('testing on BCeID Prod tab', async () => {

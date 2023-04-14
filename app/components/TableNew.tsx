@@ -413,6 +413,7 @@ function Table({
           <Grid.Col span={4}>
             <div style={{ textAlign: 'right' }}>
               <StyledSelect
+                aria-label="page-select"
                 menuPosition="fixed"
                 defaultValue={pageIndex || numOfItemsPerPage()[0]}
                 options={numOfItemsPerPage()}
