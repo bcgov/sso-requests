@@ -17,7 +17,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, ClientRole, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
+import Table from 'components/TableNew';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
@@ -226,7 +226,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-  const pageLimits = [{ value: PAGE_LIMIT, text: `${PAGE_LIMIT} per page` }];
 
   const throttleUpdate = useCallback(
     throttle(
@@ -407,84 +406,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const propertyOptions = propertyOptionMap[selectedIdp] || [];
   const headers = propertyOptions.length > 0 ? propertyOptions.filter((option) => option.result) : [];
 
-  let content = null;
-  if (!searched) {
-    content = (
-      <tr>
-        <td colSpan={10}>
-          <CenterAlign>You have not searched for any users yet.</CenterAlign>
-        </td>
-      </tr>
-    );
-  } else if (rows.length > 0) {
-    content = rows.map((row: KeycloakUser) => {
-      return (
-        <tr
-          key={row.username}
-          className={selectedId === row.username ? 'active' : ''}
-          onClick={() => {
-            setSelectedId(row.username);
-          }}
-        >
-          {headers.map((header) => {
-            return <td>{get(row, header.value)}</td>;
-          })}
-          <td>
-            <ActionButtonContainer>
-              <ActionButton
-                icon={faEye}
-                role="button"
-                aria-label="view"
-                onClick={(event: any) => {
-                  event.stopPropagation();
-
-                  infoModalRef.current.open({
-                    guid: row.username.split('@')[0],
-                    attributes: {
-                      ...reduce(
-                        headers,
-                        (ret: { [key: string]: string }, header) => {
-                          ret[header.label] = get(row, header.value);
-                          return ret;
-                        },
-                        {},
-                      ),
-                      ...row.attributes,
-                    },
-                  });
-                }}
-                title="View"
-                size="lg"
-              />
-            </ActionButtonContainer>
-          </td>
-        </tr>
-      );
-    });
-  } else {
-    content = (
-      <tr>
-        <td colSpan={10}>
-          <FlexBox>
-            <FlexItem>
-              <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
-            </FlexItem>
-            {showIdirLookupOption ? (
-              <FlexItem>
-                The user you searched for does not exist. Please try again, by entering the full search criteria or try
-                using our IDIM Web Service Lookup tool.
-              </FlexItem>
-            ) : (
-              <FlexItem>
-                The user you searched for does not exist. Please try again, by entering the full search criteria.
-              </FlexItem>
-            )}
-          </FlexBox>
-        </td>
-      </tr>
-    );
-  }
-
   let idirLookup = null;
 
   if (searched && showIdirLookupOption) {
@@ -522,6 +443,26 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       ? 'Exact text match results will be displayed'
       : 'Partial text match results will be displayed';
 
+  const getTableStatusText = () => {
+    if (searched) {
+      return showIdirLookupOption
+        ? 'The user you searched for does not exist. Please try again, by entering the full search criteria or try using our IDIM Web Service Lookup tool.'
+        : 'The user you searched for does not exist. Please try again, by entering the full search criteria.';
+    } else {
+      return 'You have not searched for any users yet.';
+    }
+  };
+
+  const getTableHeaderLabel = (key: string) => {
+    const propOption = propertyOptions.find((p) => p.value === key);
+    console.log(propOption);
+    return propOption?.label.toString();
+  };
+
+  const activateRow = (request: any) => {
+    setSelectedId(request['cells'][0].value);
+  };
+
   return (
     <>
       <TopMargin />
@@ -538,11 +479,66 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 hide={200}
               />
             </Header>
+
             <Table
-              key={searchKey}
+              searchPlaceholder="Enter search criteria"
               variant="mini"
-              searchLocation="right"
-              filters={[
+              headers={[
+                {
+                  accessor: 'firstName',
+                  Header: getTableHeaderLabel('firstName') || '',
+                },
+                {
+                  accessor: 'lastName',
+                  Header: getTableHeaderLabel('lastName') || '',
+                },
+                {
+                  accessor: 'email',
+                  Header: 'Email',
+                },
+                {
+                  accessor: 'actions',
+                  Header: '',
+                  disableSortBy: true,
+                },
+              ]}
+              data={rows.map((row) => {
+                return {
+                  firstName: get(row, 'firstName'),
+                  lastName: get(row, 'lastName'),
+                  email: get(row, 'email'),
+                  actions: (
+                    <ActionButtonContainer>
+                      <ActionButton
+                        icon={faEye}
+                        role="button"
+                        aria-label="view"
+                        onClick={(event: any) => {
+                          event.stopPropagation();
+
+                          infoModalRef.current.open({
+                            guid: row.username.split('@')[0],
+                            attributes: {
+                              ...reduce(
+                                headers,
+                                (ret: { [key: string]: string }, header) => {
+                                  ret[header.label] = get(row, header.value);
+                                  return ret;
+                                },
+                                {},
+                              ),
+                              ...row.attributes,
+                            },
+                          });
+                        }}
+                        title="View"
+                        size="lg"
+                      />
+                    </ActionButtonContainer>
+                  ),
+                };
+              })}
+              colfilters={[
                 {
                   key: 'user-role-filter-env',
                   value: selectedEnvironment,
@@ -565,26 +561,21 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   options: propertyOptions.filter((option) => option.search),
                 },
               ]}
-              headers={headers}
-              pagination={true}
-              pageLimits={pageLimits}
-              limit={PAGE_LIMIT}
-              page={page}
+              showFilters={true}
+              loading={loading}
+              totalColSpan={20}
+              searchColSpan={10}
+              headerAlign={'bottom'}
+              headerGutter={[5, 0]}
               searchKey={searchKey}
-              searchPlaceholder="Enter search criteria"
-              searchTooltip={searchTooltip}
+              searchLocation={'right'}
               onSearch={handleSearch}
               onEnter={handleSearch}
-              loading={loading}
-              rowCount={count}
-              onPrev={setPage}
-              onNext={setPage}
-              totalColSpan={20}
-              searchColSpan={8}
-              filterColSpan={12}
-            >
-              {content}
-            </Table>
+              noDataFoundMessage={getTableStatusText()}
+              pagination={true}
+              pageLimits={[PAGE_LIMIT]}
+              activateRow={activateRow}
+            ></Table>
             {idirLookup}
           </Grid.Col>
           <Grid.Col span={4}>{rightPanel}</Grid.Col>
