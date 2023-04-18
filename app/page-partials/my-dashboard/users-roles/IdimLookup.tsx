@@ -1,8 +1,8 @@
-import React, { useState, forwardRef, useEffect, useImperativeHandle } from 'react';
-import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
+import React, { useState, forwardRef, useEffect } from 'react';
+import { faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
 import Table from 'components/TableNew';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
+import { ModalRef } from 'components/GenericModal';
 import { searchIdirUsers, importIdirUser, IdirUser } from 'services/bceid-webservice';
 
 const idpOptions = [{ value: 'idir', label: 'IDIR' }];

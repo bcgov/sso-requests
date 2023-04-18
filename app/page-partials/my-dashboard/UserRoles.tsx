@@ -2,19 +2,14 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import get from 'lodash.get';
-import map from 'lodash.map';
-import omitBy from 'lodash.omitby';
 import startCase from 'lodash.startcase';
-import isEmpty from 'lodash.isempty';
 import throttle from 'lodash.throttle';
-import omit from 'lodash.omit';
 import reduce from 'lodash.reduce';
 import Button from '@button-inc/bcgov-theme/Button';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { Integration, ClientRole, Option } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import Table from 'components/TableNew';
@@ -32,62 +27,12 @@ const Label = styled.label`
   margin-bottom: 2px;
 `;
 
-const ReadonlyContainer = styled.div`
-  display: flex;
-  & > div:first-child {
-    margin-right: 20px;
-  }
-`;
-
-const Readonly = styled.div<{ width?: string }>`
-  background-color: #f1f1f1;
-  margin: 2px 0 2px 0;
-  padding: 4px 6px;
-  ${(props) => (props.width ? `width: ${props.width};` : `width: 300px;`)}
-`;
-
-const ReadonlySubHeader = styled.div<{ width?: string }>`
-  font-size: 0.9rem;
-  ${(props) => (props.width ? `width: ${props.width};` : `width: 300px;`)}
-`;
-
-const ReadonlyItem = ({ children, width }: { children: React.ReactNode; width?: string }) => {
-  return (
-    <Readonly width={width}>
-      <Grid cols={6}>
-        <Grid.Row gutter={[]}>
-          <Grid.Col span={5}>{children}</Grid.Col>
-          <Grid.Col span={1} style={{ textAlign: 'right' }}>
-            <FontAwesomeIcon icon={faLock} color="#9F9F9F" size="lg" />
-          </Grid.Col>
-        </Grid.Row>
-      </Grid>
-    </Readonly>
-  );
-};
-
 const AlignCenter = styled.div`
   text-align: center;
 `;
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
-`;
-
-const CenterAlign = styled.div`
-  text-align: center;
-`;
-
-const FlexBox = styled.div`
-  display: flex;
-  & > * {
-    padding-right: 0.5rem;
-  }
-`;
-
-const FlexItem = styled.div`
-  padding-top: 10px;
-  padding-bottom: 10px;
 `;
 
 const Loading = () => (
@@ -353,9 +298,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     if (data) {
       setRows(sliceRows(_page, data.rows));
       setCount(data.count);
-      if (data.count === 1) {
-        setSelectedId(data.rows[0].username);
-      }
     }
     setLoading(false);
   };

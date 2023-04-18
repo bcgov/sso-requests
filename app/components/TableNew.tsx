@@ -324,8 +324,8 @@ function Table({
                   //@ts-ignore
                   options={filter.options}
                   onChange={(val: any) => filter.onChange && filter.onChange(val.value)}
-                  defaultValue={typeof filter.value === 'string' ? filter.value : ''}
                   isSearchable={true}
+                  defaultValue={filter.options[0]}
                 />
               </>
             )}

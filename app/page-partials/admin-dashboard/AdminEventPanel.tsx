@@ -83,6 +83,10 @@ export default function AdminEventPanel({ requestId }: Props) {
               ...base,
               width: '250px',
             }),
+            menu: (base) => ({
+              ...base,
+              width: '250px',
+            }),
           }}
         />
       </SectionHeader>
