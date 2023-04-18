@@ -14,7 +14,7 @@ import noop from 'lodash.noop';
 import InfoOverlay from './InfoOverlay';
 import ReactPlaceholder from 'react-placeholder/lib';
 import { TextBlock } from 'react-placeholder/lib/placeholders';
-import { TABLE_ROW_HEIGHT, TABLE_ROW_SPACING } from 'styles/theme';
+import { TABLE_ROW_HEIGHT_MINI, TABLE_ROW_SPACING } from 'styles/theme';
 
 const PaginationIcon = styled(FontAwesomeIcon)`
   color: '#000';
@@ -55,7 +55,7 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   }
 `;
 
-function SelectColumnFilter({ setFilter, options, setValue }: any) {
+function SelectColumnFilter({ setFilter, options, setValue, gotoPage }: any) {
   return (
     <>
       <Select
@@ -64,6 +64,7 @@ function SelectColumnFilter({ setFilter, options, setValue }: any) {
         onChange={(val) => {
           setFilter('status', val);
           setValue(val);
+          gotoPage(0);
         }}
         options={options}
         isMulti
@@ -155,6 +156,8 @@ interface Props {
   pageLimits?: number[];
   onLimit?: (val: number) => void;
   limit?: number;
+  noDataFoundMessage?: string;
+  pagination?: boolean;
 }
 
 function Table({
@@ -180,8 +183,11 @@ function Table({
   loading,
   onLimit = noop,
   limit = 10,
+  noDataFoundMessage = 'No Data Found.',
+  pagination = false,
+  pageLimits = [5, 10, 15, 30, 50, 100],
 }: Props) {
-  const pageItemsSize = [5, 10, 15, 30, 50, 100];
+  const numOfPages = Math.ceil(rowCount / limit);
   const columns: Column[] = React.useMemo(() => headers, [headers]);
   const rowsData = React.useMemo(() => data, [data]);
   const [selectedRow, setSelectedRow] = useState<Row>();
@@ -193,11 +199,14 @@ function Table({
   const handleKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       onEnter(_searchKey);
+      gotoPage(0);
     }
   };
 
   const handleSearchSubmit = () => {
     onSearch(_searchKey);
+    gotoPage(0);
+    setSelectedRow(undefined);
   };
 
   const {
@@ -211,16 +220,16 @@ function Table({
     pageOptions,
     nextPage,
     previousPage,
-    state: { pageIndex, pageSize },
+    state: { pageIndex },
     setFilter,
-    setPageSize,
+    gotoPage,
   } = useTable(
     {
       columns,
       data: rowsData,
       initialState: { pageIndex: 0 },
       manualPagination: true,
-      pageCount: Math.ceil(rowCount / limit),
+      pageCount: numOfPages === 0 ? 1 : numOfPages,
       autoResetPage: false,
       autoResetSortBy: false,
     },
@@ -230,14 +239,14 @@ function Table({
     usePagination,
   );
 
-  let rowSpaces = rowCount || pageSize;
-  if (rowCount > pageSize) rowSpaces = pageSize;
+  let rowSpaces = rowCount || limit;
+  if (rowCount > limit) rowSpaces = limit;
 
   const awesomePlaceholder = (
     <td colSpan={100}>
       <div
         style={{
-          height: `${rowSpaces * (TABLE_ROW_HEIGHT + TABLE_ROW_SPACING) - TABLE_ROW_SPACING}px`,
+          height: `${rowSpaces * (TABLE_ROW_HEIGHT_MINI + TABLE_ROW_SPACING) - TABLE_ROW_SPACING}px`,
           paddingTop: '10px',
         }}
       >
@@ -247,7 +256,7 @@ function Table({
   );
 
   const numOfItemsPerPage = () => {
-    const options = pageItemsSize.map((val) => {
+    const options = pageLimits.map((val) => {
       return { value: val, label: `${val} per page` };
     });
 
@@ -255,8 +264,8 @@ function Table({
   };
 
   const handlePageLimitChange = (val: number) => {
+    gotoPage(0);
     onLimit(val);
-    setPageSize(val);
   };
 
   const updateSelectedRow = (row: any) => {
@@ -299,7 +308,12 @@ function Table({
             {filter.multiselect ? (
               <>
                 {filter.label}
-                <SelectColumnFilter setFilter={setFilter} options={filter.options} setValue={filter.onChange} />
+                <SelectColumnFilter
+                  setFilter={setFilter}
+                  options={filter.options}
+                  setValue={filter.onChange}
+                  gotoPage={gotoPage}
+                />
               </>
             ) : (
               <>
@@ -309,9 +323,9 @@ function Table({
                   classNamePrefix="select"
                   //@ts-ignore
                   options={filter.options}
-                  onChange={(val) => filter.onChange && filter.onChange([val])}
-                  defaultValue={typeof filter.value === 'string' ? filter.value : ''}
+                  onChange={(val: any) => filter.onChange && filter.onChange(val.value)}
                   isSearchable={true}
+                  defaultValue={filter.options[0]}
                 />
               </>
             )}
@@ -333,6 +347,7 @@ function Table({
 
   useEffect(() => {
     onPage(pageIndex + 1);
+    setSelectedRow(undefined);
   }, [pageIndex]);
 
   return (
@@ -348,80 +363,90 @@ function Table({
         </SectionHeader>
       )}
       <StyledTable variant={variant} {...getTableProps()}>
-        <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
-          <thead>
-            {
-              // Loop over the header rows
-              headerGroups.map((headerGroup) => (
-                // Apply the header row props
-                <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-                  {
-                    // Loop over the headers in each row
-                    headerGroup.headers.map((column) => (
-                      // Apply the header cell props
-                      <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
-                        {
-                          // Render the header
-                          column.render('Header')
-                        }
-                        &nbsp;
-                        <span>{getColumnSortedIcon(column.isSorted, column.isSortedDesc)}</span>
-                      </th>
-                    ))
-                  }
-                </tr>
-              ))
-            }
-          </thead>
-          <tbody {...getTableBodyProps()}>
-            {page.map((row: Row) => {
-              prepareRow(row);
-              return (
-                <tr
-                  {...row.getRowProps()}
-                  className={selectedRow?.id === row?.id ? 'active' : ''}
-                  key={row?.id}
-                  onClick={() => updateSelectedRow(row)}
-                >
-                  {row.cells.map((cell: Cell) => {
-                    return (
-                      <td {...cell.getCellProps()} key={cell.value}>
-                        {cell.render('Cell')}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </ReactPlaceholder>
+        <thead>
+          {
+            // Loop over the header rows
+            headerGroups.map((headerGroup) => (
+              // Apply the header row props
+              <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+                {
+                  // Loop over the headers in each row
+                  headerGroup.headers.map((column) => (
+                    // Apply the header cell props
+                    <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
+                      {
+                        // Render the header
+                        column.render('Header')
+                      }
+                      &nbsp;
+                      <span>{getColumnSortedIcon(column.isSorted, column.isSortedDesc)}</span>
+                    </th>
+                  ))
+                }
+              </tr>
+            ))
+          }
+        </thead>
+        <tbody {...getTableBodyProps()}>
+          <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
+            {page.length > 0 ? (
+              page.map((row: Row) => {
+                prepareRow(row);
+                return (
+                  <tr
+                    {...row.getRowProps()}
+                    className={selectedRow?.id === row?.id ? 'active' : ''}
+                    key={row?.id}
+                    onClick={() => updateSelectedRow(row)}
+                  >
+                    {row.cells.map((cell: Cell) => {
+                      return (
+                        <td {...cell.getCellProps()} key={cell.value}>
+                          {cell.render('Cell')}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={10}>
+                  <div style={{ textAlign: 'center' }}>{noDataFoundMessage}</div>
+                </td>
+              </tr>
+            )}
+          </ReactPlaceholder>
+        </tbody>
       </StyledTable>
-      <Grid cols={12}>
-        <Grid.Row collapse="992" gutter={[]} align="center">
-          <Grid.Col span={8}>
-            <StyledPagination>
-              <PaginationItemsDetail
-                canNextPage={canNextPage}
-                nextPage={nextPage}
-                canPreviousPage={canPreviousPage}
-                previousPage={previousPage}
-                pageIndex={pageIndex}
-                pageOptions={pageOptions}
-              />
-            </StyledPagination>
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <div style={{ textAlign: 'right' }}>
-              <StyledSelect
-                menuPosition="fixed"
-                defaultValue={pageIndex || numOfItemsPerPage()[0]}
-                options={numOfItemsPerPage()}
-                onChange={(v: any) => handlePageLimitChange(v.value)}
-              ></StyledSelect>
-            </div>
-          </Grid.Col>
-        </Grid.Row>
-      </Grid>
+      {pagination && rowCount > 0 && (
+        <Grid cols={12}>
+          <Grid.Row collapse="992" gutter={[]} align="center">
+            <Grid.Col span={8}>
+              <StyledPagination>
+                <PaginationItemsDetail
+                  canNextPage={canNextPage}
+                  nextPage={nextPage}
+                  canPreviousPage={canPreviousPage}
+                  previousPage={previousPage}
+                  pageIndex={pageIndex}
+                  pageOptions={pageOptions}
+                />
+              </StyledPagination>
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <div style={{ textAlign: 'right' }}>
+                <StyledSelect
+                  menuPosition="fixed"
+                  defaultValue={pageIndex || numOfItemsPerPage()[0]}
+                  options={numOfItemsPerPage()}
+                  onChange={(v: any) => handlePageLimitChange(v.value)}
+                ></StyledSelect>
+              </div>
+            </Grid.Col>
+          </Grid.Row>
+        </Grid>
+      )}
     </>
   );
 }
