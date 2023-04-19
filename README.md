@@ -215,3 +215,11 @@ WHERE r.uses_team=FALSE
 AND r.archived=FALSE
 ORDER BY r.client_name
 ```
+
+## Release Process
+
+- Create a pull request from `dev` to `main` and update pull request labels to choose a specific type of release
+- `release:major` - will create a major release (example: `v1.0.0` -> `v2.0.0`)
+- `release:minor` - will create a minor release (example: `v1.0.0` -> `v1.1.0`)
+- `release:patch` - will create a patch release (example: `v1.0.0` -> `v1.0.1`)
+- `release:norelease` - will not trigger any release
