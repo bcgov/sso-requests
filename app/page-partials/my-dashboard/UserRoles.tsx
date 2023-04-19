@@ -397,12 +397,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const getTableHeaderLabel = (key: string) => {
     const propOption = propertyOptions.find((p) => p.value === key);
-    console.log(propOption);
     return propOption?.label.toString();
   };
 
   const activateRow = (request: any) => {
-    setSelectedId(request['cells'][0].value);
+    setSelectedId(request['original']['username']);
   };
 
   return (
@@ -425,6 +424,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             <Table
               searchPlaceholder="Enter search criteria"
               variant="mini"
+              rowSelectorKey={'username'}
               headers={[
                 {
                   accessor: 'firstName',
@@ -446,6 +446,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               ]}
               data={rows.map((row) => {
                 return {
+                  username: get(row, 'username'),
                   firstName: get(row, 'firstName'),
                   lastName: get(row, 'lastName'),
                   email: get(row, 'email'),
