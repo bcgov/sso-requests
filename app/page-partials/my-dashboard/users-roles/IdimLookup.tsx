@@ -181,8 +181,8 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
       searchLocation={'right'}
       onSearch={handleSearch}
       onEnter={handleSearch}
-      noDataFoundMessage={
-        'The user you searched for does not exist. Please try again, by entering the full search criteria.'
+      noDataFoundElement={
+        <p>The user you searched for does not exist. Please try again, by entering the full search criteria.</p>
       }
     ></Table>
   );
