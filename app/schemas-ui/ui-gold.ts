@@ -77,6 +77,10 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     additionalRoleAttribute: {
       classNames: 'short-field-string',
     },
+    clientId: {
+      'ui:readonly': !isAdmin,
+      classNames: 'short-field-string',
+    },
     devLoginTitle: {
       'ui:placeholder': 'Pathfinder SSO Login Page Name',
       classNames: 'short-field-string',

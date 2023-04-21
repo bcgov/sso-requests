@@ -107,6 +107,7 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     devSamlLogoutPostBindingUri,
     testSamlLogoutPostBindingUri,
     prodSamlLogoutPostBindingUri,
+    clientId,
   } = data;
   if (!serviceType) serviceType = 'silver';
   if (!['silver', 'gold'].includes(serviceType)) throw Error('invalid service type');
@@ -131,6 +132,7 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     userId: session.user?.id,
     serviceType,
     environments: ['dev'],
+    clientId,
   });
 
   return { ...result.dataValues, numOfRequestsForToday };
