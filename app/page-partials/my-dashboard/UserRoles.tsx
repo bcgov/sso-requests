@@ -482,6 +482,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               })}
               colfilters={[
                 {
+                  dataTestId: 'filter-env',
                   key: 'user-role-filter-env',
                   value: selectedEnvironment,
                   multiselect: false,
@@ -489,6 +490,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   options: environments.map((env) => ({ value: env, label: startCase(env) })),
                 },
                 {
+                  dataTestId: 'filter-idp',
                   key: 'user-role-filter-idp',
                   value: selectedIdp,
                   multiselect: false,
@@ -496,6 +498,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   options: idps.map((idp) => ({ value: idp, label: idpMap[idp] })),
                 },
                 {
+                  dataTestId: 'filter-prop',
                   key: 'user-role-filter-prop',
                   value: selectedProperty,
                   multiselect: false,

@@ -157,12 +157,14 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
       })}
       colfilters={[
         {
+          dataTestId: 'idim-filter-idp',
           value: selectedIdp,
           multiselect: false,
           onChange: setSelectedIdp,
           options: idpOptions,
         },
         {
+          dataTestId: 'idim-filter-prop',
           value: selectedProperty,
           multiselect: false,
           onChange: setSelectedProperty,

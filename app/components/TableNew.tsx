@@ -55,9 +55,9 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   }
 `;
 
-function SelectColumnFilter({ setFilter, options, setValue, gotoPage }: any) {
+function SelectColumnFilter({ setFilter, options, setValue, gotoPage, dataTestId = '' }: any) {
   return (
-    <>
+    <div data-testid={dataTestId}>
       <Select
         className="basic-multi-select"
         classNamePrefix="select"
@@ -69,7 +69,7 @@ function SelectColumnFilter({ setFilter, options, setValue, gotoPage }: any) {
         options={options}
         isMulti
       ></Select>
-    </>
+    </div>
   );
 }
 
@@ -80,6 +80,7 @@ export interface TableFilter {
   onChange?: Function;
   options: Option[];
   label?: string;
+  dataTestId?: string;
 }
 
 export interface PaginationItemsDetailProps {
@@ -313,20 +314,23 @@ function Table({
                   options={filter.options}
                   setValue={filter.onChange}
                   gotoPage={gotoPage}
+                  dataTestId={filter.dataTestId}
                 />
               </>
             ) : (
               <>
                 {filter.label}
-                <Select
-                  className="basic-single"
-                  classNamePrefix="select"
-                  //@ts-ignore
-                  options={filter.options}
-                  onChange={(val: any) => filter.onChange && filter.onChange(val.value)}
-                  isSearchable={true}
-                  defaultValue={filter.options[0]}
-                />
+                <div data-testid={filter.dataTestId}>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    //@ts-ignore
+                    options={filter.options}
+                    onChange={(val: any) => filter.onChange && filter.onChange(val.value)}
+                    isSearchable={true}
+                    defaultValue={filter.options[0]}
+                  />
+                </div>
               </>
             )}
           </Label>
@@ -435,7 +439,7 @@ function Table({
               </StyledPagination>
             </Grid.Col>
             <Grid.Col span={4}>
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: 'right' }} data-testid="page-select">
                 <StyledSelect
                   menuPosition="fixed"
                   defaultValue={pageIndex || numOfItemsPerPage()[0]}
