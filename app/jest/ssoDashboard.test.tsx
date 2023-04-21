@@ -74,6 +74,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
+
     const firstRow = screen.getByRole('row', {
       name: '1 project_name_1 Applied Active Gold Events Edit Delete',
     });
