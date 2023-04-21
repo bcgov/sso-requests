@@ -25,7 +25,7 @@ export const omitNonFormFields = (data: Integration) =>
     'environments',
     'actionNumber',
     'prNumber',
-    'clientId',
+    //'clientId',
     'userId',
     'idirUserid',
     'idirUserDisplayName',
@@ -55,7 +55,7 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
     'user',
     'userId',
     'idirUserid',
-    'clientId',
+    //'clientId',
     'projectLead',
     'status',
     'serviceType',
@@ -63,7 +63,7 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
   ];
 
   if (isMerged) immutableFields.push('realm');
-  if (!isAdmin) immutableFields.push(...durationAdditionalFields);
+  if (!isAdmin) immutableFields.push(...durationAdditionalFields, 'clientId');
 
   data = omit(data, immutableFields);
   data = sortURIFields(data);
