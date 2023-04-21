@@ -159,6 +159,7 @@ interface Props {
   limit?: number;
   noDataFoundMessage?: string;
   pagination?: boolean;
+  rowSelectorKey?: string;
 }
 
 function Table({
@@ -187,11 +188,12 @@ function Table({
   noDataFoundMessage = 'No Data Found.',
   pagination = false,
   pageLimits = [5, 10, 15, 30, 50, 100],
+  rowSelectorKey = 'id',
 }: Props) {
   const numOfPages = Math.ceil(rowCount / limit);
   const columns: Column[] = React.useMemo(() => headers, [headers]);
   const rowsData = React.useMemo(() => data, [data]);
-  const [selectedRow, setSelectedRow] = useState<Row>();
+  const [selectedRow, setSelectedRow] = useState<any>();
   const [_searchKey, setSearchKey] = useState(searchKey);
   const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchKey(event.target.value);
@@ -394,12 +396,14 @@ function Table({
         <tbody {...getTableBodyProps()}>
           <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
             {page.length > 0 ? (
-              page.map((row: Row) => {
+              page.map((row: any) => {
                 prepareRow(row);
                 return (
                   <tr
                     {...row.getRowProps()}
-                    className={selectedRow?.id === row?.id ? 'active' : ''}
+                    className={
+                      selectedRow?.original[`${rowSelectorKey}`] === row?.original[`${rowSelectorKey}`] ? 'active' : ''
+                    }
                     key={row?.id}
                     onClick={() => updateSelectedRow(row)}
                   >

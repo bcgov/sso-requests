@@ -109,8 +109,10 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
           disableSortBy: true,
         },
       ]}
+      rowSelectorKey={'guid'}
       data={rows.map((row) => {
         return {
+          guid: row.guid,
           firstName: row.individualIdentity.name.firstname,
           lastName: row.individualIdentity.name.surname,
           email: row.contact.email,
