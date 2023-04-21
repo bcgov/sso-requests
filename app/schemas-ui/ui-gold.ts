@@ -78,6 +78,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       classNames: 'short-field-string',
     },
     clientId: {
+      'ui:readonly': !isAdmin,
       classNames: 'short-field-string',
     },
     devLoginTitle: {
