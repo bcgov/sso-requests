@@ -55,9 +55,9 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   }
 `;
 
-function SelectColumnFilter({ setFilter, options, setValue, gotoPage, dataTestId = '' }: any) {
+function SelectColumnFilter({ setFilter, options, setValue, gotoPage }: any) {
   return (
-    <div data-testid={dataTestId}>
+    <div data-testid="multi-select-col-filter">
       <Select
         className="basic-multi-select"
         classNamePrefix="select"
@@ -80,7 +80,6 @@ export interface TableFilter {
   onChange?: Function;
   options: Option[];
   label?: string;
-  dataTestId?: string;
 }
 
 export interface PaginationItemsDetailProps {
@@ -316,12 +315,11 @@ function Table({
                   options={filter.options}
                   setValue={filter.onChange}
                   gotoPage={gotoPage}
-                  dataTestId={filter.dataTestId}
                 />
               </>
             ) : (
               <>
-                <div data-testid={filter.dataTestId}>
+                <div data-testid="select-col-filter">
                   {filter.label}
                   <Select
                     className="basic-single"

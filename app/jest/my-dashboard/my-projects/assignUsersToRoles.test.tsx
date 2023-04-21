@@ -70,29 +70,29 @@ describe('assign user to roles tab', () => {
     });
 
     //test on env dropdown
-    const selectEnvWrapper = screen.getByTestId('filter-env');
-    const envInput = selectEnvWrapper.lastChild;
+    const selectEnvWrapper = screen.getAllByTestId('select-col-filter');
+    const envInput = selectEnvWrapper[0].lastChild;
     fireEvent.keyDown(envInput as HTMLElement, { keyCode: 40 });
     const envOption = await screen.findByText('Test');
     fireEvent.click(envOption);
-    expect(selectEnvWrapper).toHaveTextContent('Test');
+    expect(selectEnvWrapper[0]).toHaveTextContent('Test');
 
     //test on IDPs dropdown
-    const selectIDPWrapper = screen.getByTestId('filter-idp');
-    const idpInput = selectIDPWrapper.lastChild;
+    const selectIDPWrapper = screen.getAllByTestId('select-col-filter');
+    const idpInput = selectIDPWrapper[1].lastChild;
     fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findAllByText('IDIR');
     fireEvent.click(idpOption[0]);
-    expect(selectIDPWrapper).toHaveTextContent('IDIR');
+    expect(selectIDPWrapper[1]).toHaveTextContent('IDIR');
     expect(screen.getAllByText('First Name'));
 
     //test on property dropdown
-    const selectPropertyWrapper = screen.getByTestId('filter-prop');
-    const propInput = selectPropertyWrapper.lastChild;
+    const selectPropertyWrapper = screen.getAllByTestId('select-col-filter');
+    const propInput = selectPropertyWrapper[2].lastChild;
     fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
     const propOption = await screen.findByText('IDP GUID');
     fireEvent.click(propOption);
-    expect(selectPropertyWrapper).toHaveTextContent('IDP GUID');
+    expect(selectPropertyWrapper[2]).toHaveTextContent('IDP GUID');
   });
 
   it('Should display correct user selection criteria for BCeID idps', async () => {
@@ -103,15 +103,15 @@ describe('assign user to roles tab', () => {
       expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
     });
 
-    const selectIDPWrapper = screen.getByTestId('filter-idp');
-    const selectPropertyWrapper = screen.getByTestId('filter-prop');
-    const idpInput = selectIDPWrapper.lastChild;
-    const propInput = selectPropertyWrapper.lastChild;
+    const selectIDPWrapper = screen.getAllByTestId('select-col-filter');
+    const selectPropertyWrapper = screen.getAllByTestId('select-col-filter');
+    const idpInput = selectIDPWrapper[1].lastChild;
+    const propInput = selectPropertyWrapper[2].lastChild;
 
     fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findAllByText('Basic BCeID');
     fireEvent.click(idpOption[1]);
-    expect(selectIDPWrapper).toHaveTextContent('Basic BCeID');
+    expect(selectIDPWrapper[1]).toHaveTextContent('Basic BCeID');
 
     fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
     expect(screen.getAllByText('Display Name'));
@@ -128,15 +128,15 @@ describe('assign user to roles tab', () => {
       expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
     });
 
-    const selectIDPWrapper = screen.getByTestId('filter-idp');
-    const selectPropertyWrapper = screen.getByTestId('filter-prop');
-    const idpInput = selectIDPWrapper.lastChild;
-    const propInput = selectPropertyWrapper.lastChild;
+    const selectIDPWrapper = screen.getAllByTestId('select-col-filter');
+    const selectPropertyWrapper = screen.getAllByTestId('select-col-filter');
+    const idpInput = selectIDPWrapper[1].lastChild;
+    const propInput = selectPropertyWrapper[2].lastChild;
 
     fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findAllByText('GitHub');
     fireEvent.click(idpOption[1]);
-    expect(selectIDPWrapper).toHaveTextContent('GitHub');
+    expect(selectIDPWrapper[1]).toHaveTextContent('GitHub');
 
     fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
     expect(screen.getAllByText('Name'));
@@ -187,12 +187,12 @@ describe('assign user to roles tab', () => {
     fireEvent.change(idimSearchInput[1], { target: { value: 'idim_sample_input' } });
 
     //test on property dropdown
-    const selectPropertyWrapper = screen.getByTestId('idim-filter-prop');
-    const propInput = selectPropertyWrapper.lastChild;
+    const selectPropertyWrapper = screen.getAllByTestId('select-col-filter');
+    const propInput = selectPropertyWrapper[4].lastChild;
     fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
     const propOption = await screen.findByText('Username');
     fireEvent.click(propOption);
-    expect(selectPropertyWrapper).toHaveTextContent('Username');
+    expect(selectPropertyWrapper[4]).toHaveTextContent('Username');
 
     const idimSearchButton = screen.getAllByRole('button', { name: 'Search' });
     fireEvent.click(idimSearchButton[1]);

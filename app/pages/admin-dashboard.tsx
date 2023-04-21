@@ -233,7 +233,6 @@ export default function AdminDashboard({ session }: PageProps) {
                 onChange: setSelectedEnvironments,
                 options: environmentOptions,
                 label: 'Environments',
-                dataTestId: 'filter-env',
               },
               {
                 value: selectedIdp,
@@ -241,7 +240,6 @@ export default function AdminDashboard({ session }: PageProps) {
                 onChange: setSelectedIdp,
                 options: idpOptions,
                 label: 'IDPs',
-                dataTestId: 'filter-idp',
               },
               {
                 value: workflowStatus,
@@ -249,7 +247,6 @@ export default function AdminDashboard({ session }: PageProps) {
                 onChange: setWorkflowStatus,
                 options: workflowStatusOptions,
                 label: 'Workflow Status',
-                dataTestId: 'filter-workflow-status',
               },
               {
                 value: archiveStatus,
@@ -257,7 +254,6 @@ export default function AdminDashboard({ session }: PageProps) {
                 onChange: setArchiveStatus,
                 options: archiveStatusOptions,
                 label: 'Archive Status',
-                dataTestId: 'filter-archive-status',
               },
               {
                 value: types,
@@ -265,7 +261,6 @@ export default function AdminDashboard({ session }: PageProps) {
                 onChange: setTypes,
                 options: typeOptions,
                 label: 'Service Type',
-                dataTestId: 'filter-service-type',
               },
             ]}
             showFilters={true}

@@ -88,44 +88,44 @@ describe('SSO Dashboard', () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     //Environments dropdown
-    const selectEnvironments = screen.getByTestId('filter-env');
-    const envInput = selectEnvironments.firstChild;
+    const selectEnvironments = screen.getAllByTestId('multi-select-col-filter');
+    const envInput = selectEnvironments[0].firstChild;
     fireEvent.keyDown(envInput as HTMLElement, { keyCode: 40 });
     const envOption = await screen.findByText('Test');
     fireEvent.click(envOption);
-    expect(selectEnvironments).toHaveTextContent('Test');
+    expect(selectEnvironments[0]).toHaveTextContent('Test');
 
     //IDPs dropdown
-    const selectIDPs = screen.getByTestId('filter-idp');
-    const idpInput = selectIDPs.firstChild;
+    const selectIDPs = screen.getAllByTestId('multi-select-col-filter');
+    const idpInput = selectIDPs[1].firstChild;
     fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findByText('BCeID');
     fireEvent.click(idpOption);
-    expect(selectIDPs).toHaveTextContent('BCeID');
+    expect(selectIDPs[1]).toHaveTextContent('BCeID');
 
     //Workflow Status dropdown
-    const selectWorkflowStatus = screen.getByTestId('filter-workflow-status');
-    const workflowStatusInput = selectWorkflowStatus.firstChild;
+    const selectWorkflowStatus = screen.getAllByTestId('multi-select-col-filter');
+    const workflowStatusInput = selectWorkflowStatus[2].firstChild;
     fireEvent.keyDown(workflowStatusInput as HTMLElement, { keyCode: 40 });
     const workflowStatusOption = await screen.findByText('Draft');
     fireEvent.click(workflowStatusOption);
-    expect(selectWorkflowStatus).toHaveTextContent('Draft');
+    expect(selectWorkflowStatus[2]).toHaveTextContent('Draft');
 
     //Archive Status dropdown
-    const selectArchiveStatus = screen.getByTestId('filter-archive-status');
-    const archiveStatusInput = selectArchiveStatus.firstChild;
+    const selectArchiveStatus = screen.getAllByTestId('multi-select-col-filter');
+    const archiveStatusInput = selectArchiveStatus[3].firstChild;
     fireEvent.keyDown(archiveStatusInput as HTMLElement, { keyCode: 40 });
     const archiveStatusOption = await screen.findByText('Active');
     fireEvent.click(archiveStatusOption);
-    expect(selectArchiveStatus).toHaveTextContent('Active');
+    expect(selectArchiveStatus[3]).toHaveTextContent('Active');
 
     //Service Type dropdown
-    const selectServiceType = screen.getByTestId('filter-service-type');
-    const serviceTypeInput = selectServiceType.firstChild;
+    const selectServiceType = screen.getAllByTestId('multi-select-col-filter');
+    const serviceTypeInput = selectServiceType[4].firstChild;
     fireEvent.keyDown(serviceTypeInput as HTMLElement, { keyCode: 40 });
     const serviceTypeOption = await screen.findByText('Gold');
     fireEvent.click(serviceTypeOption);
-    expect(selectServiceType).toHaveTextContent('Gold');
+    expect(selectServiceType[4]).toHaveTextContent('Gold');
   });
 
   it('testing Action buttons', async () => {
