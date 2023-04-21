@@ -131,7 +131,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     <li>
                       Our service is available 24/7, except during planned outages within the Kamloops and Calgary data
                       centres. Planned outages are communicated through{' '}
-                      <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
+                      <Link external href="https://chat.developer.gov.bc.ca/channel/sso">
                         RocketChat
                       </Link>
                       .
