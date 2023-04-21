@@ -16,6 +16,8 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-20.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
         env: ['dev', 'test', 'prod', 'preview']

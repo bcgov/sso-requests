@@ -1,6 +1,6 @@
 import { Table as StyledTable, SearchBar } from '@bcgov-sso/common-react-components';
 import Button from '@button-inc/bcgov-theme/Button';
-import React, { useEffect, useState } from 'react';
+import React, { ReactElement, useEffect, useState } from 'react';
 import { useTable, usePagination, useFilters, useGlobalFilter, Column, useSortBy, Row, Cell } from 'react-table';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Pagination from 'react-bootstrap/Pagination';
@@ -157,7 +157,7 @@ interface Props {
   pageLimits?: number[];
   onLimit?: (val: number) => void;
   limit?: number;
-  noDataFoundMessage?: string;
+  noDataFoundElement?: ReactElement;
   pagination?: boolean;
   rowSelectorKey?: string;
 }
@@ -185,7 +185,7 @@ function Table({
   loading,
   onLimit = noop,
   limit = 10,
-  noDataFoundMessage = 'No Data Found.',
+  noDataFoundElement = <p>No Data Found.</p>,
   pagination = false,
   pageLimits = [5, 10, 15, 30, 50, 100],
   rowSelectorKey = 'id',
@@ -321,8 +321,8 @@ function Table({
               </>
             ) : (
               <>
-                {filter.label}
                 <div data-testid={filter.dataTestId}>
+                  {filter.label}
                   <Select
                     className="basic-single"
                     classNamePrefix="select"
@@ -331,6 +331,7 @@ function Table({
                     onChange={(val: any) => filter.onChange && filter.onChange(val.value)}
                     isSearchable={true}
                     defaultValue={filter.options[0]}
+                    value={filter.options.find((op) => op.value === filter.value)}
                   />
                 </div>
               </>
@@ -419,9 +420,7 @@ function Table({
               })
             ) : (
               <tr>
-                <td colSpan={10}>
-                  <div style={{ textAlign: 'center' }}>{noDataFoundMessage}</div>
-                </td>
+                <td colSpan={10}>{noDataFoundElement}</td>
               </tr>
             )}
           </ReactPlaceholder>

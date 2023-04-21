@@ -84,7 +84,7 @@ describe('assign user to roles tab', () => {
     const idpOption = await screen.findAllByText('IDIR');
     fireEvent.click(idpOption[0]);
     expect(selectIDPWrapper).toHaveTextContent('IDIR');
-    expect(screen.getByText('First Name'));
+    expect(screen.getAllByText('First Name'));
 
     //test on property dropdown
     const selectPropertyWrapper = screen.getByTestId('filter-prop');

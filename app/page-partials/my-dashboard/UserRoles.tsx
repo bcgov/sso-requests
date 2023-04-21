@@ -6,7 +6,7 @@ import startCase from 'lodash.startcase';
 import throttle from 'lodash.throttle';
 import reduce from 'lodash.reduce';
 import Button from '@button-inc/bcgov-theme/Button';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
@@ -21,6 +21,7 @@ import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } 
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const Label = styled.label`
   font-weight: bold;
@@ -33,6 +34,22 @@ const AlignCenter = styled.div`
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
+`;
+
+const FlexBox = styled.div`
+  display: flex;
+  & > * {
+    padding-right: 0.5rem;
+  }
+`;
+
+const FlexItem = styled.div`
+  padding-top: 10px;
+  padding-bottom: 10px;
+`;
+
+const CenterAlign = styled.div`
+  text-align: center;
 `;
 
 const Loading = () => (
@@ -167,7 +184,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
-  const [selectedIdp, setSelectedIdp] = useState<string>('');
+  //@ts-ignore
+  const [selectedIdp, setSelectedIdp] = useState<string>(selectedRequest.devIdps[0]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
@@ -387,11 +405,25 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const getTableStatusText = () => {
     if (searched) {
-      return showIdirLookupOption
-        ? 'The user you searched for does not exist. Please try again, by entering the full search criteria or try using our IDIM Web Service Lookup tool.'
-        : 'The user you searched for does not exist. Please try again, by entering the full search criteria.';
+      return (
+        <FlexBox>
+          <FlexItem>
+            <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
+          </FlexItem>
+          {showIdirLookupOption ? (
+            <FlexItem>
+              The user you searched for does not exist. Please try again, by entering the full search criteria or try
+              using our IDIM Web Service Lookup tool.
+            </FlexItem>
+          ) : (
+            <FlexItem>
+              The user you searched for does not exist. Please try again, by entering the full search criteria.
+            </FlexItem>
+          )}
+        </FlexBox>
+      );
     } else {
-      return 'You have not searched for any users yet.';
+      return <CenterAlign>You have not searched for any users yet.</CenterAlign>;
     }
   };
 
@@ -517,10 +549,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               searchLocation={'right'}
               onSearch={handleSearch}
               onEnter={handleSearch}
-              noDataFoundMessage={getTableStatusText()}
+              noDataFoundElement={getTableStatusText()}
               pagination={true}
               pageLimits={[PAGE_LIMIT]}
               activateRow={activateRow}
+              searchTooltip={searchTooltip}
             ></Table>
             {idirLookup}
           </Grid.Col>
