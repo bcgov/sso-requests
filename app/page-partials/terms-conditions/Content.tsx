@@ -81,12 +81,24 @@ export default function FaqItems() {
       </StyledList>
       <Title>Understanding the service level</Title>
       <StyledList>
-        <li>Our service is available 24/7, with questions and answers addressed during business hours only.</li>
-        <li>Client provisioning requests will be reviewed and handled during normal business hours.</li>
         <li>
-          To learn more about our service uptime monitoring, please visit our{' '}
+          Our service is available 24/7, except during planned outages within the Kamloops and Calgary data centres.
+          Planned outages are communicated through{' '}
+          <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
+            RocketChat
+          </Link>
+          .
+        </li>
+        <li>
+          Our regular business hours are weekdays from 9:00 am to 5:00 pm Pacific Time, excluding statutory holidays.
+          Client provisioning questions and requests will be reviewed and handled during normal business hours. After
+          hours support is provided by the Pathfinder SSO team, and is only available for service outages and other
+          incidents that impact the service.
+        </li>
+        <li>
+          To learn more about our service uptime monitoring, please{' '}
           <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
-            uptime page on our wiki
+            visit our uptime page on our wiki
           </Link>
           .
         </li>
