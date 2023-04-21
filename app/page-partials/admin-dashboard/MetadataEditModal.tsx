@@ -30,7 +30,7 @@ function MetadataEditModal({ request, onUpdate }: Props) {
   const openModal = () => (window.location.hash = modalId);
 
   const modalContents = (
-    <>
+    <div data-testid="integration-status">
       <p style={{ fontWeight: 'bold' }}>Integration Status</p>
       <Select
         className="react-select-container"
@@ -40,7 +40,7 @@ function MetadataEditModal({ request, onUpdate }: Props) {
         onChange={(val: any) => setStatus(val.value)}
         isSearchable={true}
       />
-    </>
+    </div>
   );
 
   return (

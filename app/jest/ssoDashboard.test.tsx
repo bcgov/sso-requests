@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AdminDashboard from 'pages/admin-dashboard';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
-import { deleteRequest } from 'services/request';
+import { deleteRequest, updateRequestMetadata, updateRequest } from 'services/request';
 
 const sampleSession = {
   email: '',
@@ -18,6 +18,8 @@ function MockRequestAllResult() {
       projectName: `project_name_${i}`,
       status: 'applied',
       serviceType: 'gold',
+      environments: ['dev', 'prod'],
+      devIdps: ['bceidbasic', 'githubpublic'],
     });
   }
   return requestAllResult;
@@ -33,11 +35,19 @@ jest.mock('services/request', () => {
   return {
     getRequestAll: jest.fn(() => Promise.resolve([{ count: 6, rows: MockRequestAllResult() }, null])),
     deleteRequest: jest.fn(() => Promise.resolve([[''], null])),
+    updateRequestMetadata: jest.fn(() => Promise.resolve([[], null])),
+    updateRequest: jest.fn(() => Promise.resolve([[], null])),
+  };
+});
+
+jest.mock('services/event', () => {
+  return {
+    getEvents: jest.fn(() => Promise.resolve([[], null])),
   };
 });
 
 describe('SSO Dashboard', () => {
-  it.skip('should match all table headers, dropdown headings; testing on input field, search button', async () => {
+  it('should match all table headers, dropdown headings; testing on input field, search button', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     expect(screen.getByText('Environments')).toBeInTheDocument();
@@ -48,49 +58,93 @@ describe('SSO Dashboard', () => {
 
     const searchInputField = screen.getByPlaceholderText('Project ID or Name');
     expect(searchInputField).toBeInTheDocument();
-    fireEvent.change(searchInputField, { target: { value: 'sample_input' } });
-    expect(searchInputField).toHaveDisplayValue('sample_input');
+    fireEvent.change(searchInputField, { target: { value: 'project_name' } });
+    expect(searchInputField).toHaveDisplayValue('project_name');
 
     const searchButton = screen.getByRole('button', { name: 'Search' });
     fireEvent.click(searchButton);
 
+    expect(screen.getByText('Request ID')).toBeInTheDocument();
+    expect(screen.getByText('Project Name')).toBeInTheDocument();
+    expect(screen.getByText('Request Status')).toBeInTheDocument();
+    expect(screen.getByText('File Status')).toBeInTheDocument();
+    expect(screen.getAllByText('Service Type'));
+    expect(screen.getByText('Actions')).toBeInTheDocument();
+
     await waitFor(() => {
-      expect(
-        screen.getByRole('row', { name: 'Request ID Project Name Request Status File Status Service Type Actions' }),
-      );
+      screen.getByText('project_name_1');
     });
+
     const firstRow = screen.getByRole('row', {
-      name: '00000001 project_name_1 Applied Active Gold Events Edit Delete',
+      name: '1 project_name_1 Applied Active Gold Events Edit Delete',
     });
     fireEvent.click(firstRow);
     await waitFor(() => {
       expect(firstRow).toHaveClass('active');
     });
-
-    //click on dropdown input
-    // await waitFor(() => { screen.getByLabelText('Select', {selector: 'div'}) });
-    // expect(asFragment()).toMatchSnapshot();
   });
 
-  it.skip('testing Action buttons', async () => {
+  it('testing on attribute dropdown', async () => {
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+
+    //Environments dropdown
+    const selectEnvironments = screen.getAllByTestId('multi-select-col-filter');
+    const envInput = selectEnvironments[0].firstChild;
+    fireEvent.keyDown(envInput as HTMLElement, { keyCode: 40 });
+    const envOption = await screen.findByText('Test');
+    fireEvent.click(envOption);
+    expect(selectEnvironments[0]).toHaveTextContent('Test');
+
+    //IDPs dropdown
+    const selectIDPs = screen.getAllByTestId('multi-select-col-filter');
+    const idpInput = selectIDPs[1].firstChild;
+    fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
+    const idpOption = await screen.findByText('BCeID');
+    fireEvent.click(idpOption);
+    expect(selectIDPs[1]).toHaveTextContent('BCeID');
+
+    //Workflow Status dropdown
+    const selectWorkflowStatus = screen.getAllByTestId('multi-select-col-filter');
+    const workflowStatusInput = selectWorkflowStatus[2].firstChild;
+    fireEvent.keyDown(workflowStatusInput as HTMLElement, { keyCode: 40 });
+    const workflowStatusOption = await screen.findByText('Draft');
+    fireEvent.click(workflowStatusOption);
+    expect(selectWorkflowStatus[2]).toHaveTextContent('Draft');
+
+    //Archive Status dropdown
+    const selectArchiveStatus = screen.getAllByTestId('multi-select-col-filter');
+    const archiveStatusInput = selectArchiveStatus[3].firstChild;
+    fireEvent.keyDown(archiveStatusInput as HTMLElement, { keyCode: 40 });
+    const archiveStatusOption = await screen.findByText('Active');
+    fireEvent.click(archiveStatusOption);
+    expect(selectArchiveStatus[3]).toHaveTextContent('Active');
+
+    //Service Type dropdown
+    const selectServiceType = screen.getAllByTestId('multi-select-col-filter');
+    const serviceTypeInput = selectServiceType[4].firstChild;
+    fireEvent.keyDown(serviceTypeInput as HTMLElement, { keyCode: 40 });
+    const serviceTypeOption = await screen.findByText('Gold');
+    fireEvent.click(serviceTypeOption);
+    expect(selectServiceType[4]).toHaveTextContent('Gold');
+  });
+
+  it('testing Action buttons', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     const searchInputField = screen.getByPlaceholderText('Project ID or Name');
     expect(searchInputField).toBeInTheDocument();
-    fireEvent.change(searchInputField, { target: { value: 'sample_input' } });
-    expect(searchInputField).toHaveDisplayValue('sample_input');
+    fireEvent.change(searchInputField, { target: { value: 'project_name' } });
+    expect(searchInputField).toHaveDisplayValue('project_name');
 
     const searchButton = screen.getByRole('button', { name: 'Search' });
     fireEvent.click(searchButton);
 
     //click on row
     await waitFor(() => {
-      expect(
-        screen.getByRole('row', { name: 'Request ID Project Name Request Status File Status Service Type Actions' }),
-      );
+      screen.getByText('project_name_1');
     });
     const firstRow = screen.getByRole('row', {
-      name: '00000001 project_name_1 Applied Active Gold Events Edit Delete',
+      name: '1 project_name_1 Applied Active Gold Events Edit Delete',
     });
     fireEvent.click(firstRow);
     await waitFor(() => {
@@ -124,32 +178,138 @@ describe('SSO Dashboard', () => {
     });
   });
 
-  it.skip('testing on pagination buttons', async () => {
+  it('testing on pagination buttons', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
-      expect(
-        screen.getByRole('row', { name: 'Request ID Project Name Request Status File Status Service Type Actions' }),
-      );
+      screen.getByText('project_name_1');
     });
+    const pageSelection = screen.getByTestId('page-select');
     expect(screen.getByText('5 per page')).toBeInTheDocument();
-    expect(screen.getByText('10 per page')).toBeInTheDocument();
-    expect(screen.getByText('1-5 of 6')).toBeInTheDocument();
+    expect(screen.getByText('1 of 2')).toBeInTheDocument();
 
     //click on Next button
     const nextButton = screen.getByRole('button', { name: 'Next' });
     fireEvent.click(nextButton);
-    expect(screen.getByText('6-6 of 6')).toBeInTheDocument();
+    expect(screen.getByText('2 of 2')).toBeInTheDocument();
 
     //click on Previous button
     const previousButton = screen.getByRole('button', { name: 'Previous' });
     fireEvent.click(previousButton);
-    expect(screen.getByText('1-5 of 6')).toBeInTheDocument();
+    expect(screen.getByText('1 of 2')).toBeInTheDocument();
 
-    //change page option
-    // const tenPerPage = screen.getByRole('option', {name:'10 per page'});
-    // fireEvent.change(tenPerPage);
-    // await waitFor(() => { expect(screen.getByText('1-6 of 6')).toBeInTheDocument() });
-    // expect(screen.getByRole('option')).toHaveDisplayValue('10 per page');
+    //select page limit
+    const input = pageSelection.firstChild;
+    fireEvent.keyDown(input as HTMLElement, { keyCode: 40 });
+    const pageOption = await screen.findByText('10 per page');
+    fireEvent.click(pageOption);
+    expect(pageSelection).toHaveTextContent('10 per page');
+    expect(screen.getByText('1 of 1')).toBeInTheDocument();
+  });
+
+  it('testing on Details tab', async () => {
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
+    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Gold Events Edit Delete' });
+    fireEvent.click(firstRow);
+
+    //open the tabpanel
+    const detailsTabPanel = screen.getByRole('tabpanel', { name: 'Details' });
+    fireEvent.click(detailsTabPanel);
+    await waitFor(() => {
+      expect(detailsTabPanel).toHaveClass('rc-tabs-tabpane-active');
+    });
+
+    //open the modal
+    const editMetadataButton = screen.getByRole('button', { name: 'Edit Metadata' });
+    fireEvent.click(editMetadataButton);
+    await waitFor(() => {
+      expect(screen.getByTitle('Edit Metadata'));
+    });
+
+    //change selection value
+    const statusSelection = screen.getByTestId('integration-status');
+    const input = statusSelection.lastChild;
+    //expect(input).toHaveTextContent('Select...');
+    fireEvent.keyDown(input as HTMLElement, { keyCode: 40 });
+    const option = await screen.findByText('Draft');
+    fireEvent.click(option);
+    expect(input).toHaveTextContent('Draft');
+
+    //test on confirm button
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateRequestMetadata).toHaveBeenCalled();
+  });
+
+  it('testing on Events tab', async () => {
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
+    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Gold Events Edit Delete' });
+    fireEvent.click(firstRow);
+
+    //open the tabpanel
+    const eventsTabPanel = screen.getByRole('tab', { name: 'Events' });
+    fireEvent.click(eventsTabPanel);
+
+    //test on selection dropdown
+    const eventsDropdown = screen.getByTestId('events-dropdown');
+    const input = eventsDropdown.lastChild;
+    //expect(eventsDropdown).toHaveTextContent('Select...');
+    fireEvent.keyDown(input as HTMLElement, { keyCode: 40 });
+    const eventOption = await screen.findByText('All Events');
+    fireEvent.click(eventOption);
+    expect(eventsDropdown).toHaveTextContent('All Events');
+  });
+
+  it('testing on BCeID Prod tab', async () => {
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
+    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Gold Events Edit Delete' });
+    fireEvent.click(firstRow);
+
+    //open the tabpanel
+    const BCeIDProdTabPanel = screen.getByRole('tab', { name: 'BCeID Prod' });
+    fireEvent.click(BCeIDProdTabPanel);
+
+    //open the modal
+    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+    fireEvent.click(approveProdButton);
+    expect(screen.getByTitle('Bceid Approve'));
+
+    //test on confirm button
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateRequest).toHaveBeenCalled();
+  });
+
+  it('testing on GitHub Prod tab', async () => {
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
+    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Gold Events Edit Delete' });
+    fireEvent.click(firstRow);
+
+    //open the tabpanel
+    const GitHubProdTabPanel = screen.getByRole('tab', { name: 'GitHub Prod' });
+    fireEvent.click(GitHubProdTabPanel);
+
+    //open the modal
+    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+    fireEvent.click(approveProdButton);
+    expect(screen.getByTitle('Github Approve'));
+
+    //test on confirm button
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateRequest).toHaveBeenCalled();
   });
 });

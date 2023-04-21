@@ -72,7 +72,7 @@ export default function AdminEventPanel({ requestId }: Props) {
 
   return (
     <>
-      <SectionHeader>
+      <SectionHeader data-testid="events-dropdown">
         <br />
         <Select
           options={filterItems}
