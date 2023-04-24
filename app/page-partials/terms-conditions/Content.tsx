@@ -96,11 +96,15 @@ export default function FaqItems() {
           incidents that impact the service.
         </li>
         <li>
-          To learn more about our service uptime monitoring, please{' '}
+          To learn more about our service uptime monitoring, please visit our{' '}
           <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
-            visit our uptime page on our wiki
-          </Link>
-          .
+            uptime page on our wiki
+          </Link>{' '}
+          and join our{' '}
+          <Link external href="https://subscribe.developer.gov.bc.ca/">
+            newsletter
+          </Link>{' '}
+          to receive important updates on the service and any outages.
         </li>
       </StyledList>
       <Title>Contact Us</Title>
