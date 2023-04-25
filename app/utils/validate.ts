@@ -103,7 +103,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
         errors['prodSamlLogoutPostBindingUri'].addError(validationMessage);
     },
     clientId: () => {
-      if (clientId !== clientId.trim() || clientId.match(/\s/)) {
+      if (clientId !== '' && clientId !== null && (clientId !== clientId.trim() || clientId.match(/\s/))) {
         errors['clientId'].addError('Client id is not valid');
       }
     },

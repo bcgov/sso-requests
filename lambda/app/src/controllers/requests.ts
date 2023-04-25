@@ -24,6 +24,7 @@ import {
   getBaseWhereForMyOrTeamIntegrations,
   getIntegrationsByTeam,
   getIntegrationsByUserTeam,
+  getIntegrationByClientId,
 } from '@lambda-app/queries/request';
 import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
@@ -190,14 +191,18 @@ export const updateRequest = async (
       }
 
       // If custom client id is provided, check if that client id is already used
-      if ((current.status === 'draft' && current.clientId) || current.clientId !== originalData.clientId) {
-        const exists = await fetchClient({
-          serviceType: 'gold',
-          realmName: 'standard',
-          environment: 'dev',
-          clientId: current.clientId,
-        });
-        if (exists) throw Error(`${current.clientId} already exists, please choose a different client id`);
+      if (current.protocol === 'saml') {
+        if ((current.status === 'draft' && current.clientId) || current.clientId !== originalData.clientId) {
+          const existingKeycloakClient = await fetchClient({
+            serviceType: 'gold',
+            realmName: 'standard',
+            environment: 'dev',
+            clientId: current.clientId,
+          });
+          const existingIntegration = await getIntegrationByClientId(current.clientId);
+          if (existingKeycloakClient || (existingIntegration !== null && current.id !== existingIntegration.id))
+            throw Error(`${current.clientId} already exists, please choose a different client id`);
+        }
       }
 
       current.status = 'submitted';
