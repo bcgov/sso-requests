@@ -143,12 +143,16 @@ export default function Home({ onLoginClick }: PageProps) {
                       for service outages and other incidents that impact the service.
                     </li>
                     <li>
-                      To learn more about our service uptime monitoring, please{' '}
+                      To learn more about our service uptime monitoring, please visit our{' '}
                       <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
-                        visit our uptime page on our wiki
-                      </Link>
-                      .
-                    </li>{' '}
+                        uptime page on our wiki
+                      </Link>{' '}
+                      and join our{' '}
+                      <Link external href="https://subscribe.developer.gov.bc.ca/">
+                        newsletter
+                      </Link>{' '}
+                      to receive important updates on the service and any outages.
+                    </li>
                   </ul>
                 </Accordion.Panel>
                 <Accordion.Panel title="Additional Technical Information">
