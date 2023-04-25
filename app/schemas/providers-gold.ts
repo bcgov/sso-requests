@@ -119,15 +119,15 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
       type: 'string',
       title: 'As SSO Admin. you can override the client id',
       tooltip: {
-        content: `The client id should be a valid URI`,
+        content: `The client id should be a string without any spaces`,
       },
-      maxLength: 50,
+      maxLength: 250,
     };
   }
 
   return {
     type: 'object',
-    customValidation: ['additionalRoleAttribute'],
+    customValidation: ['additionalRoleAttribute', 'clientId'],
     headerText: 'Choose providers',
     stepText: 'Basic Info',
     properties,

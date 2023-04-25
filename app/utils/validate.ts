@@ -39,6 +39,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     devSamlLogoutPostBindingUri = '',
     testSamlLogoutPostBindingUri = '',
     prodSamlLogoutPostBindingUri = '',
+    clientId = '',
   } = formData;
 
   const fieldMap: any = {
@@ -100,6 +101,11 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
         !isValidKeycloakURIProd(prodSamlLogoutPostBindingUri)
       )
         errors['prodSamlLogoutPostBindingUri'].addError(validationMessage);
+    },
+    clientId: () => {
+      if (clientId !== clientId.trim() || clientId.match(/\s/)) {
+        errors['clientId'].addError('Client id is not valid');
+      }
     },
   };
 

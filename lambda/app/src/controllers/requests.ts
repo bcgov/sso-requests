@@ -25,7 +25,7 @@ import {
   getIntegrationsByTeam,
   getIntegrationsByUserTeam,
 } from '@lambda-app/queries/request';
-import { disableIntegration } from '@lambda-app/keycloak/client';
+import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
@@ -187,6 +187,17 @@ export const updateRequest = async (
       // when it is submitted for the first time.
       if (!isMerged && !current.clientId) {
         current.clientId = `${kebabCase(current.projectName)}-${id}`;
+      }
+
+      // If custom client id is provided, check if that client id is already used
+      if ((current.status === 'draft' && current.clientId) || current.clientId !== originalData.clientId) {
+        const exists = await fetchClient({
+          serviceType: 'gold',
+          realmName: 'standard',
+          environment: 'dev',
+          clientId: current.clientId,
+        });
+        if (exists) throw Error(`${current.clientId} already exists, please choose a different client id`);
       }
 
       current.status = 'submitted';
