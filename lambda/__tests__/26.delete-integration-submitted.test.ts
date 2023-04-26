@@ -10,6 +10,7 @@ jest.mock('@lambda-app/authenticate');
 jest.mock('@lambda-app/keycloak/client', () => {
   return {
     disableIntegration: jest.fn(() => Promise.resolve()),
+    fetchClient: jest.fn(() => Promise.resolve()),
   };
 });
 jest.mock('@lambda-app/github', () => {

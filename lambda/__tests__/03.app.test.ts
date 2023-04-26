@@ -32,6 +32,12 @@ jest.mock('../app/src/utils/helpers', () => {
   };
 });
 
+jest.mock('../app/src/keycloak/client', () => {
+  return {
+    fetchClient: jest.fn(() => Promise.resolve()),
+  };
+});
+
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 
 describe('requests endpoints', () => {

@@ -175,6 +175,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const processed = { ...newData, devIdps };
 
     if (newData.protocol !== 'saml') {
+      processed.clientId = '';
       processed.devSamlLogoutPostBindingUri = null;
       processed.testSamlLogoutPostBindingUri = null;
       processed.prodSamlLogoutPostBindingUri = null;

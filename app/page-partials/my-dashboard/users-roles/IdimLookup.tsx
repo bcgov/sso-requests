@@ -41,10 +41,6 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
   }, [idp]);
 
   useEffect(() => {
-    console.log(selectedIdp);
-  }, [selectedIdp]);
-
-  useEffect(() => {
     if (!selectedIdp) return;
 
     const currentPropertyOption = propertyOptions.find((v) => v.value === selectedProperty);
@@ -60,8 +56,6 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
   }, [selectedIdp]);
 
   const handleSearch = async (searchKey: string, field = selectedProperty) => {
-    console.log(field);
-
     if (searchKey.length < 2) return;
 
     setLoading(true);

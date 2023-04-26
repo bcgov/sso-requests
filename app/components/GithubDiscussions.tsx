@@ -25,8 +25,6 @@ export default function GithubDiscussions({ children }: Props) {
 
   const fetchGithubDiscussions = async () => {
     const [result, err]: any = await fetchDiscussions();
-    console.log(result);
-
     setRepo(result?.data?.repository);
     setNodes(
       result?.data?.repository?.discussions?.nodes.filter((node: any) => node.category.name.includes(requiredCategory)),
