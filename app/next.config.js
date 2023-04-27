@@ -2,12 +2,6 @@ const APP_URL = process.env.APP_URL || '';
 const BASE_PATH = process.env.APP_BASE_PATH || '';
 
 module.exports = {
-  // redirects() {
-  //   return [
-  //     process.env.MAINTENANCE_MODE_ACTIVE ? { source: "/((?!maintenance).*)", destination: "/maintenance.html", permanent: false }
-  //       : null,
-  //   ].filter(Boolean);
-  // },
   reactStrictMode: true,
   serverRuntimeConfig: {},
   publicRuntimeConfig: {
