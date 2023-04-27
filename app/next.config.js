@@ -2,6 +2,12 @@ const APP_URL = process.env.APP_URL || '';
 const BASE_PATH = process.env.APP_BASE_PATH || '';
 
 module.exports = {
+  // redirects() {
+  //   return [
+  //     process.env.MAINTENANCE_MODE_ACTIVE ? { source: "/((?!maintenance).*)", destination: "/maintenance.html", permanent: false }
+  //       : null,
+  //   ].filter(Boolean);
+  // },
   reactStrictMode: true,
   serverRuntimeConfig: {},
   publicRuntimeConfig: {
@@ -16,6 +22,7 @@ module.exports = {
     sso_authorization_response_type: process.env.SSO_AUTHORIZATION_RESPONSE_TYPE || 'code',
     sso_authorization_scope: process.env.SSO_AUTHORIZATION_SCOPE || 'openid',
     sso_token_grant_type: process.env.SSO_TOKEN_GRANT_TYPE || 'authorization_code',
+    maintenance_mode: process.env.MAINTENANCE_MODE_ACTIVE || false,
     kc_idp_hint: process.env.KC_IDP_HINT || '',
     enable_gold: process.env.ENABLE_GOLD === 'true',
   },
