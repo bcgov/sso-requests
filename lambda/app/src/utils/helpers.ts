@@ -52,7 +52,10 @@ const durationAdditionalFields = [];
 export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
   const immutableFields = ['user', 'userId', 'idirUserid', 'projectLead', 'status', 'serviceType', 'lastChanges'];
 
-  if (isMerged) immutableFields.push('realm');
+  if (isMerged) {
+    immutableFields.push('realm');
+    if (data?.protocol === 'saml') immutableFields.push('projectName');
+  }
   if (!isAdmin) immutableFields.push(...durationAdditionalFields, 'clientId');
 
   data = omit(data, immutableFields);
