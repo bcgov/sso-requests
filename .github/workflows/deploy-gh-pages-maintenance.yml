@@ -1,0 +1,85 @@
+name: Build and Deploy GH Pages No Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The target branch from which to deploy'
+        required: true
+        options: ['dev', 'prod']
+      maintenanceEnabled:
+        description: 'If true, the CSS app will be in maintenance mode.'
+        type: boolean
+        required: false
+        default: false
+
+env:
+  SSO_CLIENT_ID: css-app-in-gold-4128
+  DEPLOY_REPO_BRANCH: gh-pages
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-20.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    strategy:
+      matrix:
+        env: ['dev', 'prod']
+    steps:
+      - name: Set env to development
+        if: ${{ github.event.inputs.namespace }} == "dev" && matrix.env == 'dev'
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          APP_ENV=develop
+          APP_URL=https://bcgov.github.io/sso-requests-dev
+          APP_BASE_PATH=/sso-requests-dev
+          API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
+          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+          DEPLOY_REPO_NAME=bcgov/sso-requests-dev
+          ENABLE_GOLD=false
+          MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
+          EOF
+
+      - name: Set env to production
+        if: ${{ github.event.inputs.namespace }} == "prod" && matrix.env == 'prod'
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          APP_ENV=production
+          APP_URL=https://bcgov.github.io/sso-requests
+          APP_BASE_PATH=/sso-requests
+          API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app/
+          SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
+          DEPLOY_REPO_NAME=bcgov/sso-requests
+          ENABLE_GOLD=true
+          MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
+          EOF
+
+      - name: Checkout 🛎️
+        if: env.APP_ENV != ''
+        uses: actions/checkout@v3
+
+      - name: Install and Build
+        if: env.APP_ENV != ''
+        env:
+          APP_ENV: ${{ env.APP_ENV }}
+          APP_URL: ${{ env.APP_URL }}
+          APP_BASE_PATH: ${{ env.APP_BASE_PATH }}
+          API_URL: ${{ env.API_URL }}
+          SSO_URL: ${{ env.SSO_URL }}
+          SSO_CLIENT_ID: ${{ env.SSO_CLIENT_ID }}
+          MAINTENANCE_MODE_ACTIVE: ${{env.MAINTENANCE_MODE_ACTIVE}}
+        run: |
+          yarn
+          yarn build
+          yarn export
+          touch ./out/.nojekyll
+        working-directory: ./app
+
+      - name: Deploy 🚀
+        if: env.APP_ENV != ''
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        with:
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          repository-name: ${{ env.DEPLOY_REPO_NAME }}
+          branch: ${{ env.DEPLOY_REPO_BRANCH }}
+          folder: ./app/out
