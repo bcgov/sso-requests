@@ -222,35 +222,35 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
   );
 
   const MainMenuMaintenance = () => {
-    // if (maintenance_mode) {
-    //   return (
-    //     <Container>
-    //       <ErrorImage title={maintenanceTitle}>{maintenanceContent}</ErrorImage>
-    //     </Container>
-    //   );
-    // } else {
-    return (
-      <MainContent>
-        {enableGold && isMyDashboard && hasSilverIntegration && (
-          <TopAlertWrapper>
-            <Alert variant="info" closable={true}>
-              <span className="normal">
-                Kudos to those who completed their Gold Service Migration. For those still on Silver, reach out to{' '}
-                <span className="strong">
-                  <Link href="mailto:bcgov.sso@gov.bc.ca">us</Link>{' '}
+    if (maintenance_mode == true || maintenance_mode == 'true') {
+      return (
+        <Container>
+          <ErrorImage title={maintenanceTitle}>{maintenanceContent}</ErrorImage>
+        </Container>
+      );
+    } else {
+      return (
+        <MainContent>
+          {enableGold && isMyDashboard && hasSilverIntegration && (
+            <TopAlertWrapper>
+              <Alert variant="info" closable={true}>
+                <span className="normal">
+                  Kudos to those who completed their Gold Service Migration. For those still on Silver, reach out to{' '}
+                  <span className="strong">
+                    <Link href="mailto:bcgov.sso@gov.bc.ca">us</Link>{' '}
+                  </span>
+                  on your timelines to migrate.{' '}
+                  <span className="strong">
+                    Please note that Silver realms will not be supported as of February 3, 2023*.
+                  </span>
                 </span>
-                on your timelines to migrate.{' '}
-                <span className="strong">
-                  Please note that Silver realms will not be supported as of February 3, 2023*.
-                </span>
-              </span>
-            </Alert>
-          </TopAlertWrapper>
-        )}
-        <TopAlert>{children}</TopAlert>
-      </MainContent>
-    );
-    // }
+              </Alert>
+            </TopAlertWrapper>
+          )}
+          <TopAlert>{children}</TopAlert>
+        </MainContent>
+      );
+    }
   };
 
   const isMyDashboard = String(router.pathname).startsWith('/my-dashboard');
