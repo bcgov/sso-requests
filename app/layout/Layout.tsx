@@ -14,16 +14,6 @@ import { Alert } from '@bcgov-sso/common-react-components';
 import TopAlertWrapper from 'components/TopAlertWrapper';
 import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
-import getConfig from 'next/config';
-import { maintenanceTitle, maintenanceContent } from '@app/error-messages/maintenance';
-import ErrorImage from 'svg/ErrorImage';
-
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { maintenance_mode } = publicRuntimeConfig;
-
-const Container = styled.div`
-  text-align: center;
-`;
 
 const headerPlusFooterHeight = '152px';
 
@@ -221,38 +211,6 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
     </MobileSubMenu>
   );
 
-  const MainMenuMaintenance = () => {
-    if (maintenance_mode) {
-      return (
-        <Container>
-          <ErrorImage title={maintenanceTitle}>{maintenanceContent}</ErrorImage>
-        </Container>
-      );
-    } else {
-      return (
-        <MainContent>
-          {enableGold && isMyDashboard && hasSilverIntegration && (
-            <TopAlertWrapper>
-              <Alert variant="info" closable={true}>
-                <span className="normal">
-                  Kudos to those who completed their Gold Service Migration. For those still on Silver, reach out to{' '}
-                  <span className="strong">
-                    <Link href="mailto:bcgov.sso@gov.bc.ca">us</Link>{' '}
-                  </span>
-                  on your timelines to migrate.{' '}
-                  <span className="strong">
-                    Please note that Silver realms will not be supported as of February 3, 2023*.
-                  </span>
-                </span>
-              </Alert>
-            </TopAlertWrapper>
-          )}
-          <TopAlert>{children}</TopAlert>
-        </MainContent>
-      );
-    }
-  };
-
   const isMyDashboard = String(router.pathname).startsWith('/my-dashboard');
   const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
 
@@ -274,7 +232,25 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
           </SubRightMenu>
         </SubMenu>
       </Navigation>
-      <MainMenuMaintenance />
+      <MainContent>
+        {enableGold && isMyDashboard && hasSilverIntegration && (
+          <TopAlertWrapper>
+            <Alert variant="info" closable={true}>
+              <span className="normal">
+                Kudos to those who completed their Gold Service Migration. For those still on Silver, reach out to{' '}
+                <span className="strong">
+                  <Link href="mailto:bcgov.sso@gov.bc.ca">us</Link>{' '}
+                </span>
+                on your timelines to migrate.{' '}
+                <span className="strong">
+                  Please note that Silver realms will not be supported as of February 3, 2023*.
+                </span>
+              </span>
+            </Alert>
+          </TopAlertWrapper>
+        )}
+        <TopAlert>{children}</TopAlert>
+      </MainContent>
       <Footer>
         <FooterMenu>
           <ul>

@@ -33,6 +33,7 @@ jobs:
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-dev
           ENABLE_GOLD=false
+          MAINTENANCE_MODE_ACTIVE=false
           EOF
       - name: Set env to test
         if: endsWith(github.ref, '/dev') && matrix.env == 'test'
@@ -45,6 +46,7 @@ jobs:
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-test
           ENABLE_GOLD=true
+          MAINTENANCE_MODE_ACTIVE=false
           EOF
       - name: Set env to production
         if: endsWith(github.ref, '/main') && matrix.env == 'prod'
@@ -57,6 +59,7 @@ jobs:
           SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
+          MAINTENANCE_MODE_ACTIVE=false
           EOF
 
       - name: Set env to preview
@@ -70,6 +73,7 @@ jobs:
           SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-preview
           ENABLE_GOLD=true
+          MAINTENANCE_MODE_ACTIVE=false
           EOF
 
       - name: Checkout 🛎️
