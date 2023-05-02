@@ -55,7 +55,7 @@ const validateJWTSignature = async (token) => {
     const isValidKid = !!key;
 
     if (!isValidKid) {
-      return null;
+      throw new Error('[invalid token] kid not found in the list of public keys');
     }
 
     // 3. Verify the signature using the public key
