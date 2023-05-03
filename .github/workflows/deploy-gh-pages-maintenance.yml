@@ -3,10 +3,11 @@ name: Build and Deploy GH Pages No Release
 on:
   workflow_dispatch:
     inputs:
-      branch:
+      environment:
         description: 'The target branch from which to deploy'
         required: true
         options: ['dev', 'prod']
+        default: 'dev'
       maintenanceEnabled:
         description: 'If true, the CSS app will be in maintenance mode.'
         type: boolean
@@ -22,12 +23,9 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    strategy:
-      matrix:
-        env: ['dev', 'prod']
     steps:
       - name: Set env to development
-        if: ${{ github.event.inputs.namespace }} == "dev" && matrix.env == 'dev'
+        if: endsWith(github.ref, '/dev') && ${{ github.event.inputs.environment }} == "dev"
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=develop
@@ -41,7 +39,7 @@ jobs:
           EOF
 
       - name: Set env to production
-        if: ${{ github.event.inputs.namespace }} == "prod" && matrix.env == 'prod'
+        if: endsWith(github.ref, '/main') && ${{ github.event.inputs.environment }} == "prod"
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=production
