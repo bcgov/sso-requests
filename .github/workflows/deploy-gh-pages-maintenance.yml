@@ -3,7 +3,7 @@ name: Build and Deploy GH Pages No Release
 on:
   workflow_dispatch:
     inputs:
-      branch:
+      environment:
         description: 'The target branch from which to deploy'
         required: true
         options: ['dev', 'prod']
@@ -24,7 +24,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Set env to development
-        if: endsWith(github.ref, '/dev') && ${{ github.event.inputs.namespace }} == "dev"
+        if: endsWith(github.ref, '/dev') && ${{ github.event.inputs.environment }} == "dev"
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=develop
@@ -38,7 +38,7 @@ jobs:
           EOF
 
       - name: Set env to production
-        if: endsWith(github.ref, '/main') && ${{ github.event.inputs.namespace }} == "prod"
+        if: endsWith(github.ref, '/main') && ${{ github.event.inputs.environment }} == "prod"
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=production
