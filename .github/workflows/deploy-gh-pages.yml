@@ -16,6 +16,8 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-20.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
         env: ['dev', 'test', 'prod', 'preview']
@@ -103,13 +105,8 @@ jobs:
           branch: ${{ env.DEPLOY_REPO_BRANCH }}
           folder: ./app/out
 
-  create-release:
-    runs-on: ubuntu-20.04
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
       - name: Create Release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && matrix.env == 'prod'
         id: release
         uses: rymndhng/release-on-push-action@v0.20.0
         with:
@@ -117,7 +114,7 @@ jobs:
           tag_prefix: v
 
       - name: Check Output Parameters
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && matrix.env == 'prod'
         run: |
           echo "Got tag name ${{ steps.release.outputs.tag_name }}"
           echo "Got release version ${{ steps.release.outputs.version }}"
