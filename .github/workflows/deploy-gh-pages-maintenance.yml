@@ -7,6 +7,7 @@ on:
         description: 'The target branch from which to deploy'
         required: true
         options: ['dev', 'prod']
+        default: 'dev'
       maintenanceEnabled:
         description: 'If true, the CSS app will be in maintenance mode.'
         type: boolean
