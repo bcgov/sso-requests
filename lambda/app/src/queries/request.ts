@@ -158,3 +158,10 @@ export const getIntegrationByIdAndTeam = (integrationId: number, teamId: number,
     ...options,
   });
 };
+
+export const getIntegrationByClientId = (clientId: string, options = { raw: true }) => {
+  return models.request.findOne({
+    where: { clientId, apiServiceAccount: false, archived: false },
+    ...options,
+  });
+};

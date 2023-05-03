@@ -29,13 +29,13 @@ describe('Home panel', () => {
       'href',
       KNOWLEDGE_BASE_HYPERLINK,
     );
-    expect(screen.getByRole('link', { name: 'Rocket Chat' })).toHaveAttribute('href', ROCKET_CHAT_HYPERLINK);
+    const rocketChatLink = screen.getAllByRole('link', { name: 'RocketChat' });
+    expect(rocketChatLink[0]).toHaveAttribute('href', ROCKET_CHAT_HYPERLINK);
 
-    const PathfinderSsoLink = screen.getAllByRole('link', { name: 'Pathfinder SSO' });
-    expect(PathfinderSsoLink[0]).toHaveAttribute('href', PATHFINDER_SSO_HYPERLINK);
-    expect(PathfinderSsoLink[1]).toHaveAttribute('href', PATHFINDER_SSO_HYPERLINK);
+    const PathfinderSsoLink = screen.getByRole('link', { name: 'Pathfinder SSO' });
+    expect(PathfinderSsoLink).toHaveAttribute('href', PATHFINDER_SSO_HYPERLINK);
     expect(screen.getByRole('link', { name: 'learn more here' })).toHaveAttribute('href', LEARN_MORE_HERE_HYPERLINK);
-    expect(screen.getByRole('link', { name: 'RocketChat' })).toHaveAttribute('href', ROCKETCHAT_HYPERLINK);
+    expect(rocketChatLink[1]).toHaveAttribute('href', ROCKETCHAT_HYPERLINK);
     expect(screen.getByRole('link', { name: 'helpful documentation' })).toHaveAttribute(
       'href',
       HELPFUL_DOCUMENTATION_HYPERLINK,

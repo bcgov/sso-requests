@@ -14,6 +14,12 @@ jest.mock('@lambda-app/github', () => {
 });
 jest.mock('@lambda-shared/utils/ches');
 
+jest.mock('../app/src/keycloak/client', () => {
+  return {
+    fetchClient: jest.fn(() => Promise.resolve()),
+  };
+});
+
 const mockedAppAuth = appAuth as jest.Mock<AuthMock>;
 const mockedSendEmail = sendEmail as jest.Mock<any>;
 

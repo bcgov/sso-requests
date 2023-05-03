@@ -284,6 +284,8 @@ export default function AdminDashboard({ session }: PageProps) {
               setPage(1);
               setLimit(val);
             }}
+            noDataFoundElement={<div style={{ textAlign: 'center' }}>No clients found.</div>}
+            pagination={true}
           ></Table>
         )}
         rightPanel={() =>

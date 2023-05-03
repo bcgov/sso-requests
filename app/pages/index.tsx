@@ -129,19 +129,30 @@ export default function Home({ onLoginClick }: PageProps) {
                 <Accordion.Panel title="Service Levels">
                   <ul>
                     <li>
-                      Our service is available 24/7, with questions and answers addressed during business hours only.
+                      Our service is available 24/7, except during planned outages within the Kamloops and Calgary data
+                      centres. Planned outages are communicated through{' '}
+                      <Link external href="https://chat.developer.gov.bc.ca/channel/sso">
+                        RocketChat
+                      </Link>
+                      .
                     </li>
                     <li>
-                      Please reach out to us on{' '}
-                      <Link href="https://chat.developer.gov.bc.ca/channel/sso" external title="Rocket Chat">
-                        Rocket.Chat
-                      </Link>{' '}
-                      or{' '}
-                      <Link href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="blank">
-                        Email the Pathfinder SSO Product Owner.
-                      </Link>{' '}
+                      Our regular business hours are weekdays from 9:00 am to 5:00 pm Pacific Time, excluding statutory
+                      holidays. Client provisioning questions and requests will be reviewed and handled during normal
+                      business hours. After hours support is provided by the Pathfinder SSO team, and is only available
+                      for service outages and other incidents that impact the service.
                     </li>
-                    <li>Client provisioning requests will be reviewed and handled during normal business hours</li>
+                    <li>
+                      To learn more about our service uptime monitoring, please visit our{' '}
+                      <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
+                        uptime page on our wiki
+                      </Link>{' '}
+                      and join our{' '}
+                      <Link external href="https://subscribe.developer.gov.bc.ca/">
+                        newsletter
+                      </Link>{' '}
+                      to receive important updates on the service and any outages.
+                    </li>
                   </ul>
                 </Accordion.Panel>
                 <Accordion.Panel title="Additional Technical Information">

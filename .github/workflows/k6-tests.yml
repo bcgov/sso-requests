@@ -70,12 +70,6 @@ jobs:
         env:
           KEYCLOAK_V2_DEV_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
           KEYCLOAK_V2_TEST_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
-          K6_CLIENT_ID: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_ID }}
-          K6_CLIENT_SECRET: ${{ secrets.DEV_K6_API_ACCOUNT_CLIENT_SECRET }}
-          K6_ENVIRONMENT: dev
-          K6_USERNAME: dev-k6-cicd-tests-acct-8255
-          K6_CSS_API_URL: http://localhost:8080/api/v1
-          K6_KEYCLOAK_TOKEN_URL: https://sso-keycloak-6-b861c7-test.apps.silver.devops.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token
         run: |
           cp .env.example .env
           yarn dev &
@@ -88,7 +82,7 @@ jobs:
           K6_ENVIRONMENT: dev
           K6_USERNAME: osz5ls7vfd4wmuhaq661j2imez1finc5@idir
           K6_CSS_API_URL: http://localhost:8080/api/v1
-          K6_KEYCLOAK_TOKEN_URL: https://sso-keycloak-6-b861c7-test.apps.silver.devops.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token
+          K6_KEYCLOAK_TOKEN_URL: https://sso-keycloak-e4ca1d-prod.apps.gold.devops.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token
         run: k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL -e keycloak_token_url=$K6_KEYCLOAK_TOKEN_URL smoke-tests.js
         working-directory: ./lambda/css-api/k6-tests/smoke-tests
 

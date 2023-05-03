@@ -50,9 +50,9 @@ contrib=contrib-title-conventional-commits
 # (e.g. title-must-not-contain-word).
 # regex=^US[0-9]*
 
-# [B1]
+[B1]
 # B1 = body-max-line-length
-# line-length=120
+line-length=160
 
 # [body-min-length]
 # min-length=5
@@ -93,6 +93,6 @@ contrib=contrib-title-conventional-commits
 # Use 'all' to ignore all rules
 # ignore=T1,body-min-length
 
-# [contrib-title-conventional-commits]
+[contrib-title-conventional-commits]
 # Specify allowed commit types. For details see: https://www.conventionalcommits.org/
-# types = bugfix,user-story,epic
+types = fix,feat,chore,docs,style,refactor,perf,test,revert,ci,build

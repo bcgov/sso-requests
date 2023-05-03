@@ -228,8 +228,6 @@ function SubmittedStatusIndicator({ integration, title, alert }: Props) {
     }
   }
 
-  console.log('isWaitingTooLongisWaitingTooLong', isWaitingTooLong);
-
   let bottomSection = null;
   if (hasError) {
     bottomSection = (

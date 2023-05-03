@@ -16,7 +16,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { base_path, kc_idp_hint, enable_gold } = publicRuntimeConfig;
+const { base_path, kc_idp_hint, enable_gold, maintenance_mode } = publicRuntimeConfig;
 
 const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, `${base_path}/admin-dashboard`];
 
@@ -95,6 +95,15 @@ function MyApp({ Component, pageProps }: AppProps) {
       }
     }
 
+    if (maintenance_mode && maintenance_mode === 'true') {
+      router.push({
+        pathname: '/application-error',
+        query: {
+          error: 'maintenance',
+        },
+      });
+    }
+
     wakeItUp();
     fetchUser();
   }, []);
@@ -127,25 +136,29 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <SessionContext.Provider value={{ session, user, enableGold: enable_gold }}>
-      <Layout
-        session={session}
-        user={user}
-        enableGold={enable_gold}
-        onLoginClick={handleLogin}
-        onLogoutClick={handleLogout}
-      >
-        <Head>
-          <html lang="en" />
-          <title>Common Hosted Single Sign-on (CSS)</title>
-        </Head>
-        <Component
-          {...pageProps}
+      {maintenance_mode && maintenance_mode === 'true' ? (
+        <Component {...pageProps} />
+      ) : (
+        <Layout
           session={session}
-          enable_gold={enable_gold}
+          user={user}
+          enableGold={enable_gold}
           onLoginClick={handleLogin}
           onLogoutClick={handleLogout}
-        />
-      </Layout>
+        >
+          <Head>
+            <html lang="en" />
+            <title>Common Hosted Single Sign-on (CSS)</title>
+          </Head>
+          <Component
+            {...pageProps}
+            session={session}
+            enable_gold={enable_gold}
+            onLoginClick={handleLogin}
+            onLogoutClick={handleLogout}
+          />
+        </Layout>
+      )}
     </SessionContext.Provider>
   );
 }

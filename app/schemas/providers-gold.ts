@@ -114,9 +114,20 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
     maxLength: 50,
   };
 
+  if (protocol === 'saml' && context.isAdmin) {
+    properties.clientId = {
+      type: 'string',
+      title: 'As SSO Admin. you can override the client id',
+      tooltip: {
+        content: `The client id should be a string without any spaces`,
+      },
+      maxLength: 250,
+    };
+  }
+
   return {
     type: 'object',
-    customValidation: ['additionalRoleAttribute'],
+    customValidation: ['additionalRoleAttribute', 'clientId'],
     headerText: 'Choose providers',
     stepText: 'Basic Info',
     properties,

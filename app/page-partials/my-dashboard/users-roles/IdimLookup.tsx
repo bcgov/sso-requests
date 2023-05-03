@@ -1,15 +1,11 @@
-import React, { useState, forwardRef, useEffect, useImperativeHandle } from 'react';
-import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
-import Table from 'components/Table';
+import React, { useState, forwardRef, useEffect } from 'react';
+import { faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
+import Table from 'components/TableNew';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
+import { ModalRef } from 'components/GenericModal';
 import { searchIdirUsers, importIdirUser, IdirUser } from 'services/bceid-webservice';
 
-const idpOptions = [
-  { value: 'idir', label: 'IDIR' },
-  // { value: 'bceidbasic', label: 'BCeID Basic' },
-  // { value: 'bceidbusiness', label: 'BCeID Business' },
-];
+const idpOptions = [{ value: 'idir', label: 'IDIR' }];
 
 const propertyOptions = [
   { value: 'firstName', label: 'First Name', allowed: ['idir'] },
@@ -80,24 +76,42 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
     parentModalRef.current.close({ idp: selectedIdp, guid: data.guid });
   };
 
-  let content = null;
-  if (!searched) {
-    content = (
-      <tr>
-        <td colSpan={10} className="text-center">
-          You have not searched for any users yet.
-        </td>
-      </tr>
-    );
-  } else if (rows.length > 0) {
-    content = rows.map((row) => {
-      return (
-        <tr key={row.guid}>
-          <td>{row.individualIdentity.name.firstname}</td>
-          <td>{row.individualIdentity.name.surname}</td>
-          <td>{row.contact.email}</td>
-          <td>{row.userId}</td>
-          <td>
+  return (
+    <Table
+      searchPlaceholder="Enter search criteria"
+      variant="mini"
+      headers={[
+        {
+          accessor: 'firstName',
+          Header: 'First name',
+        },
+        {
+          accessor: 'lastName',
+          Header: 'Last Name',
+        },
+        {
+          accessor: 'email',
+          Header: 'Email',
+        },
+        {
+          accessor: 'idirUsername',
+          Header: 'IDIR username',
+        },
+        {
+          accessor: 'actions',
+          Header: '',
+          disableSortBy: true,
+        },
+      ]}
+      rowSelectorKey={'guid'}
+      data={rows.map((row) => {
+        return {
+          guid: row.guid,
+          firstName: row.individualIdentity.name.firstname,
+          lastName: row.individualIdentity.name.surname,
+          email: row.contact.email,
+          idirUsername: row.userId,
+          actions: (
             <ActionButtonContainer>
               <ActionButton
                 icon={faEye}
@@ -134,26 +148,10 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
                 size="lg"
               />
             </ActionButtonContainer>
-          </td>
-        </tr>
-      );
-    });
-  } else {
-    content = (
-      <tr>
-        <td colSpan={10} className="text-center">
-          The user you searched for does not exist. Please try again, by entering the full search criteria.
-        </td>
-      </tr>
-    );
-  }
-
-  return (
-    <Table
-      key={`${key}-${searchKey}`}
-      variant="mini"
-      searchLocation="right"
-      filters={[
+          ),
+        };
+      })}
+      colfilters={[
         {
           value: selectedIdp,
           multiselect: false,
@@ -167,18 +165,20 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
           options: propertyOptions.filter((v) => v.allowed.includes(selectedIdp)),
         },
       ]}
-      headers={[{ label: 'First name' }, { label: 'Last Name' }, { label: 'Email' }, { label: 'IDIR username' }]}
-      searchKey={searchKey}
-      searchPlaceholder="Enter search criteria"
-      onSearch={handleSearch}
-      onEnter={handleSearch}
+      showFilters={true}
       loading={loading}
       totalColSpan={20}
       searchColSpan={10}
-      filterColSpan={10}
-    >
-      {content}
-    </Table>
+      headerAlign={'bottom'}
+      headerGutter={[5, 0]}
+      searchKey={searchKey}
+      searchLocation={'right'}
+      onSearch={handleSearch}
+      onEnter={handleSearch}
+      noDataFoundElement={
+        <p>The user you searched for does not exist. Please try again, by entering the full search criteria.</p>
+      }
+    ></Table>
   );
 }
 

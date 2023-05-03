@@ -16,6 +16,8 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-20.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
         env: ['dev', 'test', 'prod', 'preview']
@@ -31,6 +33,7 @@ jobs:
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-dev
           ENABLE_GOLD=false
+          MAINTENANCE_MODE_ACTIVE=false
           EOF
       - name: Set env to test
         if: endsWith(github.ref, '/dev') && matrix.env == 'test'
@@ -43,6 +46,7 @@ jobs:
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-test
           ENABLE_GOLD=true
+          MAINTENANCE_MODE_ACTIVE=false
           EOF
       - name: Set env to production
         if: endsWith(github.ref, '/main') && matrix.env == 'prod'
@@ -55,6 +59,7 @@ jobs:
           SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
+          MAINTENANCE_MODE_ACTIVE=false
           EOF
 
       - name: Set env to preview
@@ -68,6 +73,7 @@ jobs:
           SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-preview
           ENABLE_GOLD=true
+          MAINTENANCE_MODE_ACTIVE=false
           EOF
 
       - name: Checkout 🛎️
@@ -98,3 +104,18 @@ jobs:
           repository-name: ${{ env.DEPLOY_REPO_NAME }}
           branch: ${{ env.DEPLOY_REPO_BRANCH }}
           folder: ./app/out
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main'
+        id: release
+        uses: rymndhng/release-on-push-action@v0.20.0
+        with:
+          bump_version_scheme: patch
+          tag_prefix: v
+
+      - name: Check Output Parameters
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Got tag name ${{ steps.release.outputs.tag_name }}"
+          echo "Got release version ${{ steps.release.outputs.version }}"
+          echo "Upload release artifacts to ${{ steps.release.outputs.upload_url }}"

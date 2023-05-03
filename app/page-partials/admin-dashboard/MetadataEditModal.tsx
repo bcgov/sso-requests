@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import Button from '@button-inc/bcgov-theme/Button';
-import Input from '@button-inc/bcgov-theme/Input';
-import Dropdown from '@button-inc/bcgov-theme/Dropdown';
+import Select from 'react-select';
 import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';
 import { Integration } from 'interfaces/Request';
@@ -13,13 +11,6 @@ interface Props {
   request: Integration;
   onUpdate?: Function;
 }
-
-const StyledDropdown = styled(Dropdown)`
-  & label {
-    display: block;
-    font-weight: bold;
-  }
-`;
 
 function MetadataEditModal({ request, onUpdate }: Props) {
   const [status, setStatus] = useState(request.status);
@@ -39,21 +30,17 @@ function MetadataEditModal({ request, onUpdate }: Props) {
   const openModal = () => (window.location.hash = modalId);
 
   const modalContents = (
-    <>
-      <StyledDropdown
-        label="Integration Status"
-        onChange={(event: any) => {
-          setStatus(event.target.value);
-        }}
-        value={status}
-      >
-        {workflowStatusOptions.map((option) => (
-          <option value={option.value} key={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </StyledDropdown>
-    </>
+    <div data-testid="integration-status">
+      <p style={{ fontWeight: 'bold' }}>Integration Status</p>
+      <Select
+        className="react-select-container"
+        classNamePrefix="select"
+        //@ts-ignore
+        options={workflowStatusOptions}
+        onChange={(val: any) => setStatus(val.value)}
+        isSearchable={true}
+      />
+    </div>
   );
 
   return (

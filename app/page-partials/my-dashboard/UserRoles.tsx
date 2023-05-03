@@ -2,22 +2,17 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import get from 'lodash.get';
-import map from 'lodash.map';
-import omitBy from 'lodash.omitby';
 import startCase from 'lodash.startcase';
-import isEmpty from 'lodash.isempty';
 import throttle from 'lodash.throttle';
-import omit from 'lodash.omit';
 import reduce from 'lodash.reduce';
 import Button from '@button-inc/bcgov-theme/Button';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { Integration, ClientRole, Option } from 'interfaces/Request';
+import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
+import Table from 'components/TableNew';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
@@ -26,45 +21,12 @@ import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } 
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const Label = styled.label`
   font-weight: bold;
   margin-bottom: 2px;
 `;
-
-const ReadonlyContainer = styled.div`
-  display: flex;
-  & > div:first-child {
-    margin-right: 20px;
-  }
-`;
-
-const Readonly = styled.div<{ width?: string }>`
-  background-color: #f1f1f1;
-  margin: 2px 0 2px 0;
-  padding: 4px 6px;
-  ${(props) => (props.width ? `width: ${props.width};` : `width: 300px;`)}
-`;
-
-const ReadonlySubHeader = styled.div<{ width?: string }>`
-  font-size: 0.9rem;
-  ${(props) => (props.width ? `width: ${props.width};` : `width: 300px;`)}
-`;
-
-const ReadonlyItem = ({ children, width }: { children: React.ReactNode; width?: string }) => {
-  return (
-    <Readonly width={width}>
-      <Grid cols={6}>
-        <Grid.Row gutter={[]}>
-          <Grid.Col span={5}>{children}</Grid.Col>
-          <Grid.Col span={1} style={{ textAlign: 'right' }}>
-            <FontAwesomeIcon icon={faLock} color="#9F9F9F" size="lg" />
-          </Grid.Col>
-        </Grid.Row>
-      </Grid>
-    </Readonly>
-  );
-};
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -72,10 +34,6 @@ const AlignCenter = styled.div`
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
-`;
-
-const CenterAlign = styled.div`
-  text-align: center;
 `;
 
 const FlexBox = styled.div`
@@ -88,6 +46,10 @@ const FlexBox = styled.div`
 const FlexItem = styled.div`
   padding-top: 10px;
   padding-bottom: 10px;
+`;
+
+const CenterAlign = styled.div`
+  text-align: center;
 `;
 
 const Loading = () => (
@@ -222,11 +184,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
-  const [selectedIdp, setSelectedIdp] = useState<string>('');
+  //@ts-ignore
+  const [selectedIdp, setSelectedIdp] = useState<string>(selectedRequest.devIdps[0]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-  const pageLimits = [{ value: PAGE_LIMIT, text: `${PAGE_LIMIT} per page` }];
 
   const throttleUpdate = useCallback(
     throttle(
@@ -354,9 +316,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     if (data) {
       setRows(sliceRows(_page, data.rows));
       setCount(data.count);
-      if (data.count === 1) {
-        setSelectedId(data.rows[0].username);
-      }
     }
     setLoading(false);
   };
@@ -407,84 +366,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const propertyOptions = propertyOptionMap[selectedIdp] || [];
   const headers = propertyOptions.length > 0 ? propertyOptions.filter((option) => option.result) : [];
 
-  let content = null;
-  if (!searched) {
-    content = (
-      <tr>
-        <td colSpan={10}>
-          <CenterAlign>You have not searched for any users yet.</CenterAlign>
-        </td>
-      </tr>
-    );
-  } else if (rows.length > 0) {
-    content = rows.map((row: KeycloakUser) => {
-      return (
-        <tr
-          key={row.username}
-          className={selectedId === row.username ? 'active' : ''}
-          onClick={() => {
-            setSelectedId(row.username);
-          }}
-        >
-          {headers.map((header) => {
-            return <td>{get(row, header.value)}</td>;
-          })}
-          <td>
-            <ActionButtonContainer>
-              <ActionButton
-                icon={faEye}
-                role="button"
-                aria-label="view"
-                onClick={(event: any) => {
-                  event.stopPropagation();
-
-                  infoModalRef.current.open({
-                    guid: row.username.split('@')[0],
-                    attributes: {
-                      ...reduce(
-                        headers,
-                        (ret: { [key: string]: string }, header) => {
-                          ret[header.label] = get(row, header.value);
-                          return ret;
-                        },
-                        {},
-                      ),
-                      ...row.attributes,
-                    },
-                  });
-                }}
-                title="View"
-                size="lg"
-              />
-            </ActionButtonContainer>
-          </td>
-        </tr>
-      );
-    });
-  } else {
-    content = (
-      <tr>
-        <td colSpan={10}>
-          <FlexBox>
-            <FlexItem>
-              <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
-            </FlexItem>
-            {showIdirLookupOption ? (
-              <FlexItem>
-                The user you searched for does not exist. Please try again, by entering the full search criteria or try
-                using our IDIM Web Service Lookup tool.
-              </FlexItem>
-            ) : (
-              <FlexItem>
-                The user you searched for does not exist. Please try again, by entering the full search criteria.
-              </FlexItem>
-            )}
-          </FlexBox>
-        </td>
-      </tr>
-    );
-  }
-
   let idirLookup = null;
 
   if (searched && showIdirLookupOption) {
@@ -522,6 +403,39 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       ? 'Exact text match results will be displayed'
       : 'Partial text match results will be displayed';
 
+  const getTableStatusText = () => {
+    if (searched) {
+      return (
+        <FlexBox>
+          <FlexItem>
+            <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
+          </FlexItem>
+          {showIdirLookupOption ? (
+            <FlexItem>
+              The user you searched for does not exist. Please try again, by entering the full search criteria or try
+              using our IDIM Web Service Lookup tool.
+            </FlexItem>
+          ) : (
+            <FlexItem>
+              The user you searched for does not exist. Please try again, by entering the full search criteria.
+            </FlexItem>
+          )}
+        </FlexBox>
+      );
+    } else {
+      return <CenterAlign>You have not searched for any users yet.</CenterAlign>;
+    }
+  };
+
+  const getTableHeaderLabel = (key: string) => {
+    const propOption = propertyOptions.find((p) => p.value === key);
+    return propOption?.label.toString();
+  };
+
+  const activateRow = (request: any) => {
+    setSelectedId(request['original']['username']);
+  };
+
   return (
     <>
       <TopMargin />
@@ -538,11 +452,68 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 hide={200}
               />
             </Header>
+
             <Table
-              key={searchKey}
+              searchPlaceholder="Enter search criteria"
               variant="mini"
-              searchLocation="right"
-              filters={[
+              rowSelectorKey={'username'}
+              headers={[
+                {
+                  accessor: 'firstName',
+                  Header: getTableHeaderLabel('firstName') || '',
+                },
+                {
+                  accessor: 'lastName',
+                  Header: getTableHeaderLabel('lastName') || '',
+                },
+                {
+                  accessor: 'email',
+                  Header: 'Email',
+                },
+                {
+                  accessor: 'actions',
+                  Header: '',
+                  disableSortBy: true,
+                },
+              ]}
+              data={rows.map((row) => {
+                return {
+                  username: get(row, 'username'),
+                  firstName: get(row, 'firstName'),
+                  lastName: get(row, 'lastName'),
+                  email: get(row, 'email'),
+                  actions: (
+                    <ActionButtonContainer>
+                      <ActionButton
+                        icon={faEye}
+                        role="button"
+                        aria-label="view"
+                        onClick={(event: any) => {
+                          event.stopPropagation();
+
+                          infoModalRef.current.open({
+                            guid: row.username.split('@')[0],
+                            attributes: {
+                              ...reduce(
+                                headers,
+                                (ret: { [key: string]: string }, header) => {
+                                  ret[header.label] = get(row, header.value);
+                                  return ret;
+                                },
+                                {},
+                              ),
+                              ...row.attributes,
+                            },
+                          });
+                        }}
+                        title="View"
+                        size="lg"
+                      />
+                    </ActionButtonContainer>
+                  ),
+                };
+              })}
+              colfilters={[
                 {
                   key: 'user-role-filter-env',
                   value: selectedEnvironment,
@@ -565,26 +536,22 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   options: propertyOptions.filter((option) => option.search),
                 },
               ]}
-              headers={headers}
-              pagination={true}
-              pageLimits={pageLimits}
-              limit={PAGE_LIMIT}
-              page={page}
+              showFilters={true}
+              loading={loading}
+              totalColSpan={20}
+              searchColSpan={10}
+              headerAlign={'bottom'}
+              headerGutter={[5, 0]}
               searchKey={searchKey}
-              searchPlaceholder="Enter search criteria"
-              searchTooltip={searchTooltip}
+              searchLocation={'right'}
               onSearch={handleSearch}
               onEnter={handleSearch}
-              loading={loading}
-              rowCount={count}
-              onPrev={setPage}
-              onNext={setPage}
-              totalColSpan={20}
-              searchColSpan={8}
-              filterColSpan={12}
-            >
-              {content}
-            </Table>
+              noDataFoundElement={getTableStatusText()}
+              pagination={true}
+              pageLimits={[PAGE_LIMIT]}
+              activateRow={activateRow}
+              searchTooltip={searchTooltip}
+            ></Table>
             {idirLookup}
           </Grid.Col>
           <Grid.Col span={4}>{rightPanel}</Grid.Col>
