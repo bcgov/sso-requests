@@ -6,6 +6,7 @@ on:
       environment:
         description: 'The target branch from which to deploy'
         required: true
+        type: choice
         options: ['dev', 'prod']
         default: 'dev'
       maintenanceEnabled:
@@ -25,7 +26,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Set env to development
-        if: endsWith(github.ref, '/dev') && ${{ github.event.inputs.environment }} == "dev"
+        if: ${{endsWith(github.ref,'/dev') && github.event.inputs.environment  == 'dev' }}
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=develop
@@ -39,7 +40,7 @@ jobs:
           EOF
 
       - name: Set env to production
-        if: endsWith(github.ref, '/main') && ${{ github.event.inputs.environment }} == "prod"
+        if: ${{endsWith(github.ref,'/main') && github.event.inputs.environment  == 'prod' }}
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=production
