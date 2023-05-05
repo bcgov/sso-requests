@@ -3,7 +3,8 @@ import Link from '@button-inc/bcgov-theme/Link';
 import { Integration } from 'interfaces/Request';
 import padStart from 'lodash.padstart';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import { Table, Button, NumberedContents, Header } from '@bcgov-sso/common-react-components';
+import { Button, NumberedContents, Header } from '@bcgov-sso/common-react-components';
+import Table from 'components/TableNew';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
@@ -15,6 +16,7 @@ import { getRequests, deleteRequest } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { authTypeDisplay } from 'metadata/display';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
+import forEach from 'lodash.foreach';
 
 const RightAlignHeader = styled.th`
   text-align: right;
@@ -29,6 +31,10 @@ const RightFloatButtons = styled.td`
 const PNoMargin = styled.p`
   margin: 0;
 `;
+
+// function ActionsHeader() {
+//   return <span style={{ }}>Actions</span>;
+// }
 
 const NewEntityButton = ({
   handleNewIntegrationClick,
@@ -167,6 +173,13 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
     };
   }, [integrations, activeIntegrationId]);
 
+  const activateRow = (request: any) => {
+    const integrationId = request['cells'][0].value;
+    integrations.forEach((integration) => {
+      if (integration.id == integrationId) updateActiveIntegration(integration);
+    });
+  };
+
   const getTableContents = () => {
     if (hasError) return <SystemUnavailableMessage />;
 
@@ -175,43 +188,56 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
     return (
       <>
         <Header size="lg">INTEGRATIONS</Header>
-        <Table>
-          <thead>
-            <tr>
-              <th>Request ID</th>
-              <th>Project Name</th>
-              <th>Status</th>
-              <th>Usecase</th>
-              <th>Service Type</th>
-              <RightAlignHeader>Actions</RightAlignHeader>
-            </tr>
-          </thead>
-          <tbody>
-            {integrations?.map((integration: Integration) => (
-              <tr
-                className={activeIntegrationId === integration.id ? 'active' : ''}
-                key={integration.id}
-                onClick={() => updateActiveIntegration(integration)}
-              >
-                <td>{padStart(String(integration.id), 8, '0')}</td>
-                <td>{integration.projectName}</td>
-                <td>{getStatusDisplayName(integration.status || 'draft')}</td>
-                <td>{authTypeDisplay[integration.authType || 'browser-login']}</td>
-                <td>{integration.serviceType === 'gold' ? 'Gold' : 'Silver'}</td>
-                <RightFloatButtons>
-                  <ActionButtons
-                    request={integration}
-                    onDelete={() => {
-                      loadIntegrations();
-                    }}
-                    defaultActiveColor="#fff"
-                    delIconStyle={{ marginLeft: '7px' }}
-                  />
-                </RightFloatButtons>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <Table
+          headers={[
+            {
+              accessor: 'id',
+              Header: 'Request ID',
+            },
+            {
+              accessor: 'projectName',
+              Header: 'Project Name',
+            },
+            {
+              accessor: 'status',
+              Header: 'Status',
+            },
+            {
+              accessor: 'authType',
+              Header: 'Usecase',
+            },
+            {
+              accessor: 'serviceType',
+              Header: 'Service Type',
+            },
+            {
+              accessor: 'actions',
+              Header: 'Actions',
+              disableSortBy: true,
+            },
+          ]}
+          data={integrations?.map((integration: Integration) => {
+            return {
+              id: padStart(String(integration.id), 8, '0'),
+              projectName: integration.projectName,
+              status: getStatusDisplayName(integration.status || 'draft'),
+              authType: authTypeDisplay[integration.authType || 'browser-login'],
+              serviceType: integration.serviceType === 'gold' ? 'Gold' : 'Silver',
+              actions: (
+                <ActionButtons
+                  request={integration}
+                  onDelete={() => {
+                    loadIntegrations();
+                  }}
+                  defaultActiveColor="#fff"
+                  delIconStyle={{ marginLeft: '7px' }}
+                />
+              ),
+            };
+          })}
+          activateRow={activateRow}
+          colfilters={[]}
+        ></Table>
       </>
     );
   };

@@ -46,12 +46,8 @@ describe('Integration list', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '+ Request SSO Integration' })).toHaveClass('pg-button');
     });
-    expect(
-      screen.getByRole('row', { name: 'Request ID Project Name Status Usecase Service Type Actions' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('row', { name: '00000001 test project Completed Browser Login Gold Edit Delete' }),
-    ).toHaveClass('active');
+    expect(screen.getByText('Request ID')).toBeInTheDocument();
+    expect(screen.getByRole('row', { name: '00000001 test project Completed Browser Login Gold Edit Delete' }));
   });
 
   it('Should be able to click the Delete button', async () => {

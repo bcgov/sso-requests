@@ -15,6 +15,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
 import { Button, Table, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import TableNew from 'components/TableNew';
 import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
@@ -201,6 +202,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       integrationId: integration.id as number,
       search: searchKey,
     });
+    console.log('--------data---------', data);
 
     const _roles = data || [];
 
@@ -317,123 +319,108 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   } else if (selectedRole) {
     if (rightPanelTab === 'Users') {
       rightPanel = (
-        <Table variant="mini">
-          <thead>
-            <tr>
-              <th>IDP</th>
-              <th>GUID</th>
-              <th>Email</th>
-              <th className="text-center">Actions</th>
-            </tr>
-          </thead>
-          {users.filter((user) => !user.username.startsWith('service-account-')).length > 0 ? (
-            <InfScroll
-              element="tbody"
-              loadMore={() => fetchUsers(false, selectedRole)}
-              hasMore={hasMoreUser}
-              loader={<LoaderContainer />}
-            >
-              {users.map((user) => {
-                const usernameSplit = user.username.split('@');
-                if (usernameSplit.length < 2) return null;
+        <TableNew
+          variant="mini"
+          headers={[
+            {
+              accessor: 'id',
+              Header: 'IDP',
+            },
+            {
+              accessor: 'projectName',
+              Header: 'GUID',
+            },
+            {
+              accessor: 'status',
+              Header: 'Email',
+            },
+            {
+              accessor: 'actions',
+              Header: 'Actions',
+              disableSortBy: true,
+            },
+          ]}
+          data={users.map((user) => {
+            const usernameSplit = user.username.split('@');
+            if (usernameSplit.length < 2) return null;
 
-                const [guid, idp] = usernameSplit;
-                const idpMeta = propertyOptionMap[idp];
+            const [guid, idp] = usernameSplit;
+            const idpMeta = propertyOptionMap[idp];
 
-                return (
-                  <tr key={guid}>
-                    <td>{idpMap[idp]}</td>
-                    <td>{guid}</td>
-                    <td>{user.email}</td>
-                    <td className="text-center">
-                      <span
-                        onClick={(event) => {
-                          event.stopPropagation();
+            return {
+              idp: idpMap[idp],
+              guid: guid,
+              email: user.email,
+              actions: (
+                <>
+                  <span
+                    onClick={(event) => {
+                      event.stopPropagation();
 
-                          infoModalRef.current.open({
-                            guid: user.username.split('@')[0],
-                            attributes: {
-                              ...reduce(
-                                idpMeta,
-                                (ret: { [key: string]: string }, keyVal: PropertyOption) => {
-                                  ret[keyVal.label] = get(user, keyVal.value);
-                                  return ret;
-                                },
-                                {},
-                              ),
-                              ...user.attributes,
+                      infoModalRef.current.open({
+                        guid: user.username.split('@')[0],
+                        attributes: {
+                          ...reduce(
+                            idpMeta,
+                            (ret: { [key: string]: string }, keyVal: PropertyOption) => {
+                              ret[keyVal.label] = get(user, keyVal.value);
+                              return ret;
                             },
-                          });
-                        }}
-                      >
-                        <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
-                      </span>
-                      &nbsp;&nbsp;
-                      <span onClick={() => removeUserModalRef.current.open(user)}>
-                        <FontAwesomeIcon
-                          style={{ color: '#FF0303' }}
-                          icon={faMinusCircle}
-                          size="lg"
-                          title="Remove User"
-                        />
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </InfScroll>
-          ) : (
-            <tbody>
-              <tr>
-                <td colSpan={5}>No users found.</td>
-              </tr>
-            </tbody>
-          )}
-        </Table>
+                            {},
+                          ),
+                          ...user.attributes,
+                        },
+                      });
+                    }}
+                  >
+                    <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
+                  </span>
+                  &nbsp;&nbsp;
+                  <span onClick={() => removeUserModalRef.current.open(user)}>
+                    <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} size="lg" title="Remove User" />
+                  </span>
+                </>
+              ),
+            };
+          })}
+          colfilters={[]}
+          noDataFoundElement={<td colSpan={5}>No users found.</td>}
+        />
       );
     } else if (rightPanelTab === 'Service Accounts') {
       rightPanel = (
-        <Table variant="mini">
-          <thead>
-            <tr>
-              <th>Project Name</th>
-              <th className="text-right">Actions</th>
-            </tr>
-          </thead>
-          {filterServiceAccountUsers(users).length > 0 ? (
-            <InfScroll
-              element="tbody"
-              loadMore={() => fetchUsers(false, selectedRole)}
-              hasMore={hasMoreUser}
-              loader={<LoaderContainer />}
-            >
-              {users.map((user) => {
-                if (!checkIfUserIsServiceAccount(user.username)) return null;
-                return (
-                  <tr key={user.username}>
-                    <td>{serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName}</td>
-                    <td className="text-right">
-                      <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
-                        <FontAwesomeIcon
-                          style={{ color: '#FF0303' }}
-                          icon={faMinusCircle}
-                          size="lg"
-                          title="Remove Service Account"
-                        />
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </InfScroll>
-          ) : (
-            <tbody>
-              <tr>
-                <td colSpan={5}>No service accounts found.</td>
-              </tr>
-            </tbody>
-          )}
-        </Table>
+        <TableNew
+          variant="mini"
+          headers={[
+            {
+              accessor: 'projectName',
+              Header: 'Project Name',
+            },
+            {
+              accessor: 'actions',
+              Header: 'Actions',
+              disableSortBy: true,
+            },
+          ]}
+          data={users.map((user) => {
+            if (!checkIfUserIsServiceAccount(user.username)) return null;
+            return {
+              projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName,
+              actions: (
+                <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
+                  <FontAwesomeIcon
+                    style={{ color: '#FF0303' }}
+                    icon={faMinusCircle}
+                    size="lg"
+                    title="Remove Service Account"
+                  />
+                </span>
+              ),
+            };
+          })}
+          colfilters={[]}
+          noDataFoundElement={<td colSpan={5}>No service accounts found.</td>}
+        />
       );
     } else {
       rightPanel = compositeLoading ? (
@@ -462,46 +449,51 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     }
   }
 
+  const activateRow = (request: any) => {
+    console.log('--------', request['cells'][0].value);
+    setSelctedRole(request['cells'][0].value);
+  };
   const leftPanel = (
-    <ControlledTable
-      rows={roles}
-      headers={[{ label: 'Role Name' }]}
-      showFilters={false}
-      rowPlaceholder="No roles found."
-    >
-      {(role: string) => {
-        return (
-          <tr
-            key={role}
-            className={selectedRole === role ? 'active' : ''}
-            onClick={() => {
-              setSelctedRole(role);
-            }}
-          >
-            <td>{role}</td>
-            <td>
-              <AlignRight>
-                <ActionButton
-                  disabled={!canCreateOrDeleteRole}
-                  icon={faTrash}
-                  role="button"
-                  aria-label="delete"
-                  onClick={(event: MouseEvent) => {
-                    if (canCreateOrDeleteRole) {
-                      event.stopPropagation();
-                      handleDelete(role);
-                    }
-                  }}
-                  title="Delete"
-                  size="lg"
-                  style={{ marginRight: '1rem' }}
-                />
-              </AlignRight>
-            </td>
-          </tr>
-        );
-      }}
-    </ControlledTable>
+    <TableNew
+      headers={[
+        {
+          accessor: 'role',
+          Header: 'Role Name',
+        },
+        {
+          accessor: 'actions',
+          Header: 'Actions',
+          disableSortBy: true,
+        },
+      ]}
+      noDataFoundElement={<td>No roles found.</td>}
+      activateRow={activateRow}
+      data={['role1', 'role2'].map((role: string) => {
+        return {
+          role: role,
+          actions: (
+            <AlignRight>
+              <ActionButton
+                disabled={!canCreateOrDeleteRole}
+                icon={faTrash}
+                role="button"
+                aria-label="delete"
+                onClick={(event: MouseEvent) => {
+                  if (canCreateOrDeleteRole) {
+                    event.stopPropagation();
+                    handleDelete(role);
+                  }
+                }}
+                title="Delete"
+                size="lg"
+                style={{ marginRight: '1rem' }}
+              />
+            </AlignRight>
+          ),
+        };
+      })}
+      colfilters={[]}
+    />
   );
 
   return (

@@ -3,7 +3,8 @@ import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import startCase from 'lodash.startcase';
 import throttle from 'lodash.throttle';
-import { Table, Tabs, Tab, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
+import { Tabs, Tab, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
+import Table from 'components/TableNew';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
@@ -167,18 +168,16 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
             <Grid cols={10}>
               <Grid.Row collapse="1100" gutter={[15, 2]}>
                 <Grid.Col span={5}>
-                  <Table>
-                    <thead>
-                      <tr>
-                        <th>Service Account</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="active">
-                        <td>{selectedRequest.projectName}</td>
-                      </tr>
-                    </tbody>
-                  </Table>
+                  <Table
+                    headers={[
+                      {
+                        accessor: 'projectName',
+                        Header: 'Service Account',
+                      },
+                    ]}
+                    data={[{ projectName: selectedRequest.projectName }]}
+                    colfilters={[]}
+                  ></Table>
                 </Grid.Col>
                 <Grid.Col span={5}>
                   {loadingRight ? (
