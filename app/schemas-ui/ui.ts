@@ -21,7 +21,6 @@ const getUISchema = ({ integration, isAdmin }: Props) => {
   return {
     projectName: {
       'ui:placeholder': 'Project Name',
-      'ui:readonly': !isNew,
     },
     usesTeam: {
       'ui:widget': 'radio',
