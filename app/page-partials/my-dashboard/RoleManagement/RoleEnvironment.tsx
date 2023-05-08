@@ -14,7 +14,7 @@ import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import { Button, Table, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Button, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import TableNew from 'components/TableNew';
 import ControlledTable from 'components/ControlledTable';
 import InfoOverlay from 'components/InfoOverlay';
@@ -32,6 +32,7 @@ import { idpMap } from 'helpers/meta';
 import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
+import noop from 'lodash.noop';
 
 const Label = styled.label`
   font-weight: bold;
@@ -202,7 +203,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       integrationId: integration.id as number,
       search: searchKey,
     });
-    console.log('--------data---------', data);
 
     const _roles = data || [];
 
@@ -313,6 +313,10 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     setRightPanelTab(key);
   };
 
+  const activateRow = (request: any) => {
+    setSelctedRole(request['cells'][0].value);
+  };
+
   let rightPanel = null;
   if (firstUser === 0 && userLoading) {
     rightPanel = <LoaderContainer />;
@@ -323,15 +327,15 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           variant="mini"
           headers={[
             {
-              accessor: 'id',
+              accessor: 'idp',
               Header: 'IDP',
             },
             {
-              accessor: 'projectName',
+              accessor: 'guid',
               Header: 'GUID',
             },
             {
-              accessor: 'status',
+              accessor: 'email',
               Header: 'Email',
             },
             {
@@ -384,6 +388,8 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
             };
           })}
           colfilters={[]}
+          activateRow={noop}
+          rowSelectorKey={'guid'}
           noDataFoundElement={<td colSpan={5}>No users found.</td>}
         />
       );
@@ -419,6 +425,8 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
             };
           })}
           colfilters={[]}
+          activateRow={noop}
+          rowSelectorKey={'projectName'}
           noDataFoundElement={<td colSpan={5}>No service accounts found.</td>}
         />
       );
@@ -449,10 +457,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     }
   }
 
-  const activateRow = (request: any) => {
-    console.log('--------', request['cells'][0].value);
-    setSelctedRole(request['cells'][0].value);
-  };
   const leftPanel = (
     <TableNew
       headers={[
@@ -468,7 +472,8 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       ]}
       noDataFoundElement={<td>No roles found.</td>}
       activateRow={activateRow}
-      data={['role1', 'role2'].map((role: string) => {
+      rowSelectorKey={'role'}
+      data={roles.map((role: string) => {
         return {
           role: role,
           actions: (

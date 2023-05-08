@@ -236,6 +236,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
             };
           })}
           activateRow={activateRow}
+          rowSelectorKey={'id'}
           colfilters={[]}
         ></Table>
       </>
