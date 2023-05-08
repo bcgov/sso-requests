@@ -13,6 +13,7 @@ import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keyclo
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@button-inc/bcgov-theme/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
+import noop from 'lodash.noop';
 
 const Label = styled.label`
   font-weight: bold;
@@ -177,6 +178,8 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
                     ]}
                     data={[{ projectName: selectedRequest.projectName }]}
                     colfilters={[]}
+                    activateRow={noop}
+                    rowSelectorKey={'projectName'}
                   ></Table>
                 </Grid.Col>
                 <Grid.Col span={5}>
