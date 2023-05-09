@@ -14,6 +14,7 @@ export const ActionButtonContainer = styled.div`
   height: 100%;
   display: flex;
   justify-content: center;
+  float: left;
   align-items: center;
   padding-right: 15px;
   & > * {
