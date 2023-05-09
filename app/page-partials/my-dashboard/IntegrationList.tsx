@@ -32,6 +32,7 @@ const PNoMargin = styled.p`
   margin: 0;
 `;
 
+// used for Action header alignment in the future
 // function ActionsHeader() {
 //   return <span style={{ }}>Actions</span>;
 // }

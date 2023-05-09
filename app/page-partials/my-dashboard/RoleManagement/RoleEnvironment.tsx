@@ -7,7 +7,6 @@ import Select, { MultiValue, ActionMeta } from 'react-select';
 import throttle from 'lodash.throttle';
 import get from 'lodash.get';
 import reduce from 'lodash.reduce';
-import InfiniteScroll from 'react-infinite-scroller';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
@@ -15,8 +14,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
 import { Button, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
-import TableNew from 'components/TableNew';
-import ControlledTable from 'components/ControlledTable';
+import Table from 'components/TableNew';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
@@ -38,8 +36,6 @@ const Label = styled.label`
   font-weight: bold;
   margin-bottom: 2px;
 `;
-
-const InfScroll = InfiniteScroll as unknown as (a: any) => JSX.Element;
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -123,7 +119,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const [hasMoreUser, setHasMoreUser] = useState(true);
   const [roles, setRoles] = useState<string[]>([]);
   const [users, setUsers] = useState<KeycloakUser[]>([]);
-  const [selectedRole, setSelctedRole] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
   const [rightPanelTabs, setRightPanelTabs] = useState<string[]>([]);
   const [currentIntegrationID, setCurrentIntegrationID] = useState<number>();
@@ -170,7 +166,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     fetchRoles();
     setUsers([]);
     setRoles([]);
-    setSelctedRole(null);
+    setSelectedRole(null);
     setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration));
   };
 
@@ -219,7 +215,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     setRoleLoading(false);
 
     if (_roles.length === 1) {
-      setSelctedRole(_roles[0]);
+      setSelectedRole(_roles[0]);
     }
   };
 
@@ -267,7 +263,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     setHasMoreUser(_data.length === maxUser);
     setUsers(_users.concat(_data));
     setFirstUser(_first + maxUser);
-    setSelctedRole(roleName);
+    setSelectedRole(roleName);
     setUserLoading(false);
   };
 
@@ -314,7 +310,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   };
 
   const activateRow = (request: any) => {
-    setSelctedRole(request['cells'][0].value);
+    setSelectedRole(request['cells'][0].value);
   };
 
   let rightPanel = null;
@@ -323,7 +319,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   } else if (selectedRole) {
     if (rightPanelTab === 'Users') {
       rightPanel = (
-        <TableNew
+        <Table
           variant="mini"
           headers={[
             {
@@ -344,58 +340,70 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
               disableSortBy: true,
             },
           ]}
-          data={users.map((user) => {
-            const usernameSplit = user.username.split('@');
-            if (usernameSplit.length < 2) return null;
+          data={
+            users.filter((user) => !user.username.startsWith('service-account-')).length > 0
+              ? users.map((user) => {
+                  const usernameSplit = user.username.split('@');
+                  if (usernameSplit.length < 2) return null;
 
-            const [guid, idp] = usernameSplit;
-            const idpMeta = propertyOptionMap[idp];
+                  const [guid, idp] = usernameSplit;
+                  const idpMeta = propertyOptionMap[idp];
 
-            return {
-              idp: idpMap[idp],
-              guid: guid,
-              email: user.email,
-              actions: (
-                <>
-                  <span
-                    onClick={(event) => {
-                      event.stopPropagation();
+                  return {
+                    idp: idpMap[idp],
+                    guid: guid,
+                    email: user.email,
+                    actions: (
+                      <>
+                        <span
+                          onClick={(event) => {
+                            event.stopPropagation();
 
-                      infoModalRef.current.open({
-                        guid: user.username.split('@')[0],
-                        attributes: {
-                          ...reduce(
-                            idpMeta,
-                            (ret: { [key: string]: string }, keyVal: PropertyOption) => {
-                              ret[keyVal.label] = get(user, keyVal.value);
-                              return ret;
-                            },
-                            {},
-                          ),
-                          ...user.attributes,
-                        },
-                      });
-                    }}
-                  >
-                    <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
-                  </span>
-                  &nbsp;&nbsp;
-                  <span onClick={() => removeUserModalRef.current.open(user)}>
-                    <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} size="lg" title="Remove User" />
-                  </span>
-                </>
-              ),
-            };
-          })}
+                            infoModalRef.current.open({
+                              guid: user.username.split('@')[0],
+                              attributes: {
+                                ...reduce(
+                                  idpMeta,
+                                  (ret: { [key: string]: string }, keyVal: PropertyOption) => {
+                                    ret[keyVal.label] = get(user, keyVal.value);
+                                    return ret;
+                                  },
+                                  {},
+                                ),
+                                ...user.attributes,
+                              },
+                            });
+                          }}
+                        >
+                          <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
+                        </span>
+                        &nbsp;&nbsp;
+                        <span onClick={() => removeUserModalRef.current.open(user)}>
+                          <FontAwesomeIcon
+                            style={{ color: '#FF0303' }}
+                            icon={faMinusCircle}
+                            size="lg"
+                            title="Remove User"
+                          />
+                        </span>
+                      </>
+                    ),
+                  };
+                })
+              : []
+          }
+          loadMoreItem={() => fetchUsers(false, selectedRole)}
+          hasMoreItem={hasMoreUser}
+          loader={<LoaderContainer />}
           colfilters={[]}
           activateRow={noop}
           rowSelectorKey={'guid'}
           noDataFoundElement={<td colSpan={5}>No users found.</td>}
-        />
+        ></Table>
       );
     } else if (rightPanelTab === 'Service Accounts') {
       rightPanel = (
-        <TableNew
+        <Table
           variant="mini"
           headers={[
             {
@@ -408,27 +416,32 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
               disableSortBy: true,
             },
           ]}
-          data={users.map((user) => {
-            if (!checkIfUserIsServiceAccount(user.username)) return null;
-            return {
-              projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName,
-              actions: (
-                <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
-                  <FontAwesomeIcon
-                    style={{ color: '#FF0303' }}
-                    icon={faMinusCircle}
-                    size="lg"
-                    title="Remove Service Account"
-                  />
-                </span>
-              ),
-            };
-          })}
+          data={
+            filterServiceAccountUsers(users).length > 0
+              ? users.map((user) => {
+                  if (!checkIfUserIsServiceAccount(user.username)) return null;
+                  return {
+                    projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration
+                      ?.projectName,
+                    actions: (
+                      <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
+                        <FontAwesomeIcon
+                          style={{ color: '#FF0303' }}
+                          icon={faMinusCircle}
+                          size="lg"
+                          title="Remove Service Account"
+                        />
+                      </span>
+                    ),
+                  };
+                })
+              : []
+          }
           colfilters={[]}
           activateRow={noop}
           rowSelectorKey={'projectName'}
           noDataFoundElement={<td colSpan={5}>No service accounts found.</td>}
-        />
+        ></Table>
       );
     } else {
       rightPanel = compositeLoading ? (
@@ -458,7 +471,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   }
 
   const leftPanel = (
-    <TableNew
+    <Table
       headers={[
         {
           accessor: 'role',
@@ -498,7 +511,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
         };
       })}
       colfilters={[]}
-    />
+    ></Table>
   );
 
   return (
