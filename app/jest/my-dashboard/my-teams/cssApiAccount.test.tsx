@@ -115,9 +115,10 @@ describe('CSS API Account tab', () => {
     await waitFor(() => {
       screen.getByRole('button', { name: '+ Create a New Team' });
     });
+    fireEvent.click(screen.getByRole('cell', { name: 'test-team' }));
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
-    await screen.findByRole('columnheader', { name: 'API Account ID' });
+    screen.getByText('API Account ID');
     await screen.findAllByRole('columnheader', { name: 'Actions' });
     screen.getByRole('row', { name: '1 Copy to clipboard Download Update secret Delete' });
     expect(screen.getByRole('link', { name: 'here' })).toHaveAttribute('href', HYPERLINK);

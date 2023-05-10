@@ -111,15 +111,11 @@ describe('Team List', () => {
 
   it('Should match the correct table headers, selected team', async () => {
     render(<TeamListComponent />);
-    await waitFor(() => {
-      expect(getByRole('columnheader', 'Team Name'));
-    });
-    await waitFor(() => {
-      expect(getByRole('columnheader', 'Actions'));
-    });
-    await waitFor(() => {
-      expect(getByRole('row', 'SAMPLE_TEAM Edit Delete')).toHaveClass('active');
-    });
+
+    getByLabelText('Team Name');
+    getByRole('columnheader', 'Actions');
+    fireEvent.click(getByRole('row', 'SAMPLE_TEAM Edit Delete'));
+    expect(getByRole('row', 'SAMPLE_TEAM Edit Delete')).toHaveClass('active');
   });
 
   it('Should be able to click the Delete button, and confirm deletion', async () => {

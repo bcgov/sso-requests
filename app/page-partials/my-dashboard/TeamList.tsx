@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Table } from '@bcgov-sso/common-react-components';
+import Table from 'components/TableNew';
 import styled from 'styled-components';
 import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,14 +21,14 @@ import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
 
-const RightAlignHeader = styled.th`
-  text-align: right;
-  min-width: 100px;
+const RightFloatButtons = styled.tr`
+  float: right;
+  padding-right: 0.5em;
 `;
 
-const RightFloatButtons = styled.td`
-  float: right;
-`;
+function TeamListActionsHeader() {
+  return <span style={{ float: 'right', paddingRight: '1em' }}>Actions</span>;
+}
 
 const UnpaddedButton = styled(Button)`
   &&& {
@@ -107,43 +107,53 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
     window.location.hash = editTeamNameModalId;
   };
 
+  const activateRow = (request: any) => {
+    const teamId = request['cells'][0].row.original.teamId;
+    teams.forEach((team) => {
+      if (team.id == teamId) updateActiveTeam(team);
+    });
+  };
+
   const getTableContents = () => {
     if (hasError) return <SystemUnavailableMessage />;
 
     if (!teams || teams?.length === 0) return <NoEntitiesMessage message="You have not been added to any teams yet." />;
 
     return (
-      <Table>
-        <thead>
-          <tr>
-            <th>Team Name</th>
-            <RightAlignHeader>Actions</RightAlignHeader>
-          </tr>
-        </thead>
-        <tbody>
-          {teams &&
-            teams.map((team: Team) => {
-              return (
-                <tr
-                  className={activeTeamId === team.id ? 'active' : ''}
-                  key={team.id}
-                  onClick={() => updateActiveTeam(team)}
-                >
-                  <td>{team.name}</td>
-                  <td>
-                    <RightFloatButtons>
-                      <TeamActionButtons
-                        team={team}
-                        showEditTeamNameModal={showEditTeamNameModal}
-                        showDeleteModal={showDeleteModal}
-                      />
-                    </RightFloatButtons>
-                  </td>
-                </tr>
-              );
-            })}
-        </tbody>
-      </Table>
+      <Table
+        headers={[
+          {
+            accessor: 'name',
+            Header: 'Team Name',
+          },
+          {
+            accessor: 'actions',
+            Header: <TeamListActionsHeader />,
+            disableSortBy: true,
+          },
+        ]}
+        data={
+          teams &&
+          teams.map((team: Team) => {
+            return {
+              teamId: team.id,
+              name: team.name,
+              actions: (
+                <RightFloatButtons>
+                  <TeamActionButtons
+                    team={team}
+                    showEditTeamNameModal={showEditTeamNameModal}
+                    showDeleteModal={showDeleteModal}
+                  />
+                </RightFloatButtons>
+              ),
+            };
+          })
+        }
+        activateRow={activateRow}
+        rowSelectorKey={'teamId'}
+        colfilters={[]}
+      />
     );
   };
 

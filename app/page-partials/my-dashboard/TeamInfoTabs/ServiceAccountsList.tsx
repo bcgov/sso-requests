@@ -11,18 +11,13 @@ import {
   updateServiceAccountCredentials,
 } from '@app/services/team';
 import { copyTextToClipboard, downloadText, prettyJSON } from '@app/utils/text';
-import { Table } from '@bcgov-sso/common-react-components';
+import Table from 'components/TableNew';
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import isEmpty from 'lodash.isempty';
 import { useEffect, useState } from 'react';
 import ReactPlaceholder from 'react-placeholder';
 import styled from 'styled-components';
-
-const RightAlignHeader = styled.th`
-  text-align: right;
-  min-width: 100px;
-`;
 
 const RightFloatButtons = styled.td`
   float: right;
@@ -36,6 +31,10 @@ const ModalContentContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 6fr;
 `;
+
+function ActionsHeader() {
+  return <span style={{ float: 'right', paddingRight: '2.7em' }}>Actions</span>;
+}
 
 interface Props {
   team: Team;
@@ -96,39 +95,47 @@ export default function ServiceAccountsList({
     }
   };
 
+  const activateRow = (request: any) => {
+    const serviceAccountId = request['cells'][0].row.original.id;
+    teamServiceAccounts.forEach((serviceAccount) => {
+      if (serviceAccount.id == serviceAccountId) setSelectedServiceAccount(serviceAccount);
+    });
+  };
+
   return (
     <>
-      <Table>
-        <thead>
-          <tr>
-            <th>API Account ID</th>
-            <RightAlignHeader>Actions</RightAlignHeader>
-          </tr>
-        </thead>
-        <tbody>
-          {teamServiceAccounts.map((serviceAccount: Integration) => {
-            return (
-              <tr
-                className={selectedServiceAccount?.id === serviceAccount.id ? 'active' : ''}
-                key={serviceAccount.id}
-                onClick={() => setSelectedServiceAccount(serviceAccount)}
-              >
-                <td>{serviceAccount.id}</td>
-                <td>
-                  <RightFloatButtons>
-                    <ServiceAccountActionbuttons
-                      copyOrDownloadAction={copyOrDownloadServiceAccount}
-                      showUpdateModal={handleUpdate}
-                      showDeleteModal={handleDelete}
-                      actionsDisabled={Boolean(checkDisabled(serviceAccount))}
-                    />
-                  </RightFloatButtons>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
+      <Table
+        headers={[
+          {
+            accessor: 'id',
+            Header: 'API Account ID',
+          },
+          {
+            accessor: 'actions',
+            Header: <ActionsHeader />,
+            disableSortBy: true,
+          },
+        ]}
+        data={teamServiceAccounts.map((serviceAccount: Integration) => {
+          return {
+            id: serviceAccount.id,
+            actions: (
+              <RightFloatButtons>
+                <ServiceAccountActionbuttons
+                  copyOrDownloadAction={copyOrDownloadServiceAccount}
+                  showUpdateModal={handleUpdate}
+                  showDeleteModal={handleDelete}
+                  actionsDisabled={Boolean(checkDisabled(serviceAccount))}
+                />
+              </RightFloatButtons>
+            ),
+          };
+        })}
+        colfilters={[]}
+        activateRow={activateRow}
+        rowSelectorKey={'id'}
+      />
+
       <CenteredModal
         title="Request a new secret for CSS API Account"
         icon={null}
