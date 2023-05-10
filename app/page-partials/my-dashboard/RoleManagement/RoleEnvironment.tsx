@@ -317,6 +317,8 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   if (firstUser === 0 && userLoading) {
     rightPanel = <LoaderContainer />;
   } else if (selectedRole) {
+    const filterUsers = users.filter((user) => !user.username.startsWith('service-account-'));
+    const filterServiceAccounts = filterServiceAccountUsers(users);
     if (rightPanelTab === 'Users') {
       rightPanel = (
         <Table
@@ -341,10 +343,10 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
             },
           ]}
           data={
-            users.filter((user) => !user.username.startsWith('service-account-')).length > 0
-              ? users.map((user) => {
+            filterUsers.length > 0
+              ? filterUsers.map((user) => {
                   const usernameSplit = user.username.split('@');
-                  if (usernameSplit.length < 2) return null;
+                  if (usernameSplit.length < 2) return [];
 
                   const [guid, idp] = usernameSplit;
                   const idpMeta = propertyOptionMap[idp];
@@ -417,9 +419,8 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
             },
           ]}
           data={
-            filterServiceAccountUsers(users).length > 0
-              ? users.map((user) => {
-                  if (!checkIfUserIsServiceAccount(user.username)) return null;
+            filterServiceAccounts.length > 0
+              ? filterServiceAccounts.map((user) => {
                   return {
                     projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration
                       ?.projectName,
@@ -479,7 +480,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
         },
         {
           accessor: 'actions',
-          Header: 'Actions',
+          Header: '',
           disableSortBy: true,
         },
       ]}
