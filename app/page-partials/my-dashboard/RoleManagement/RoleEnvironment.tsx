@@ -421,7 +421,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           data={
             filterServiceAccounts.length > 0
               ? filterServiceAccounts.map((user) => {
-                  if (!checkIfUserIsServiceAccount(user.username)) return [];
                   return {
                     projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration
                       ?.projectName,
