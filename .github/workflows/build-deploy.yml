@@ -146,4 +146,4 @@ jobs:
           " > values.yaml
 
           helm repo add bitnami-charts https://charts.bitnami.com/bitnami
-          helm upgrade --install sso-requests-ui-${{ steps.meta.outputs.tags }} -f values.yaml --history-max 3 bitnami-charts/node -n ${{ env.OPENSHIFT_NAMESPACE }}
+          helm upgrade --install sso-requests-ui-${{ steps.meta.outputs.version }} -f values.yaml --history-max 3 bitnami-charts/node -n ${{ env.OPENSHIFT_NAMESPACE }}
