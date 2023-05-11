@@ -1,0 +1,149 @@
+name: Build and Deploy SSO CSS
+
+on:
+  push:
+    branches:
+      - feature/*
+      - fix/*
+env:
+  GITHUB_REGISTRY: ghcr.io
+  IMAGE_NAME: bcgov/sso-requests/sso-requests
+  OPENSHIFT_NAMESPACE: c6af30-dev
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-20.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Get Helm
+        run: |
+          curl -L -O https://get.helm.sh/helm-v3.4.2-linux-amd64.tar.gz
+          tar -xf helm-v3.4.2-linux-amd64.tar.gz
+
+      - name: Install oc
+        uses: redhat-actions/oc-installer@v1
+        with:
+          version: '4.6'
+
+      - name: Authenticate to gold and set context
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER_GOLD }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN_GOLD }}
+
+          # Disables SSL cert checking. Use this if you don't have the certificate authority data.
+          insecure_skip_tls_verify: true
+
+          namespace: ${{ env.OPENSHIFT_NAMESPACE }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Log in to the GitHub Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.GITHUB_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          file: Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Deploy Frontend
+        run: |
+          export PATH=$PATH:`pwd`/linux-amd64
+
+          echo "
+          podAnnotations:
+            sha: $GITHUB_SHA
+
+          replicaCount: 1
+
+          image:
+            registry: ${{ env.GITHUB_REGISTRY }}
+            repository: ${{ env.IMAGE_NAME }}
+            tag: ${{ steps.meta.outputs.tags }}
+            pullPolicy: Always
+
+          podSecurityContext:
+            fsGroup: ${{ secrets.RUNNING_UID_GID }}
+
+          containerSecurityContext:
+            runAsUser: ${{ secrets.RUNNING_UID_GID }}
+
+          containerPorts:
+            http: 3000
+
+          resources:
+            requests:
+              cpu: 20m
+              memory: 400M
+            limits:
+              cpu: 100m
+              memory: 800M
+
+          updateStrategy:
+            type: RollingUpdate
+
+          installCommand: []
+
+          command: ["yarn", "--cwd", "./app", "dev"]
+
+          extraEnvVars:
+            - name: APP_ENV:
+              value: develop
+            - name: API_URL:
+              value: 'https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/'
+            - name: SSO_URL:
+              value: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+            - name: SSO_CLIENT_ID:
+              value: css-app-in-gold-4128
+            - name: SSO_REDIRECT_URI:
+              value: http://localhost:3000
+            - name: ENABLE_GOLD:
+              value: true
+            - name: MAINTENANCE_MODE_ACTIVE:
+              value: false
+            - name: APP_URL:
+              value:
+            - name: APP_BASE_PATH:
+              value: '/sso-requests-dev'
+            - name: DEPLOY_REPO_NAME:
+              value: 'bcgov/sso-requests-dev'
+
+          " > values.yaml
+
+          helm repo add bitnami-charts https://charts.bitnami.com/bitnami
+          helm upgrade --install sso-requests-ui-${{ steps.meta.outputs.tags }} -f values.yaml --history-max 3 bitnami-charts/node -n ${{ env.OPENSHIFT_NAMESPACE }}
