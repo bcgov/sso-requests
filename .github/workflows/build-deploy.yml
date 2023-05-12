@@ -128,23 +128,17 @@ jobs:
             APP_ENV:
               value: develop
             API_URL:
-              value: 'https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/'
+              value: https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
             SSO_URL:
               value: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
             SSO_CLIENT_ID:
               value: css-app-in-gold-4128
-            SSO_REDIRECT_URI:
-              value: http://localhost:3000
             ENABLE_GOLD:
               value: true
             MAINTENANCE_MODE_ACTIVE:
               value: false
             APP_URL:
-              value:
-            APP_BASE_PATH:
-              value: '/sso-requests-dev'
-            DEPLOY_REPO_NAME:
-              value: 'bcgov/sso-requests-dev'
+              value: https://sso-requests--${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
 
           " > values.yaml
 
