@@ -93,7 +93,7 @@ jobs:
 
           image:
             repository: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
-            tag: ${{ steps.meta.outputs.tags }}
+            tag: ${{ steps.meta.outputs.version }}
             pullPolicy: Always
 
           podSecurityContext:
