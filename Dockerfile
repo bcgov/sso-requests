@@ -17,6 +17,10 @@ RUN mkdir localserver
 
 COPY app ./app/
 
+RUN yarn --cwd ./app install
+
+RUN yarn --cwd ./app build
+
 COPY lambda ./lambda/
 
 RUN yarn --cwd ./lambda install
@@ -34,10 +38,6 @@ RUN yarn --cwd ./lambda/css-api install
 RUN yarn --cwd ./lambda/siteminder-tests-scheduler install
 
 ENV NODE_ENV production
-
-RUN yarn --cwd ./app install
-
-RUN yarn --cwd ./app build
 
 COPY localserver ./localserver/
 
