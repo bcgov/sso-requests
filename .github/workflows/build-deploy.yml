@@ -122,25 +122,25 @@ jobs:
           command: ["yarn", "--cwd", "./app", "dev"]
 
           extraEnvVars:
-            - name: APP_ENV:
+            - name: APP_ENV
               value: develop
-            - name: API_URL:
+            - name: API_URL
               value: 'https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/'
-            - name: SSO_URL:
+            - name: SSO_URL
               value: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
-            - name: SSO_CLIENT_ID:
+            - name: SSO_CLIENT_ID
               value: css-app-in-gold-4128
-            - name: SSO_REDIRECT_URI:
+            - name: SSO_REDIRECT_URI
               value: http://localhost:3000
-            - name: ENABLE_GOLD:
+            - name: ENABLE_GOLD
               value: true
-            - name: MAINTENANCE_MODE_ACTIVE:
+            - name: MAINTENANCE_MODE_ACTIVE
               value: false
-            - name: APP_URL:
+            - name: APP_URL
               value:
-            - name: APP_BASE_PATH:
+            - name: APP_BASE_PATH
               value: '/sso-requests-dev'
-            - name: DEPLOY_REPO_NAME:
+            - name: DEPLOY_REPO_NAME
               value: 'bcgov/sso-requests-dev'
 
           " > values.yaml
