@@ -9,36 +9,34 @@ COPY ./*.json ./
 
 RUN yarn install
 
-COPY ./app/*.json ./app/
+RUN mkdir app
 
-RUN yarn --cwd ./app install
+RUN mkdir lambda
 
-COPY ./lambda/*.json ./lambda/
+RUN mkdir localserver
+
+COPY app ./app/
+
+COPY lambda ./lambda/
 
 RUN yarn --cwd ./lambda install
 
-COPY ./lambda/shared/*.json ./lambda/shared/
-
-RUN yarn --cwd ./lambda/shared install
-
-COPY ./lambda/app/*.json ./lambda/app/
-
 RUN yarn --cwd ./lambda/app install
-
-COPY ./lambda/actions/*.json ./lambda/actions/
-
-RUN yarn --cwd ./lambda/actions install
-
-COPY ./lambda/db/*.json ./lambda/db/
 
 RUN yarn --cwd ./lambda/db install
 
-COPY ./lambda/scheduler/*.json ./lambda/scheduler/
+RUN yarn --cwd ./lambda/actions install
 
 RUN yarn --cwd ./lambda/scheduler install
 
-COPY ./localserver/*.json ./localserver/
+RUN yarn --cwd ./lambda/css-api install
+
+RUN yarn --cwd ./lambda/siteminder-tests-scheduler install
+
+RUN yarn --cwd ./app install
+
+COPY localserver ./localserver/
 
 RUN yarn --cwd ./localserver install
 
-ENTRYPOINT [ "yarn", "--cwd", "./localserver", "dev"]
+ENTRYPOINT [ "yarn", "--cwd", "./app", "dev"]
