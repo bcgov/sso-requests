@@ -96,12 +96,6 @@ jobs:
             tag: ${{ steps.meta.outputs.version }}
             pullPolicy: Always
 
-          podSecurityContext:
-            fsGroup: ${{ secrets.RUNNING_UID_GID }}
-
-          securityContext:
-            runAsUser: ${{ secrets.RUNNING_UID_GID }}
-
           containerPort: 3000
 
           resources:
