@@ -96,6 +96,10 @@ jobs:
             tag: ${{ steps.meta.outputs.version }}
             pullPolicy: Always
 
+          podSecurityContext: {}
+
+          securityContext: {}
+
           containerPort: 3000
 
           resources:
