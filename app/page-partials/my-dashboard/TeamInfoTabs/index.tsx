@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { Table, Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import Table from 'components/TableNew';
 import Button from 'html-components/Button';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
@@ -62,11 +63,6 @@ const TabWrapper = styled.div<{ marginTop?: string; marginBottom?: string; margi
   `}
 `;
 
-const RightPaddedHeader = styled.th`
-  float: right;
-  margin-right: 30px;
-`;
-
 const RightFloat = styled.td`
   float: right;
 `;
@@ -83,6 +79,28 @@ const CenteredTD = styled.td`
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
 `;
+
+function RoleHeader() {
+  return (
+    <span>
+      Role&nbsp;
+      <InfoOverlay
+        title={''}
+        content={
+          'Admin: can manage integrations <span class="strong">and</span> teams. <br> Members: can <span class="strong">only</span> manage integrations.'
+        }
+        hide={200}
+      />
+    </span>
+  );
+}
+
+function IntegrationActionsHeader() {
+  return <span style={{ float: 'right', paddingRight: '1.8em' }}>Actions</span>;
+}
+function MembersActionsHeader() {
+  return <span style={{ float: 'right', paddingRight: '0.4em' }}>Actions</span>;
+}
 
 const addMemberModalId = 'add-member-modal';
 const deleteMemberModalId = 'delete-member-modal';
@@ -407,161 +425,173 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               <br />
             )}
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table variant="medium" readOnly>
-                <thead>
-                  <tr>
-                    <th>Status</th>
-                    <th>Email</th>
-                    <th>
-                      Role&nbsp;
-                      <InfoOverlay
-                        title={''}
-                        content={
-                          'Admin: can manage integrations <span class="strong">and</span> teams. <br> Members: can <span class="strong">only</span> manage integrations.'
-                        }
-                        hide={200}
-                      />
-                    </th>
-                    <th>
-                      <RightFloat>Actions</RightFloat>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.map((member) => {
-                    const adminActionsAllowed = isAdmin && myself.id !== member.id;
-                    return (
-                      <tr key={member.id}>
-                        <td>
-                          <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />
-                        </td>
-                        <td>{member.idirEmail}</td>
-                        <td>
-                          {adminActionsAllowed && !member.pending ? (
-                            <Dropdown
-                              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                                handleMemberRoleChange(member.id as number, event.target.value)
-                              }
-                              value={member.role}
-                            >
-                              <option value="member">Member</option>
-                              <option value="admin">Admin</option>
-                            </Dropdown>
-                          ) : (
-                            capitalize(member.role)
-                          )}
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          {adminActionsAllowed && member.pending && (
-                            <ButtonIcon
-                              icon={faShare}
-                              size="lg"
-                              onClick={() => inviteMember(member)}
-                              title="Resend Invitation"
-                              style={{ marginRight: '6px' }}
-                            />
-                          )}
-                          {adminActionsAllowed && (
-                            <ButtonIcon
-                              icon={faTrash}
-                              onClick={() => handleDeleteClick(member.id)}
-                              size="lg"
-                              title="Delete User"
-                              style={{ marginRight: '16px' }}
-                            />
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
+              <Table
+                variant="medium"
+                headers={[
+                  {
+                    accessor: 'status',
+                    Header: 'Status',
+                    disableSortBy: true,
+                  },
+                  {
+                    accessor: 'idirEmail',
+                    Header: 'Email',
+                  },
+                  {
+                    accessor: 'role',
+                    Header: <RoleHeader />,
+                    disableSortBy: true,
+                  },
+                  {
+                    accessor: 'actions',
+                    Header: <MembersActionsHeader />,
+                    disableSortBy: true,
+                  },
+                ]}
+                data={members.map((member) => {
+                  const adminActionsAllowed = isAdmin && myself.id !== member.id;
+                  return {
+                    status: <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />,
+                    idirEmail: member.idirEmail,
+                    role:
+                      adminActionsAllowed && !member.pending ? (
+                        <Dropdown
+                          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                            handleMemberRoleChange(member.id as number, event.target.value)
+                          }
+                          value={member.role}
+                        >
+                          <option value="member">Member</option>
+                          <option value="admin">Admin</option>
+                        </Dropdown>
+                      ) : (
+                        capitalize(member.role)
+                      ),
+                    actions: (
+                      <RightFloat>
+                        {adminActionsAllowed && member.pending && (
+                          <ButtonIcon
+                            icon={faShare}
+                            size="lg"
+                            onClick={() => inviteMember(member)}
+                            title="Resend Invitation"
+                            style={{ marginRight: '6px' }}
+                          />
+                        )}
+                        {adminActionsAllowed && (
+                          <ButtonIcon
+                            icon={faTrash}
+                            onClick={() => handleDeleteClick(member.id)}
+                            size="lg"
+                            title="Delete User"
+                            style={{ marginRight: '16px' }}
+                          />
+                        )}
+                      </RightFloat>
+                    ),
+                  };
+                })}
+                colfilters={[]}
+                rowSelectorKey={'status'}
+                readOnly={true}
+              />
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
         <Tab key="integrations" tab="Integrations">
           <TabWrapper marginTop="20px">
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table variant="medium" readOnly>
-                <thead>
-                  <tr>
-                    <th>Status</th>
-                    <th>Request ID</th>
-                    <th>Project Name</th>
-                    <th>
-                      <RightPaddedHeader>Actions</RightPaddedHeader>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {integrations?.length > 0 ? (
-                    integrations?.map((integration) => (
-                      <tr key={integration.id}>
-                        <td>
-                          <RequestStatusIcon status={integration?.status} />
-                        </td>
-                        <td>{integration.id}</td>
-                        <td>{integration.projectName}</td>
-                        <td>
-                          <RightFloat>
-                            <ActionButtons
-                              request={integration}
-                              onDelete={() => {
-                                loadTeams();
-                                getData(team?.id);
-                              }}
-                            >
-                              <ActionButton
-                                icon={faEye}
-                                aria-label="view"
-                                onClick={() => viewProject(integration.id)}
-                                size="lg"
-                              />
-                            </ActionButtons>
-                          </RightFloat>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <CenteredTD colSpan={5}>
-                        <br />
-                        There are no integrations for this team yet.
-                        <br />
-                        <br />
-                        To add this team to an <span className="strong">existing integration</span>:
-                        <span className="line-height-200"></span>
-                        <ol>
-                          <li>
-                            Go to your{' '}
-                            <span className="text-blue">
-                              <span className="strong">Projects</span>
-                            </span>{' '}
-                            tab
-                          </li>
-                          <li>Select the &ldquo;pencil&rdquo; icon to edit the integration</li>
-                          <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
-                        </ol>
-                        <br />
-                        To add this team to a <span className="strong">new integration</span>:
-                        <span className="line-height-200"></span>
-                        <ol>
-                          <li>
-                            Go to your{' '}
-                            <span className="text-blue">
-                              <span className="strong">Projects</span>
-                            </span>{' '}
-                            tab
-                          </li>
-                          <li>Select &ldquo;+ Request SSO Integration&rdquo;</li>
-                          <li>Select &ldquo;Yes&rdquo; to allow multiple team members to manage the integration</li>
-                          <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
-                        </ol>
-                      </CenteredTD>
-                    </tr>
-                  )}
-                </tbody>
-              </Table>
+              <Table
+                variant="medium"
+                headers={[
+                  {
+                    accessor: 'status',
+                    Header: 'Status',
+                    disableSortBy: true,
+                  },
+                  {
+                    accessor: 'id',
+                    Header: 'Request ID',
+                  },
+                  {
+                    accessor: 'projectName',
+                    Header: 'Project Name',
+                  },
+                  {
+                    accessor: 'actions',
+                    Header: <IntegrationActionsHeader />,
+                    disableSortBy: true,
+                  },
+                ]}
+                data={
+                  integrations?.length > 0
+                    ? integrations?.map((integration) => {
+                        return {
+                          status: <RequestStatusIcon status={integration?.status} />,
+                          id: integration.id,
+                          projectName: integration.projectName,
+                          actions: (
+                            <RightFloat>
+                              <ActionButtons
+                                request={integration}
+                                onDelete={() => {
+                                  loadTeams();
+                                  getData(team?.id);
+                                }}
+                              >
+                                <ActionButton
+                                  icon={faEye}
+                                  aria-label="view"
+                                  onClick={() => viewProject(integration.id)}
+                                  size="lg"
+                                />
+                              </ActionButtons>
+                            </RightFloat>
+                          ),
+                        };
+                      })
+                    : []
+                }
+                readOnly={true}
+                colfilters={[]}
+                rowSelectorKey={'status'}
+                noDataFoundElement={
+                  <CenteredTD colSpan={5}>
+                    <br />
+                    There are no integrations for this team yet.
+                    <br />
+                    <br />
+                    To add this team to an <span className="strong">existing integration</span>:
+                    <span className="line-height-200"></span>
+                    <ol>
+                      <li>
+                        Go to your{' '}
+                        <span className="text-blue">
+                          <span className="strong">Projects</span>
+                        </span>{' '}
+                        tab
+                      </li>
+                      <li>Select the &ldquo;pencil&rdquo; icon to edit the integration</li>
+                      <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
+                    </ol>
+                    <br />
+                    To add this team to a <span className="strong">new integration</span>:
+                    <span className="line-height-200"></span>
+                    <ol>
+                      <li>
+                        Go to your{' '}
+                        <span className="text-blue">
+                          <span className="strong">Projects</span>
+                        </span>{' '}
+                        tab
+                      </li>
+                      <li>Select &ldquo;+ Request SSO Integration&rdquo;</li>
+                      <li>Select &ldquo;Yes&rdquo; to allow multiple team members to manage the integration</li>
+                      <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
+                    </ol>
+                  </CenteredTD>
+                }
+              />
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>

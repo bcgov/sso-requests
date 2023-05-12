@@ -165,6 +165,7 @@ interface Props {
   noDataFoundElement?: ReactElement;
   pagination?: boolean;
   rowSelectorKey?: string;
+  readOnly?: boolean;
 }
 
 function Table({
@@ -197,6 +198,7 @@ function Table({
   pagination = false,
   pageLimits = [5, 10, 15, 30, 50, 100],
   rowSelectorKey = 'id',
+  readOnly = false,
 }: Props) {
   const numOfPages = Math.ceil(rowCount / limit);
   const columns: Column[] = React.useMemo(() => headers, [headers]);
@@ -377,7 +379,7 @@ function Table({
         </SectionHeader>
       )}
       <InfScroll loadMore={loadMoreItem} hasMore={hasMoreItem} loader={loader}>
-        <StyledTable variant={variant} {...getTableProps()}>
+        <StyledTable variant={variant} {...getTableProps()} readOnly={readOnly}>
           <thead>
             {
               // Loop over the header rows

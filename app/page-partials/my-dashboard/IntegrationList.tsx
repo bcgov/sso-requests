@@ -18,24 +18,18 @@ import { authTypeDisplay } from 'metadata/display';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import forEach from 'lodash.foreach';
 
-const RightAlignHeader = styled.th`
-  text-align: right;
-  min-width: 100px;
-`;
-
-const RightFloatButtons = styled.td`
+const RightFloatButtons = styled.tr`
   float: right;
-  margin-top: 10px;
+  padding-right: 0.5em;
 `;
 
 const PNoMargin = styled.p`
   margin: 0;
 `;
 
-// used for Action header alignment in the future
-// function ActionsHeader() {
-//   return <span style={{ }}>Actions</span>;
-// }
+function IntegrationListActionsHeader() {
+  return <span style={{ float: 'right', paddingRight: '1em' }}>Actions</span>;
+}
 
 const NewEntityButton = ({
   handleNewIntegrationClick,
@@ -213,7 +207,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
             },
             {
               accessor: 'actions',
-              Header: 'Actions',
+              Header: <IntegrationListActionsHeader />,
               disableSortBy: true,
             },
           ]}
@@ -225,14 +219,16 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
               authType: authTypeDisplay[integration.authType || 'browser-login'],
               serviceType: integration.serviceType === 'gold' ? 'Gold' : 'Silver',
               actions: (
-                <ActionButtons
-                  request={integration}
-                  onDelete={() => {
-                    loadIntegrations();
-                  }}
-                  defaultActiveColor="#fff"
-                  delIconStyle={{ marginLeft: '7px' }}
-                />
+                <RightFloatButtons>
+                  <ActionButtons
+                    request={integration}
+                    onDelete={() => {
+                      loadIntegrations();
+                    }}
+                    defaultActiveColor="#fff"
+                    delIconStyle={{ marginLeft: '7px' }}
+                  />
+                </RightFloatButtons>
               ),
             };
           })}

@@ -45,9 +45,27 @@ const AlignRight = styled.div`
   text-align: right;
 `;
 
+const RightFloatServiceAccountsActionsButtons = styled.span`
+  float: right;
+  padding-right: 2.5em;
+`;
+
+const RightFloatUsersActionsButtons = styled.span`
+  float: right;
+  padding-right: 1.6em;
+`;
+
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
 `;
+
+function UsersListActionsHeader() {
+  return <span style={{ float: 'right', paddingRight: '1em' }}>Actions</span>;
+}
+
+function ServiceAccountsListActionsHeader() {
+  return <span style={{ float: 'right', paddingRight: '1em' }}>Actions</span>;
+}
 
 interface PropertyOption {
   value: string;
@@ -338,7 +356,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
             },
             {
               accessor: 'actions',
-              Header: 'Actions',
+              Header: <UsersListActionsHeader />,
               disableSortBy: true,
             },
           ]}
@@ -356,7 +374,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                     guid: guid,
                     email: user.email,
                     actions: (
-                      <>
+                      <RightFloatUsersActionsButtons>
                         <span
                           onClick={(event) => {
                             event.stopPropagation();
@@ -388,7 +406,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                             title="Remove User"
                           />
                         </span>
-                      </>
+                      </RightFloatUsersActionsButtons>
                     ),
                   };
                 })
@@ -414,7 +432,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
             },
             {
               accessor: 'actions',
-              Header: 'Actions',
+              Header: <ServiceAccountsListActionsHeader />,
               disableSortBy: true,
             },
           ]}
@@ -426,12 +444,14 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                       ?.projectName,
                     actions: (
                       <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
-                        <FontAwesomeIcon
-                          style={{ color: '#FF0303' }}
-                          icon={faMinusCircle}
-                          size="lg"
-                          title="Remove Service Account"
-                        />
+                        <RightFloatServiceAccountsActionsButtons>
+                          <FontAwesomeIcon
+                            style={{ color: '#FF0303' }}
+                            icon={faMinusCircle}
+                            size="lg"
+                            title="Remove Service Account"
+                          />
+                        </RightFloatServiceAccountsActionsButtons>
                       </span>
                     ),
                   };
