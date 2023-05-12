@@ -33,10 +33,16 @@ RUN yarn --cwd ./lambda/css-api install
 
 RUN yarn --cwd ./lambda/siteminder-tests-scheduler install
 
+ENV NODE_ENV production
+
 RUN yarn --cwd ./app install
+
+RUN yarn --cwd ./app build
 
 COPY localserver ./localserver/
 
 RUN yarn --cwd ./localserver install
 
-ENTRYPOINT [ "yarn", "--cwd", "./app", "dev"]
+EXPOSE 3000
+
+ENTRYPOINT [ "yarn", "--cwd", "./app", "start"]
