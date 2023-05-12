@@ -96,9 +96,11 @@ jobs:
             tag: ${{ steps.meta.outputs.version }}
             pullPolicy: Always
 
-          podSecurityContext: {}
+          podSecurityContext:
+            fsGroup: ${{ secrets.RUNNING_UID_GID }}
 
-          securityContext: {}
+          securityContext:
+            runAsUser: ${{ secrets.RUNNING_UID_GID }}
 
           containerPort: 3000
 
@@ -114,7 +116,7 @@ jobs:
             maxUnavailable: 100%
             maxSurge: 0%
 
-          command: ["yarn", "--cwd", "./app", "dev"]
+          command: ["yarn", "--cwd", "./app", "start"]
 
           args: []
 
