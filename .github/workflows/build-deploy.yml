@@ -86,6 +86,7 @@ jobs:
           export PATH=$PATH:`pwd`/linux-amd64
 
           echo "
+          fullnameOverride: sso-requests-${{ steps.meta.outputs.version }}
           podAnnotations:
             sha: $GITHUB_SHA
 
@@ -120,6 +121,9 @@ jobs:
 
           args: []
 
+          ingress:
+            enabled: false
+
           env:
             APP_ENV:
               value: develop
@@ -145,4 +149,22 @@ jobs:
           " > values.yaml
 
           helm repo add bcgov-charts http://bcgov.github.io/helm-charts
-          helm upgrade --install sso-requests-ui-${{ steps.meta.outputs.version }} -f values.yaml --history-max 3 bcgov-charts/generic-api -n ${{ env.OPENSHIFT_NAMESPACE }}
+          helm upgrade --install sso-requests-${{ steps.meta.outputs.version }} -f values.yaml --history-max 3 bcgov-charts/generic-api -n ${{ env.OPENSHIFT_NAMESPACE }}
+
+      - name: Create App Route
+        run: |
+          export PATH=$PATH:`pwd`/linux-amd64
+          echo "
+          fullnameOverride: sso-requests-${{ steps.meta.outputs.version }}-route
+          routes:
+            - host: sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
+              targetPort: http
+              service: sso-requests-${{ steps.meta.outputs.version }}
+              wildcardPolicy: None
+              tls:
+                termination: edge
+
+          " > values_route.yaml
+
+          helm repo add bcgov-charts http://bcgov.github.io/helm-charts
+          helm upgrade --install sso-requests-${{ steps.meta.outputs.version }}-routes -f values_route.yaml --history-max 3 bcgov-charts/ocp-route -n ${{ env.OPENSHIFT_NAMESPACE }}
