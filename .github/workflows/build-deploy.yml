@@ -92,19 +92,17 @@ jobs:
           replicaCount: 1
 
           image:
-            registry: ${{ env.GITHUB_REGISTRY }}
-            repository: ${{ env.IMAGE_NAME }}
+            repository: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
             tag: ${{ steps.meta.outputs.tags }}
             pullPolicy: Always
 
           podSecurityContext:
             fsGroup: ${{ secrets.RUNNING_UID_GID }}
 
-          containerSecurityContext:
+          securityContext:
             runAsUser: ${{ secrets.RUNNING_UID_GID }}
 
-          containerPorts:
-            http: 3000
+          containerPort: 3000
 
           resources:
             requests:
@@ -114,36 +112,37 @@ jobs:
               cpu: 100m
               memory: 800M
 
-          updateStrategy:
-            type: RollingUpdate
-
-          installCommand: []
+          rollingUpdate:
+            maxUnavailable: 100%
+            maxSurge: 0%
 
           command: ["yarn", "--cwd", "./app", "dev"]
 
-          extraEnvVars:
-            - name: APP_ENV
+          args: []
+
+          env:
+            APP_ENV:
               value: develop
-            - name: API_URL
+            API_URL:
               value: 'https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/'
-            - name: SSO_URL
+            SSO_URL:
               value: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
-            - name: SSO_CLIENT_ID
+            SSO_CLIENT_ID:
               value: css-app-in-gold-4128
-            - name: SSO_REDIRECT_URI
+            SSO_REDIRECT_URI:
               value: http://localhost:3000
-            - name: ENABLE_GOLD
+            ENABLE_GOLD:
               value: true
-            - name: MAINTENANCE_MODE_ACTIVE
+            MAINTENANCE_MODE_ACTIVE:
               value: false
-            - name: APP_URL
+            APP_URL:
               value:
-            - name: APP_BASE_PATH
+            APP_BASE_PATH:
               value: '/sso-requests-dev'
-            - name: DEPLOY_REPO_NAME
+            DEPLOY_REPO_NAME:
               value: 'bcgov/sso-requests-dev'
 
           " > values.yaml
 
-          helm repo add bitnami-charts https://charts.bitnami.com/bitnami
-          helm upgrade --install sso-requests-ui-${{ steps.meta.outputs.version }} -f values.yaml --history-max 3 bitnami-charts/node -n ${{ env.OPENSHIFT_NAMESPACE }}
+          helm repo add bcgov-charts http://bcgov.github.io/helm-charts
+          helm upgrade --install sso-requests-ui-${{ steps.meta.outputs.version }} -f values.yaml --history-max 3 bcgov-charts/generic-api -n ${{ env.OPENSHIFT_NAMESPACE }}
