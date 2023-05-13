@@ -126,7 +126,7 @@ jobs:
 
           env:
             APP_ENV:
-              value: develop
+              value: production
             API_URL:
               value: https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
             SSO_URL:
@@ -138,7 +138,7 @@ jobs:
             MAINTENANCE_MODE_ACTIVE:
               value: false
             APP_URL:
-              value: https://sso-requests--${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
+              value: https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
 
           " > values.yaml
 
