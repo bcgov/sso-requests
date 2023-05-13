@@ -37,7 +37,7 @@ RUN yarn --cwd ./lambda/css-api install
 
 RUN yarn --cwd ./lambda/siteminder-tests-scheduler install
 
-ENV NODE_ENV production
+ENV NODE_ENV development
 
 COPY localserver ./localserver/
 

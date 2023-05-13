@@ -67,7 +67,7 @@ jobs:
         run: |
           cd app
           echo "
-          APP_ENV=production
+          APP_ENV=develop
           APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
@@ -80,8 +80,8 @@ jobs:
           echo "
           PORT=8080
           APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
-          APP_ENV=production
-          NODE_ENV=production
+          APP_ENV=develop
+          NODE_ENV=development
           ALLOW_SILVER=true
           ALLOW_GOLD=true
           DATABASE_URL=postgresql://postgres:postgres@sso-requests-postgresql:5432/ssorequests
