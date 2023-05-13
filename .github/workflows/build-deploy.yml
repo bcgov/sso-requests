@@ -248,17 +248,10 @@ jobs:
 
           initContainers:
             - name: migrate-db
-              image: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
-              command: ["yarn", "--cwd", "./localserver", "migrate-db"]
-              imagePullPolicy: IfNotPresent
-              resources:
-                requests:
-                  cpu: 25m
-                  memory: 50Mi
-                limits:
-                  cpu: 50m
-                  memory: 100Mi
-
+              image:
+                repository: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+                tag: ${{ steps.meta.outputs.version }}
+                pullPolicy: IfNotPresent
 
           " > values.yaml
 

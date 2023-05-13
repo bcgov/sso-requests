@@ -45,4 +45,4 @@ RUN yarn --cwd ./localserver install
 
 EXPOSE 3000 80
 
-ENTRYPOINT [ "yarn", "--cwd", "./app", "start"]
+ENTRYPOINT [ "yarn", "--cwd", "./localserver", "migrate-db"]
