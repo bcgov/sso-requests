@@ -43,6 +43,6 @@ COPY localserver ./localserver/
 
 RUN yarn --cwd ./localserver install
 
-EXPOSE 3000
+EXPOSE 3000 80
 
 ENTRYPOINT [ "yarn", "--cwd", "./app", "start"]

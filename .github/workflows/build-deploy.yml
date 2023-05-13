@@ -76,6 +76,48 @@ jobs:
           MAINTENANCE_MODE_ACTIVE=false
           SSO_CLIENT_ID=css-app-in-gold-4128
           " > .env.production
+          cd ../localserver
+          echo "
+          PORT=8080
+          APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
+          APP_ENV=production
+          NODE_ENV=production
+          ALLOW_SILVER=true
+          ALLOW_GOLD=true
+          DATABASE_URL=postgresql://postgres:postgres@sso-requests-postgresql:5432/ssorequests
+          SSO_CLIENT_ID=css-app-in-gold-4128
+          SSO_CONFIGURATION_ENDPOINT=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+          KEYCLOAK_DEV_CLIENT_ID=terraform-cli
+          KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}
+          KEYCLOAK_DEV_URL=https://sso-keycloak-1-b861c7-test.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_TEST_CLIENT_ID=terraform-cli
+          KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}
+          KEYCLOAK_TEST_URL=https://sso-keycloak-2-b861c7-test.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_PROD_CLIENT_ID=terraform-cli
+          KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}
+          KEYCLOAK_PROD_URL=https://sso-keycloak-3-b861c7-test.apps.silver.devops.gov.bc.ca
+          KEYCLOAK_V2_DEV_CLIENT_ID=terraform-cli
+          KEYCLOAK_V2_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
+          KEYCLOAK_V2_DEV_URL=https://sso-keycloak-e4ca1d-dev.apps.gold.devops.gov.bc.ca
+          KEYCLOAK_V2_TEST_CLIENT_ID=terraform-cli
+          KEYCLOAK_V2_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
+          KEYCLOAK_V2_TEST_URL=https://sso-keycloak-e4ca1d-test.apps.gold.devops.gov.bc.ca
+          KEYCLOAK_V2_PROD_CLIENT_ID=terraform-cli
+          KEYCLOAK_V2_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_PROD_CLIENT_SECRET }}
+          KEYCLOAK_V2_PROD_URL=https://sso-keycloak-e4ca1d-prod.apps.gold.devops.gov.bc.ca
+          GH_ACCESS_TOKEN=${{ secrets.GH_ACCESS_TOKEN }}
+          GH_BRANCH=main
+          GH_OWNER=bcgov
+          GH_REPO=sso-terraform-dev
+          GH_WORKFLOW_ID=request.yml
+          GH_SECRET=${{ secrets.GH_SECRET }}
+          CHES_API_ENDPOINT=https://ches.api.gov.bc.ca/api/v1/email
+          CHES_TOKEN_ENDPOINT=https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
+          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
+          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
+          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          BCEID_WEBSERVICE_PROXY=${{ secrets.DEV_BCEID_WEBSERVICE_PROXY }}
+          " > .env
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
@@ -160,3 +202,65 @@ jobs:
 
           helm repo add bcgov-charts http://bcgov.github.io/helm-charts
           helm upgrade --install sso-requests-${{ steps.meta.outputs.version }}-routes -f values_route.yaml --history-max 3 bcgov-charts/ocp-route -n ${{ env.OPENSHIFT_NAMESPACE }}
+
+      - name: Deploy Backend
+        run: |
+          export PATH=$PATH:`pwd`/linux-amd64
+
+          echo "
+          fullnameOverride: sso-requests-api-${{ steps.meta.outputs.version }}
+          podAnnotations:
+            sha: $GITHUB_SHA
+
+          replicaCount: 1
+
+          image:
+            repository: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+            tag: ${{ steps.meta.outputs.version }}
+            pullPolicy: Always
+
+          podSecurityContext:
+            fsGroup: ${{ secrets.RUNNING_UID_GID }}
+
+          securityContext:
+            runAsUser: ${{ secrets.RUNNING_UID_GID }}
+
+          containerPort: 8080
+
+          resources:
+            requests:
+              cpu: 20m
+              memory: 400M
+            limits:
+              cpu: 100m
+              memory: 800M
+
+          rollingUpdate:
+            maxUnavailable: 100%
+            maxSurge: 0%
+
+          command: ["yarn", "--cwd", "./localserver", "dev"]
+
+          args: []
+
+          ingress:
+            enabled: false
+
+          initContainers:
+            - name: migrate-db
+              image: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+              command: ["yarn", "--cwd", "./localserver", "migrate-db"]
+              imagePullPolicy: IfNotPresent
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 50Mi
+                limits:
+                  cpu: 50m
+                  memory: 100Mi
+
+
+          " > values.yaml
+
+          helm repo add bcgov-charts http://bcgov.github.io/helm-charts
+          helm upgrade --install sso-requests-api-${{ steps.meta.outputs.version }} -f values.yaml --history-max 3 bcgov-charts/generic-api -n ${{ env.OPENSHIFT_NAMESPACE }}
