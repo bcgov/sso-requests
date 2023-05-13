@@ -63,6 +63,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+      - name: Set Production Environment
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          APP_ENV=production
+          APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
+          API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
+          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+          DEPLOY_REPO_NAME=bcgov/sso-requests
+          ENABLE_GOLD=true
+          MAINTENANCE_MODE_ACTIVE=false
+          SSO_CLIENT_ID=css-app-in-gold-4128
+          EOF
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
@@ -123,22 +136,6 @@ jobs:
 
           ingress:
             enabled: false
-
-          env:
-            APP_ENV:
-              value: production
-            API_URL:
-              value: https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
-            SSO_URL:
-              value: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
-            SSO_CLIENT_ID:
-              value: css-app-in-gold-4128
-            ENABLE_GOLD:
-              value: true
-            MAINTENANCE_MODE_ACTIVE:
-              value: false
-            APP_URL:
-              value: https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
 
           " > values.yaml
 
