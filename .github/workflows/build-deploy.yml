@@ -84,7 +84,7 @@ jobs:
           NODE_ENV=development
           ALLOW_SILVER=true
           ALLOW_GOLD=true
-          DATABASE_URL=postgresql://postgres:postgres@sso-requests-postgresql:5432/ssorequests
+          DATABASE_URL=postgresql://sso-requests-postgresql:5432/ssorequests
           SSO_CLIENT_ID=css-app-in-gold-4128
           SSO_CONFIGURATION_ENDPOINT=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           KEYCLOAK_DEV_CLIENT_ID=terraform-cli
