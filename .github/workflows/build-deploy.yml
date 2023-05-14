@@ -66,6 +66,7 @@ jobs:
       - name: Set Production Environment
         run: |
           cd app
+
           echo "
           APP_ENV=develop
           APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
@@ -76,7 +77,9 @@ jobs:
           MAINTENANCE_MODE_ACTIVE=false
           SSO_CLIENT_ID=css-app-in-gold-4128
           " > .env.production
+
           cd ../localserver
+
           echo "
           PORT=8080
           APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
