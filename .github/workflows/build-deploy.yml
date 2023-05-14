@@ -70,7 +70,7 @@ jobs:
           echo "
           APP_ENV=develop
           APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
-          API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
+          API_URL=https://sso-requests-api-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca/app/
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
@@ -260,3 +260,21 @@ jobs:
 
           helm repo add bcgov-charts http://bcgov.github.io/helm-charts
           helm upgrade --install sso-requests-api-${{ steps.meta.outputs.version }} -f values.yaml --history-max 3 bcgov-charts/generic-api -n ${{ env.OPENSHIFT_NAMESPACE }}
+
+      - name: Create App Backend Route
+        run: |
+          export PATH=$PATH:`pwd`/linux-amd64
+          echo "
+          fullnameOverride: sso-requests-api-${{ steps.meta.outputs.version }}-route
+          routes:
+            - host: sso-requests-api-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
+              targetPort: http
+              service: sso-requests-api-${{ steps.meta.outputs.version }}
+              wildcardPolicy: None
+              tls:
+                termination: edge
+
+          " > values_route.yaml
+
+          helm repo add bcgov-charts http://bcgov.github.io/helm-charts
+          helm upgrade --install sso-requests-api-${{ steps.meta.outputs.version }}-routes -f values_route.yaml --history-max 3 bcgov-charts/ocp-route -n ${{ env.OPENSHIFT_NAMESPACE }}
