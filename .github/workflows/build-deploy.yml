@@ -120,6 +120,7 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           BCEID_WEBSERVICE_PROXY=${{ secrets.DEV_BCEID_WEBSERVICE_PROXY }}
+          LOCAL_DEV=true
           " > .env
 
       - name: Build and push Docker image
