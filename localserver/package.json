@@ -9,6 +9,7 @@
     "migrate-db": "nodemon --config nodemon-db.json"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.13",
     "@types/express": "^4.17.13",
     "@types/node": "^17.0.41",
     "axios": "^0.27.2",
@@ -34,5 +35,8 @@
     ],
     "ext": "ts,json",
     "exec": "ts-node -r tsconfig-paths/register -r dotenv/config ./server.ts"
+  },
+  "dependencies": {
+    "cors": "^2.8.5"
   }
 }

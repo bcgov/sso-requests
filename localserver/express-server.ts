@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { setRoutes } from '../lambda/app/src/routes';
 import * as actionRoutes from '../lambda/actions/src/routes';
 import * as apiRoutes from '../lambda/css-api/src/routes';
+import cors from 'cors';
 
 const logger = morgan('combined');
 
@@ -18,6 +19,11 @@ const initExpresss = async () => {
   const actionsRouter = express.Router();
   const apiRouter = express.Router();
 
+  expressServer.use(
+    cors({
+      origin: ['*'],
+    }),
+  );
   expressServer.use(logger);
   expressServer.use(bodyParser.json());
   expressServer.use(bodyParser.urlencoded({ extended: false }));
