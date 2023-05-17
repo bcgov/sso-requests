@@ -31,6 +31,7 @@ const applyGithubBottom = readTemplate('apply-github-bottom');
 const integrationDetail = readTemplate('integration-detail');
 const dashboardLogin = readTemplate('dashboard-login');
 const processingTime = readTemplate('processing-time');
+const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
 
 Handlebars.registerPartial('footer', footer);
 Handlebars.registerPartial('hr', hr);
@@ -41,6 +42,7 @@ Handlebars.registerPartial('applyGithubBottom', applyGithubBottom);
 Handlebars.registerPartial('integrationDetail', integrationDetail);
 Handlebars.registerPartial('dashboardLogin', dashboardLogin);
 Handlebars.registerPartial('processingTime', processingTime);
+Handlebars.registerPartial('ssoUpdatesMailingListMessage', ssoUpdatesMailingListMessage);
 
 const getBuilder = (key: string) => {
   let builder = { render: (v) => v, send: noop };

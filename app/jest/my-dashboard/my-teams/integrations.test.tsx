@@ -149,10 +149,10 @@ describe('Integrations tab', () => {
     });
     fireEvent.click(await screen.findByRole('tab', { name: 'Integrations' }));
 
-    await screen.findByRole('columnheader', { name: 'Status' });
-    await screen.findByRole('columnheader', { name: 'Request ID' });
-    await screen.findByRole('columnheader', { name: 'Project Name' });
-    await screen.findAllByRole('columnheader', { name: 'Actions' });
+    screen.getByRole('columnheader', { name: 'Status' });
+    screen.getByText('Request ID');
+    screen.getByText('Project Name');
+    screen.getAllByRole('columnheader', { name: 'Actions' });
     screen.getByRole('row', { name: 'applied 1 test project Edit Delete' });
     screen.getByRole('row', { name: 'draft 2 test project 02 Edit Delete' });
     screen.getByRole('row', { name: 'submitted 3 test project 03 Edit Delete' });

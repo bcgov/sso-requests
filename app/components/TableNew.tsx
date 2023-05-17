@@ -15,6 +15,9 @@ import InfoOverlay from './InfoOverlay';
 import ReactPlaceholder from 'react-placeholder/lib';
 import { TextBlock } from 'react-placeholder/lib/placeholders';
 import { TABLE_ROW_HEIGHT_MINI, TABLE_ROW_SPACING } from 'styles/theme';
+import InfiniteScroll from 'react-infinite-scroller';
+
+const InfScroll = InfiniteScroll as unknown as (a: any) => JSX.Element;
 
 const PaginationIcon = styled(FontAwesomeIcon)`
   color: '#000';
@@ -136,6 +139,8 @@ interface Props {
   headers: Column[];
   data: any;
   activateRow?: (row: Row) => void;
+  loadMoreItem?: any;
+  hasMoreItem?: boolean;
   searchKey?: string;
   searchPlaceholder?: string;
   searchTooltip?: string;
@@ -149,6 +154,7 @@ interface Props {
   headerAlign?: string;
   headerGutter?: number[];
   loading?: boolean;
+  loader?: any;
   onPage?: (val: number) => void;
   rowCount?: number;
   onEnter?: (val: string) => void;
@@ -159,6 +165,7 @@ interface Props {
   noDataFoundElement?: ReactElement;
   pagination?: boolean;
   rowSelectorKey?: string;
+  readOnly?: boolean;
 }
 
 function Table({
@@ -166,6 +173,8 @@ function Table({
   headers,
   data,
   activateRow = noop,
+  loadMoreItem = noop,
+  hasMoreItem = false,
   searchLocation = 'left',
   colfilters = [],
   showFilters = false,
@@ -182,12 +191,14 @@ function Table({
   searchKey = '',
   onSearch = noop,
   loading,
+  loader = <></>,
   onLimit = noop,
   limit = 10,
   noDataFoundElement = <p>No Data Found.</p>,
   pagination = false,
   pageLimits = [5, 10, 15, 30, 50, 100],
   rowSelectorKey = 'id',
+  readOnly = false,
 }: Props) {
   const numOfPages = Math.ceil(rowCount / limit);
   const columns: Column[] = React.useMemo(() => headers, [headers]);
@@ -367,63 +378,67 @@ function Table({
           </Grid>
         </SectionHeader>
       )}
-      <StyledTable variant={variant} {...getTableProps()}>
-        <thead>
-          {
-            // Loop over the header rows
-            headerGroups.map((headerGroup) => (
-              // Apply the header row props
-              <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-                {
-                  // Loop over the headers in each row
-                  headerGroup.headers.map((column) => (
-                    // Apply the header cell props
-                    <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
-                      {
-                        // Render the header
-                        column.render('Header')
+      <InfScroll loadMore={loadMoreItem} hasMore={hasMoreItem} loader={loader}>
+        <StyledTable variant={variant} {...getTableProps()} readOnly={readOnly}>
+          <thead>
+            {
+              // Loop over the header rows
+              headerGroups.map((headerGroup) => (
+                // Apply the header row props
+                <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+                  {
+                    // Loop over the headers in each row
+                    headerGroup.headers.map((column) => (
+                      // Apply the header cell props
+                      <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
+                        {
+                          // Render the header
+                          column.render('Header')
+                        }
+                        &nbsp;
+                        <span>{getColumnSortedIcon(column.isSorted, column.isSortedDesc)}</span>
+                      </th>
+                    ))
+                  }
+                </tr>
+              ))
+            }
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
+              {page.length > 0 ? (
+                page.map((row: any) => {
+                  prepareRow(row);
+                  return (
+                    <tr
+                      {...row.getRowProps()}
+                      className={
+                        selectedRow?.original[`${rowSelectorKey}`] === row?.original[`${rowSelectorKey}`]
+                          ? 'active'
+                          : ''
                       }
-                      &nbsp;
-                      <span>{getColumnSortedIcon(column.isSorted, column.isSortedDesc)}</span>
-                    </th>
-                  ))
-                }
-              </tr>
-            ))
-          }
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
-            {page.length > 0 ? (
-              page.map((row: any) => {
-                prepareRow(row);
-                return (
-                  <tr
-                    {...row.getRowProps()}
-                    className={
-                      selectedRow?.original[`${rowSelectorKey}`] === row?.original[`${rowSelectorKey}`] ? 'active' : ''
-                    }
-                    key={row?.id}
-                    onClick={() => updateSelectedRow(row)}
-                  >
-                    {row.cells.map((cell: Cell) => {
-                      return (
-                        <td {...cell.getCellProps()} key={cell.value}>
-                          {cell.render('Cell')}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={10}>{noDataFoundElement}</td>
-              </tr>
-            )}
-          </ReactPlaceholder>
-        </tbody>
-      </StyledTable>
+                      key={row?.id}
+                      onClick={() => updateSelectedRow(row)}
+                    >
+                      {row.cells.map((cell: Cell) => {
+                        return (
+                          <td {...cell.getCellProps()} key={cell.value}>
+                            {cell.render('Cell')}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={10}>{noDataFoundElement}</td>
+                </tr>
+              )}
+            </ReactPlaceholder>
+          </tbody>
+        </StyledTable>
+      </InfScroll>
       {pagination && rowCount > 0 && (
         <Grid cols={12}>
           <Grid.Row collapse="992" gutter={[]} align="center">

@@ -130,10 +130,10 @@ describe('Members tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
-    await screen.findByRole('columnheader', { name: 'Status' });
-    await screen.findByRole('columnheader', { name: 'Email' });
-    await screen.findByRole('columnheader', { name: 'Role' });
-    await screen.findAllByRole('columnheader', { name: 'Actions' });
+    screen.getByRole('columnheader', { name: 'Status' });
+    screen.findByText('Email');
+    screen.getByRole('columnheader', { name: 'Role' });
+    screen.getAllByRole('columnheader', { name: 'Actions' });
     screen.getByRole('row', { name: 'admin01@gov.bc.ca Admin' });
     screen.getByRole('row', { name: 'member01@gov.bc.ca Member Resend Invitation Delete User' });
   });

@@ -107,9 +107,9 @@ describe('SSO Dashboard', () => {
     const selectWorkflowStatus = screen.getAllByTestId('multi-select-col-filter');
     const workflowStatusInput = selectWorkflowStatus[2].firstChild;
     fireEvent.keyDown(workflowStatusInput as HTMLElement, { keyCode: 40 });
-    const workflowStatusOption = await screen.findByText('Draft');
+    const workflowStatusOption = await screen.findByText('Submitted');
     fireEvent.click(workflowStatusOption);
-    expect(selectWorkflowStatus[2]).toHaveTextContent('Draft');
+    expect(selectWorkflowStatus[2]).toHaveTextContent('Submitted');
 
     //Archive Status dropdown
     const selectArchiveStatus = screen.getAllByTestId('multi-select-col-filter');
@@ -235,9 +235,9 @@ describe('SSO Dashboard', () => {
     const input = statusSelection.lastChild;
     //expect(input).toHaveTextContent('Select...');
     fireEvent.keyDown(input as HTMLElement, { keyCode: 40 });
-    const option = await screen.findByText('Draft');
+    const option = await screen.findByText('Submitted');
     fireEvent.click(option);
-    expect(input).toHaveTextContent('Draft');
+    expect(input).toHaveTextContent('Submitted');
 
     //test on confirm button
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));

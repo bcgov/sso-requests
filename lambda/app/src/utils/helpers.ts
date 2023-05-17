@@ -56,6 +56,7 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
     immutableFields.push('realm');
     if (data?.protocol === 'saml') immutableFields.push('projectName');
   }
+  // client id cannot be updated by non-admin
   if (!isAdmin) immutableFields.push(...durationAdditionalFields, 'clientId');
 
   data = omit(data, immutableFields);

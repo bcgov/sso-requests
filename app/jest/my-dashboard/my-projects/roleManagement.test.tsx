@@ -26,7 +26,7 @@ jest.mock('services/request', () => {
 });
 
 jest.mock('services/keycloak', () => ({
-  listClientRoles: jest.fn(() => Promise.resolve([['role1'], null])),
+  listClientRoles: jest.fn(() => Promise.resolve([['role-1', 'role-02'], null])),
   listRoleUsers: jest.fn(() =>
     Promise.resolve([
       [
@@ -80,10 +80,10 @@ describe('role management tab', () => {
     expect(screen.getByRole('tab', { selected: false, name: 'Test' }));
     expect(screen.getByRole('tab', { selected: false, name: 'Prod' }));
     await waitFor(() => {
-      expect(screen.getByRole('row', { name: 'Role Name' })).toBeInTheDocument();
+      expect(screen.getByText('Role Name')).toBeInTheDocument();
     });
     await waitFor(() => {
-      expect(screen.findByRole('cell', { name: 'role1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' }));
     });
     expect(screen.getByPlaceholderText('Search existing roles'));
   });
@@ -91,11 +91,11 @@ describe('role management tab', () => {
   it('Should be able to input keywords in Search Existing Role input field', async () => {
     render(<RoleManagement integration={{ ...sampleRequest }} />);
     const searchRoleInput = screen.findByRole('textbox');
-    fireEvent.change(await searchRoleInput, { target: { value: 'role' } });
-    expect(screen.getByDisplayValue('role')).toBeInTheDocument();
+    fireEvent.change(await searchRoleInput, { target: { value: 'sample-role' } });
+    expect(screen.getByDisplayValue('sample-role')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' }));
     });
   });
 
@@ -151,10 +151,10 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      expect(screen.getByText('role1'));
+      expect(screen.getByRole('cell', { name: 'role-1' }));
     });
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
+    const roleDeleteButton = screen.getAllByRole('button', { name: 'Delete' });
+    fireEvent.click(roleDeleteButton[0]);
     await waitFor(async () => {
       expect(await screen.findByTitle('Delete Role')).toBeInTheDocument();
     });
@@ -164,12 +164,10 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role1' }));
-    });
-    await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'user01' }));
+      expect(screen.getByRole('cell', { name: 'role-1' }));
     });
 
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(() => {
       expect(listRoleUsers).toHaveBeenCalledTimes(1);
     });
@@ -182,11 +180,12 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      expect(screen.getByText('role1'));
+      expect(screen.getByRole('cell', { name: 'role-1' }));
     });
 
-    await waitFor(async () => {
-      fireEvent.click(await screen.findByRole('tab', { name: 'Users' }));
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     });
     fireEvent.click(await screen.findByRole('img', { name: 'Remove User' }));
 
@@ -205,11 +204,12 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      expect(screen.getByText('role1'));
+      expect(screen.getByRole('cell', { name: 'role-1' }));
     });
 
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(async () => {
-      fireEvent.click(await screen.findByRole('tab', { name: 'Service Accounts' }));
+      fireEvent.click(screen.getByRole('tab', { name: 'Service Accounts' }));
     });
     await waitFor(() => {
       expect(listRoleUsers).toHaveBeenCalledTimes(1);
@@ -224,11 +224,12 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      expect(screen.getByText('role1'));
+      expect(screen.getByRole('cell', { name: 'role-1' }));
     });
 
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(async () => {
-      fireEvent.click(await screen.findByRole('tab', { name: 'Service Accounts' }));
+      fireEvent.click(screen.getByRole('tab', { name: 'Service Accounts' }));
     });
     await waitFor(() => {
       expect(screen.getByText(sampleRequest.projectName as string)).toBeTruthy();
@@ -249,11 +250,12 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
-      expect(screen.getByText('role1'));
+      expect(screen.getByRole('cell', { name: 'role-1' }));
     });
 
-    await waitFor(async () => {
-      fireEvent.click(await screen.findByRole('tab', { name: 'Composite Roles' }));
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Composite Roles' }));
     });
     await waitFor(() => {
       expect(screen.getByText('Select the roles to be nested under the Parent role')).toBeTruthy();
