@@ -7,5 +7,3 @@ export const workflowStatusOptions = [
   { value: 'applied', label: 'Applied' },
   { value: 'applyFailed', label: 'Apply Failed' },
 ];
-
-export default { workflowStatusOptions };
