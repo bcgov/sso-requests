@@ -69,9 +69,10 @@ jobs:
 
           echo "
           APP_ENV=develop
-          APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca
+          APP_URL=https://sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca
           API_URL=https://sso-requests-api-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca/app/
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+          APP_BASE_PATH=/${{ steps.meta.outputs.version }}
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
           SSO_CLIENT_ID=css-app-in-gold-4128
@@ -202,7 +203,7 @@ jobs:
 
           env:
             APP_URL:
-              value: https://sso-requests-${{ steps.meta.outputs.version }}-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca
+              value: https://sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca
             NODE_ENV:
               value: development
             DATABASE_URL:
@@ -300,8 +301,8 @@ jobs:
       - name: Create UI and Backend Routes
         run: |
           oc -n ${{ env.OPENSHIFT_NAMESPACE }} create route edge --service=sso-requests-${{ steps.meta.outputs.version }} \
-          --hostname=sso-requests-${{ steps.meta.outputs.version }}-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca \
-          --save-config=true
+          --hostname=sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca \
+          --path=/${{ steps.meta.outputs.version }} --save-config=true
 
           oc -n ${{ env.OPENSHIFT_NAMESPACE }} create route edge --service=sso-requests-api-${{ steps.meta.outputs.version }} \
           --hostname=sso-requests-api-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca \
