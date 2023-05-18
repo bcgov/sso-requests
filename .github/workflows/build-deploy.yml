@@ -81,45 +81,8 @@ jobs:
           cd ../localserver
 
           echo "
-          PORT=8080
-          APP_URL=https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
-          APP_ENV=develop
           NODE_ENV=development
-          ALLOW_SILVER=true
-          ALLOW_GOLD=true
           DATABASE_URL=postgresql://${{ secrets.SSO_REQUESTS_POSTGRESQL_USERNAME }}:${{ secrets.SSO_REQUESTS_POSTGRESQL_PASSWORD }}@sso-requests-postgresql:5432/ssorequests
-          SSO_CLIENT_ID=css-app-in-gold-4128
-          SSO_CONFIGURATION_ENDPOINT=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
-          KEYCLOAK_DEV_CLIENT_ID=terraform-cli
-          KEYCLOAK_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}
-          KEYCLOAK_DEV_URL=https://sso-keycloak-1-b861c7-test.apps.silver.devops.gov.bc.ca
-          KEYCLOAK_TEST_CLIENT_ID=terraform-cli
-          KEYCLOAK_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}
-          KEYCLOAK_TEST_URL=https://sso-keycloak-2-b861c7-test.apps.silver.devops.gov.bc.ca
-          KEYCLOAK_PROD_CLIENT_ID=terraform-cli
-          KEYCLOAK_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}
-          KEYCLOAK_PROD_URL=https://sso-keycloak-3-b861c7-test.apps.silver.devops.gov.bc.ca
-          KEYCLOAK_V2_DEV_CLIENT_ID=terraform-cli
-          KEYCLOAK_V2_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
-          KEYCLOAK_V2_DEV_URL=https://sso-keycloak-e4ca1d-dev.apps.gold.devops.gov.bc.ca
-          KEYCLOAK_V2_TEST_CLIENT_ID=terraform-cli
-          KEYCLOAK_V2_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
-          KEYCLOAK_V2_TEST_URL=https://sso-keycloak-e4ca1d-test.apps.gold.devops.gov.bc.ca
-          KEYCLOAK_V2_PROD_CLIENT_ID=terraform-cli
-          KEYCLOAK_V2_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_PROD_CLIENT_SECRET }}
-          KEYCLOAK_V2_PROD_URL=https://sso-keycloak-e4ca1d-prod.apps.gold.devops.gov.bc.ca
-          GH_ACCESS_TOKEN=${{ secrets.GH_ACCESS_TOKEN }}
-          GH_BRANCH=main
-          GH_OWNER=bcgov
-          GH_REPO=sso-terraform-dev
-          GH_WORKFLOW_ID=request.yml
-          GH_SECRET=${{ secrets.GH_SECRET }}
-          CHES_API_ENDPOINT=https://ches.api.gov.bc.ca/api/v1/email
-          CHES_TOKEN_ENDPOINT=https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
-          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
-          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
-          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
-          BCEID_WEBSERVICE_PROXY=${{ secrets.DEV_BCEID_WEBSERVICE_PROXY }}
           " > .env
 
       - name: Build and push Docker image
@@ -259,7 +222,97 @@ jobs:
           env:
             APP_URL:
               value: https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
-
+            NODE_ENV:
+              value: development
+            DATABASE_URL:
+              value: postgresql://${{ secrets.SSO_REQUESTS_POSTGRESQL_USERNAME }}:${{ secrets.SSO_REQUESTS_POSTGRESQL_PASSWORD }}@sso-requests-postgresql:5432/ssorequests
+              secure: true
+            PORT:
+              value: 8080
+            APP_URL:
+              value: https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
+            APP_ENV:
+              value: develop
+            ALLOW_SILVER:
+              value: true
+            ALLOW_GOLD:
+              value: true
+            SSO_CLIENT_ID:
+              value: css-app-in-gold-4128
+            SSO_CONFIGURATION_ENDPOINT:
+              value: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+            KEYCLOAK_DEV_CLIENT_ID:
+              value: terraform-cli
+            KEYCLOAK_DEV_CLIENT_SECRET:
+              value: ${{ secrets.DEV_KEYCLOAK_DEV_CLIENT_SECRET }}
+              secure: true
+            KEYCLOAK_DEV_URL:
+              value: https://sso-keycloak-1-b861c7-test.apps.silver.devops.gov.bc.ca
+            KEYCLOAK_TEST_CLIENT_ID:
+              value: terraform-cli
+            KEYCLOAK_TEST_CLIENT_SECRET:
+              value: ${{ secrets.DEV_KEYCLOAK_TEST_CLIENT_SECRET }}
+              secure: true
+            KEYCLOAK_TEST_URL:
+              value: https://sso-keycloak-2-b861c7-test.apps.silver.devops.gov.bc.ca
+            KEYCLOAK_PROD_CLIENT_ID:
+              value: terraform-cli
+            KEYCLOAK_PROD_CLIENT_SECRET:
+              value: ${{ secrets.DEV_KEYCLOAK_PROD_CLIENT_SECRET }}
+              secure: true
+            KEYCLOAK_PROD_URL:
+              value: https://sso-keycloak-3-b861c7-test.apps.silver.devops.gov.bc.ca
+            KEYCLOAK_V2_DEV_CLIENT_ID:
+              value: terraform-cli
+            KEYCLOAK_V2_DEV_CLIENT_SECRET:
+              value: ${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
+              secure: true
+            KEYCLOAK_V2_DEV_URL:
+              value: https://sso-keycloak-e4ca1d-dev.apps.gold.devops.gov.bc.ca
+            KEYCLOAK_V2_TEST_CLIENT_ID:
+              value: terraform-cli
+            KEYCLOAK_V2_TEST_CLIENT_SECRET:
+              value: ${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
+              secure: true
+            KEYCLOAK_V2_TEST_URL:
+              value: https://sso-keycloak-e4ca1d-test.apps.gold.devops.gov.bc.ca
+            KEYCLOAK_V2_PROD_CLIENT_ID:
+              value: terraform-cli
+            KEYCLOAK_V2_PROD_CLIENT_SECRET:
+              value: ${{ secrets.DEV_KEYCLOAK_V2_PROD_CLIENT_SECRET }}
+              secure: true
+            KEYCLOAK_V2_PROD_URL:
+              value: https://sso-keycloak-e4ca1d-prod.apps.gold.devops.gov.bc.ca
+            GH_ACCESS_TOKEN:
+              value: ${{ secrets.GH_ACCESS_TOKEN }}
+              secure: true
+            GH_BRANCH:
+              value: main
+            GH_OWNER:
+              value: bcgov
+            GH_REPO:
+              value: sso-terraform-local
+            GH_WORKFLOW_ID:
+              value: request.yml
+            GH_SECRET:
+              value: ${{ secrets.GH_SECRET }}
+              secure: true
+            CHES_API_ENDPOINT:
+              value: https://ches.api.gov.bc.ca/api/v1/email
+            CHES_TOKEN_ENDPOINT:
+              value: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
+            CHES_USERNAME:
+              value: ${{secrets.CHES_USERNAME_PROD}}
+              secure: true
+            CHES_PASSWORD:
+              value: ${{secrets.CHES_PASSWORD_PROD}}
+              secure: true
+            VERIFY_USER_SECRET:
+              value: ${{secrets.VERIFY_USER_SECRET}}
+              secure: true
+            BCEID_WEBSERVICE_PROXY:
+              value: ${{ secrets.DEV_BCEID_WEBSERVICE_PROXY }}
+              secure: true
           " > values.yaml
 
           helm repo add bcgov-charts http://bcgov.github.io/helm-charts
