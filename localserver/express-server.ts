@@ -21,7 +21,10 @@ const initExpresss = async () => {
 
   expressServer.use(
     cors({
-      origin: ['*'],
+      origin: process.env.APP_URL,
+      methods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
     }),
   );
   expressServer.use(logger);
@@ -30,7 +33,6 @@ const initExpresss = async () => {
   expressServer.use(cookieParser());
 
   expressServer.disable('x-powered-by');
-  expressServer.set('trust proxy', 1);
 
   setRoutes(appRouter);
   actionRoutes.setRoutes(actionsRouter);
