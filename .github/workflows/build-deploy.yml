@@ -256,6 +256,10 @@ jobs:
                 tag: ${{ steps.meta.outputs.version }}
                 pullPolicy: IfNotPresent
 
+          env:
+            APP_URL:
+              value: https://sso-requests-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca
+
           " > values.yaml
 
           helm repo add bcgov-charts http://bcgov.github.io/helm-charts
