@@ -21,7 +21,7 @@ const initExpresss = async () => {
 
   expressServer.use(
     cors({
-      origin: process.env.APP_URL,
+      origin: process.env.BASE_APP_URL,
       methods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,

@@ -202,6 +202,8 @@ jobs:
                 pullPolicy: IfNotPresent
 
           env:
+            BASE_APP_URL:
+              value: https://sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca
             APP_URL:
               value: https://sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca/${{ steps.meta.outputs.version }}
             NODE_ENV:
