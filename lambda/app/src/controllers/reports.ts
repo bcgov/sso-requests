@@ -2,6 +2,7 @@ import { sequelize } from '@lambda-shared/sequelize/models/models';
 
 export const getAllStandardIntegrations = async () => {
   const [results] = await sequelize.query(`
+  CREATE TABLE IF NOT EXISTS tempResultsTable AS (
   SELECT
     r.id,
     r.client_name,
@@ -24,7 +25,23 @@ export const getAllStandardIntegrations = async () => {
     LEFT JOIN users as u ON u.id=r.user_id
     LEFT JOIN users_teams as ut ON r.user_id=ut.user_id AND r.team_id=ut.team_id
     WHERE r.archived=FALSE
-    ORDER BY client_name;
+    ORDER BY client_name
+  );
+
+  UPDATE tempResultsTable
+  SET role = 'One off. Fixed summer 2022'
+  WHERE idir_email IS NULL AND role IS NOT NULL;
+
+  UPDATE tempResultsTable
+  SET role = 'Service Account'
+  WHERE idir_email IS NULL AND user_id IS NULL AND role IS NULL AND team_id IS NOT NULL;
+
+  UPDATE tempResultsTable
+  SET role = 'Requester left team'
+  WHERE idir_email IS NOT NULL AND user_id IS NOT NULL AND team_id IS NOT NULL AND role IS NULL;
+
+  SELECT * FROM tempResultsTable;
+  DROP TABLE tempResultsTable;
 `);
 
   return results;
