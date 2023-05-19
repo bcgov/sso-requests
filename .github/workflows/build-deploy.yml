@@ -69,7 +69,7 @@ jobs:
 
           echo "
           APP_ENV=develop
-          APP_URL=https://sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca
+          APP_URL=https://sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca/${{ steps.meta.outputs.version }}
           API_URL=https://sso-requests-api-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca/app/
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
           APP_BASE_PATH=/${{ steps.meta.outputs.version }}
@@ -203,7 +203,7 @@ jobs:
 
           env:
             APP_URL:
-              value: https://sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca
+              value: https://sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca/${{ steps.meta.outputs.version }}
             NODE_ENV:
               value: development
             DATABASE_URL:
@@ -300,10 +300,14 @@ jobs:
 
       - name: Create UI and Backend Routes
         run: |
-          oc -n ${{ env.OPENSHIFT_NAMESPACE }} create route edge --service=sso-requests-${{ steps.meta.outputs.version }} \
-          --hostname=sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca \
-          --path=/${{ steps.meta.outputs.version }} --save-config=true
+          if [ -z $(oc -n ${{ env.OPENSHIFT_NAMESPACE }} get route sso-requests-${{ steps.meta.outputs.version }} -o custom-columns=":metadata.name" --no-headers --ignore-not-found ) ]; then
+            oc -n ${{ env.OPENSHIFT_NAMESPACE }} create route edge --service=sso-requests-${{ steps.meta.outputs.version }} \
+            --hostname=sso-requests-${{ env.OPENSHIFT_NAMESPACE }}.apps.gold.devops.gov.bc.ca \
+            --path=/${{ steps.meta.outputs.version }} --save-config=true
+          fi
 
-          oc -n ${{ env.OPENSHIFT_NAMESPACE }} create route edge --service=sso-requests-api-${{ steps.meta.outputs.version }} \
-          --hostname=sso-requests-api-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca \
-          --save-config=true
+          if [ -z $(oc -n ${{ env.OPENSHIFT_NAMESPACE }} get route sso-requests-api-${{ steps.meta.outputs.version }} -o custom-columns=":metadata.name" --no-headers --ignore-not-found ) ]; then
+            oc -n ${{ env.OPENSHIFT_NAMESPACE }} create route edge --service=sso-requests-api-${{ steps.meta.outputs.version }} \
+            --hostname=sso-requests-api-${{ steps.meta.outputs.version }}.apps.gold.devops.gov.bc.ca \
+            --save-config=true
+          fi
