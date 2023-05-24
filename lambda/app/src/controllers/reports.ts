@@ -12,8 +12,15 @@ export const getAllStandardIntegrations = async () => {
     u.idir_email,
     u.additional_email,
     r.user_id,
-    CASE WHEN r.uses_team = FALSE THEN 'Requester'
-    WHEN r.uses_team = TRUE THEN ut.role
+    CASE
+      WHEN (u.idir_email IS NULL OR u.idir_email = '') AND r.user_id IS NULL AND (ut.role IS NULL OR ut.role = '') AND r.team_id IS NOT NULL THEN 'Service Account'
+      WHEN (u.idir_email IS NOT NULL OR u.idir_email != '') AND r.user_id IS NOT NULL AND r.team_id IS NOT NULL AND (ut.role IS NULL OR ut.role = '') THEN 'Requester left team'
+      WHEN r.uses_team = FALSE THEN
+        CASE WHEN (u.idir_email IS NULL OR u.idir_email = '') THEN 'One off. Fixed summer 2022' ELSE 'Requester' END
+      WHEN r.uses_team = TRUE THEN
+        CASE WHEN (ut.role IS NOT NULL OR ut.role != '') THEN
+          CASE WHEN (u.idir_email IS NULL OR u.idir_email = '') THEN 'One off. Fixed summer 2022' ELSE ut.role END
+        END
     END AS role,
     r.realm,
     ARRAY_TO_STRING(r.environments, ', ') as environments,
