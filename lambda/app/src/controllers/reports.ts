@@ -2,7 +2,6 @@ import { sequelize } from '@lambda-shared/sequelize/models/models';
 
 export const getAllStandardIntegrations = async () => {
   const [results] = await sequelize.query(`
-  CREATE TABLE IF NOT EXISTS tempResultsTable AS (
   SELECT
     r.id,
     r.client_name,
@@ -13,8 +12,15 @@ export const getAllStandardIntegrations = async () => {
     u.idir_email,
     u.additional_email,
     r.user_id,
-    CASE WHEN r.uses_team = FALSE THEN 'Requester'
-    WHEN r.uses_team = TRUE THEN ut.role
+    CASE
+      WHEN (u.idir_email IS NULL OR u.idir_email = '') AND r.user_id IS NULL AND (ut.role IS NULL OR ut.role = '') AND r.team_id IS NOT NULL THEN 'Service Account'
+      WHEN (u.idir_email IS NOT NULL OR u.idir_email != '') AND r.user_id IS NOT NULL AND r.team_id IS NOT NULL AND (ut.role IS NULL OR ut.role = '') THEN 'Requester left team'
+      WHEN r.uses_team = FALSE THEN
+        CASE WHEN (u.idir_email IS NULL OR u.idir_email = '') THEN 'One off. Fixed summer 2022' ELSE 'Requester' END
+      WHEN r.uses_team = TRUE THEN
+        CASE WHEN (ut.role IS NOT NULL OR ut.role != '') THEN
+          CASE WHEN (u.idir_email IS NULL OR u.idir_email = '') THEN 'One off. Fixed summer 2022' ELSE ut.role END
+        END
     END AS role,
     r.realm,
     ARRAY_TO_STRING(r.environments, ', ') as environments,
@@ -25,23 +31,7 @@ export const getAllStandardIntegrations = async () => {
     LEFT JOIN users as u ON u.id=r.user_id
     LEFT JOIN users_teams as ut ON r.user_id=ut.user_id AND r.team_id=ut.team_id
     WHERE r.archived=FALSE
-    ORDER BY client_name
-  );
-
-  UPDATE tempResultsTable
-  SET role = 'One off. Fixed summer 2022'
-  WHERE idir_email IS NULL AND role IS NOT NULL;
-
-  UPDATE tempResultsTable
-  SET role = 'Service Account'
-  WHERE idir_email IS NULL AND user_id IS NULL AND role IS NULL AND team_id IS NOT NULL;
-
-  UPDATE tempResultsTable
-  SET role = 'Requester left team'
-  WHERE idir_email IS NOT NULL AND user_id IS NOT NULL AND team_id IS NOT NULL AND role IS NULL;
-
-  SELECT * FROM tempResultsTable;
-  DROP TABLE tempResultsTable;
+    ORDER BY client_name;
 `);
 
   return results;
