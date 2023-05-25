@@ -176,6 +176,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState<number>(1);
   const [count, setCount] = useState<number>(0);
+  const [limit, setLimit] = useState<number>(PAGE_LIMIT);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -268,6 +269,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   useEffect(() => {
     searchResults(searchKey, undefined, page);
   }, [page]);
+
+  useEffect(() => {
+    searchResults(searchKey, undefined, 1);
+  }, [limit]);
 
   useEffect(() => {
     reset();
@@ -549,6 +554,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               noDataFoundElement={getTableStatusText()}
               pagination={true}
               pageLimits={[PAGE_LIMIT]}
+              onPage={setPage}
+              rowCount={count}
+              limit={limit}
+              onLimit={(val) => {
+                setLimit(val);
+              }}
               activateRow={activateRow}
               searchTooltip={searchTooltip}
             ></Table>
