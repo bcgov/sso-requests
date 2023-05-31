@@ -37,4 +37,34 @@ export const getAllStandardIntegrations = async () => {
   return results;
 };
 
-export default { getAllStandardIntegrations };
+export const getAllRequests = async () => {
+  const [results] = await sequelize.query(`
+  SELECT * FROM requests ORDER BY id;
+`);
+
+  return results;
+};
+
+export const getAllUsers = async () => {
+  const [results] = await sequelize.query(`
+  SELECT * FROM users ORDER BY id;
+`);
+
+  return results;
+};
+
+export const getAllTeams = async () => {
+  const [results] = await sequelize.query(`
+  SELECT * FROM teams ORDER BY id;
+`);
+
+  return results;
+};
+
+export const getAllEvents = async () => {
+  const [results] = await sequelize.query(`
+  SELECT * FROM events ORDER BY request_id;
+`);
+
+  return results;
+};

@@ -52,7 +52,13 @@ import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
 import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
-import reportController from './controllers/reports';
+import {
+  getAllStandardIntegrations,
+  getAllRequests,
+  getAllUsers,
+  getAllTeams,
+  getAllEvents,
+} from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
 
@@ -667,7 +673,47 @@ export const setRoutes = (app: any) => {
   app.get(`/reports/all-standard-integrations`, async (req, res) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
-      const result = await reportController.getAllStandardIntegrations();
+      const result = await getAllStandardIntegrations();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/reports/all-requests`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await getAllRequests();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/reports/all-users`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await getAllUsers();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/reports/all-teams`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await getAllTeams();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/reports/all-events`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await getAllEvents();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
