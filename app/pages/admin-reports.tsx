@@ -52,8 +52,6 @@ export default function AdminReports({ session }: PageProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [reportType, setreportType] = useState<any>(null);
 
-  let databaseReportButton = null;
-
   const handleAllStandardReportClick = async () => {
     setLoading(true);
     await downloadAllStandardIntegrationsReport();
@@ -84,6 +82,7 @@ export default function AdminReports({ session }: PageProps) {
     setLoading(false);
   };
 
+  let databaseReportButton = null;
   if (reportType == 'all-requests') {
     databaseReportButton = (
       <Button variant="primary" type="button" className="text-center" onClick={handleAllRequestsClick}>
