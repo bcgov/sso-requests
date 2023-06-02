@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@bcgov-sso/common-react-components';
@@ -8,6 +8,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { downloadAllStandardIntegrationsReport, downloadDatabaseReport } from '../services/report';
 import styled from 'styled-components';
 import Select from 'react-select';
+import throttle from 'lodash.throttle';
 import { ActionButton } from 'components/ActionButtons';
 
 const BorderLine = styled.div`
@@ -65,15 +66,20 @@ const primaryKeyMap: any = {
   Events: 'request_id',
 };
 
-const DatabaseReportIcon = (props: { type: string; handleClick: any }) => {
+function DownloadIcon(props: { type: string; handleClick: any }) {
   if (props.type == '') return <></>;
   else return <ActionButton icon={faDownload} role="button" onClick={props.handleClick} title="Download" size="lg" />;
+}
+
+const handleDownloadReportClick = async (type: string, setLoading: any) => {
+  setLoading(true);
+  await downloadDatabaseReport(reportTypeMap[type], primaryKeyMap[reportTypeMap[type]]);
+  setLoading(false);
 };
 
 export default function AdminReports({ session }: PageProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [reportType, setreportType] = useState<any>('');
-  console.log('=====reportType=========', reportType);
 
   const handleAllStandardReportClick = async () => {
     setLoading(true);
@@ -81,12 +87,14 @@ export default function AdminReports({ session }: PageProps) {
     setLoading(false);
   };
 
-  const handleDownloadReportClick = async (type: string) => {
-    setLoading(true);
-    await downloadDatabaseReport(reportTypeMap[type], primaryKeyMap[reportTypeMap[type]]);
-    setLoading(false);
+  const handleOptionChange = (value: string) => {
+    setreportType(value);
   };
-  console.log('=====reportType=====2====', reportType);
+
+  const handleClick = useCallback(() => {
+    handleDownloadReportClick(reportType, setLoading);
+  }, [reportType]);
+
   return (
     <ResponsiveContainer rules={mediaRules}>
       <h2>Reports</h2>
@@ -108,9 +116,10 @@ export default function AdminReports({ session }: PageProps) {
       ) : (
         <DatabaseReportContainer>
           <Select
-            //value={'asd'}
             options={reportTypeOptions}
-            onChange={(type: any) => setreportType(type.value)}
+            onChange={(type: any) => {
+              handleOptionChange(type.value);
+            }}
             maxMenuHeight={300}
             placeholder={'Select table...'}
             styles={{
@@ -124,8 +133,9 @@ export default function AdminReports({ session }: PageProps) {
               }),
             }}
           />
+
           <DownloadIconStyle>
-            <DatabaseReportIcon type={reportType} handleClick={() => handleDownloadReportClick(reportType)} />
+            <DownloadIcon type={reportType} handleClick={handleClick} />
           </DownloadIconStyle>
         </DatabaseReportContainer>
       )}
