@@ -1,17 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import {
-  downloadAllStandardIntegrationsReport,
-  downloadAllRequestsReport,
-  downloadAllUsersReport,
-  downloadAllTeamsReport,
-  downloadAllEventsReport,
-} from '../services/report';
+import { downloadAllStandardIntegrationsReport, downloadDatabaseReport } from '../services/report';
 import styled from 'styled-components';
 import Select from 'react-select';
 import { ActionButton } from 'components/ActionButtons';
@@ -50,16 +44,36 @@ const mediaRules: MediaRule[] = [
   },
 ];
 
-const reportTypeList = [
+const reportTypeOptions = [
   { value: 'all-requests', label: 'Integrations' },
   { value: 'all-users', label: 'Users' },
   { value: 'all-teams', label: 'Teams' },
   { value: 'all-events', label: 'Events' },
 ];
 
+const reportTypeMap: any = {
+  'all-requests': 'Requests',
+  'all-users': 'Users',
+  'all-teams': 'Teams',
+  'all-events': 'Events',
+};
+
+const primaryKeyMap: any = {
+  Requests: 'id',
+  Users: 'id',
+  Teams: 'id',
+  Events: 'request_id',
+};
+
+const DatabaseReportIcon = (props: { type: string; handleClick: any }) => {
+  if (props.type == '') return <></>;
+  else return <ActionButton icon={faDownload} role="button" onClick={props.handleClick} title="Download" size="lg" />;
+};
+
 export default function AdminReports({ session }: PageProps) {
   const [loading, setLoading] = useState<boolean>(false);
-  const [reportType, setreportType] = useState<string>('');
+  const [reportType, setreportType] = useState<any>('');
+  console.log('=====reportType=========', reportType);
 
   const handleAllStandardReportClick = async () => {
     setLoading(true);
@@ -67,75 +81,12 @@ export default function AdminReports({ session }: PageProps) {
     setLoading(false);
   };
 
-  const handleAllRequestsClick = async () => {
+  const handleDownloadReportClick = async (type: string) => {
     setLoading(true);
-    await downloadAllRequestsReport();
+    await downloadDatabaseReport(reportTypeMap[type], primaryKeyMap[reportTypeMap[type]]);
     setLoading(false);
   };
-
-  const handleAllUsersClick = async () => {
-    setLoading(true);
-    await downloadAllUsersReport();
-    setLoading(false);
-  };
-
-  const handleAllTeamsClick = async () => {
-    setLoading(true);
-    await downloadAllTeamsReport();
-    setLoading(false);
-  };
-
-  const handleAllEventsClick = async () => {
-    setLoading(true);
-    await downloadAllEventsReport();
-    setLoading(false);
-  };
-
-  let databaseReportButton = null;
-  if (reportType == '') {
-    databaseReportButton = <></>;
-  } else if (reportType == 'all-requests') {
-    databaseReportButton = (
-      <ActionButton
-        icon={faDownload}
-        role="button"
-        onClick={handleAllRequestsClick}
-        title="Download Requests Report"
-        size="lg"
-      />
-    );
-  } else if (reportType == 'all-users') {
-    databaseReportButton = (
-      <ActionButton
-        icon={faDownload}
-        role="button"
-        onClick={handleAllUsersClick}
-        title="Download Users Report"
-        size="lg"
-      />
-    );
-  } else if (reportType == 'all-teams') {
-    databaseReportButton = (
-      <ActionButton
-        icon={faDownload}
-        role="button"
-        onClick={handleAllTeamsClick}
-        title="Download Teams Report"
-        size="lg"
-      />
-    );
-  } else if (reportType == 'all-events') {
-    databaseReportButton = (
-      <ActionButton
-        icon={faDownload}
-        role="button"
-        onClick={handleAllEventsClick}
-        title="Download Events Report"
-        size="lg"
-      />
-    );
-  }
-
+  console.log('=====reportType=====2====', reportType);
   return (
     <ResponsiveContainer rules={mediaRules}>
       <h2>Reports</h2>
@@ -157,10 +108,11 @@ export default function AdminReports({ session }: PageProps) {
       ) : (
         <DatabaseReportContainer>
           <Select
-            //value={reportType}
-            options={reportTypeList}
+            //value={'asd'}
+            options={reportTypeOptions}
             onChange={(type: any) => setreportType(type.value)}
             maxMenuHeight={300}
+            placeholder={'Select table...'}
             styles={{
               control: (base) => ({
                 ...base,
@@ -172,7 +124,9 @@ export default function AdminReports({ session }: PageProps) {
               }),
             }}
           />
-          <DownloadIconStyle>{databaseReportButton}</DownloadIconStyle>
+          <DownloadIconStyle>
+            <DatabaseReportIcon type={reportType} handleClick={() => handleDownloadReportClick(reportType)} />
+          </DownloadIconStyle>
         </DatabaseReportContainer>
       )}
     </ResponsiveContainer>

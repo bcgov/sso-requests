@@ -37,34 +37,9 @@ export const getAllStandardIntegrations = async () => {
   return results;
 };
 
-export const getAllRequests = async () => {
+export const getDatabaseTable = async (table: string, orderBy: string) => {
   const [results] = await sequelize.query(`
-  SELECT * FROM requests ORDER BY id;
+  SELECT * FROM ${table} ORDER BY ${orderBy};
 `);
-
-  return results;
-};
-
-export const getAllUsers = async () => {
-  const [results] = await sequelize.query(`
-  SELECT * FROM users ORDER BY id;
-`);
-
-  return results;
-};
-
-export const getAllTeams = async () => {
-  const [results] = await sequelize.query(`
-  SELECT * FROM teams ORDER BY id;
-`);
-
-  return results;
-};
-
-export const getAllEvents = async () => {
-  const [results] = await sequelize.query(`
-  SELECT * FROM events ORDER BY request_id;
-`);
-
   return results;
 };
