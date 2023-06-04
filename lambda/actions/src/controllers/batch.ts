@@ -27,7 +27,7 @@ export const handlePRstage = async (data) => {
     let eventCode;
     if (!success) {
       newStatus = 'prFailed';
-      eventCode = EVENTS.REQUEST_PLAN_SUCCESS;
+      eventCode = EVENTS.REQUEST_PLAN_FAILURE;
     } else {
       if (isAllowedToMerge) {
         newStatus = 'planned';

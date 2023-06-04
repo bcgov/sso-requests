@@ -1,6 +1,6 @@
 import { renderTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
-import { formDataDev, formDataDevTest, formDataProd } from './fixtures';
+import { formDataDev, formDataDevTest, formDataProd } from './helpers/fixtures';
 
 describe('Email template snapshots', () => {
   it('Should return the expeted email for CREATE_INTEGRATION_SUBMITTED', async () => {

@@ -1,6 +1,6 @@
-import { APIGatewayProxyEvent, Context } from 'aws-lambda';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 import { handler } from '../db/src/main';
-import { sequelize, models, modelNames } from '../shared/sequelize/models/models';
+import { cleanUpDatabaseTables } from './helpers/utils';
 
 // see https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
 const event: APIGatewayProxyEvent = {
@@ -30,41 +30,16 @@ const event: APIGatewayProxyEvent = {
   resource: '',
 };
 
-const context = null;
+describe('db migration', () => {
+  beforeAll(async () => {
+    jest.clearAllMocks();
+    // drop all test database tables and re-create
+    await cleanUpDatabaseTables(true);
+  });
 
-export const TEST_ADMIN_USERID = 'QWERASDFZXCV';
-export const TEST_ADMIN_EMAIL = 'ssoadmin@example.com';
-export const TEST_IDIR_USERID = 'AABBCCDDEEFFGG';
-export const TEST_IDIR_USERID_2 = 'AABBCCDDEEFFGGHH';
-export const TEST_IDIR_EMAIL = 'testuser@example.com';
-export const TEST_IDIR_EMAIL_2 = 'testuser2@example.com';
-
-export type AuthMock = Promise<{
-  idir_userid: string | null;
-  email?: string;
-  client_roles: string[];
-  given_name: string;
-  family_name: string;
-  bearerToken?: string;
-}>;
-
-beforeAll(async () => {
-  jest.clearAllMocks();
-
-  const query =
-    "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'";
-
-  let tableNames = await sequelize.query(query);
-  tableNames = tableNames.map((v) => v[0]);
-  for (let x = 0; x < tableNames.length; x++) {
-    await sequelize.query(`DROP TABLE "${tableNames[x]}" CASCADE`);
-  }
-});
-
-describe('DB migration', () => {
   it('should migrate db successfully', async () => {
     await new Promise((resolve, reject) => {
-      handler(event, context, (error, response) => {
+      handler(event, null, (error, response) => {
         expect(response.body.success).toEqual(true);
         expect(response.statusCode).toEqual(200);
         resolve(true);

@@ -11,13 +11,13 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
    <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
 </p>
  <p>
   Please join the
-  <a href=\\"https://subscribe.developer.gov.bc.ca/\\" title=\\"SSO Updates Mailing list\\" target=\\"_blank\\" rel=\\"noreferrer\\"
+  <a href="https://subscribe.developer.gov.bc.ca/" title="SSO Updates Mailing list" target="_blank" rel="noreferrer"
     >SSO Updates Mailing list</a
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
@@ -25,11 +25,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -75,18 +75,18 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
-    <div style=\\"display: none\\">&nbsp;</div>
+    <div style="display: none">&nbsp;</div>
   </li>
 </ol>
    <p><strong>*GitHub production integration is not approved and not ready to use yet</strong></p>
   <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
 </p>
  <p>
   Please join the
-  <a href=\\"https://subscribe.developer.gov.bc.ca/\\" title=\\"SSO Updates Mailing list\\" target=\\"_blank\\" rel=\\"noreferrer\\"
+  <a href="https://subscribe.developer.gov.bc.ca/" title="SSO Updates Mailing list" target="_blank" rel="noreferrer"
     >SSO Updates Mailing list</a
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
@@ -94,11 +94,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -144,17 +144,17 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
-    <div style=\\"display: none\\">&nbsp;</div>
+    <div style="display: none">&nbsp;</div>
   </li>
 </ol>
    <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
 </p>
  <p>
   Please join the
-  <a href=\\"https://subscribe.developer.gov.bc.ca/\\" title=\\"SSO Updates Mailing list\\" target=\\"_blank\\" rel=\\"noreferrer\\"
+  <a href="https://subscribe.developer.gov.bc.ca/" title="SSO Updates Mailing list" target="_blank" rel="noreferrer"
     >SSO Updates Mailing list</a
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
@@ -162,11 +162,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -194,13 +194,13 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 </ul>
    <p><strong>*GitHub production integration is not approved and not ready to use yet</strong></p>
   <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
 </p>
  <p>
   Please join the
-  <a href=\\"https://subscribe.developer.gov.bc.ca/\\" title=\\"SSO Updates Mailing list\\" target=\\"_blank\\" rel=\\"noreferrer\\"
+  <a href="https://subscribe.developer.gov.bc.ca/" title="SSO Updates Mailing list" target="_blank" rel="noreferrer"
     >SSO Updates Mailing list</a
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
@@ -208,11 +208,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -239,13 +239,13 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   </li>
 </ul>
    <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
 </p>
  <p>
   Please join the
-  <a href=\\"https://subscribe.developer.gov.bc.ca/\\" title=\\"SSO Updates Mailing list\\" target=\\"_blank\\" rel=\\"noreferrer\\"
+  <a href="https://subscribe.developer.gov.bc.ca/" title="SSO Updates Mailing list" target="_blank" rel="noreferrer"
     >SSO Updates Mailing list</a
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
@@ -253,11 +253,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -278,10 +278,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -306,14 +306,14 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
-    <div style=\\"display: none\\">&nbsp;</div>
+    <div style="display: none">&nbsp;</div>
   </li>
 </ol>
 
-  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -323,10 +323,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
   to the IM/IT standards.
   <a
-    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
-    title=\\"IM/IT Standards Frequently Asked Questions\\"
-    target=\\"_blank\\"
-    rel=\\"noreferrer\\"
+    href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs"
+    title="IM/IT Standards Frequently Asked Questions"
+    target="_blank"
+    rel="noreferrer"
     >IM/IT Standards Frequently Asked Questions</a
   >
 </p>
@@ -334,10 +334,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   <li>
     Please proceed to complete this form:
     <a
-      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
-      title=\\"IIM/IT Standards Exemptions\\"
-      target=\\"_blank\\"
-      rel=\\"noreferrer\\"
+      href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions"
+      title="IIM/IT Standards Exemptions"
+      target="_blank"
+      rel="noreferrer"
       >IIM/IT Standards Exemptions</a
     >
   </li>
@@ -348,11 +348,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 </ol>
   <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -392,11 +392,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 </p>
    <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -440,10 +440,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -468,14 +468,14 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
-    <div style=\\"display: none\\">&nbsp;</div>
+    <div style="display: none">&nbsp;</div>
   </li>
 </ol>
 
-  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -485,10 +485,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
   to the IM/IT standards.
   <a
-    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
-    title=\\"IM/IT Standards Frequently Asked Questions\\"
-    target=\\"_blank\\"
-    rel=\\"noreferrer\\"
+    href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs"
+    title="IM/IT Standards Frequently Asked Questions"
+    target="_blank"
+    rel="noreferrer"
     >IM/IT Standards Frequently Asked Questions</a
   >
 </p>
@@ -496,10 +496,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   <li>
     Please proceed to complete this form:
     <a
-      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
-      title=\\"IIM/IT Standards Exemptions\\"
-      target=\\"_blank\\"
-      rel=\\"noreferrer\\"
+      href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions"
+      title="IIM/IT Standards Exemptions"
+      target="_blank"
+      rel="noreferrer"
       >IIM/IT Standards Exemptions</a
     >
   </li>
@@ -510,11 +510,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 </ol>
   <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -558,10 +558,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -586,17 +586,17 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
-    <div style=\\"display: none\\">&nbsp;</div>
+    <div style="display: none">&nbsp;</div>
   </li>
 </ol>
 
   <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -640,10 +640,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+   <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -653,10 +653,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
   to the IM/IT standards.
   <a
-    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
-    title=\\"IM/IT Standards Frequently Asked Questions\\"
-    target=\\"_blank\\"
-    rel=\\"noreferrer\\"
+    href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs"
+    title="IM/IT Standards Frequently Asked Questions"
+    target="_blank"
+    rel="noreferrer"
     >IM/IT Standards Frequently Asked Questions</a
   >
 </p>
@@ -664,10 +664,10 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
   <li>
     Please proceed to complete this form:
     <a
-      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
-      title=\\"IIM/IT Standards Exemptions\\"
-      target=\\"_blank\\"
-      rel=\\"noreferrer\\"
+      href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions"
+      title="IIM/IT Standards Exemptions"
+      target="_blank"
+      rel="noreferrer"
       >IIM/IT Standards Exemptions</a
     >
   </li>
@@ -678,11 +678,11 @@ exports[`Email template snapshots Should return the expeted email for CREATE_INT
 </ol>
   <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -711,11 +711,11 @@ exports[`Email template snapshots Should return the expeted email for DELETE_INT
 </ul>
  <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -752,18 +752,18 @@ exports[`Email template snapshots Should return the expeted email for PROD_APPRO
 </p>
  <p>
   Please join the
-  <a href=\\"https://subscribe.developer.gov.bc.ca/\\" title=\\"SSO Updates Mailing list\\" target=\\"_blank\\" rel=\\"noreferrer\\"
+  <a href="https://subscribe.developer.gov.bc.ca/" title="SSO Updates Mailing list" target="_blank" rel="noreferrer"
     >SSO Updates Mailing list</a
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
  <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -800,18 +800,18 @@ exports[`Email template snapshots Should return the expeted email for PROD_APPRO
 </p>
  <p>
   Please join the
-  <a href=\\"https://subscribe.developer.gov.bc.ca/\\" title=\\"SSO Updates Mailing list\\" target=\\"_blank\\" rel=\\"noreferrer\\"
+  <a href="https://subscribe.developer.gov.bc.ca/" title="SSO Updates Mailing list" target="_blank" rel="noreferrer"
     >SSO Updates Mailing list</a
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
  <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -832,15 +832,15 @@ exports[`Email template snapshots Should return the expeted email for TEAM_DELET
 "<p>testteam has been removed as well as your membership from the team.</p>
 <p>
   To view your integrations please
-  <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>.
+  <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>.
 </p>
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -852,24 +852,24 @@ exports[`Email template snapshots Should return the expeted email for TEAM_INVIT
 "<h1>Hello Pathfinder SSO friend,</h1>
 <p>You are invited to join <strong>testteam (#1)</strong></p>
 <p>
-  Please follow this <a href=\\"http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link\\">link</a> to view your invitation in the
+  Please follow this <a href="http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link">link</a> to view your invitation in the
   dashboard. This link will expire in <strong>2 business days.</strong>
 </p>
 <p>
   If you think you're receiving this invitation by accident, or have any questions, please contact the SSO Pathfinder
   team by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or reply to this email
 </p>
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -881,15 +881,15 @@ exports[`Email template snapshots Should return the expeted email for TEAM_MEMBE
 "<p>A team member <strong>()</strong> has been removed from <strong>testteam</strong>.</p>
 <p>
   To view your integrations please
-  <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>.
+  <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>.
 </p>
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -901,15 +901,15 @@ exports[`Email template snapshots Should return the expeted email for TEAM_MEMBE
 "<p>A team admin from <strong>testteam</strong> has removed your membership.</p>
 <p>
   To view your integrations please
-  <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>.
+  <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>.
 </p>
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -936,13 +936,13 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   </li>
 </ul>
    <p>
-  Please <a href=\\"http://localhost:3000/my-dashboard/integrations\\" title=\\"Log in\\" target=\\"_blank\\" rel=\\"noreferrer\\">Log in</a>
+  Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
 </p>
  <p>
   Please join the
-  <a href=\\"https://subscribe.developer.gov.bc.ca/\\" title=\\"SSO Updates Mailing list\\" target=\\"_blank\\" rel=\\"noreferrer\\"
+  <a href="https://subscribe.developer.gov.bc.ca/" title="SSO Updates Mailing list" target="_blank" rel="noreferrer"
     >SSO Updates Mailing list</a
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
@@ -950,11 +950,11 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
 
 <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 "
@@ -993,11 +993,11 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
 </p>
    <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -1041,10 +1041,10 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -1069,14 +1069,14 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
-    <div style=\\"display: none\\">&nbsp;</div>
+    <div style="display: none">&nbsp;</div>
   </li>
 </ol>
 
-  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -1086,10 +1086,10 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
   to the IM/IT standards.
   <a
-    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
-    title=\\"IM/IT Standards Frequently Asked Questions\\"
-    target=\\"_blank\\"
-    rel=\\"noreferrer\\"
+    href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs"
+    title="IM/IT Standards Frequently Asked Questions"
+    target="_blank"
+    rel="noreferrer"
     >IM/IT Standards Frequently Asked Questions</a
   >
 </p>
@@ -1097,10 +1097,10 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   <li>
     Please proceed to complete this form:
     <a
-      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
-      title=\\"IIM/IT Standards Exemptions\\"
-      target=\\"_blank\\"
-      rel=\\"noreferrer\\"
+      href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions"
+      title="IIM/IT Standards Exemptions"
+      target="_blank"
+      rel="noreferrer"
       >IIM/IT Standards Exemptions</a
     >
   </li>
@@ -1111,11 +1111,11 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
 </ol>
   <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -1159,10 +1159,10 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-  <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+  <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -1187,17 +1187,17 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
       <li>When do you need access to the production environment by?</li>
       <li>When will your end users need access to the production environment?</li>
     </ul>
-    <div style=\\"display: none\\">&nbsp;</div>
+    <div style="display: none">&nbsp;</div>
   </li>
 </ol>
 
   <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 
@@ -1241,10 +1241,10 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-   <table border=\\"0\\" width=\\"100%\\" cellpadding=\\"0\\" cellspacing=\\"0\\">
+   <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
-      style=\\"background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px\\"
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
     ></td>
   </tr>
 </table>
@@ -1254,10 +1254,10 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   As you've requested an integration with GitHub, any production integration request requires you to obtain an exemption
   to the IM/IT standards.
   <a
-    href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs\\"
-    title=\\"IM/IT Standards Frequently Asked Questions\\"
-    target=\\"_blank\\"
-    rel=\\"noreferrer\\"
+    href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/im-it-standards-faqs"
+    title="IM/IT Standards Frequently Asked Questions"
+    target="_blank"
+    rel="noreferrer"
     >IM/IT Standards Frequently Asked Questions</a
   >
 </p>
@@ -1265,10 +1265,10 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
   <li>
     Please proceed to complete this form:
     <a
-      href=\\"https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions\\"
-      title=\\"IIM/IT Standards Exemptions\\"
-      target=\\"_blank\\"
-      rel=\\"noreferrer\\"
+      href="https://www2.gov.bc.ca/gov/content/governments/services-for-government/policies-procedures/im-it-standards/exemptions"
+      title="IIM/IT Standards Exemptions"
+      target="_blank"
+      rel="noreferrer"
       >IIM/IT Standards Exemptions</a
     >
   </li>
@@ -1279,11 +1279,11 @@ exports[`Email template snapshots Should return the expeted email for UPDATE_INT
 </ol>
   <p>
   If you have any questions, please contact us by
-  <a href=\\"https://chat.developer.gov.bc.ca/channel/sso\\" target=\\"_blank\\" title=\\"Rocket Chat\\" rel=\\"noreferrer\\">
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
   or email at:
-  <a href=\\"mailto:bcgov.sso@gov.bc.ca\\" title=\\"Pathfinder SSO\\" target=\\"_blank\\" rel=\\"noreferrer\\"> bcgov.sso@gov.bc.ca </a>
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
 

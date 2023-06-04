@@ -1,10 +1,9 @@
-import { APIGatewayProxyEvent, Context } from 'aws-lambda';
-import { sequelize, models, modelNames } from '@lambda-shared/sequelize/models/models';
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import { sequelize } from '@lambda-shared/sequelize/models/models';
 import { handler as appHandler } from '@lambda-app/main';
 import { getMembersOnTeam } from '@lambda-app/queries/team';
 import { handler as actionsHandler } from '@lambda-actions/main';
 import baseEvent from '../base-event.json';
-import assign from 'lodash.assign';
 
 const { path: baseUrl } = baseEvent;
 const actionsBaseUrl = '/actions';
