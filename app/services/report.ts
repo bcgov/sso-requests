@@ -16,7 +16,7 @@ export const downloadAllStandardIntegrationsReport = async (): Promise<void | [n
     const workBook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workBook, workSheet, 'All standard integrations');
-    XLSX.writeFile(workBook, `All-Standard-Integrations-${currentDate}.xlsx`);
+    XLSX.writeFile(workBook, `all-standard-integrations-${currentDate}.xlsx`);
   } catch (err: any) {
     console.log(err);
     return handleAxiosError(err);
