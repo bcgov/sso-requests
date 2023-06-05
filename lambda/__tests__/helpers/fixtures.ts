@@ -131,10 +131,12 @@ export const getUpdateIntegrationData = (args: {
     bceidApproved = false,
     githubApproved = false,
   } = args;
+
+  const samlIntegration = protocol === 'saml';
   return {
     ...args.integration,
     projectName: projectName || args.integration.projectName,
-    publicAccess,
+    publicAccess: samlIntegration ? undefined : publicAccess,
     realm: 'standard',
     devValidRedirectUris: ['https://a'],
     testValidRedirectUris: envs.includes('test') ? ['https://a'] : [],
@@ -149,6 +151,9 @@ export const getUpdateIntegrationData = (args: {
     authType,
     bceidApproved,
     githubApproved,
+    devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,
+    testSamlLogoutPostBindingUri: samlIntegration && envs.includes('test') ? 'https://a' : undefined,
+    prodSamlLogoutPostBindingUri: samlIntegration && envs.includes('prod') ? 'https://a' : undefined,
   };
 };
 

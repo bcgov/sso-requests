@@ -8,8 +8,17 @@ import {
 import { createIntegration, getIntegration, getIntegrations, updateIntegration } from './helpers/modules/integrations';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { sendEmail } from '@lambda-shared/utils/ches';
+import { buildIntegration } from './helpers/modules/common';
 
 jest.mock('../app/src/authenticate');
+
+jest.mock('../actions/src/authenticate', () => {
+  return {
+    authenticate: jest.fn(() => {
+      return Promise.resolve(true);
+    }),
+  };
+});
 
 jest.mock('../shared/utils/ches', () => {
   return {
@@ -20,6 +29,12 @@ jest.mock('../shared/utils/ches', () => {
 jest.mock('../app/src/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
+  };
+});
+
+jest.mock('../actions/src/github', () => {
+  return {
+    mergePR: jest.fn(),
   };
 });
 
@@ -96,6 +111,46 @@ describe('create/manage integration by authenticated user', () => {
       expect(result.status).toEqual(200);
       expect(result.body.id).toEqual(integration.id);
       expect(sendEmail).toHaveBeenCalled();
+    });
+
+    it('should allow to create a successful saml integration', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const integrationRes = await buildIntegration({
+        projectName: 'SAML Integration',
+        prodEnv: true,
+        submitted: true,
+        planned: true,
+        applied: true,
+        protocol: 'saml',
+      });
+
+      expect(integrationRes.status).toEqual(200);
+      const int = integrationRes.body;
+      expect(int.status).toEqual('applied');
+      expect(int.protocol).toEqual('saml');
+    });
+
+    it('should not allow to create a saml integration with multiple idps', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      let integrationRes = await createIntegration(
+        getCreateIntegrationData({
+          projectName: 'Invalid SAML Integration1',
+        }),
+      );
+
+      expect(integrationRes.status).toEqual(200);
+      integration = integrationRes.body;
+
+      let updateIntegrationRes = await updateIntegration(
+        getUpdateIntegrationData({
+          integration,
+          identityProviders: ['idir', 'azureidir', 'bceidbasic'],
+          envs: ['dev', 'test', 'prod'],
+          protocol: 'saml',
+        }),
+        true,
+      );
+      expect(updateIntegrationRes.status).toEqual(422);
     });
   } catch (err) {
     console.error('EXCEPTION: ', err);
