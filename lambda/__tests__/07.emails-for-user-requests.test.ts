@@ -351,8 +351,6 @@ describe('integration email updates for individual users', () => {
       expect(integrationRes.status).toEqual(200);
       integration = integrationRes.body;
 
-      console.log(integration);
-
       const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, {
         integration,
         waitingBceidProdApproval: true,

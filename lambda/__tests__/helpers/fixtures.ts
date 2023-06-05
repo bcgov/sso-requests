@@ -122,20 +122,20 @@ export const getUpdateIntegrationData = (args: {
   githubApproved?: boolean;
 }) => {
   const {
-    projectName,
-    envs = ['dev'],
-    identityProviders = ['idir'],
-    protocol = 'oidc',
-    authType = 'browser-login',
-    publicAccess = true,
-    bceidApproved = false,
-    githubApproved = false,
+    projectName = args.integration.projectName,
+    envs = args.integration.environments.length > 1 ? args.integration.environments : ['dev'],
+    identityProviders = args.integration.devIdps.length > 1 ? args.integration.devIdps : ['idir'],
+    protocol = args.integration.protocol || 'oidc',
+    authType = args.integration.authType || 'browser-login',
+    publicAccess = args.integration.publicAccess || true,
+    bceidApproved = args.integration.bceidApproved || false,
+    githubApproved = args.integration.githubApproved || false,
   } = args;
 
   const samlIntegration = protocol === 'saml';
   return {
     ...args.integration,
-    projectName: projectName || args.integration.projectName,
+    projectName,
     publicAccess: samlIntegration ? undefined : publicAccess,
     realm: 'standard',
     devValidRedirectUris: ['https://a'],

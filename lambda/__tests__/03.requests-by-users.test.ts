@@ -8,7 +8,7 @@ import {
 import { createIntegration, getIntegration, getIntegrations, updateIntegration } from './helpers/modules/integrations';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { sendEmail } from '@lambda-shared/utils/ches';
-import { buildIntegration } from './helpers/modules/common';
+import { applyIntegration, buildIntegration } from './helpers/modules/common';
 
 jest.mock('../app/src/authenticate');
 
@@ -29,6 +29,7 @@ jest.mock('../shared/utils/ches', () => {
 jest.mock('../app/src/github', () => {
   return {
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
+    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
   };
 });
 
@@ -48,6 +49,7 @@ jest.mock('../app/src/utils/helpers', () => {
 
 jest.mock('../app/src/keycloak/client', () => {
   return {
+    disableIntegration: jest.fn(() => Promise.resolve()),
     fetchClient: jest.fn(() => Promise.resolve()),
   };
 });
@@ -134,7 +136,7 @@ describe('create/manage integration by authenticated user', () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       let integrationRes = await createIntegration(
         getCreateIntegrationData({
-          projectName: 'Invalid SAML Integration1',
+          projectName: 'Invalid: Multiple idps',
         }),
       );
 
@@ -151,6 +153,51 @@ describe('create/manage integration by authenticated user', () => {
         true,
       );
       expect(updateIntegrationRes.status).toEqual(422);
+    });
+
+    it('should not allow to update project name of a saml integration in submitted state', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      let integrationRes = await createIntegration(
+        getCreateIntegrationData({
+          projectName: 'Project name at draft',
+        }),
+      );
+
+      expect(integrationRes.status).toEqual(200);
+      integration = integrationRes.body;
+      expect(integration.status).toEqual('draft');
+
+      let updateIntegrationRes = await updateIntegration(
+        getUpdateIntegrationData({
+          projectName: 'Project name before submit',
+          integration,
+          identityProviders: ['idir'],
+          envs: ['dev', 'test', 'prod'],
+          protocol: 'saml',
+        }),
+        true,
+      );
+      expect(updateIntegrationRes.status).toEqual(200);
+      integration = updateIntegrationRes.body;
+      expect(integration.status).toEqual('submitted');
+
+      integrationRes = await applyIntegration({ integrationId: integration.id, planned: true, applied: true });
+      expect(integrationRes.status).toEqual(200);
+      integration = integrationRes.body;
+      expect(integration.status).toEqual('applied');
+
+      const projNameAfterApplied = 'Project name after applied';
+
+      updateIntegrationRes = await updateIntegration(
+        getUpdateIntegrationData({
+          projectName: projNameAfterApplied,
+          integration,
+        }),
+        true,
+      );
+      expect(updateIntegrationRes.status).toEqual(200);
+      integration = updateIntegrationRes.body;
+      expect(integration.projectName).not.toEqual(projNameAfterApplied);
     });
   } catch (err) {
     console.error('EXCEPTION: ', err);
