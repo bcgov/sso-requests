@@ -1,7 +1,6 @@
 import app from '../../helpers/server';
 import supertest from 'supertest';
 import { APP_BASE_PATH } from '../constants';
-import { Member } from '@lambda-shared/interfaces';
 
 export const getTeams = async () => {
   return await supertest(app).get(`${APP_BASE_PATH}/teams`);

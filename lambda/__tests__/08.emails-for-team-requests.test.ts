@@ -53,7 +53,6 @@ jest.mock('../app/src/keycloak/client', () => {
 
 describe('integration email updates for teams', () => {
   try {
-    let team: any;
     let teamId: number;
 
     beforeAll(async () => {
@@ -61,7 +60,6 @@ describe('integration email updates for teams', () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       emailList = createMockSendEmail();
       const result = await createTeam(postTeam);
-      team = result.body;
       teamId = result.body.id;
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const userRes = await getAuthenticatedUser();

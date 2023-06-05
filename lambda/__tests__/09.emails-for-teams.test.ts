@@ -1,6 +1,5 @@
 import { renderTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
-import { Integration } from './helpers/integration';
 import {
   TEAM_ADMIN_IDIR_USERID_01,
   TEAM_ADMIN_IDIR_EMAIL_01,

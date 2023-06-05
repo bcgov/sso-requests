@@ -2,7 +2,6 @@ import { authenticate } from '@lambda-app/authenticate';
 import { AuthMock } from './types';
 import { sequelize } from '@lambda-shared/sequelize/models/models';
 import { sendEmail } from '@lambda-shared/utils/ches';
-import { authenticate as cssApiAuthenticate } from '@lambda-css-api/authenticate';
 
 const mockedAuthenticate = authenticate as jest.Mock<AuthMock>;
 
@@ -43,8 +42,8 @@ const query =
 export const cleanUpDatabaseTables = async (dropTables: boolean = false) => {
   let tableNames = await sequelize.query(query);
   tableNames = tableNames.map((v) => v[0]);
-  for (let x = 0; x < tableNames.length; x++) {
-    await sequelize.query(`${dropTables ? 'DROP' : 'TRUNCATE'} TABLE "${tableNames[x]}" CASCADE`);
+  for (const table of tableNames) {
+    await sequelize.query(`${dropTables ? 'DROP' : 'TRUNCATE'} TABLE "${tableNames[table]}" CASCADE`);
   }
 };
 

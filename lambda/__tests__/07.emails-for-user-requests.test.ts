@@ -2,23 +2,15 @@ import {
   TEAM_ADMIN_IDIR_EMAIL_01,
   TEAM_ADMIN_IDIR_USERID_01,
   getUpdateIntegrationData,
-  getCreateIntegrationData,
-  putIntegrationBatchPr,
   SSO_ADMIN_USERID_01,
   SSO_ADMIN_EMAIL_01,
 } from './helpers/fixtures';
-import {
-  createIntegration,
-  deleteIntegration,
-  getIntegration,
-  updateIntegration,
-} from './helpers/modules/integrations';
+import { deleteIntegration, updateIntegration } from './helpers/modules/integrations';
 import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
 import { Integration } from 'app/interfaces/Request';
 import { renderTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
-import { updateIntegrationPrDetails, updateIntegrationsApply } from './helpers/modules/actions';
 import { applyIntegration, buildIntegration } from './helpers/modules/common';
 
 jest.mock('../app/src/authenticate');

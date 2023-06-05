@@ -410,9 +410,7 @@ describe('emails for teams', () => {
   });
 
   it('fails fetching team integration role mappings for an environment when role name and username is not supplied', async () => {
-    const result = await supertest(app)
-      .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/user-role-mappings`)
-      .expect(400);
+    await supertest(app).get(`${API_BASE_PATH}/integrations/${integration.id}/dev/user-role-mappings`).expect(400);
   });
 
   it('fails fetching team integration role mappings for an environment when role name and username are not supplied', async () => {
@@ -478,7 +476,7 @@ describe('emails for teams', () => {
   });
 
   it('deletes team integration role mapping for an environment', async () => {
-    const result = await supertest(app)
+    await supertest(app)
       .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/user-role-mappings`)
       .send(deleteUserRoleMapping)
       .set('Accept', 'application/json')
