@@ -130,13 +130,18 @@ To run the frontend tests, from the `app` directory run `yarn test`. If adding a
 running `yarn test` will add the new snapshot file for you. If you want to update a snapshot test,
 run `yarn test -u`
 
-To run the backend integration tests, you willneed to have a local postgres database running.
-Ensure you have started the server with `pg_ctl start`.
+To run the backend unit tests,
 
-For the first time running the tests, the database will need to be created.
-Run `./db-setup.sh ssorequests` from the `/.bin` directory to initialize it _Note: you may need to run `chmod +x` to give necessary permissions_.
-To provide the local database connection string, in your console run `export DATABASE_URL=postgresql://localhost:5432/ssodb`.
-Then running `yarn test` from the lambda directory will run the necessary migrations and test suites.
+- you will need to have a local postgres database running.
+  Ensure you have started the server with `pg_ctl start`
+
+- For the first time running the tests, the database will need to be created.
+  Run `make local_db` from the root directory
+  _Note: you may need to run `chmod +x ./.bin/db-setup.sh` to give necessary permissions_.
+
+- Run `make server_test` to run all the backend unit tests
+
+- Navigate to `./lambda/jest_stare` directory and open the `index.html` to view the report that shows the code coverage
 
 ## Errors
 
