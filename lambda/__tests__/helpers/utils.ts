@@ -43,7 +43,7 @@ export const cleanUpDatabaseTables = async (dropTables: boolean = false) => {
   let tableNames = await sequelize.query(query);
   tableNames = tableNames.map((v) => v[0]);
   for (const table of tableNames) {
-    await sequelize.query(`${dropTables ? 'DROP' : 'TRUNCATE'} TABLE "${tableNames[table]}" CASCADE`);
+    await sequelize.query(`${dropTables ? 'DROP' : 'TRUNCATE'} TABLE "${table}" CASCADE`);
   }
 };
 

@@ -60,8 +60,6 @@ export const setRoutes = (app: any) => {
 
   app.use(async (req, res, next) => {
     const auth: Auth = await authenticate(req.headers);
-    console.log(auth);
-
     if (!auth.success) {
       res.status(401).json(auth);
       return false;
