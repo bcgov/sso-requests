@@ -52,7 +52,7 @@ import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
 import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
-import reportController from './controllers/reports';
+import { getAllStandardIntegrations, getDatabaseTable } from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
 
@@ -667,7 +667,17 @@ export const setRoutes = (app: any) => {
   app.get(`/reports/all-standard-integrations`, async (req, res) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
-      const result = await reportController.getAllStandardIntegrations();
+      const result = await getAllStandardIntegrations();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/reports/database-tables`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await getDatabaseTable(req.query.type, req.query.orderBy);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

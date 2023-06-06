@@ -37,4 +37,9 @@ export const getAllStandardIntegrations = async () => {
   return results;
 };
 
-export default { getAllStandardIntegrations };
+export const getDatabaseTable = async (table: string, orderBy: string) => {
+  const [results] = await sequelize.query(`
+  SELECT * FROM ${table} ORDER BY ${orderBy};
+`);
+  return results;
+};
