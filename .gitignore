@@ -73,3 +73,5 @@ note.md
 swagger-ui-dist
 *.tfvars
 .terraform*
+lambda/coverage/*
+lambda/jest-stare/*

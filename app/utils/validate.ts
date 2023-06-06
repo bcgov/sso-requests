@@ -40,6 +40,8 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     testSamlLogoutPostBindingUri = '',
     prodSamlLogoutPostBindingUri = '',
     clientId = '',
+    devIdps = [],
+    protocol = 'oidc',
   } = formData;
 
   const fieldMap: any = {
@@ -105,6 +107,11 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     clientId: () => {
       if (clientId !== '' && clientId !== null && (clientId !== clientId.trim() || clientId.match(/\s/))) {
         errors['clientId'].addError('Client id is not valid');
+      }
+    },
+    devIdps: () => {
+      if (protocol === 'saml' && devIdps.length > 1) {
+        errors['devIdps'].addError('Only one identity provider is allowed for saml integrations');
       }
     },
   };
