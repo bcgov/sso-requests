@@ -52,7 +52,7 @@ import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
 import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
-import { getAllStandardIntegrations, getDatabaseTable } from './controllers/reports';
+import { getAllStandardIntegrations, getDatabaseTable, getBceidApprovedRequestsAndEvents } from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
 
@@ -678,6 +678,16 @@ export const setRoutes = (app: any) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
       const result = await getDatabaseTable(req.query.type, req.query.orderBy);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/reports/all-bceid-approved-requests-and-events`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await getBceidApprovedRequestsAndEvents();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

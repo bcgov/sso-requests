@@ -37,3 +37,18 @@ export const downloadDatabaseReport = async (type: string, orderBy: string): Pro
     return handleAxiosError(err);
   }
 };
+
+export const downloadAllBceidApprovedRequestsAndEventsReport = async (): Promise<void | [null, AxiosError]> => {
+  try {
+    const result = await instance.get('reports/all-bceid-approved-requests-and-events').then((res) => res.data);
+
+    const workSheet = XLSX.utils.json_to_sheet(result);
+    const workBook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workBook, workSheet, 'All BCeID Approved Reqs&Events');
+    XLSX.writeFile(workBook, `all-bceid-approved-requests-and-events-${currentDate}.xlsx`);
+  } catch (err: any) {
+    console.log(err);
+    return handleAxiosError(err);
+  }
+};

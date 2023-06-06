@@ -5,10 +5,13 @@ import { Button } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { downloadAllStandardIntegrationsReport, downloadDatabaseReport } from '../services/report';
+import {
+  downloadAllStandardIntegrationsReport,
+  downloadDatabaseReport,
+  downloadAllBceidApprovedRequestsAndEventsReport,
+} from '../services/report';
 import styled from 'styled-components';
 import Select from 'react-select';
-import throttle from 'lodash.throttle';
 import { ActionButton } from 'components/ActionButtons';
 
 const BorderLine = styled.div`
@@ -105,6 +108,12 @@ export default function AdminReports({ session }: PageProps) {
     setLoading(false);
   };
 
+  const handleAllBceidApprovedRequestsAndEventsReportClick = async () => {
+    setLoading(true);
+    await downloadAllBceidApprovedRequestsAndEventsReport();
+    setLoading(false);
+  };
+
   const handleDownloadReportClick = async () => {
     setLoading(true);
     await downloadDatabaseReport(reportTypeMap[reportType], primaryKeyMap[reportTypeMap[reportType]]);
@@ -121,6 +130,17 @@ export default function AdminReports({ session }: PageProps) {
           <>
             <Button variant="primary" type="button" className="text-center" onClick={handleAllStandardReportClick}>
               <span>All Standard Integrations&nbsp;</span>
+              <FontAwesomeIcon icon={faDownload} />
+            </Button>
+            <br />
+            <br />
+            <Button
+              variant="primary"
+              type="button"
+              className="text-center"
+              onClick={handleAllBceidApprovedRequestsAndEventsReportClick}
+            >
+              <span>All BCeID Approved Requests And Events&nbsp;</span>
               <FontAwesomeIcon icon={faDownload} />
             </Button>
           </>
