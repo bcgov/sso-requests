@@ -38,10 +38,83 @@ export const getAllStandardIntegrations = async () => {
 };
 
 export const getDatabaseTable = async (table: string, orderBy: string) => {
-  const [results] = await sequelize.query(`
-  SELECT * FROM ${table} ORDER BY ${orderBy};
-`);
-  return results;
+  if (table == 'Requests') {
+    const [results] = await sequelize.query(`
+    SELECT
+    id,
+    idir_userid,
+    project_name,
+    client_name,
+    realm,
+    public_access,
+    ARRAY_TO_STRING(dev_valid_redirect_uris, ', ') AS dev_valid_redirect_uris,
+    ARRAY_TO_STRING(test_valid_redirect_uris, ', ') AS test_valid_redirect_uris,
+    ARRAY_TO_STRING(prod_valid_redirect_uris, ', ') AS prod_valid_redirect_uris,
+    ARRAY_TO_STRING(environments, ', ') AS environments,
+    pr_number,
+    action_number,
+    created_at,
+    updated_at,
+    project_lead,
+    preferred_email,
+    new_to_sso,
+    agree_with_terms,
+    bceid_approved,
+    status,
+    archived,
+    idir_user_display_name,
+    additional_emails,
+    has_unread_notifications,
+    browser_flow_override,
+    team_id,
+    uses_team,
+    requester,
+    user_id,
+    service_type,
+    ARRAY_TO_STRING(dev_idps, ', ') AS dev_idps,
+    ARRAY_TO_STRING(test_idps, ', ') AS test_idps,
+    ARRAY_TO_STRING(prod_idps, ', ') AS prod_idps,
+    ARRAY_TO_STRING(dev_roles, ', ') AS dev_roles,
+    ARRAY_TO_STRING(test_roles, ', ') AS test_roles,
+    ARRAY_TO_STRING(prod_roles, ', ') AS prod_roles,
+    dev_access_token_lifespan,
+    dev_offline_session_idle_timeout,
+    dev_offline_session_max_lifespan,
+    dev_session_idle_timeout,
+    dev_session_max_lifespan,
+    test_access_token_lifespan,
+    test_offline_session_idle_timeout,
+    test_offline_session_max_lifespan,
+    test_session_idle_timeout,
+    test_session_max_lifespan,
+    prod_access_token_lifespan,
+    prod_offline_session_idle_timeout,
+    prod_offline_session_max_lifespan,
+    prod_session_idle_timeout,
+    prod_session_max_lifespan,
+    client_id,
+    provisioned,
+    provisioned_at,
+    dev_login_title,
+    test_login_title,
+    prod_login_title,
+    service_account_enabled,
+    api_service_account,
+    auth_type
+    FROM ${table} ORDER BY ${orderBy};
+    `);
+    return results;
+  } else if (table == 'Events') {
+    const [results] = await sequelize.query(`
+    SELECT id, created_at, updated_at, request_id, event_code, idir_userid, details::text, idir_user_display_name FROM ${table} ORDER BY ${orderBy};
+    `);
+    return results;
+  } else {
+    const [results] = await sequelize.query(`
+    SELECT * FROM ${table} ORDER BY ${orderBy};
+    `);
+    return results;
+  }
 };
 
 export const getBceidApprovedRequestsAndEvents = async () => {
