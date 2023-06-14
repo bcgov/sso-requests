@@ -19,7 +19,6 @@ import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
   listClientRoles,
-  listComposites,
   deleteRole,
   listRoleUsers,
   getCompositeClientRoles,
@@ -217,31 +216,25 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     if (roleLoading) return;
 
     setRoleLoading(true);
-    const [rolesData, rolesErr] = await listClientRoles({
+    const [data, err] = await listClientRoles({
       environment,
       integrationId: integration.id as number,
       search: searchKey,
     });
 
-    const [compositeData, compositeErr] = await listComposites({
-      environment,
-      integrationId: integration.id as number,
-      search: searchKey,
-    });
+    const _roles = data == null ? [] : data[0] == null ? [] : data[0];
 
-    const _roles = rolesData || [];
-
-    if (rolesErr || !rolesData) {
+    if (err || !data) {
       alert.show({
         variant: 'danger',
         fadeOut: 5000,
         closable: true,
-        content: rolesErr?.message || 'failed to fetch roles',
+        content: err?.message || 'failed to fetch roles',
       });
     }
 
     setRoles(_roles);
-    setCompositeResult(compositeData == null ? [] : compositeData);
+    setCompositeResult(data == null ? [] : data[1] == null ? [] : data[1]);
     setRoleLoading(false);
 
     if (_roles.length === 1) {

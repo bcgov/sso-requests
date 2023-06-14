@@ -117,7 +117,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
-    const roles = data || [];
+    const roles = data == null ? [] : data[0] == null ? [] : data[0];
 
     setRoles(roles);
     setLoading(false);

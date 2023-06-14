@@ -21,7 +21,7 @@ const listClientRolesResponse = ['role1'];
 const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role#service-account-role-management';
 
 jest.mock('services/keycloak', () => ({
-  listClientRoles: jest.fn(() => Promise.resolve([[...listClientRolesResponse], null])),
+  listClientRoles: jest.fn(() => Promise.resolve([[[...listClientRolesResponse], null], []])),
   listUserRoles: jest.fn(() => Promise.resolve([[], null])),
   manageUserRoles: jest.fn(() => Promise.resolve([true, null])),
 }));

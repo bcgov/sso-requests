@@ -34,13 +34,9 @@ export const getClientRole = async (sessionUserId: number, role: any) => {
 export const listRoles = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role);
   const roles = await listClientRoles(integration, role);
-  return roles.map((role) => role.name);
-};
-
-export const listComposites = async (sessionUserId: number, role: any) => {
-  const integration = await validateIntegration(sessionUserId, role);
-  const roles = await listClientRoles(integration, role);
-  return roles.map((role) => role.composite);
+  const rolesResult = roles.map((role) => role.name);
+  const compositeResult = roles.map((role) => role.composite);
+  return [rolesResult, compositeResult];
 };
 
 export const deleteRoles = async (sessionUserId: number, role: any) => {

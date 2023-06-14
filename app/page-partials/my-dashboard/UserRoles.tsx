@@ -17,13 +17,7 @@ import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
-import {
-  searchKeycloakUsers,
-  listClientRoles,
-  listComposites,
-  listUserRoles,
-  manageUserRoles,
-} from 'services/keycloak';
+import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
@@ -229,17 +223,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
-    const [compositeData, compositeErr] = await listComposites({
-      environment: selectedEnvironment,
-      integrationId: selectedRequest.id as number,
-      first: 0,
-      max: 1000,
-    });
-
-    const roles = data || [];
+    const roles = data == null ? [] : data[0] == null ? [] : data[0];
 
     setRoles(roles);
-    setCompositeResult(compositeData == null ? [] : compositeData);
+    setCompositeResult(data == null ? [] : data[1] == null ? [] : data[1]);
     setLoading(false);
   };
 

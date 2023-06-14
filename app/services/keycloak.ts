@@ -77,28 +77,6 @@ export const listClientRoles = async ({
   }
 };
 
-export const listComposites = async ({
-  environment,
-  integrationId,
-  search = '',
-}: {
-  environment: string;
-  integrationId: number;
-  search?: string;
-  first?: number;
-  max?: number;
-}): Promise<any[]> => {
-  try {
-    const result = await instance
-      .post('keycloak/composites', { environment, integrationId, search })
-      .then((res) => res.data);
-    return [result, null];
-  } catch (err: any) {
-    console.error(err);
-    return [null, err];
-  }
-};
-
 export const setCompositeClientRoles = async ({
   environment,
   integrationId,

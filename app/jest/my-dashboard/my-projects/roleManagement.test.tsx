@@ -26,7 +26,7 @@ jest.mock('services/request', () => {
 });
 
 jest.mock('services/keycloak', () => ({
-  listClientRoles: jest.fn(() => Promise.resolve([['role-1', 'role-02'], null])),
+  listClientRoles: jest.fn(() => Promise.resolve([[['role-1', 'role-02'], null], []])),
   listComposites: jest.fn(() => Promise.resolve([[false, false], null])),
   listRoleUsers: jest.fn(() =>
     Promise.resolve([
