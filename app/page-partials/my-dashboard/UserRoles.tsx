@@ -17,7 +17,13 @@ import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
-import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
+import {
+  searchKeycloakUsers,
+  listClientRoles,
+  listComposites,
+  listUserRoles,
+  manageUserRoles,
+} from 'services/keycloak';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
@@ -184,6 +190,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [rows, setRows] = useState<KeycloakUser[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
   //@ts-ignore
   const [selectedIdp, setSelectedIdp] = useState<string>(selectedRequest.devIdps[0]);
@@ -222,9 +229,17 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
+    const [compositeData, compositeErr] = await listComposites({
+      environment: selectedEnvironment,
+      integrationId: selectedRequest.id as number,
+      first: 0,
+      max: 1000,
+    });
+
     const roles = data || [];
 
     setRoles(roles);
+    setCompositeResult(compositeData == null ? [] : compositeData);
     setLoading(false);
   };
 
@@ -346,6 +361,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setUserRoles(newRoles);
   };
 
+  const updateRoleName = (role: string, index: number) => {
+    if (compositeResult[index] == true) return `${role} (Composite role)`;
+    else return role;
+  };
+
   let rightPanel = null;
 
   if (loadingRight) {
@@ -356,7 +376,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         <Label>2. Assign User to a Role</Label>
         <Select
           value={userRoles.map((role) => ({ value: role, label: role }))}
-          options={roles.map((role) => ({ value: role, label: role }))}
+          options={roles.map((role, index) => ({ value: role, label: updateRoleName(role, index) }))}
           isMulti={true}
           placeholder="Select..."
           noOptionsMessage={() => 'No roles'}

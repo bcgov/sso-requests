@@ -37,6 +37,12 @@ export const listRoles = async (sessionUserId: number, role: any) => {
   return roles.map((role) => role.name);
 };
 
+export const listComposites = async (sessionUserId: number, role: any) => {
+  const integration = await validateIntegration(sessionUserId, role);
+  const roles = await listClientRoles(integration, role);
+  return roles.map((role) => role.composite);
+};
+
 export const deleteRoles = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role);
   if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to delete role');

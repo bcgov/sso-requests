@@ -51,7 +51,7 @@ import { getAllowedTeam, getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
-import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
+import { createClientRole, deleteRoles, listRoles, listComposites, getClientRole } from './controllers/roles';
 import { getAllStandardIntegrations, getDatabaseTable, getBceidApprovedRequestsAndEvents } from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
@@ -291,6 +291,15 @@ export const setRoutes = (app: any) => {
   app.post(`/keycloak/roles`, async (req, res) => {
     try {
       const result = await listRoles((req.session as Session).user.id, req.body);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post(`/keycloak/composites`, async (req, res) => {
+    try {
+      const result = await listComposites((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

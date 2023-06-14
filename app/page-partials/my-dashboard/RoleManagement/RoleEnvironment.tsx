@@ -19,6 +19,7 @@ import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
   listClientRoles,
+  listComposites,
   deleteRole,
   listRoleUsers,
   getCompositeClientRoles,
@@ -31,6 +32,8 @@ import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
 import noop from 'lodash.noop';
+
+const COMPOSITE_ROLE_STRING_LENGTH = 17;
 
 const Label = styled.label`
   font-weight: bold;
@@ -139,6 +142,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const [users, setUsers] = useState<KeycloakUser[]>([]);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
+  const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
   const [rightPanelTabs, setRightPanelTabs] = useState<string[]>([]);
   const [currentIntegrationID, setCurrentIntegrationID] = useState<number>();
   const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
@@ -173,6 +177,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
 
         if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         await setSaving(false);
+        fetchRoles();
       },
       2000,
       { trailing: true },
@@ -212,24 +217,31 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     if (roleLoading) return;
 
     setRoleLoading(true);
-    const [data, err] = await listClientRoles({
+    const [rolesData, rolesErr] = await listClientRoles({
       environment,
       integrationId: integration.id as number,
       search: searchKey,
     });
 
-    const _roles = data || [];
+    const [compositeData, compositeErr] = await listComposites({
+      environment,
+      integrationId: integration.id as number,
+      search: searchKey,
+    });
 
-    if (err || !data) {
+    const _roles = rolesData || [];
+
+    if (rolesErr || !rolesData) {
       alert.show({
         variant: 'danger',
         fadeOut: 5000,
         closable: true,
-        content: err?.message || 'failed to fetch roles',
+        content: rolesErr?.message || 'failed to fetch roles',
       });
     }
 
     setRoles(_roles);
+    setCompositeResult(compositeData == null ? [] : compositeData);
     setRoleLoading(false);
 
     if (_roles.length === 1) {
@@ -309,6 +321,11 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     setCompositeLoading(false);
   };
 
+  const updateRoleName = (role: string, index: number) => {
+    if (compositeResult[index] == true) return `${role} (Composite role)`;
+    else return role;
+  };
+
   const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchKey(event.target.value);
   };
@@ -320,6 +337,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   };
 
   const handleDelete = async (roleName: string) => {
+    console.log('handleDelete', roleName);
     confirmModalRef.current.open(roleName);
   };
 
@@ -328,7 +346,11 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   };
 
   const activateRow = (request: any) => {
-    setSelectedRole(request['cells'][0].value);
+    const row = request['cells'][0].value;
+    if (row.endsWith(' (Composite role)')) {
+      const roleLength = request['cells'][0].value.length;
+      setSelectedRole(row.substr(0, roleLength - COMPOSITE_ROLE_STRING_LENGTH));
+    } else setSelectedRole(row);
   };
 
   let rightPanel = null;
@@ -507,9 +529,9 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       noDataFoundElement={<td>No roles found.</td>}
       activateRow={activateRow}
       rowSelectorKey={'role'}
-      data={roles.map((role: string) => {
+      data={roles.map((role: string, index: number) => {
         return {
-          role: role,
+          role: updateRoleName(role, index),
           actions: (
             <AlignRight>
               <ActionButton
