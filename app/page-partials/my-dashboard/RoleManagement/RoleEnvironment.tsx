@@ -177,7 +177,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
 
         if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         await setSaving(false);
-        fetchRoles();
+        await fetchRoles();
       },
       2000,
       { trailing: true },
