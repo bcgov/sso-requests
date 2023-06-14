@@ -337,7 +337,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   };
 
   const handleDelete = async (roleName: string) => {
-    console.log('handleDelete', roleName);
     confirmModalRef.current.open(roleName);
   };
 
