@@ -211,9 +211,6 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
     </MobileSubMenu>
   );
 
-  const isMyDashboard = String(router.pathname).startsWith('/my-dashboard');
-  const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
-
   return (
     <TopAlertProvider>
       <BCSans />
@@ -233,22 +230,6 @@ function Layout({ children, session, user, enableGold, onLoginClick, onLogoutCli
         </SubMenu>
       </Navigation>
       <MainContent>
-        {enableGold && isMyDashboard && hasSilverIntegration && (
-          <TopAlertWrapper>
-            <Alert variant="info" closable={true}>
-              <span className="normal">
-                Kudos to those who completed their Gold Service Migration. For those still on Silver, reach out to{' '}
-                <span className="strong">
-                  <Link href="mailto:bcgov.sso@gov.bc.ca">us</Link>{' '}
-                </span>
-                on your timelines to migrate.{' '}
-                <span className="strong">
-                  Please note that Silver realms will not be supported as of February 3, 2023*.
-                </span>
-              </span>
-            </Alert>
-          </TopAlertWrapper>
-        )}
         <TopAlert>{children}</TopAlert>
       </MainContent>
       <Footer>
