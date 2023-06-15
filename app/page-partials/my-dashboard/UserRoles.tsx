@@ -223,10 +223,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
-    const roles = data == null ? [] : data[0] == null ? [] : data[0];
+    const roles = data == null ? [] : data.map((role: any) => role.name);
 
     setRoles(roles);
-    setCompositeResult(data == null ? [] : data[1] == null ? [] : data[1]);
+    setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
     setLoading(false);
   };
 

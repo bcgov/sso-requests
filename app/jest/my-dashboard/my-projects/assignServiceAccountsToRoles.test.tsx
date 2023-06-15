@@ -17,11 +17,11 @@ function ServiceAccountRolesComponent() {
   );
 }
 
-const listClientRolesResponse = ['role1'];
+const listClientRolesResponse = 'role1';
 const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role#service-account-role-management';
 
 jest.mock('services/keycloak', () => ({
-  listClientRoles: jest.fn(() => Promise.resolve([[[...listClientRolesResponse], null], []])),
+  listClientRoles: jest.fn(() => Promise.resolve([[{ name: listClientRolesResponse }], null])),
   listUserRoles: jest.fn(() => Promise.resolve([[], null])),
   manageUserRoles: jest.fn(() => Promise.resolve([true, null])),
 }));
@@ -71,13 +71,13 @@ describe('assign service accounts to roles', () => {
     fireEvent.keyDown(input as HTMLElement, { keyCode: 40 });
 
     // step: 2 Selects the dropdown option and close the dropdown options list
-    const option = await screen.findByText(listClientRolesResponse[0]);
+    const option = await screen.findByText(listClientRolesResponse);
     await waitFor(() => {
       // its a label in options list
       fireEvent.click(option);
     });
 
     // step: 3 Check the selected value
-    expect(getByTestId('assign-svc-acct-to-role-select')).toHaveTextContent(listClientRolesResponse[0]);
+    expect(getByTestId('assign-svc-acct-to-role-select')).toHaveTextContent(listClientRolesResponse);
   });
 });

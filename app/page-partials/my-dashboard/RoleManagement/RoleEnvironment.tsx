@@ -222,7 +222,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       search: searchKey,
     });
 
-    const _roles = data == null ? [] : data[0] == null ? [] : data[0];
+    const _roles = data == null ? [] : data.map((role: any) => role.name);
 
     if (err || !data) {
       alert.show({
@@ -234,7 +234,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     }
 
     setRoles(_roles);
-    setCompositeResult(data == null ? [] : data[1] == null ? [] : data[1]);
+    setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
     setRoleLoading(false);
 
     if (_roles.length === 1) {
