@@ -32,6 +32,8 @@ import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/
 import { KeycloakUser } from 'interfaces/team';
 import noop from 'lodash.noop';
 
+const COMPOSITE_ROLE_STRING_LENGTH = 17;
+
 const Label = styled.label`
   font-weight: bold;
   margin-bottom: 2px;
@@ -139,6 +141,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const [users, setUsers] = useState<KeycloakUser[]>([]);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [compositeRoles, setCompositeRoles] = useState<Option[]>([]);
+  const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
   const [rightPanelTabs, setRightPanelTabs] = useState<string[]>([]);
   const [currentIntegrationID, setCurrentIntegrationID] = useState<number>();
   const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
@@ -173,6 +176,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
 
         if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         await setSaving(false);
+        await fetchRoles();
       },
       2000,
       { trailing: true },
@@ -218,7 +222,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       search: searchKey,
     });
 
-    const _roles = data || [];
+    const _roles = data == null ? [] : data.map((role: any) => role.name);
 
     if (err || !data) {
       alert.show({
@@ -230,6 +234,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     }
 
     setRoles(_roles);
+    setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
     setRoleLoading(false);
 
     if (_roles.length === 1) {
@@ -309,6 +314,11 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     setCompositeLoading(false);
   };
 
+  const updateRoleName = (role: string, index: number) => {
+    if (compositeResult[index] == true) return `${role} (Composite role)`;
+    else return role;
+  };
+
   const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchKey(event.target.value);
   };
@@ -328,7 +338,11 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   };
 
   const activateRow = (request: any) => {
-    setSelectedRole(request['cells'][0].value);
+    const row = request['cells'][0].value;
+    if (row.endsWith(' (Composite role)')) {
+      const roleLength = request['cells'][0].value.length;
+      setSelectedRole(row.substr(0, roleLength - COMPOSITE_ROLE_STRING_LENGTH));
+    } else setSelectedRole(row);
   };
 
   let rightPanel = null;
@@ -507,9 +521,9 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       noDataFoundElement={<td>No roles found.</td>}
       activateRow={activateRow}
       rowSelectorKey={'role'}
-      data={roles.map((role: string) => {
+      data={roles.map((role: string, index: number) => {
         return {
-          role: role,
+          role: updateRoleName(role, index),
           actions: (
             <AlignRight>
               <ActionButton

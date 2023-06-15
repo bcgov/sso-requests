@@ -184,6 +184,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [rows, setRows] = useState<KeycloakUser[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
   //@ts-ignore
   const [selectedIdp, setSelectedIdp] = useState<string>(selectedRequest.devIdps[0]);
@@ -222,9 +223,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
-    const roles = data || [];
+    const roles = data == null ? [] : data.map((role: any) => role.name);
 
     setRoles(roles);
+    setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
     setLoading(false);
   };
 
@@ -346,6 +348,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setUserRoles(newRoles);
   };
 
+  const updateRoleName = (role: string, index: number) => {
+    if (compositeResult[index] == true) return `${role} (Composite role)`;
+    else return role;
+  };
+
   let rightPanel = null;
 
   if (loadingRight) {
@@ -356,7 +363,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         <Label>2. Assign User to a Role</Label>
         <Select
           value={userRoles.map((role) => ({ value: role, label: role }))}
-          options={roles.map((role) => ({ value: role, label: role }))}
+          options={roles.map((role, index) => ({ value: role, label: updateRoleName(role, index) }))}
           isMulti={true}
           placeholder="Select..."
           noOptionsMessage={() => 'No roles'}

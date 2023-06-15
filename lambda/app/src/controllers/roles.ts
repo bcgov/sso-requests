@@ -13,6 +13,7 @@ import {
   getCompositeClientRoles,
   setCompositeClientRoles,
 } from '../keycloak/users';
+import { resolveAny } from 'dns';
 
 const validateIntegration = async (sessionUserId: number, role: any) => {
   const int = await findAllowedIntegrationInfo(sessionUserId, role.integrationId);
@@ -33,8 +34,7 @@ export const getClientRole = async (sessionUserId: number, role: any) => {
 
 export const listRoles = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role);
-  const roles = await listClientRoles(integration, role);
-  return roles.map((role) => role.name);
+  return await listClientRoles(integration, role);
 };
 
 export const deleteRoles = async (sessionUserId: number, role: any) => {
