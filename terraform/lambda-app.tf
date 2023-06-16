@@ -50,7 +50,7 @@ resource "aws_lambda_function" "app" {
       KEYCLOAK_V2_PROD_URL           = var.keycloak_v2_prod_url
       KEYCLOAK_V2_PROD_CLIENT_ID     = var.keycloak_v2_prod_client_id
       KEYCLOAK_V2_PROD_CLIENT_SECRET = var.keycloak_v2_prod_client_secret
-      BCEID_WEBSERVICE_PROXY         = var.bceid_webservice_proxy
+      REALM_REGISTRY_API             = var.realm_registry_api
       GH_ACCESS_TOKEN                = var.gh_access_token
       GH_REPO                        = var.gh_repo
       GH_WORKFLOW_ID                 = var.gh_workflow_id

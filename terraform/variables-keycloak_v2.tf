@@ -46,7 +46,7 @@ variable "keycloak_v2_prod_client_secret" {
   description = "Keycloak v2 service account client secret in customer prod environment"
 }
 
-variable "bceid_webservice_proxy" {
+variable "realm_registry_api" {
   type        = string
-  description = "BCEID Webservice proxy endpoint"
+  description = "Realm Registry API URL"
 }

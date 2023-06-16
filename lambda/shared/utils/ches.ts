@@ -35,7 +35,8 @@ const fetchChesToken = async (username, password) => {
 };
 
 export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, body, ...rest }: EmailOptions) => {
-  const { CHES_USERNAME: username, CHES_PASSWORD: password, CHES_API_ENDPOINT: chesAPIEndpoint } = process.env;
+  const { CHES_USERNAME: username, CHES_PASSWORD: password, REALM_REGISTRY_API: realmRegistryApi } = process.env;
+  const chesAPIEndpoint = realmRegistryApi + '/emails';
   const [accessToken, error] = await fetchChesToken(username, password);
   if (error) throw Error(error);
 
@@ -56,8 +57,6 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, bo
     headers: { Authorization: `Bearer ${accessToken}` },
     httpsAgent,
   };
-
-  console.log('DEBUG: ', chesAPIEndpoint, reqPayload, reqOptions);
 
   // see https://github.com/axios/axios/issues/1650#issuecomment-410403394
   // see https://nodejs.org/api/cli.html#node_tls_reject_unauthorizedvalue
