@@ -50,7 +50,7 @@ jobs:
           KEYCLOAK_V2_DEV_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
           KEYCLOAK_V2_TEST_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
           KEYCLOAK_V2_PROD_CLIENT_SECRET=${{ secrets.DEV_KEYCLOAK_V2_PROD_CLIENT_SECRET }}
-          REALM_REGISTRY_API=${{ secrets.REALM_REGISTRY_API }}
+          REALM_REGISTRY_API=${{ secrets.DEV_REALM_REGISTRY_API }}
           CHES_TOKEN_ENDPOINT=https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
           CHES_API_ENDPOINT=https://ches.api.gov.bc.ca/api/v1/email
           CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
@@ -85,7 +85,7 @@ jobs:
           KEYCLOAK_V2_DEV_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
           KEYCLOAK_V2_TEST_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
           KEYCLOAK_V2_PROD_CLIENT_SECRET=${{ secrets.PROD_KEYCLOAK_V2_PROD_CLIENT_SECRET }}
-          REALM_REGISTRY_API=${{ secrets.REALM_REGISTRY_API }}
+          REALM_REGISTRY_API=${{ secrets.PROD_REALM_REGISTRY_API }}
           CHES_TOKEN_ENDPOINT=https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
           CHES_API_ENDPOINT=https://ches.api.gov.bc.ca/api/v1/email
           CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
