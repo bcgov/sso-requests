@@ -27,8 +27,6 @@ instance.interceptors.request.use(
   },
 );
 
-const applicationBlockingErrors = ['E01'];
-
 instance.interceptors.response.use(
   function (response) {
     return response;
@@ -41,15 +39,21 @@ instance.interceptors.response.use(
             pathname: '/application-error',
             query: { error: 'E04' },
           });
+          break;
+        case 408:
+          Router.push({
+            pathname: '/application-error',
+            query: { error: 'E04' },
+          });
+          break;
         default:
-          const errorMessage = error.response.data?.message;
-          if (applicationBlockingErrors.includes(errorMessage))
-            Router.push({
-              pathname: '/application-error',
-              query: {
-                error: errorMessage,
-              },
-            });
+          Router.push({
+            pathname: '/application-error',
+            query: {
+              error: 'E05',
+            },
+          });
+          break;
       }
     }
 
