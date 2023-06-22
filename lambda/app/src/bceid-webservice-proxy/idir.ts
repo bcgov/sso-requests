@@ -4,7 +4,7 @@ import { createIdirUser } from '../keycloak/users';
 export const searchIdirUsers = async (bearerToken: string, { field, search }: { field: string; search: string }) => {
   const results = await axios
     .post(
-      `${process.env.BCEID_WEBSERVICE_PROXY}/idir`,
+      `${process.env.REALM_REGISTRY_API}/bceid-service/idir`,
       { field, search },
       {
         headers: { Authorization: `Bearer ${bearerToken}` },
@@ -18,7 +18,7 @@ export const searchIdirUsers = async (bearerToken: string, { field, search }: { 
 export const importIdirUser = async (bearerToken: string, { guid, userId }: { guid: string; userId: string }) => {
   const results = await axios
     .post(
-      `${process.env.BCEID_WEBSERVICE_PROXY}/idir`,
+      `${process.env.REALM_REGISTRY_API}/bceid-service/idir`,
       { field: 'userId', search: userId },
       {
         headers: { Authorization: `Bearer ${bearerToken}` },

@@ -7,6 +7,7 @@ import { getTemplate as getE01Template } from '@app/error-messages/e01';
 import { getTemplate as getE02Template } from '@app/error-messages/e02';
 import { getTemplate as getE03Template } from '@app/error-messages/e03';
 import { getTemplate as getE04Template } from '@app/error-messages/e04';
+import { getTemplate as getE05Template } from '@app/error-messages/e05';
 import { getMaintenanceTemplate } from '@app/error-messages/maintenance';
 
 const Container = styled.div`
@@ -32,6 +33,9 @@ export default function ApplicationError() {
       break;
     case 'e04':
       [title, content] = getE04Template();
+      break;
+    case 'e05':
+      [title, content] = getE05Template();
       break;
     case 'maintenance':
       [title, content] = getMaintenanceTemplate();

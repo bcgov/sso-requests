@@ -176,6 +176,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState<number>(1);
   const [count, setCount] = useState<number>(0);
+  const [limit, setLimit] = useState<number>(PAGE_LIMIT);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -183,6 +184,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [rows, setRows] = useState<KeycloakUser[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
   //@ts-ignore
   const [selectedIdp, setSelectedIdp] = useState<string>(selectedRequest.devIdps[0]);
@@ -221,9 +223,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
-    const roles = data || [];
+    const roles = data == null ? [] : data.map((role: any) => role.name);
 
     setRoles(roles);
+    setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
     setLoading(false);
   };
 
@@ -268,6 +271,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   useEffect(() => {
     searchResults(searchKey, undefined, page);
   }, [page]);
+
+  useEffect(() => {
+    searchResults(searchKey, undefined, 1);
+  }, [limit]);
 
   useEffect(() => {
     reset();
@@ -341,6 +348,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setUserRoles(newRoles);
   };
 
+  const updateRoleName = (role: string, index: number) => {
+    if (compositeResult[index] == true) return `${role} (Composite role)`;
+    else return role;
+  };
+
   let rightPanel = null;
 
   if (loadingRight) {
@@ -351,7 +363,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         <Label>2. Assign User to a Role</Label>
         <Select
           value={userRoles.map((role) => ({ value: role, label: role }))}
-          options={roles.map((role) => ({ value: role, label: role }))}
+          options={roles.map((role, index) => ({ value: role, label: updateRoleName(role, index) }))}
           isMulti={true}
           placeholder="Select..."
           noOptionsMessage={() => 'No roles'}
@@ -549,6 +561,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               noDataFoundElement={getTableStatusText()}
               pagination={true}
               pageLimits={[PAGE_LIMIT]}
+              onPage={setPage}
+              rowCount={count}
+              limit={limit}
+              onLimit={(val) => {
+                setLimit(val);
+              }}
               activateRow={activateRow}
               searchTooltip={searchTooltip}
             ></Table>
