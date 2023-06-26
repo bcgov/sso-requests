@@ -74,8 +74,12 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
   };
 
   const updateServiceAccounts = async () => {
-    const [serviceAccounts] = await getServiceAccounts(activeTeamId);
-    setServiceAccounts(serviceAccounts);
+    if (activeTeam?.role === 'admin') {
+      const [data] = await getServiceAccounts(activeTeamId);
+      setServiceAccounts(data);
+    } else {
+      setServiceAccounts([]);
+    }
   };
 
   useEffect(() => {
