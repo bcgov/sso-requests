@@ -74,7 +74,7 @@ jest.mock('services/request', () => ({
         environments: ['dev'],
         archived: false,
         usesTeam: true,
-        serviceType: 'silver',
+        serviceType: 'gold',
         status: 'applied',
       },
       {

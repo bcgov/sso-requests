@@ -1,10 +1,9 @@
-import React, { useState, useContext, useMemo, useReducer } from 'react';
+import React from 'react';
 import { useRouter } from 'next/router';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
-import { SessionContext, SessionContextInterface } from 'pages/_app';
 
 export const mediaRules: MediaRule[] = [
   {
@@ -43,9 +42,6 @@ interface Props {
 
 function MyDashboardLayout({ tab, leftPanel, rightPanel, children }: Props) {
   const router = useRouter();
-  const context = useContext<SessionContextInterface | null>(SessionContext);
-  const { user, enableGold } = context || {};
-  const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
 
   const navigateTab = (key: any) => {
     router.replace(`/my-dashboard/${key}`);
@@ -55,7 +51,6 @@ function MyDashboardLayout({ tab, leftPanel, rightPanel, children }: Props) {
     <Tabs onChange={navigateTab} activeKey={tab} tabBarGutter={30}>
       <Tab key="integrations" tab="My Projects" />
       <Tab key="teams" tab="My Teams" />
-      {enableGold && hasSilverIntegration && <Tab key="s2g" tab="*New - Silver to Gold Upgrade" />}
     </Tabs>
   );
 

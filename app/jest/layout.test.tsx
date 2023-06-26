@@ -23,8 +23,8 @@ const user: User = {
 
 function LayoutComponent() {
   return (
-    <SessionContext.Provider value={{ session, user, enableGold: true }}>
-      <Layout session={session} user={user} enableGold={true} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+    <SessionContext.Provider value={{ session, user }}>
+      <Layout session={session} user={user} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
     </SessionContext.Provider>
   );
 }
@@ -125,9 +125,7 @@ describe('Layout page', () => {
   });
 
   it('testing on the log in button', () => {
-    render(
-      <Layout session={null} user={null} enableGold={true} onLoginClick={handleLogin} onLogoutClick={handleLogout} />,
-    );
+    render(<Layout session={null} user={null} onLoginClick={handleLogin} onLogoutClick={handleLogout} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Log in' }));
     expect(handleLogin).toHaveBeenCalled();

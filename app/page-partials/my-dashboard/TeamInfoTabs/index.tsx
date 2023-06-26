@@ -48,8 +48,6 @@ import ServiceAccountsList from './ServiceAccountsList';
 import isEmpty from 'lodash.isempty';
 import { InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { enable_gold } = publicRuntimeConfig;
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -595,7 +593,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        {enable_gold && isAdmin && (
+        {isAdmin && (
           <Tab key="service-accounts" tab="CSS API Account">
             <TabWrapper marginTop="10px">
               {loading ? (

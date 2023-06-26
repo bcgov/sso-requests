@@ -22,9 +22,6 @@ interface Props {
 
 function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, children }: Props) {
   const router = useRouter();
-  const context = useContext<SessionContextInterface | null>(SessionContext);
-  const { user, enableGold } = context || {};
-  const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
 
   const navigateTab = (key: any) => {
     router.replace(`/my-dashboard/${key}`);

@@ -114,18 +114,6 @@ variable "local_dev" {
   default     = "false"
 }
 
-variable "allow_silver" {
-  type        = string
-  description = "whether to run lambda functions in local dev environment"
-  default     = "true"
-}
-
-variable "allow_gold" {
-  type        = string
-  description = "whether to run lambda functions in local dev environment"
-  default     = "true"
-}
-
 variable "ches_password" {
   type        = string
   description = "password for ches service"

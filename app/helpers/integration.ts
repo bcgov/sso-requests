@@ -16,7 +16,7 @@ export const checkNotGithubGroup = (idp: string) => !checkGithubGroup(idp);
 export const usesBceid = (integration: Integration) => {
   if (!integration) return false;
 
-  const { serviceType = 'silver', devIdps = [], realm = '' } = integration;
+  const { serviceType = 'gold', devIdps = [], realm = '' } = integration;
 
   if (serviceType === 'gold') {
     return devIdps.some(checkBceidGroup);
@@ -28,7 +28,7 @@ export const usesBceid = (integration: Integration) => {
 export const usesGithub = (integration: Integration) => {
   if (!integration) return false;
 
-  const { serviceType = 'silver', devIdps = [] } = integration;
+  const { serviceType = 'gold', devIdps = [] } = integration;
   if (serviceType !== 'gold') return false;
 
   return devIdps.some(checkGithubGroup);
