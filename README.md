@@ -156,6 +156,9 @@ Error codes we use for the application:
 
 - `E01`: There is an application in the `sso-terraform` repository that cannot be applied, blocking new requests
 - `E02`: The user has a token in their session storage that is invalid
+- `E03`: Missing of invalid email address associated with your IDIR account
+- `E04`: Request timeout
+- `E05`: 503 Service Temporarily Unavailable
 
 ## Reporting
 
