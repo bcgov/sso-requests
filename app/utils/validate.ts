@@ -69,8 +69,8 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       }
     },
     createTeam: () => {
-      if (usesTeam && !teamId) {
-        errors['createTeam'].addError('Please select or create a team');
+      if (usesTeam && (!teamId || teamId == '')) {
+        errors['createTeam']?.addError('Please select or create a team');
       }
     },
     additionalRoleAttribute: () => {

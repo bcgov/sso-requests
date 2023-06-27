@@ -193,7 +193,7 @@ export const formatChangeEventDetails = (changes: Change[]) => {
         return (
           <>
             <strong>Edited {changedPath}: </strong>
-            Changed <code>{String(lhs)}</code> to <code>{rhs}</code>
+            Changed <code>{String(lhs)}</code> to <code>{String(rhs)}</code>
           </>
         );
       case 'A':
