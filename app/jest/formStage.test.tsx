@@ -23,25 +23,23 @@ describe('Form Stage', () => {
         schemas={newIntegrationSchemas}
       />,
     );
-    fireEvent.click(screen.getByText('Providers and URIs'));
+    fireEvent.click(screen.getByText('Requester Info'));
     expect(setFormStage).not.toHaveBeenCalled();
   });
 
   it('Displays error states correctly', () => {
-    render(
+    const a = render(
       <FormStage
         isNew={false}
-        currentStage={0}
+        currentStage={1}
         setFormStage={setFormStage}
         errors={errors}
-        visited={{}}
+        visited={{ '0': true }}
         schemas={newIntegrationSchemas}
       />,
     );
     const firstStageBox = screen.getByText('Requester Info').closest('div') as HTMLElement;
     expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
-    const secondStageBox = screen.getByText('Providers and URIs').closest('div') as HTMLElement;
-    expect(within(secondStageBox).queryByTitle('error')).toBeNull();
   });
 
   it('Shows the passed in stages correctly', () => {

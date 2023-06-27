@@ -45,28 +45,28 @@ describe('Get Requested Environments', () => {
   it('returns the expected environments for idir', () => {
     expect(
       getRequestedEnvironments({
-        realm: 'onestopauth',
+        realm: 'standard',
         environments: ['dev'],
       }).map((v) => v.name),
     ).toEqual(['dev']);
 
     expect(
       getRequestedEnvironments({
-        realm: 'onestopauth',
+        realm: 'standard',
         environments: ['test'],
       }).map((v) => v.name),
     ).toEqual(['test']);
 
     expect(
       getRequestedEnvironments({
-        realm: 'onestopauth',
+        realm: 'standard',
         environments: ['dev', 'test'],
       }).map((v) => v.name),
     ).toEqual(['dev', 'test']);
 
     expect(
       getRequestedEnvironments({
-        realm: 'onestopauth',
+        realm: 'standard',
         environments: ['dev', 'test', 'prod'],
       }).map((v) => v.name),
     ).toEqual(['dev', 'test', 'prod']);
@@ -75,36 +75,52 @@ describe('Get Requested Environments', () => {
   it('returns the expected environments for bceid', () => {
     expect(
       getRequestedEnvironments({
-        realm: 'onestopauth-basic',
+        realm: 'standard',
         environments: ['dev'],
       }).map((v) => v.name),
     ).toEqual(['dev']);
 
     expect(
       getRequestedEnvironments({
-        realm: 'onestopauth-basic',
+        realm: 'standard',
         environments: ['test'],
       }).map((v) => v.name),
     ).toEqual(['test']);
 
     expect(
       getRequestedEnvironments({
-        realm: 'onestopauth-basic',
+        realm: 'standard',
         environments: ['dev', 'test'],
       }).map((v) => v.name),
     ).toEqual(['dev', 'test']);
 
-    expect(
+    console.log(
       getRequestedEnvironments({
-        realm: 'onestopauth-basic',
+        realm: 'standard',
         environments: ['dev', 'test', 'prod'],
         bceidApproved: false,
-      }).map((v) => v.name),
-    ).toEqual(['dev', 'test']);
+      }),
+    );
 
     expect(
       getRequestedEnvironments({
-        realm: 'onestopauth-basic',
+        realm: 'standard',
+        environments: ['dev', 'test', 'prod'],
+        bceidApproved: false,
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test', 'prod']);
+
+    console.log(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev', 'test', 'prod'],
+        bceidApproved: true,
+      }),
+    );
+
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
         environments: ['dev', 'test', 'prod'],
         bceidApproved: true,
       }).map((v) => v.name),

@@ -2,7 +2,6 @@ import { Integration } from 'interfaces/Request';
 import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';
 import { Team } from 'interfaces/team';
-import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 const Table = styled.table`
   font-size: unset;

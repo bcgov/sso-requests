@@ -5,7 +5,6 @@ import { Integration, Option, SilverIDPOption, GoldIDPOption } from 'interfaces/
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
-import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const silver_realms: SilverIDPOption = {
@@ -42,38 +41,32 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {
-  const { bceidApproved, githubApproved, environments = [], serviceType } = integration;
+  const { bceidApproved, githubApproved, environments = [] } = integration;
 
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
   const options = environmentOptions.map((option) => {
-    const idps = serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
+    const idps = integration.devIdps;
     return { ...option, idps: idps || [] };
   });
 
-  if (serviceType === 'gold') {
-    const bceidApplying = checkIfBceidProdApplying(integration);
-    const githubApplying = checkIfGithubProdApplying(integration);
+  const bceidApplying = checkIfBceidProdApplying(integration);
+  const githubApplying = checkIfGithubProdApplying(integration);
 
-    let envs = options.filter((env) => environments.includes(env.name));
-    if (hasBceid && (!bceidApproved || bceidApplying))
-      envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter(checkNotBceidGroup);
-        return env;
-      });
+  let envs = options.filter((env) => environments.includes(env.name));
+  if (hasBceid && (!bceidApproved || bceidApplying))
+    envs = envs.map((env) => {
+      if (env.name === 'prod') env.idps = env.idps.filter(checkNotBceidGroup);
+      return env;
+    });
 
-    if (hasGithub && (!githubApproved || githubApplying))
-      envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter(checkNotGithubGroup);
-        return env;
-      });
+  if (hasGithub && (!githubApproved || githubApplying))
+    envs = envs.map((env) => {
+      if (env.name === 'prod') env.idps = env.idps.filter(checkNotGithubGroup);
+      return env;
+    });
 
-    return envs;
-  }
-
-  let allowedEnvs = environments.concat() || [];
-  if (hasBceid && !bceidApproved) allowedEnvs = allowedEnvs.filter((env) => env !== 'prod');
-  return options.filter((env) => allowedEnvs.includes(env.name));
+  return envs;
 };
 
 export const parseError = (err: any) => {

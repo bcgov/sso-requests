@@ -54,7 +54,6 @@ describe('SSO Dashboard', () => {
     expect(screen.getByText('IDPs')).toBeInTheDocument();
     expect(screen.getByText('Workflow Status')).toBeInTheDocument();
     expect(screen.getByText('Archive Status')).toBeInTheDocument();
-    expect(screen.getAllByText('Service Type'));
 
     const searchInputField = screen.getByPlaceholderText('Project ID or Name');
     expect(searchInputField).toBeInTheDocument();
@@ -68,7 +67,6 @@ describe('SSO Dashboard', () => {
     expect(screen.getByText('Project Name')).toBeInTheDocument();
     expect(screen.getByText('Request Status')).toBeInTheDocument();
     expect(screen.getByText('File Status')).toBeInTheDocument();
-    expect(screen.getAllByText('Service Type'));
     expect(screen.getByText('Actions')).toBeInTheDocument();
 
     await waitFor(() => {
@@ -76,7 +74,7 @@ describe('SSO Dashboard', () => {
     });
 
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Gold Events Edit Delete',
+      name: '1 project_name_1 Applied Active Events Edit Delete',
     });
     fireEvent.click(firstRow);
     await waitFor(() => {
@@ -118,14 +116,6 @@ describe('SSO Dashboard', () => {
     const archiveStatusOption = await screen.findByText('Active');
     fireEvent.click(archiveStatusOption);
     expect(selectArchiveStatus[3]).toHaveTextContent('Active');
-
-    //Service Type dropdown
-    const selectServiceType = screen.getAllByTestId('multi-select-col-filter');
-    const serviceTypeInput = selectServiceType[4].firstChild;
-    fireEvent.keyDown(serviceTypeInput as HTMLElement, { keyCode: 40 });
-    const serviceTypeOption = await screen.findByText('Gold');
-    fireEvent.click(serviceTypeOption);
-    expect(selectServiceType[4]).toHaveTextContent('Gold');
   });
 
   it('testing Action buttons', async () => {
@@ -144,7 +134,7 @@ describe('SSO Dashboard', () => {
       screen.getByText('project_name_1');
     });
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Gold Events Edit Delete',
+      name: '1 project_name_1 Applied Active Events Edit Delete',
     });
     fireEvent.click(firstRow);
     await waitFor(() => {
@@ -213,7 +203,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Gold Events Edit Delete' });
+    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Events Edit Delete' });
     fireEvent.click(firstRow);
 
     //open the tabpanel
@@ -250,7 +240,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Gold Events Edit Delete' });
+    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Events Edit Delete' });
     fireEvent.click(firstRow);
 
     //open the tabpanel
@@ -273,7 +263,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Gold Events Edit Delete' });
+    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Events Edit Delete' });
     fireEvent.click(firstRow);
 
     //open the tabpanel
@@ -296,7 +286,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Gold Events Edit Delete' });
+    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Events Edit Delete' });
     fireEvent.click(firstRow);
 
     //open the tabpanel
