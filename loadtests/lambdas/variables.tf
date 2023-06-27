@@ -102,7 +102,7 @@ variable "gh_secret" {
 variable "app_url" {
   type        = string
   description = "the frontend app base url"
-  default     = "https://bcgov.github.io/sso-requests-dev"
+  default     = "https://bcgov.github.io/sso-requests-sandbox"
 }
 
 variable "app_env" {
