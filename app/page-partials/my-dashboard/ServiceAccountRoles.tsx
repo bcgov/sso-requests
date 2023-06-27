@@ -157,7 +157,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
               external
               href="https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role#service-account-role-management"
             >
-              learn more
+              click to visit our wiki page
             </Link>
           </span>
         </Alert>

@@ -32,11 +32,11 @@ export default function FaqItems() {
       <StyledList>
         <li>Keep your email address active, and if you are not using your integration, clean it up</li>
         <li>
-          If you are not using your client app configuration{' '}
+          If you are not using your client app configuration,{' '}
           <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-            ask us
+            ask us at rocketchat
           </Link>{' '}
-          for help
+          for the detailed info
         </li>
       </StyledList>
       <Title>We&apos;re a Community</Title>

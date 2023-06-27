@@ -391,11 +391,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           schemas={schemas}
         />
         <Description>
-          If new to SSO, please visit{' '}
+          If new to SSO, please{' '}
           <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client">
-            github
+            click to learn more on our wiki page to maintain the consistency
           </Link>{' '}
-          for more information.
+          .
         </Description>
       </HeaderContainer>
       <Form
