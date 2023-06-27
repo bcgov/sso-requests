@@ -41,7 +41,7 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {
-  const { bceidApproved, githubApproved, environments = [] } = integration;
+  const { bceidApproved, githubApproved, environments = [], serviceType } = integration;
 
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
@@ -50,23 +50,29 @@ export const getRequestedEnvironments = (integration: Integration) => {
     return { ...option, idps: idps || [] };
   });
 
-  const bceidApplying = checkIfBceidProdApplying(integration);
-  const githubApplying = checkIfGithubProdApplying(integration);
+  if (serviceType === 'gold') {
+    const bceidApplying = checkIfBceidProdApplying(integration);
+    const githubApplying = checkIfGithubProdApplying(integration);
 
-  let envs = options.filter((env) => environments.includes(env.name));
-  if (hasBceid && (!bceidApproved || bceidApplying))
-    envs = envs.map((env) => {
-      if (env.name === 'prod') env.idps = env.idps.filter(checkNotBceidGroup);
-      return env;
-    });
+    let envs = options.filter((env) => environments.includes(env.name));
+    if (hasBceid && (!bceidApproved || bceidApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter(checkNotBceidGroup);
+        return env;
+      });
 
-  if (hasGithub && (!githubApproved || githubApplying))
-    envs = envs.map((env) => {
-      if (env.name === 'prod') env.idps = env.idps.filter(checkNotGithubGroup);
-      return env;
-    });
+    if (hasGithub && (!githubApproved || githubApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter(checkNotGithubGroup);
+        return env;
+      });
 
-  return envs;
+    return envs;
+  }
+
+  let allowedEnvs = environments.concat() || [];
+  if (hasBceid && !bceidApproved) allowedEnvs = allowedEnvs.filter((env) => env !== 'prod');
+  return options.filter((env) => allowedEnvs.includes(env.name));
 };
 
 export const parseError = (err: any) => {
