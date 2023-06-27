@@ -7,7 +7,6 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields, samlFineGrainEndpointConfig } from '@app/schemas';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { getAccountableEntity } from '@lambda-shared/templates/helpers';
-import { idpMap, silverRealmIdpsMap } from '@app/helpers/meta';
 import { handlePRstage, updatePlannedItems } from '@lambda-actions/controllers/batch';
 
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
@@ -81,8 +80,7 @@ export const dispatchRequestWorkflow = async (integration: any) => {
 
   integration = buildGitHubRequestData(integration);
 
-  const idps =
-    integration.serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
+  const idps = integration.devIdps;
 
   const payload = pick(integration, allowedFieldsForGithub);
   payload.accountableEntity = (await getAccountableEntity(integration)) || '';
