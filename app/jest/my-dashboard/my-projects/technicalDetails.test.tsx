@@ -283,7 +283,10 @@ describe('Applied Status header, button and link test', () => {
 
     expectText(DEV_IDIR_BCEID_ENV_HEADER);
     expectText(TEST_IDIR_BCEID_ENV_HEADER);
-    expect(screen.getByRole('link', { name: 'here' })).toHaveAttribute('href', HYPERLINK);
+    expect(screen.getByRole('link', { name: 'click to learn more on our wiki page' })).toHaveAttribute(
+      'href',
+      HYPERLINK,
+    );
     fireEvent.click(screen.getByRole('tab', { name: 'Role Management' }));
     await waitFor(() => {
       expect(screen.getByRole('link', { name: 'wiki page' })).toHaveAttribute('href', WIKI_PAGE_HYPERLINK);
