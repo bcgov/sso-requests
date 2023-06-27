@@ -652,9 +652,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   {teamServiceAccounts.length > 0 && (
                     <Grid.Row>
                       <InfoMessage>
-                        For more information on how to use the CSS API Account with your integrations, see{' '}
+                        For more information on how to use the CSS API Account with your integrations,{' '}
                         <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
-                          here
+                          click to learn more on our wiki page
                         </Link>
                         .
                       </InfoMessage>
