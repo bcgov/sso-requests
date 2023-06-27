@@ -37,7 +37,6 @@ export const processRequest = async (integrationOrModel: any) => {
   const accountableEntity = (await getAccountableEntity(integration)) || '';
 
   const {
-    realm,
     devValidRedirectUris = [],
     testValidRedirectUris = [],
     prodValidRedirectUris = [],

@@ -28,7 +28,7 @@ describe('Form Stage', () => {
   });
 
   it('Displays error states correctly', () => {
-    const a = render(
+    render(
       <FormStage
         isNew={false}
         currentStage={1}

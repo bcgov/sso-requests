@@ -1,6 +1,6 @@
 import isNil from 'lodash.isnil';
 import getGoldUISchema from '@app/schemas-ui/ui-gold';
-import { Integration, Option } from '@app/interfaces/Request';
+import { Integration } from '@app/interfaces/Request';
 
 interface Props {
   integration: Integration;
@@ -14,9 +14,5 @@ export const getUISchema = (props: Props) => {
 
   if (!props.formData) props.formData = integration;
 
-  if (isNew) {
-    return getGoldUISchema(props);
-  } else {
-    return getGoldUISchema(props);
-  }
+  return getGoldUISchema(props);
 };

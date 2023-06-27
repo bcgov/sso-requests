@@ -1,10 +1,9 @@
-import React, { useState, useContext, useMemo, useReducer } from 'react';
+import React from 'react';
 import { useRouter } from 'next/router';
 import { Resizable } from 're-resizable';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer from 'components/ResponsiveContainer';
-import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { mediaRules } from './Layout';
 
 const InnerResizable = styled.div`
