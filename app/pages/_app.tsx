@@ -6,7 +6,7 @@ import { fetchIssuerConfiguration } from 'utils/provider';
 import { getAuthorizationUrl, getAccessToken, getEndSessionUrl, parseCallbackParams } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import { wakeItUp } from 'services/auth';
-import { getProfile, updateProfile } from 'services/user';
+import { getProfile } from 'services/user';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
 import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
@@ -16,7 +16,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { base_path, kc_idp_hint, enable_gold, maintenance_mode } = publicRuntimeConfig;
+const { base_path, kc_idp_hint, maintenance_mode } = publicRuntimeConfig;
 
 const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, `${base_path}/admin-dashboard`];
 
@@ -31,7 +31,6 @@ const proccessSession = (session: LoggedInUser | null) => {
 export interface SessionContextInterface {
   session: LoggedInUser | null;
   user: User | null;
-  enableGold: boolean;
 }
 
 export const SessionContext = React.createContext<SessionContextInterface | null>(null);
@@ -135,28 +134,16 @@ function MyApp({ Component, pageProps }: AppProps) {
   }
 
   return (
-    <SessionContext.Provider value={{ session, user, enableGold: enable_gold }}>
+    <SessionContext.Provider value={{ session, user }}>
       {maintenance_mode && maintenance_mode === 'true' ? (
         <Component {...pageProps} />
       ) : (
-        <Layout
-          session={session}
-          user={user}
-          enableGold={enable_gold}
-          onLoginClick={handleLogin}
-          onLogoutClick={handleLogout}
-        >
+        <Layout session={session} user={user} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
           <Head>
             <html lang="en" />
             <title>Common Hosted Single Sign-on (CSS)</title>
           </Head>
-          <Component
-            {...pageProps}
-            session={session}
-            enable_gold={enable_gold}
-            onLoginClick={handleLogin}
-            onLogoutClick={handleLogout}
-          />
+          <Component {...pageProps} session={session} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
         </Layout>
       )}
     </SessionContext.Provider>

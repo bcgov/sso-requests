@@ -9,7 +9,6 @@ import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
 import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
-import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -38,7 +37,6 @@ export const processRequest = async (integrationOrModel: any) => {
   const accountableEntity = (await getAccountableEntity(integration)) || '';
 
   const {
-    realm,
     devValidRedirectUris = [],
     testValidRedirectUris = [],
     prodValidRedirectUris = [],
@@ -46,7 +44,7 @@ export const processRequest = async (integrationOrModel: any) => {
     authType = 'browser-login',
   } = integration;
 
-  const idps = integration.serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[realm || 'onestopauth'];
+  const idps = integration.devIdps;
   const idpNames = idps.map((idp) => idpMap[idp]).join(', ');
   const envNames = environments.map((env) => envMap[env]).join(', ');
   const redirectUris = environments.map((env) => ({

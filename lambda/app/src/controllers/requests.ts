@@ -31,8 +31,6 @@ import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 
-const ALLOW_SILVER = process.env.ALLOW_SILVER === 'true';
-const ALLOW_GOLD = process.env.ALLOW_GOLD === 'true';
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
 
@@ -110,10 +108,7 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     prodSamlLogoutPostBindingUri,
     clientId,
   } = data;
-  if (!serviceType) serviceType = 'silver';
-  if (!['silver', 'gold'].includes(serviceType)) throw Error('invalid service type');
-  if (serviceType === 'silver' && !ALLOW_SILVER) throw Error('invalid service type');
-  if (serviceType === 'gold' && !ALLOW_GOLD) throw Error('invalid service type');
+  if (!serviceType) serviceType = 'gold';
 
   const result = await models.request.create({
     projectName,

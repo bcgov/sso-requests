@@ -1,10 +1,9 @@
-import React, { useState, useContext, useMemo, useReducer } from 'react';
+import React from 'react';
 import { useRouter } from 'next/router';
 import { Resizable } from 're-resizable';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer from 'components/ResponsiveContainer';
-import { SessionContext, SessionContextInterface } from 'pages/_app';
 import { mediaRules } from './Layout';
 
 const InnerResizable = styled.div`
@@ -22,9 +21,6 @@ interface Props {
 
 function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, children }: Props) {
   const router = useRouter();
-  const context = useContext<SessionContextInterface | null>(SessionContext);
-  const { user, enableGold } = context || {};
-  const hasSilverIntegration = user?.integrations?.find((integration: any) => integration.serviceType === 'silver');
 
   const navigateTab = (key: any) => {
     router.replace(`/my-dashboard/${key}`);

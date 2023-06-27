@@ -17,7 +17,6 @@ import { validateForm, customValidate } from 'utils/validate';
 import { parseError } from 'utils/helpers';
 import {
   checkBceidBoth,
-  checkIdirGroup,
   checkBceidGroup,
   checkBceidRegularGroup,
   checkIdirGroupAndNotBceidBoth,
@@ -34,9 +33,6 @@ import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
-import getConfig from 'next/config';
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { enable_gold } = publicRuntimeConfig;
 
 const Description = styled.p`
   margin: 0;
@@ -253,8 +249,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     try {
       if (isNew) {
-        formData.serviceType = enable_gold ? 'gold' : 'silver';
-        if (enable_gold) formData.realm = 'standard';
+        formData.serviceType = 'gold';
+        formData.realm = 'standard';
         formData.environments = ['dev'];
         const [data, err] = await createRequest(formData);
         const { id } = data || {};

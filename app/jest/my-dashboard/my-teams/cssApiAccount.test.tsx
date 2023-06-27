@@ -9,10 +9,6 @@ import { MyTeamsComponent } from './helpers';
 
 const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account';
 
-jest.mock('next/config', () => () => ({
-  publicRuntimeConfig: { enable_gold: true },
-}));
-
 jest.mock('next/router', () => ({
   useRouter() {
     return {

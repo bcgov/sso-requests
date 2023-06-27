@@ -20,31 +20,18 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
-        env: ['dev', 'test', 'prod', 'preview']
+        env: ['sandbox', 'prod', 'preview']
     steps:
-      - name: Set env to development
-        if: endsWith(github.ref, '/dev') && matrix.env == 'dev'
+      - name: Set env to sandbox
+        if: endsWith(github.ref, '/dev') && matrix.env == 'sandbox'
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=develop
-          APP_URL=https://bcgov.github.io/sso-requests-dev
-          APP_BASE_PATH=/sso-requests-dev
+          APP_URL=https://bcgov.github.io/sso-requests-sandbox
+          APP_BASE_PATH=/sso-requests-sandbox
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
           SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
-          DEPLOY_REPO_NAME=bcgov/sso-requests-dev
-          ENABLE_GOLD=false
-          MAINTENANCE_MODE_ACTIVE=false
-          EOF
-      - name: Set env to test
-        if: endsWith(github.ref, '/dev') && matrix.env == 'test'
-        run: |
-          cat >> $GITHUB_ENV <<EOF
-          APP_ENV=develop
-          APP_URL=https://bcgov.github.io/sso-requests-test
-          APP_BASE_PATH=/sso-requests-test
-          API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
-          DEPLOY_REPO_NAME=bcgov/sso-requests-test
+          DEPLOY_REPO_NAME=bcgov/sso-requests-sandbox
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
           EOF

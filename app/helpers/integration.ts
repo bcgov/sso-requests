@@ -1,7 +1,5 @@
 import { Integration } from '@app/interfaces/Request';
 
-const bceidRealms = ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'];
-
 export const checkBceidBoth = (idp: string) => idp === 'bceidboth';
 export const checkIdirGroup = (idp: string) => ['idir', 'azureidir'].includes(idp);
 export const checkBceidGroup = (idp: string) => idp.startsWith('bceid');
@@ -16,20 +14,15 @@ export const checkNotGithubGroup = (idp: string) => !checkGithubGroup(idp);
 export const usesBceid = (integration: Integration) => {
   if (!integration) return false;
 
-  const { serviceType = 'silver', devIdps = [], realm = '' } = integration;
+  const { devIdps = [] } = integration;
 
-  if (serviceType === 'gold') {
-    return devIdps.some(checkBceidGroup);
-  } else {
-    return bceidRealms.includes(realm);
-  }
+  return devIdps.some(checkBceidGroup);
 };
 
 export const usesGithub = (integration: Integration) => {
   if (!integration) return false;
 
-  const { serviceType = 'silver', devIdps = [] } = integration;
-  if (serviceType !== 'gold') return false;
+  const { devIdps = [] } = integration;
 
   return devIdps.some(checkGithubGroup);
 };

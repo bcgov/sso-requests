@@ -30,15 +30,15 @@ const impactAssessmentUrl = 'https://docs.google.com/forms/d/1MMPeMB0A2076xkXIZR
 
 function GoldNotificationModal(): any {
   const context = useContext<SessionContextInterface | null>(SessionContext);
-  const { user, session, enableGold } = context || {};
+  const { user, session } = context || {};
 
   const openModal = async () => {
-    if (!enableGold || !session || !user) return;
+    if (!session || !user) return;
 
     if (
       !session.isAdmin &&
       !user.hasReadGoldNotification &&
-      user.integrations?.find((integration: any) => integration.serviceType === 'silver')
+      user.integrations?.find((integration: any) => integration.serviceType !== 'gold')
     ) {
       window.location.hash = modalId;
     }

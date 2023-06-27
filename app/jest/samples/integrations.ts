@@ -13,5 +13,5 @@ export const sampleRequest: Integration = {
   environments: ['dev'],
   archived: false,
   usesTeam: false,
-  serviceType: 'silver',
+  serviceType: 'gold',
 };
