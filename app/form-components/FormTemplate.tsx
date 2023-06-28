@@ -377,8 +377,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         <Description>
           If new to SSO, please{' '}
           <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client">
-            click to learn more on our wiki page to maintain the consistency
-          </Link>{' '}
+            click to learn more on our wiki page
+          </Link>
           .
         </Description>
       </HeaderContainer>
