@@ -192,7 +192,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     if (togglingTeamToTrue) processed.projectLead = undefined;
     //to prevent the data integrity issue: when choose No-Team, teamId flag retains the old teamId value;
-    if (togglingTeamIdToUndefined) processed.teamId = undefined;
+    if (togglingTeamIdToUndefined) processed.teamId = null;
     //to prevent the data integrity issue: case for admin role, one can remove bceid-related idps after prod been approved;
     if (togglingBceidApprovedToFalse) processed.bceidApproved = false;
 
