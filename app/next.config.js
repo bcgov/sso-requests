@@ -2,6 +2,10 @@ const APP_URL = process.env.APP_URL || '';
 const BASE_PATH = process.env.APP_BASE_PATH || '';
 
 module.exports = {
+  i18n: {
+    locales: ['en'],
+    defaultLocale: 'en',
+  },
   reactStrictMode: true,
   serverRuntimeConfig: {},
   publicRuntimeConfig: {
