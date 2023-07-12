@@ -17,7 +17,6 @@ import { validateForm, customValidate } from 'utils/validate';
 import { parseError } from 'utils/helpers';
 import {
   checkBceidBoth,
-  checkIdirGroup,
   checkBceidGroup,
   checkBceidRegularGroup,
   checkIdirGroupAndNotBceidBoth,
@@ -34,9 +33,6 @@ import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
-import getConfig from 'next/config';
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { enable_gold } = publicRuntimeConfig;
 
 const Description = styled.p`
   margin: 0;
@@ -85,6 +81,15 @@ const filterIdps = (
   }
 
   return idps;
+};
+
+const checkHasNoBceidIdp = (arr: []) => {
+  if (arr === undefined || arr.length == 0) return true;
+  let result = true;
+  arr.map((idp: string) => {
+    if (idp.startsWith('bceid')) result = false;
+  });
+  return result;
 };
 
 const trimRedirectUris = (urls: string[], dropEmptyRedirectUris = false) => {
@@ -168,6 +173,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     const showModal = newData.projectLead === false && newData.usesTeam === false;
     const togglingTeamToTrue = formData.usesTeam === false && newData.usesTeam === true;
+    const togglingTeamIdToUndefined = newData.usesTeam === false;
+    const togglingBceidApprovedToFalse = newData.bceidApproved === true && checkHasNoBceidIdp(newData.devIdps);
 
     if (formData.protocol !== newData.protocol && devIdps.length > 1) {
       devIdps = [];
@@ -184,6 +191,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     if (newData.authType !== 'browser-login') processed.publicAccess = false;
 
     if (togglingTeamToTrue) processed.projectLead = undefined;
+    //to prevent the data integrity issue: when choose No-Team, teamId flag retains the old teamId value;
+    if (togglingTeamIdToUndefined) processed.teamId = null;
+    //to prevent the data integrity issue: case for admin role, one can remove bceid-related idps after prod been approved;
+    if (togglingBceidApprovedToFalse) processed.bceidApproved = false;
+
     setFormData(processed);
 
     if (showModal) {
@@ -253,8 +265,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     try {
       if (isNew) {
-        formData.serviceType = enable_gold ? 'gold' : 'silver';
-        if (enable_gold) formData.realm = 'standard';
+        formData.serviceType = 'gold';
+        formData.realm = 'standard';
         formData.environments = ['dev'];
         const [data, err] = await createRequest(formData);
         const { id } = data || {};
@@ -379,11 +391,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           schemas={schemas}
         />
         <Description>
-          If new to SSO, please visit{' '}
+          If new to SSO, please{' '}
           <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client">
-            github
-          </Link>{' '}
-          for more information.
+            click to learn more on our wiki page
+          </Link>
+          .
         </Description>
       </HeaderContainer>
       <Form

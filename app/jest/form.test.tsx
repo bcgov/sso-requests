@@ -37,19 +37,20 @@ const setUpRender = (request: Integration | object | null, currentUser = {}) => 
 };
 
 export const sampleRequest: Integration = {
-  id: 0,
+  id: 1,
   devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
   publicAccess: true,
   authType: 'browser-login',
-  projectName: 'test project',
+  projectName: 'test project new',
   projectLead: true,
   agreeWithTerms: true,
   environments: ['dev'],
   archived: false,
   usesTeam: false,
   serviceType: 'gold',
+  teamId: undefined,
 };
 
 const samplePage3Request = {
@@ -67,11 +68,22 @@ describe('Form Template Saving and Navigation', () => {
 
   beforeEach(() => {
     setUpRouter('/', sandbox);
-    setUpRender({ id: 0 });
   });
 
   it('Should save data and triggers spinner on blur events', async () => {
-    fireEvent.click(sandbox.secondStageBox);
+    setUpRender({
+      id: 0,
+      projectName: 'test project',
+      projectLead: true,
+      usesTeam: false,
+      teamId: undefined,
+      serviceType: 'gold',
+      protocol: 'oidc',
+      authType: 'browser-login',
+    });
+    // Navigate away and back again
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
     const publicRadio = document.querySelector('#root_publicAccess-Public') as HTMLElement;
     fireEvent.change(publicRadio, { target: { checked: true } });
     expect(updateRequest).toHaveBeenCalled();
@@ -81,6 +93,9 @@ describe('Form Template Saving and Navigation', () => {
   });
 
   it('Should advance the form when clicking next', async () => {
+    setUpRender({
+      id: 0,
+    });
     setUpRouter('/', sandbox);
     fireEvent.click(sandbox.secondStageBox);
     const nextButton = screen.getByText('Next') as HTMLElement;
@@ -89,6 +104,9 @@ describe('Form Template Saving and Navigation', () => {
   });
 
   it('Should redirect to my-dashboard on cancel', () => {
+    setUpRender({
+      id: 0,
+    });
     fireEvent.click(sandbox.secondStageBox);
     const cancelButton = within(
       document.querySelector("form.rjsf [data-test-id='form-btns']") as HTMLElement,
@@ -98,6 +116,9 @@ describe('Form Template Saving and Navigation', () => {
   });
 
   it('Should show failed state in stepper after submission and clear only after filling correct data', () => {
+    setUpRender({
+      id: 0,
+    });
     // Submit empty form
     const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
     fireEvent.click(fourthStageBox);

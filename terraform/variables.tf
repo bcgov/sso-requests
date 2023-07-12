@@ -94,7 +94,7 @@ variable "gh_secret" {
 variable "app_url" {
   type        = string
   description = "the frontend app base url"
-  default     = "https://bcgov.github.io/sso-requests-dev"
+  default     = "https://bcgov.github.io/sso-requests-sandbox"
 }
 
 variable "api_url" {
@@ -112,18 +112,6 @@ variable "local_dev" {
   type        = string
   description = "whether to run lambda functions in local dev environment"
   default     = "false"
-}
-
-variable "allow_silver" {
-  type        = string
-  description = "whether to run lambda functions in local dev environment"
-  default     = "true"
-}
-
-variable "allow_gold" {
-  type        = string
-  description = "whether to run lambda functions in local dev environment"
-  default     = "true"
 }
 
 variable "ches_password" {

@@ -2,7 +2,6 @@ import { Integration } from 'interfaces/Request';
 import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';
 import { Team } from 'interfaces/team';
-import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 const Table = styled.table`
   font-size: unset;
@@ -80,8 +79,7 @@ interface Props {
 
 function RequestPreview({ children, request, teams = [] }: Props) {
   if (!request) return null;
-  const serviceType = request.serviceType === 'gold' ? 'gold' : 'silver';
-  const idpDisplay = serviceType === 'gold' ? request.devIdps : silverRealmIdpsMap[request.realm || 'onestopauth'];
+  const idpDisplay = request.devIdps;
   const isOIDC = request.protocol !== 'saml';
 
   let teamName = '';

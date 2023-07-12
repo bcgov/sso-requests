@@ -13,11 +13,10 @@ const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...
 
 interface Props {
   session: LoggedInUser;
-  enable_gold: boolean;
   alert: TopAlert;
 }
 
-function RequestEdit({ session, enable_gold, alert }: Props) {
+function RequestEdit({ session, alert }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [request, setRequest] = useState<Integration | null>(null);
@@ -30,7 +29,7 @@ function RequestEdit({ session, enable_gold, alert }: Props) {
       if (isNil(data)) {
         setRequest(null);
       } else {
-        if (enable_gold && data.serviceType !== 'gold') {
+        if (data.serviceType !== 'gold') {
           alert.show({
             variant: 'info',
             closable: true,

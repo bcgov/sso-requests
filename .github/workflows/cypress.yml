@@ -10,7 +10,7 @@ jobs:
   e2e:
     runs-on: ubuntu-20.04
     env:
-      APP_URL: https://bcgov.github.io/sso-requests-dev/
+      APP_URL: https://bcgov.github.io/sso-requests-sandbox/
     steps:
       - uses: actions/checkout@v3
 

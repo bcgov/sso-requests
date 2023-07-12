@@ -217,7 +217,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
               projectName: integration.projectName,
               status: getStatusDisplayName(integration.status || 'draft'),
               authType: authTypeDisplay[integration.authType || 'browser-login'],
-              serviceType: integration.serviceType === 'gold' ? 'Gold' : 'Silver',
+              serviceType: 'Gold',
               actions: (
                 <RightFloatButtons>
                   <ActionButtons

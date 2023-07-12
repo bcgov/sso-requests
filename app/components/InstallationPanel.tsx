@@ -124,12 +124,12 @@ const InstallationPanel = ({ integration, alert }: Props) => {
         })}
       </Grid>
       <InfoMessage>
-        For more information on how to use these details, or for the public endpoints associated to your client, see{' '}
+        For more information on how to use these details, or for the public endpoints associated to your client,{' '}
         <Link
           href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#setting-up-your-keycloak-client"
           external
         >
-          here
+          click to learn more on our wiki page
         </Link>
         .
       </InfoMessage>

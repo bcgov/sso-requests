@@ -5,7 +5,6 @@ import { Integration, Option, SilverIDPOption, GoldIDPOption } from 'interfaces/
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
-import { silverRealmIdpsMap } from '@app/helpers/meta';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const silver_realms: SilverIDPOption = {
@@ -47,7 +46,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
   const options = environmentOptions.map((option) => {
-    const idps = serviceType === 'gold' ? integration.devIdps : silverRealmIdpsMap[integration.realm || 'onestopauth'];
+    const idps = integration.devIdps;
     return { ...option, idps: idps || [] };
   });
 
@@ -194,7 +193,7 @@ export const formatChangeEventDetails = (changes: Change[]) => {
         return (
           <>
             <strong>Edited {changedPath}: </strong>
-            Changed <code>{String(lhs)}</code> to <code>{rhs}</code>
+            Changed <code>{String(lhs)}</code> to <code>{String(rhs)}</code>
           </>
         );
       case 'A':

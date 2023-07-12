@@ -92,13 +92,17 @@ Once they are compiled, from the [terraform](./terraform) directory you can run 
 **Frontend**
 See the [example env file](./app/,env.example) for an example environment variable setup. You will require:
 
+- APP_ENV: Application environment
+- APP_URL: The application url
 - API_URL: The API endpoint of your API Gateway
-- SSO_URL= The URL of the keycloak realm
+- APP_BASE_PATH: The base path of the application URL
+- SSO_URL: The URL of the keycloak realm
 - SSO_CLIENT_ID: The ID of your keycloak client
 - SSO_REDIRECT_URI: Your redirect url for after users have authenticated. For local development use `localhost:3000`
 - SSO_AUTHORIZATION_RESPONSE_TYPE: Set to `code`
 - SSO_AUTHORIZATION_SCOPE: Set to `openid`
 - SSO_TOKEN_GRANT_TYPE: Set to `authorization_code`
+- MAINTENANCE_MODE_ACTIVE: If enabled, displays maintenance page forever
 
 The app can then be run locally by running `yarn dev`
 
@@ -106,12 +110,15 @@ The app can then be run locally by running `yarn dev`
 
 This repository requires the following secrets:
 
-- `DEV_KEYCLOAK_DEV_CLIENT_SECRET`: The client secret for the sandbox keycloaks dev environment.
-- `DEV_KEYCLOAK_TEST_CLIENT_SECRET`: The client secret for the sandbox keycloaks test environment.
-- `DEV_KEYCLOAK_PROD_CLIENT_SECRET`: The client secret for the sandbox keycloaks prod environment.
-- `PROD_KEYCLOAK_DEV_CLIENT_SECRET`: The client secret for the production keycloaks dev environment.
-- `PROD_KEYCLOAK_TEST_CLIENT_SECRET`: The client secret for the production keycloaks test environment.
-- `PROD_KEYCLOAK_PROD_CLIENT_SECRET`: The client secret for the production keycloaks prod environment.
+- `KEYCLOAK_DEV_CLIENT_URL`: The URL of the keycloak dev environment.
+- `KEYCLOAK_TEST_CLIENT_URL`: The URL of the keycloak test environment.
+- `KEYCLOAK_PROD_CLIENT_URL`: The URL of the keycloak prod environment.
+- `KEYCLOAK_DEV_CLIENT_ID`: The client id for the keycloak dev environment.
+- `KEYCLOAK_TEST_CLIENT_ID`: The client id for the keycloak test environment.
+- `KEYCLOAK_PROD_CLIENT_ID`: The client id for the keycloak prod environment.
+- `KEYCLOAK_DEV_CLIENT_SECRET`: The client secret for the keycloaks dev environment.
+- `KEYCLOAK_TEST_CLIENT_SECRET`: The client secret for the keycloaks test environment.
+- `KEYCLOAK_PROD_CLIENT_SECRET`: The client secret for the keycloaks prod environment.
 - `GH_ACCESS_TOKEN`: Access token for the github service account (used to trigger workflows in `sso-terraform`).
 - `GH_SECRET`: The secret used to authorize requests between github actions (from `sso-terraform`) to the API.
 - `TFC_TEAM_TOKEN`: The token used to run terraform cloud.
@@ -149,6 +156,9 @@ Error codes we use for the application:
 
 - `E01`: There is an application in the `sso-terraform` repository that cannot be applied, blocking new requests
 - `E02`: The user has a token in their session storage that is invalid
+- `E03`: Missing of invalid email address associated with your IDIR account
+- `E04`: Request timeout
+- `E05`: 503 Service Temporarily Unavailable
 
 ## Reporting
 

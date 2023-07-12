@@ -14,7 +14,9 @@ const projectLead = {
 
 export default function getSchema(teams: any[] = []) {
   const teamNames = teams.map((team) => team.name);
+  teamNames.unshift('Select...');
   const teamValues = teams.map((team) => String(team.id));
+  teamValues.unshift('');
   const hasTeams = teams.length > 0;
 
   return {
@@ -49,7 +51,6 @@ export default function getSchema(teams: any[] = []) {
                   title: 'Project Team',
                   enum: teamValues,
                   enumNames: teamNames,
-                  default: teamValues[0],
                 },
               }),
               createTeam: {

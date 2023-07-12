@@ -157,7 +157,7 @@ const RightMenuItems = () => (
   </>
 );
 
-function Layout({ children, session, user, enableGold, onLoginClick, onLogoutClick }: any) {
+function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
   const router = useRouter();
   const pathname = router.pathname;
 

@@ -9,10 +9,6 @@ import { MyTeamsComponent } from './helpers';
 
 const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account';
 
-jest.mock('next/config', () => () => ({
-  publicRuntimeConfig: { enable_gold: true },
-}));
-
 jest.mock('next/router', () => ({
   useRouter() {
     return {
@@ -121,7 +117,10 @@ describe('CSS API Account tab', () => {
     screen.getByText('API Account ID');
     await screen.findAllByRole('columnheader', { name: 'Actions' });
     screen.getByRole('row', { name: '1 Copy to clipboard Download Update secret Delete' });
-    expect(screen.getByRole('link', { name: 'here' })).toHaveAttribute('href', HYPERLINK);
+    expect(screen.getByRole('link', { name: 'click to learn more on our wiki page' })).toHaveAttribute(
+      'href',
+      HYPERLINK,
+    );
   });
 
   it('Should be able to click the Copy to clipboard icon to copy token information', async () => {

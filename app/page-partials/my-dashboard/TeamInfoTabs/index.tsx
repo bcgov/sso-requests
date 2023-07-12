@@ -19,7 +19,6 @@ import {
   inviteTeamMember,
   getServiceAccount,
   requestServiceAccount,
-  deleteServiceAccount,
   getServiceAccounts,
 } from 'services/team';
 import { withTopAlert } from 'layout/TopAlert';
@@ -40,16 +39,12 @@ import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
-import getConfig from 'next/config';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import ServiceAccountsList from './ServiceAccountsList';
-import isEmpty from 'lodash.isempty';
 import { InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { enable_gold } = publicRuntimeConfig;
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -595,7 +590,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        {enable_gold && isAdmin && (
+        {isAdmin && (
           <Tab key="service-accounts" tab="CSS API Account">
             <TabWrapper marginTop="10px">
               {loading ? (
@@ -657,9 +652,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   {teamServiceAccounts.length > 0 && (
                     <Grid.Row>
                       <InfoMessage>
-                        For more information on how to use the CSS API Account with your integrations, see{' '}
+                        For more information on how to use the CSS API Account with your integrations,{' '}
                         <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
-                          here
+                          click to learn more on our wiki page
                         </Link>
                         .
                       </InfoMessage>

@@ -31,11 +31,6 @@ const environmentOptions = [
   { value: 'prod', label: 'Prod' },
 ];
 
-const typeOptions = [
-  { value: 'silver', label: 'Silver' },
-  { value: 'gold', label: 'Gold' },
-];
-
 const pageLimits = [5, 10, 15, 30, 50, 100];
 
 function ActionsHeader() {
@@ -56,7 +51,6 @@ export default function AdminDashboard({ session }: PageProps) {
   const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
   const [archiveStatus, setArchiveStatus] = useState<Option[]>([]);
-  const [types, setTypes] = useState<Option[]>([]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
@@ -75,7 +69,7 @@ export default function AdminDashboard({ session }: PageProps) {
       archiveStatus: archiveStatus.map((v) => v.value) as string[],
       realms,
       environments,
-      types: types.map((v) => v.value) as string[],
+      types: ['gold'],
       devIdps,
     });
   };
@@ -96,7 +90,7 @@ export default function AdminDashboard({ session }: PageProps) {
   useEffect(() => {
     setSelectedId(undefined);
     loadData();
-  }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments, types]);
+  }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
 
   useEffect(() => {
     let interval: any;
@@ -172,10 +166,6 @@ export default function AdminDashboard({ session }: PageProps) {
                 Header: 'File Status',
               },
               {
-                accessor: 'serviceType',
-                Header: 'Service Type',
-              },
-              {
                 accessor: 'actions',
                 Header: <ActionsHeader />,
                 disableSortBy: true,
@@ -187,7 +177,6 @@ export default function AdminDashboard({ session }: PageProps) {
                 projectName: row.projectName,
                 status: startCase(row.status),
                 archived: row.archived ? 'Deleted' : 'Active',
-                serviceType: row.serviceType === 'gold' ? 'Gold' : 'Silver',
                 environments: row.environments,
                 actions: (
                   <ActionButtonContainer>
@@ -254,13 +243,6 @@ export default function AdminDashboard({ session }: PageProps) {
                 onChange: setArchiveStatus,
                 options: archiveStatusOptions,
                 label: 'Archive Status',
-              },
-              {
-                value: types,
-                multiselect: true,
-                onChange: setTypes,
-                options: typeOptions,
-                label: 'Service Type',
               },
             ]}
             showFilters={true}
