@@ -7,6 +7,8 @@ import { getDisplayName } from '../utils/helpers';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
+import { dispatchRequestWorkflow, closeOpenPullRequests } from '@lambda-app/github';
+import { disableIntegration } from '@lambda-app/keycloak/client';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -138,4 +140,80 @@ export const listClientRolesByUsers = async (
 export const isAllowedToManageRoles = async (session: Session, integrationId: number) => {
   const integration = await findAllowedIntegrationInfo(session.user.id, integrationId);
   return canCreateOrDeleteRoles(integration);
+};
+
+export const deleteStaleUsers = async (userId: string) => {
+  try {
+    const existingUser = await models.user.findOne({ where: { idir_userid: userId } });
+    const ssotUser = await models.user.findOne({
+      where: { idir_email: 'pathfinder.ssotraining@gov.bc.ca' },
+      raw: true,
+    });
+
+    if (existingUser) {
+      const teams = await models.usersTeam.findAll({
+        where: {
+          user_id: existingUser.id,
+          role: 'admin',
+          pending: false,
+        },
+        raw: true,
+      });
+
+      if (teams.length > 0) {
+        for (let team of teams) {
+          const teamAdmins = await models.usersTeam.findAll({
+            where: {
+              team_id: team.teamId,
+              role: 'admin',
+              pending: false,
+            },
+            raw: true,
+          });
+
+          if (teamAdmins.length === 1 && teamAdmins.find((adm) => adm.userId === existingUser.id)) {
+            await models.usersTeam.create({ role: 'admin', pending: false, teamId: team.teamId, userId: ssotUser.id });
+          }
+        }
+      }
+
+      const requests = await models.request.findAll({
+        where: {
+          apiServiceAccount: false,
+          usesTeam: false,
+          userId: existingUser.id,
+          archived: false,
+          teamId: null,
+        },
+      });
+
+      if (requests.length > 0) {
+        for (let rqst of requests) {
+          rqst.archived = true;
+          rqst.userId = ssotUser.id;
+
+          if (rqst.status === 'draft') {
+            const result = await rqst.save();
+            return result.get({ plain: true });
+          }
+
+          rqst.status = 'submitted';
+          const ghResult = await dispatchRequestWorkflow(rqst);
+
+          if (ghResult.status !== 204) {
+            throw Error('failed to create a workflow dispatch event');
+          }
+
+          await disableIntegration(rqst.get({ plain: true, clone: true }));
+          await closeOpenPullRequests(rqst.id);
+          await rqst.save();
+        }
+      }
+
+      existingUser.destroy();
+    }
+  } catch (err) {
+    console.log(err);
+    throw Error(err.message || err);
+  }
 };
