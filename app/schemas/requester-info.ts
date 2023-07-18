@@ -47,7 +47,6 @@ export default function getSchema(teams: any[] = []) {
               usesTeam: { enum: [true] },
               ...(hasTeams && {
                 teamId: {
-                  type: 'string',
                   title: 'Project Team',
                   enum: teamValues,
                   enumNames: teamNames,

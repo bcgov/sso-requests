@@ -27,7 +27,7 @@ export const errorMessages: ErrorMessages = {
   publicAccess: 'Please select an answer',
   newToSso: 'Please select an answer',
   projectName: 'Please enter a project name',
-  teamId: 'Please select an existing team',
+  teamId: 'Please select or create a team',
   devIdps: 'Please select an identity provider',
   samlLogoutPostBindingUri: 'Please enter a valid URI',
 };

@@ -68,11 +68,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
           validateArrayFields(prodValidRedirectUris, errors, 'prodValidRedirectUris', isValidKeycloakURIProd);
       }
     },
-    createTeam: () => {
-      if (usesTeam && (!teamId || teamId == '')) {
-        errors['createTeam']?.addError('Please select or create a team');
-      }
-    },
     additionalRoleAttribute: () => {
       if (preservedClaims.includes(additionalRoleAttribute.trim())) {
         errors['additionalRoleAttribute'].addError(
