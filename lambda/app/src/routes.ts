@@ -137,8 +137,9 @@ export const setRoutes = (app: any) => {
         return false;
       }
       const { userId } = req.params;
-      await deleteStaleUsers(userId);
-      res.sendStatus(204);
+      const result = await deleteStaleUsers(userId);
+      if (result) res.sendStatus(204);
+      else res.status(404).json({ success: false, message: 'user not found' });
     } catch (err) {
       handleError(res, err);
     }
