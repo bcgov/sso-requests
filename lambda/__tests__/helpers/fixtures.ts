@@ -19,6 +19,9 @@ export const TEAM_MEMBER_IDIR_EMAIL_01 = 'team.member.idir.user-01@gov.bc.ca';
 export const TEAM_MEMBER_IDIR_USERID_02 = 'TEAM_MEMBER_IDIR_USER_02';
 export const TEAM_MEMBER_IDIR_EMAIL_02 = 'team.member.idir.user-02@gov.bc.ca';
 
+export const SSO_TRAINING_IDIR_USER = 'SSO_TRAINING_IDIR_USER';
+export const SSO_TRAINING_IDIR_EMAIL = 'pathfinder.ssotraining@gov.bc.ca';
+
 export const formDataDev: IntegrationData = {
   id: 1,
   idirUserid: 'TEST',
