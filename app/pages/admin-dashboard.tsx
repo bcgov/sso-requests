@@ -116,8 +116,12 @@ export default function AdminDashboard({ session }: PageProps) {
     return null;
   }
 
-  const canEdit = (request: Integration) => ['applied'].includes(request?.status || '');
-  const canDelete = (request: Integration) => !['pr', 'planned', 'submitted'].includes(request?.status || '');
+  const canEdit = (request: Integration) => !request.archived && ['applied'].includes(request?.status || '');
+  const canDelete = (request: Integration) => {
+    if (request.archived === true) return false;
+    else if (['pr', 'planned', 'submitted'].includes(request?.status || '')) return false;
+    else return true;
+  };
 
   const handleEdit = async (request: Integration) => {
     if (!request.id || !canEdit(request)) return;
@@ -208,7 +212,7 @@ export default function AdminDashboard({ session }: PageProps) {
                       onClick={() => handleDelete(row)}
                       disabled={!canDelete(row)}
                       activeColor={PRIMARY_RED}
-                      title="Delete"
+                      title="Delete from Keycloak"
                     />
                   </ActionButtonContainer>
                 ),
