@@ -170,7 +170,7 @@ export const deleteStaleUsers = async (userId: string) => {
               usesTeam: true,
               userId: existingUser.id,
               archived: false,
-              teamId: team.team_id,
+              teamId: team.teamId,
             },
           });
 
