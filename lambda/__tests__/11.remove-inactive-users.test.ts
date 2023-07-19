@@ -1,12 +1,13 @@
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import {
-  SSO_TRAINING_IDIR_EMAIL,
-  SSO_TRAINING_IDIR_USER,
+  SSO_TEAM_IDIR_EMAIL,
+  SSO_TEAM_IDIR_USER,
   TEAM_ADMIN_IDIR_EMAIL_01,
   TEAM_ADMIN_IDIR_USERID_01,
   postTeam,
+  postTeamMembers,
 } from './helpers/fixtures';
-import { createTeam, getMembersOfTeam } from './helpers/modules/teams';
+import { addMembersToTeam, createTeam, getMembersOfTeam, updateTeamMembers } from './helpers/modules/teams';
 import { deleteInactiveUsers, getAuthenticatedUser } from './helpers/modules/users';
 import { Integration } from 'app/interfaces/Request';
 import { buildIntegration } from './helpers/modules/common';
@@ -57,24 +58,32 @@ describe('users and teams', () => {
     afterAll(async () => {
       await cleanUpDatabaseTables();
     });
-    let teamId: number;
-    let integration: Integration;
+    let teamWithoutAdmins: number;
+    let teamWithOtherAdmins: number;
+    let nonTeamIntegration: Integration;
+    let teamIntegration: Integration;
 
-    it('should allow training user to login', async () => {
-      createMockAuth(SSO_TRAINING_IDIR_USER, SSO_TRAINING_IDIR_EMAIL);
+    it('should allow sso team user to login', async () => {
+      createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
       const result = await getAuthenticatedUser();
       expect(result.status).toEqual(200);
     });
 
-    it('should create a team by authenticated user', async () => {
+    it('should create teams by authenticated user', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const createTeamRes = await createTeam({ ...postTeam, members: [] });
-      teamId = createTeamRes.body.id;
+      let createTeamRes = await createTeam({ ...postTeam, members: [] });
+      teamWithoutAdmins = createTeamRes.body.id;
       expect(createTeamRes.status).toEqual(200);
       expect(createTeamRes.body.name).toEqual(postTeam.name);
+      createTeamRes = await createTeam({ ...postTeam, members: [] });
+      teamWithOtherAdmins = createTeamRes.body.id;
+      const result = await addMembersToTeam(teamWithOtherAdmins, postTeamMembers);
+      expect(result.status).toEqual(200);
+      expect(result.body).not.toEqual([]);
+      await updateTeamMembers(teamWithOtherAdmins);
     });
 
-    it('should create an integration by authenticated user', async () => {
+    it('should create an non team integration by authenticated user', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       let integrationRes = await buildIntegration({
         projectName: 'Delete Inactive Users',
@@ -85,26 +94,55 @@ describe('users and teams', () => {
         applied: true,
       });
       expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
+      nonTeamIntegration = integrationRes.body;
     });
 
-    it('should add sso training account after removing the only team admin', async () => {
+    it('should create a team integration by authenticated user', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      let integrationRes = await buildIntegration({
+        projectName: 'Delete Inactive Users',
+        bceid: false,
+        prodEnv: false,
+        submitted: true,
+        planned: true,
+        applied: true,
+        teamId: teamWithoutAdmins,
+      });
+      expect(integrationRes.status).toEqual(200);
+      teamIntegration = integrationRes.body;
+    });
+
+    it('should add sso team account after removing the only team admin', async () => {
       const deleteResponse = await deleteInactiveUsers(TEAM_ADMIN_IDIR_USERID_01);
       expect(deleteResponse.status).toEqual(204);
     });
 
-    it('should verify the admin status of training user', async () => {
-      createMockAuth(SSO_TRAINING_IDIR_USER, SSO_TRAINING_IDIR_EMAIL);
-      const membersRes = await getMembersOfTeam(teamId);
+    it('should verify the admin status of sso team user in team with only admin', async () => {
+      createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
+      const membersRes = await getMembersOfTeam(teamWithoutAdmins);
       expect(membersRes.status).toEqual(200);
       expect(membersRes.body.length).toEqual(1);
-      expect(membersRes.body[0].idirUserid).toEqual(SSO_TRAINING_IDIR_USER);
+      expect(membersRes.body[0].idirUserid).toEqual(SSO_TEAM_IDIR_USER);
     });
 
-    it('should verify the transition of integration to training user', async () => {
-      createMockAuth(SSO_TRAINING_IDIR_USER, SSO_TRAINING_IDIR_EMAIL);
-      const user = await models.user.findOne({ where: { idirUserid: SSO_TRAINING_IDIR_USER }, raw: true });
-      const int = await models.request.findOne({ where: { id: integration.id }, raw: true });
+    it('should verify the admin status of sso team user in team with other admins', async () => {
+      createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
+      const membersRes = await getMembersOfTeam(teamWithOtherAdmins);
+      expect(membersRes.status).toEqual(200);
+      expect(membersRes.body).toEqual([]);
+    });
+
+    it('should verify the transition of non team integration to sso team user', async () => {
+      createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
+      const user = await models.user.findOne({ where: { idirUserid: SSO_TEAM_IDIR_USER }, raw: true });
+      const int = await models.request.findOne({ where: { id: nonTeamIntegration.id }, raw: true });
+      expect(int.userId).toEqual(user.id);
+    });
+
+    it('should verify the transition of team integration to sso team user', async () => {
+      createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
+      const user = await models.user.findOne({ where: { idirUserid: SSO_TEAM_IDIR_USER }, raw: true });
+      const int = await models.request.findOne({ where: { id: teamIntegration.id }, raw: true });
       expect(int.userId).toEqual(user.id);
     });
   } catch (err) {

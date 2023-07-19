@@ -145,8 +145,8 @@ export const isAllowedToManageRoles = async (session: Session, integrationId: nu
 export const deleteStaleUsers = async (userId: string) => {
   try {
     const existingUser = await models.user.findOne({ where: { idir_userid: userId } });
-    const ssotUser = await models.user.findOne({
-      where: { idir_email: 'pathfinder.ssotraining@gov.bc.ca' },
+    const ssoUser = await models.user.findOne({
+      where: { idir_email: 'bcgov.sso@gov.bc.ca' },
       raw: true,
     });
 
@@ -162,6 +162,35 @@ export const deleteStaleUsers = async (userId: string) => {
 
       if (teams.length > 0) {
         for (let team of teams) {
+          let addedSsoTeamUserAsAdmin = false;
+          // team integrations
+          const teamRequests = await models.request.findAll({
+            where: {
+              apiServiceAccount: false,
+              usesTeam: true,
+              userId: existingUser.id,
+              archived: false,
+            },
+          });
+
+          if (teamRequests.length > 0) {
+            // add sso team user to team
+            await models.usersTeam.create({
+              role: 'admin',
+              pending: false,
+              teamId: team.teamId,
+              userId: ssoUser.id,
+            });
+
+            addedSsoTeamUserAsAdmin = true;
+
+            for (let rqst of teamRequests) {
+              // assign sso team user
+              rqst.userId = ssoUser.id;
+              await rqst.save();
+            }
+          }
+
           const teamAdmins = await models.usersTeam.findAll({
             where: {
               team_id: team.teamId,
@@ -171,13 +200,17 @@ export const deleteStaleUsers = async (userId: string) => {
             raw: true,
           });
 
-          if (teamAdmins.length === 1 && teamAdmins.find((adm) => adm.userId === existingUser.id)) {
-            await models.usersTeam.create({ role: 'admin', pending: false, teamId: team.teamId, userId: ssotUser.id });
+          if (!addedSsoTeamUserAsAdmin) {
+            // if a team has only inactive user as the admin. Add sso team user
+            if (teamAdmins.length === 1 && teamAdmins.find((adm) => adm.userId === existingUser.id)) {
+              await models.usersTeam.create({ role: 'admin', pending: false, teamId: team.teamId, userId: ssoUser.id });
+            }
           }
         }
       }
 
-      const requests = await models.request.findAll({
+      // non-team integrations
+      const nonTeamRequests = await models.request.findAll({
         where: {
           apiServiceAccount: false,
           usesTeam: false,
@@ -187,25 +220,23 @@ export const deleteStaleUsers = async (userId: string) => {
         },
       });
 
-      if (requests.length > 0) {
-        for (let rqst of requests) {
+      if (nonTeamRequests.length > 0) {
+        for (let rqst of nonTeamRequests) {
           rqst.archived = true;
-          rqst.userId = ssotUser.id;
+          // assign sso team user
+          rqst.userId = ssoUser.id;
 
-          if (rqst.status === 'draft') {
-            const result = await rqst.save();
-            return result.get({ plain: true });
+          if (rqst.status !== 'draft') {
+            rqst.status = 'submitted';
+            const ghResult = await dispatchRequestWorkflow(rqst);
+
+            if (ghResult.status !== 204) {
+              throw Error('failed to create a workflow dispatch event');
+            }
+
+            await disableIntegration(rqst.get({ plain: true, clone: true }));
+            await closeOpenPullRequests(rqst.id);
           }
-
-          rqst.status = 'submitted';
-          const ghResult = await dispatchRequestWorkflow(rqst);
-
-          if (ghResult.status !== 204) {
-            throw Error('failed to create a workflow dispatch event');
-          }
-
-          await disableIntegration(rqst.get({ plain: true, clone: true }));
-          await closeOpenPullRequests(rqst.id);
           await rqst.save();
         }
       }

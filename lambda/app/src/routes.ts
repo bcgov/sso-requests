@@ -136,8 +136,8 @@ export const setRoutes = (app: any) => {
         res.status(401).json({ success: false, message: 'not authorized' });
         return false;
       }
-      const { userId } = req.params;
-      const result = await deleteStaleUsers(userId);
+      if (!req.params.userId) res.status(400).json({ success: false, message: 'invalid request' });
+      const result = await deleteStaleUsers(req.params.userId);
       if (result) res.sendStatus(204);
       else res.status(404).json({ success: false, message: 'user not found' });
     } catch (err) {
