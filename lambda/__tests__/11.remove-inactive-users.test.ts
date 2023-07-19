@@ -115,6 +115,8 @@ describe('users and teams', () => {
     it('should add sso team account after removing the only team admin', async () => {
       const deleteResponse = await deleteInactiveUsers(TEAM_ADMIN_IDIR_USERID_01);
       expect(deleteResponse.status).toEqual(204);
+      const user = await models.user.findOne({ where: { idir_userid: TEAM_ADMIN_IDIR_USERID_01 }, raw: true });
+      expect(user).toBeNull();
     });
 
     it('should verify the admin status of sso team user in team with only admin', async () => {

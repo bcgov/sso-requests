@@ -241,7 +241,7 @@ export const deleteStaleUsers = async (userId: string) => {
         }
       }
 
-      existingUser.destroy();
+      await existingUser.destroy();
       return true;
     } else {
       return false;
