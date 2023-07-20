@@ -21,6 +21,7 @@ resource "aws_lambda_function" "app" {
     variables = {
       APP_URL                        = var.app_url
       API_URL                        = var.api_url
+      API_AUTH_SECRET                = var.api_auth_secret
       APP_ENV                        = var.app_env
       NODE_ENV                       = "production"
       LOCAL_DEV                      = var.local_dev

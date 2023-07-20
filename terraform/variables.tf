@@ -102,6 +102,11 @@ variable "api_url" {
   description = "the api base url"
 }
 
+variable "api_auth_secret" {
+  type        = string
+  description = "the api authorization secret"
+}
+
 variable "app_env" {
   type        = string
   description = "the application environment; development, test, production"
