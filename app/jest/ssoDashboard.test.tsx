@@ -74,7 +74,7 @@ describe('SSO Dashboard', () => {
     });
 
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete',
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
     });
     fireEvent.click(firstRow);
     await waitFor(() => {
@@ -134,7 +134,7 @@ describe('SSO Dashboard', () => {
       screen.getByText('project_name_1');
     });
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete',
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
     });
     fireEvent.click(firstRow);
     await waitFor(() => {
@@ -156,7 +156,7 @@ describe('SSO Dashboard', () => {
     });
 
     //click on delete icon
-    const deleteButton = screen.getAllByRole('button', { name: 'Delete' });
+    const deleteButton = screen.getAllByRole('button', { name: 'Delete from Keycloak' });
     fireEvent.click(deleteButton[0]);
     await waitFor(() => {
       expect(screen.getByTitle('Confirm Deletion')).toBeInTheDocument();
@@ -203,7 +203,9 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Events Edit Delete' });
+    const firstRow = screen.getByRole('row', {
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+    });
     fireEvent.click(firstRow);
 
     //open the tabpanel
@@ -240,7 +242,9 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Events Edit Delete' });
+    const firstRow = screen.getByRole('row', {
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+    });
     fireEvent.click(firstRow);
 
     //open the tabpanel
@@ -263,7 +267,9 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Events Edit Delete' });
+    const firstRow = screen.getByRole('row', {
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+    });
     fireEvent.click(firstRow);
 
     //open the tabpanel
@@ -286,7 +292,9 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', { name: '1 project_name_1 Applied Active Events Edit Delete' });
+    const firstRow = screen.getByRole('row', {
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+    });
     fireEvent.click(firstRow);
 
     //open the tabpanel

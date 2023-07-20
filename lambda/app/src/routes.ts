@@ -19,6 +19,7 @@ import {
   updateServiceAccountSecret,
 } from './controllers/team';
 import {
+  deleteStaleUsers,
   findOrCreateUser,
   isAllowedToManageRoles,
   listClientRolesByUsers,
@@ -122,6 +123,23 @@ export const setRoutes = (app: any) => {
 
         return res.redirect(`${APP_URL}/verify-user?message=success&teamId=${teamId}`);
       }
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.delete(`/users/:userId`, async (req, res) => {
+    try {
+      const { Authorization, authorization } = req.headers || {};
+      const authHeader = Authorization || authorization;
+      if (!authHeader || authHeader !== process.env.API_AUTH_SECRET) {
+        res.status(401).json({ success: false, message: 'not authorized' });
+        return false;
+      }
+      if (!req.params.userId) res.status(400).json({ success: false, message: 'invalid request' });
+      const result = await deleteStaleUsers(req.params.userId);
+      if (result) res.sendStatus(204);
+      else res.status(404).json({ success: false, message: 'user not found' });
     } catch (err) {
       handleError(res, err);
     }

@@ -30,6 +30,7 @@ jobs:
           cat >> $GITHUB_ENV <<EOF
           APP_URL=https://bcgov.github.io/sso-requests-sandbox
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app
+          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           APP_ENV=development
           TFC_WORKSPACE=xgr00q-dev-sso-requests
           SSO_ISSUER_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
@@ -57,6 +58,7 @@ jobs:
           cat >> $GITHUB_ENV <<EOF
           APP_URL=https://bcgov.github.io/sso-requests
           API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app
+          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           APP_ENV=production
           TFC_WORKSPACE=xgr00q-prod-sso-requests
           SSO_ISSUER_URL=https://loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
@@ -176,6 +178,7 @@ jobs:
           cat >"ci.auto.tfvars" <<EOF
           app_url="${{ env.APP_URL }}"
           api_url="${{ env.API_URL }}"
+          api_auth_secret="${{ env.API_AUTH_SECRET }}"
           app_env="${{ env.APP_ENV }}"
           gh_access_token="${{ secrets.GH_ACCESS_TOKEN }}"
           gh_secret="${{ secrets.GH_SECRET }}"

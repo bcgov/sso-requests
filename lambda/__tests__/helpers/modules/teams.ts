@@ -1,6 +1,7 @@
 import app from '../../helpers/server';
 import supertest from 'supertest';
 import { APP_BASE_PATH } from '../constants';
+import { models } from '@lambda-shared/sequelize/models/models';
 
 export const getTeams = async () => {
   return await supertest(app).get(`${APP_BASE_PATH}/teams`);
@@ -42,4 +43,15 @@ export const sendTeamInvite = async (teamId: number, data: { idirEmail: string; 
 
 export const deleteTeam = async (teamId: number) => {
   return await supertest(app).del(`${APP_BASE_PATH}/teams/${teamId}`);
+};
+
+export const updateTeamMembers = async (teamId: number) => {
+  await models.usersTeam.update(
+    { pending: false },
+    {
+      where: {
+        teamId,
+      },
+    },
+  );
 };
