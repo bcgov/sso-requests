@@ -54,6 +54,7 @@
     "react": "18.2.0",
     "react-bootstrap": "2.5.0",
     "react-dom": "18.2.0",
+    "react-idle-timer": "^5.7.2",
     "react-infinite-scroller": "1.2.6",
     "react-jsonschema-form": "1.8.1",
     "react-loader-spinner": "6.0.0-0",
