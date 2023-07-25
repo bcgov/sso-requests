@@ -146,13 +146,10 @@ function MyApp({ Component, pageProps }: AppProps) {
       const interval = setInterval(async () => {
         const tokenPayload = parseJWTPayload(getTokens().refresh_token);
         if (Date.now() >= tokenPayload.exp * 1000) {
-          console.log('expired');
           setRefreshTokenState('expired');
           sessionExpiringModalRef.current.close();
           sessionExpiredModalRef.current.open();
         } else {
-          console.log('not expired');
-
           setRefreshTokenState('');
         }
       }, 5_000);
@@ -198,7 +195,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
             title="Your session is about to expire"
             icon={faExclamationTriangle}
-            onConfirm={noop}
+            onConfirm={async () => await getProfile()}
             onCancel={() => {
               handleLogout();
             }}
