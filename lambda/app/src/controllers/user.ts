@@ -169,7 +169,6 @@ export const deleteStaleUsers = async (userId: string) => {
               apiServiceAccount: false,
               usesTeam: true,
               userId: existingUser.id,
-              archived: false,
               teamId: team.teamId,
             },
           });
@@ -216,27 +215,28 @@ export const deleteStaleUsers = async (userId: string) => {
           apiServiceAccount: false,
           usesTeam: false,
           userId: existingUser.id,
-          archived: false,
           teamId: null,
         },
       });
 
       if (nonTeamRequests.length > 0) {
         for (let rqst of nonTeamRequests) {
-          rqst.archived = true;
           // assign sso team user
           rqst.userId = ssoUser.id;
 
-          if (rqst.status !== 'draft') {
-            rqst.status = 'submitted';
-            const ghResult = await dispatchRequestWorkflow(rqst);
+          if (!rqst.archived) {
+            rqst.archived = true;
+            if (rqst.status !== 'draft') {
+              rqst.status = 'submitted';
+              const ghResult = await dispatchRequestWorkflow(rqst);
 
-            if (ghResult.status !== 204) {
-              throw Error('failed to create a workflow dispatch event');
+              if (ghResult.status !== 204) {
+                throw Error('failed to create a workflow dispatch event');
+              }
+
+              await disableIntegration(rqst.get({ plain: true, clone: true }));
+              await closeOpenPullRequests(rqst.id);
             }
-
-            await disableIntegration(rqst.get({ plain: true, clone: true }));
-            await closeOpenPullRequests(rqst.id);
           }
           await rqst.save();
         }
