@@ -16,8 +16,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 import { useIdleTimer } from 'react-idle-timer';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
-import CreateRoleContent from '@app/page-partials/my-dashboard/RoleManagement/CreateRoleContent';
-import { faTrash, faExclamationTriangle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import noop from 'lodash.noop';
 import { parseJWTPayload } from '@app/utils/helpers';
 
@@ -41,7 +40,7 @@ export interface SessionContextInterface {
 
 export const SessionContext = React.createContext<SessionContextInterface | null>(null);
 
-const timeout = 300_000; // 5 minutes
+const idleTimerTimeout = 300_000; // 5 minutes
 const promptBeforeIdle = 10_000; // prompt 10 seconds before timeout
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -62,7 +61,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useIdleTimer({
     onPrompt,
-    timeout,
+    timeout: idleTimerTimeout,
     promptBeforeIdle,
     throttle: 500,
     disabled: session !== null ? false : true,
@@ -221,7 +220,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             title="Session expired"
             icon={faExclamationTriangle}
             onConfirm={() => handleLogin()}
-            onCancel={noop}
+            onCancel={async () => await getProfile()}
             confirmButtonText="Log In"
             confirmButtonVariant="primary"
             cancelButtonVariant="secondary"
