@@ -13,10 +13,7 @@ export const handler = async (event: APIGatewayProxyEvent, context?: Context, ca
         ref: process.env.GH_BRANCH,
       });
 
-    const data = await Promise.all([
-      triggerDispatch(process.env.GH_WORKFLOW_ID),
-      triggerDispatch(process.env.GH_WORKFLOW_V2_ID),
-    ]);
+    const data = await Promise.all([triggerDispatch(process.env.GH_WORKFLOW_V2_ID)]);
 
     const response = {
       statusCode: 200,
