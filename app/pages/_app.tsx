@@ -218,7 +218,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             icon={faExclamationTriangle}
             onConfirm={() => handleLogin()}
             onCancel={async () => await getProfile()}
-            confirmButtonText="Log In"
+            confirmButtonText="Login"
             confirmButtonVariant="primary"
             cancelButtonVariant="secondary"
             showConfirmButton={true}
