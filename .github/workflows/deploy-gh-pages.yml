@@ -95,10 +95,13 @@ jobs:
       - name: Create Release
         if: github.ref == 'refs/heads/main' && matrix.env == 'prod'
         id: release
-        uses: rymndhng/release-on-push-action@v0.20.0
+        uses: rymndhng/release-on-push-action@v0.28.0
         with:
-          bump_version_scheme: patch
-          tag_prefix: v
+          bump_version_scheme: 'patch'
+          tag_prefix: 'v'
+          use_github_release_notes: 'true'
+          release_name: 'Release <RELEASE_VERSION>'
+          max_commits: 100 # default is 50
 
       - name: Check Output Parameters
         if: github.ref == 'refs/heads/main' && matrix.env == 'prod'
