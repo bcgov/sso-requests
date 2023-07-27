@@ -193,7 +193,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <GenericModal
             ref={sessionExpiringModalRef}
             style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
-            title="Your session is about to expire"
+            title="Session expiring"
             icon={faExclamationTriangle}
             onConfirm={async () => await getProfile()}
             onCancel={() => {
@@ -224,7 +224,11 @@ function MyApp({ Component, pageProps }: AppProps) {
             showConfirmButton={true}
             showCancelButton={true}
           >
-            <div>Your session has expired!</div>
+            <div>
+              <div>Your session has expired.</div>
+              <br />
+              <div>Please login again.</div>{' '}
+            </div>
           </GenericModal>
         </>
       )}
