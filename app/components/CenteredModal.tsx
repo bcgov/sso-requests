@@ -91,6 +91,7 @@ const CenteredModal = ({
 
   switch (buttonStyle) {
     case 'bcgov':
+      cancelButtonVariant = 'govStandard';
       break;
     case 'custom':
       cancelButtonVariant = 'secondary';

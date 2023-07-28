@@ -18,9 +18,16 @@ import isEmpty from 'lodash.isempty';
 import { useEffect, useState } from 'react';
 import ReactPlaceholder from 'react-placeholder';
 import styled from 'styled-components';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 const RightFloatButtons = styled.td`
   float: right;
+`;
+
+const StyledP = styled.div`
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
 `;
 
 const RedIcon = styled(FontAwesomeIcon)`
@@ -138,29 +145,25 @@ export default function ServiceAccountsList({
 
       <CenteredModal
         title="Request a new secret for CSS API Account"
-        icon={null}
+        icon={faExclamationTriangle}
         onConfirm={handleConfirmUpdate}
         id={updateServiceAccountSecretModalId}
         content={
           <>
-            <ModalContentContainer>
-              <RedIcon icon={faTriangleExclamation} size="3x" />
-              <div>
-                <strong>You are about to request a new secret for CSS API Account</strong>
-                <hr style={{ width: '100%', height: '2px' }} />
-                <p>
-                  Once new secret gets generated, your previous secret will no longer be valid for any applications
-                  using it.
-                </p>
-                <p>
-                  This means any application using CSS API through this account should be configured with the new
-                  secret.
-                </p>
-              </div>
-            </ModalContentContainer>
+            <StyledP>
+              <strong>You are about to request a new secret for CSS API Account</strong>
+            </StyledP>
+            <br />
+            <p>
+              Once new secret gets generated, your previous secret will no longer be valid for any applications using
+              it.
+            </p>
+            <p>
+              This means any application using CSS API through this account should be configured with the new secret.
+            </p>
           </>
         }
-        buttonStyle={'danger'}
+        buttonStyle={'bcgov'}
         confirmText={'Confirm'}
         closable
       />

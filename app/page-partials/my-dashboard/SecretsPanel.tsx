@@ -65,19 +65,14 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const modalContents = (
     <>
       <StyledP>
-        <PaddedIcon icon={faExclamationTriangle} color="black" title="Warning" size="2x" />
-        <strong>You&apos;re About to Change Your Client Secret for Your {activeEnv?.display} Environment.</strong>{' '}
+        <strong>You are about to change your client secret for your {activeEnv?.display} environment.</strong>{' '}
       </StyledP>
-      <StyledHr />
-      <ul>
-        <li>
-          Once you change your secret, your previous secret will no longer be valid for any applications using it.
-        </li>
-        <li>
-          This means you will need to update any applications using this client with the new JSON details before they
-          are functional again.
-        </li>
-      </ul>
+      <br />
+      <p>Once you change your secret, your previous secret will no longer be valid for any applications using it.</p>
+      <p>
+        This means you will need to update any applications using this client with the new JSON details before they are
+        functional again.
+      </p>
     </>
   );
 
@@ -106,7 +101,8 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
         content={modalContents}
         onConfirm={handleSecretChange}
         icon={faExclamationTriangle}
-        title="You're About to Change Your Client Secret"
+        buttonStyle={'bcgov'}
+        title="You are about to change your client secret"
         closable
       />
     </>
