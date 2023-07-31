@@ -155,8 +155,8 @@ export default function ServiceAccountsList({
             </StyledP>
             <br />
             <p>
-              Once new secret gets generated, your previous secret will no longer be valid for any applications using
-              it.
+              Once the new secret gets generated, your previous secret will no longer be valid for any applications
+              using it.
             </p>
             <p>
               This means any application using CSS API through this account should be configured with the new secret.
