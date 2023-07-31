@@ -5,18 +5,12 @@ import { Integration } from '@app/interfaces/Request';
 import { Team } from '@app/interfaces/team';
 import {
   deleteServiceAccount,
-  getServiceAccount,
   getServiceAccountCredentials,
-  getServiceAccounts,
   updateServiceAccountCredentials,
 } from '@app/services/team';
 import { copyTextToClipboard, downloadText, prettyJSON } from '@app/utils/text';
 import Table from 'components/TableNew';
-import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import isEmpty from 'lodash.isempty';
-import { useEffect, useState } from 'react';
-import ReactPlaceholder from 'react-placeholder';
 import styled from 'styled-components';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
