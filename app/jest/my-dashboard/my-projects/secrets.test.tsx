@@ -25,10 +25,10 @@ describe('change client secret tab', () => {
   it('Should be able to click the button and return expect modal, and check the endpoint function been called when click Confirm;', () => {
     render(<ConfigurationUrlPanel selectedRequest={{ sampleIntegration, environments: ['dev'] }} />);
     fireEvent.click(screen.getByRole('button', { name: 'Change your client secret' }));
-    expect(screen.getByTitle(`You're About to Change Your Client Secret`)).toBeVisible();
+    expect(screen.getByTitle(`You are about to change your client secret`)).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.getByTitle(`You're About to Change Your Client Secret`)).not.toBeVisible();
+    expect(screen.getByTitle(`You are about to change your client secret`)).not.toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: 'Change your client secret' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));

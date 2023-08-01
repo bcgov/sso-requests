@@ -107,14 +107,14 @@ export default function Home({ onLoginClick }: PageProps) {
               <HorizontalRule />
               <Header>About</Header>
               <Accordion>
-                <Accordion.Panel title="What is Pathfinder's Common Hosted Single Sign-On (CSS) App?">
+                <Accordion.Panel key={'sso'} title="What is Pathfinder's Common Hosted Single Sign-On (CSS) App?">
                   <ul>
                     <li>We provide a login service that connects your users to your applications</li>
                     <li>Your users can login with government identity providers, such as IDIR and BCeID</li>
                     <li>We provide you with instant access to your development and test environments</li>
                   </ul>
                 </Accordion.Panel>
-                <Accordion.Panel title="Benefits">
+                <Accordion.Panel key={'benefits'} title="Benefits">
                   <ul>
                     <li>Use our self-service to quickly get setup</li>
                     <li>
@@ -126,7 +126,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     <li>We follow single sign on best practices via open ID connect protocol (OIDC)</li>
                   </ul>
                 </Accordion.Panel>
-                <Accordion.Panel title="Service Levels">
+                <Accordion.Panel key={'service-levels'} title="Service Levels">
                   <ul>
                     <li>
                       Our service is available 24/7, except during planned outages within the Kamloops and Calgary data
@@ -155,8 +155,8 @@ export default function Home({ onLoginClick }: PageProps) {
                     </li>
                   </ul>
                 </Accordion.Panel>
-                <Accordion.Panel title="Additional Technical Information">
-                  <p>
+                <Accordion.Panel key={'technical-info'} title="Additional Technical Information">
+                  <div>
                     Please contact us if your project:
                     <ul>
                       <li>Is a critical application</li>
@@ -170,7 +170,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     >
                       learn more here
                     </Link>
-                  </p>
+                  </div>
                 </Accordion.Panel>
               </Accordion>
               <br />

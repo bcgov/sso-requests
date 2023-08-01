@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import getConfig from 'next/config';
 import type { AppProps } from 'next/app';
@@ -14,6 +14,11 @@ import { LoggedInUser, User } from 'interfaces/team';
 import Head from 'next/head';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
+import { useIdleTimer } from 'react-idle-timer';
+import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
+import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import noop from 'lodash.noop';
+import { parseJWTPayload } from '@app/utils/helpers';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path, kc_idp_hint, maintenance_mode } = publicRuntimeConfig;
@@ -35,12 +40,32 @@ export interface SessionContextInterface {
 
 export const SessionContext = React.createContext<SessionContextInterface | null>(null);
 
+const idleTimerTimeout = 300_000; // 5 minutes
+const promptBeforeIdle = 10_000; // prompt 10 seconds before timeout
+
 function MyApp({ Component, pageProps }: AppProps) {
+  const sessionExpiringModalRef = useRef<ModalRef>(emptyRef);
+  const sessionExpiredModalRef = useRef<ModalRef>(emptyRef);
   const router = useRouter();
   const [session, setSession] = useState<LoggedInUser | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<any>(null);
+  const [refreshTokenState, setRefreshTokenState] = useState('');
+
+  const onPrompt = () => {
+    if (refreshTokenState !== 'expired') {
+      sessionExpiringModalRef.current.open();
+    }
+  };
+
+  useIdleTimer({
+    onPrompt,
+    timeout: idleTimerTimeout,
+    promptBeforeIdle,
+    throttle: 500,
+    disabled: session !== null ? false : true,
+  });
 
   useEffect(() => {
     console.log('app started...');
@@ -116,6 +141,25 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (session) getUser();
   }, [session]);
 
+  useEffect(() => {
+    if (session) {
+      const interval = setInterval(async () => {
+        const tokenPayload = parseJWTPayload(getTokens().refresh_token);
+        if (Date.now() >= tokenPayload.exp * 1000) {
+          setRefreshTokenState('expired');
+          sessionExpiringModalRef.current.close();
+          sessionExpiredModalRef.current.open();
+        } else {
+          setRefreshTokenState('');
+        }
+      }, 5_000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  });
+
   const handleLogin = async () => {
     const authUrl = await getAuthorizationUrl({ kc_idp_hint });
     window.location.href = authUrl;
@@ -138,13 +182,55 @@ function MyApp({ Component, pageProps }: AppProps) {
       {maintenance_mode && maintenance_mode === 'true' ? (
         <Component {...pageProps} />
       ) : (
-        <Layout session={session} user={user} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
-          <Head>
-            <html lang="en" />
-            <title>Common Hosted Single Sign-on (CSS)</title>
-          </Head>
-          <Component {...pageProps} session={session} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
-        </Layout>
+        <>
+          <Layout session={session} user={user} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
+            <Head>
+              <html lang="en" />
+              <title>Common Hosted Single Sign-on (CSS)</title>
+            </Head>
+            <Component {...pageProps} session={session} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+          </Layout>
+          <GenericModal
+            ref={sessionExpiringModalRef}
+            style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+            title="Session expiring"
+            icon={faExclamationTriangle}
+            onConfirm={async () => await getProfile()}
+            onCancel={() => {
+              handleLogout();
+            }}
+            confirmButtonText="Confirm"
+            confirmButtonVariant="primary"
+            cancelButtonVariant="secondary"
+            showConfirmButton={true}
+            showCancelButton={true}
+          >
+            <div>
+              <div>Your session will expire soon and you will be signed out automatically.</div>
+              <br />
+              <div>Do you want to stay signed in?</div>{' '}
+            </div>
+          </GenericModal>
+          <GenericModal
+            ref={sessionExpiredModalRef}
+            style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+            title="Session expired"
+            icon={faExclamationTriangle}
+            onConfirm={() => handleLogin()}
+            onCancel={async () => await getProfile()}
+            confirmButtonText="Login"
+            confirmButtonVariant="primary"
+            cancelButtonVariant="secondary"
+            showConfirmButton={true}
+            showCancelButton={true}
+          >
+            <div>
+              <div>Your session has expired.</div>
+              <br />
+              <div>Please login again.</div>{' '}
+            </div>
+          </GenericModal>
+        </>
       )}
     </SessionContext.Provider>
   );
