@@ -1,9 +1,10 @@
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
 import {
   SSO_TEAM_IDIR_EMAIL,
   SSO_TEAM_IDIR_USER,
   TEAM_ADMIN_IDIR_EMAIL_01,
   TEAM_ADMIN_IDIR_USERID_01,
+  TEAM_ADMIN_IDIR_USERNAME_01,
   postTeam,
   postTeamMembers,
 } from './helpers/fixtures';
@@ -12,6 +13,19 @@ import { deleteInactiveUsers, getAuthenticatedUser } from './helpers/modules/use
 import { Integration } from 'app/interfaces/Request';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@lambda-shared/sequelize/models/models';
+import { EMAILS } from '@lambda-shared/enums';
+import { renderTemplate } from '@lambda-shared/templates';
+import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
+
+const testUser = {
+  username: TEAM_ADMIN_IDIR_USERNAME_01,
+  email: TEAM_ADMIN_IDIR_EMAIL_01,
+  attributes: {
+    idir_user_guid: TEAM_ADMIN_IDIR_USERID_01,
+    idir_username: TEAM_ADMIN_IDIR_USERNAME_01,
+  },
+  clientData: {},
+};
 
 jest.mock('../app/src/authenticate');
 
@@ -62,6 +76,7 @@ describe('users and teams', () => {
     let teamWithOtherAdmins: number;
     let nonTeamIntegration: Integration;
     let teamIntegration: Integration;
+    let emailList: any;
 
     it('should allow sso team user to login', async () => {
       createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
@@ -113,10 +128,26 @@ describe('users and teams', () => {
     });
 
     it('should add sso team account after removing the only team admin', async () => {
-      const deleteResponse = await deleteInactiveUsers(TEAM_ADMIN_IDIR_USERID_01);
-      expect(deleteResponse.status).toEqual(204);
+      emailList = createMockSendEmail();
+      testUser.clientData = [{ client: teamIntegration.clientId, roles: ['test_role'] }];
+      const deleteResponse = await deleteInactiveUsers(testUser);
+      const template = await renderTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+        teamId: teamWithoutAdmins,
+        username: testUser.username,
+        clientId: testUser.clientData[0].client,
+        roles: testUser.clientData[0].roles[0],
+        teamAdmin: true,
+      });
+      expect(deleteResponse.status).toEqual(200);
       const user = await models.user.findOne({ where: { idir_userid: TEAM_ADMIN_IDIR_USERID_01 }, raw: true });
       expect(user).toBeNull();
+      expect(emailList.length).toEqual(1);
+      expect(emailList[0].subject).toEqual(template.subject);
+      expect(emailList[0].body).toEqual(template.body);
+      expect(emailList[0].to.length).toEqual(1);
+      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
+      expect(emailList[0].cc.length).toEqual(1);
+      expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
     });
 
     it('should verify the admin status of sso team user in team with only admin', async () => {

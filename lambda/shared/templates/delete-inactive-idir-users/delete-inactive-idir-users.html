@@ -1,0 +1,14 @@
+<h3>Dear Pathfinder SSO friend,</h3>
+<p>
+  The IDIR user with the idir username {{username}} has an inactive guid in our system. They have been removed from
+  client {{clientId}} and associated roles {{roles}}
+</p>
+{{#if teamAdmin}}
+<p>
+  This user was also a Team Admin for your integration, to help ensure a transition to the appropriate admin, please
+  contact the Pathfinder SSO team,
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
+  with the name of the new admin so we configure for you. Once the Admin is set up, you can remove the Pathfinder SSO
+  team as an admin.
+</p>
+{{/if}} {{> footer }}
