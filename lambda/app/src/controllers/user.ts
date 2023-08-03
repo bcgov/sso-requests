@@ -9,6 +9,9 @@ import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { dispatchRequestWorkflow, closeOpenPullRequests } from '@lambda-app/github';
 import { disableIntegration } from '@lambda-app/keycloak/client';
+import { EMAILS } from '@lambda-shared/enums';
+import { sendTemplate } from '@lambda-shared/templates';
+import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -142,19 +145,50 @@ export const isAllowedToManageRoles = async (session: Session, integrationId: nu
   return canCreateOrDeleteRoles(integration);
 };
 
-export const deleteStaleUsers = async (userId: string) => {
+export const deleteStaleUsers = async (user: any) => {
   try {
-    const existingUser = await models.user.findOne({ where: { idir_userid: userId } });
+    if (user.clientData && user.clientData.length > 0) {
+      user.clientData.map(async (cl: { client: string; roles: string[] }) => {
+        const integration = await models.request.findOne({
+          where: {
+            clientId: cl.client,
+          },
+          raw: true,
+        });
+
+        if (integration.teamId) {
+          const userEmails = await getAllEmailsOfTeam(integration.teamId);
+          let isTeamAdmin = false;
+          userEmails.map((u: any) => {
+            if (u.idir_email === user.email && u.role === 'admin') {
+              isTeamAdmin = true;
+            }
+          });
+          sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+            teamId: integration.teamId,
+            username: user.attributes.idir_username || user.username,
+            clientId: cl.client,
+            roles: cl.roles,
+            teamAdmin: isTeamAdmin,
+          });
+        }
+      });
+    }
+
+    if (!user.attributes.idir_user_guid) throw Error('user guid is required');
+
+    const existingUser = await models.user.findOne({ where: { idir_userid: user.attributes.idir_user_guid } });
     const ssoUser = await models.user.findOne({
       where: { idir_email: 'bcgov.sso@gov.bc.ca' },
       raw: true,
     });
 
+    if (!ssoUser) throw Error('user(bcgov.sso@gov.bc.ca) not found');
+
     if (existingUser) {
       const teams = await models.usersTeam.findAll({
         where: {
           user_id: existingUser.id,
-          role: 'admin',
           pending: false,
         },
         raw: true,
@@ -243,6 +277,7 @@ export const deleteStaleUsers = async (userId: string) => {
       }
 
       await existingUser.destroy();
+
       return true;
     } else {
       return false;

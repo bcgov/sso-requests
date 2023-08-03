@@ -213,4 +213,16 @@ describe('Email template snapshots', () => {
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
   });
+
+  it('Should return the expeted email for DELETE_INACTIVE_IDIR_USER', async () => {
+    const rendered = await renderTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+      teamId: 1,
+      username: 'test-user',
+      clientId: 'test-client',
+      roles: 'test-role',
+      teamAdmin: true,
+    });
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
 });
