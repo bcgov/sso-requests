@@ -147,9 +147,7 @@ export const isAllowedToManageRoles = async (session: Session, integrationId: nu
 
 export const deleteStaleUsers = async (user: any) => {
   try {
-    console.log('user', user);
-
-    if (user.clientData && user.clientData.length > 0) {
+    if (user?.clientData && user?.clientData?.length > 0) {
       user.clientData.map(async (cl: { client: string; roles: string[] }) => {
         const integration = await models.request.findOne({
           where: {
@@ -157,12 +155,8 @@ export const deleteStaleUsers = async (user: any) => {
           },
           raw: true,
         });
-        console.log('integration', integration);
-
         if (integration?.teamId) {
           const userEmails = await getAllEmailsOfTeam(integration.teamId);
-          console.log('userEmails', userEmails);
-
           let isTeamAdmin = false;
           userEmails.map((u: any) => {
             if (u.idir_email === user.email && u.role === 'admin') {
@@ -281,14 +275,14 @@ export const deleteStaleUsers = async (user: any) => {
         }
       }
 
-      //await existingUser.destroy();
+      await existingUser.destroy();
 
       return true;
     } else {
       return false;
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw Error(err.message || err);
   }
 };
