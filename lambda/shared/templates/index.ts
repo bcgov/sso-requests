@@ -134,7 +134,8 @@ export const sendTemplate = async (code: string, data: any) => {
 
     await builder.send(data, rendered);
   } catch (err) {
-    console.log(err);
+    console.error(code, data);
+    console.error(err);
 
     if (data.integration) {
       createEvent({
