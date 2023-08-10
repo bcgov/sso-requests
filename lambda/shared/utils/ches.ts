@@ -7,10 +7,6 @@ import https from 'https';
 
 const compactUniq = (v) => uniq(compact(v));
 
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: false,
-});
-
 const fetchChesToken = async (username, password) => {
   const tokenEndpoint = process.env.CHES_TOKEN_ENDPOINT;
   const params = new url.URLSearchParams({ grant_type: 'client_credentials' });
@@ -19,13 +15,12 @@ const fetchChesToken = async (username, password) => {
       headers: {
         'Accept-Encoding': 'application/json',
       },
-      httpsAgent,
       auth: {
         username,
         password,
       },
     });
-
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     const { access_token: accessToken } = payload.data;
     return [accessToken, null];
   } catch (err) {
@@ -55,7 +50,6 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, bo
 
   const reqOptions = {
     headers: { Authorization: `Bearer ${accessToken}` },
-    httpsAgent,
   };
 
   // see https://github.com/axios/axios/issues/1650#issuecomment-410403394
