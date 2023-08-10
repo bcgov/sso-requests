@@ -32,6 +32,7 @@ resource "aws_lambda_function" "actions" {
       CHES_TOKEN_ENDPOINT = var.ches_token_endpoint
       CHES_PASSWORD       = var.ches_password
       CHES_USERNAME       = var.ches_username
+      REALM_REGISTRY_API  = var.realm_registry_api
     }
   }
 
