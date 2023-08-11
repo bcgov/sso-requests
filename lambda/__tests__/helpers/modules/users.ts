@@ -6,9 +6,10 @@ export const getAuthenticatedUser = async () => {
   return await supertest(app).get(`${APP_BASE_PATH}/me`);
 };
 
-export const deleteInactiveUsers = async (userId: string) => {
+export const deleteInactiveUsers = async (userData: any) => {
   return await supertest(app)
-    .delete(`${APP_BASE_PATH}/users/${userId}`)
+    .post(`${APP_BASE_PATH}/delete-inactive-idir-users`)
+    .send(userData)
     .set('Accept', 'application/json')
     .set('Authorization', 'test');
 };

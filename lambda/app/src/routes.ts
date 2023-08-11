@@ -128,7 +128,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.delete(`/users/:userId`, async (req, res) => {
+  app.post(`/delete-inactive-idir-users`, async (req, res) => {
     try {
       const { Authorization, authorization } = req.headers || {};
       const authHeader = Authorization || authorization;
@@ -136,9 +136,8 @@ export const setRoutes = (app: any) => {
         res.status(401).json({ success: false, message: 'not authorized' });
         return false;
       }
-      if (!req.params.userId) res.status(400).json({ success: false, message: 'invalid request' });
-      const result = await deleteStaleUsers(req.params.userId);
-      if (result) res.sendStatus(204);
+      const result = await deleteStaleUsers(req.body);
+      if (result) res.status(200).json({ success: true });
       else res.status(404).json({ success: false, message: 'user not found' });
     } catch (err) {
       handleError(res, err);

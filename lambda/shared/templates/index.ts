@@ -17,6 +17,7 @@ import updateIntegrationSubmitted from './update-integration-submitted';
 import createTeamApiAccountSubmitted from './create-team-api-account-submitted';
 import createTeamApiAccountApproved from './create-team-api-account-approved';
 import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
+import deleteInactiveIdirUsers from './delete-inactive-idir-users';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -90,6 +91,9 @@ const getBuilder = (key: string) => {
     case EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED:
       builder = deleteTeamApiAccountSubmitted;
       break;
+    case EMAILS.DELETE_INACTIVE_IDIR_USER:
+      builder = deleteInactiveIdirUsers;
+      break;
     default:
       break;
   }
@@ -130,7 +134,8 @@ export const sendTemplate = async (code: string, data: any) => {
 
     await builder.send(data, rendered);
   } catch (err) {
-    console.log(err);
+    console.error(code, data);
+    console.error(err);
 
     if (data.integration) {
       createEvent({
