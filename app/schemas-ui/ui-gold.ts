@@ -110,7 +110,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     projectLead: {
       'ui:FieldTemplate': FieldRequesterInfo,
       'ui:widget': 'radio',
-      'ui:readonly': !isNew,
+      'ui:readonly': isApplied,
     },
     newToSso: {
       'ui:widget': 'radio',
