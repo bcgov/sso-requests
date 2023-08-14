@@ -50,7 +50,7 @@ const durationAdditionalFields = [];
 });
 
 export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
-  const immutableFields = ['user', 'userId', 'idirUserid', 'projectLead', 'status', 'serviceType', 'lastChanges'];
+  const immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
 
   if (isMerged) {
     immutableFields.push('realm');
@@ -69,6 +69,8 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
   data.prodRoles = compact(data.prodRoles || []);
 
   if (data.protocol === 'saml') data.authType = 'browser-login';
+
+  if (data.teamId !== null && data.usesTeam === false && data.projectLead === true) data.teamId = null;
 
   return data;
 };
