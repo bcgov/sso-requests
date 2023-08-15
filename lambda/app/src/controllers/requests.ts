@@ -177,6 +177,13 @@ export const updateRequest = async (
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
 
+    if (finalData?.usesTeam === false) {
+      finalData.teamId = null;
+      finalData.team = null;
+    } else if (finalData?.usesTeam === true) finalData.projectLead = false;
+
+    console.log('finalData', finalData);
+
     if (submit) {
       const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);
       if (!isEmpty(validationErrors)) {
