@@ -70,9 +70,10 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
 
   if (data.protocol === 'saml') data.authType = 'browser-login';
 
-  if (data?.usesTeam === false && data?.projectLead === true) data.teamId = null;
+  if (data?.usesTeam === false) data.teamId = null;
+  else if (data?.usesTeam === true) data.projectLead = false;
 
-  console.log(data);
+  console.log('processRequest', data);
 
   return data;
 };

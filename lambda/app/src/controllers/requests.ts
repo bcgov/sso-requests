@@ -150,6 +150,7 @@ export const updateRequest = async (
 
   try {
     const current = await getAllowedRequest(session, data.id);
+    console.log('current1', current);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
     const originalData = getCurrentValue();
     const isAllowedStatus = ['draft', 'applied'].includes(current.status);
@@ -159,8 +160,11 @@ export const updateRequest = async (
     }
 
     const allowedData = processRequest(rest, isMerged, userIsAdmin);
+    console.log('allowedData', allowedData);
     assign(current, allowedData);
+    console.log('current2', current);
     const mergedData = getCurrentValue();
+    console.log('mergedData', mergedData);
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
     if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
