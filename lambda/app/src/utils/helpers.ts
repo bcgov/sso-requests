@@ -70,6 +70,8 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
 
   if (data.protocol === 'saml') data.authType = 'browser-login';
 
+  if (data?.usesTeam === true) data.projectLead = false;
+
   return data;
 };
 

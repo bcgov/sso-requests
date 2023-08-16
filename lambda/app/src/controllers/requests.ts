@@ -177,13 +177,6 @@ export const updateRequest = async (
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
 
-    if (current?.usesTeam === false) {
-      current.teamId = null;
-      current.team = null;
-    } else if (current?.usesTeam === true) current.projectLead = false;
-
-    console.log('current3', current);
-
     if (submit) {
       const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);
       if (!isEmpty(validationErrors)) {
@@ -276,6 +269,19 @@ export const updateRequest = async (
 
     if (!updated) {
       throw Error('update failed');
+    }
+
+    if (updated?.usesTeam === false && updated?.teamId) {
+      await models.request.update(
+        { teamId: null },
+        {
+          where: {
+            id: updated.id,
+          },
+          returning: true,
+          omitNull: false,
+        },
+      );
     }
 
     if (submit) {
