@@ -42,6 +42,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     clientId = '',
     devIdps = [],
     protocol = 'oidc',
+    projectLead,
   } = formData;
 
   const fieldMap: any = {
@@ -112,6 +113,12 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     devIdps: () => {
       if (protocol === 'saml' && devIdps.length > 1) {
         errors['devIdps'].addError('Only one identity provider is allowed for saml integrations');
+      }
+    },
+    projectLead: () => {
+      if (usesTeam === false && projectLead === false) {
+        //do not allow to submit a non team integration if user is not a project lead. The error is already shown on the UI
+        errors['projectLead'].addError('');
       }
     },
   };

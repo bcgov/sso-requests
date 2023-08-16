@@ -267,6 +267,20 @@ export const updateRequest = async (
       throw Error('update failed');
     }
 
+    // team id column is referencing id of teams table so it can only be set to null using `update` method
+    if (updated?.usesTeam === false && updated?.teamId) {
+      await models.request.update(
+        { teamId: null },
+        {
+          where: {
+            id: updated.id,
+          },
+          returning: true,
+          omitNull: false,
+        },
+      );
+    }
+
     if (submit) {
       const eventData: any = {
         eventCode: EVENTS.REQUEST_CREATE_SUCCESS,

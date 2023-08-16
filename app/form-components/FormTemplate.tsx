@@ -172,8 +172,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     );
 
     const showModal = newData.projectLead === false && newData.usesTeam === false;
-    const togglingTeamToTrue = formData.usesTeam === false && newData.usesTeam === true;
-    const togglingTeamIdToUndefined = newData.usesTeam === false;
+    const togglingTeamToTrue = !formData.usesTeam && newData.usesTeam === true;
     const togglingBceidApprovedToFalse = newData.bceidApproved === true && checkHasNoBceidIdp(newData.devIdps);
 
     if (formData.protocol !== newData.protocol && devIdps.length > 1) {
@@ -190,9 +189,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     if (newData.authType !== 'browser-login') processed.publicAccess = false;
 
-    if (togglingTeamToTrue) processed.projectLead = undefined;
-    //to prevent the data integrity issue: when choose No-Team, teamId flag retains the old teamId value;
-    if (togglingTeamIdToUndefined) processed.teamId = null;
+    // If user switches to team integration before submitting then set project lead to false
+    if (togglingTeamToTrue) {
+      if (processed.projectLead === true && !isNew) processed.projectLead = false;
+    }
+
     //to prevent the data integrity issue: case for admin role, one can remove bceid-related idps after prod been approved;
     if (togglingBceidApprovedToFalse) processed.bceidApproved = false;
 
