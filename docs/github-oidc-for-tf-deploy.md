@@ -2,6 +2,9 @@
 
 ## AWS
 
+- Login to `https://login.nimbus.cloud.gov.bc.ca/`
+- Copy the account number
+
 ### Role
 
 - Create a role of type Web Identity
@@ -85,7 +88,7 @@
   ```yaml
   permissions:
     id-token: write # This is required for requesting the JWT and AWS credentials using AssumeRoleWithWebIdentity
-    contents: read # This is required for actions/checkout
+    contents: write # This is required for actions/checkout
   ```
 
 ## Terraform state migration

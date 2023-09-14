@@ -22,7 +22,7 @@ env:
 
 permissions:
   id-token: write # This is required for requesting the JWT and AWS credentials using AssumeRoleWithWebIdentity
-  contents: read # This is required for actions/checkout
+  contents: write # This is required for actions/checkout
 
 jobs:
   terraform:
