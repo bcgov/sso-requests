@@ -83,14 +83,6 @@
       aws-region: ca-central-1
   ```
 
-- Add below permission if does not exist already
-
-  ```yaml
-  permissions:
-    id-token: write # This is required for requesting the JWT and AWS credentials using AssumeRoleWithWebIdentity
-    contents: write # This is required for actions/checkout
-  ```
-
 ## Terraform state migration
 
 - Copy the TFC token from parameter store
