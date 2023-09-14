@@ -154,7 +154,7 @@ jobs:
           terraform {
             backend "s3" {
               bucket         = "${{ env.TF_STATE_BUCKET }}"
-              key            = "${{ env.TF_STATE_KEY }}"
+              key            = "${{ env.TF_STATE_BUCKET_KEY }}"
               region         = "ca-central-1"
               dynamodb_table = "${{ env.TF_STATE_DYNAMODB_TABLE }}"
             }
