@@ -183,7 +183,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
     return (
       <>
         <Header size="lg">INTEGRATIONS</Header>
-        <Table 
+        <Table
           headers={[
             {
               accessor: 'id',
