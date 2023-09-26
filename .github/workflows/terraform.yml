@@ -22,6 +22,7 @@ env:
 
 jobs:
   terraform:
+    permissions: write-all
     runs-on: ubuntu-20.04
     steps:
       - name: Set env to development
@@ -32,7 +33,10 @@ jobs:
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           APP_ENV=development
-          TFC_WORKSPACE=xgr00q-dev-sso-requests
+          TF_STATE_BUCKET=xgr00q-dev-sso-requests
+          TF_STATE_BUCKET_KEY=css-tf-dev-state
+          TF_STATE_DYNAMODB_TABLE=xgr00q-dev-sso-requests-state-locking
+          TERRAFORM_DEPLOY_ROLE_ARN=${{ secrets.DEV_TERRAFORM_DEPLOY_ROLE_ARN }}
           SSO_ISSUER_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           SUBNET_A=App_Dev_aza_net
           SUBNET_B=App_Dev_azb_net
@@ -60,7 +64,10 @@ jobs:
           API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           APP_ENV=production
-          TFC_WORKSPACE=xgr00q-prod-sso-requests
+          TF_STATE_BUCKET=xgr00q-prod-sso-requests
+          TF_STATE_BUCKET_KEY=css-tf-prod-state
+          TF_STATE_DYNAMODB_TABLE=xgr00q-prod-sso-requests-state-locking
+          TERRAFORM_DEPLOY_ROLE_ARN=${{ secrets.PROD_TERRAFORM_DEPLOY_ROLE_ARN }}
           SSO_ISSUER_URL=https://loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           SUBNET_A=App_Prod_aza_net
           SUBNET_B=App_Prod_azb_net
@@ -129,11 +136,11 @@ jobs:
           make build_all
         working-directory: ./lambda
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          terraform_version: ${{ env.TF_VERSION }}
-          cli_config_credentials_token: ${{ secrets.TFC_TEAM_TOKEN }}
+          role-to-assume: ${{ env.TERRAFORM_DEPLOY_ROLE_ARN }}
+          aws-region: ca-central-1
 
       - name: Terraform Format
         id: fmt
@@ -156,21 +163,11 @@ jobs:
         run: |
           cat >"config.tf" <<EOF
           terraform {
-            backend "remote" {
-              hostname     = "app.terraform.io"
-              organization = "bcgov"
-              workspaces {
-                name = "${{ env.TFC_WORKSPACE }}"
-              }
-            }
-          }
-          EOF
-
-          cat >"provider.tf" <<EOF
-          provider "aws" {
-            region = "ca-central-1"
-            assume_role {
-              role_arn = "arn:aws:iam::\${var.target_aws_account_id}:role/BCGOV_\${var.target_env}_Automation_Admin_Role"
+            backend "s3" {
+              bucket         = "${{ env.TF_STATE_BUCKET }}"
+              key            = "${{ env.TF_STATE_BUCKET_KEY }}"
+              region         = "ca-central-1"
+              dynamodb_table = "${{ env.TF_STATE_DYNAMODB_TABLE }}"
             }
           }
           EOF

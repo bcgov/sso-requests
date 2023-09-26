@@ -1,6 +1,6 @@
 # Developer Guidelines
 
-## Setting up the local development environment
+## Setting up the local development asdf environment
 
 - [`asdf`](https://asdf-vm.com/#/core-manage-asdf) is a tool to manage the required packages with specific versions.
 - All the packages are defined in `tool-versions`
@@ -20,13 +20,13 @@
       asdf install
       asdf reshim
    ```
-1. Confirm the libraries have been properly installed by running `asdf current`. The output will tell you if any packages failed to download.
+1. Confirm the libraries have been properly installed by running `asdf current`. The output will tell you if any packages failed to download. Postgres in particular has issues installing on Ubuntu systems. There are some instalation instructions here [asdf-postgres](https://github.com/smashedtoatoms/asdf-postgres)
 1. Run `pip install -r requirements.txt` to install python packages
    - _**Note:** If running into as asdf error, try running `asdf reshim`_
 1. Run `pre-commit install`
 1. Run `gitlint install-hook`
 
-### Setup
+## Evironment Setup
 
 - Copy environment variables
   ```sh
@@ -35,7 +35,11 @@
 
 _**Note:** The defaults will get you up and running, but actual credentials are required for full functionality._
 
-- You could run the apps locally on your host machine using npm commands or in your docker environment using docker compose
+These secrets and configuration variables can be requested from other team developers or found in the dev test and prod sandbox environments. `(dev., test.,'')sandbox.loginproxy.gov.bc.ca`.
+
+## Local vs Docker setup
+
+You could run the apps locally on your host machine using npm commands or in your docker environment using docker compose
 
 ### Run Locally
 
