@@ -92,6 +92,7 @@ export default function Actionbuttons({
           disabled={!canEdit}
           icon={faEdit}
           role="button"
+          data-testid="action-button-edit"
           aria-label="edit"
           onClick={handleEdit}
           activeColor={defaultActiveColor}
@@ -114,6 +115,7 @@ export default function Actionbuttons({
       </ActionButtonContainer>
       <CenteredModal
         id={deleteModalId}
+        data-testid="modal-delete-integration"
         content="You are about to delete this integration request. This action cannot be undone."
         onConfirm={confirmDelete}
         title="Confirm Deletion"

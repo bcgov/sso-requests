@@ -84,7 +84,7 @@ export default function Home({ onLoginClick }: PageProps) {
                   services. Start by requesting an integration.
                 </JumbotronP>
                 <ButtonContainer>
-                  <Button size="medium" onClick={onLoginClick}>
+                  <Button size="medium" data-testid="RequestIntegration" onClick={onLoginClick}>
                     Request SSO Integration
                   </Button>
                 </ButtonContainer>
