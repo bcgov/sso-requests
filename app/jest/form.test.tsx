@@ -109,7 +109,7 @@ describe('Form Template Saving and Navigation', () => {
     });
     fireEvent.click(sandbox.secondStageBox);
     const cancelButton = within(
-      document.querySelector("form.rjsf [data-test-id='form-btns']") as HTMLElement,
+      document.querySelector("form.rjsf [data-testid='form-btns']") as HTMLElement,
     ).getByText('Save and Close');
     fireEvent.click(cancelButton);
     expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' });
