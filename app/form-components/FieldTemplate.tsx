@@ -40,14 +40,14 @@ export default function FieldTemplate(
       <div className={classes}>
         <>
           {displayLabel && label && (
-            <Title data-test-id={`${id}_title`}>
+            <Title data-testid={`${id}_title`}>
               {label}&nbsp;
               {tooltip && (
                 <InfoOverlay {...tooltip} trigger={tooltip?.trigger ? tooltip?.trigger : ['hover', 'focus']} />
               )}
             </Title>
           )}
-          <div data-test-id={`${id}_description`}>{descriptionToUse}</div>
+          <div data-testid={`${id}_description`}>{descriptionToUse}</div>
           {children}
           {errors}
           {help}
