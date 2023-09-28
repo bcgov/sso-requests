@@ -289,6 +289,7 @@ export default function AdminDashboard({ session }: PageProps) {
       />
       <CenteredModal
         id="delete-modal"
+        data-testid="modal-delete-integration"
         content="You are about to delete this integration request. This action cannot be undone."
         onConfirm={confirmDelete}
         confirmText="Delete"
