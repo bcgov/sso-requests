@@ -78,6 +78,8 @@ In addition, requests are timestamped for time created and time updated.
 
 ## Getting Started
 
+For setup of your development environment, a detailed Developer Guide may be found [here](./docs/developer-guide.md).
+
 In the [/app](./app) and [/lambda](./lambda) directories install dependencies with `npm i` or `yarn`.
 
 **Backend**

@@ -1,26 +1,38 @@
 # Developer Guidelines
 
+The guidelines assume the usage of a Ubuntu workstation.
+
 ## Setting up the local development asdf environment
 
 - [`asdf`](https://asdf-vm.com/#/core-manage-asdf) is a tool to manage the required packages with specific versions.
-- All the packages are defined in `tool-versions`
+- All the packages are defined in `tool-versions` in the root directory of the repository.
 
 ### Installation
 
 1. If running ubuntu, make sure that you have all the following packages installed.
+
    - `sudo apt-get install libsqlite3-dev bzip2`
    - `sudo apt-get install icu-devtools`
    - `sudo apt-get install uuid-dev`
+   - `sudo apt install git curl`
+   - `sudo apt install libreadline-dev`
+   - `sudo apt install pre-commit`
+   - `sudo apt install gitlint`
+
+1. Navigate to the root directory of the repository.
 1. Install `asdf` according to the `asdf` installation guide.
    - https://asdf-vm.com/#/core-manage-asdf?id=install
 1. Install `asdf` packages defined in `.tool-versions`.
+
    ```sh
       cat .tool-versions | cut -f 1 -d ' ' | xargs -n 1 asdf plugin-add || true
       asdf plugin-update --all
       asdf install
       asdf reshim
    ```
-1. Confirm the libraries have been properly installed by running `asdf current`. The output will tell you if any packages failed to download. Postgres in particular has issues installing on Ubuntu systems. There are some instalation instructions here [asdf-postgres](https://github.com/smashedtoatoms/asdf-postgres)
+
+1. Confirm the libraries have been properly installed by running `asdf current`. The output will tell you if any packages failed to download.
+1. Postgres in particular has issues installing on Ubuntu systems. There are some instalation instructions here [asdf-postgres](https://github.com/smashedtoatoms/asdf-postgres). Postgres needs to be manually started with `pg_ctl start` and stopped with `pg_ctl stop` before and after running the app.
 1. Run `pip install -r requirements.txt` to install python packages
    - _**Note:** If running into as asdf error, try running `asdf reshim`_
 1. Run `pre-commit install`
@@ -29,6 +41,7 @@
 ## Evironment Setup
 
 - Copy environment variables
+
   ```sh
     make setup_env
   ```
@@ -79,6 +92,21 @@ _**Note:** If the script has logged `migration done` but won't close, you can ex
 
 - Docker (preferebly docker engine and CLI)
 
+#### Install Docker
+
+- Details here: https://docs.docker.com/engine/install/ubuntu/
+- Install Docker Compose: `sudo apt install docker-compose`
+- After the install: Add your current user to the docker group.
+  `sudo usermod -aG docker $USER`
+- Logout/Login to activate
+
+#### For Visual Code
+
+- Install Microsoft Docker Plugin in VC
+- Connect to DockerHub with your password and valid access token (https://hub.docker.com/settings/security)
+- In VC terminal run to test:
+  `docker run hello-world`
+
 #### Steps
 
 - Run `make setup_env` from the root directory to generate,
@@ -86,10 +114,13 @@ _**Note:** If the script has logged `migration done` but won't close, you can ex
   - `.env` file under `./app` and `./localserver` folders
 
 - To build and start the containers (postgres, next app and backend app)
+
   ```bash
   docker-compose up -d
   ```
+
 - To stop the containers
+
   ```bash
   docker-compose down
   ```
