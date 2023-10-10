@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-react-components';
@@ -45,6 +45,7 @@ import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import ServiceAccountsList from './ServiceAccountsList';
 import { InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
+import { SurveyContext } from '@app/pages/_app';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -223,6 +224,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
+  const surveyContext = useContext(SurveyContext)
   const openModal = () => (window.location.hash = addMemberModalId);
 
   const getData = async (teamId: number) => {
@@ -521,30 +523,30 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 data={
                   integrations?.length > 0
                     ? integrations?.map((integration) => {
-                        return {
-                          status: <RequestStatusIcon status={integration?.status} />,
-                          id: integration.id,
-                          projectName: integration.projectName,
-                          actions: (
-                            <RightFloat>
-                              <ActionButtons
-                                request={integration}
-                                onDelete={() => {
-                                  loadTeams();
-                                  getData(team?.id);
-                                }}
-                              >
-                                <ActionButton
-                                  icon={faEye}
-                                  aria-label="view"
-                                  onClick={() => viewProject(integration.id)}
-                                  size="lg"
-                                />
-                              </ActionButtons>
-                            </RightFloat>
-                          ),
-                        };
-                      })
+                      return {
+                        status: <RequestStatusIcon status={integration?.status} />,
+                        id: integration.id,
+                        projectName: integration.projectName,
+                        actions: (
+                          <RightFloat>
+                            <ActionButtons
+                              request={integration}
+                              onDelete={() => {
+                                loadTeams();
+                                getData(team?.id);
+                              }}
+                            >
+                              <ActionButton
+                                icon={faEye}
+                                aria-label="view"
+                                onClick={() => viewProject(integration.id)}
+                                size="lg"
+                              />
+                            </ActionButtons>
+                          </RightFloat>
+                        ),
+                      };
+                    })
                     : []
                 }
                 readOnly={true}
@@ -625,6 +627,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                                 content: err,
                               });
                             } else {
+                              surveyContext?.setShowSurvey(true, 'cssApiRequest');
                               fetchTeamServiceAccounts(team.id);
                             }
                           }}
