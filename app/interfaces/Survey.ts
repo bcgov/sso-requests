@@ -1,4 +1,4 @@
 export interface SurveyData {
-    message: string;
-    rating: number;
+  message: string;
+  rating: number;
 }

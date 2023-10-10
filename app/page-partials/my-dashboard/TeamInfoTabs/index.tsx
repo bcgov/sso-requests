@@ -224,7 +224,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [loading, setLoading] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
-  const surveyContext = useContext(SurveyContext)
+  const surveyContext = useContext(SurveyContext);
   const openModal = () => (window.location.hash = addMemberModalId);
 
   const getData = async (teamId: number) => {
@@ -523,30 +523,30 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 data={
                   integrations?.length > 0
                     ? integrations?.map((integration) => {
-                      return {
-                        status: <RequestStatusIcon status={integration?.status} />,
-                        id: integration.id,
-                        projectName: integration.projectName,
-                        actions: (
-                          <RightFloat>
-                            <ActionButtons
-                              request={integration}
-                              onDelete={() => {
-                                loadTeams();
-                                getData(team?.id);
-                              }}
-                            >
-                              <ActionButton
-                                icon={faEye}
-                                aria-label="view"
-                                onClick={() => viewProject(integration.id)}
-                                size="lg"
-                              />
-                            </ActionButtons>
-                          </RightFloat>
-                        ),
-                      };
-                    })
+                        return {
+                          status: <RequestStatusIcon status={integration?.status} />,
+                          id: integration.id,
+                          projectName: integration.projectName,
+                          actions: (
+                            <RightFloat>
+                              <ActionButtons
+                                request={integration}
+                                onDelete={() => {
+                                  loadTeams();
+                                  getData(team?.id);
+                                }}
+                              >
+                                <ActionButton
+                                  icon={faEye}
+                                  aria-label="view"
+                                  onClick={() => viewProject(integration.id)}
+                                  size="lg"
+                                />
+                              </ActionButtons>
+                            </RightFloat>
+                          ),
+                        };
+                      })
                     : []
                 }
                 readOnly={true}

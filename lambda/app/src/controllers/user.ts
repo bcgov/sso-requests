@@ -40,12 +40,12 @@ export const findOrCreateUser = async (session: Session) => {
 
 export const updateProfile = async (
   session: Session,
-  data: { additionalEmail?: string; hasReadGoldNotification?: boolean, surveySubmissions?: UserSurveyInformation },
+  data: { additionalEmail?: string; hasReadGoldNotification?: boolean; surveySubmissions?: UserSurveyInformation },
 ) => {
   const { user } = session;
   const myself = await models.user.findOne({ where: { id: user.id } });
   // TODO: Save survey information in DB here
-  
+
   if (!isNil(data.additionalEmail)) myself.additionalEmail = lowcase(data.additionalEmail);
   if (!isNil(data.hasReadGoldNotification)) myself.hasReadGoldNotification = data.hasReadGoldNotification;
   const updated = await myself.save();

@@ -6,11 +6,11 @@ export interface Team {
   serviceAccountCount?: string;
 }
 
-export interface  UserSurveyInformation {  
-    addUserToRole: Boolean,
-    createRole: Boolean,
-    cssApiRequest: Boolean,
-    createIntegration: Boolean,
+export interface UserSurveyInformation {
+  addUserToRole: boolean;
+  createRole: boolean;
+  cssApiRequest: boolean;
+  createIntegration: boolean;
 }
 
 export interface User {

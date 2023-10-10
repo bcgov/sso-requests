@@ -134,7 +134,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
   const [schemas, setSchemas] = useState<any[]>([]);
-  const surveyContext = useContext(SurveyContext)
+  const surveyContext = useContext(SurveyContext);
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
   const isAdmin = currentUser.isAdmin || false;

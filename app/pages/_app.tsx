@@ -44,11 +44,11 @@ const defaultUserSurveys: UserSurveyInformation = {
   createIntegration: false,
   createRole: false,
   cssApiRequest: false,
-}
+};
 
 export const SessionContext = React.createContext<SessionContextInterface | null>(null);
 export const SurveyContext = React.createContext<{
-  setShowSurvey: (show: boolean, eventType: keyof UserSurveyInformation) => void,
+  setShowSurvey: (show: boolean, eventType: keyof UserSurveyInformation) => void;
 } | null>(null);
 
 const idleTimerTimeout = 300_000; // 5 minutes
@@ -76,13 +76,15 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (!user) return;
 
     // Update user's profile if this is the first time they're being prompted.
-    const userHasTriggered = user.surveySubmissions?.[triggerEvent]
+    const userHasTriggered = user.surveySubmissions?.[triggerEvent];
     if (!userHasTriggered) {
-      const [_res, err] = await updateProfile(({ surveySubmissions: { ...defaultUserSurveys, ...user.surveySubmissions, [triggerEvent]: true } }))
+      const [_res, err] = await updateProfile({
+        surveySubmissions: { ...defaultUserSurveys, ...user.surveySubmissions, [triggerEvent]: true },
+      });
       setDisplaySurvey(show);
       setOpenSurvey(show);
     }
-  }
+  };
 
   useIdleTimer({
     onPrompt,
@@ -205,7 +207,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <SessionContext.Provider value={{ session, user }}>
       <SurveyContext.Provider value={{ setShowSurvey }}>
-
         {maintenance_mode && maintenance_mode === 'true' ? (
           <Component {...pageProps} />
         ) : (
@@ -257,7 +258,12 @@ function MyApp({ Component, pageProps }: AppProps) {
                 <div>Please login again.</div>{' '}
               </div>
             </GenericModal>
-            <SurveyBox setOpenSurvey={setOpenSurvey} open={openSurvey} display={displaySurvey} setDisplaySurvey={setDisplaySurvey} />
+            <SurveyBox
+              setOpenSurvey={setOpenSurvey}
+              open={openSurvey}
+              display={displaySurvey}
+              setDisplaySurvey={setDisplaySurvey}
+            />
           </>
         )}
       </SurveyContext.Provider>
