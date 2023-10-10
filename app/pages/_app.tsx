@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import getConfig from 'next/config';
 import type { AppProps } from 'next/app';
@@ -72,22 +72,19 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   };
 
-  const setShowSurvey = useCallback(
-    async (show: boolean, triggerEvent: keyof UserSurveyInformation) => {
-      if (!user) return;
+  const setShowSurvey = async (show: boolean, triggerEvent: keyof UserSurveyInformation) => {
+    if (!user) return;
 
-      // Update user's profile if this is the first time they're being prompted.
-      const userHasTriggered = user.surveySubmissions?.[triggerEvent];
-      if (!userHasTriggered) {
-        const [_res, _err] = await updateProfile({
-          surveySubmissions: { ...defaultUserSurveys, ...user.surveySubmissions, [triggerEvent]: true },
-        });
-        setDisplaySurvey(show);
-        setOpenSurvey(show);
-      }
-    },
-    [user],
-  );
+    // Update user's profile if this is the first time they're being prompted.
+    const userHasTriggered = user.surveySubmissions?.[triggerEvent];
+    if (!userHasTriggered) {
+      const [_res, _err] = await updateProfile({
+        surveySubmissions: { ...defaultUserSurveys, ...user.surveySubmissions, [triggerEvent]: true },
+      });
+      setDisplaySurvey(show);
+      setOpenSurvey(show);
+    }
+  };
 
   useIdleTimer({
     onPrompt,
@@ -200,6 +197,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     window.location.href = getEndSessionUrl();
   };
 
+  const surveyContext = useMemo(() => ({ setShowSurvey }), [user]);
+
   if (loading) return <PageLoader />;
 
   if (authenticatedUris.some((url) => window.location.pathname.startsWith(url)) && !session) {
@@ -209,7 +208,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <SessionContext.Provider value={{ session, user }}>
-      <SurveyContext.Provider value={{ setShowSurvey }}>
+      <SurveyContext.Provider value={surveyContext}>
         {maintenance_mode && maintenance_mode === 'true' ? (
           <Component {...pageProps} />
         ) : (
