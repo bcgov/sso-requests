@@ -112,7 +112,7 @@ const defaultRatings = [
   { selected: false, id: 5 },
 ];
 
-function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display }: Props) {
+function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display }: Readonly<Props>) {
   const [ratings, setRatings] = useState(defaultRatings);
   const [surveyMessage, setSurveyMessage] = useState('');
 
@@ -160,7 +160,7 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display }: Props) {
     <SContainer>
       <SBox className={surveyBoxClass}>
         <div className="header" onClick={handleToggle}>
-          <p>We'd love to hear from you</p>
+          <p>We&apos;d love to hear from you</p>
           <FontAwesomeIcon icon={faDownLeftAndUpRightToCenter} />
         </div>
         <div className="body">
