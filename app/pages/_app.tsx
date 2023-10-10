@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import getConfig from 'next/config';
 import type { AppProps } from 'next/app';
@@ -72,19 +72,22 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   };
 
-  const setShowSurvey = async (show: boolean, triggerEvent: keyof UserSurveyInformation) => {
-    if (!user) return;
+  const setShowSurvey = useCallback(
+    async (show: boolean, triggerEvent: keyof UserSurveyInformation) => {
+      if (!user) return;
 
-    // Update user's profile if this is the first time they're being prompted.
-    const userHasTriggered = user.surveySubmissions?.[triggerEvent];
-    if (!userHasTriggered) {
-      const [_res, err] = await updateProfile({
-        surveySubmissions: { ...defaultUserSurveys, ...user.surveySubmissions, [triggerEvent]: true },
-      });
-      setDisplaySurvey(show);
-      setOpenSurvey(show);
-    }
-  };
+      // Update user's profile if this is the first time they're being prompted.
+      const userHasTriggered = user.surveySubmissions?.[triggerEvent];
+      if (!userHasTriggered) {
+        const [_res, _err] = await updateProfile({
+          surveySubmissions: { ...defaultUserSurveys, ...user.surveySubmissions, [triggerEvent]: true },
+        });
+        setDisplaySurvey(show);
+        setOpenSurvey(show);
+      }
+    },
+    [user],
+  );
 
   useIdleTimer({
     onPrompt,

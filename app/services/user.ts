@@ -1,7 +1,7 @@
 import { SurveyData } from '@app/interfaces/Survey';
 import { instance } from './axios';
 import { AxiosError } from 'axios';
-import { Team, User, UserSurveyInformation } from 'interfaces/team';
+import { User, UserSurveyInformation } from 'interfaces/team';
 import { handleAxiosError } from 'services/axios';
 
 export const getProfile = async (): Promise<[User, null] | [null, AxiosError]> => {
