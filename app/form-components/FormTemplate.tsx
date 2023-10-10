@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import isNil from 'lodash.isnil';
@@ -33,6 +33,7 @@ import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
+import { SurveyContext } from '@app/pages/_app';
 
 const Description = styled.p`
   margin: 0;
@@ -133,6 +134,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
   const [schemas, setSchemas] = useState<any[]>([]);
+  const surveyContext = useContext(SurveyContext)
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
   const isAdmin = currentUser.isAdmin || false;
@@ -331,6 +333,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           pathname: isAdmin ? '/admin-dashboard' : '/my-dashboard',
           query: { id: formData.id },
         });
+        surveyContext?.setShowSurvey(true, 'createIntegration');
       }
     } catch (err) {
       console.error(err);
