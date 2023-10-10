@@ -34,5 +34,8 @@
     ],
     "ext": "ts,json",
     "exec": "ts-node -r tsconfig-paths/register -r dotenv/config ./server.ts"
+  },
+  "dependencies": {
+    "cors": "^2.8.5"
   }
 }
