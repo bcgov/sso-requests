@@ -192,7 +192,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-  const surveyContext = useContext(SurveyContext)
+  const surveyContext = useContext(SurveyContext);
 
   const throttleUpdate = useCallback(
     throttle(

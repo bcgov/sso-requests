@@ -23,7 +23,7 @@ const initExpresss = async () => {
   expressServer.use(bodyParser.json());
   expressServer.use(bodyParser.urlencoded({ extended: false }));
   expressServer.use(cookieParser());
-  expressServer.use(cors({origin: 'http://localhost:3000', credentials: true}))
+  expressServer.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
   expressServer.disable('x-powered-by');
   expressServer.set('trust proxy', 1);

@@ -16,7 +16,7 @@ export const getProfile = async (): Promise<[User, null] | [null, AxiosError]> =
 export const updateProfile = async (data: {
   additionalEmail?: string;
   hasReadGoldNotification?: boolean;
-  surveySubmissions?: UserSurveyInformation; 
+  surveySubmissions?: UserSurveyInformation;
 }): Promise<[User, null] | [null, AxiosError]> => {
   try {
     const result = await instance.post('me', data).then((res) => res.data);
@@ -28,11 +28,10 @@ export const updateProfile = async (data: {
 
 export const submitSurvey = async (surveyData: SurveyData): Promise<[null, null] | [null, AxiosError]> => {
   // TODO: Integrate with API route when backend implemented
-  console.info(`Integrate with backend here, survey data is ${JSON.stringify(surveyData, null, 2)}`)
+  console.info(`Integrate with backend here, survey data is ${JSON.stringify(surveyData, null, 2)}`);
   try {
-    return [null, null]
-  } catch(err: any) {
-    return handleAxiosError(err)
+    return [null, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
   }
-}
-
+};

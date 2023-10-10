@@ -22,7 +22,7 @@ const RoleManagement = ({ integration }: Props) => {
   const [environment, setEnvironment] = useState('dev');
   const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
   const [updateKey, setUpdateKey] = useState(0);
-  const surveyContext = useContext(SurveyContext)
+  const surveyContext = useContext(SurveyContext);
 
   useEffect(() => {
     setEnvironment('dev');
@@ -77,7 +77,7 @@ const RoleManagement = ({ integration }: Props) => {
           } else {
             await contentRef.current.reset();
             setUpdateKey((updateKey) => updateKey + 1);
-            surveyContext?.setShowSurvey(true, 'createRole')
+            surveyContext?.setShowSurvey(true, 'createRole');
           }
         }}
         onCancel={(contentRef: any) => {
@@ -88,7 +88,7 @@ const RoleManagement = ({ integration }: Props) => {
         cancelButtonVariant="secondary"
         style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
       >
-        <CreateRoleContent integrationId={integration.id as number} environments={environments} />       
+        <CreateRoleContent integrationId={integration.id as number} environments={environments} />
       </GenericModal>
     </>
   );
