@@ -30,6 +30,7 @@ export const submitSurvey = async (surveyData: SurveyData): Promise<[null, null]
   // TODO: Integrate with API route when backend implemented
   console.info(`Integrate with backend here, survey data is ${JSON.stringify(surveyData, null, 2)}`);
   try {
+    const result = null;
     return [null, null];
   } catch (err: any) {
     return handleAxiosError(err);
