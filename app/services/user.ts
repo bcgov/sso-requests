@@ -28,8 +28,11 @@ export const updateProfile = async (data: {
 
 export const submitSurvey = async (surveyData: SurveyData): Promise<[null, null] | [null, AxiosError]> => {
   try {
-    // TODO: Integrate with API route when backend implemented
-    console.info(`Integrate with backend here, survey data is ${JSON.stringify(surveyData, null, 2)}`);
+    await instance.post('surveys', {
+      message: surveyData.message,
+      rating: surveyData.rating,
+      triggerEvent: 'createRole',
+    });
     return [null, null];
   } catch (err: any) {
     return handleAxiosError(err);

@@ -63,6 +63,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<any>(null);
   const [refreshTokenState, setRefreshTokenState] = useState('');
+  const [surveyTriggerEvent, setSurveyTriggerEvent] = useState<keyof UserSurveyInformation | null>(null);
   const [displaySurvey, setDisplaySurvey] = useState(false);
   const [openSurvey, setOpenSurvey] = useState(false);
 
@@ -78,11 +79,12 @@ function MyApp({ Component, pageProps }: AppProps) {
     // Update user's profile if this is the first time they're being prompted.
     const userHasTriggered = user.surveySubmissions?.[triggerEvent];
     if (!userHasTriggered) {
-      const [_res, _err] = await updateProfile({
-        surveySubmissions: { ...defaultUserSurveys, ...user.surveySubmissions, [triggerEvent]: true },
-      });
+      const surveySubmissions = { ...defaultUserSurveys, ...user.surveySubmissions, [triggerEvent]: true };
+      const [_res, _err] = await updateProfile({ surveySubmissions });
+      setUser({ ...user, surveySubmissions });
       setDisplaySurvey(show);
       setOpenSurvey(show);
+      setSurveyTriggerEvent(triggerEvent);
     }
   };
 
@@ -260,12 +262,15 @@ function MyApp({ Component, pageProps }: AppProps) {
                 <div>Please login again.</div>{' '}
               </div>
             </GenericModal>
-            <SurveyBox
-              setOpenSurvey={setOpenSurvey}
-              open={openSurvey}
-              display={displaySurvey}
-              setDisplaySurvey={setDisplaySurvey}
-            />
+            {user && (
+              <SurveyBox
+                setOpenSurvey={setOpenSurvey}
+                open={openSurvey}
+                display={displaySurvey}
+                setDisplaySurvey={setDisplaySurvey}
+                triggerEvent={surveyTriggerEvent}
+              />
+            )}
           </>
         )}
       </SurveyContext.Provider>
