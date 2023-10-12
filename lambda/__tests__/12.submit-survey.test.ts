@@ -56,6 +56,6 @@ describe('Submit Survey', () => {
     await supertest(app).post(`${APP_BASE_PATH}/surveys`).send(surveyData).set('Accept', 'application/json');
     expect(emailList.length).toBe(2);
     expect(emailList.find((email) => email.to.includes(userEmail))).toBeDefined();
-    expect(emailList.find((email) => email.to.includes('jonathan.langlois@gov.bc.ca'))).toBeDefined();
+    expect(emailList.find((email) => email.to.includes(SSO_TEAM_IDIR_EMAIL))).toBeDefined();
   });
 });
