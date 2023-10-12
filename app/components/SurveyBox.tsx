@@ -6,6 +6,7 @@ import { SECONDARY_BLUE } from 'styles/theme';
 import Button from '@button-inc/bcgov-theme/Button';
 import Textarea from '@button-inc/bcgov-theme/Textarea';
 import { submitSurvey } from '@app/services/user';
+import { UserSurveyInformation } from '@app/interfaces/team';
 
 const HEADER_HEIGHT = '4rem';
 
@@ -64,6 +65,11 @@ const SBox = styled.div`
     height: calc(100% - ${HEADER_HEIGHT});
   }
 
+  .error-message {
+    margin-top: 1em;
+    color: red;
+  }
+
   .button-container {
     display: flex;
     justify-content: space-between;
@@ -102,6 +108,7 @@ interface Props {
   setDisplaySurvey: (open: boolean) => void;
   open: boolean;
   display: boolean;
+  triggerEvent: keyof UserSurveyInformation | null;
 }
 
 const defaultRatings = [
@@ -112,23 +119,18 @@ const defaultRatings = [
   { selected: false, id: 5 },
 ];
 
-function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display }: Readonly<Props>) {
+function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display, triggerEvent }: Readonly<Props>) {
   const [ratings, setRatings] = useState(defaultRatings);
   const [surveyMessage, setSurveyMessage] = useState('');
+  const [surveyError, setSurveyError] = useState('');
 
   const handleToggle = () => {
     setOpenSurvey(!open);
   };
 
   const handleRatingsClick = (clickedIndex: number) => {
-    // Toggle rating back to 0 if clicking the current rating
-    const previousRating = ratings.filter((rating) => rating.selected).length;
-    const selectedRating = clickedIndex + 1;
-    if (previousRating === selectedRating) {
-      setRatings(defaultRatings);
-    } else {
-      setRatings(ratings.map((rating, i) => ({ ...rating, selected: i <= clickedIndex })));
-    }
+    setSurveyError('');
+    setRatings(ratings.map((rating, i) => ({ ...rating, selected: i <= clickedIndex })));
   };
 
   const hideSurvey = () => setDisplaySurvey(false);
@@ -138,19 +140,33 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display }: Readonly<
     if (display === false) {
       setRatings(defaultRatings);
       setSurveyMessage('');
+      setSurveyError('');
     }
   }, [display]);
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSurveyMessage(e.target.value);
+    setSurveyError('');
+    if (e.target.value.length < 255) {
+      setSurveyMessage(e.target.value);
+    } else {
+      setSurveyError('Messages are at most 254 characters.');
+    }
   };
 
   const saveSurvey = async () => {
     // Currently just closing survey and not showing user any error message.
-    submitSurvey({
-      message: surveyMessage,
-      rating: ratings.filter((rating) => rating.selected).length,
-    });
+    const hasRated = ratings.filter((rating) => rating.selected).length > 0;
+    if (!hasRated) {
+      return setSurveyError('Please select a rating.');
+    }
+
+    if (triggerEvent) {
+      submitSurvey({
+        triggerEvent,
+        message: surveyMessage,
+        rating: ratings.filter((rating) => rating.selected).length,
+      });
+    }
     setDisplaySurvey(false);
     setOpenSurvey(false);
   };
@@ -195,6 +211,7 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display }: Readonly<
             value={surveyMessage}
             onChange={handleMessageChange}
           />
+          {surveyError && <p className="error-message">{surveyError}</p>}
           <div className="button-container">
             <Button variant="secondary" onClick={hideSurvey}>
               Maybe Later

@@ -213,7 +213,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       2000,
       { trailing: true },
     ),
-    [selectedRequest?.id, selectedEnvironment, selectedId],
+    [selectedRequest?.id, selectedEnvironment, selectedId, surveyContext],
   );
 
   const getRoles = async () => {
