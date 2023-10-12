@@ -1,9 +1,14 @@
 import app from '../../helpers/server';
 import supertest from 'supertest';
 import { APP_BASE_PATH } from '../constants';
+import { User } from 'app/interfaces/team';
 
 export const getAuthenticatedUser = async () => {
   return await supertest(app).get(`${APP_BASE_PATH}/me`);
+};
+
+export const updateProfile = async (data: User) => {
+  return await supertest(app).post(`${APP_BASE_PATH}/me`).send(data);
 };
 
 export const deleteInactiveUsers = async (userData: any) => {
