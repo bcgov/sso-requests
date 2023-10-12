@@ -27,6 +27,7 @@ import {
   updateProfile,
   updateUserRoleMapping,
   updateUserRoleMappings,
+  createSurvey,
 } from './controllers/user';
 import {
   createRequest,
@@ -56,6 +57,8 @@ import { createClientRole, deleteRoles, listRoles, getClientRole } from './contr
 import { getAllStandardIntegrations, getDatabaseTable, getBceidApprovedRequestsAndEvents } from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
+import { sendTemplate } from '@lambda-shared/templates';
+import { EMAILS } from '@lambda-shared/enums';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -179,6 +182,28 @@ export const setRoutes = (app: any) => {
     try {
       const result = await updateProfile(req.session, req.body);
       res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post('/surveys', async (req, res) => {
+    try {
+      const { rating, message, triggerEvent } = req.body;
+
+      if (!rating || !triggerEvent) {
+        return res.status(422).json({ message: 'Please include the keys "rating" and "triggerEvent" in the body.' });
+      }
+
+      // awaiting so emails won't send if db save errors
+      await createSurvey(req.session, req.body);
+
+      const emailPromises = [
+        sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent, public: true }),
+        sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent, public: false }),
+      ];
+      await Promise.all(emailPromises);
+      res.status(200).send();
     } catch (err) {
       handleError(res, err);
     }
