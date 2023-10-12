@@ -32,6 +32,10 @@ const init = (sequelize, DataTypes) => {
         defaultValue: false,
         field: 'has_read_gold_notification',
       },
+      surveySubmissions: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
     },
     {
       underscored: true,
