@@ -44,9 +44,9 @@ export const updateProfile = async (
 ) => {
   const { user } = session;
   const myself = await models.user.findOne({ where: { id: user.id } });
-  // TODO: Save survey information in DB here
 
   if (!isNil(data.additionalEmail)) myself.additionalEmail = lowcase(data.additionalEmail);
+  if (!isNil(data.surveySubmissions)) myself.surveySubmissions = data.surveySubmissions;
   if (!isNil(data.hasReadGoldNotification)) myself.hasReadGoldNotification = data.hasReadGoldNotification;
   const updated = await myself.save();
 
@@ -55,6 +55,16 @@ export const updateProfile = async (
   }
 
   return updated.get({ plain: true });
+};
+
+export const createSurvey = (session: Session, data: { message?: string; rating: number; triggerEvent: string }) => {
+  const { message, rating, triggerEvent } = data;
+  return models.survey.create({
+    userId: session.user.id,
+    message,
+    rating,
+    triggerEvent,
+  });
 };
 
 export const listUsersByRole = async (
