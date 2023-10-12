@@ -33,4 +33,5 @@ export const EMAILS = {
   CREATE_TEAM_API_ACCOUNT_APPROVED: 'create-team-api-account-approved',
   DELETE_TEAM_API_ACCOUNT_SUBMITTED: 'delete-team-api-account-submitted',
   DELETE_INACTIVE_IDIR_USER: 'delete-inactive-idir-users',
+  SURVEY_COMPLETED: 'survey-completed-notification',
 };
