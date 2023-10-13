@@ -1,4 +1,4 @@
-import { DataTypes, Op } from 'sequelize';
+import { DataTypes } from 'sequelize';
 
 export const name = '2023.10.12T15.10.00.add-saml-sign-assertions';
 
