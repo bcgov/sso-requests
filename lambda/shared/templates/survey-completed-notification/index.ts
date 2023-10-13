@@ -6,7 +6,7 @@ import { User } from '@lambda-shared/interfaces';
 import { processUser } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
-import { UserSurveyInformation } from 'app/interfaces/team';
+import { UserSurveyInformation } from '@lambda-shared/interfaces';
 
 const SUBJECT_TEMPLATE = `Survey Completed`;
 const template = fs.readFileSync(__dirname + '/survey-completed-notification.html', 'utf8');
