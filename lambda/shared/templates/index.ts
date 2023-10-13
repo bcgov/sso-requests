@@ -18,6 +18,7 @@ import createTeamApiAccountSubmitted from './create-team-api-account-submitted';
 import createTeamApiAccountApproved from './create-team-api-account-approved';
 import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
 import deleteInactiveIdirUsers from './delete-inactive-idir-users';
+import surveyCompleted from './survey-completed-notification';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -93,6 +94,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.DELETE_INACTIVE_IDIR_USER:
       builder = deleteInactiveIdirUsers;
+      break;
+    case EMAILS.SURVEY_COMPLETED:
+      builder = surveyCompleted;
       break;
     default:
       break;
