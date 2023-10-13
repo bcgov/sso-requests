@@ -61,3 +61,10 @@ export interface Team {
   name: string;
   members: Member[];
 }
+
+export interface UserSurveyInformation {
+  addUserToRole: boolean;
+  createRole: boolean;
+  cssApiRequest: boolean;
+  createIntegration: boolean;
+}
