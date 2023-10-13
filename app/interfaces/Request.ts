@@ -73,6 +73,9 @@ export interface Integration {
   devSamlLogoutPostBindingUri?: string;
   testSamlLogoutPostBindingUri?: string;
   prodSamlLogoutPostBindingUri?: string;
+  devSamlSignAssertions?: boolean;
+  testSamlSignAssertions?: boolean;
+  prodSamlSignAssertions?: boolean;
 }
 
 export interface Option {

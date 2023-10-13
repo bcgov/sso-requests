@@ -103,6 +103,15 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     prodDisplayHeaderTitle: {
       'ui:widget': 'radio',
     },
+    devSamlSignAssertions: {
+      'ui:widget': 'radio',
+    },
+    testSamlSignAssertions: {
+      'ui:widget': 'radio',
+    },
+    prodSamlSignAssertions: {
+      'ui:widget': 'radio',
+    },
     usesTeam: {
       'ui:widget': 'radio',
       'ui:readonly': isApplied && integration?.usesTeam,

@@ -325,6 +325,21 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      devSamlSignAssertions: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      testSamlSignAssertions: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      prodSamlSignAssertions: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       underscored: true,
