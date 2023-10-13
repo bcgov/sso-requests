@@ -340,12 +340,17 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     if (actionMeta.action === 'clear') {
     } else if (actionMeta.action === 'remove-value') {
       newRoles = userRoles.filter((role) => role !== (actionMeta.removedValue?.value as string));
+    } else if (actionMeta.action === 'pop-value') {
+      newRoles = [...userRoles.slice(0, -1)];
     } else {
       newRoles = [...userRoles, actionMeta.option?.value as string];
     }
 
-    throttleUpdate(newRoles);
-    setUserRoles(newRoles);
+    // Only send update if roles have been added or removed. Prevents excessive API calls if jamming backspace button when empty.
+    if (newRoles.length !== userRoles.length) {
+      throttleUpdate(newRoles);
+      setUserRoles(newRoles);
+    }
   };
 
   const updateRoleName = (role: string, index: number) => {
