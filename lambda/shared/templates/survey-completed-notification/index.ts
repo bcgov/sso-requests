@@ -2,17 +2,16 @@ import * as fs from 'fs';
 import Handlebars = require('handlebars');
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
-import { User } from '@lambda-shared/interfaces';
+import { User, UserSurveyInformation } from '@lambda-shared/interfaces';
 import { processUser } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
-import { UserSurveyInformation } from '@lambda-shared/interfaces';
 
 const SUBJECT_TEMPLATE = `Survey Completed`;
 const template = fs.readFileSync(__dirname + '/survey-completed-notification.html', 'utf8');
 
-const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(template, { noEscape: true });
+const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE);
+const bodyHandler = Handlebars.compile(template);
 
 interface DataProps {
   user: User;

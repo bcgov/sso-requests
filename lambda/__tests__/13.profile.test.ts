@@ -1,4 +1,4 @@
-import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
+import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { SSO_TEAM_IDIR_EMAIL, SSO_TEAM_IDIR_USER } from './helpers/fixtures';
 import { getAuthenticatedUser, updateProfile } from './helpers/modules/users';
 
