@@ -4,7 +4,12 @@ import { Octokit } from 'octokit';
 import pick from 'lodash.pick';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { oidcDurationAdditionalFields, samlDurationAdditionalFields, samlFineGrainEndpointConfig } from '@app/schemas';
+import {
+  oidcDurationAdditionalFields,
+  samlDurationAdditionalFields,
+  samlFineGrainEndpointConfig,
+  samlSignedAssertions,
+} from '@app/schemas';
 import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
 import { getAccountableEntity } from '@lambda-shared/templates/helpers';
 import { handlePRstage, updatePlannedItems } from '@lambda-actions/controllers/batch';
@@ -19,6 +24,7 @@ const envFields = [
   ...oidcDurationAdditionalFields,
   ...samlDurationAdditionalFields,
   ...samlFineGrainEndpointConfig,
+  ...samlSignedAssertions,
 ];
 
 const envFieldsAll = [];

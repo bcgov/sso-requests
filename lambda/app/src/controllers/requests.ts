@@ -106,6 +106,9 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     devSamlLogoutPostBindingUri,
     testSamlLogoutPostBindingUri,
     prodSamlLogoutPostBindingUri,
+    devSamlSignAssertions,
+    testSamlSignAssertions,
+    prodSamlSignAssertions,
     clientId,
   } = data;
   if (!serviceType) serviceType = 'gold';
@@ -115,6 +118,9 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     devLoginTitle: projectName,
     testLoginTitle: projectName,
     prodLoginTitle: projectName,
+    devSamlSignAssertions,
+    testSamlSignAssertions,
+    prodSamlSignAssertions,
     devDisplayHeaderTitle,
     testDisplayHeaderTitle,
     prodDisplayHeaderTitle,
