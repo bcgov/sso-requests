@@ -171,7 +171,6 @@ export const setRoutes = (app: any) => {
   app.get(`/me`, async (req, res) => {
     try {
       const integrations = await findMyOrTeamIntegrationsByService(req.user.id);
-      // TODO: Include survey submissions on profile once exists in DB.
       res.status(200).json({ ...req.user, integrations });
     } catch (err) {
       handleError(res, err);
