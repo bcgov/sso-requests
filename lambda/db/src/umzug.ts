@@ -46,7 +46,6 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2023.03.17T11.00.00.add-saml-post-logout-uri'),
       await import('./migrations/2023.10.12T15.10.00.add-saml-sign-assertions'),
       await import('./migrations/2023.10.11T15.12.25.add-user-surveys'),
-      await import('./migrations/2023.10.12T15.10.00.add-saml-sign-assertions'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({
