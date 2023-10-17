@@ -21,7 +21,7 @@ const init = (sequelize, DataTypes) => {
         allow_null: false,
       },
       message: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(700),
         field: 'message',
         allowNull: true,
       },
