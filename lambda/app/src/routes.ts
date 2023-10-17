@@ -198,8 +198,8 @@ export const setRoutes = (app: any) => {
       await createSurvey(req.session, req.body);
 
       const emailPromises = [
-        sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent, public: true }),
-        sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent, public: false }),
+        sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent }),
+        sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent }),
       ];
       await Promise.all(emailPromises);
       res.status(200).send();
