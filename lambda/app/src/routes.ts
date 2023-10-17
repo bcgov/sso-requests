@@ -194,14 +194,10 @@ export const setRoutes = (app: any) => {
         return res.status(422).json({ message: 'Please include the keys "rating" and "triggerEvent" in the body.' });
       }
 
-      // awaiting so emails won't send if db save errors
+      // awaiting so email won't send if db save errors
       await createSurvey(req.session, req.body);
+      await sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent });
 
-      const emailPromises = [
-        sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent }),
-        sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent }),
-      ];
-      await Promise.all(emailPromises);
       res.status(200).send();
     } catch (err) {
       handleError(res, err);
