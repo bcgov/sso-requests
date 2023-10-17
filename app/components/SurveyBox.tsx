@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { faDownLeftAndUpRightToCenter, faStar } from '@fortawesome/free-solid-svg-icons';
+import {
+  faDownLeftAndUpRightToCenter,
+  faUpRightAndDownLeftFromCenter,
+  faStar,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SECONDARY_BLUE } from 'styles/theme';
 import Button from '@button-inc/bcgov-theme/Button';
@@ -9,6 +13,7 @@ import { submitSurvey } from '@app/services/user';
 import { UserSurveyInformation } from '@app/interfaces/team';
 
 const HEADER_HEIGHT = '4rem';
+const MESSAGE_CHAR_LIMIT = 700;
 
 const SContainer = styled.div`
   position: fixed;
@@ -146,10 +151,10 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display, triggerEven
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSurveyError('');
-    if (e.target.value.length < 255) {
+    if (e.target.value.length <= MESSAGE_CHAR_LIMIT) {
       setSurveyMessage(e.target.value);
     } else {
-      setSurveyError('Messages are at most 254 characters.');
+      setSurveyError(`Messages are at most ${MESSAGE_CHAR_LIMIT} characters.`);
     }
   };
 
@@ -177,7 +182,7 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display, triggerEven
       <SBox className={surveyBoxClass}>
         <div className="header" onClick={handleToggle}>
           <p>We&apos;d love to hear from you</p>
-          <FontAwesomeIcon icon={faDownLeftAndUpRightToCenter} />
+          <FontAwesomeIcon icon={open ? faDownLeftAndUpRightToCenter : faUpRightAndDownLeftFromCenter} />
         </div>
         <div className="body">
           <p className="title">
@@ -214,7 +219,7 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display, triggerEven
           {surveyError && <p className="error-message">{surveyError}</p>}
           <div className="button-container">
             <Button variant="secondary" onClick={hideSurvey}>
-              Maybe Later
+              Close
             </Button>
             <Button onClick={saveSurvey}>Rate now</Button>
           </div>

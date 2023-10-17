@@ -31,7 +31,7 @@ export const submitSurvey = async (surveyData: SurveyData): Promise<[null, null]
     await instance.post('surveys', {
       message: surveyData.message,
       rating: surveyData.rating,
-      triggerEvent: 'createRole',
+      triggerEvent: surveyData.triggerEvent,
     });
     return [null, null];
   } catch (err: any) {

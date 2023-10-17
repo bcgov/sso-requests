@@ -7,11 +7,18 @@ import { processUser } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `Survey Completed`;
+const SUBJECT_TEMPLATE = `Survey for {{triggerEvent}} submitted.`;
 const template = fs.readFileSync(__dirname + '/survey-completed-notification.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE);
 const bodyHandler = Handlebars.compile(template);
+
+const triggerEventDisplayMap = {
+  addUserToRole: 'role mappings',
+  createRole: 'role creation',
+  cssApiRequest: 'css api requests',
+  createIntegration: 'integration creations and updates',
+};
 
 interface DataProps {
   user: User;
@@ -23,7 +30,8 @@ interface DataProps {
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { user } = originalData;
-  const data = { ...originalData, user: await processUser(user) };
+  const triggerEventDisplay = triggerEventDisplayMap[originalData.triggerEvent];
+  const data = { ...originalData, user: await processUser(user), triggerEventDisplay };
   return {
     subject: subjectHandler(data),
     body: bodyHandler(data),
@@ -33,8 +41,8 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
     code: EMAILS.REQUEST_LIMIT_EXCEEDED,
-    to: [data.public ? data.user.idirEmail : SSO_EMAIL_ADDRESS],
-    cc: [],
+    to: [data.user.idirEmail],
+    cc: [SSO_EMAIL_ADDRESS],
     ...rendered,
   });
 };

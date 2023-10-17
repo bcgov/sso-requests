@@ -49,13 +49,13 @@ describe('Submit Survey', () => {
     expect(survey).not.toBeNull();
   });
 
-  it('sends an email to the user and SSO team when a survey is submitted', async () => {
+  it('sends an email to the user and CCs the SSO team when a survey is submitted', async () => {
     const userEmail = 'public.user@mail.com';
     createMockAuth(SSO_TEAM_IDIR_USER, userEmail);
     const emailList = createMockSendEmail();
     await supertest(app).post(`${APP_BASE_PATH}/surveys`).send(surveyData).set('Accept', 'application/json');
-    expect(emailList.length).toBe(2);
+    expect(emailList.length).toBe(1);
     expect(emailList.find((email) => email.to.includes(userEmail))).toBeDefined();
-    expect(emailList.find((email) => email.to.includes(SSO_TEAM_IDIR_EMAIL))).toBeDefined();
+    expect(emailList.find((email) => email.cc.includes(SSO_TEAM_IDIR_EMAIL))).toBeDefined();
   });
 });
