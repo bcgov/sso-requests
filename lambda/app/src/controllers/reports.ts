@@ -188,11 +188,12 @@ export const getDataIntegrityReport = async () => {
         };
       });
 
-    //remove null client ids for further analysis
+    // remove null client ids for further analysis
     const cssClientIds = nonTeamApiIntegrations
       .filter((c) => c.environments.includes(environment) && c.client_id !== '')
       .map((c) => c.client_id);
 
+    // all API accounts are found only in prod environment with prefix `service-account-`
     if (environment === 'prod') {
       teamApiIntegrations.map((c) => {
         cssClientIds.push(c.client_id);

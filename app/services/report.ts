@@ -2,10 +2,7 @@ import { instance } from './axios';
 import { AxiosError } from 'axios';
 import { handleAxiosError } from 'services/axios';
 import * as XLSX from 'xlsx';
-import path from 'path';
 import { downloadText, prettyJSON } from '@app/utils/text';
-
-const basePath = path.join(__dirname, 'exports');
 
 var newDate = new Date();
 var currentDate = `${newDate.getFullYear()}${
