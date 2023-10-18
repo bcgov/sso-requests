@@ -2,7 +2,7 @@ import { getAdminClient } from '@lambda-app/keycloak/adminClient';
 import { sequelize } from '@lambda-shared/sequelize/models/models';
 import difference from 'lodash.difference';
 import filter from 'lodash.filter';
-
+import map from 'lodash.map';
 export const getAllStandardIntegrations = async () => {
   const [results] = await sequelize.query(`
   SELECT
@@ -205,10 +205,11 @@ export const getDataIntegrityReport = async () => {
       stdClients.map((c) => c.clientId),
       cssClientIds,
     );
-    report[environment]['missing-from-css'] = kcClients.map((c) => {
+    report[environment]['missing-from-css'] = map(kcClients, function (c) {
+      const cssClient = stdClients.find((kc) => kc.clientId === c);
       return {
         client: c,
-        enabled: stdClients.find((kc) => kc.clientId === c).enabled,
+        enabled: cssClient?.enabled,
       };
     });
 
@@ -217,13 +218,13 @@ export const getDataIntegrityReport = async () => {
       cssClientIds,
       stdClients.map((c) => c.clientId),
     );
-    report[environment]['missing-from-keycloak'] = cssClients.map((c) => {
+    report[environment]['missing-from-keycloak'] = map(cssClients, function (c) {
+      const kcClient = results.find((kc) => kc.client_id === c);
       return {
         client: c,
-        status: nonTeamApiIntegrations.find((kc) => kc.client_id === c).status,
+        status: kcClient?.status,
       };
     });
   }
-
   return report;
 };
