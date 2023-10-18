@@ -180,7 +180,7 @@ export const getDataIntegrityReport = async () => {
     report[environment] = {};
     // populate all the integrations with null client ids
     report[environment]['null-client-ids'] = nonTeamApiIntegrations
-      .filter((c) => c.environments.includes(environment) && c.client_id === '')
+      .filter((c) => c.environments.includes(environment) && !c.client_id)
       .map((c) => {
         return {
           id: c.id,
@@ -190,7 +190,7 @@ export const getDataIntegrityReport = async () => {
 
     // remove null client ids for further analysis
     const cssClientIds = nonTeamApiIntegrations
-      .filter((c) => c.environments.includes(environment) && c.client_id !== '')
+      .filter((c) => c.environments.includes(environment) && !!c.client_id)
       .map((c) => c.client_id);
 
     // all API accounts are found only in prod environment with prefix `service-account-`
