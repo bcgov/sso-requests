@@ -3,6 +3,7 @@ import { sequelize } from '@lambda-shared/sequelize/models/models';
 import difference from 'lodash.difference';
 import filter from 'lodash.filter';
 import map from 'lodash.map';
+import partition from 'lodash.partition';
 export const getAllStandardIntegrations = async () => {
   const [results] = await sequelize.query(`
   SELECT
@@ -166,20 +167,18 @@ export const getDataIntegrityReport = async () => {
   const [results] = await sequelize.query(`
     SELECT id, status, environments, client_id, api_service_account FROM requests WHERE archived=FALSE;
     `);
-  const teamApiIntegrations = filter(results, function (o) {
-    return o.api_service_account === true;
-  });
 
-  const nonTeamApiIntegrations = filter(results, function (o) {
-    return o.api_service_account === false;
+  const integrationByAccountType = partition(results, function (o) {
+    return o.api_service_account === true;
   });
 
   for (let environment of ['dev', 'test', 'prod']) {
     const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
     const stdClients = await kcAdminClient.clients.find({ realm: 'standard' });
     report[environment] = {};
+
     // populate all the integrations with null client ids
-    report[environment]['null-client-ids'] = nonTeamApiIntegrations
+    report[environment]['null-client-ids'] = integrationByAccountType[1]
       .filter((c) => c.environments.includes(environment) && !c.client_id)
       .map((c) => {
         return {
@@ -189,24 +188,37 @@ export const getDataIntegrityReport = async () => {
       });
 
     // remove null client ids for further analysis
-    const cssClientIds = nonTeamApiIntegrations
+    const cssClientIds = integrationByAccountType[1]
       .filter((c) => c.environments.includes(environment) && !!c.client_id)
       .map((c) => c.client_id);
 
     // all API accounts are found only in prod environment with prefix `service-account-`
     if (environment === 'prod') {
-      teamApiIntegrations.map((c) => {
+      integrationByAccountType[0].map((c) => {
         cssClientIds.push(c.client_id);
       });
     }
 
+    const stdClientsByDesc = partition(stdClients, function (c) {
+      return c.description === 'CSS App Created';
+    });
+
+    console.log(JSON.stringify(stdClientsByDesc));
+
+    report[environment]['manually-created-in-keycloak'] = stdClientsByDesc[1].map((c) => {
+      return {
+        client: c.clientId,
+        enabled: c.enabled,
+      };
+    });
+
     // list of keycloak clients missing from CSS database
     const kcClients = difference(
-      stdClients.map((c) => c.clientId),
+      stdClientsByDesc[0].map((c) => c.clientId),
       cssClientIds,
     );
-    report[environment]['missing-from-css'] = map(kcClients, function (c) {
-      const cssClient = stdClients.find((kc) => kc.clientId === c);
+    report[environment]['missing-or-archived-in-css'] = map(kcClients, function (c) {
+      const cssClient = stdClientsByDesc[0].find((kc) => kc.clientId === c);
       return {
         client: c,
         enabled: cssClient?.enabled,
@@ -216,15 +228,19 @@ export const getDataIntegrityReport = async () => {
     // list of active CSS clients missing from Keycloak
     const cssClients = difference(
       cssClientIds,
-      stdClients.map((c) => c.clientId),
+      stdClientsByDesc[0].map((c) => c.clientId),
     );
     report[environment]['missing-from-keycloak'] = map(cssClients, function (c) {
       const kcClient = results.find((kc) => kc.client_id === c);
       return {
         client: c,
         status: kcClient?.status,
+        id: kcClient?.id,
       };
     });
   }
+
+  //console.log(JSON.stringify(report));
+
   return report;
 };
