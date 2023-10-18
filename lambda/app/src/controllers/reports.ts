@@ -203,8 +203,7 @@ export const getDataIntegrityReport = async () => {
       return c.description === 'CSS App Created';
     });
 
-    console.log(JSON.stringify(stdClientsByDesc));
-
+    // collect all the integrations created manually in keycloak
     report[environment]['manually-created-in-keycloak'] = stdClientsByDesc[1].map((c) => {
       return {
         client: c.clientId,
@@ -239,8 +238,6 @@ export const getDataIntegrityReport = async () => {
       };
     });
   }
-
-  //console.log(JSON.stringify(report));
 
   return report;
 };
