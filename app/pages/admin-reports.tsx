@@ -9,6 +9,7 @@ import {
   downloadAllStandardIntegrationsReport,
   downloadDatabaseReport,
   downloadAllBceidApprovedRequestsAndEventsReport,
+  downloadIntegrationDataIntegrityReport,
 } from '../services/report';
 import styled from 'styled-components';
 import Select from 'react-select';
@@ -114,6 +115,12 @@ export default function AdminReports({ session }: PageProps) {
     setLoading(false);
   };
 
+  const handleIntegrationDataIntegrityReportClick = async () => {
+    setLoading(true);
+    await downloadIntegrationDataIntegrityReport();
+    setLoading(false);
+  };
+
   const handleDownloadReportClick = async () => {
     setLoading(true);
     await downloadDatabaseReport(reportTypeMap[reportType], primaryKeyMap[reportTypeMap[reportType]]);
@@ -141,6 +148,17 @@ export default function AdminReports({ session }: PageProps) {
               onClick={handleAllBceidApprovedRequestsAndEventsReportClick}
             >
               <span>All BCeID Approved Requests And Events&nbsp;</span>
+              <FontAwesomeIcon icon={faDownload} />
+            </Button>
+            <br />
+            <br />
+            <Button
+              variant="primary"
+              type="button"
+              className="text-center"
+              onClick={handleIntegrationDataIntegrityReportClick}
+            >
+              <span>Data Integrity&nbsp;</span>
               <FontAwesomeIcon icon={faDownload} />
             </Button>
           </>

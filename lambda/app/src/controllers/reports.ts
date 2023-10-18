@@ -1,4 +1,7 @@
+import { getAdminClient } from '@lambda-app/keycloak/adminClient';
 import { sequelize } from '@lambda-shared/sequelize/models/models';
+import difference from 'lodash.difference';
+import filter from 'lodash.filter';
 
 export const getAllStandardIntegrations = async () => {
   const [results] = await sequelize.query(`
@@ -156,4 +159,71 @@ export const getBceidApprovedRequestsAndEvents = async () => {
 `);
 
   return results;
+};
+
+export const getDataIntegrityReport = async () => {
+  let report = {};
+  const [results] = await sequelize.query(`
+    SELECT id, status, environments, client_id, api_service_account FROM requests WHERE archived=FALSE;
+    `);
+  const teamApiIntegrations = filter(results, function (o) {
+    return o.api_service_account === true;
+  });
+
+  const nonTeamApiIntegrations = filter(results, function (o) {
+    return o.api_service_account === false;
+  });
+
+  for (let environment of ['dev', 'test', 'prod']) {
+    const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+    const stdClients = await kcAdminClient.clients.find({ realm: 'standard' });
+    report[environment] = {};
+    // populate all the integrations with null client ids
+    report[environment]['null-client-ids'] = nonTeamApiIntegrations
+      .filter((c) => c.environments.includes(environment) && c.client_id === '')
+      .map((c) => {
+        return {
+          id: c.id,
+          status: c.status,
+        };
+      });
+
+    // remove null client ids for further analysis
+    const cssClientIds = nonTeamApiIntegrations
+      .filter((c) => c.environments.includes(environment) && c.client_id !== '')
+      .map((c) => c.client_id);
+
+    // all API accounts are found only in prod environment with prefix `service-account-`
+    if (environment === 'prod') {
+      teamApiIntegrations.map((c) => {
+        cssClientIds.push(c.client_id);
+      });
+    }
+
+    // list of keycloak clients missing from CSS database
+    const kcClients = difference(
+      stdClients.map((c) => c.clientId),
+      cssClientIds,
+    );
+    report[environment]['missing-from-css'] = kcClients.map((c) => {
+      return {
+        client: c,
+        enabled: stdClients.find((kc) => kc.clientId === c).enabled,
+      };
+    });
+
+    // list of active CSS clients missing from Keycloak
+    const cssClients = difference(
+      cssClientIds,
+      stdClients.map((c) => c.clientId),
+    );
+    report[environment]['missing-from-keycloak'] = cssClients.map((c) => {
+      return {
+        client: c,
+        status: nonTeamApiIntegrations.find((kc) => kc.client_id === c).status,
+      };
+    });
+  }
+
+  return report;
 };
