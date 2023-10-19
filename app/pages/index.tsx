@@ -6,7 +6,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
-import main from 'svg/main';
+import StandardRealmsSVG from 'svg/StandardRealms';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
@@ -26,7 +26,7 @@ const Panel = styled.div<PanelProps>`
   flex-direction: column;
   justify-content: space-between;
 
-  @media only screen and (max-width: 800) {
+  @media only screen and (max-width: 800px) {
     margin-left: 0;
     margin-right: 0;
   }
@@ -63,6 +63,45 @@ const Button = styled(DefaultButton)`
   font-size: ${LARGE_BUTTON_FONT_SIZE};
 `;
 
+const StandardRealmsSplashContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  column-gap: 0.8em;
+  padding: 0.5em;
+  border: 1px solid black;
+  border-radius: 0.3em;
+  margin-top: 1em;
+
+  .splash-image {
+    align-self: start;
+  }
+
+  .splash-text {
+    font-size: 0.9em;
+    line-height: 1.1em;
+    p {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin: 0.2em 0 0.2em 0;
+    }
+
+    ul {
+      margin-top: 0;
+      margin-bottom: 0;
+      li {
+        margin: 0;
+      }
+    }
+
+    @media only screen and (max-width: 991px) {
+      font-size: 0.7em;
+    }
+    @media only screen and (max-width: 800px) {
+      font-size: 0.9em;
+    }
+  }
+`;
+
 export default function Home({ onLoginClick }: PageProps) {
   return (
     <>
@@ -92,7 +131,28 @@ export default function Home({ onLoginClick }: PageProps) {
             </Grid.Col>
             <Grid.Col>
               <Panel marginLeft>
-                {main}
+                <StandardRealmsSplashContainer>
+                  <div className="splash-image">
+                    <StandardRealmsSVG />
+                  </div>
+                  <div className="splash-text">
+                    <p>Included:</p>
+                    <ul>
+                      <li>Pre-configured realms</li>
+                      <li>Access to dev and test &lt; 20 mins.</li>
+                      <li>Client IDs and secrets</li>
+                      <li>24/7 service availability</li>
+                      <li>Service Accounts</li>
+                      <li>Roles</li>
+                    </ul>
+                    <p>Not Included:</p>
+                    <ul>
+                      <li>Authentication flows</li>
+                      <li>Offline sessions</li>
+                      <li>Custom scopes</li>
+                    </ul>
+                  </div>
+                </StandardRealmsSplashContainer>
                 <Paragraph style={{ paddingLeft: '0px' }}>
                   To learn more about Pathfinder SSO visit the{' '}
                   <Link size="large" href="https://github.com/bcgov/sso-keycloak/wiki" external>
