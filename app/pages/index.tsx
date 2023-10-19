@@ -73,13 +73,7 @@ const StandardRealmsSplashContainer = styled.div`
   margin-top: 1em;
 
   .splash-image {
-    position: relative;
     align-self: start;
-
-    img {
-      text-align: left;
-      margin: 0;
-    }
   }
 
   .splash-text {
@@ -95,9 +89,7 @@ const StandardRealmsSplashContainer = styled.div`
       margin-top: 0;
       margin-bottom: 0;
       li {
-        font-family: sans-serif;
         margin: 0;
-        font-weight: 400;
       }
     }
 
@@ -147,7 +139,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     <p>Included:</p>
                     <ul>
                       <li>Pre-configured realms</li>
-                      <li>Access to dev and test &lt; 20 mis. </li>
+                      <li>Access to dev and test &lt; 20 mins.</li>
                       <li>Client IDs and secrets</li>
                       <li>24/7 service availability</li>
                       <li>Service Accounts</li>
