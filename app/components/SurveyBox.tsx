@@ -20,6 +20,7 @@ const SContainer = styled.div`
   right: 0;
   bottom: 0;
   width: 400px;
+  z-index: 10;
 `;
 
 const SBox = styled.div`
