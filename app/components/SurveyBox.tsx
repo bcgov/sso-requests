@@ -32,7 +32,6 @@ const SBox = styled.div`
   position: absolute;
   width: 100%;
   bottom: 0;
-  z-index: 10000;
 
   &.open {
     height: 500px;
