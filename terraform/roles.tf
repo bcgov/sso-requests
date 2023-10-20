@@ -13,6 +13,10 @@ data "aws_iam_policy_document" "ecs_sso_grafana_task_execution_role" {
   }
 }
 
+data "aws_iam_policy" "iam_sso_grafana_read_secret_policy" {
+  name = "SSOPathfinderReadGrafanaSecret"
+}
+
 # ECS task execution role
 resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
   name               = "SSODefaultECSTaskExecutionRole"
@@ -23,13 +27,11 @@ resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
 
 # Attaching task execution and read from RDS policies to task execution role
 resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_attachment" {
-  depends_on = [aws_iam_policy.secrets_manager_read_policy]
-  count      = length(aws_iam_policy.secrets_manager_read_policy)
-  role       = aws_iam_role.ecs_sso_grafana_task_execution_role.name
+  role = aws_iam_role.ecs_sso_grafana_task_execution_role.name
   for_each = toset([
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
-    aws_iam_policy.secrets_manager_read_policy[count.index].arn
+    data.aws_iam_policy.iam_sso_grafana_read_secret_policy.arn # secret and policy manually created in AWS
   ])
   policy_arn = each.value
 }

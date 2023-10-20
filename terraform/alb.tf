@@ -1,3 +1,4 @@
+# manually created in AWS
 data "aws_alb" "sso_alb" {
   name = "sso-alb"
 }
