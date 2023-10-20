@@ -1,19 +1,3 @@
-locals {
-  api_gateway_log_format_with_newlines = <<EOF
-{
-"requestId":"$context.requestId",
-"ip":"$context.identity.sourceIp",
-"requestTime":"$context.requestTime",
-"httpMethod":"$context.httpMethod",
-"status":"$context.status",
-"path":"$context.path",
-"responseLength":"$context.responseLength",
-"errorMessage":"$context.error.message"
-}
-EOF
-  api_gateway_log_format               = replace(local.api_gateway_log_format_with_newlines, "\n", "")
-}
-
 resource "aws_apigatewayv2_api" "sso_grafana_api" {
   count         = var.install_sso_css_grafana
   name          = var.sso_grafana_name
@@ -49,14 +33,4 @@ resource "aws_apigatewayv2_stage" "sso_grafana_api_default_stage" {
   api_id      = aws_apigatewayv2_api.sso_grafana_api[count.index].id
   name        = "$default"
   auto_deploy = true
-
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api_gateway_sso_grafana_logs[count.index].arn
-    format          = local.api_gateway_log_format
-  }
-}
-
-resource "aws_cloudwatch_log_group" "api_gateway_sso_grafana_logs" {
-  count = var.install_sso_css_grafana
-  name  = "/aws/api_gw/${var.sso_grafana_name}/logs"
 }
