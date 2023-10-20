@@ -23,6 +23,7 @@ export default function getSchemas(formData: Integration) {
     const redirectUriField = `${env}ValidRedirectUris`;
     const roleField = `${env}Roles`;
     const samlLogoutPostBindingUriField = `${env}SamlLogoutPostBindingUri`;
+    const samlSignAssertionsField = `${env}SamlSignAssertions`;
 
     let tokenSchemas: any = {};
 
@@ -136,6 +137,14 @@ export default function getSchemas(formData: Integration) {
           description: 'You may want to have your logout service enabled from your application',
           placeholder: 'e.g. https://example.com/logout/callback',
           default: '',
+        },
+        [samlSignAssertionsField]: {
+          type: 'boolean',
+          title: 'Sign Assertions',
+          tooltip: {
+            content: `Should assertions inside the SAML document be signed?. This setting is not needed if the document is already being signed.`,
+          },
+          default: false,
         },
       };
     }

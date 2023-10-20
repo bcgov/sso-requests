@@ -6,6 +6,13 @@ export interface Team {
   serviceAccountCount?: string;
 }
 
+export interface UserSurveyInformation {
+  addUserToRole: boolean;
+  createRole: boolean;
+  cssApiRequest: boolean;
+  createIntegration: boolean;
+}
+
 export interface User {
   id?: number;
   idirUserid?: string;
@@ -18,6 +25,7 @@ export interface User {
   updatedAt?: string;
   integrations?: any[];
   hasReadGoldNotification?: boolean;
+  surveySubmissions?: UserSurveyInformation;
 }
 
 export interface LoggedInUser {

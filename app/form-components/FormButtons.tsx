@@ -43,7 +43,7 @@ export default function FormButtons({
 }: Props) {
   return (
     <>
-      <Container data-test-id="form-btns">
+      <Container data-testid="form-btns">
         {backButton ? (
           backButton
         ) : (

@@ -27,6 +27,7 @@ import {
   updateProfile,
   updateUserRoleMapping,
   updateUserRoleMappings,
+  createSurvey,
 } from './controllers/user';
 import {
   createRequest,
@@ -53,9 +54,16 @@ import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
 import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
-import { getAllStandardIntegrations, getDatabaseTable, getBceidApprovedRequestsAndEvents } from './controllers/reports';
+import {
+  getAllStandardIntegrations,
+  getDatabaseTable,
+  getBceidApprovedRequestsAndEvents,
+  getDataIntegrityReport,
+} from './controllers/reports';
 import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
+import { sendTemplate } from '@lambda-shared/templates';
+import { EMAILS } from '@lambda-shared/enums';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -178,6 +186,24 @@ export const setRoutes = (app: any) => {
     try {
       const result = await updateProfile(req.session, req.body);
       res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.post('/surveys', async (req, res) => {
+    try {
+      const { rating, message, triggerEvent } = req.body;
+
+      if (!rating || !triggerEvent) {
+        return res.status(422).json({ message: 'Please include the keys "rating" and "triggerEvent" in the body.' });
+      }
+
+      // awaiting so email won't send if db save errors
+      await createSurvey(req.session, req.body);
+      await sendTemplate(EMAILS.SURVEY_COMPLETED, { user: req.session.user, rating, message, triggerEvent });
+
+      res.status(200).send();
     } catch (err) {
       handleError(res, err);
     }
@@ -705,6 +731,16 @@ export const setRoutes = (app: any) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
       const result = await getBceidApprovedRequestsAndEvents();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/reports/data-integrity`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await getDataIntegrityReport();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

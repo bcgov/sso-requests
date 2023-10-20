@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import get from 'lodash.get';
@@ -22,6 +22,7 @@ import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { SurveyContext } from '@app/pages/_app';
 
 const Label = styled.label`
   font-weight: bold;
@@ -191,6 +192,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const surveyContext = useContext(SurveyContext);
 
   const throttleUpdate = useCallback(
     throttle(
@@ -202,13 +204,16 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           username: selectedId as string,
           roleNames,
         });
-        if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+        if (!err) {
+          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+          surveyContext?.setShowSurvey(true, 'addUserToRole');
+        }
         await setSaving(false);
       },
       2000,
       { trailing: true },
     ),
-    [selectedRequest?.id, selectedEnvironment, selectedId],
+    [selectedRequest?.id, selectedEnvironment, selectedId, surveyContext],
   );
 
   const getRoles = async () => {
@@ -340,12 +345,17 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     if (actionMeta.action === 'clear') {
     } else if (actionMeta.action === 'remove-value') {
       newRoles = userRoles.filter((role) => role !== (actionMeta.removedValue?.value as string));
+    } else if (actionMeta.action === 'pop-value') {
+      newRoles = [...userRoles.slice(0, -1)];
     } else {
       newRoles = [...userRoles, actionMeta.option?.value as string];
     }
 
-    throttleUpdate(newRoles);
-    setUserRoles(newRoles);
+    // Only send update if roles have been added or removed. Prevents excessive API calls if jamming backspace button when empty.
+    if (newRoles.length !== userRoles.length) {
+      throttleUpdate(newRoles);
+      setUserRoles(newRoles);
+    }
   };
 
   const updateRoleName = (role: string, index: number) => {

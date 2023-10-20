@@ -44,6 +44,9 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2022.09.22T11.00.00.add-additional-role-attribute-in-request-table'),
       await import('./migrations/2022.12.01T13.36.60.add-flag-loginpage-header-title'),
       await import('./migrations/2023.03.17T11.00.00.add-saml-post-logout-uri'),
+      await import('./migrations/2023.10.12T15.10.00.add-saml-sign-assertions'),
+      await import('./migrations/2023.10.11T15.12.25.add-user-surveys'),
+      await import('./migrations/2023.10.17T09.46.27.update-survey-length'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({
