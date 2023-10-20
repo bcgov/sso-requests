@@ -23,7 +23,8 @@ resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
 
 # Attaching task execution and read from RDS policies to task execution role
 resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_attachment" {
-  role = aws_iam_role.ecs_sso_grafana_task_execution_role.name
+  depends_on = [aws_iam_policy.secrets_manager_read_policy]
+  role       = aws_iam_role.ecs_sso_grafana_task_execution_role.name
   for_each = toset([
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
