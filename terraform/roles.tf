@@ -29,7 +29,7 @@ resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_atta
   for_each = toset([
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
-    aws_iam_policy.secrets_manager_read_policy.arn
+    aws_iam_policy.secrets_manager_read_policy[count.index].arn
   ])
   policy_arn = each.value
 }
