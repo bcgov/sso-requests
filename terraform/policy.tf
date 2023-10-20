@@ -1,5 +1,4 @@
 resource "aws_iam_policy" "secrets_manager_read_policy" {
-  count       = var.install_sso_css_grafana
   name        = "SSOPathfinderReadGrafanaSecret"
   description = "A policy for reading secrets from secrets manager"
 

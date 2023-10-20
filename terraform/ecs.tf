@@ -17,7 +17,7 @@ resource "aws_ecs_cluster_capacity_providers" "sso_ecs_cluster_capacity_provider
 resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
   count                    = var.install_sso_css_grafana
   family                   = var.sso_grafana_name
-  execution_role_arn       = aws_iam_role.ecs_sso_grafana_task_execution_role[count.index].arn
+  execution_role_arn       = aws_iam_role.ecs_sso_grafana_task_execution_role.arn
   task_role_arn            = aws_iam_role.sso_grafana_container_role[count.index].arn
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
