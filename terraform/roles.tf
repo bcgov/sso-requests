@@ -26,11 +26,11 @@ resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
 resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_attachment" {
   count = var.install_sso_css_grafana
   role  = aws_iam_role.ecs_sso_grafana_task_execution_role.name
-  for_each = toset([
+  for_each = var.install_sso_css_grafana == 1 ? toset([
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
     aws_iam_policy.secrets_manager_read_policy.arn
-  ])
+  ]) : {}
   policy_arn = each.value
 }
 
