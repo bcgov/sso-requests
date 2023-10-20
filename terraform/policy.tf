@@ -13,7 +13,7 @@ resource "aws_iam_policy" "secrets_manager_read_policy" {
       ],
       "Effect": "Allow",
       "Resource": [
-          "arn:aws:secretsmanager:ca-central-1:220881534007:secret:sso-grafana-EgZsZS",
+          "arn:aws:secretsmanager:ca-central-1:220881534007:secret:sso-grafana-EgZsZS"
       ]
     }
   ]

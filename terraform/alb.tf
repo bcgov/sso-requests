@@ -19,7 +19,7 @@ resource "aws_alb_target_group" "alb_target_group_sso_grafana" {
   name                 = "${var.sso_grafana_name}-tg"
   port                 = var.sso_grafana_container_port
   protocol             = "HTTP"
-  vpc_id               = module.network.aws_vpc.id
+  vpc_id               = data.aws_vpc.selected.id
   target_type          = "ip"
   deregistration_delay = 30
 

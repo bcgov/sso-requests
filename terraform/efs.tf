@@ -12,13 +12,13 @@ resource "aws_efs_file_system" "efs_sso_grafana" {
 
 resource "aws_efs_mount_target" "efs_sso_grafana_azA" {
   file_system_id  = aws_efs_file_system.efs_sso_grafana.id
-  subnet_id       = sort(module.network.aws_subnet_ids.data.ids)[0]
+  subnet_id       = data.aws_subnet.a_data
   security_groups = [data.aws_security_group.app.id]
 }
 
 resource "aws_efs_mount_target" "efs_sso_grafana_azB" {
   file_system_id  = aws_efs_file_system.efs_sso_grafana.id
-  subnet_id       = sort(module.network.aws_subnet_ids.data.ids)[1]
+  subnet_id       = data.aws_subnet.b_data
   security_groups = [data.aws_security_group.app.id]
 }
 

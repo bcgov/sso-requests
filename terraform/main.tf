@@ -16,6 +16,20 @@ data "aws_subnet" "b" {
   }
 }
 
+data "aws_subnet" "a_data" {
+  filter {
+    name   = "tag:Name"
+    values = ["Data_Dev_aza_net"]
+  }
+}
+
+data "aws_subnet" "b_data" {
+  filter {
+    name   = "tag:Name"
+    values = ["Data_Dev_azb_net"]
+  }
+}
+
 resource "aws_security_group" "rds_sg" {
   name        = "rds_sg"
   description = "Security group for AWS lambda and AWS RDS connection"

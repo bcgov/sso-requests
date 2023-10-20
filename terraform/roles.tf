@@ -36,7 +36,7 @@ resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_atta
 resource "aws_iam_role_policy" "ecs_sso_grafana_task_execution_cwlogs" {
   count = var.install_sso_css_grafana
   name  = "ecs-sso-grafana-task-exec-cwlogs"
-  role  = aws_iam_role.ecs_sso_grafana_task_execution_role.id
+  role  = aws_iam_role.ecs_sso_grafana_task_execution_role[count.index].id
 
   policy = <<-EOF
   {
@@ -82,7 +82,7 @@ EOF
 resource "aws_iam_role_policy" "sso_grafana_cwlogs" {
   count = var.install_sso_css_grafana
   name  = "sso-grafana-cw-logs"
-  role  = aws_iam_role.sso-grafana-container-role.id
+  role  = aws_iam_role.sso_grafana_container_role.id
 
   policy = <<-EOF
   {

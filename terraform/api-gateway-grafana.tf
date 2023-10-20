@@ -23,8 +23,8 @@ resource "aws_apigatewayv2_api" "sso_grafana_api" {
 resource "aws_apigatewayv2_vpc_link" "sso_grafana_vpc_link" {
   count              = var.install_sso_css_grafana
   name               = var.sso_grafana_name
-  subnet_ids         = module.network.aws_subnet_ids.web.ids
-  security_group_ids = [module.network.aws_security_groups.web.id]
+  subnet_ids         = [data.aws_subnet.a.id, data.aws_subnet.b.id]
+  security_group_ids = [data.aws_security_group.app.id]
 }
 
 resource "aws_apigatewayv2_integration" "sso_grafana_api_integration" {
@@ -46,7 +46,7 @@ resource "aws_apigatewayv2_route" "sso_grafana_route_any" {
 
 resource "aws_apigatewayv2_stage" "sso_grafana_api_default_stage" {
   count       = var.install_sso_css_grafana
-  api_id      = aws_apigatewayv2_api.sso_grafana_api.id
+  api_id      = aws_apigatewayv2_api.sso_grafana_api[count.index].id
   name        = "$default"
   auto_deploy = true
 
