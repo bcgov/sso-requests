@@ -20,6 +20,7 @@ const SContainer = styled.div`
   right: 0;
   bottom: 0;
   width: 400px;
+  z-index: 10;
 `;
 
 const SBox = styled.div`
@@ -31,6 +32,7 @@ const SBox = styled.div`
   position: absolute;
   width: 100%;
   bottom: 0;
+  z-index: 10000;
 
   &.open {
     height: 500px;
