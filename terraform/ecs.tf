@@ -124,8 +124,8 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
       ]
       secrets = [
         {
-          name      = "GF_SECURITY_ADMIN_USER",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_SECURITY_ADMIN_USER::"
+          name      = "GF_SECURITY_ADMIN_PASSWORD",
+          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_SECURITY_ADMIN_PASSWORD::"
         },
         {
           name      = "GF_AUTH_GENERIC_CLIENT_ID",
