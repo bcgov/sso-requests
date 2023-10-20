@@ -58,5 +58,5 @@ resource "aws_apigatewayv2_stage" "sso_grafana_api_default_stage" {
 
 resource "aws_cloudwatch_log_group" "api_gateway_sso_grafana_logs" {
   count = var.install_sso_css_grafana
-  name  = "${var.sso_grafana_name}/gateway_logs"
+  name  = "/aws/api_gw/${var.sso_grafana_name}/logs"
 }
