@@ -10,7 +10,7 @@ resource "aws_alb_listener" "alb_listener_sso_grafana" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_alb_target_group.alb_target_group_sso_grafana.arn
+    target_group_arn = aws_alb_target_group.alb_target_group_sso_grafana[count.index].arn
   }
 }
 
