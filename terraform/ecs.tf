@@ -75,7 +75,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_ENABLED",
-          value = true
+          value = "true"
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_AUTH_URL",
@@ -107,11 +107,11 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
         },
         {
           name  = "GF_AUTH_GENERIC_EMPTY_SCOPES",
-          value = false
+          value = "false"
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_USE_PKCE",
-          value = true
+          value = "true"
         },
         {
           name  = "GF_AUTH_GENERIC_EMAIL_ATTRIBUTE_PATH",

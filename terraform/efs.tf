@@ -14,14 +14,14 @@ resource "aws_efs_file_system" "efs_sso_grafana" {
 resource "aws_efs_mount_target" "efs_sso_grafana_azA" {
   count           = var.install_sso_css_grafana
   file_system_id  = aws_efs_file_system.efs_sso_grafana[count.index].id
-  subnet_id       = data.aws_subnet.a_data
+  subnet_id       = data.aws_subnet.a_data.id
   security_groups = [data.aws_security_group.app.id]
 }
 
 resource "aws_efs_mount_target" "efs_sso_grafana_azB" {
   count           = var.install_sso_css_grafana
   file_system_id  = aws_efs_file_system.efs_sso_grafana[count.index].id
-  subnet_id       = data.aws_subnet.b_data
+  subnet_id       = data.aws_subnet.b_data.id
   security_groups = [data.aws_security_group.app.id]
 }
 
