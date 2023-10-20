@@ -1,13 +1,13 @@
 resource "aws_ecs_cluster" "sso_ecs_cluster" {
-  name = "sso-ecs-cluster"
-  tags = var.sso_grafana_tags
+  count = var.install_sso_css_grafana
+  name  = "sso-ecs-cluster"
+  tags  = var.sso_grafana_tags
 }
 
 resource "aws_ecs_cluster_capacity_providers" "sso_ecs_cluster_capacity_providers" {
-  cluster_name = aws_ecs_cluster.sso_ecs_cluster.name
-
+  count              = var.install_sso_css_grafana
+  cluster_name       = aws_ecs_cluster.sso_ecs_cluster[count.index].name
   capacity_providers = ["FARGATE_SPOT"]
-
   default_capacity_provider_strategy {
     weight            = 100
     capacity_provider = "FARGATE_SPOT"
@@ -27,7 +27,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
   volume {
     name = "sso-grafana-data"
     efs_volume_configuration {
-      file_system_id     = aws_efs_file_system.efs_sso_grafana.id
+      file_system_id     = aws_efs_file_system.efs_sso_grafana[count.index].id
       transit_encryption = "ENABLED"
     }
   }
@@ -143,7 +143,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
 resource "aws_ecs_service" "sso_grafana_service" {
   count                             = var.install_sso_css_grafana
   name                              = var.sso_grafana_name
-  cluster                           = aws_ecs_cluster.main.id
+  cluster                           = aws_ecs_cluster.sso_ecs_cluster[count.index].id
   task_definition                   = aws_ecs_task_definition.sso_grafana_task_definition[count.index].arn
   desired_count                     = var.install_sso_css_grafana
   enable_ecs_managed_tags           = true
@@ -160,12 +160,12 @@ resource "aws_ecs_service" "sso_grafana_service" {
 
   network_configuration {
     security_groups  = [data.aws_security_group.app.id]
-    subnets          = module.network.aws_subnet_ids.app.ids
+    subnets          = [data.aws_subnet.a.id, data.aws_subnet.b.id]
     assign_public_ip = false
   }
 
   load_balancer {
-    target_group_arn = aws_alb_target_group.app.id
+    target_group_arn = aws_alb_target_group.alb_target_group_sso_grafana[count.index].id
     container_name   = var.sso_grafana_container_name
     container_port   = var.sso_grafana_container_port
   }
