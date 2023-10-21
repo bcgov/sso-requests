@@ -29,7 +29,6 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
     efs_volume_configuration {
       file_system_id     = aws_efs_file_system.efs_sso_grafana[count.index].id
       transit_encryption = "ENABLED"
-      root_directory     = "/grafana"
     }
   }
   container_definitions = jsonencode([
