@@ -107,3 +107,25 @@ resource "aws_iam_role_policy" "sso_grafana_cwlogs" {
   }
 EOF
 }
+
+resource "aws_iam_role_policy" "sso_grafana_container_efs_access" {
+  count  = var.install_sso_css_grafana
+  name   = "sso-grafana-container-efs-access"
+  role   = aws_iam_role.sso_grafana_container_role[count.index].id
+  policy = <<-EOF
+  {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Effect": "Allow",
+              "Action": [
+                  "elasticfilesystem:ClientMount",
+                  "elasticfilesystem:ClientWrite",
+                  "elasticfilesystem:ClientRootAccess"
+              ],
+              "Resource": "*"
+          }
+      ]
+  }
+  EOF
+}
