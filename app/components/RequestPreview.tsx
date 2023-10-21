@@ -39,7 +39,7 @@ interface FormattedListProps {
   testid: string;
 }
 
-const FormattedList = ({ list, title, inline = false , testid }: FormattedListProps) => {
+const FormattedList = ({ list, title, inline = false, testid }: FormattedListProps) => {
   return (
     <>
       <tr>
@@ -142,15 +142,15 @@ function RequestPreview({ children, request, teams = [] }: Props) {
               </td>
             </tr>
           )}
-          <FormattedList list={idpDisplay} title="Identity Providers Required:" inline testid='idp-required'/>
+          <FormattedList list={idpDisplay} title="Identity Providers Required:" inline testid="idp-required" />
           {request.environments?.includes('dev') && (
-            <FormattedList list={request.devValidRedirectUris} title="Dev Redirect URIs:" testid='dev-uri'/>
+            <FormattedList list={request.devValidRedirectUris} title="Dev Redirect URIs:" testid="dev-uri" />
           )}
           {request.environments?.includes('test') && (
-            <FormattedList list={request.testValidRedirectUris} title="Test Redirect URIs:" testid='test-uri'/>
+            <FormattedList list={request.testValidRedirectUris} title="Test Redirect URIs:" testid="test-uri" />
           )}
           {request.environments?.includes('prod') && (
-            <FormattedList list={request.prodValidRedirectUris} title="Prod Redirect URIs:" testid='prod-uri'/>
+            <FormattedList list={request.prodValidRedirectUris} title="Prod Redirect URIs:" testid="prod-uri" />
           )}
           {children}
         </tbody>
