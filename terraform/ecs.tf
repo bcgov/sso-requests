@@ -25,11 +25,10 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
   memory                   = var.sso_grafana_fargate_memory
   tags                     = var.sso_grafana_tags
   volume {
-    name = "sso-grafana-data"
+    name = "sso-grafana-vol"
     efs_volume_configuration {
       file_system_id     = aws_efs_file_system.efs_sso_grafana[count.index].id
       transit_encryption = "ENABLED"
-      root_directory     = "/grafana"
     }
   }
   container_definitions = jsonencode([
@@ -64,8 +63,8 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
       }
       mountPoints = [
         {
-          containerPath = "/var/lib/grafana",
-          sourceVolume  = "sso-grafana-data"
+          containerPath = "/opt/bitnami/grafana",
+          sourceVolume  = "sso-grafana-vol"
         }
       ]
       volumesFrom = []
