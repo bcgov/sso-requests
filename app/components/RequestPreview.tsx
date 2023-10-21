@@ -36,15 +36,16 @@ interface FormattedListProps {
   list?: any[];
   title: string;
   inline?: boolean;
+  testid: string;
 }
 
-const FormattedList = ({ list, title, inline = false }: FormattedListProps) => {
+const FormattedList = ({ list, title, inline = false , testid }: FormattedListProps) => {
   return (
     <>
       <tr>
         <td>{title}</td>
         {(list?.length === 1 || inline) && (
-          <SemiBold>
+          <SemiBold data-testid={testid}>
             {list?.map((item, i) => (
               <span key={item}>
                 {item}
@@ -96,60 +97,60 @@ function RequestPreview({ children, request, teams = [] }: Props) {
             <tr>
               <td>Associated Team:</td>
               <td>
-                <SemiBold>{teamName}</SemiBold>
+                <SemiBold data-testid="associated-team">{teamName}</SemiBold>
               </td>
             </tr>
           ) : (
             <tr>
               <td>Are you accountable for this project?</td>
               <td>
-                <SemiBold>{formatBoolean(request.projectLead)}</SemiBold>
+                <SemiBold data-testid="you-accountable">{formatBoolean(request.projectLead)}</SemiBold>
               </td>
             </tr>
           )}
           <tr>
             <td>Client Protocol:</td>
             <td>
-              <SemiBold>{isOIDC ? 'OpenID Connect' : 'SAML'}</SemiBold>
+              <SemiBold data-testid="client-protocol">{isOIDC ? 'OpenID Connect' : 'SAML'}</SemiBold>
             </td>
           </tr>
           {isOIDC && (
             <tr>
               <td>Client Type:</td>
               <td>
-                <SemiBold>{request.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
+                <SemiBold data-testid="client-type-team">{request.publicAccess ? 'Public' : 'Confidential'}</SemiBold>
               </td>
             </tr>
           )}
           <tr>
             <td>Usecase:</td>
             <td>
-              <SemiBold>{authTypeDisplay[request.authType || 'browser-login']}</SemiBold>
+              <SemiBold data-testid="use-case">{authTypeDisplay[request.authType || 'browser-login']}</SemiBold>
             </td>
           </tr>
           <tr>
             <td>Project Name:</td>
             <td>
-              <SemiBold>{request.projectName}</SemiBold>
+              <SemiBold data-testid="project-name">{request.projectName}</SemiBold>
             </td>
           </tr>
           {request.additionalRoleAttribute && (
             <tr>
               <td>Additional Role Attribute:</td>
               <td>
-                <SemiBold>{request.additionalRoleAttribute}</SemiBold>
+                <SemiBold data-testid="add-role-attrib">{request.additionalRoleAttribute}</SemiBold>
               </td>
             </tr>
           )}
-          <FormattedList list={idpDisplay} title="Identity Providers Required:" inline />
+          <FormattedList list={idpDisplay} title="Identity Providers Required:" inline testid='idp-required'/>
           {request.environments?.includes('dev') && (
-            <FormattedList list={request.devValidRedirectUris} title="Dev Redirect URIs:" />
+            <FormattedList list={request.devValidRedirectUris} title="Dev Redirect URIs:" testid='dev-uri'/>
           )}
           {request.environments?.includes('test') && (
-            <FormattedList list={request.testValidRedirectUris} title="Test Redirect URIs:" />
+            <FormattedList list={request.testValidRedirectUris} title="Test Redirect URIs:" testid='test-uri'/>
           )}
           {request.environments?.includes('prod') && (
-            <FormattedList list={request.prodValidRedirectUris} title="Prod Redirect URIs:" />
+            <FormattedList list={request.prodValidRedirectUris} title="Prod Redirect URIs:" testid='prod-uri'/>
           )}
           {children}
         </tbody>
