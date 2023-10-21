@@ -45,11 +45,17 @@ variable "sso_grafana_container_name" {
 variable "sso_grafana_container_image" {
   description = "The container image url"
   type        = string
-  default     = "public.ecr.aws/bitnami/grafana:10.1.5"
+  default     = "bcgov-sso/grafana:9.3.2"
 }
 
 variable "sso_grafana_container_port" {
   description = "The container port"
   type        = number
   default     = 3000
+}
+
+variable "aws_ecr_uri" {
+  description = "The ECR URI"
+  type        = string
+  default     = ""
 }

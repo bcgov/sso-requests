@@ -195,6 +195,7 @@ jobs:
           ches_api_endpoint="${{ env.CHES_API_ENDPOINT }}"
           ches_token_endpoint="${{ env.CHES_TOKEN_ENDPOINT }}"
           custom_domain_name="${{ env.CUSTOM_DOMAIN_NAME }}"
+          aws_ecr_uri="${{ secrets.AWS_ECR_URI }}"
           EOF
 
         working-directory: ./terraform
