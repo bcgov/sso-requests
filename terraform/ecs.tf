@@ -90,11 +90,11 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
           value = "admin"
         },
         {
-          name  = "GF_AUTH_GENERIC_LOGIN_ATTRIBUTE_PATH",
+          name  = "GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH",
           value = "preferred_username"
         },
         {
-          name  = "GF_AUTH_GENERIC_ROLE_ATTRIBUTE_PATH",
+          name  = "GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH",
           value = "contains(client_roles[*], 'grafanaadmin') && 'GrafanaAdmin' || contains(client_roles[*], 'admin') && 'Admin' || contains(client_roles[*], 'editor') && 'Editor' || 'Viewer'"
         },
         {
@@ -106,19 +106,19 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
           value = "openid"
         },
         {
-          name  = "GF_AUTH_GENERIC_EMPTY_SCOPES",
+          name  = "GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES",
           value = "false"
         },
         {
-          name  = "GF_AUTH_GENERIC_OAUTH_USE_PKCE",
+          name  = "GF_AUTH_GENERIC_OAUTH_OAUTH_USE_PKCE",
           value = "true"
         },
         {
-          name  = "GF_AUTH_GENERIC_EMAIL_ATTRIBUTE_PATH",
+          name  = "GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH",
           value = "email"
         },
         {
-          name  = "GF_AUTH_GENERIC_NAME_ATTRIBUTE_PATH",
+          name  = "GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH",
           value = "display_name"
         }
       ]
@@ -128,12 +128,12 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
           valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_SECURITY_ADMIN_PASSWORD::"
         },
         {
-          name      = "GF_AUTH_GENERIC_CLIENT_ID",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_AUTH_GENERIC_CLIENT_ID::"
+          name      = "GF_AUTH_GENERIC_OAUTH_CLIENT_ID",
+          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_ID::"
         },
         {
-          name      = "GF_AUTH_GENERIC_CLIENT_SECRET",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_AUTH_GENERIC_CLIENT_SECRET::"
+          name      = "GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET",
+          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET::"
         },
       ]
     }
