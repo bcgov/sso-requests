@@ -33,3 +33,26 @@ resource "aws_efs_backup_policy" "efs_sso_grafana_backups_policy" {
     status = "ENABLED"
   }
 }
+
+resource "aws_efs_access_point" "sso_grafana_efs_access_point" {
+  count          = var.install_sso_css_grafana
+  file_system_id = aws_efs_file_system.efs_sso_grafana[count.index].id
+
+  root_directory {
+    creation_info {
+      owner_uid   = "0"
+      owner_gid   = "0"
+      permissions = "0777"
+    }
+
+    path = "/grafana"
+  }
+
+  tags = merge(
+    {
+      Name = "sso-grafana-data"
+    },
+    var.sso_grafana_tags
+  )
+
+}
