@@ -2,7 +2,7 @@ resource "aws_alb" "sso_alb" {
 
   name                             = "sso-alb"
   internal                         = true
-  security_groups                  = [data.aws_security_group.app.id]
+  security_groups                  = [data.aws_security_group.web.id]
   subnets                          = [data.aws_subnet.a.id, data.aws_subnet.b.id]
   enable_cross_zone_load_balancing = true
   tags                             = var.sso_grafana_tags

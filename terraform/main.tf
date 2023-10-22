@@ -61,6 +61,10 @@ data "aws_security_group" "app" {
   name = "App_sg"
 }
 
+data "aws_security_group" "web" {
+  name = "Web_sg"
+}
+
 # resource "aws_security_group" "ecs_sso_grafana_sg" {
 #   name        = "ecs-sso-grafana-sg"
 #   description = "Allow inbound access from the ALB only"
