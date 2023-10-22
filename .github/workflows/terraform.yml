@@ -54,6 +54,7 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           CUSTOM_DOMAIN_NAME=api-dev.loginproxy.gov.bc.ca
+          AWS_ECR_URI=${{secrets.DEV_AWS_ECR_URI}}
           EOF
 
       - name: Set env to production
@@ -85,6 +86,7 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           CUSTOM_DOMAIN_NAME=api.loginproxy.gov.bc.ca
+          AWS_ECR_URI=${{secrets.PROD_AWS_ECR_URI}}
           EOF
 
       - uses: hmarr/debug-action@v2
@@ -195,7 +197,7 @@ jobs:
           ches_api_endpoint="${{ env.CHES_API_ENDPOINT }}"
           ches_token_endpoint="${{ env.CHES_TOKEN_ENDPOINT }}"
           custom_domain_name="${{ env.CUSTOM_DOMAIN_NAME }}"
-          aws_ecr_uri="${{ secrets.AWS_ECR_URI }}"
+          aws_ecr_uri="${{ env.AWS_ECR_URI }}"
           EOF
 
         working-directory: ./terraform
