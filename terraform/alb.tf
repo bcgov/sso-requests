@@ -1,11 +1,20 @@
-# manually created in AWS
-data "aws_alb" "sso_alb" {
-  name = "sso-alb"
+resource "aws_alb" "sso_alb" {
+
+  name                             = "sso-alb"
+  internal                         = true
+  security_groups                  = [data.aws_security_group.app.id]
+  subnets                          = [data.aws_subnet.a.id, data.aws_subnet.b.id]
+  enable_cross_zone_load_balancing = true
+  tags                             = var.sso_grafana_tags
+
+  lifecycle {
+    ignore_changes = [access_logs]
+  }
 }
 
 resource "aws_alb_listener" "alb_listener_sso_grafana" {
   count             = var.install_sso_css_grafana
-  load_balancer_arn = data.aws_alb.sso_alb.arn
+  load_balancer_arn = aws_alb.sso_alb.arn
   port              = "80"
   protocol          = "HTTP"
 
