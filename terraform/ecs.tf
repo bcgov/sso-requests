@@ -16,6 +16,7 @@ resource "aws_ecs_cluster_capacity_providers" "sso_ecs_cluster_capacity_provider
 
 resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
   count                    = var.install_sso_css_grafana
+  depends_on               = [aws_apigatewayv2_api.sso_grafana_api]
   family                   = var.sso_grafana_name
   execution_role_arn       = aws_iam_role.ecs_sso_grafana_task_execution_role.arn
   task_role_arn            = aws_iam_role.sso_grafana_container_role[count.index].arn
@@ -73,6 +74,14 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
       ]
       volumesFrom = []
       environment = [
+        {
+          name  = "GF_SERVER_DOMAIN",
+          value = "${aws_apigatewayv2_api.sso_grafana_api[count.index].id}.execute-api.ca-central-1.amazonaws.com"
+        },
+        {
+          name  = "GF_SERVER_ROOT_URL",
+          value = "https://${aws_apigatewayv2_api.sso_grafana_api[count.index].id}.execute-api.ca-central-1.amazonaws.com"
+        },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_NAME",
           value = "SSO Pathfinder Sandbox"
