@@ -19,14 +19,14 @@ data "aws_subnet" "b" {
 data "aws_subnet" "a_data" {
   filter {
     name   = "tag:Name"
-    values = ["Data_Dev_aza_net"]
+    values = [var.subnet_data_a]
   }
 }
 
 data "aws_subnet" "b_data" {
   filter {
     name   = "tag:Name"
-    values = ["Data_Dev_azb_net"]
+    values = [var.subnet_data_b]
   }
 }
 

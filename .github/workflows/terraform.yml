@@ -40,6 +40,8 @@ jobs:
           SSO_ISSUER_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           SUBNET_A=App_Dev_aza_net
           SUBNET_B=App_Dev_azb_net
+          SUBNET_DATA_A=Data_Dev_aza_net
+          SUBNET_DATA_B=Data_Dev_azb_net
           GITHUB_REPO=sso-terraform-dev
           KEYCLOAK_V2_DEV_URL=https://dev.sandbox.loginproxy.gov.bc.ca
           KEYCLOAK_V2_TEST_URL=https://test.sandbox.loginproxy.gov.bc.ca
@@ -72,6 +74,8 @@ jobs:
           SSO_ISSUER_URL=https://loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           SUBNET_A=App_Prod_aza_net
           SUBNET_B=App_Prod_azb_net
+          SUBNET_DATA_A=Data_Prod_aza_net
+          SUBNET_DATA_B=Data_Prod_azb_net
           GITHUB_REPO=sso_terraform
           KEYCLOAK_V2_DEV_URL=https://dev.loginproxy.gov.bc.ca
           KEYCLOAK_V2_TEST_URL=https://test.loginproxy.gov.bc.ca
@@ -184,6 +188,8 @@ jobs:
           sso_configuration_endpoint="${{ env.SSO_ISSUER_URL }}"
           subnet_a="${{ env.SUBNET_A }}"
           subnet_b="${{ env.SUBNET_B }}"
+          subnet_data_a="${{ env.SUBNET_DATA_A }}"
+          subnet_data_b="${{ env.SUBNET_DATA_B }}"
           gh_repo="${{ env.GITHUB_REPO }}"
           keycloak_v2_dev_url="${{ env.KEYCLOAK_V2_DEV_URL }}"
           keycloak_v2_test_url="${{ env.KEYCLOAK_V2_TEST_URL }}"
