@@ -75,6 +75,10 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
       volumesFrom = []
       environment = [
         {
+          name  = "GF_AUTH_DISABLE_LOGIN_FORM",
+          value = "true"
+        },
+        {
           name  = "GF_SERVER_DOMAIN",
           value = "${aws_apigatewayv2_api.sso_grafana_api[count.index].id}.execute-api.ca-central-1.amazonaws.com"
         },
