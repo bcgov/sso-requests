@@ -240,3 +240,84 @@ ORDER BY r.client_name
 - `release:minor` - will create a minor release (example: `v1.0.0` -> `v1.1.0`)
 - `release:patch` - will create a patch release (example: `v1.0.0` -> `v1.0.1`)
 - `release:norelease` - will not trigger any release
+
+### Setup Grafana
+
+## Pre-Requisites
+
+### Image
+
+- Login to AWS and create a new private repository in AWS Elastic Container Registry
+
+```sh
+export AWS_ECR_URI=
+
+aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin $AWS_ECR_URI
+
+docker pull --platform linux/amd64 grafana/grafana:9.3.2
+
+docker tag grafana/grafana:9.3.2 $AWS_ECR_URI/bcgov-sso/grafana:9.3.2
+
+docker push $AWS_ECR_URI/bcgov-sso/grafana:9.3.2
+```
+
+### Secret
+
+- Create a new secret
+
+```sh
+export GF_SECURITY_ADMIN_PASSWORD=
+# login to CSS app and download the prod installation json for the SSO Dashboard integration
+export GF_AUTH_GENERIC_OAUTH_CLIENT_ID=
+export GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=
+
+aws secretsmanager create-secret --name sso-grafana --description "SSO Grafana Secrets" \
+--secret-string '{"GF_SECURITY_ADMIN_PASSWORD": "$GF_SECURITY_ADMIN_PASSWORD", "GF_AUTH_GENERIC_OAUTH_CLIENT_ID": "$GF_AUTH_GENERIC_OAUTH_CLIENT_ID", "GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET": "$GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET"}' --region ca-central-1
+```
+
+### Policy
+
+- Create a policy
+
+```sh
+aws iam create-policy --policy-name SSOPathfinderReadGrafanaSecretInfo --policy-document ./policy.json
+
+# navigate to secrets manager and copy the secret ARN
+export GRAFANA_SECRET_ARN=
+
+# policy.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+          "Sid": "VisualEditor0",
+          "Effect": "Allow",
+          "Action": "secretsmanager:GetSecretValue",
+          "Resource": "$GRAFANA_SECRET_ARN"
+      }
+  ]
+}
+```
+
+### Readonly User
+
+```sh
+CREATE USER cssgrafana WITH PASSWORD '<secure-password>';
+
+GRANT CONNECT ON DATABASE ssorequests TO cssgrafana;
+
+GRANT USAGE ON SCHEMA public TO cssgrafana;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO cssgrafana;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO cssgrafana;
+
+SELECT * from pg_catalog.pg_roles;
+
+SELECT * FROM pg_catalog.pg_auth_members;
+
+# check privileges on a table
+SELECT grantee, privilege_type
+FROM information_schema.role_table_grants
+WHERE table_name='requests'
+```

@@ -31,14 +31,26 @@ variable "sso_client_id" {
 
 variable "subnet_a" {
   type        = string
-  description = "Value of the name tag for the subnet in AZ a"
+  description = "Value of the name tag for the app subnet in AZ a"
   default     = "App_Dev_aza_net"
 }
 
 variable "subnet_b" {
   type        = string
-  description = "Value of the name tag for the subnet in AZ b"
+  description = "Value of the name tag for the app subnet in AZ b"
   default     = "App_Dev_azb_net"
+}
+
+variable "subnet_data_a" {
+  type        = string
+  description = "Value of the name tag for the data subnet in AZ a"
+  default     = "Data_Dev_aza_net"
+}
+
+variable "subnet_data_b" {
+  type        = string
+  description = "Value of the name tag for the data subnet in AZ b"
+  default     = "Data_Dev_azb_net"
 }
 
 variable "gh_access_token" {
