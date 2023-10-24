@@ -298,3 +298,26 @@ export GRAFANA_SECRET_ARN=
   ]
 }
 ```
+
+### Readonly User
+
+```sh
+CREATE USER cssgrafana WITH PASSWORD '<secure-password>';
+
+GRANT CONNECT ON DATABASE ssorequests TO cssgrafana;
+
+GRANT USAGE ON SCHEMA public TO cssgrafana;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO cssgrafana;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO cssgrafana;
+
+SELECT * from pg_catalog.pg_roles;
+
+SELECT * FROM pg_catalog.pg_auth_members;
+
+# check privileges on a table
+SELECT grantee, privilege_type
+FROM information_schema.role_table_grants
+WHERE table_name='requests'
+```
