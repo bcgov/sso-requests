@@ -88,7 +88,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_NAME",
-          value = "SSO Pathfinder Sandbox"
+          value = "SSO Pathfinder${var.app_env == "development" ? " Sandbox" : ""}"
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_ENABLED",
@@ -96,11 +96,11 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_AUTH_URL",
-          value = "https://dev.sandbox.loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/auth"
+          value = "${var.keycloak_v2_prod_url}/auth/realms/standard/protocol/openid-connect/auth"
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_API_URL",
-          value = "https://dev.sandbox.loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/userinfo"
+          value = "${var.keycloak_v2_prod_url}/auth/realms/standard/protocol/openid-connect/userinfo"
         },
         {
           name  = "GF_SECURITY_ADMIN_USER",
@@ -116,7 +116,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_TOKEN_URL",
-          value = "https://dev.sandbox.loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token"
+          value = "${var.keycloak_v2_prod_url}/auth/realms/standard/protocol/openid-connect/token"
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_SCOPES",
