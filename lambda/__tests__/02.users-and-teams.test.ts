@@ -46,6 +46,7 @@ describe('users and teams', () => {
       await cleanUpDatabaseTables();
     });
     let teamId: number;
+    let teamCreatorId: number;
     let teamMemberIds: number[];
 
     it('should find user', async () => {
@@ -54,6 +55,7 @@ describe('users and teams', () => {
       expect(result.status).toEqual(200);
       expect(result.body.idirUserid).toEqual(TEAM_ADMIN_IDIR_USERID_01);
       expect(result.body.idirEmail).toEqual(TEAM_ADMIN_IDIR_EMAIL_01);
+      teamCreatorId = result.body.id;
     });
 
     it('should find empty team list', async () => {
@@ -69,6 +71,13 @@ describe('users and teams', () => {
       teamId = result.body.id;
       expect(result.status).toEqual(200);
       expect(result.body.name).toEqual(postTeam.name);
+    });
+
+    it('should not allow the only team admin to leave the team', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const result = await deleteMembersOfTeam(teamId, teamCreatorId);
+      expect(result.status).toEqual(422);
+      expect(result.body.message).toBe('Not allowed');
     });
 
     it('should find team created by authenticated user', async () => {
