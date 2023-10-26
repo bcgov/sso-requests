@@ -27,12 +27,12 @@ let sandbox: any = {};
 
 const setUpRender = (request: Integration | object | null, currentUser = {}) => {
   const result = render(<FormTemplate currentUser={currentUser} request={request} />);
-  sandbox.firstStageBox = screen.queryByTestId(`stage-1`)?.closest('div') as HTMLElement;
-  sandbox.secondStageBox = screen.queryByTestId(`stage-2`)?.closest('div') as HTMLElement;
-  sandbox.thirdStageBox = screen.queryByTestId(`stage-3`)?.closest('div') as HTMLElement;
-  sandbox.fourthStageBox = screen.queryByTestId(`stage-4`)?.closest('div') as HTMLElement;
-  sandbox.fifthStageBox = screen.queryByTestId(`stage-5`)?.closest('div') as HTMLElement;
-  sandbox.adminReview = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
+  sandbox.firstStageBox = screen.queryByTestId(`stage-requester-info`)?.closest('div') as HTMLElement;
+  sandbox.secondStageBox = screen.queryByTestId(`stage-basic-info`)?.closest('div') as HTMLElement;
+  sandbox.thirdStageBox = screen.queryByTestId(`stage-development`)?.closest('div') as HTMLElement;
+  sandbox.fourthStageBox = screen.queryByTestId(`stage-test`)?.closest('div') as HTMLElement;
+  sandbox.fifthStageBox = screen.queryByTestId(`stage-production`)?.closest('div') as HTMLElement;
+  sandbox.adminReview = screen.queryByTestId(`stage-review-submit`)?.closest('div') as HTMLElement;
   return result;
 };
 
