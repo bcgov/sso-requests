@@ -29,7 +29,13 @@ import {
 import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
-import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
+import {
+  usesBceid,
+  usesGithub,
+  checkNotBceidGroup,
+  checkNotGithubGroup,
+  usesVerifiedCredential,
+} from '@app/helpers/integration';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -174,6 +180,10 @@ export const updateRequest = async (
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
     if (isApprovingGithub && !userIsAdmin) throw Error('unauthorized request');
 
+    const isApprovingVerifiedCredential =
+      !originalData.verifiedCredentialApproved && current.verifiedCredentialApproved;
+    if (isApprovingVerifiedCredential && !userIsAdmin) throw Error('unauthorized request');
+
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -217,8 +227,12 @@ export const updateRequest = async (
       const hasGithub = usesGithub(current);
       const hasGithubProd = hasGithub && hasProd;
 
+      const hasVerifiedCredential = usesVerifiedCredential(current);
+      const hasVerifiedCredentialProd = hasVerifiedCredential && hasProd;
+
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
+      const waitingVerifiedCredentialProdApproval = hasVerifiedCredentialProd && !current.verifiedCredentialApproved;
       current.requester = await getRequester(session, current.id);
 
       const ghResult = await dispatchRequestWorkflow(getCurrentValue());
@@ -241,6 +255,11 @@ export const updateRequest = async (
             code: EMAILS.PROD_APPROVED,
             data: { integration: finalData, type: 'GitHub' },
           });
+        } else if (isApprovingVerifiedCredential) {
+          emails.push({
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'Verified Credential' },
+          });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
@@ -248,6 +267,7 @@ export const updateRequest = async (
               integration: finalData,
               waitingBceidProdApproval,
               waitingGithubProdApproval,
+              waitingVerifiedCredentialProdApproval,
             },
           });
         }
@@ -258,10 +278,10 @@ export const updateRequest = async (
             integration: finalData,
             waitingBceidProdApproval,
             waitingGithubProdApproval,
+            waitingVerifiedCredentialProdApproval,
           },
         });
       }
-
       await sendTemplates(emails);
     }
 

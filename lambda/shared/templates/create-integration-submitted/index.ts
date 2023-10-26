@@ -19,6 +19,7 @@ interface DataProps {
   integration: IntegrationData;
   waitingBceidProdApproval?: boolean;
   waitingGithubProdApproval?: boolean;
+  waitingVerifiedCredentialProdApproval?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
