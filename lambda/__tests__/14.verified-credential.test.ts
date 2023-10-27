@@ -6,6 +6,7 @@ import { APP_BASE_PATH } from './helpers/constants';
 import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, getCreateIntegrationData } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
+import { IntegrationData } from '@lambda-shared/interfaces';
 
 jest.mock('../app/src/authenticate');
 
@@ -23,13 +24,22 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
+// Mock dispatchRequestWorkflow to ignore timeouts during unit test
+jest.mock('../app/src/github', () => {
+  const { dispatchRequestWorkflow } = jest.requireActual('../app/src/github');
+  return {
+    ...jest.requireActual('../app/src/github'),
+    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
+  };
+});
+
 const baseIntegration = {
   projectName: 'vc',
   projectLead: true,
   serviceType: 'gold',
   usesTeam: false,
 };
-const integration = {
+const mockIntegration: IntegrationData = {
   // id: 1,
   ...baseIntegration,
   idirUserid: TEAM_ADMIN_IDIR_USERID_01,
@@ -104,9 +114,29 @@ const integration = {
   prodSamlSignAssertions: false,
 };
 
-describe.skip('Build Github Dispatch', () => {
+const submitNewIntegration = async (integration: IntegrationData) => {
+  const { projectName, projectLead, serviceType, usesTeam } = integration;
+  const {
+    body: { id },
+  } = await supertest(app)
+    .post(`${APP_BASE_PATH}/requests`)
+    .send({
+      projectName,
+      projectLead,
+      serviceType,
+      usesTeam,
+    })
+    .set('Accept', 'application/json');
+
+  return supertest(app)
+    .put(`${APP_BASE_PATH}/requests?submit=true`)
+    .send({ ...integration, id })
+    .set('Accept', 'application/json');
+};
+
+describe('Build Github Dispatch', () => {
   it('Removes verified credential from production IDP list if not approved yet, but keeps it in dev and test', () => {
-    const processedIntegration = buildGitHubRequestData(integration);
+    const processedIntegration = buildGitHubRequestData(mockIntegration);
     expect(processedIntegration.prodIdps.includes('verifiedcredential')).toBe(false);
 
     // Leaves other idp alone
@@ -118,7 +148,7 @@ describe.skip('Build Github Dispatch', () => {
   });
 
   it('Keeps verified credential in production IDP list if approved', () => {
-    const approvedIntegration = Object.assign({}, integration, { verifiedCredentialApproved: true });
+    const approvedIntegration = Object.assign({}, mockIntegration, { verifiedCredentialApproved: true });
     const processedIntegration = buildGitHubRequestData(approvedIntegration);
     expect(processedIntegration.prodIdps.includes('verifiedcredential')).toBe(true);
   });
@@ -126,27 +156,37 @@ describe.skip('Build Github Dispatch', () => {
 
 describe('IDP notifications', () => {
   beforeAll(async () => {
-    jest.clearAllMocks();
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
   });
 
   afterAll(async () => {
     await cleanUpDatabaseTables();
   });
 
-  it('Allows and saves verified credential IDP', async () => {
-    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    const {
-      body: { id },
-    } = await supertest(app).post(`${APP_BASE_PATH}/requests`).send(baseIntegration).set('Accept', 'application/json');
+  it('Allows and saves verified credential information correctly into database', async () => {
+    const result = await submitNewIntegration(mockIntegration);
+    const request = await models.request.findOne({ where: { id: result.body.id }, raw: true });
 
-    console.log(id);
+    expect(request.prodIdps.includes('verifiedcredential'));
+    expect(request.devIdps.includes('verifiedcredential'));
+    expect(request.testIdps.includes('verifiedcredential'));
+    expect(request.verifiedCredentialApproved).toBe(false);
+  });
 
+  it('Includes VC footer in email when requesting prod integration', async () => {
     const emailList = createMockSendEmail();
-    const result = await supertest(app)
-      .put(`${APP_BASE_PATH}/requests?submit=true`)
-      .send({ ...integration, id })
-      .set('Accept', 'application/json');
+    const expectedFooterText = 'Next Steps for your integration with Verified Credential:';
+    await submitNewIntegration(mockIntegration);
 
-    console.log(emailList);
+    const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
+    expect(emailSentWithFooter).toBeTruthy();
+  });
+
+  it('Excludes VC footer if not requesting prod integration', async () => {
+    const emailList = createMockSendEmail();
+    const expectedFooterText = 'Next Steps for your integration with Verified Credential:';
+    await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
+    const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
+    expect(emailSentWithFooter).toBeFalsy();
   });
 });

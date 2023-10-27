@@ -177,9 +177,6 @@ export const closeOpenPullRequests = async (id: number) => {
 
 export const skipGithubActionStep = async (integrationId) => {
   try {
-    const env = process.env.NODE_ENV;
-    if (env === 'test') return;
-
     const integration = await models.request.findOne({ where: { id: integrationId } });
 
     setTimeout(async () => {
