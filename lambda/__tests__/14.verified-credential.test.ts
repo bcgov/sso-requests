@@ -40,7 +40,6 @@ const baseIntegration = {
   usesTeam: false,
 };
 const mockIntegration: IntegrationData = {
-  // id: 1,
   ...baseIntegration,
   idirUserid: TEAM_ADMIN_IDIR_USERID_01,
   clientId: 'a',
