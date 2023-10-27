@@ -4,7 +4,7 @@ import app from './helpers/server';
 import supertest from 'supertest';
 import { APP_BASE_PATH } from './helpers/constants';
 import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
-import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, getCreateIntegrationData } from './helpers/fixtures';
+import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { IntegrationData } from '@lambda-shared/interfaces';
 
@@ -26,7 +26,6 @@ jest.mock('../shared/utils/ches', () => {
 
 // Mock dispatchRequestWorkflow to ignore timeouts during unit test
 jest.mock('../app/src/github', () => {
-  const { dispatchRequestWorkflow } = jest.requireActual('../app/src/github');
   return {
     ...jest.requireActual('../app/src/github'),
     dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
@@ -105,9 +104,9 @@ const mockIntegration: IntegrationData = {
   devDisplayHeaderTitle: false,
   testDisplayHeaderTitle: false,
   prodDisplayHeaderTitle: false,
-  devSamlLogoutPostBindingUri: 'http://a',
-  testSamlLogoutPostBindingUri: 'http://a',
-  prodSamlLogoutPostBindingUri: 'http://a',
+  devSamlLogoutPostBindingUri: 'https://a',
+  testSamlLogoutPostBindingUri: 'https://a',
+  prodSamlLogoutPostBindingUri: 'https://a',
   devSamlSignAssertions: false,
   testSamlSignAssertions: false,
   prodSamlSignAssertions: false,
@@ -147,7 +146,7 @@ describe('Build Github Dispatch', () => {
   });
 
   it('Keeps verified credential in production IDP list if approved', () => {
-    const approvedIntegration = Object.assign({}, mockIntegration, { verifiedCredentialApproved: true });
+    const approvedIntegration = { ...mockIntegration, verifiedCredentialApproved: true };
     const processedIntegration = buildGitHubRequestData(approvedIntegration);
     expect(processedIntegration.prodIdps.includes('verifiedcredential')).toBe(true);
   });

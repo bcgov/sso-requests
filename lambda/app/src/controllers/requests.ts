@@ -29,13 +29,7 @@ import {
 import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
-import {
-  usesBceid,
-  usesGithub,
-  checkNotBceidGroup,
-  checkNotGithubGroup,
-  usesVerifiedCredential,
-} from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesVerifiedCredential } from '@app/helpers/integration';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;

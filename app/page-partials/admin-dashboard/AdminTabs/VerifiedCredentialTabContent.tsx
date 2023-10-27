@@ -6,7 +6,7 @@ interface Props {
   onApproved?: () => void;
 }
 
-function VerifiedCredentialTabContent({ integration, onApproved }: Props) {
+function VerifiedCredentialTabContent({ integration, onApproved }: Readonly<Props>) {
   if (!integration) return null;
   const { status, verifiedCredentialApproved } = integration;
 
