@@ -20,6 +20,13 @@ jest.mock('services/request', () => {
   };
 });
 
+jest.mock('services/team', () => {
+  return {
+    getMyTeams: jest.fn(() => Promise.resolve([[], null])),
+    getAllowedTeams: jest.fn(() => Promise.resolve([[], null])),
+  };
+});
+
 const STEPPER_ERROR = 'Some additional fields require your attention.';
 
 // Container to expose variables from beforeeach to test functions
@@ -27,12 +34,13 @@ let sandbox: any = {};
 
 const setUpRender = (request: Integration | object | null, currentUser = {}) => {
   const result = render(<FormTemplate currentUser={currentUser} request={request} />);
-  sandbox.firstStageBox = screen.queryByTestId(`stage-1`)?.closest('div') as HTMLElement;
-  sandbox.secondStageBox = screen.queryByTestId(`stage-2`)?.closest('div') as HTMLElement;
-  sandbox.thirdStageBox = screen.queryByTestId(`stage-3`)?.closest('div') as HTMLElement;
-  sandbox.fourthStageBox = screen.queryByTestId(`stage-4`)?.closest('div') as HTMLElement;
-  sandbox.fifthStageBox = screen.queryByTestId(`stage-5`)?.closest('div') as HTMLElement;
-  sandbox.adminReview = screen.queryByText('Review & Submit')?.closest('div') as HTMLElement;
+  sandbox.requesterInfoBox = screen.queryByTestId(`stage-requester-info`)?.closest('div') as HTMLElement;
+  sandbox.basicInfoBox = screen.queryByTestId(`stage-basic-info`)?.closest('div') as HTMLElement;
+  sandbox.developmentBox = screen.queryByTestId(`stage-development`)?.closest('div') as HTMLElement;
+  sandbox.testBox = screen.queryByTestId(`stage-test`)?.closest('div') as HTMLElement;
+  sandbox.productionBox = screen.queryByTestId(`stage-production`)?.closest('div') as HTMLElement;
+  sandbox.termsAndConditionsBox = screen.queryByTestId(`stage-terms-and-conditions`)?.closest('div') as HTMLElement;
+  sandbox.adminReview = screen.queryByTestId(`stage-review-submit`)?.closest('div') as HTMLElement;
   return result;
 };
 
@@ -61,13 +69,13 @@ const samplePage3Request = {
   serviceType: 'gold',
 };
 
+beforeEach(() => {
+  setUpRouter('/', sandbox);
+});
+
 describe('Form Template Saving and Navigation', () => {
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  beforeEach(() => {
-    setUpRouter('/', sandbox);
   });
 
   it('Should save data and triggers spinner on blur events', async () => {
@@ -96,48 +104,50 @@ describe('Form Template Saving and Navigation', () => {
     setUpRender({
       id: 0,
     });
-    setUpRouter('/', sandbox);
-    fireEvent.click(sandbox.secondStageBox);
+    fireEvent.click(sandbox.basicInfoBox);
     const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
     await waitFor(() => screen.getByText("We're a Community"));
   });
 
-  it('Should redirect to my-dashboard on cancel', () => {
+  it('Should redirect to my-dashboard on cancel', async () => {
     setUpRender({
       id: 0,
     });
-    fireEvent.click(sandbox.secondStageBox);
+    fireEvent.click(sandbox.basicInfoBox);
     const cancelButton = within(document.querySelector("form.rjsf [data-testid='form-btns']") as HTMLElement).getByText(
       'Save and Close',
     );
     fireEvent.click(cancelButton);
-    expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' });
+    await waitFor(() => expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' }));
   });
 
-  it('Should show failed state in stepper after submission and clear only after filling correct data', () => {
-    setUpRender({
+  it('Should show failed state in stepper after submission and clear only after filling correct data', async () => {
+    const component = setUpRender({
       id: 0,
     });
     // Submit empty form
-    const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
-    fireEvent.click(fourthStageBox);
-    fireEvent.click(document.querySelector("button[type='button']") as HTMLElement);
-    expect(within(firstStageBox).getByTitle(STEPPER_ERROR));
-    expect(within(secondStageBox).getByTitle(STEPPER_ERROR));
-    expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
-    expect(within(fourthStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
+    const { requesterInfoBox, basicInfoBox, termsAndConditionsBox, adminReview } = sandbox;
+    fireEvent.click(adminReview);
+    const submitButton = await component.findByText('Submit', { selector: 'button' });
+    fireEvent.click(submitButton as HTMLElement);
+
+    expect(within(requesterInfoBox).getByTitle(STEPPER_ERROR));
+    expect(within(basicInfoBox).getByTitle(STEPPER_ERROR));
+    expect(within(termsAndConditionsBox).getByTitle(STEPPER_ERROR));
+    expect(within(adminReview).queryByTitle(STEPPER_ERROR)).toBeNull();
 
     // Navigate to and from third page without fixing errors
-    fireEvent.click(thirdStageBox);
-    fireEvent.click(fourthStageBox);
-    expect(within(thirdStageBox).getByTitle(STEPPER_ERROR));
+    fireEvent.click(termsAndConditionsBox);
+    fireEvent.click(adminReview);
+
+    expect(within(termsAndConditionsBox).getByTitle(STEPPER_ERROR));
 
     // Navigate to and from third stage with fixing errors
-    fireEvent.click(thirdStageBox);
+    fireEvent.click(termsAndConditionsBox);
     fireEvent.click(document.querySelector('#root_agreeWithTerms') as HTMLElement);
-    fireEvent.click(fourthStageBox);
-    expect(within(thirdStageBox).queryByTitle(STEPPER_ERROR)).toBeNull();
+    fireEvent.click(adminReview);
+    await waitFor(() => expect(within(termsAndConditionsBox).queryByTitle(STEPPER_ERROR)).toBeNull());
   });
 });
 
@@ -147,22 +157,21 @@ describe('Form Template Loading Data', () => {
   });
 
   it('Should pre-load data if a request exists', async () => {
-    setUpRouter('/', sandbox);
     setUpRender(sampleRequest);
-    const { firstStageBox, secondStageBox, thirdStageBox, fourthStageBox } = sandbox;
+    const { requesterInfoBox, basicInfoBox, developmentBox, termsAndConditionsBox } = sandbox;
 
-    fireEvent.click(firstStageBox);
+    fireEvent.click(requesterInfoBox);
     const firstStageElementSelector = '#root_projectLead input[value="true"';
     await waitFor(() => document.querySelector(firstStageElementSelector));
     expect(document.querySelector(firstStageElementSelector)).toHaveAttribute('checked', '');
     expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
 
-    fireEvent.click(secondStageBox);
+    fireEvent.click(basicInfoBox);
 
     const secondStageElementSelector = '#root_protocol input[type="radio"][value="oidc"]';
     await waitFor(() => document.querySelector(secondStageElementSelector));
 
-    fireEvent.click(thirdStageBox);
+    fireEvent.click(developmentBox);
     expect(
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[0]) || ''),
     );
@@ -170,15 +179,14 @@ describe('Form Template Loading Data', () => {
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
 
-    fireEvent.click(fourthStageBox);
+    fireEvent.click(termsAndConditionsBox);
     const fourthStageElementSelector = '#root_agreeWithTerms';
     expect(document.querySelector(fourthStageElementSelector)).toHaveAttribute('checked', '');
   });
 });
 
 describe('Error messages', () => {
-  it('Should display the expected error messages on page 1 when navigating away and back', () => {
-    setUpRouter('/', sandbox);
+  it('Should display the expected error messages on page 1 when navigating away and back', async () => {
     setUpRender(null);
 
     // Set project lead and team to display form
@@ -193,54 +201,51 @@ describe('Error messages', () => {
     // Navigate away and back again
     const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
-    fireEvent.click(sandbox.firstStageBox);
+    fireEvent.click(sandbox.requesterInfoBox);
 
-    screen.getByText(errorMessages.projectName);
+    await waitFor(() => screen.getByText(errorMessages.projectName));
   });
 
   it('Should display the expected page 2 errors', async () => {
-    setUpRouter('/', sandbox);
     setUpRender({ id: 0, environments: ['dev'], devValidRedirectUris: [''], serviceType: 'gold' });
 
     // Navigate away and back to page
-    fireEvent.click(sandbox.thirdStageBox);
+    fireEvent.click(sandbox.developmentBox);
 
     const devValidRedirectUrisSelector = '#root_devValidRedirectUris_0';
     await waitFor(() => document.querySelector(devValidRedirectUrisSelector));
     const uriInput = document.querySelector(devValidRedirectUrisSelector) as HTMLElement;
     fireEvent.change(uriInput, { target: { value: 'invalid-url' } });
 
-    fireEvent.click(sandbox.secondStageBox);
-    fireEvent.click(sandbox.thirdStageBox);
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
 
     screen.getAllByText(errorMessages.redirectUris);
   });
 
   it('Should display the expected page 3 errors after navigating away from the page', async () => {
-    setUpRouter('/', sandbox);
     setUpRender(samplePage3Request);
 
     // Navigate away and back to page
-    fireEvent.click(sandbox.thirdStageBox);
-    fireEvent.click(sandbox.fourthStageBox);
-    fireEvent.click(sandbox.thirdStageBox);
+    fireEvent.click(sandbox.termsAndConditionsBox);
+    fireEvent.click(sandbox.requesterInfoBox);
+    fireEvent.click(sandbox.termsAndConditionsBox);
 
-    screen.getByText(errorMessages.agreeWithTerms);
+    await waitFor(() => screen.getByText(errorMessages.agreeWithTerms));
   });
 });
 
 describe('Admins', () => {
-  it('should not show buttons for admins', () => {
+  it('should not show buttons for admins', async () => {
     setUpRender(null, { client_roles: ['sso-admin'] });
-    formButtonText.forEach((title) => {
-      expect(screen.queryByText(title)).toBeNull();
-    });
+    for (const title of formButtonText) {
+      await waitFor(() => expect(screen.queryByText(title)).toBeNull());
+    }
   });
 });
 
 describe('Basic Info - Identity Providers', () => {
   it('should be able to change/unselect BCeID type in draft', async () => {
-    setUpRouter('/', sandbox);
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -250,7 +255,7 @@ describe('Basic Info - Identity Providers', () => {
       bceidApproved: false,
     });
 
-    fireEvent.click(sandbox.secondStageBox);
+    fireEvent.click(sandbox.basicInfoBox);
 
     const idpTitles = ['Basic BCeID', 'Business BCeID', 'Basic or Business BCeID'];
 
@@ -279,11 +284,10 @@ describe('Basic Info - Identity Providers', () => {
     fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
     expect(idpCheckboxMap['Basic BCeID']).not.toBeChecked();
     expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
-    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked();
+    await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked());
   });
 
   it('should be able to change BCeID type until approved', async () => {
-    setUpRouter('/', sandbox);
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -293,7 +297,7 @@ describe('Basic Info - Identity Providers', () => {
       bceidApproved: false,
     });
 
-    fireEvent.click(sandbox.secondStageBox);
+    fireEvent.click(sandbox.basicInfoBox);
 
     const idpTitles = ['Basic BCeID', 'Business BCeID', 'Basic or Business BCeID'];
 
@@ -322,11 +326,10 @@ describe('Basic Info - Identity Providers', () => {
     fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
     expect(idpCheckboxMap['Basic BCeID']).not.toBeChecked();
     expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
-    expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked();
+    await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked());
   });
 
   it('should be freezed after BCeID approved', async () => {
-    setUpRouter('/', sandbox);
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -336,7 +339,7 @@ describe('Basic Info - Identity Providers', () => {
       bceidApproved: true,
     });
 
-    fireEvent.click(sandbox.secondStageBox);
+    fireEvent.click(sandbox.basicInfoBox);
 
     const idpTitles = ['Basic BCeID', 'Business BCeID', 'Basic or Business BCeID'];
 
@@ -359,6 +362,6 @@ describe('Basic Info - Identity Providers', () => {
     fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
     expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
     expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
-    expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked();
+    await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked());
   });
 });

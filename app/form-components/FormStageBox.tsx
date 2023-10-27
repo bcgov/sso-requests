@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import kebabCase from 'lodash.kebabcase';
 
 interface BoxProps {
   color: string;
@@ -94,7 +95,7 @@ export default function FormStagebox({ stageNumber, title, active, visited, hand
       fontWeight={fontWeight}
       border={border}
       onClick={handleClick}
-      data-testid={`stage-${stageNumber}`}
+      data-testid={`stage-${kebabCase(title)}`}
     >
       <Circle>
         {hasError ? (
