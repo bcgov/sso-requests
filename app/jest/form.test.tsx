@@ -236,11 +236,11 @@ describe('Error messages', () => {
 });
 
 describe('Admins', () => {
-  it('should not show buttons for admins', () => {
+  it('should not show buttons for admins', async () => {
     setUpRender(null, { client_roles: ['sso-admin'] });
-    formButtonText.forEach(async (title) => {
+    for (const title of formButtonText) {
       await waitFor(() => expect(screen.queryByText(title)).toBeNull());
-    });
+    }
   });
 });
 
