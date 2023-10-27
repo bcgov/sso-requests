@@ -371,7 +371,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
   const buttonTexts = { continue: '', back: '' };
-  const hasVerifiedCredential = formData.devIdps?.includes('verifiedcredential');
+  const hasVerifiableCredential = formData.devIdps?.includes('verifiablecredential');
 
   if (isLastStage) {
     buttonTexts.continue = isApplied ? 'Update' : 'Submit';
@@ -434,7 +434,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content={
           <>
             <p>Are you sure you&apos;re ready to submit your request?</p>
-            {hasVerifiedCredential && (
+            {hasVerifiableCredential && (
               <p>You will need to engage with DIT to learn about the Verifiable Credential Configuration ID.</p>
             )}
             {!isAdmin && (

@@ -63,9 +63,9 @@ const mockIntegration: IntegrationData = {
   devValidRedirectUris: [],
   testValidRedirectUris: [],
   prodValidRedirectUris: [],
-  devIdps: ['verifiedcredential', 'idir'],
-  testIdps: ['verifiedcredential', 'idir'],
-  prodIdps: ['verifiedcredential', 'idir'],
+  devIdps: ['verifiablecredential', 'idir'],
+  testIdps: ['verifiablecredential', 'idir'],
+  prodIdps: ['verifiablecredential', 'idir'],
   devRoles: [],
   testRoles: [],
   prodRoles: [],
@@ -96,7 +96,7 @@ const mockIntegration: IntegrationData = {
   status: 'submitted' as Status,
   bceidApproved: false,
   githubApproved: false,
-  verifiedCredentialApproved: false,
+  verifiableCredentialApproved: false,
   archived: false,
   provisioned: false,
   provisionedAt: '2023-10-10',
@@ -133,22 +133,22 @@ const submitNewIntegration = async (integration: IntegrationData) => {
 };
 
 describe('Build Github Dispatch', () => {
-  it('Removes verified credential from production IDP list if not approved yet, but keeps it in dev and test', () => {
+  it('Removes verifiable credential from production IDP list if not approved yet, but keeps it in dev and test', () => {
     const processedIntegration = buildGitHubRequestData(mockIntegration);
-    expect(processedIntegration.prodIdps.includes('verifiedcredential')).toBe(false);
+    expect(processedIntegration.prodIdps.includes('verifiablecredential')).toBe(false);
 
     // Leaves other idp alone
     expect(processedIntegration.prodIdps.includes('idir')).toBe(true);
 
     // Keeps VC in dev and test
-    expect(processedIntegration.testIdps.includes('verifiedcredential')).toBe(true);
-    expect(processedIntegration.devIdps.includes('verifiedcredential')).toBe(true);
+    expect(processedIntegration.testIdps.includes('verifiablecredential')).toBe(true);
+    expect(processedIntegration.devIdps.includes('verifiablecredential')).toBe(true);
   });
 
-  it('Keeps verified credential in production IDP list if approved', () => {
-    const approvedIntegration = { ...mockIntegration, verifiedCredentialApproved: true };
+  it('Keeps verifiable credential in production IDP list if approved', () => {
+    const approvedIntegration = { ...mockIntegration, verifiableCredentialApproved: true };
     const processedIntegration = buildGitHubRequestData(approvedIntegration);
-    expect(processedIntegration.prodIdps.includes('verifiedcredential')).toBe(true);
+    expect(processedIntegration.prodIdps.includes('verifiablecredential')).toBe(true);
   });
 });
 
@@ -161,19 +161,19 @@ describe('IDP notifications', () => {
     await cleanUpDatabaseTables();
   });
 
-  it('Allows and saves verified credential information correctly into database', async () => {
+  it('Allows and saves verifiable credential information correctly into database', async () => {
     const result = await submitNewIntegration(mockIntegration);
     const request = await models.request.findOne({ where: { id: result.body.id }, raw: true });
 
-    expect(request.prodIdps.includes('verifiedcredential'));
-    expect(request.devIdps.includes('verifiedcredential'));
-    expect(request.testIdps.includes('verifiedcredential'));
-    expect(request.verifiedCredentialApproved).toBe(false);
+    expect(request.prodIdps.includes('verifiablecredential'));
+    expect(request.devIdps.includes('verifiablecredential'));
+    expect(request.testIdps.includes('verifiablecredential'));
+    expect(request.verifiableCredentialApproved).toBe(false);
   });
 
   it('Includes VC footer in email when requesting prod integration', async () => {
     const emailList = createMockSendEmail();
-    const expectedFooterText = 'Next Steps for your integration with Verified Credential:';
+    const expectedFooterText = 'Next Steps for your integration with Verifiable Credential:';
     await submitNewIntegration(mockIntegration);
 
     const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
@@ -182,7 +182,7 @@ describe('IDP notifications', () => {
 
   it('Excludes VC footer if not requesting prod integration', async () => {
     const emailList = createMockSendEmail();
-    const expectedFooterText = 'Next Steps for your integration with Verified Credential:';
+    const expectedFooterText = 'Next Steps for your integration with Verifiable Credential:';
     await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
     const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
     expect(emailSentWithFooter).toBeFalsy();

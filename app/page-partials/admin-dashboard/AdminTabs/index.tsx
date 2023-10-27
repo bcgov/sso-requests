@@ -1,13 +1,13 @@
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
-import { usesBceid, usesGithub, usesVerifiedCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesVerifiableCredential } from '@app/helpers/integration';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
 import AdminEventPanel from 'page-partials/admin-dashboard/AdminEventPanel';
 import { LoggedInUser } from 'interfaces/team';
 import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
-import VerifiedCredentialTabContent from './VerifiedCredentialTabContent';
+import VerifiableCredentialTabContent from './VerifiableCredentialTabContent';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -43,12 +43,12 @@ function AdminTabs({
   const hasGithub = usesGithub(integration);
   const hasGithubProd = hasGithub && hasProd;
 
-  const hasVerifiedCredential = usesVerifiedCredential(integration);
-  const hasVerifiedCredentialProd = hasVerifiedCredential && hasProd;
+  const hasVerifiableCredential = usesVerifiableCredential(integration);
+  const hasVerifiableCredentialProd = hasVerifiableCredential && hasProd;
 
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
-  const handleVerifiedCredentialApproved = () => setRows();
+  const handleVerifiableCredentialApproved = () => setRows();
 
   return (
     <>
@@ -68,9 +68,9 @@ function AdminTabs({
             <GithubTabContent integration={integration} onApproved={handleGithubApproved} />
           </Tab>
         )}
-        {hasVerifiedCredentialProd && (
-          <Tab key="vc-prod" tab="Verified Credential Prod">
-            <VerifiedCredentialTabContent integration={integration} onApproved={handleVerifiedCredentialApproved} />
+        {hasVerifiableCredentialProd && (
+          <Tab key="vc-prod" tab="Verifiable Credential Prod">
+            <VerifiableCredentialTabContent integration={integration} onApproved={handleVerifiableCredentialApproved} />
           </Tab>
         )}
 

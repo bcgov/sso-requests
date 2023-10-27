@@ -67,7 +67,7 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
       'bceidboth',
       'githubpublic',
       'githubbcgov',
-      'verifiedcredential',
+      'verifiablecredential',
     ];
     const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
 

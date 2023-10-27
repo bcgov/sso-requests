@@ -29,7 +29,7 @@ import {
 import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
-import { usesBceid, usesGithub, usesVerifiedCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesVerifiableCredential } from '@app/helpers/integration';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -174,9 +174,9 @@ export const updateRequest = async (
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
     if (isApprovingGithub && !userIsAdmin) throw Error('unauthorized request');
 
-    const isApprovingVerifiedCredential =
-      !originalData.verifiedCredentialApproved && current.verifiedCredentialApproved;
-    if (isApprovingVerifiedCredential && !userIsAdmin) throw Error('unauthorized request');
+    const isApprovingVerifiableCredential =
+      !originalData.verifiableCredentialApproved && current.verifiableCredentialApproved;
+    if (isApprovingVerifiableCredential && !userIsAdmin) throw Error('unauthorized request');
 
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
@@ -221,12 +221,13 @@ export const updateRequest = async (
       const hasGithub = usesGithub(current);
       const hasGithubProd = hasGithub && hasProd;
 
-      const hasVerifiedCredential = usesVerifiedCredential(current);
-      const hasVerifiedCredentialProd = hasVerifiedCredential && hasProd;
+      const hasVerifiableCredential = usesVerifiableCredential(current);
+      const hasVerifiableCredentialProd = hasVerifiableCredential && hasProd;
 
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
-      const waitingVerifiedCredentialProdApproval = hasVerifiedCredentialProd && !current.verifiedCredentialApproved;
+      const waitingVerifiableCredentialProdApproval =
+        hasVerifiableCredentialProd && !current.verifiableCredentialApproved;
       current.requester = await getRequester(session, current.id);
 
       const ghResult = await dispatchRequestWorkflow(getCurrentValue());
@@ -249,10 +250,10 @@ export const updateRequest = async (
             code: EMAILS.PROD_APPROVED,
             data: { integration: finalData, type: 'GitHub' },
           });
-        } else if (isApprovingVerifiedCredential) {
+        } else if (isApprovingVerifiableCredential) {
           emails.push({
             code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'Verified Credential' },
+            data: { integration: finalData, type: 'Verifiable Credential' },
           });
         } else {
           emails.push({
@@ -261,7 +262,7 @@ export const updateRequest = async (
               integration: finalData,
               waitingBceidProdApproval,
               waitingGithubProdApproval,
-              waitingVerifiedCredentialProdApproval,
+              waitingVerifiableCredentialProdApproval,
             },
           });
         }
@@ -272,7 +273,7 @@ export const updateRequest = async (
             integration: finalData,
             waitingBceidProdApproval,
             waitingGithubProdApproval,
-            waitingVerifiedCredentialProdApproval,
+            waitingVerifiableCredentialProdApproval,
           },
         });
       }

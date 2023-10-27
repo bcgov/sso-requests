@@ -9,7 +9,7 @@ import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import {
   checkIfBceidProdApplying,
   checkIfGithubProdApplying,
-  checkIfVerifiedCredentialProdApplying,
+  checkIfVerifiableCredentialProdApplying,
 } from '@app/utils/helpers';
 
 const TabWrapper = styled.div`
@@ -19,7 +19,7 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github' | 'verifiedCredential';
+  type: 'bceid' | 'github' | 'verifiableCredential';
   canApproveProd: boolean;
   awaitingTFComplete: boolean;
   onApproved?: () => void;
@@ -40,8 +40,8 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     case 'github':
       typeApproved = checkIfGithubProdApplying(integration);
       break;
-    case 'verifiedCredential':
-      typeApproved = checkIfVerifiedCredentialProdApplying(integration);
+    case 'verifiableCredential':
+      typeApproved = checkIfVerifiableCredentialProdApplying(integration);
       break;
   }
 
