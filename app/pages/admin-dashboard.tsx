@@ -18,6 +18,7 @@ const idpOptions = [
   { value: 'idir', label: 'IDIR' },
   { value: 'bceid', label: 'BCeID' },
   { value: 'github', label: 'GitHub' },
+  { value: 'verifiedcredential', label: 'Verified Credential' },
 ];
 
 const archiveStatusOptions = [
