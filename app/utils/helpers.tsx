@@ -16,6 +16,7 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
     idir: ['idir', 'azureidir'],
     bceid: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
     github: ['githubbcgov', 'githubpublic'],
+    verifiableCredential: 'verifiablecredential',
   };
 
   let realms: string[] | null = [];
@@ -30,6 +31,8 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
     } else if (idp.value == 'bceid') {
       devIdps = devIdps?.concat(gold_realms['bceid']) || null;
       realms = realms?.concat(silver_realms['bceid']) || null;
+    } else if (idp.value === 'verifiablecredential') {
+      devIdps = devIdps?.concat(gold_realms.verifiableCredential) || null;
     }
   });
 
@@ -297,4 +300,9 @@ export const checkIfBceidProdApplying = (integration: Integration) => {
 
 export const checkIfGithubProdApplying = (integration: Integration) => {
   return checkIfProdApplying(integration, 'githubApproved');
+};
+
+export const checkIfVerifiableCredentialProdApplying = (integration: Integration) => {
+  const prodApplying = checkIfProdApplying(integration, 'verifiableCredentialApproved');
+  return prodApplying;
 };

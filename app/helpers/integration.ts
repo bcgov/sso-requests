@@ -1,6 +1,7 @@
 import { Integration } from '@app/interfaces/Request';
 
 export const checkBceidBoth = (idp: string) => idp === 'bceidboth';
+export const checkVerifiableCredential = (idp: string) => idp === 'verifiablecredential';
 export const checkIdirGroup = (idp: string) => ['idir', 'azureidir'].includes(idp);
 export const checkBceidGroup = (idp: string) => idp.startsWith('bceid');
 export const checkNotBceidGroup = (idp: string) => !checkBceidGroup(idp);
@@ -25,6 +26,14 @@ export const usesGithub = (integration: Integration) => {
   const { devIdps = [] } = integration;
 
   return devIdps.some(checkGithubGroup);
+};
+
+export const usesVerifiableCredential = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { devIdps = [] } = integration;
+
+  return devIdps.some(checkVerifiableCredential);
 };
 
 export const usesBceidProd = (integration: Integration) => {
