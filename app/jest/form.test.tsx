@@ -119,9 +119,7 @@ describe('Form Template Saving and Navigation', () => {
       'Save and Close',
     );
     fireEvent.click(cancelButton);
-    await waitFor(() => {
-      expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' });
-    });
+    await waitFor(() => expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' }));
   });
 
   it('Should show failed state in stepper after submission and clear only after filling correct data', async () => {
