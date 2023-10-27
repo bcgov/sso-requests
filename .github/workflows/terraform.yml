@@ -143,7 +143,7 @@ jobs:
         working-directory: ./lambda
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.TERRAFORM_DEPLOY_ROLE_ARN }}
           aws-region: ca-central-1
