@@ -20,6 +20,7 @@ jest.mock('../actions/src/authenticate', () => {
 
 jest.mock('../shared/utils/ches', () => {
   return {
+    ...jest.requireActual('../shared/utils/ches'),
     sendEmail: jest.fn(),
   };
 });
@@ -174,6 +175,7 @@ describe('IDP notifications', () => {
   it('Includes VC footer in email when requesting prod integration', async () => {
     const emailList = createMockSendEmail();
     const expectedFooterText = 'Next Steps for your integration with Digital Credential:';
+    console.log(emailList);
     await submitNewIntegration(mockIntegration);
     const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
     expect(emailSentWithFooter).toBeTruthy();
