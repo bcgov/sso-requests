@@ -89,6 +89,7 @@ export const updatePlannedItems = async (data) => {
       'apiServiceAccount',
       'bceidApproved',
       'githubApproved',
+      'verifiableCredentialApproved',
     ],
     raw: true,
   });
@@ -132,14 +133,14 @@ export const updatePlannedItems = async (data) => {
         const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
         const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
         const waitingVerifiableCredentialProdApproval =
-          hasVerifiableCredential && hasProd && !integration.githubApproved;
+          hasVerifiableCredential && hasProd && !integration.verifiableCredentialApproved;
 
         const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
         await sendTemplate(emailCode, {
           integration,
           waitingBceidProdApproval,
           waitingGithubProdApproval,
-          waitingVerifiableCredentialProdApproval: waitingVerifiableCredentialProdApproval,
+          waitingVerifiableCredentialProdApproval,
         });
       }
     }),
