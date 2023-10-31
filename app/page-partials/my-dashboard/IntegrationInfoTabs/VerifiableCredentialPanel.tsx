@@ -8,7 +8,7 @@ interface Props {
   approvalContext: ApprovalContext;
 }
 
-function VerifiableCredentialPanel({ integration, approvalContext }: Props) {
+function VerifiableCredentialPanel({ integration, approvalContext }: Readonly<Props>) {
   const {
     hasProd,
     hasVerifiableCredential,
