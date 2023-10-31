@@ -435,7 +435,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           <>
             <p>Are you sure you&apos;re ready to submit your request?</p>
             {hasVerifiableCredential && (
-              <p>You will need to engage with DIT to learn about the Verifiable Credential Configuration ID.</p>
+              <p>You will need to engage with DIT to learn about the Digital Credential Configuration ID.</p>
             )}
             {!isAdmin && (
               <p>

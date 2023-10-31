@@ -80,18 +80,27 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
         enum: idpEnum,
         enumNames: idpEnumNames,
       },
-      tooltips: [
-        null,
-        {
-          content: `
-          To learn the difference between IDIR and Azure IDIR,
-          <a href="https://github.com/bcgov/sso-keycloak/wiki/Our-Partners-and-Useful-Information#azure-idir-and-idir" target="_blank" title="IDIR vs Azure IDIR" target="_blank" title="IDIR vs Azure IDIR">
-          please visit our GitHub page about choosing an Identity Provider
-          </a>
-          `,
-          hide: 3000,
-        },
-      ],
+      tooltips: idpEnum.map((idp) => {
+        if (idp === 'azureidir') {
+          return {
+            content: `
+            To learn the difference between IDIR and Azure IDIR,
+            <a href="https://github.com/bcgov/sso-keycloak/wiki/Our-Partners-and-Useful-Information#azure-idir-and-idir" target="_blank" title="IDIR vs Azure IDIR" target="_blank" title="IDIR vs Azure IDIR">
+            please visit our GitHub page about choosing an Identity Provider
+            </a>
+            `,
+            hide: 3000,
+          };
+        }
+        if (idp === 'verifiablecredential')
+          return {
+            content:
+              'To learn more about using the Digital Credential option visit our <a href="https://github.com/bcgov/sso-keycloak/wiki/Our-Partners-and-Useful-Information#what-are-identity-providers" target="_blank">additional information</a>.',
+            hide: 3000,
+            alpha: true,
+          };
+        return null;
+      }),
       uniqueItems: true,
       tooltip: {
         content: `The identity providers you add will let your users authenticate with those services.`,

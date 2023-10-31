@@ -69,7 +69,7 @@ function AdminTabs({
           </Tab>
         )}
         {hasVerifiableCredentialProd && (
-          <Tab key="vc-prod" tab="Verifiable Credential Prod">
+          <Tab key="vc-prod" tab="Digital Credential Prod">
             <VerifiableCredentialTabContent integration={integration} onApproved={handleVerifiableCredentialApproved} />
           </Tab>
         )}

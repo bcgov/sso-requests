@@ -253,7 +253,7 @@ export const updateRequest = async (
         } else if (isApprovingVerifiableCredential) {
           emails.push({
             code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'Verifiable Credential' },
+            data: { integration: finalData, type: 'Digital Credential' },
           });
         } else {
           emails.push({
