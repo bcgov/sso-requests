@@ -3,10 +3,10 @@ import Handlebars = require('handlebars');
 import { processRequest } from '../helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
-import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS, OCIO_EMAIL_ADDRESS, DIT_EMAIL_ADDRESS } from '@lambda-shared/local';
+import { DIT_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS, OCIO_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
-import { usesBceid, usesGithub, usesVerifiableCredential } from '@app/helpers/integration';
+import { usesVerifiableCredential, usesBceid, usesGithub } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO change request submitted`;
