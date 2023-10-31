@@ -2,8 +2,10 @@ import axios from 'axios';
 import url from 'url';
 import compact from 'lodash.compact';
 import uniq from 'lodash.uniq';
-import { EmailOptions } from '../interfaces';
+import { EmailOptions, IntegrationData } from '../interfaces';
 import https from 'https';
+import { usesVerifiableCredential, usesBceid, usesGithub } from '@app/helpers/integration';
+import { DIT_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS, OCIO_EMAIL_ADDRESS } from '@lambda-shared/local';
 
 const compactUniq = (v) => uniq(compact(v));
 
@@ -63,4 +65,12 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, bo
   // process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
   return axios.post(chesAPIEndpoint, reqPayload, reqOptions);
+};
+
+export const getCCListForProdIDPs = (integration: IntegrationData, cc: string[]) => {
+  const fullCC = [...cc];
+  if (usesBceid(integration)) fullCC.push(IDIM_EMAIL_ADDRESS);
+  if (usesGithub(integration)) fullCC.push(OCIO_EMAIL_ADDRESS);
+  if (usesVerifiableCredential(integration)) fullCC.push(DIT_EMAIL_ADDRESS);
+  return fullCC;
 };
