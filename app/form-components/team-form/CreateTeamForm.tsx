@@ -78,7 +78,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
 
   return (
     <div>
-      <Input label="Team Name" onChange={handleNameChange} value={teamName} />
+      <Input label="Team Name" onChange={handleNameChange} maxlength="255" value={teamName} />
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <strong>Team Members</strong>
