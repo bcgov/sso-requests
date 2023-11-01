@@ -78,7 +78,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
 
   return (
     <div>
-      <Input label="Team Name" onChange={handleNameChange} maxLength="255" value={teamName} />
+      <Input label="Team Name" onChange={handleNameChange} maxLength="255" data-testid="team-name" value={teamName} />
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <strong>Team Members</strong>
@@ -92,7 +92,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
         </Button>
-        <Button type="button" onClick={handleCreate}>
+        <Button type="button" onClick={handleCreate} data-testid="send-invitation">
           {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
         </Button>
       </ButtonsContainer>
