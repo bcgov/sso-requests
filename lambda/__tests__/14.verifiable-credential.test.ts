@@ -214,7 +214,7 @@ describe('IDP notifications', () => {
   it('Includes VC footer in email when requesting prod integration', async () => {
     const emailList = createMockSendEmail();
     const expectedFooterText = 'Next Steps for your integration with Digital Credential:';
-    const result = await submitNewIntegration(mockIntegration);
+    await submitNewIntegration(mockIntegration);
     const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
     expect(emailSentWithFooter).toBeTruthy();
   });

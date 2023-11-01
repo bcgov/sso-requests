@@ -25,7 +25,7 @@ function DigitalCredentialPanel({ integration, approvalContext }: Readonly<Props
   } else if (digitalCredentialApproved) {
     content = <ApprovedAndAvailable />;
   } else if (awaitingDigitalCredentialProd) {
-    content = <DigitalCredentialStatus integration={integration} />;
+    content = <DigitalCredentialStatus />;
   }
 
   return (
