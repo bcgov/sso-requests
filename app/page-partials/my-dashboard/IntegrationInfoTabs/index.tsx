@@ -11,9 +11,9 @@ import UserEventPanel from 'components/UserEventPanel';
 import {
   checkIfBceidProdApplying,
   checkIfGithubProdApplying,
-  checkIfVerifiableCredentialProdApplying,
+  checkIfDigitalCredentialProdApplying,
 } from 'utils/helpers';
-import { usesBceid, usesGithub, usesVerifiableCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
 import { Border, Header, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -23,7 +23,7 @@ import { SubTitle, ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
-import VerifiableCredentialPanel from './VerifiableCredentialPanel';
+import DigitalCredentialPanel from './DigitalCredentialPanel';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -96,7 +96,7 @@ const getInstallationTab = ({
             <Grid.Col span={7}>
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
-              <VerifiableCredentialPanel integration={integration} approvalContext={approvalContext} />
+              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -127,7 +127,7 @@ const getProgressTab = ({
             <Grid.Col span={7} align={'center'}>
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
-              <VerifiableCredentialPanel integration={integration} approvalContext={approvalContext} />
+              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -155,7 +155,7 @@ const getApprovalProgressTab = ({
             <Grid.Col span={7} align={'center'}>
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
-              <VerifiableCredentialPanel integration={integration} approvalContext={approvalContext} />
+              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -235,34 +235,34 @@ function IntegrationInfoTabs({ integration }: Props) {
     environments = [],
     bceidApproved = false,
     githubApproved = false,
-    verifiableCredentialApproved = false,
+    digitalCredentialApproved = false,
   } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
   const hasProd = environments.includes('prod');
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
-  const hasVerifiableCredential = usesVerifiableCredential(integration);
+  const hasDigitalCredential = usesDigitalCredential(integration);
   const awaitingBceidProd = hasBceid && hasProd && !bceidApproved;
   const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
-  const awaitingVerifiableCredentialProd = hasVerifiableCredential && hasProd && !verifiableCredentialApproved;
+  const awaitingDigitalCredentialProd = hasDigitalCredential && hasProd && !digitalCredentialApproved;
   const bceidProdApplying = checkIfBceidProdApplying(integration);
   const githubProdApplying = checkIfGithubProdApplying(integration);
-  const verifiableCredentialProdApplying = checkIfVerifiableCredentialProdApplying(integration);
+  const digitalCredentialProdApplying = checkIfDigitalCredentialProdApplying(integration);
 
   const approvalContext: ApprovalContext = {
     hasProd,
     hasBceid,
     hasGithub,
-    hasVerifiableCredential,
+    hasDigitalCredential,
     bceidApproved,
     githubApproved,
-    verifiableCredentialApproved,
+    digitalCredentialApproved,
     awaitingBceidProd,
     awaitingGithubProd,
-    awaitingVerifiableCredentialProd,
+    awaitingDigitalCredentialProd,
     bceidProdApplying,
     githubProdApplying,
-    verifiableCredentialProdApplying,
+    digitalCredentialProdApplying,
   };
 
   const isGold = integration.serviceType === 'gold';
@@ -288,10 +288,10 @@ function IntegrationInfoTabs({ integration }: Props) {
 
   const tabs = [];
   const allowedTabs = [];
-  const verifiableCredentialOnly = integration.devIdps?.every((idp) => idp === 'verifiablecredential');
+  const digitalCredentialOnly = integration.devIdps?.every((idp) => idp === 'digitalcredential');
 
   if (displayStatus === 'Submitted') {
-    if (bceidProdApplying || githubProdApplying || verifiableCredentialProdApplying) {
+    if (bceidProdApplying || githubProdApplying || digitalCredentialProdApplying) {
       tabs.push(getApprovalProgressTab({ integration, approvalContext }));
       allowedTabs.push(TAB_DETAILS);
     } else {
@@ -302,14 +302,14 @@ function IntegrationInfoTabs({ integration }: Props) {
     tabs.push(getInstallationTab({ integration, approvalContext }));
     allowedTabs.push(TAB_DETAILS);
 
-    // Exclude role management from integrations with only VC
-    if (!verifiableCredentialOnly) {
+    // Exclude role management from integrations with only DC
+    if (!digitalCredentialOnly) {
       tabs.push(getRoleManagementTab({ integration }));
       allowedTabs.push(TAB_ROLE_MANAGEMENT);
     }
 
-    // Exclude user assignment from integrations with VC only
-    if (isGold && hasBrowserFlow && !verifiableCredentialOnly) {
+    // Exclude user assignment from integrations with DC only
+    if (isGold && hasBrowserFlow && !digitalCredentialOnly) {
       tabs.push(getUserAssignmentTab({ integration }));
       allowedTabs.push(TAB_USER_ROLE_MANAGEMENT);
     }

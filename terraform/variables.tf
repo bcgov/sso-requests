@@ -22,6 +22,12 @@ variable "sso_configuration_endpoint" {
   default     = "https://dev.oidc.gov.bc.ca/auth/realms/onestopauth/.well-known/openid-configuration"
 }
 
+variable "include_digital_credential" {
+  description = "Whether to include digital credential as an IDP option"
+  type        = string
+  default     = "false"
+}
+
 variable "sso_client_id" {
   description = "The required audience for authentication"
   type        = string

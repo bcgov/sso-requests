@@ -75,14 +75,14 @@ export interface ApprovalContext {
   hasProd: boolean;
   hasBceid: boolean;
   hasGithub: boolean;
-  hasVerifiableCredential: boolean;
-  verifiableCredentialApproved: boolean;
+  hasDigitalCredential: boolean;
+  digitalCredentialApproved: boolean;
   bceidApproved: boolean;
   githubApproved: boolean;
   awaitingBceidProd: boolean;
   awaitingGithubProd: boolean;
-  awaitingVerifiableCredentialProd: boolean;
+  awaitingDigitalCredentialProd: boolean;
   bceidProdApplying: boolean;
   githubProdApplying: boolean;
-  verifiableCredentialProdApplying: boolean;
+  digitalCredentialProdApplying: boolean;
 }

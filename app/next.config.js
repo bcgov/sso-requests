@@ -18,6 +18,7 @@ module.exports = {
     sso_token_grant_type: process.env.SSO_TOKEN_GRANT_TYPE || 'authorization_code',
     maintenance_mode: process.env.MAINTENANCE_MODE_ACTIVE || false,
     kc_idp_hint: process.env.KC_IDP_HINT || '',
+    include_digital_credential: process.env.INCLUDE_DIGITAL_CREDENTIAL || false,
   },
   env: {},
   assetPrefix: APP_URL,

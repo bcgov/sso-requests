@@ -1,15 +1,11 @@
 import React from 'react';
-import { Integration } from 'interfaces/Request';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import StatusList from 'components/StatusList';
 import { Circle, StyledLi } from './shared';
+import Link from '@button-inc/bcgov-theme/Link';
 
-interface Props {
-  integration: Integration;
-}
-
-export default function VerifiableCredentialStatus({ integration }: Readonly<Props>) {
+export default function DigitalCredentialStatus() {
   return (
     <StatusList>
       <StyledLi>
@@ -17,7 +13,10 @@ export default function VerifiableCredentialStatus({ integration }: Readonly<Pro
         <FontAwesomeIcon icon={faCheckCircle} color="#00C45B" />
       </StyledLi>
       <StyledLi>
-        <p>Please reach out to DIT if you do not hear back within the next 2-3 business days.</p>
+        <p>
+          Please reach out to DIT if you do not hear back within the next 2-3 business days (
+          <Link href="mailto:ditp.support@gov.bc.ca">ditp.support@gov.bc.ca</Link>).
+        </p>
         <FontAwesomeIcon icon={faEnvelope} color="#b3b3b3" />
       </StyledLi>
       <StyledLi>

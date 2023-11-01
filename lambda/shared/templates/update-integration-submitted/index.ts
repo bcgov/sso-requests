@@ -6,7 +6,7 @@ import { sendEmail } from '@lambda-shared/utils/ches';
 import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS, OCIO_EMAIL_ADDRESS, DIT_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
-import { usesBceid, usesGithub, usesVerifiableCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO change request submitted`;
@@ -35,7 +35,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const cc = [SSO_EMAIL_ADDRESS];
   if (usesBceid(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
-  if (usesVerifiableCredential(integration)) cc.push(DIT_EMAIL_ADDRESS);
+  if (usesDigitalCredential(integration)) cc.push(DIT_EMAIL_ADDRESS);
 
   return sendEmail({
     code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,

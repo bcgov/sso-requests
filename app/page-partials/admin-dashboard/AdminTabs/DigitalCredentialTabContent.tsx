@@ -6,16 +6,16 @@ interface Props {
   onApproved?: () => void;
 }
 
-function VerifiableCredentialTabContent({ integration, onApproved }: Readonly<Props>) {
+function DigitalCredentialTabContent({ integration, onApproved }: Readonly<Props>) {
   if (!integration) return null;
-  const { status, verifiableCredentialApproved } = integration;
+  const { status, digitalCredentialApproved } = integration;
 
-  const canApproveProd = !verifiableCredentialApproved || false;
+  const canApproveProd = !digitalCredentialApproved || false;
   const awaitingTFComplete = status !== 'applied';
 
   return (
     <TabContent
-      type="verifiableCredential"
+      type="digitalCredential"
       integration={integration}
       canApproveProd={canApproveProd}
       awaitingTFComplete={awaitingTFComplete}
@@ -24,4 +24,4 @@ function VerifiableCredentialTabContent({ integration, onApproved }: Readonly<Pr
   );
 }
 
-export default VerifiableCredentialTabContent;
+export default DigitalCredentialTabContent;

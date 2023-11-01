@@ -61,7 +61,7 @@ export interface Integration {
   status?: Status;
   bceidApproved?: boolean;
   githubApproved?: boolean;
-  verifiableCredentialApproved?: boolean;
+  digitalCredentialApproved?: boolean;
   archived?: boolean;
   provisioned?: boolean;
   provisionedAt?: string;
@@ -92,7 +92,7 @@ export interface GoldIDPOption {
   idir: string | string[];
   bceid: string | string[];
   github: string | string[];
-  verifiableCredential: string | string[];
+  digitalCredential: string | string[];
 }
 
 export interface ClientRole {

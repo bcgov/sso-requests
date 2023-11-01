@@ -63,9 +63,9 @@ const mockIntegration: IntegrationData = {
   devValidRedirectUris: [],
   testValidRedirectUris: [],
   prodValidRedirectUris: [],
-  devIdps: ['verifiablecredential', 'idir'],
-  testIdps: ['verifiablecredential', 'idir'],
-  prodIdps: ['verifiablecredential', 'idir'],
+  devIdps: ['digitalcredential', 'idir'],
+  testIdps: ['digitalcredential', 'idir'],
+  prodIdps: ['digitalcredential', 'idir'],
   devRoles: [],
   testRoles: [],
   prodRoles: [],
@@ -96,7 +96,7 @@ const mockIntegration: IntegrationData = {
   status: 'submitted' as Status,
   bceidApproved: false,
   githubApproved: false,
-  verifiableCredentialApproved: false,
+  digitalCredentialApproved: false,
   archived: false,
   provisioned: false,
   provisionedAt: '2023-10-10',
@@ -132,23 +132,58 @@ const submitNewIntegration = async (integration: IntegrationData) => {
     .set('Accept', 'application/json');
 };
 
+const OLD_ENV = process.env;
+beforeEach(() => {
+  jest.resetModules();
+  process.env = { ...OLD_ENV };
+});
+
+afterAll(() => {
+  process.env = OLD_ENV;
+});
+
 describe('Build Github Dispatch', () => {
-  it('Removes verifiable credential from production IDP list if not approved yet, but keeps it in dev and test', () => {
+  it('Removes digital credential from production IDP list if not approved yet, but keeps it in dev and test', () => {
     const processedIntegration = buildGitHubRequestData(mockIntegration);
-    expect(processedIntegration.prodIdps.includes('verifiablecredential')).toBe(false);
+    expect(processedIntegration.prodIdps.includes('digitalcredential')).toBe(false);
 
     // Leaves other idp alone
     expect(processedIntegration.prodIdps.includes('idir')).toBe(true);
 
     // Keeps VC in dev and test
-    expect(processedIntegration.testIdps.includes('verifiablecredential')).toBe(true);
-    expect(processedIntegration.devIdps.includes('verifiablecredential')).toBe(true);
+    expect(processedIntegration.testIdps.includes('digitalcredential')).toBe(true);
+    expect(processedIntegration.devIdps.includes('digitalcredential')).toBe(true);
   });
 
-  it('Keeps verifiable credential in production IDP list if approved', () => {
-    const approvedIntegration = { ...mockIntegration, verifiableCredentialApproved: true };
+  it('Keeps digital credential in production IDP list if approved', () => {
+    const approvedIntegration = { ...mockIntegration, digitalCredentialApproved: true };
     const processedIntegration = buildGitHubRequestData(approvedIntegration);
-    expect(processedIntegration.prodIdps.includes('verifiablecredential')).toBe(true);
+    expect(processedIntegration.prodIdps.includes('digitalcredential')).toBe(true);
+  });
+});
+
+describe('Digital Credential Feature flag', () => {
+  beforeAll(async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+  });
+
+  it('Does not allow digital credential as an IDP if feature flag is not included in env vars', async () => {
+    process.env.INCLUDE_DIGITAL_CREDENTIAL = undefined;
+    const result = await submitNewIntegration(mockIntegration);
+    expect(result.status).toBe(422);
+  });
+
+  it('Does not allow digital credential as an IDP if feature flag is set but not true', async () => {
+    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'false';
+    const result = await submitNewIntegration(mockIntegration);
+    expect(result.status).toBe(422);
+  });
+
+  it('Allows digital credential as an IDP if feature flag is set to true', async () => {
+    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
+    const result = await submitNewIntegration(mockIntegration);
+    console.log(result);
+    expect(result.status).toBe(200);
   });
 });
 
@@ -161,27 +196,32 @@ describe('IDP notifications', () => {
     await cleanUpDatabaseTables();
   });
 
-  it('Allows and saves verifiable credential information correctly into database', async () => {
+  beforeEach(() => {
+    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
+  });
+
+  it('Allows and saves digital credential information correctly into database', async () => {
     const result = await submitNewIntegration(mockIntegration);
+    console.log(result);
     const request = await models.request.findOne({ where: { id: result.body.id }, raw: true });
 
-    expect(request.prodIdps.includes('verifiablecredential'));
-    expect(request.devIdps.includes('verifiablecredential'));
-    expect(request.testIdps.includes('verifiablecredential'));
-    expect(request.verifiableCredentialApproved).toBe(false);
+    expect(request.prodIdps.includes('digitalcredential'));
+    expect(request.devIdps.includes('digitalcredential'));
+    expect(request.testIdps.includes('digitalcredential'));
+    expect(request.digitalCredentialApproved).toBe(false);
   });
 
   it('Includes VC footer in email when requesting prod integration', async () => {
     const emailList = createMockSendEmail();
     const expectedFooterText = 'Next Steps for your integration with Digital Credential:';
-    await submitNewIntegration(mockIntegration);
+    const result = await submitNewIntegration(mockIntegration);
     const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
     expect(emailSentWithFooter).toBeTruthy();
   });
 
   it('Excludes VC footer if not requesting prod integration', async () => {
     const emailList = createMockSendEmail();
-    const expectedFooterText = 'Next Steps for your integration with Verifiable Credential:';
+    const expectedFooterText = 'Next Steps for your integration with Digital Credential:';
     await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
     const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
     expect(emailSentWithFooter).toBeFalsy();

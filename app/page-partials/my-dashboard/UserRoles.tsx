@@ -68,7 +68,7 @@ type IDPS =
   | 'bceidboth'
   | 'githubpublic'
   | 'githubbcgov'
-  | 'verifiablecredential';
+  | 'digitalcredential';
 
 const PAGE_LIMIT = 15;
 
@@ -557,8 +557,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   multiselect: false,
                   onChange: setSelectedIdp,
                   options: idps
-                    // Don't allow role assignment to VC users
-                    .filter((idp) => idp !== 'verifiablecredential')
+                    // Don't allow role assignment to DC users
+                    .filter((idp) => idp !== 'digitalcredential')
                     .map((idp) => ({ value: idp, label: idpMap[idp] })),
                 },
                 {

@@ -6,7 +6,7 @@ export const idpMap: any = {
   bceidboth: 'Basic or Business BCeID',
   githubbcgov: 'GitHub BC Gov',
   githubpublic: 'GitHub',
-  verifiablecredential: 'Digital Credential',
+  digitalcredential: 'Digital Credential',
 };
 
 export const envMap: any = {

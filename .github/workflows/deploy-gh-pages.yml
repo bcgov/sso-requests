@@ -34,6 +34,7 @@ jobs:
           DEPLOY_REPO_NAME=bcgov/sso-requests-sandbox
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
+          INCLUDE_DIGITAL_CREDENTIAL=true
           EOF
       - name: Set env to production
         if: endsWith(github.ref, '/main') && matrix.env == 'prod'
