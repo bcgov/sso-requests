@@ -106,6 +106,7 @@ export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
             icon={faPlusCircle}
             onClick={props.onAddClick}
             title="Add Item"
+            data-testid="add-uri"
           />
           <StyledP>{addItemText}</StyledP>
         </AddContainer>
