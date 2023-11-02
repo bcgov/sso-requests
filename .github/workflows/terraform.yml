@@ -57,6 +57,7 @@ jobs:
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           CUSTOM_DOMAIN_NAME=api-dev.loginproxy.gov.bc.ca
           AWS_ECR_URI=${{secrets.DEV_AWS_ECR_URI}}
+          INCLUDE_DIGITAL_CREDENTIAL=true
           EOF
 
       - name: Set env to production
@@ -91,6 +92,7 @@ jobs:
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           CUSTOM_DOMAIN_NAME=api.loginproxy.gov.bc.ca
           AWS_ECR_URI=${{secrets.PROD_AWS_ECR_URI}}
+          INCLUDE_DIGITAL_CREDENTIAL=false
           EOF
 
       - uses: hmarr/debug-action@v2
@@ -204,6 +206,7 @@ jobs:
           ches_token_endpoint="${{ env.CHES_TOKEN_ENDPOINT }}"
           custom_domain_name="${{ env.CUSTOM_DOMAIN_NAME }}"
           aws_ecr_uri="${{ env.AWS_ECR_URI }}"
+          include_digital_credential="${{ env.INCLUDE_DIGITAL_CREDENTIAL }}"
           EOF
 
         working-directory: ./terraform

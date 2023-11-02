@@ -340,7 +340,7 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
-      verifiableCredentialApproved: {
+      digitalCredentialApproved: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,

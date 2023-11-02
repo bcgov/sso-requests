@@ -60,7 +60,15 @@ const Loading = () => (
   </AlignCenter>
 );
 
-type IDPS = 'idir' | 'azureidir' | 'bceidbasic' | 'bceidbusiness' | 'bceidboth' | 'githubpublic' | 'githubbcgov';
+type IDPS =
+  | 'idir'
+  | 'azureidir'
+  | 'bceidbasic'
+  | 'bceidbusiness'
+  | 'bceidboth'
+  | 'githubpublic'
+  | 'githubbcgov'
+  | 'digitalcredential';
 
 const PAGE_LIMIT = 15;
 
@@ -548,7 +556,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   value: selectedIdp,
                   multiselect: false,
                   onChange: setSelectedIdp,
-                  options: idps.map((idp) => ({ value: idp, label: idpMap[idp] })),
+                  options: idps
+                    // Don't allow role assignment to DC users
+                    .filter((idp) => idp !== 'digitalcredential')
+                    .map((idp) => ({ value: idp, label: idpMap[idp] })),
                 },
                 {
                   key: 'user-role-filter-prop',

@@ -15,8 +15,8 @@ import {
   usesGithub,
   checkNotBceidGroup,
   checkNotGithubGroup,
-  checkVerifiableCredential,
-  usesVerifiableCredential,
+  checkDigitalCredential,
+  usesDigitalCredential,
 } from '@app/helpers/integration';
 import { getAccountableEntity } from '@lambda-shared/templates/helpers';
 import { handlePRstage, updatePlannedItems } from '@lambda-actions/controllers/batch';
@@ -64,7 +64,7 @@ const allowedFieldsForGithub = [
 export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
-  const hasVerifiableCredential = usesVerifiableCredential(baseData);
+  const hasDigitalCredential = usesDigitalCredential(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -76,8 +76,8 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   }
 
   // prevent the TF from creating VC integration in prod environment if not approved
-  if (!baseData.verifiableCredentialApproved && hasVerifiableCredential) {
-    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkVerifiableCredential(idp));
+  if (!baseData.digitalCredentialApproved && hasDigitalCredential) {
+    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkDigitalCredential(idp));
   }
 
   // prevent the TF from creating GitHub integration in prod environment if not approved

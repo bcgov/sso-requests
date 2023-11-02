@@ -50,6 +50,7 @@ resource "aws_lambda_function" "app" {
       CHES_TOKEN_ENDPOINT            = var.ches_token_endpoint
       CHES_PASSWORD                  = var.ches_password
       CHES_USERNAME                  = var.ches_username
+      INCLUDE_DIGITAL_CREDENTIAL     = var.include_digital_credential
     }
   }
 

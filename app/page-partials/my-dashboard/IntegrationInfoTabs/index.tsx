@@ -8,8 +8,12 @@ import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
-import { checkIfBceidProdApplying, checkIfGithubProdApplying } from 'utils/helpers';
-import { usesBceid, usesGithub } from '@app/helpers/integration';
+import {
+  checkIfBceidProdApplying,
+  checkIfGithubProdApplying,
+  checkIfDigitalCredentialProdApplying,
+} from 'utils/helpers';
+import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
 import { Border, Header, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -19,6 +23,7 @@ import { SubTitle, ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
+import DigitalCredentialPanel from './DigitalCredentialPanel';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -91,6 +96,7 @@ const getInstallationTab = ({
             <Grid.Col span={7}>
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
+              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -121,6 +127,7 @@ const getProgressTab = ({
             <Grid.Col span={7} align={'center'}>
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
+              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -148,6 +155,7 @@ const getApprovalProgressTab = ({
             <Grid.Col span={7} align={'center'}>
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
+              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -222,26 +230,39 @@ function IntegrationInfoTabs({ integration }: Props) {
   const [activeTab, setActiveTab] = useState(TAB_DETAILS);
   if (!integration) return null;
 
-  const { status, environments = [], bceidApproved = false, githubApproved = false } = integration;
+  const {
+    status,
+    environments = [],
+    bceidApproved = false,
+    githubApproved = false,
+    digitalCredentialApproved = false,
+  } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
   const hasProd = environments.includes('prod');
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
+  const hasDigitalCredential = usesDigitalCredential(integration);
   const awaitingBceidProd = hasBceid && hasProd && !bceidApproved;
   const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
+  const awaitingDigitalCredentialProd = hasDigitalCredential && hasProd && !digitalCredentialApproved;
   const bceidProdApplying = checkIfBceidProdApplying(integration);
   const githubProdApplying = checkIfGithubProdApplying(integration);
+  const digitalCredentialProdApplying = checkIfDigitalCredentialProdApplying(integration);
 
-  const approvalContext = {
+  const approvalContext: ApprovalContext = {
     hasProd,
     hasBceid,
     hasGithub,
+    hasDigitalCredential,
     bceidApproved,
     githubApproved,
+    digitalCredentialApproved,
     awaitingBceidProd,
     awaitingGithubProd,
+    awaitingDigitalCredentialProd,
     bceidProdApplying,
     githubProdApplying,
+    digitalCredentialProdApplying,
   };
 
   const isGold = integration.serviceType === 'gold';
@@ -267,9 +288,10 @@ function IntegrationInfoTabs({ integration }: Props) {
 
   const tabs = [];
   const allowedTabs = [];
+  const digitalCredentialOnly = integration.devIdps?.every((idp) => idp === 'digitalcredential');
 
   if (displayStatus === 'Submitted') {
-    if (bceidProdApplying || githubProdApplying) {
+    if (bceidProdApplying || githubProdApplying || digitalCredentialProdApplying) {
       tabs.push(getApprovalProgressTab({ integration, approvalContext }));
       allowedTabs.push(TAB_DETAILS);
     } else {
@@ -277,10 +299,17 @@ function IntegrationInfoTabs({ integration }: Props) {
       allowedTabs.push(TAB_DETAILS);
     }
   } else if (displayStatus === 'Completed') {
-    tabs.push(getInstallationTab({ integration, approvalContext }), getRoleManagementTab({ integration }));
-    allowedTabs.push(TAB_DETAILS, TAB_ROLE_MANAGEMENT);
+    tabs.push(getInstallationTab({ integration, approvalContext }));
+    allowedTabs.push(TAB_DETAILS);
 
-    if (isGold && hasBrowserFlow) {
+    // Exclude role management from integrations with only DC
+    if (!digitalCredentialOnly) {
+      tabs.push(getRoleManagementTab({ integration }));
+      allowedTabs.push(TAB_ROLE_MANAGEMENT);
+    }
+
+    // Exclude user assignment from integrations with DC only
+    if (isGold && hasBrowserFlow && !digitalCredentialOnly) {
       tabs.push(getUserAssignmentTab({ integration }));
       allowedTabs.push(TAB_USER_ROLE_MANAGEMENT);
     }
