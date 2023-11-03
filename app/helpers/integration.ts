@@ -11,6 +11,7 @@ export const checkIdirGroupAndNotBceidRegularGroup = (idp: string) =>
   checkIdirGroup(idp) || !checkBceidRegularGroup(idp);
 export const checkGithubGroup = (idp: string) => ['githubpublic', 'githubbcgov'].includes(idp);
 export const checkNotGithubGroup = (idp: string) => !checkGithubGroup(idp);
+export const checkNotDigitalCredential = (idp: string) => !checkDigitalCredential(idp);
 
 export const usesBceid = (integration: Integration) => {
   if (!integration) return false;
