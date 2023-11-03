@@ -189,7 +189,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
           <FontAwesomeIcon size="2x" icon={faCommentDots} />
         </a>
         &nbsp;&nbsp;
-        <a href="mailto:Vardhman.Shankar@gov.bc.ca" title="SSO Team">
+        <a href="mailto:bcgov.sso@gov.bc.ca" title="SSO Team">
           <FontAwesomeIcon size="2x" icon={faEnvelope} />
         </a>
         &nbsp;&nbsp;
