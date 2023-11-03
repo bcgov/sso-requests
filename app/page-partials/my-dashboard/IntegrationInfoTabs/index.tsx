@@ -19,6 +19,7 @@ import { SubTitle, ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
+import MetricsPanel from './MetricsPanel';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -39,6 +40,7 @@ const TAB_USER_ROLE_MANAGEMENT = 'user-role-management';
 const TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT = 'service-account-role-management';
 const TAB_SECRET = 'secret';
 const TAB_HISTORY = 'history';
+const TAB_METRICS = 'metrics';
 
 const joinEnvs = (integration: Integration) => {
   if (!integration?.environments) return '';
@@ -214,6 +216,16 @@ const getHistoryTab = ({ integration }: { integration: Integration }) => {
   );
 };
 
+const getMetricsTab = ({ integration }: { integration: Integration }) => {
+  return (
+    <Tab key={TAB_METRICS} tab="Metrics">
+      <TabWrapper short={false}>
+        <MetricsPanel integration={integration} />
+      </TabWrapper>
+    </Tab>
+  );
+};
+
 interface Props {
   integration: Integration;
 }
@@ -297,6 +309,9 @@ function IntegrationInfoTabs({ integration }: Props) {
 
     tabs.push(getHistoryTab({ integration }));
     allowedTabs.push(TAB_HISTORY);
+
+    tabs.push(getMetricsTab({ integration }));
+    allowedTabs.push(TAB_METRICS);
   }
 
   let activeKey = activeTab;
