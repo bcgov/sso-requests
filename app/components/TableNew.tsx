@@ -414,7 +414,7 @@ function Table({
                 page.map((row: any) => {
                   prepareRow(row);
                   // Use prop if passed from parent. Otherwise use component's internal state.
-                  const currentActiveSelector = activeSelector || selectedRow?.original[`${rowSelectorKey}`];
+                  const currentActiveSelector = activeSelector ?? selectedRow?.original[`${rowSelectorKey}`];
                   return (
                     <tr
                       {...row.getRowProps()}
