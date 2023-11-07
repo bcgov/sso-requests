@@ -191,10 +191,16 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                   placeholder="Enter email address"
                   onChange={(e: any) => handleEmailChange(i, e)}
                   value={member.idirEmail}
+                  data-testid="user-email"
                 />
                 {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
               </div>
-              <Dropdown label="Role" onChange={(e: any) => handleRoleChange(i, e)} value={member.role}>
+              <Dropdown
+                label="Role"
+                onChange={(e: any) => handleRoleChange(i, e)}
+                value={member.role}
+                data-testid="user-role"
+              >
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
               </Dropdown>
