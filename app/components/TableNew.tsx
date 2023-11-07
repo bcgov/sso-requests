@@ -166,6 +166,9 @@ interface Props {
   pagination?: boolean;
   rowSelectorKey?: string;
   readOnly?: boolean;
+  /**
+   * Pass in this prop if you want to control the selected row from the parent component. It should equal the value of the rowSelectorKey n the row to be active. */
+  activeSelector?: string | number;
 }
 
 function Table({
@@ -199,6 +202,7 @@ function Table({
   pageLimits = [5, 10, 15, 30, 50, 100],
   rowSelectorKey = 'id',
   readOnly = false,
+  activeSelector,
 }: Props) {
   const numOfPages = Math.ceil(rowCount / limit);
   const columns: Column[] = React.useMemo(() => headers, [headers]);
@@ -409,14 +413,12 @@ function Table({
               {page.length > 0 ? (
                 page.map((row: any) => {
                   prepareRow(row);
+                  // Use prop if passed from parent. Otherwise use component's internal state.
+                  const currentActiveSelector = activeSelector || selectedRow?.original[`${rowSelectorKey}`];
                   return (
                     <tr
                       {...row.getRowProps()}
-                      className={
-                        selectedRow?.original[`${rowSelectorKey}`] === row?.original[`${rowSelectorKey}`]
-                          ? 'active'
-                          : ''
-                      }
+                      className={currentActiveSelector === row?.original[`${rowSelectorKey}`] ? 'active' : ''}
                       key={row?.id}
                       onClick={() => updateSelectedRow(row)}
                     >

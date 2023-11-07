@@ -156,6 +156,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
         }
         activateRow={activateRow}
         rowSelectorKey={'teamId'}
+        activeSelector={activeTeamId}
         colfilters={[]}
       />
     );
