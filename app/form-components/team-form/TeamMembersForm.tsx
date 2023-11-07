@@ -199,13 +199,23 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                 <option value="admin">Admin</option>
               </Dropdown>
               {i >= 0 && allowDelete && (
-                <Icon icon={faMinusCircle} onClick={() => handleMemberDelete(i)} title="Delete" />
+                <Icon
+                  icon={faMinusCircle}
+                  onClick={() => handleMemberDelete(i)}
+                  title="Delete"
+                  data-testid="delete-user-role"
+                />
               )}
             </MemberContainer>
           </>
         ))}
         <AddMemberButton onClick={handleAddMember}>
-          <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Item" />
+          <FontAwesomeIcon
+            style={{ color: '#006fc4' }}
+            icon={faPlusCircle}
+            title="Add Item"
+            data-testid="add-user-role"
+          />
           <span>Add another team member</span>
         </AddMemberButton>
       </MembersSection>
