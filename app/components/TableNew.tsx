@@ -167,7 +167,7 @@ interface Props {
   rowSelectorKey?: string;
   readOnly?: boolean;
   /**
-   * Pass in this prop if you want to control the selected row from the parent component. It should equal the value of the rowSelectorKey n the row to be active. */
+   * Pass in this prop if you want to control the selected row from the parent component. It should equal the rowSelectorKey's value in the active row. Leave undefined to control selected state internally. */
   activeSelector?: string | number;
 }
 
