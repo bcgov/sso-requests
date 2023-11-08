@@ -435,7 +435,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           <>
             <p>Are you sure you&apos;re ready to submit your request?</p>
             {hasDigitalCredential && (
-              <p>You will need to engage with DIT to learn about the Digital Credential Configuration ID.</p>
+              <p>
+                You will need to engage with DIT to learn about the Digital Credential Configuration ID. You can contact
+                them at <Link href="mailto:ditp.support@gov.bc.ca">ditp.support@gov.bc.ca</Link>.
+              </p>
             )}
             {!isAdmin && (
               <p>
