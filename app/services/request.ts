@@ -99,9 +99,13 @@ export const updateRequest = async (
 
     data = omit(data, ['user', 'lastChanges']);
 
+    // Changing optional string fields from undefined to empty string.
+    // Prevents lodash merger treating them as missing data.
     data.devLoginTitle = data.devLoginTitle || '';
     data.testLoginTitle = data.testLoginTitle || '';
     data.prodLoginTitle = data.prodLoginTitle || '';
+    data.additionalRoleAttribute = data.additionalRoleAttribute || '';
+    data.clientId = data.clientId || '';
 
     const result = await instance.put(url, data).then((res) => res.data);
     return [processRequest(result), null];
