@@ -156,7 +156,7 @@ describe('Members tab', () => {
     await waitFor(() => {
       expect(screen.getByTitle('Delete Team Member'));
     });
-    const confirmDeleteButton = await screen.findAllByTestId('confirm-delete');
+    const confirmDeleteButton = await screen.findAllByTestId('confirm-delete-delete-team-member');
     fireEvent.click(confirmDeleteButton[2]);
     await waitFor(() => {
       expect(deleteTeamMember).toHaveBeenCalledTimes(1);
