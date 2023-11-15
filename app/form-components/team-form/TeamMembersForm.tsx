@@ -237,7 +237,8 @@ export const validateTeam = (team: { name: string; members: User[] }) => {
   }
 
   team.members.forEach((member: User, i: number) => {
-    if (!member.idirEmail || !validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter an email';
+    if (!member.idirEmail) errors.members[i] = 'Please enter an email';
+    else if (!validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter a valid email';
   });
 
   const hasError = errors.name || errors.members.length > 0;
