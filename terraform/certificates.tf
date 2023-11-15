@@ -22,3 +22,8 @@ resource "aws_apigatewayv2_api_mapping" "this" {
   domain_name = aws_apigatewayv2_domain_name.this.id
   stage       = "test"
 }
+
+resource "aws_acm_certificate" "status" {
+  domain_name       = var.uptime_status_domain_name
+  validation_method = "DNS"
+}

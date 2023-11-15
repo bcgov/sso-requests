@@ -163,3 +163,8 @@ variable "custom_domain_name" {
   type        = string
   description = "custom domain name for a Regional API, API Gateway"
 }
+
+variable "uptime_status_domain_name" {
+  type        = string
+  description = "custom domain name for the uptime status page"
+}

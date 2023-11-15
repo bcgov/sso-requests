@@ -56,6 +56,7 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           CUSTOM_DOMAIN_NAME=api-dev.loginproxy.gov.bc.ca
+          UPTIME_STATUS_DOMAIN_NAME=status.sandbox.loginproxy.gov.bc.ca
           AWS_ECR_URI=${{secrets.DEV_AWS_ECR_URI}}
           INCLUDE_DIGITAL_CREDENTIAL=true
           EOF
@@ -91,6 +92,7 @@ jobs:
           CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
           VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
           CUSTOM_DOMAIN_NAME=api.loginproxy.gov.bc.ca
+          UPTIME_STATUS_DOMAIN_NAME=status.loginproxy.gov.bc.ca
           AWS_ECR_URI=${{secrets.PROD_AWS_ECR_URI}}
           INCLUDE_DIGITAL_CREDENTIAL=false
           EOF
@@ -205,6 +207,7 @@ jobs:
           ches_api_endpoint="${{ env.CHES_API_ENDPOINT }}"
           ches_token_endpoint="${{ env.CHES_TOKEN_ENDPOINT }}"
           custom_domain_name="${{ env.CUSTOM_DOMAIN_NAME }}"
+          uptime_status_domain_name="${{ env.UPTIME_STATUS_DOMAIN_NAME }}"
           aws_ecr_uri="${{ env.AWS_ECR_URI }}"
           include_digital_credential="${{ env.INCLUDE_DIGITAL_CREDENTIAL }}"
           EOF
