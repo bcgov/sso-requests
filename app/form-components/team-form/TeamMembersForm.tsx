@@ -236,6 +236,7 @@ export const validateTeam = (team: { name: string; members: User[] }) => {
     errors.name = 'Please enter a name';
   }
 
+  // Validation for member emails: they need to be present and valid.
   team.members.forEach((member: User, i: number) => {
     if (!member.idirEmail) errors.members[i] = 'Please enter an email';
     else if (!validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter a valid email';
