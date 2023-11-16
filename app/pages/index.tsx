@@ -107,7 +107,6 @@ export default function Home({ onLoginClick }: PageProps) {
     <>
       <Head>
         <meta name="description" content="The request process workflow tool for the RedHat SSO Dev Exchange service" />
-        <link rel="icon" href="/bcid-favicon-32x32.png" />
       </Head>
       <ResponsiveContainer rules={defaultRules}>
         <Grid cols={2} gutter={[5, 2]}>
