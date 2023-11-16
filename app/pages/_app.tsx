@@ -219,7 +219,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               <Head>
                 <html lang="en" />
                 <title>Common Hosted Single Sign-on (CSS)</title>
-                <link rel="icon" href="/bcid-favicon-32x32.png" />
+                <link rel="icon" href="/bootstrap-theme/dist/images/bcid-favicon-32x32.png" />
               </Head>
               <Component {...pageProps} session={session} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
             </Layout>
