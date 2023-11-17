@@ -81,15 +81,9 @@ interface Props {
 
 function RequestPreview({ children, request, teams = [] }: Props) {
   if (!request) return null;
-  const idpDisplay = request.devIdps;
+  const idpDisplay = request.devIdps ?? [];
   const isOIDC = request.protocol !== 'saml';
-
-  let fullIdpDisplay = [];
-  let n = 0;
-  while (n < idpDisplay.length) {
-    fullIdpDisplay[n] = idpMap[idpDisplay[n]];
-    n++;
-  }
+  const fullIdpDisplay = idpDisplay.map((name: any) => idpMap[name]);
 
   let teamName = '';
   if (request.usesTeam) {
