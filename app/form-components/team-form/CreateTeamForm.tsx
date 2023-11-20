@@ -48,8 +48,9 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
   };
 
   const handleCreate = async () => {
+    const adminUser = session as LoggedInUser;
     const team = { name: teamName, members };
-    const [hasError, errors] = validateTeam(team);
+    const [hasError, errors] = validateTeam(team, adminUser.email as string);
     if (hasError) return setErrors(errors);
 
     setLoading(true);

@@ -9,8 +9,6 @@ import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import Link from '@button-inc/bcgov-theme/Link';
 
-let adminUser = ''; // Save admin user for later form validation.
-
 const Container = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -93,10 +91,6 @@ interface Props {
 }
 
 function TeamMembersForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
-  // Set adminUser to currentUser's email, if currentUser is not null
-  if (currentUser?.email) {
-    adminUser = currentUser.email;
-  }
   const handleAddMember = () => {
     setMembers([
       ...members,
@@ -235,7 +229,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
   );
 }
 
-export const validateTeam = (team: { name: string; members: User[] }) => {
+export const validateTeam = (team: { name: string; members: User[] }, adminUser: string) => {
   const errors: any = { name: null, members: [] };
 
   if (!team.name) {

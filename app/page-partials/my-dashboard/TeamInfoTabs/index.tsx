@@ -310,7 +310,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   };
 
   const onConfirmAdd = async () => {
-    const [hasError, errors] = validateTeam({ name: team.name, members: tempMembers });
+    const [hasError, errors] = validateTeam({ name: team.name, members: tempMembers }, currentUser.email);
     if (hasError) {
       setErrors(errors);
       return;
