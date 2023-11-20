@@ -93,6 +93,10 @@ interface Props {
 }
 
 function TeamMembersForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
+  // Set adminUser to currentUser's email, if currentUser is not null
+  if (currentUser && currentUser.email) {
+    adminUser = currentUser.email;
+  }
   const handleAddMember = () => {
     setMembers([
       ...members,
@@ -179,7 +183,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         </EmailAddrValidHeader>
         {currentUser && (
           <MemberContainer>
-            <Input value={(adminUser = currentUser?.email || '')} readOnly />
+            <Input value={currentUser?.email || ''} readOnly />
             <Dropdown label="Role" disabled value={'admin'} readOnlyRole={true}>
               <option value="admin">Admin</option>
             </Dropdown>
