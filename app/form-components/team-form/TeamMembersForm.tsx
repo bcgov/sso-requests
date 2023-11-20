@@ -9,6 +9,8 @@ import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import Link from '@button-inc/bcgov-theme/Link';
 
+let adminUser = ''; // Save admin user for later form validation.
+
 const Container = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -177,7 +179,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         </EmailAddrValidHeader>
         {currentUser && (
           <MemberContainer>
-            <Input value={currentUser?.email || ''} readOnly />
+            <Input value={(adminUser = currentUser?.email || '')} readOnly />
             <Dropdown label="Role" disabled value={'admin'} readOnlyRole={true}>
               <option value="admin">Admin</option>
             </Dropdown>
@@ -241,7 +243,7 @@ export const validateTeam = (team: { name: string; members: User[] }) => {
     else if (!validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter a valid email';
     else {
       let result = team.members.filter((email) => email.idirEmail === member.idirEmail).length;
-      if (result > 1) errors.members[i] = 'Please use unique email';
+      if (result > 1 || member.idirEmail === adminUser) errors.members[i] = 'Please use unique email';
     }
   });
 
