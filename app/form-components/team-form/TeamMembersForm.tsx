@@ -94,7 +94,7 @@ interface Props {
 
 function TeamMembersForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
   // Set adminUser to currentUser's email, if currentUser is not null
-  if (currentUser && currentUser.email) {
+  if (currentUser?.email) {
     adminUser = currentUser.email;
   }
   const handleAddMember = () => {
