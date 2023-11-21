@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within, getByText } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, getByText, getAllByText } from '@testing-library/react';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 import { SessionContext } from '@app/pages/_app';
@@ -93,7 +93,8 @@ describe('Team List', () => {
       expect(screen.getByDisplayValue('sampleMember01@gov.bc.ca')).toBeInTheDocument();
     });
 
-    expect(getByText(container, 'Admin', { selector: 'option' }));
+    // With user from context, should be two now
+    expect(getAllByText(container, 'Admin', { selector: 'option' }).length).toBe(2);
     expect(getByText(container, 'Member', { selector: 'option' }));
     expect(getByRole('link', 'View a detailed breakdown of roles on our wiki page')).toHaveAttribute('href', HYPERLINK);
 
