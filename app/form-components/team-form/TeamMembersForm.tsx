@@ -229,7 +229,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
   );
 }
 
-export const validateTeam = (team: { name: string; members: User[] }) => {
+export const validateTeam = (team: { name: string; members: User[] }, adminUser: string) => {
   const errors: any = { name: null, members: [] };
 
   if (!team.name) {
@@ -241,7 +241,7 @@ export const validateTeam = (team: { name: string; members: User[] }) => {
     else if (!validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter a valid email';
     else {
       let result = team.members.filter((email) => email.idirEmail === member.idirEmail).length;
-      if (result > 1) errors.members[i] = 'Please use unique email';
+      if (result > 1 || member.idirEmail === adminUser) errors.members[i] = 'Please use unique email';
     }
   });
 

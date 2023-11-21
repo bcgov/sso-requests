@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, getByText, getAllByText } from '@testing-library/react';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
+import { SessionContext } from '@app/pages/_app';
 
 function TeamListComponent() {
   return (
@@ -65,7 +66,13 @@ jest.mock('services/team', () => ({
 
 describe('Team List', () => {
   it('Should match the expected button name, and testing on all text-input-box, drop-down-box, hyperlink, and button functionality in the modal', async () => {
-    render(<TeamListComponent />);
+    const { container } = render(
+      <SessionContext.Provider
+        value={{ session: { email: 'test@email.com' }, user: { idirEmail: 'test@email.com', role: '' } }}
+      >
+        <TeamListComponent />
+      </SessionContext.Provider>,
+    );
 
     const createTeamButton = getByRole('button', '+ Create a New Team');
     expect(createTeamButton).toBeInTheDocument();
@@ -86,8 +93,9 @@ describe('Team List', () => {
       expect(screen.getByDisplayValue('sampleMember01@gov.bc.ca')).toBeInTheDocument();
     });
 
-    expect(getByRole('option', 'Admin'));
-    expect(getByRole('option', 'Member'));
+    // With user from context, should be two now
+    expect(getAllByText(container, 'Admin', { selector: 'option' }).length).toBe(2);
+    expect(getByText(container, 'Member', { selector: 'option' }));
     expect(getByRole('link', 'View a detailed breakdown of roles on our wiki page')).toHaveAttribute('href', HYPERLINK);
 
     fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
