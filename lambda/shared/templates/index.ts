@@ -37,7 +37,7 @@ const processingTime = readTemplate('processing-time');
 const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
 
 const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string[] | undefined => {
-  if (!primaryUsers.length) {
+  if (!primaryUsers?.length) {
     return ['None Selected'];
   }
   return primaryUsers?.map((user) => {
