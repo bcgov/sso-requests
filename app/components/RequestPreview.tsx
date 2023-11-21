@@ -32,7 +32,7 @@ const formatBoolean = (value?: boolean) => {
   return value ? 'Yes' : 'No';
 };
 
-const formatPrimaryUsers = (primaryUsers: PrimaryEndUser[], otherDetails: string): string[] | undefined => {
+const formatPrimaryUsers = (primaryUsers?: PrimaryEndUser[], otherDetails?: string): string[] | undefined => {
   return primaryUsers?.map((user) => {
     switch (user) {
       case 'livingInBC':

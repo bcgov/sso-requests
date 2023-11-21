@@ -57,8 +57,8 @@ export interface Integration {
   prodSessionMaxLifespan?: number;
   prodOfflineSessionIdleTimeout?: number;
   prodOfflineSessionMaxLifespan?: number;
-  primaryEndUsers: PrimaryEndUser[];
-  primaryEndUsersOther: string;
+  primaryEndUsers?: PrimaryEndUser[];
+  primaryEndUsersOther?: string;
   lastChanges?: any[] | null;
   idirUserDisplayName?: string;
   requester?: string;
