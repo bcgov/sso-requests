@@ -310,7 +310,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   };
 
   const onConfirmAdd = async () => {
-    const [hasError, errors] = validateTeam({ name: team.name, members: tempMembers });
+    const [hasError, errors] = validateTeam({ name: team.name, members: tempMembers }, currentUser.email);
     if (hasError) {
       setErrors(errors);
       return;
@@ -416,13 +416,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           <TabWrapper>
             {isAdmin ? (
               <PaddedButton>
-                <RequestButton onClick={openModal}>+ Add New Team Members</RequestButton>
+                <RequestButton onClick={openModal} data-testid="add-new-team-member">
+                  + Add New Team Members
+                </RequestButton>
               </PaddedButton>
             ) : (
               <br />
             )}
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
               <Table
+                data-testid="team-members-table"
                 variant="medium"
                 headers={[
                   {
@@ -473,6 +476,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             onClick={() => inviteMember(member)}
                             title="Resend Invitation"
                             style={{ marginRight: '6px' }}
+                            data-testid="resend-invitation"
                           />
                         )}
                         {adminActionsAllowed && (
@@ -482,6 +486,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             size="lg"
                             title="Delete User"
                             style={{ marginRight: '16px' }}
+                            data-testid="delete-member"
                           />
                         )}
                       </RightFloat>

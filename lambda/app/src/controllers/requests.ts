@@ -29,7 +29,7 @@ import {
 import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
-import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -174,6 +174,9 @@ export const updateRequest = async (
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
     if (isApprovingGithub && !userIsAdmin) throw Error('unauthorized request');
 
+    const isApprovingDigitalCredential = !originalData.digitalCredentialApproved && current.digitalCredentialApproved;
+    if (isApprovingDigitalCredential && !userIsAdmin) throw Error('unauthorized request');
+
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -217,8 +220,12 @@ export const updateRequest = async (
       const hasGithub = usesGithub(current);
       const hasGithubProd = hasGithub && hasProd;
 
+      const hasDigitalCredential = usesDigitalCredential(current);
+      const hasDigitalCredentialProd = hasDigitalCredential && hasProd;
+
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
+      const waitingDigitalCredentialProdApproval = hasDigitalCredentialProd && !current.digitalCredentialApproved;
       current.requester = await getRequester(session, current.id);
 
       const ghResult = await dispatchRequestWorkflow(getCurrentValue());
@@ -241,6 +248,11 @@ export const updateRequest = async (
             code: EMAILS.PROD_APPROVED,
             data: { integration: finalData, type: 'GitHub' },
           });
+        } else if (isApprovingDigitalCredential) {
+          emails.push({
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'Digital Credential' },
+          });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
@@ -248,6 +260,7 @@ export const updateRequest = async (
               integration: finalData,
               waitingBceidProdApproval,
               waitingGithubProdApproval,
+              waitingDigitalCredentialProdApproval,
             },
           });
         }
@@ -258,10 +271,10 @@ export const updateRequest = async (
             integration: finalData,
             waitingBceidProdApproval,
             waitingGithubProdApproval,
+            waitingDigitalCredentialProdApproval,
           },
         });
       }
-
       await sendTemplates(emails);
     }
 

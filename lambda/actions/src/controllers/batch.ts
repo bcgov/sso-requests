@@ -3,7 +3,7 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EVENTS, EMAILS } from '@lambda-shared/enums';
 import { mergePR } from '../github';
-import { usesBceid, usesGithub } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
 import { getTeamById } from '@lambda-app/queries/team';
 
 const createEvent = async (data) => {
@@ -89,6 +89,7 @@ export const updatePlannedItems = async (data) => {
       'apiServiceAccount',
       'bceidApproved',
       'githubApproved',
+      'digitalCredentialApproved',
     ],
     raw: true,
   });
@@ -128,14 +129,18 @@ export const updatePlannedItems = async (data) => {
         const hasProd = integration.environments.includes('prod');
         const hasBceid = usesBceid(integration);
         const hasGithub = usesGithub(integration);
+        const hasDigitalCredential = usesDigitalCredential(integration);
         const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
         const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
+        const waitingDigitalCredentialProdApproval =
+          hasDigitalCredential && hasProd && !integration.digitalCredentialApproved;
 
         const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
         await sendTemplate(emailCode, {
           integration,
           waitingBceidProdApproval,
           waitingGithubProdApproval,
+          waitingDigitalCredentialProdApproval,
         });
       }
     }),

@@ -191,21 +191,37 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                   placeholder="Enter email address"
                   onChange={(e: any) => handleEmailChange(i, e)}
                   value={member.idirEmail}
+                  data-testid="user-email"
                 />
                 {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
               </div>
-              <Dropdown label="Role" onChange={(e: any) => handleRoleChange(i, e)} value={member.role}>
+              <Dropdown
+                label="Role"
+                onChange={(e: any) => handleRoleChange(i, e)}
+                value={member.role}
+                data-testid="user-role"
+              >
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
               </Dropdown>
               {i >= 0 && allowDelete && (
-                <Icon icon={faMinusCircle} onClick={() => handleMemberDelete(i)} title="Delete" />
+                <Icon
+                  icon={faMinusCircle}
+                  onClick={() => handleMemberDelete(i)}
+                  title="Delete"
+                  data-testid="delete-user-role"
+                />
               )}
             </MemberContainer>
           </>
         ))}
         <AddMemberButton onClick={handleAddMember}>
-          <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Item" />
+          <FontAwesomeIcon
+            style={{ color: '#006fc4' }}
+            icon={faPlusCircle}
+            title="Add Item"
+            data-testid="add-user-role"
+          />
           <span>Add another team member</span>
         </AddMemberButton>
       </MembersSection>
@@ -213,7 +229,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
   );
 }
 
-export const validateTeam = (team: { name: string; members: User[] }) => {
+export const validateTeam = (team: { name: string; members: User[] }, adminUser: string) => {
   const errors: any = { name: null, members: [] };
 
   if (!team.name) {
@@ -221,7 +237,12 @@ export const validateTeam = (team: { name: string; members: User[] }) => {
   }
 
   team.members.forEach((member: User, i: number) => {
-    if (!member.idirEmail || !validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter an email';
+    if (!member.idirEmail) errors.members[i] = 'Please enter an email';
+    else if (!validator.isEmail(member.idirEmail)) errors.members[i] = 'Please enter a valid email';
+    else {
+      let result = team.members.filter((email) => email.idirEmail === member.idirEmail).length;
+      if (result > 1 || member.idirEmail === adminUser) errors.members[i] = 'Please use unique email';
+    }
   });
 
   const hasError = errors.name || errors.members.length > 0;

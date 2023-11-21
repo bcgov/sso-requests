@@ -48,8 +48,9 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
   };
 
   const handleCreate = async () => {
+    const adminUser = session as LoggedInUser;
     const team = { name: teamName, members };
-    const [hasError, errors] = validateTeam(team);
+    const [hasError, errors] = validateTeam(team, adminUser.email as string);
     if (hasError) return setErrors(errors);
 
     setLoading(true);
@@ -78,7 +79,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
 
   return (
     <div>
-      <Input label="Team Name" onChange={handleNameChange} value={teamName} />
+      <Input label="Team Name" onChange={handleNameChange} maxLength="255" data-testid="team-name" value={teamName} />
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <strong>Team Members</strong>
@@ -92,7 +93,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
         </Button>
-        <Button type="button" onClick={handleCreate}>
+        <Button type="button" onClick={handleCreate} data-testid="send-invitation">
           {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
         </Button>
       </ButtonsContainer>

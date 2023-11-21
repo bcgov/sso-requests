@@ -58,7 +58,7 @@ describe('Integration list', () => {
     });
 
     await waitFor(async () => {
-      fireEvent.click(await screen.findByTestId('confirm-delete'));
+      fireEvent.click(await screen.findByTestId('confirm-delete-confirm-deletion'));
     });
     await waitFor(() => {
       expect(spyDeleteRequest).toHaveBeenCalledTimes(1);

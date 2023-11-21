@@ -1,6 +1,9 @@
 import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 import { idpMap } from '@app/helpers/meta';
+import getConfig from 'next/config';
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { include_digital_credential } = publicRuntimeConfig;
 
 export default function getSchema(integration: Integration, context: { isAdmin?: boolean } = { isAdmin: true }) {
   const { protocol, authType, status } = integration;
@@ -60,6 +63,18 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
 
   if (authType !== 'service-account') {
     const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
+
+    /*
+      Schemas are shared between lambda functions and client app to keep validations in sync.
+      They set env vars differently though, process.env is used in lambdas but publicRuntimeConfig in client app.
+      Need to check both to see if dc is allowed.
+    */
+    const include_dc = include_digital_credential === 'true' || process.env.INCLUDE_DIGITAL_CREDENTIAL === 'true';
+
+    if (include_dc) {
+      idpEnum.push('digitalcredential');
+    }
+
     const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
 
     properties.devIdps = {
@@ -71,18 +86,27 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
         enum: idpEnum,
         enumNames: idpEnumNames,
       },
-      tooltips: [
-        null,
-        {
-          content: `
-          To learn the difference between IDIR and Azure IDIR,
-          <a href="https://github.com/bcgov/sso-keycloak/wiki/Our-Partners-and-Useful-Information#azure-idir-and-idir" target="_blank" title="IDIR vs Azure IDIR" target="_blank" title="IDIR vs Azure IDIR">
-          please visit our GitHub page about choosing an Identity Provider
-          </a>
-          `,
-          hide: 3000,
-        },
-      ],
+      tooltips: idpEnum.map((idp) => {
+        if (idp === 'azureidir') {
+          return {
+            content: `
+            To learn the difference between IDIR and Azure IDIR,
+            <a href="https://github.com/bcgov/sso-keycloak/wiki/Our-Partners-and-Useful-Information#azure-idir-and-idir" target="_blank" title="IDIR vs Azure IDIR" target="_blank" title="IDIR vs Azure IDIR">
+            please visit our GitHub page about choosing an Identity Provider
+            </a>
+            `,
+            hide: 3000,
+          };
+        }
+        if (idp === 'digitalcredential')
+          return {
+            content:
+              'To learn more about using the Digital Credential option visit our <a href="https://github.com/bcgov/sso-keycloak/wiki/Our-Partners-and-Useful-Information#what-are-identity-providers" target="_blank">additional information</a>.',
+            hide: 3000,
+            alpha: true,
+          };
+        return null;
+      }),
       uniqueItems: true,
       tooltip: {
         content: `The identity providers you add will let your users authenticate with those services.`,

@@ -25,6 +25,7 @@ export default function TeamActionButtons({ team, showEditTeamNameModal, showDel
           title="Edit"
           size="lg"
           onClick={() => (canEdit ? showEditTeamNameModal(team) : noop)}
+          data-testid="edit-team-button"
         />
         <ActionButton
           disabled={!canDelete}
@@ -35,6 +36,7 @@ export default function TeamActionButtons({ team, showEditTeamNameModal, showDel
           size="lg"
           onClick={() => (canDelete ? showDeleteModal(team) : noop)}
           style={{ marginLeft: '7px' }}
+          data-testid="delete-team-button"
         />
       </ActionButtonContainer>
     </>

@@ -72,14 +72,19 @@ export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: 
 
   return (
     <div>
-      <Input label="New Team Name" onChange={handleNameChange} value={teamName} />
+      <Input label="New Team Name" onChange={handleNameChange} value={teamName} data-testid="edit-name" />
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <ButtonsContainer>
-        <Button variant="secondary" onClick={handleCancel} style={{ marginRight: '20px' }}>
+        <Button
+          variant="secondary"
+          onClick={handleCancel}
+          style={{ marginRight: '20px' }}
+          data-testid="cancel-edit-name"
+        >
           Cancel
         </Button>
-        <Button type="button" onClick={handleEditName}>
+        <Button type="button" onClick={handleEditName} data-testid="save-edit-name">
           {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Save'}
         </Button>
       </ButtonsContainer>

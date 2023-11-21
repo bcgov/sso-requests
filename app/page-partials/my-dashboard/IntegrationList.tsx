@@ -31,6 +31,8 @@ function IntegrationListActionsHeader() {
   return <span style={{ float: 'right', paddingRight: '1em' }}>Actions</span>;
 }
 
+const formatIntegrationID = (id: number) => padStart(String(id), 8, '0');
+
 const NewEntityButton = ({
   handleNewIntegrationClick,
   integrations,
@@ -213,7 +215,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
           ]}
           data={integrations?.map((integration: Integration) => {
             return {
-              id: padStart(String(integration.id), 8, '0'),
+              id: formatIntegrationID(integration.id as number),
               projectName: integration.projectName,
               status: getStatusDisplayName(integration.status || 'draft'),
               authType: authTypeDisplay[integration.authType || 'browser-login'],
@@ -233,6 +235,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
             };
           })}
           activateRow={activateRow}
+          activeSelector={activeIntegrationId && formatIntegrationID(activeIntegrationId)}
           rowSelectorKey={'id'}
           colfilters={[]}
         ></Table>

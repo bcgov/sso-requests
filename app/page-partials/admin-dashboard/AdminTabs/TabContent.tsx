@@ -6,7 +6,11 @@ import CenteredModal from 'components/CenteredModal';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
-import { checkIfBceidProdApplying, checkIfGithubProdApplying } from '@app/utils/helpers';
+import {
+  checkIfBceidProdApplying,
+  checkIfGithubProdApplying,
+  checkIfDigitalCredentialProdApplying,
+} from '@app/utils/helpers';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -15,7 +19,7 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github';
+  type: 'bceid' | 'github' | 'digitalCredential';
   canApproveProd: boolean;
   awaitingTFComplete: boolean;
   onApproved?: () => void;
@@ -28,8 +32,18 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
   const modalId = `${type}-approval-modal`;
   const openModal = () => (window.location.hash = modalId);
 
-  const typeApproved =
-    type === 'bceid' ? checkIfBceidProdApplying(integration) : checkIfGithubProdApplying(integration);
+  let typeApproved = false;
+  switch (type) {
+    case 'bceid':
+      typeApproved = checkIfBceidProdApplying(integration);
+      break;
+    case 'github':
+      typeApproved = checkIfGithubProdApplying(integration);
+      break;
+    case 'digitalCredential':
+      typeApproved = checkIfDigitalCredentialProdApplying(integration);
+      break;
+  }
 
   let content;
   if (canApproveProd) {

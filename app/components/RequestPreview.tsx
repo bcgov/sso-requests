@@ -2,6 +2,7 @@ import { Integration } from 'interfaces/Request';
 import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';
 import { Team } from 'interfaces/team';
+import { idpMap } from 'helpers/meta';
 
 const Table = styled.table`
   font-size: unset;
@@ -80,8 +81,9 @@ interface Props {
 
 function RequestPreview({ children, request, teams = [] }: Props) {
   if (!request) return null;
-  const idpDisplay = request.devIdps;
+  const idpDisplay = request.devIdps ?? [];
   const isOIDC = request.protocol !== 'saml';
+  const fullIdpDisplay = idpDisplay.map((name: any) => idpMap[name]);
 
   let teamName = '';
   if (request.usesTeam) {
@@ -142,7 +144,7 @@ function RequestPreview({ children, request, teams = [] }: Props) {
               </td>
             </tr>
           )}
-          <FormattedList list={idpDisplay} title="Identity Providers Required:" inline testid="idp-required" />
+          <FormattedList list={fullIdpDisplay} title="Identity Providers Required:" inline testid="idp-required" />
           {request.environments?.includes('dev') && (
             <FormattedList list={request.devValidRedirectUris} title="Dev Redirect URIs:" testid="dev-uri" />
           )}

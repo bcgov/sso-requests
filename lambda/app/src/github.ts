@@ -10,7 +10,14 @@ import {
   samlFineGrainEndpointConfig,
   samlSignedAssertions,
 } from '@app/schemas';
-import { usesBceid, usesGithub, checkNotBceidGroup, checkNotGithubGroup } from '@app/helpers/integration';
+import {
+  usesBceid,
+  usesGithub,
+  checkNotBceidGroup,
+  checkNotGithubGroup,
+  checkDigitalCredential,
+  usesDigitalCredential,
+} from '@app/helpers/integration';
 import { getAccountableEntity } from '@lambda-shared/templates/helpers';
 import { handlePRstage, updatePlannedItems } from '@lambda-actions/controllers/batch';
 
@@ -54,9 +61,10 @@ const allowedFieldsForGithub = [
   ...envFieldsAll,
 ];
 
-const buildGitHubRequestData = (baseData: IntegrationData) => {
+export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
+  const hasDigitalCredential = usesDigitalCredential(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -64,11 +72,12 @@ const buildGitHubRequestData = (baseData: IntegrationData) => {
 
   // prevent the TF from creating BCeID integration in prod environment if not approved
   if (!baseData.bceidApproved && hasBceid) {
-    if (baseData.serviceType === 'gold') {
-      baseData.prodIdps = baseData.prodIdps.filter(checkNotBceidGroup);
-    } else {
-      baseData.environments = baseData.environments.filter((environment) => environment !== 'prod');
-    }
+    baseData.prodIdps = baseData.prodIdps.filter(checkNotBceidGroup);
+  }
+
+  // prevent the TF from creating VC integration in prod environment if not approved
+  if (!baseData.digitalCredentialApproved && hasDigitalCredential) {
+    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkDigitalCredential(idp));
   }
 
   // prevent the TF from creating GitHub integration in prod environment if not approved

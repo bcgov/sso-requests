@@ -3,6 +3,16 @@ import { JSONSchema6 } from 'json-schema';
 import { WidgetProps } from 'react-jsonschema-form';
 import clsx from 'clsx';
 import InfoOverlay from 'components/InfoOverlay';
+import styled from 'styled-components';
+import { SECONDARY_BLUE } from 'styles/theme';
+
+const AlphaTag = styled.span`
+  background: ${SECONDARY_BLUE};
+  border-radius: 0.2em;
+  padding: 0.1em 0.3em;
+  text-transform: capitalize;
+  color: white;
+`;
 
 // https://github.com/rjsf-team/react-jsonschema-form/blob/master/packages/core/src/components/widgets/CheckboxesWidget.js
 function selectValue(value: string, selected: string[], all: string[]) {
@@ -52,6 +62,7 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
             />
             <span>{option.label}</span>
             &nbsp;
+            {tooltips[index]?.alpha && <AlphaTag>alpha</AlphaTag>}
             {tooltips[index] && <InfoOverlay {...tooltips[index]} />}
           </span>
         );

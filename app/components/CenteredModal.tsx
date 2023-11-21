@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@bcgov-sso/common-react-components';
+import kebabCase from 'lodash.kebabcase';
 
 const StyledModal = styled(Modal)`
   display: flex;
@@ -88,6 +89,8 @@ const CenteredModal = ({
   const showButtons = showCancel || showConfirm;
   let cancelButtonVariant = 'bcSecondary';
   let confirmButtonVariant = 'bcPrimary';
+  let dataTestId = 'confirm-delete-' + kebabCase(title);
+  let dataTestIdCancel = 'cancel-' + kebabCase(title);
 
   switch (buttonStyle) {
     case 'bcgov':
@@ -130,12 +133,12 @@ const CenteredModal = ({
         {showButtons && (
           <ButtonContainer buttonAlign={buttonAlign}>
             {showCancel && (
-              <Button variant={cancelButtonVariant} onClick={handleCancel} type="button">
+              <Button variant={cancelButtonVariant} onClick={handleCancel} type="button" data-testid={dataTestIdCancel}>
                 Cancel
               </Button>
             )}
             <Button
-              data-testid="confirm-delete"
+              data-testid={dataTestId}
               onClick={handleConfirm}
               variant={confirmButtonVariant}
               type="button"

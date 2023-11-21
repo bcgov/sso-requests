@@ -371,6 +371,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
   const buttonTexts = { continue: '', back: '' };
+  const hasDigitalCredential = formData.devIdps?.includes('digitalcredential');
 
   if (isLastStage) {
     buttonTexts.continue = isApplied ? 'Update' : 'Submit';
@@ -433,6 +434,12 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content={
           <>
             <p>Are you sure you&apos;re ready to submit your request?</p>
+            {hasDigitalCredential && (
+              <p>
+                You will need to engage with DIT to learn about the Digital Credential Configuration ID. You can contact
+                them at <Link href="mailto:ditp.support@gov.bc.ca">ditp.support@gov.bc.ca</Link>.
+              </p>
+            )}
             {!isAdmin && (
               <p>
                 If you need to change anything after submitting your request, please contact our{' '}

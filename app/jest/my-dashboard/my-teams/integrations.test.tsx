@@ -188,8 +188,8 @@ describe('Integrations tab', () => {
     const actionDeleteButton = screen.getAllByTestId('action-button-delete');
     fireEvent.click(actionDeleteButton[0]);
     expect(screen.findByTitle('Confirm Deletion'));
-    const confirmDeleteButton = screen.getAllByTestId('confirm-delete');
-    fireEvent.click(confirmDeleteButton[1]);
+    const confirmDeleteButton = screen.getAllByTestId('confirm-delete-confirm-deletion');
+    fireEvent.click(confirmDeleteButton[0]);
     expect(deleteRequest).toHaveBeenCalledTimes(1);
   });
 });
