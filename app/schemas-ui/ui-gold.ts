@@ -124,6 +124,15 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     newToSso: {
       'ui:widget': 'radio',
     },
+    primaryEndUsers: {
+      'ui:widget': 'checkboxes',
+      classNames: 'checkboxes-grid',
+    },
+    primaryEndUsersOther: {
+      'ui:widget': 'textarea',
+      classNames: 'other-details',
+      'ui:label': false,
+    },
     publicAccess: {
       'ui:widget': ClientTypeWidget,
     },

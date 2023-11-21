@@ -109,6 +109,8 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     devSamlSignAssertions,
     testSamlSignAssertions,
     prodSamlSignAssertions,
+    primaryEndUsers,
+    primaryEndUsersOther,
     clientId,
   } = data;
   if (!serviceType) serviceType = 'gold';
@@ -131,6 +133,8 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     idirUserDisplayName,
     usesTeam,
     teamId,
+    primaryEndUsers,
+    primaryEndUsersOther,
     userId: session.user?.id,
     serviceType,
     environments: ['dev'],

@@ -234,6 +234,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     loadTeams();
   }, []);
 
+  // Clear other details when other is unselected
+  useEffect(() => {
+    if (formData.primaryEndUsers && !formData.primaryEndUsers.includes('other')) {
+      setFormData({ ...formData, primaryEndUsersOther: '' });
+    }
+    // Using JSON.stringify is recommended for shallow, non-cyclic objects: https://github.com/facebook/react/issues/14476#issuecomment-471199055
+    // Works in this case since primaryEndUsers is a short string array
+  }, [JSON.stringify(formData.primaryEndUsers)]);
+
   useEffect(() => {
     updateInfo();
   }, [formData, formStage, teams]);

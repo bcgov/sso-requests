@@ -1,4 +1,4 @@
-import { Integration } from 'interfaces/Request';
+import { Integration, PrimaryEndUser } from 'interfaces/Request';
 import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';
 import { Team } from 'interfaces/team';
@@ -30,6 +30,23 @@ const StyledUl = styled.ul`
 const formatBoolean = (value?: boolean) => {
   if (value === undefined) return '';
   return value ? 'Yes' : 'No';
+};
+
+const formatPrimaryUsers = (primaryUsers: PrimaryEndUser[], otherDetails: string): string[] | undefined => {
+  return primaryUsers?.map((user) => {
+    switch (user) {
+      case 'livingInBC':
+        return 'People living in BC';
+      case 'businessInBC':
+        return 'People doing business/travel in BC';
+      case 'bcGovEmployees':
+        return 'BC Gov Employees';
+      case 'other':
+        return `Other: ${otherDetails ?? ''}`;
+      default:
+        return '';
+    }
+  });
 };
 
 interface FormattedListProps {
@@ -88,6 +105,7 @@ function RequestPreview({ children, request, teams = [] }: Props) {
     teamName =
       teams.find((team) => String(team.id) === String(request.teamId))?.name || (request.team && request.team.name);
   }
+  const primaryEndUsersFormatted = formatPrimaryUsers(request.primaryEndUsers, request.primaryEndUsersOther);
 
   return (
     <>
@@ -134,6 +152,14 @@ function RequestPreview({ children, request, teams = [] }: Props) {
               <SemiBold data-testid="project-name">{request.projectName}</SemiBold>
             </td>
           </tr>
+          {primaryEndUsersFormatted && (
+            <tr>
+              <td>Primary End Users:</td>
+              <td>
+                <SemiBold data-testid="project-name">{primaryEndUsersFormatted.join(', ')}</SemiBold>
+              </td>
+            </tr>
+          )}
           {request.additionalRoleAttribute && (
             <tr>
               <td>Additional Role Attribute:</td>

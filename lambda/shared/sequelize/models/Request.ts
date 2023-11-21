@@ -345,6 +345,14 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
+      primaryEndUsers: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: true,
+      },
+      primaryEndUsersOther: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       underscored: true,
