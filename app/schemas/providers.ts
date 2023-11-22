@@ -31,7 +31,7 @@ const prodValidRedirectUris = {
 };
 
 const validURIlink =
-  '<a target="_blank" class="link" href="https://github.com/bcgov/sso-keycloak/wiki/CSS-App-Valid-Redirect-URI-Format">valid URI </a>';
+  '<a target="_blank" class="link" href="https://bcgov.github.io/sso-docs/integrating-your-application/redirects#valid-redirect-format">valid URI </a>';
 
 export const devValidRedirectUris = {
   ...commonRedirectUris,

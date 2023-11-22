@@ -125,10 +125,7 @@ const InstallationPanel = ({ integration, alert }: Props) => {
       </Grid>
       <InfoMessage>
         For more information on how to use these details, or for the public endpoints associated to your client,{' '}
-        <Link
-          href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#setting-up-your-keycloak-client"
-          external
-        >
+        <Link href="https://bcgov.github.io/sso-docs/integrating-your-application/installation-json" external>
           click to learn more on our wiki page
         </Link>
         .

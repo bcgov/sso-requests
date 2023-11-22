@@ -15,7 +15,7 @@ const notExpectAllTexts = (texts: Text[]) => texts.forEach(notExpectText);
 const bceidApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['bceidApproved'] };
 const githubApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['githubApproved'] };
 
-const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#setting-up-your-keycloak-client';
+const HYPERLINK = 'https://bcgov.github.io/sso-docs/integrating-your-application/installation-json';
 const WIKI_PAGE_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role';
 
 const DRAFT_MESSAGE = /Your request has not been submitted/;

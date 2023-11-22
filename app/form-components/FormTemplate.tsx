@@ -397,7 +397,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         />
         <Description>
           If new to SSO, please{' '}
-          <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client">
+          <Link external href="https://bcgov.github.io/sso-docs/category/integrating-your-application">
             click to learn more on our wiki page
           </Link>
           .
