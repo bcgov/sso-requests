@@ -116,10 +116,7 @@ export default function FaqItems({ children }: Props) {
             For additional endpoint information, such as the Authorization URL and Token URL, the{' '}
             <b>Provider Configuration Endpoint</b> can be used.
           </p>
-          <Link
-            href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#setting-up-your-keycloak-client"
-            external
-          >
+          <Link href="https://bcgov.github.io/sso-docs/integrating-your-application/installation-json" external>
             Please see the wiki for accessing your provider endpoint information
           </Link>
         </Accordion.Panel>
