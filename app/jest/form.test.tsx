@@ -5,6 +5,7 @@ import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
+import { sampleRequest } from './samples/integrations';
 
 const formButtonText = ['Next', 'Save and Close'];
 
@@ -42,23 +43,6 @@ const setUpRender = (request: Integration | object | null, currentUser = {}) => 
   sandbox.termsAndConditionsBox = screen.queryByTestId(`stage-terms-and-conditions`)?.closest('div') as HTMLElement;
   sandbox.adminReview = screen.queryByTestId(`stage-review-submit`)?.closest('div') as HTMLElement;
   return result;
-};
-
-export const sampleRequest: Integration = {
-  id: 1,
-  devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-  testValidRedirectUris: ['http://test.com'],
-  prodValidRedirectUris: ['http://prod.com'],
-  publicAccess: true,
-  authType: 'browser-login',
-  projectName: 'test project new',
-  projectLead: true,
-  agreeWithTerms: true,
-  environments: ['dev'],
-  archived: false,
-  usesTeam: false,
-  serviceType: 'gold',
-  teamId: undefined,
 };
 
 const samplePage3Request = {

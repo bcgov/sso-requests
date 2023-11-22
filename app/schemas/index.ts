@@ -34,13 +34,17 @@ export const getSchemas = ({
   const schemas = [];
   if (isNew) {
     schemas.push(
-      getRequesterInfoSchema(teams),
+      getRequesterInfoSchema(teams, formData),
       getProvidersGoldSchema(formData, { isAdmin }),
       ...environmentSchemas,
       termsAndConditionsSchema,
     );
   } else {
-    schemas.push(getRequesterInfoSchema(teams), getProvidersGoldSchema(formData, { isAdmin }), ...environmentSchemas);
+    schemas.push(
+      getRequesterInfoSchema(teams, formData),
+      getProvidersGoldSchema(formData, { isAdmin }),
+      ...environmentSchemas,
+    );
     if (!isApplied) schemas.push(termsAndConditionsSchema);
   }
 

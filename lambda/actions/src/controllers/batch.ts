@@ -90,6 +90,8 @@ export const updatePlannedItems = async (data) => {
       'bceidApproved',
       'githubApproved',
       'digitalCredentialApproved',
+      'primaryEndUsers',
+      'primaryEndUsersOther',
     ],
     raw: true,
   });

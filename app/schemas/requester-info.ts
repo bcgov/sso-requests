@@ -1,3 +1,4 @@
+import { Integration } from '@app/interfaces/Request';
 import { Schema } from './index';
 
 const projectLead = {
@@ -12,12 +13,24 @@ const projectLead = {
   },
 };
 
-export default function getSchema(teams: any[] = []) {
+const primaryEndUsers = {
+  type: 'array',
+  items: {
+    type: 'string',
+    enum: ['livingInBC', 'businessInBC', 'bcGovEmployees', 'other'],
+    enumNames: ['People living in BC', 'People doing business/travel in BC', 'BC Gov Employees', 'Other'],
+  },
+  uniqueItems: true,
+  title: 'Who are the primary end users of your project/application? (select all that apply)',
+};
+
+export default function getSchema(teams: any[] = [], formData: Integration) {
   const teamNames = teams.map((team) => team.name);
   teamNames.unshift('Select...');
   const teamValues = teams.map((team) => String(team.id));
   teamValues.unshift('');
   const hasTeams = teams.length > 0;
+  const showOtherDetails = formData.primaryEndUsers?.includes('other');
 
   return {
     type: 'object',
@@ -26,6 +39,16 @@ export default function getSchema(teams: any[] = []) {
     stepText: 'Requester Info',
     properties: {
       projectName: { type: 'string', title: 'Project Name', maxLength: 50 },
+      primaryEndUsers,
+      ...(showOtherDetails && {
+        primaryEndUsersOther: {
+          type: 'string',
+          title: 'Project Name',
+          maxLength: 100,
+          placeholder: 'Enter Details',
+          rows: 3,
+        } as any,
+      }),
       usesTeam: {
         type: 'boolean',
         title: 'Project Team',
