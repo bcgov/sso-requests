@@ -45,6 +45,7 @@ const RoleManagement = ({ integration }: Props) => {
         onClick={() => {
           modalRef.current.open();
         }}
+        data-testid="create-role-button"
       >
         + Create a New Role
       </Button>
@@ -87,6 +88,7 @@ const RoleManagement = ({ integration }: Props) => {
         confirmButtonVariant="primary"
         cancelButtonVariant="secondary"
         style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+        data-testid="create-role-modal"
       >
         <CreateRoleContent integrationId={integration.id as number} environments={environments} />
       </GenericModal>
