@@ -107,6 +107,7 @@ export const updateRequest = async (
     data.additionalRoleAttribute = data.additionalRoleAttribute || '';
     data.clientId = data.clientId || '';
     data.primaryEndUsers = data.primaryEndUsers ?? [];
+    data.primaryEndUsersOther = data.primaryEndUsersOther ?? '';
 
     const result = await instance.put(url, data).then((res) => res.data);
     return [processRequest(result), null];
