@@ -139,7 +139,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
           value = "display_name"
         },
         {
-          name  = "GF_AUTH_GENERIC_OAUTH_SKIP_ORG_ROLE_SYNC",
+          name  = "GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP",
           value = "true"
         }
       ]
