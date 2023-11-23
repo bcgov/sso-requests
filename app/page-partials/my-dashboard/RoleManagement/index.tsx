@@ -88,7 +88,6 @@ const RoleManagement = ({ integration }: Props) => {
         confirmButtonVariant="primary"
         cancelButtonVariant="secondary"
         style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
-        data-testid="create-role-modal"
       >
         <CreateRoleContent integrationId={integration.id as number} environments={environments} />
       </GenericModal>
