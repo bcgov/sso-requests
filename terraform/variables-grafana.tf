@@ -45,7 +45,7 @@ variable "sso_grafana_container_name" {
 variable "sso_grafana_container_image" {
   description = "The container image url"
   type        = string
-  default     = "bcgov-sso/grafana:9.3.2"
+  default     = "bcgov-sso/grafana:10.2.2"
 }
 
 variable "sso_grafana_container_port" {
