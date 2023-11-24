@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@bcgov-sso/common-react-components';
+import kebabCase from 'lodash.kebabcase';
 
 const StyledModal = styled(Modal)`
   display: flex;
@@ -182,7 +183,7 @@ const GenericModal = (
               variant={config.cancelButtonVariant}
               onClick={handleCancel}
               type="button"
-              data-testid={`modal-cancel-btn-${config.id}`}
+              data-testid={`modal-cancel-btn-${kebabCase(title)}`}
             >
               {config.cancelButtonText}
             </Button>
@@ -193,7 +194,7 @@ const GenericModal = (
               variant={config.confirmButtonVariant}
               type="button"
               className="text-center"
-              data-testid={`modal-confirm-btn-${config.id}`}
+              data-testid={`modal-confirm-btn-${kebabCase(title)}`}
             >
               {loading ? (
                 <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
