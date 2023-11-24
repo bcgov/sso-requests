@@ -36,24 +36,26 @@ const dashboardLogin = readTemplate('dashboard-login');
 const processingTime = readTemplate('processing-time');
 const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
 
-const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string[] | undefined => {
+const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string => {
   if (!primaryUsers?.length) {
-    return ['None Selected'];
+    return 'None Selected';
   }
-  return primaryUsers?.map((user) => {
-    switch (user) {
-      case 'livingInBC':
-        return 'People living in BC';
-      case 'businessInBC':
-        return 'People doing business/travel in BC';
-      case 'bcGovEmployees':
-        return 'BC Gov Employees';
-      case 'other':
-        return `Other: ${otherDetails ?? ''}`;
-      default:
-        return '';
-    }
-  });
+  return primaryUsers
+    ?.map((user) => {
+      switch (user) {
+        case 'livingInBC':
+          return 'People living in BC';
+        case 'businessInBC':
+          return 'People doing business/travel in BC';
+        case 'bcGovEmployees':
+          return 'BC Gov Employees';
+        case 'other':
+          return `Other: ${otherDetails ?? ''}`;
+        default:
+          return '';
+      }
+    })
+    .join(', ');
 };
 
 Handlebars.registerPartial('footer', footer);
