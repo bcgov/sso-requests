@@ -36,7 +36,7 @@ const dashboardLogin = readTemplate('dashboard-login');
 const processingTime = readTemplate('processing-time');
 const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
 
-const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string => {
+const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string | undefined => {
   if (!primaryUsers?.length) {
     return 'None Selected';
   }
