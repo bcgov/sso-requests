@@ -386,6 +386,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           placeholder="Select..."
           noOptionsMessage={() => 'No roles'}
           onChange={handleRoleChange}
+          data-testid="user-role-select"
         />
         <LastSavedMessage saving={saving} content={savingMessage} />
       </>
@@ -411,6 +412,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         <Button
           type="button"
           size="small"
+          data-testid="idim-search-button"
           onClick={() =>
             idimSearchModalRef.current.open({
               key: new Date().getTime().toString(),
