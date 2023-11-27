@@ -38,3 +38,34 @@ resource "aws_s3_bucket_public_access_block" "this" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+resource "aws_s3_bucket_policy" "deny_non_secure_access_policy" {
+  bucket = aws_s3_bucket.this.id
+  policy = data.aws_iam_policy_document.deny_non_secure_access_doc.json
+}
+
+data "aws_iam_policy_document" "deny_non_secure_access_doc" {
+  statement {
+    effect = "Deny"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "s3:*"
+    ]
+
+    resources = [
+      aws_s3_bucket.this.arn,
+      "${aws_s3_bucket.this.arn}/*",
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
