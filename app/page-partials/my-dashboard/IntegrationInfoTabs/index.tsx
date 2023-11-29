@@ -69,9 +69,7 @@ const joinEnvs = (integration: Integration) => {
 const IntegrationWrapper = ({ integration, children }: { integration: Integration; children: React.ReactNode }) => {
   return (
     <>
-      <Header variant="primary" size="lg">
-        INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}
-      </Header>
+      <h2>INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}</h2>
       <Border>{children}</Border>
     </>
   );
