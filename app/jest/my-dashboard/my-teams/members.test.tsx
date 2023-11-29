@@ -130,7 +130,7 @@ describe('Members tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
-    screen.getByRole('columnheader', { name: 'Status' });
+    screen.getByRole('columnheader', { name: 'Invite Status' });
     screen.findByText('Email');
     screen.getByRole('columnheader', { name: 'Role' });
     screen.getAllByRole('columnheader', { name: 'Actions' });
