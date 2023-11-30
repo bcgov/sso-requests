@@ -1,16 +1,18 @@
 name: Lint PR
 
 on:
-  push:
-    branches:
-      - require-labels
-  pull_request_target:
+  pull_request:
     types:
       - opened
       - edited
       - synchronize
       - labeled
       - unlabeled
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
 
 jobs:
   main:
