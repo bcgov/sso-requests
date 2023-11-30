@@ -4,7 +4,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - no browser login 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>
+  Your Pathfinder SSO request ID 1 is successfully approved. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Environments: </strong>Development<br />
@@ -39,7 +40,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID & GitHub prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>
+  Your Pathfinder SSO request ID 1 is successfully approved. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -109,7 +111,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>
+  Your Pathfinder SSO request ID 1 is successfully approved. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -178,7 +181,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved GitHub prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>
+  Your Pathfinder SSO request ID 1 is successfully approved. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -225,7 +229,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>Your Pathfinder SSO request ID 1 is successfully approved.</p>
+<p>
+  Your Pathfinder SSO request ID 1 is successfully approved. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -961,7 +966,8 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 
 exports[`Email template snapshots Should return the expected email for UPDATE_INTEGRATION_APPLIED 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>Your Pathfinder SSO change for integration ID 1 is approved.</p>
+<p>
+  Your Pathfinder SSO change for integration ID 1 is approved. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
