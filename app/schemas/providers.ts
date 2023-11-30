@@ -35,7 +35,7 @@ const validURIlink =
 
 export const devValidRedirectUris = {
   ...commonRedirectUris,
-  description: `You can use any ${validURIlink} for your redirect URIs.`,
+  description: `You can use any ${validURIlink} for your redirect URIs. We <a target="_blank" class="link" href="https://bcgov.github.io/sso-docs/best-practices/dos-donts#do-not-reuse-clients-for-multiple-applications">recommend</a> only using your client for one application.`,
   title: 'Dev Redirect URIs',
   tooltip: redirectUriTooltip,
 };

@@ -141,6 +141,7 @@ export const updatePlannedItems = async (data) => {
         await sendTemplate(emailCode, {
           integration,
           waitingBceidProdApproval,
+          hasBceid,
           waitingGithubProdApproval,
           waitingDigitalCredentialProdApproval,
         });
