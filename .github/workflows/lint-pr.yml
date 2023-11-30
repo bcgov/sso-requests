@@ -30,3 +30,4 @@ jobs:
         with:
           mode: minimum
           count: 1
+          labels: 'bug, dependencies, documentation, duplicate, enhancement, feature, good first issue, help wanted, ignore-for-release, invalid, question, release:major, release:minor, ui-improvement, wontfix'
