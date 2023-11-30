@@ -1,13 +1,6 @@
 name: Lint PR
 
 on:
-  pull_request:
-    types:
-      - opened
-      - edited
-      - synchronize
-      - labeled
-      - unlabeled
   pull_request_target:
     types:
       - opened
@@ -22,12 +15,3 @@ jobs:
       - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  check-label:
-    name: Validate PR Labels
-    runs-on: ubuntu-latest
-    steps:
-      - uses: mheap/github-action-required-labels@v5
-        with:
-          mode: minimum
-          count: 1
-          labels: 'bug, dependencies, documentation, duplicate, enhancement, feature, good first issue, help wanted, ignore-for-release, invalid, question, release:major, release:minor, ui-improvement, wontfix'
