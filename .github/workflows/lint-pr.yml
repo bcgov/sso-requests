@@ -1,6 +1,9 @@
 name: Lint PR
 
 on:
+  push:
+    branches:
+      - require-labels
   pull_request_target:
     types:
       - opened
