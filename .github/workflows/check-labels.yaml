@@ -1,0 +1,21 @@
+name: Check pr labels
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - labeled
+      - unlabeled
+
+jobs:
+  check-labels:
+    name: Validate PR Labels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mheap/github-action-required-labels@v5
+        with:
+          mode: minimum
+          count: 1
+          labels: 'bug, dependencies, documentation, duplicate, enhancement, feature, good first issue, help wanted, ignore-for-release, invalid, question, release:major, release:minor, ui-improvement, wontfix'
