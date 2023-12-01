@@ -286,7 +286,10 @@ function IntegrationInfoTabs({ integration }: Props) {
 
   const tabs = [];
   const allowedTabs = [];
-  const digitalCredentialOnly = integration.devIdps?.every((idp) => idp === 'digitalcredential');
+
+  // Integrations can potentially have no IDPs, e.g service accounts only.
+  const digitalCredentialOnly =
+    integration.devIdps?.length && integration.devIdps?.every((idp) => idp === 'digitalcredential');
 
   if (displayStatus === 'Submitted') {
     if (bceidProdApplying || githubProdApplying || digitalCredentialProdApplying) {
