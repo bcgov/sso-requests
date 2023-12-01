@@ -35,6 +35,7 @@ const integrationDetail = readTemplate('integration-detail');
 const dashboardLogin = readTemplate('dashboard-login');
 const processingTime = readTemplate('processing-time');
 const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
+const bceidWarning = readTemplate('bceid-warning');
 
 const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string | undefined => {
   if (!primaryUsers?.length) {
@@ -69,6 +70,7 @@ Handlebars.registerPartial('integrationDetail', integrationDetail);
 Handlebars.registerPartial('dashboardLogin', dashboardLogin);
 Handlebars.registerPartial('processingTime', processingTime);
 Handlebars.registerPartial('ssoUpdatesMailingListMessage', ssoUpdatesMailingListMessage);
+Handlebars.registerPartial('bceidWarning', bceidWarning);
 Handlebars.registerHelper('formatPrimaryUsers', formatPrimaryUsers);
 
 const getBuilder = (key: string) => {

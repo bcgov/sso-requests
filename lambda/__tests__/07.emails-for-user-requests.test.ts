@@ -300,6 +300,7 @@ describe('integration email updates for individual users', () => {
 
       const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, {
         integration,
+        hasBceid: true,
       });
 
       expect(emailList.length).toEqual(1);
@@ -345,6 +346,7 @@ describe('integration email updates for individual users', () => {
 
       const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, {
         integration,
+        hasBceid: true,
         waitingBceidProdApproval: true,
       });
 
