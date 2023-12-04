@@ -27,6 +27,7 @@ import { getAuthenticatedUser } from './helpers/modules/users';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { models } from '@lambda-shared/sequelize/models/models';
+import { findOrCreateUser } from '@lambda-app/controllers/user';
 
 jest.mock('../app/src/authenticate');
 
@@ -222,4 +223,86 @@ describe('users and teams', () => {
   } catch (err) {
     console.error('EXCEPTION : ', err);
   }
+});
+
+describe('User creation and Updating', () => {
+  beforeAll(async () => {
+    jest.clearAllMocks();
+  });
+
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
+  });
+
+  it('creates a new user if neither email nor idir_userid exists in the database', async () => {
+    await findOrCreateUser({
+      idir_userid: 'TESTUSER',
+      email: 'a@b.com',
+      client_roles: [],
+      given_name: 'TEST',
+      family_name: 'TEST',
+    });
+
+    const users = await models.user.findAll();
+    expect(users.length).toBe(1);
+    expect(users[0].idirUserid).toBe('TESTUSER');
+    expect(users[0].idirEmail).toBe('a@b.com');
+  });
+
+  it('Updates the existing information when email already exists in the database', async () => {
+    await cleanUpDatabaseTables();
+
+    // User exists with only email via invite
+    await models.user.create({
+      idirEmail: 'a@b.com',
+    });
+
+    let users = await models.user.findAll();
+    expect(users.length).toBe(1);
+    expect(users[0].idirUserid).toBeNull();
+
+    // Add user with same email address, more info
+    await findOrCreateUser({
+      idir_userid: 'TESTUSER',
+      email: 'a@b.com',
+      client_roles: [],
+      given_name: 'TEST',
+      family_name: 'TEST',
+    });
+
+    users = await models.user.findAll();
+    expect(users.length).toBe(1);
+    expect(users[0].idirUserid).toBe('TESTUSER');
+    expect(users[0].idirEmail).toBe('a@b.com');
+  });
+
+  it('Cleans up users if re-invited on a new email address and existing GUID', async () => {
+    await cleanUpDatabaseTables();
+
+    // User initially exists with an old email and id
+    await models.user.create({
+      idirEmail: 'old@email.com',
+      idirUserid: 'TEST',
+    });
+
+    // User invited with new email. No guid inserted yet since hasn't logged in
+    await models.user.create({
+      idirEmail: 'second@email.com',
+    });
+
+    // Simulate login step using new email from invite, same guid as before
+    await findOrCreateUser({
+      idir_userid: 'TEST',
+      email: 'second@email.com',
+      client_roles: [],
+      given_name: 'TEST',
+      family_name: 'TEST',
+    });
+
+    // Only one user record with expected guid and new email address in DB
+    const users = await models.user.findAll();
+    expect(users.length).toBe(1);
+    expect(users[0].idirUserid).toBe('TEST');
+    expect(users[0].idirEmail).toBe('second@email.com');
+  });
 });

@@ -22,7 +22,20 @@ export const findOrCreateUser = async (session: Session) => {
 
   const displayName = getDisplayName(session);
   const conditions = [{ idirEmail: email }, { idirUserid: idir_userid }];
-  let user = await models.user.findOne({ where: { [Op.or]: conditions } });
+  const users = await models.user.findAll({ where: { [Op.or]: conditions } });
+  let user = users[0];
+
+  // Edge case where an invited user already has an existing idir ID in our DB
+  if (users.length > 1) {
+    const emailInviteRow = users.find((user) => user.idirUserid === null);
+    const fullRow = users.find((user) => user.idirUserid && user.idirEmail);
+    // Remove the duplicate row and continue with the correct one
+    if (fullRow && emailInviteRow) {
+      console.info(`Duplicate user found for id ${idir_userid}. Removing duplicate record.`);
+      await emailInviteRow.destroy();
+      user = fullRow;
+    }
+  }
 
   if (user) {
     // make sure the idir email is up-to-date for the account
