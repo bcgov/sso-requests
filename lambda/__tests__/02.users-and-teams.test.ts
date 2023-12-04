@@ -230,7 +230,7 @@ describe('User creation and Updating', () => {
     jest.clearAllMocks();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await cleanUpDatabaseTables();
   });
 
@@ -250,8 +250,6 @@ describe('User creation and Updating', () => {
   });
 
   it('Updates the existing information when email already exists in the database', async () => {
-    await cleanUpDatabaseTables();
-
     // User exists with only email via invite
     await models.user.create({
       idirEmail: 'a@b.com',
@@ -277,8 +275,6 @@ describe('User creation and Updating', () => {
   });
 
   it('Cleans up users if re-invited on a new email address and existing GUID', async () => {
-    await cleanUpDatabaseTables();
-
     // User initially exists with an old email and id
     await models.user.create({
       idirEmail: 'old@email.com',
