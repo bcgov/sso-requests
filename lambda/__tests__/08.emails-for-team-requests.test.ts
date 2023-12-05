@@ -338,6 +338,7 @@ describe('integration email updates for teams', () => {
         integration,
         waitingBceidProdApproval: false,
         waitingGithubProdApproval: false,
+        hasBceid: true,
       });
 
       expect(emailList.length).toEqual(1);

@@ -37,6 +37,41 @@ fieldset {
   margin-right: 10px;
 }
 
+.checkboxes-grid .checkboxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 0.5em;
+}
+
+/* Relative spacing the textarea is pushed over */
+:root {
+  --textarea-spacer: 5em;
+}
+/* Blank out description to prevent blocking */
+.other-details > div:first-child {
+  width: 0;
+}
+.other-details textarea {
+  width: calc(100% - var(--textarea-spacer));
+}
+.other-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  bottom: 2.4em;
+  left: var(--textarea-spacer);
+  height: 0;
+  margin-bottom: 3em;
+}
+.other-details::after {
+  content: '100 characters max.';
+  grid-column: 2;
+  margin-left: auto;
+  position: relative;
+  right: var(--textarea-spacer);
+  color: #abafb2;
+}
+
 .radio > label > span > input {
   margin: 10px 5px 0 0;
 }

@@ -17,6 +17,7 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   integration: IntegrationData;
   waitingBceidProdApproval?: boolean;
+  hasBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingDigitalCredentialProdApproval?: boolean;
 }

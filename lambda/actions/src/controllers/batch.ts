@@ -90,6 +90,8 @@ export const updatePlannedItems = async (data) => {
       'bceidApproved',
       'githubApproved',
       'digitalCredentialApproved',
+      'primaryEndUsers',
+      'primaryEndUsersOther',
     ],
     raw: true,
   });
@@ -139,6 +141,7 @@ export const updatePlannedItems = async (data) => {
         await sendTemplate(emailCode, {
           integration,
           waitingBceidProdApproval,
+          hasBceid,
           waitingGithubProdApproval,
           waitingDigitalCredentialProdApproval,
         });

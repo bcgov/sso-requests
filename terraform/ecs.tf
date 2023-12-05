@@ -127,7 +127,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
           value = "false"
         },
         {
-          name  = "GF_AUTH_GENERIC_OAUTH_OAUTH_USE_PKCE",
+          name  = "GF_AUTH_GENERIC_OAUTH_USE_PKCE",
           value = "true"
         },
         {
@@ -137,6 +137,10 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
         {
           name  = "GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH",
           value = "display_name"
+        },
+        {
+          name  = "GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP",
+          value = "true"
         }
       ]
       secrets = [

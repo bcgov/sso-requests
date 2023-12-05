@@ -110,6 +110,7 @@ export const getCreateIntegrationData = (args: {
     projectLead: true,
     serviceType: 'gold',
     usesTeam: args.teamIntegration || false,
+    primaryEndUsers: [],
     teamId: args.teamIntegration ? args.teamId : undefined,
   };
 };

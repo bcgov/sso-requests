@@ -14,7 +14,7 @@ import {
   checkIfDigitalCredentialProdApplying,
 } from 'utils/helpers';
 import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
-import { Border, Header, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
@@ -69,9 +69,7 @@ const joinEnvs = (integration: Integration) => {
 const IntegrationWrapper = ({ integration, children }: { integration: Integration; children: React.ReactNode }) => {
   return (
     <>
-      <Header variant="primary" size="lg">
-        INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}
-      </Header>
+      <h2>INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}</h2>
       <Border>{children}</Border>
     </>
   );
@@ -288,7 +286,10 @@ function IntegrationInfoTabs({ integration }: Props) {
 
   const tabs = [];
   const allowedTabs = [];
-  const digitalCredentialOnly = integration.devIdps?.every((idp) => idp === 'digitalcredential');
+
+  // Integrations can potentially have no IDPs, e.g service accounts only.
+  const digitalCredentialOnly =
+    integration.devIdps?.length && integration.devIdps?.every((idp) => idp === 'digitalcredential');
 
   if (displayStatus === 'Submitted') {
     if (bceidProdApplying || githubProdApplying || digitalCredentialProdApplying) {

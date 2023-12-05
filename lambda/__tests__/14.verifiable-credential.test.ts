@@ -110,6 +110,7 @@ const mockIntegration: IntegrationData = {
   devSamlSignAssertions: false,
   testSamlSignAssertions: false,
   prodSamlSignAssertions: false,
+  primaryEndUsers: [],
 };
 
 const submitNewIntegration = async (integration: IntegrationData) => {

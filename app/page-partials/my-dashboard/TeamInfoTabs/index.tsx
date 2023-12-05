@@ -411,6 +411,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   return (
     <>
+      <h2>Team Details</h2>
       <Tabs defaultActiveKey={'members'} tabBarGutter={30}>
         <Tab key="members" tab="Members">
           <TabWrapper>
@@ -430,7 +431,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 headers={[
                   {
                     accessor: 'status',
-                    Header: 'Status',
+                    Header: 'Invite Status',
                     disableSortBy: true,
                   },
                   {

@@ -14,4 +14,6 @@ export const sampleRequest: Integration = {
   archived: false,
   usesTeam: false,
   serviceType: 'gold',
+  primaryEndUsers: ['livingInBC'],
+  primaryEndUsersOther: '',
 };

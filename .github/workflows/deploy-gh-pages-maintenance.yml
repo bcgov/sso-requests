@@ -37,6 +37,7 @@ jobs:
           DEPLOY_REPO_NAME=bcgov/sso-requests-sandbox
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
+          INCLUDE_DIGITAL_CREDENTIAL=true
           EOF
 
       - name: Set env to production

@@ -45,6 +45,7 @@ const RoleManagement = ({ integration }: Props) => {
         onClick={() => {
           modalRef.current.open();
         }}
+        data-testid="create-role-button"
       >
         + Create a New Role
       </Button>

@@ -1,4 +1,6 @@
 import type { Status } from './types';
+
+export type PrimaryEndUser = 'livingInBC' | 'businessInBC' | 'bcGovEmployees' | 'other';
 export interface Integration {
   id?: number;
   idirUserid?: string;
@@ -55,6 +57,8 @@ export interface Integration {
   prodSessionMaxLifespan?: number;
   prodOfflineSessionIdleTimeout?: number;
   prodOfflineSessionMaxLifespan?: number;
+  primaryEndUsers?: PrimaryEndUser[];
+  primaryEndUsersOther?: string;
   lastChanges?: any[] | null;
   idirUserDisplayName?: string;
   requester?: string;
