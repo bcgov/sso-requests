@@ -147,7 +147,7 @@ describe('Fetch SSO Logs', () => {
 
   it('Returns 500 if unexpected error when fetching logs', async () => {
     await setupIntegrationAndUser();
-    (fetchLogs as jest.Mock).mockImplementationOnce(() => Promise.reject());
+    (fetchLogs as jest.Mock).mockImplementationOnce(() => Promise.reject('err'));
 
     const response = await supertest(app)
       .get(`${APP_BASE_PATH}/requests/${INTEGRATION_ID}/logs?${queryString}`)

@@ -300,7 +300,9 @@ export const setRoutes = (app: any) => {
       const unixStartTime = new Date(start).getTime() / 1000;
       const unixEndTime = new Date(end).getTime() / 1000;
 
-      if (!(unixStartTime > 0) || !(unixEndTime > 0)) {
+      const validTime = (time) => !Number.isNaN(time) && time > 0;
+
+      if (!validTime(unixStartTime) || !validTime(unixEndTime)) {
         return res.status(400).send('Include parsable dates for the start and end parameters, e.g YYYY-MM-DD.');
       }
 
