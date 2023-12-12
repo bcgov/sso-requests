@@ -74,7 +74,7 @@ jobs:
           APP_ENV=production
           GRAFANA_API_URL=https://sso-grafana.apps.gold.devops.gov.bc.ca/api
           GRAFANA_API_TOKEN=${{ secrets.PROD_GRAFANA_API_TOKEN }}
-          LOKI_DS_UID=${{secrets.DEV_LOKI_DS_UID}}
+          LOKI_DS_UID=${{secrets.PROD_LOKI_DS_UID}}
           TF_STATE_BUCKET=xgr00q-prod-sso-requests
           TF_STATE_BUCKET_KEY=css-tf-prod-state
           TF_STATE_DYNAMODB_TABLE=xgr00q-prod-sso-requests-state-locking
