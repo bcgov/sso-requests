@@ -4,12 +4,12 @@ import { APP_BASE_PATH } from './helpers/constants';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { getUpdateIntegrationData } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { fetchLogs } from '../app/src/grafana';
+import { queryGrafana } from '../app/src/grafana';
 
 jest.mock('../app/src/authenticate');
 jest.mock('../app/src/grafana', () => {
   return {
-    fetchLogs: jest.fn(() => Promise.resolve(['log', 'log'])),
+    queryGrafana: jest.fn(() => Promise.resolve(['log', 'log'])),
   };
 });
 
@@ -147,12 +147,23 @@ describe('Fetch SSO Logs', () => {
 
   it('Returns 500 if unexpected error when fetching logs', async () => {
     await setupIntegrationAndUser();
-    (fetchLogs as jest.Mock).mockImplementationOnce(() => Promise.reject(new Error('err')));
+    (queryGrafana as jest.Mock).mockImplementationOnce(() => Promise.reject(new Error('err')));
 
     const response = await supertest(app)
       .get(`${APP_BASE_PATH}/requests/${INTEGRATION_ID}/logs?${queryString}`)
       .set('Accept', 'application/json');
 
     expect(response.status).toBe(500);
+  });
+
+  it('Returns the expected logs in JSON array if successful', async () => {
+    await setupIntegrationAndUser();
+
+    const response = await supertest(app)
+      .get(`${APP_BASE_PATH}/requests/${INTEGRATION_ID}/logs?${queryString}`)
+      .set('Accept', 'application/json');
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual(['log', 'log']);
   });
 });
