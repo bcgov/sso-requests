@@ -1,6 +1,16 @@
 import axios from 'axios';
 
 export const queryGrafana = async (query: string, start: number, end: number, limit: number) => {
+  const lokiUID = await axios
+    .get(`${process.env.GRAFANA_API_URL}/datasources`, {
+      headers: {
+        Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    })
+    .then((res) => res.data.find((source) => source.name === 'SSO Loki')?.uid);
+
   const response = await axios.post(
     `${process.env.GRAFANA_API_URL}/ds/query`,
     {
@@ -11,7 +21,7 @@ export const queryGrafana = async (query: string, start: number, end: number, li
           queryType: 'range',
           datasource: {
             type: 'loki',
-            uid: process.env.LOKI_DS_UID,
+            uid: lokiUID,
           },
           maxLines: limit,
         },

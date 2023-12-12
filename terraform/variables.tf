@@ -38,11 +38,6 @@ variable "grafana_api_url" {
   type        = string
 }
 
-variable "loki_ds_uid" {
-  description = "The uid for the loki datasource"
-  type        = string
-}
-
 variable "sso_client_id" {
   description = "The required audience for authentication"
   type        = string
