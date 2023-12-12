@@ -128,8 +128,8 @@ export const getUpdateIntegrationData = (args: {
 }) => {
   const {
     projectName = args.integration.projectName,
-    envs = args.integration.environments.length > 1 ? args.integration.environments : ['dev'],
-    identityProviders = args.integration.devIdps.length > 1 ? args.integration.devIdps : ['idir'],
+    envs = args.integration.environments?.length > 1 ? args.integration.environments : ['dev'],
+    identityProviders = args.integration.devIdps?.length > 1 ? args.integration.devIdps : ['idir'],
     protocol = args.integration.protocol || 'oidc',
     authType = args.integration.authType || 'browser-login',
     publicAccess = args.integration.publicAccess || true,

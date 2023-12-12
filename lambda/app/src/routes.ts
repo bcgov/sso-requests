@@ -51,7 +51,7 @@ import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
 import { getAllowedTeam, getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
-import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
+import { findMyOrTeamIntegrationsByService, getAllowedRequest } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
 import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
 import {
@@ -64,6 +64,7 @@ import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
+import { fetchLogs } from './grafana';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -265,6 +266,54 @@ export const setRoutes = (app: any) => {
       }
       const result = await resubmitRequest(req.session as Session, Number(id));
       res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/requests/:id/logs`, async (req, res) => {
+    try {
+      const LOG_SIZE_LIMIT = 2000;
+      const { id } = req.params || {};
+      const { start, end, env, eventType } = req.query || {};
+
+      // Check user owns requested logs
+      const userRequest = await getAllowedRequest(req.session, id);
+      if (!userRequest) return res.status(401).send("You are not authorized to view this request's logs");
+
+      const { clientId } = userRequest;
+      // Validate user supplied inputs
+      const hasRequiredQueryParams = start && end && env && eventType;
+      const allowedEnvs = ['dev', 'test', 'prod'];
+      const allowedEvents = ['LOGIN', 'CODE_TO_TOKEN', 'REFRESH_TOKEN'];
+
+      if (!hasRequiredQueryParams) {
+        return res.status(400).send('Not all query params sent. Please include start, end, env, and eventType.');
+      }
+      if (!allowedEnvs.includes(env)) {
+        return res.status(400).send(`The env query param must be one of ${allowedEnvs.join(', ')}.`);
+      }
+      if (!allowedEvents.includes(eventType)) {
+        return res.status(400).send(`The eventType query param must be one of ${allowedEvents.join(', ')}`);
+      }
+
+      const unixStartTime = new Date(start).getTime() / 1000;
+      const unixEndTime = new Date(end).getTime() / 1000;
+
+      if (!(unixStartTime > 0) || !(unixEndTime > 0)) {
+        return res.status(400).send('Include parsable dates for the start and end parameters, e.g YYYY-MM-DD.');
+      }
+
+      try {
+        const allLogs = await fetchLogs(env, clientId, unixStartTime, unixEndTime, eventType, LOG_SIZE_LIMIT);
+        let message = 'All logs retrieved';
+        if (allLogs.length === LOG_SIZE_LIMIT)
+          message = 'Log limit reached. There may be more logs available, try a more restricted date range.';
+        res.status(200).send({ logs: allLogs, message });
+      } catch (err) {
+        console.info('Unexpected error when calling Loki:', err);
+        return res.status(500).send({ message: 'Unexpected error when querying logs' });
+      }
     } catch (err) {
       handleError(res, err);
     }
