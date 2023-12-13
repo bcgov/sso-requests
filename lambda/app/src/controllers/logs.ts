@@ -35,8 +35,8 @@ export const fetchLogs = async (
     return { status: 400, message: "The eventType query param must be one of ${allowedEvents.join(', ')}" };
   }
 
-  const unixStartTime = new Date(start).getTime() / 1000;
-  const unixEndTime = new Date(end).getTime() / 1000;
+  const unixStartTime = new Date(start).getTime();
+  const unixEndTime = new Date(end).getTime();
 
   const validTime = (time) => !Number.isNaN(time) && time > 0;
 

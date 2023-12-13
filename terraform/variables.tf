@@ -33,8 +33,8 @@ variable "grafana_api_token" {
   type        = string
 }
 
-variable "sso_logs_url" {
-  description = "Base url to call loki for logs"
+variable "grafana_api_url" {
+  description = "Base url to call the grafana api"
   type        = string
 }
 
