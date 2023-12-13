@@ -83,7 +83,7 @@ export const fetchMetrics = async (
       return { status: 400, message: 'Include parsable dates for the start and end dates, e.g YYYY-MM-DD.' };
     }
 
-    const query = clientEventsAggregationQuery(clientId, environment, fromDate, toDate);
+    const query = await clientEventsAggregationQuery(clientId, environment, fromDate, toDate);
     const headers = {
       Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
       'Content-Type': 'application/json',

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const fetchDatasourceUID = async (datasourceName) => {
+export const fetchDatasourceUID = async (datasourceName: string) => {
   return axios
     .get(`${process.env.GRAFANA_API_URL}/datasources`, {
       headers: {
@@ -49,16 +49,17 @@ export const queryGrafana = async (query: string, start: number, end: number, li
   }, []);
 };
 
-export const clientEventsAggregationQuery = (
+export const clientEventsAggregationQuery = async (
   clientId: string,
   environment: string,
   fromDate: string,
   toDate: string,
 ) => {
+  const aggregatorUID = await fetchDatasourceUID('SSO Aggregator');
   return {
     queries: [
       {
-        datasource: { type: 'postgres', uid: process.env.GRAFANA_AGGREGATOR_DS_UID },
+        datasource: { type: 'postgres', uid: aggregatorUID },
         rawSql: `select json_build_object('event', event_type, 'count', count) from (select distinct event_type, SUM(\"count\") OVER (PARTITION BY \"event_type\") as count from client_events where client_id = '${clientId}' and environment = '${environment}' and date >= '${fromDate}' and date <= '${toDate}') client_event_data;`,
         format: 'table',
       },
