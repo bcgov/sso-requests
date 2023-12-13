@@ -1,29 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { getRequestedEnvironments } from 'utils/helpers';
 import { Integration } from 'interfaces/Request';
-import { EnvironmentOption } from 'interfaces/form';
 import { withTopAlert } from 'layout/TopAlert';
-import CenteredModal from 'components/CenteredModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import { changeClientSecret } from 'services/keycloak';
-import { Button, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import startCase from 'lodash.startcase';
-import {
-  BarChart,
-  Bar,
-  Rectangle,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Text,
-  Area,
-} from 'recharts';
-import { getAggregatedDataByClientId } from '@app/services/grafana';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Text } from 'recharts';
+import { getMetrics } from '@app/services/grafana';
 import throttle from 'lodash.throttle';
 import { DatePicker } from '@button-inc/bcgov-theme';
 import moment from 'moment';
@@ -36,6 +19,10 @@ export const DatePickerContainer = styled.div`
   & > * {
     margin-left: 15px;
   }
+`;
+
+const Label = styled.label`
+  margin-bottom: 2px;
 `;
 
 const TopMargin = styled.div`
@@ -87,12 +74,7 @@ const MetricsPanel = ({ integration }: Props) => {
 
   const fetchMetrics = useCallback(
     throttle(async (environment: string) => {
-      const [metricsData, err] = await getAggregatedDataByClientId(
-        integration.clientId as string,
-        environment,
-        fromDate,
-        toDate,
-      );
+      const [metricsData, err] = await getMetrics(integration?.id as number, environment, fromDate, toDate);
 
       if (err || metricsData[0].length === 0) {
         setMetrics([]);
@@ -111,14 +93,20 @@ const MetricsPanel = ({ integration }: Props) => {
     <>
       <TopMargin />
 
-      <DatePickerContainer>
-        <DatePicker
-          label="Start Date"
-          onChange={(event: any) => handleFromDateChange(event.target.value)}
-          value={fromDate}
-        />
-        <DatePicker label="End Date" onChange={(event: any) => handleToDateChange(event.target.value)} value={toDate} />
-      </DatePickerContainer>
+      <div>
+        <DatePickerContainer>
+          <DatePicker
+            label="Start Date"
+            onChange={(event: any) => handleFromDateChange(event.target.value)}
+            value={fromDate}
+          />
+          <DatePicker
+            label="End Date"
+            onChange={(event: any) => handleToDateChange(event.target.value)}
+            value={toDate}
+          />
+        </DatePickerContainer>
+      </div>
 
       <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
         <br />
@@ -149,7 +137,7 @@ const MetricsPanel = ({ integration }: Props) => {
                       dataKey="count"
                       fill="#0d6efd"
                       barSize={30}
-                      label={{ fill: 'white', fontSize: 20 }}
+                      label={{ fill: '#0d6efd', fontSize: 20, position: 'top' }}
                       background={{ fill: '#eee' }}
                     />
                   </BarChart>

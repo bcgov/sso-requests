@@ -64,8 +64,7 @@ import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
-import { getAggregatedDataByClientId } from './controllers/grafana';
-import { fetchLogs } from '@lambda-app/controllers/logs';
+import { fetchLogs, fetchMetrics } from '@lambda-app/controllers/logs';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -280,6 +279,17 @@ export const setRoutes = (app: any) => {
 
       if (status === 200) res.status(status).send({ message, data });
       else res.status(status).send({ message });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/requests/:id/metrics`, async (req, res) => {
+    try {
+      const { id } = req.params || {};
+      const { fromDate, toDate, env } = req.query || {};
+      const result = await fetchMetrics(req.session, id, env, fromDate, toDate);
+      res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
@@ -756,20 +766,6 @@ export const setRoutes = (app: any) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
       const result = await getDataIntegrityReport();
-      res.status(200).json(result);
-    } catch (err) {
-      handleError(res, err);
-    }
-  });
-
-  app.get(`/grafana/aggregatedEventMetrics/:clientId/:env`, async (req, res) => {
-    try {
-      const result = await getAggregatedDataByClientId(
-        req.params.clientId,
-        req.params.env,
-        req.query.fromDate,
-        req.query.toDate,
-      );
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
