@@ -63,7 +63,7 @@ export const clientEventsAggregationQuery = async (
     queries: [
       {
         datasource: { type: 'postgres', uid: aggregatorUID },
-        rawSql: `select json_build_object('event', event_type, 'count', count) from (select distinct event_type, SUM(\"count\") OVER (PARTITION BY \"event_type\") as count from client_events where client_id = '${clientId}' and environment = '${environment}' and date >= '${fromDate}' and date <= '${toDate}') client_event_data;`,
+        rawSql: `select json_build_object('event', event_type, 'count', count) from (select distinct event_type, SUM(\"count\") OVER (PARTITION BY \"event_type\") as count from client_events where client_id = '${clientId}' and environment = '${environment}' and date(date) >= '${fromDate}' and date(date) <= '${toDate}') client_event_data;`,
         format: 'table',
       },
     ],

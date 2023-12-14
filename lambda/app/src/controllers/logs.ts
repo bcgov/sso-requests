@@ -83,6 +83,12 @@ export const fetchMetrics = async (
       return { status: 400, message: 'Include parsable dates for the start and end dates, e.g YYYY-MM-DD.' };
     }
 
+    if (startDate > endDate) {
+      return { status: 400, message: 'Start date cannot be greater than end date.' };
+    } else if (endDate > new Date().getTime()) {
+      return { status: 400, message: 'End date cannot be a future date.' };
+    }
+
     result = await clientEventsAggregationQuery(clientId, environment, fromDate, toDate);
 
     return { status: 200, message: null, data: result };
