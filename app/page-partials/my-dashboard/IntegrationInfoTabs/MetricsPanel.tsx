@@ -12,6 +12,7 @@ import moment from 'moment';
 import DateTimePicker from '@app/components/DateTimePicker';
 import { InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
+import { subtractDaysFromDate } from '@app/utils/helpers';
 
 export const DatePickerContainer = styled.div`
   height: 100%;
@@ -55,32 +56,34 @@ interface Props {
   integration: Integration;
 }
 
-const metricsStartDate = 'December 01, 2023';
+const getFormattedDateString = (d: Date) => {
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+};
+
+const metricsStartDate = 'Nov 01, 2023';
 const MetricsPanel = ({ integration }: Props) => {
   const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
   const [metrics, setMetrics] = useState<EventCountMetric[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fromDate, setFromDate] = useState<string>(moment().subtract(14, 'days').format('YYYY-MM-DD'));
-  const [toDate, setToDate] = useState<string>(moment().format('YYYY-MM-DD'));
+  const [fromDate, setFromDate] = useState<Date>(subtractDaysFromDate(14));
+  const [toDate, setToDate] = useState<Date>(new Date());
+  let selectedFromDate: Date = new Date();
+
   const handleTabSelect = (key: string) => {
     setEnvironment(key);
   };
 
-  const getFormattedDate = (val: Date) => {
-    return moment.utc(val).format('YYYY-MM-DD');
-  };
-
   const handleFromDateChange = (val: Date) => {
-    setFromDate(getFormattedDate(val));
+    setFromDate(val);
   };
 
   const handleToDateChange = (val: Date) => {
-    setToDate(getFormattedDate(val));
+    setToDate(val);
   };
 
   const fetchMetrics = useCallback(
-    throttle(async (environment: string) => {
+    throttle(async (fromDate: string, toDate: string, environment: string) => {
       const [metricsData, err] = await getMetrics(integration?.id as number, environment, fromDate, toDate);
 
       if (err || metricsData.length === 0) {
@@ -93,7 +96,7 @@ const MetricsPanel = ({ integration }: Props) => {
   );
 
   useEffect(() => {
-    fetchMetrics(environment);
+    fetchMetrics(getFormattedDateString(fromDate), getFormattedDateString(toDate), environment);
   }, [integration?.clientId, environment, fromDate, toDate]);
 
   return (
@@ -107,13 +110,14 @@ const MetricsPanel = ({ integration }: Props) => {
             selected={new Date(fromDate)}
             onChange={(date: Date) => handleFromDateChange(date)}
             minDate={new Date(metricsStartDate)}
+            maxDate={subtractDaysFromDate(1)}
             label="Start Date"
           />
           <DateTimePicker
             placeholderText="End Date"
             selected={new Date(toDate)}
             onChange={(date: Date) => handleToDateChange(date)}
-            minDate={new Date(metricsStartDate)}
+            minDate={fromDate}
             label="End Date"
           />
         </DatePickerContainer>

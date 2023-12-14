@@ -74,6 +74,18 @@ describe('create/manage integration by authenticated user', () => {
       expect(result.status).toEqual(400);
     });
 
+    it('should reject if start date is greater than end date', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const result = await fetchMetrics(integration?.id, '2023-01-20', '2023-01-10', 'dev');
+      expect(result.status).toEqual(400);
+    });
+
+    it('should reject if end date is a future date', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const result = await fetchMetrics(integration?.id, '2023-01-20', '9999-12-01', 'dev');
+      expect(result.status).toEqual(400);
+    });
+
     it('should reject if env input is not valid', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await fetchMetrics(integration?.id, '2023-01-01', '2023-01-10', 'fake');

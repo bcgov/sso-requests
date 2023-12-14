@@ -321,3 +321,9 @@ export const checkIfDigitalCredentialProdApplying = (integration: Integration) =
   const prodApplying = checkIfProdApplying(integration, 'digitalCredentialApproved');
   return prodApplying;
 };
+
+export const subtractDaysFromDate = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d;
+};
