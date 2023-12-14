@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Integration } from 'interfaces/Request';
+import { EventCountMetric, Integration } from 'interfaces/Request';
 import { withTopAlert } from 'layout/TopAlert';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
@@ -59,11 +59,11 @@ const metricsStartDate = 'December 01, 2023';
 const MetricsPanel = ({ integration }: Props) => {
   const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
-  const [metrics, setMetrics] = useState<any>([]);
+  const [metrics, setMetrics] = useState<EventCountMetric[]>([]);
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<string>(moment().subtract(14, 'days').format('YYYY-MM-DD'));
   const [toDate, setToDate] = useState<string>(moment().format('YYYY-MM-DD'));
-  const handleTabSelect = (key: any) => {
+  const handleTabSelect = (key: string) => {
     setEnvironment(key);
   };
 
@@ -105,14 +105,14 @@ const MetricsPanel = ({ integration }: Props) => {
           <DateTimePicker
             placeholderText="Start Date"
             selected={new Date(fromDate)}
-            onChange={(date: any) => handleFromDateChange(date)}
+            onChange={(date: Date) => handleFromDateChange(date)}
             minDate={new Date(metricsStartDate)}
             label="Start Date"
           />
           <DateTimePicker
             placeholderText="End Date"
             selected={new Date(toDate)}
-            onChange={(date: any) => handleToDateChange(date)}
+            onChange={(date: Date) => handleToDateChange(date)}
             minDate={new Date(metricsStartDate)}
             label="End Date"
           />
