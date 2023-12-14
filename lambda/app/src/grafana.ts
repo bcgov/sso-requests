@@ -55,8 +55,11 @@ export const clientEventsAggregationQuery = async (
   fromDate: string,
   toDate: string,
 ) => {
+  let result = [];
+
   const aggregatorUID = await fetchDatasourceUID('SSO Aggregator');
-  return {
+
+  const query = {
     queries: [
       {
         datasource: { type: 'postgres', uid: aggregatorUID },
@@ -65,4 +68,19 @@ export const clientEventsAggregationQuery = async (
       },
     ],
   };
-}; //23beuGVIz
+
+  const headers = {
+    Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+  const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
+
+  const values = res?.data?.results?.A?.frames[0]?.data?.values;
+
+  if (values.length > 0) {
+    result = values[0].map((item) => JSON.parse(item));
+  }
+
+  return result;
+};

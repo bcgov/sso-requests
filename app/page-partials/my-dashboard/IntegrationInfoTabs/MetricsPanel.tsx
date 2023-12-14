@@ -5,11 +5,13 @@ import { withTopAlert } from 'layout/TopAlert';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import startCase from 'lodash.startcase';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Text } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Text, Legend } from 'recharts';
 import { getMetrics } from '@app/services/grafana';
 import throttle from 'lodash.throttle';
-import { DatePicker } from '@button-inc/bcgov-theme';
 import moment from 'moment';
+import DateTimePicker from '@app/components/DateTimePicker';
+import { InfoMessage } from '@app/components/MessageBox';
+import { Link } from '@button-inc/bcgov-theme';
 
 export const DatePickerContainer = styled.div`
   height: 100%;
@@ -53,6 +55,7 @@ interface Props {
   integration: Integration;
 }
 
+const metricsStartDate = 'December 01, 2023';
 const MetricsPanel = ({ integration }: Props) => {
   const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
@@ -64,22 +67,26 @@ const MetricsPanel = ({ integration }: Props) => {
     setEnvironment(key);
   };
 
-  const handleFromDateChange = (val: string) => {
-    setFromDate(val);
+  const getFormattedDate = (val: Date) => {
+    return moment.utc(val).format('YYYY-MM-DD');
   };
 
-  const handleToDateChange = (val: string) => {
-    setToDate(val);
+  const handleFromDateChange = (val: Date) => {
+    setFromDate(getFormattedDate(val));
+  };
+
+  const handleToDateChange = (val: Date) => {
+    setToDate(getFormattedDate(val));
   };
 
   const fetchMetrics = useCallback(
     throttle(async (environment: string) => {
       const [metricsData, err] = await getMetrics(integration?.id as number, environment, fromDate, toDate);
 
-      if (err || metricsData[0].length === 0) {
+      if (err || metricsData.length === 0) {
         setMetrics([]);
       } else {
-        setMetrics(metricsData[0]);
+        setMetrics(metricsData);
       }
     }),
     [integration?.clientId, environment, fromDate, toDate],
@@ -95,15 +102,19 @@ const MetricsPanel = ({ integration }: Props) => {
 
       <div>
         <DatePickerContainer>
-          <DatePicker
+          <DateTimePicker
+            placeholderText="Start Date"
+            selected={new Date(fromDate)}
+            onChange={(date: any) => handleFromDateChange(date)}
+            minDate={new Date(metricsStartDate)}
             label="Start Date"
-            onChange={(event: any) => handleFromDateChange(event.target.value)}
-            value={fromDate}
           />
-          <DatePicker
+          <DateTimePicker
+            placeholderText="End Date"
+            selected={new Date(toDate)}
+            onChange={(date: any) => handleToDateChange(date)}
+            minDate={new Date(metricsStartDate)}
             label="End Date"
-            onChange={(event: any) => handleToDateChange(event.target.value)}
-            value={toDate}
           />
         </DatePickerContainer>
       </div>
@@ -133,6 +144,7 @@ const MetricsPanel = ({ integration }: Props) => {
                     />
                     <YAxis dataKey="count" label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
                     <Tooltip />
+                    <Legend />
                     <Bar
                       dataKey="count"
                       fill="#0d6efd"
@@ -151,6 +163,13 @@ const MetricsPanel = ({ integration }: Props) => {
           </Tab>
         ))}
       </Tabs>
+      <InfoMessage>
+        This tab was released {metricsStartDate}. Please refer to{' '}
+        <Link href="https://bcgov.github.io/sso-docs/integrating-your-application/installation-json" external>
+          here
+        </Link>{' '}
+        for event type details.
+      </InfoMessage>
     </>
   );
 };

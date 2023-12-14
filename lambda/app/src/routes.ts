@@ -288,8 +288,9 @@ export const setRoutes = (app: any) => {
     try {
       const { id } = req.params || {};
       const { fromDate, toDate, env } = req.query || {};
-      const result = await fetchMetrics(req.session, id, env, fromDate, toDate);
-      res.status(200).json(result);
+      const { status, message, data } = await fetchMetrics(req.session, id, env, fromDate, toDate);
+      if (status === 200) res.status(status).send(data);
+      else res.status(status).send({ message });
     } catch (err) {
       handleError(res, err);
     }

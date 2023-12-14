@@ -83,23 +83,11 @@ export const fetchMetrics = async (
       return { status: 400, message: 'Include parsable dates for the start and end dates, e.g YYYY-MM-DD.' };
     }
 
-    const query = await clientEventsAggregationQuery(clientId, environment, fromDate, toDate);
-    const headers = {
-      Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    };
-    const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
+    result = await clientEventsAggregationQuery(clientId, environment, fromDate, toDate);
 
-    const values = res?.data?.results?.A?.frames[0]?.data?.values;
-
-    if (values.length > 0) {
-      result = values[0].map((item) => JSON.parse(item));
-    }
-
-    return [result, null];
+    return { status: 200, message: null, data: result };
   } catch (err) {
     console.error(err);
-    return [null, err];
+    return { status: 500, message: 'Unable to fetch metrics at this moment!', data: null };
   }
 };
