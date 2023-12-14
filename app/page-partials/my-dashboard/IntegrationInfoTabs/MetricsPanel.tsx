@@ -60,7 +60,7 @@ const getFormattedDateString = (d: Date) => {
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 };
 
-const metricsStartDate = 'Nov 01, 2023';
+const metricsStartDate = 'December 01, 2023';
 const MetricsPanel = ({ integration }: Props) => {
   const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
