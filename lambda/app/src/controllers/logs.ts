@@ -1,8 +1,11 @@
 import { getAllowedRequest } from '@lambda-app/queries/request';
 import { Session } from '@lambda-shared/interfaces';
-import { queryGrafana } from '@lambda-app/grafana';
+import { clientEventsAggregationQuery, queryGrafana } from '@lambda-app/grafana';
+import axios from 'axios';
 
 const LOG_SIZE_LIMIT = 2000;
+
+const allowedEnvs = ['dev', 'test', 'prod'];
 
 export const fetchLogs = async (
   session: Session,
@@ -14,12 +17,12 @@ export const fetchLogs = async (
 ) => {
   // Check user owns requested logs
   const userRequest = await getAllowedRequest(session, id);
-  if (!userRequest) return { status: 401, message: "You are not authorized to view this request's logs" };
+  if (!userRequest) return { status: 401, message: "You are not authorized to view this integration's logs" };
 
   const { clientId } = userRequest;
   // Validate user supplied inputs
   const hasRequiredQueryParams = start && end && env && eventType;
-  const allowedEnvs = ['dev', 'test', 'prod'];
+
   const allowedEvents = ['LOGIN', 'CODE_TO_TOKEN', 'REFRESH_TOKEN'];
 
   if (!hasRequiredQueryParams) {
@@ -51,5 +54,40 @@ export const fetchLogs = async (
   } catch (err) {
     console.info(`Error while fetching logs from loki: ${err}`);
     return { status: 500, message: 'Unexpected error fetching logs.' };
+  }
+};
+
+export const fetchMetrics = async (
+  session: Session,
+  id: number,
+  environment: string,
+  fromDate: string,
+  toDate: string,
+) => {
+  try {
+    let result = [];
+    // Check user owns requested logs
+    const userRequest = await getAllowedRequest(session, id);
+    if (!userRequest) return { status: 401, message: "You are not authorized to view this integration's metrics" };
+
+    const { clientId } = userRequest;
+
+    if (!allowedEnvs.includes(environment)) {
+      return { status: 400, message: `The env query param must be one of ${allowedEnvs.join(', ')}.` };
+    }
+
+    const startDate = Date.parse(fromDate);
+    const endDate = Date.parse(toDate);
+
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return { status: 400, message: 'Include parsable dates for the start and end dates, e.g YYYY-MM-DD.' };
+    }
+
+    result = await clientEventsAggregationQuery(clientId, environment, fromDate, toDate);
+
+    return { status: 200, message: null, data: result };
+  } catch (err) {
+    console.error(err);
+    return { status: 500, message: 'Unable to fetch metrics at this moment!', data: null };
   }
 };
