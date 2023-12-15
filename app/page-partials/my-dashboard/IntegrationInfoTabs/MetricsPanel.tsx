@@ -169,7 +169,10 @@ const MetricsPanel = ({ integration }: Props) => {
       </Tabs>
       <InfoMessage>
         This tab was released {metricsStartDate}. Please refer to{' '}
-        <Link href="https://bcgov.github.io/sso-docs/integrating-your-application/installation-json" external>
+        <Link
+          href="https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.4/html/server_administration_guide/auditing_and_events#event_types"
+          external
+        >
           here
         </Link>{' '}
         for event type details.
