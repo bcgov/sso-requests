@@ -110,7 +110,7 @@ const MetricsPanel = ({ integration }: Props) => {
             selected={new Date(fromDate)}
             onChange={(date: Date) => handleFromDateChange(date)}
             minDate={new Date(metricsStartDate)}
-            maxDate={subtractDaysFromDate(1)}
+            maxDate={toDate}
             label="Start Date"
           />
           <DateTimePicker
