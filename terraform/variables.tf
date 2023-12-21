@@ -28,6 +28,16 @@ variable "include_digital_credential" {
   default     = "false"
 }
 
+variable "grafana_api_token" {
+  description = "API token for the grafana service account."
+  type        = string
+}
+
+variable "grafana_api_url" {
+  description = "Base url to call the grafana api"
+  type        = string
+}
+
 variable "sso_client_id" {
   description = "The required audience for authentication"
   type        = string

@@ -51,6 +51,8 @@ resource "aws_lambda_function" "app" {
       CHES_PASSWORD                  = var.ches_password
       CHES_USERNAME                  = var.ches_username
       INCLUDE_DIGITAL_CREDENTIAL     = var.include_digital_credential
+      GRAFANA_API_TOKEN              = var.grafana_api_token
+      GRAFANA_API_URL                = var.grafana_api_url
     }
   }
 

@@ -64,6 +64,7 @@ import { assertSessionRole } from './helpers/permissions';
 import { fetchDiscussions } from './graphql';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
+import { fetchLogs, fetchMetrics } from '@lambda-app/controllers/logs';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -265,6 +266,31 @@ export const setRoutes = (app: any) => {
       }
       const result = await resubmitRequest(req.session as Session, Number(id));
       res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/requests/:id/logs`, async (req, res) => {
+    try {
+      const { id } = req.params || {};
+      const { start, end, env, eventType } = req.query || {};
+      const { status, message, data } = await fetchLogs(req.session, env, id, start, end, eventType);
+
+      if (status === 200) res.status(status).send({ message, data });
+      else res.status(status).send({ message });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/requests/:id/metrics`, async (req, res) => {
+    try {
+      const { id } = req.params || {};
+      const { fromDate, toDate, env } = req.query || {};
+      const { status, message, data } = await fetchMetrics(req.session, id, env, fromDate, toDate);
+      if (status === 200) res.status(status).send(data);
+      else res.status(status).send({ message });
     } catch (err) {
       handleError(res, err);
     }

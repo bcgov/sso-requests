@@ -103,3 +103,8 @@ export interface ClientRole {
   name: string;
   composites: string[];
 }
+
+export interface EventCountMetric {
+  event: string;
+  count: number;
+}

@@ -24,6 +24,7 @@ import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
 import DigitalCredentialPanel from './DigitalCredentialPanel';
+import MetricsPanel from './MetricsPanel';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -44,6 +45,7 @@ const TAB_USER_ROLE_MANAGEMENT = 'user-role-management';
 const TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT = 'service-account-role-management';
 const TAB_SECRET = 'secret';
 const TAB_HISTORY = 'history';
+const TAB_METRICS = 'metrics';
 
 const joinEnvs = (integration: Integration) => {
   if (!integration?.environments) return '';
@@ -210,6 +212,16 @@ const getSecretsTab = ({ integration }: { integration: Integration }) => {
   );
 };
 
+const getMetricsTab = ({ integration }: { integration: Integration }) => {
+  return (
+    <Tab key={TAB_METRICS} tab="Metrics">
+      <TabWrapper short={false}>
+        <MetricsPanel integration={integration} />
+      </TabWrapper>
+    </Tab>
+  );
+};
+
 const getHistoryTab = ({ integration }: { integration: Integration }) => {
   return (
     <Tab key={TAB_HISTORY} tab="Change History">
@@ -327,6 +339,9 @@ function IntegrationInfoTabs({ integration }: Props) {
 
     tabs.push(getHistoryTab({ integration }));
     allowedTabs.push(TAB_HISTORY);
+
+    tabs.push(getMetricsTab({ integration }));
+    allowedTabs.push(TAB_METRICS);
   }
 
   let activeKey = activeTab;

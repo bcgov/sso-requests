@@ -33,6 +33,8 @@ jobs:
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           APP_ENV=development
+          GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
+          GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
           TF_STATE_BUCKET=xgr00q-dev-sso-requests
           TF_STATE_BUCKET_KEY=css-tf-dev-state
           TF_STATE_DYNAMODB_TABLE=xgr00q-dev-sso-requests-state-locking
@@ -69,6 +71,8 @@ jobs:
           API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           APP_ENV=production
+          GRAFANA_API_URL=https://sso-grafana.apps.gold.devops.gov.bc.ca/api
+          GRAFANA_API_TOKEN=${{ secrets.PROD_GRAFANA_API_TOKEN }}
           TF_STATE_BUCKET=xgr00q-prod-sso-requests
           TF_STATE_BUCKET_KEY=css-tf-prod-state
           TF_STATE_DYNAMODB_TABLE=xgr00q-prod-sso-requests-state-locking
@@ -209,6 +213,8 @@ jobs:
           custom_domain_name="${{ env.CUSTOM_DOMAIN_NAME }}"
           uptime_status_domain_name="${{ env.UPTIME_STATUS_DOMAIN_NAME }}"
           aws_ecr_uri="${{ env.AWS_ECR_URI }}"
+          grafana_api_token="${{ env.GRAFANA_API_TOKEN }}"
+          grafana_api_url="${{ env.GRAFANA_API_URL }}"
           include_digital_credential="${{ env.INCLUDE_DIGITAL_CREDENTIAL }}"
           EOF
 
