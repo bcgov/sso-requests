@@ -397,7 +397,7 @@ export const createRole = async (
   }
 };
 
-interface NewRole {
+export interface NewRole {
   name: string;
   envs: string[];
 }

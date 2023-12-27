@@ -6,7 +6,7 @@ import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
-import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
+import { dispatchRequestWorkflow } from '../github';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -214,9 +214,9 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
   serviceAccount.requester = requester;
 
-  const ghResult = await dispatchRequestWorkflow(serviceAccount);
+  const kcResult = await dispatchRequestWorkflow(serviceAccount);
 
-  if (ghResult.status !== 204) {
+  if (!kcResult) {
     await serviceAccount.destroy();
     throw Error('failed to create a workflow dispatch event');
   }
@@ -302,8 +302,8 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 
     if (isMerged) {
       // Trigger workflow with empty environments to delete client
-      const ghResult = await dispatchRequestWorkflow(serviceAccount);
-      if (ghResult.status !== 204) {
+      const kcResult = await dispatchRequestWorkflow(serviceAccount);
+      if (!kcResult) {
         throw Error('failed to create a workflow dispatch event');
       }
     }
@@ -312,10 +312,10 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
     const { serviceType, realmName, clientId } = serviceAccount;
 
     // all css api service accounts exist only in prod
-    await disableClient({ serviceType, environment: 'prod', realmName, clientId });
+    //await disableClient({ serviceType, environment: 'prod', realmName, clientId });
 
     // Close any pr's if they exist
-    await closeOpenPullRequests(saId);
+    //await closeOpenPullRequests(saId);
 
     await serviceAccount.save();
 

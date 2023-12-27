@@ -11,7 +11,7 @@ import {
   getDisplayName,
   getWhereClauseForAllRequests,
 } from '../utils/helpers';
-import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
+import { dispatchRequestWorkflow } from '../github';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
 import { EMAILS } from '@lambda-shared/enums';
@@ -232,11 +232,6 @@ export const updateRequest = async (
       const waitingDigitalCredentialProdApproval = hasDigitalCredentialProd && !current.digitalCredentialApproved;
       current.requester = await getRequester(session, current.id);
 
-      const ghResult = await dispatchRequestWorkflow(getCurrentValue());
-      if (ghResult.status !== 204) {
-        throw Error('failed to create a workflow dispatch event');
-      }
-
       finalData = getCurrentValue();
       const emails: { code: string; data: any }[] = [];
 
@@ -284,7 +279,7 @@ export const updateRequest = async (
 
     const changes = getDifferences(finalData, originalData);
     current.lastChanges = changes;
-    const updated = await current.save();
+    let updated = await current.save();
 
     if (!updated) {
       throw Error('update failed');
@@ -321,7 +316,15 @@ export const updateRequest = async (
       }
 
       await createEvent(eventData);
+
+      const kcResult = await dispatchRequestWorkflow(updated);
+      if (!kcResult) {
+        throw Error('failed to create a workflow dispatch event');
+      } else {
+        updated = await getAllowedRequest(session, data.id);
+      }
     }
+
     return updated.get({ plain: true });
   } catch (err) {
     console.log(err);
@@ -357,8 +360,8 @@ export const resubmitRequest = async (session: Session, id: number) => {
     current.requester = await getRequester(session, current.id);
     current.changed('updatedAt', true);
 
-    const ghResult = await dispatchRequestWorkflow(getCurrentValue());
-    if (ghResult.status !== 204) {
+    const kcResult = await dispatchRequestWorkflow(getCurrentValue());
+    if (!kcResult) {
       throw Error('failed to create a workflow dispatch event');
     }
 
@@ -466,16 +469,16 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     current.status = 'submitted';
 
     // Trigger workflow with empty environments to delete client
-    const ghResult = await dispatchRequestWorkflow(current);
-    if (ghResult.status !== 204) {
+    const kcResult = await dispatchRequestWorkflow(current);
+    if (!kcResult) {
       throw Error('failed to create a workflow dispatch event');
     }
 
     // disable the client while TF applying the changes
-    await disableIntegration(current.get({ plain: true, clone: true }));
+    //await disableIntegration(current.get({ plain: true, clone: true }));
 
     // Close any pr's if they exist
-    await closeOpenPullRequests(id);
+    //await closeOpenPullRequests(id);
 
     const result = await current.save();
     const integration = result.get({ plain: true });

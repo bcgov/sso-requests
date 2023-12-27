@@ -20,6 +20,7 @@ import {
 } from '@app/helpers/integration';
 import { getAccountableEntity } from '@lambda-shared/templates/helpers';
 import { handlePRstage, updatePlannedItems } from '@lambda-actions/controllers/batch';
+import { standardClients } from './keycloak/integration';
 
 const octokit = new Octokit({ auth: process.env.GH_ACCESS_TOKEN });
 
@@ -132,70 +133,64 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     //       "x-xss-protection": "0"
     //   }
     // }
-    return octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
-      owner: process.env.GH_OWNER,
-      repo: process.env.GH_REPO,
-      workflow_id: process.env.GH_WORKFLOW_ID,
-      ref: process.env.GH_BRANCH,
-      inputs: { integration: JSON.stringify(payload) },
-    });
-  } else {
-    if (!integration.archived) {
-      // skip call to github actions for local development
-      setTimeout(() => {
-        skipGithubActionStep(integration.id);
-      }, 3000);
-    }
-    return { status: 204 };
+    // return octokit.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
+    //   owner: process.env.GH_OWNER,
+    //   repo: process.env.GH_REPO,
+    //   workflow_id: process.env.GH_WORKFLOW_ID,
+    //   ref: process.env.GH_BRANCH,
+    //   inputs: { integration: JSON.stringify(payload) },
+    // });
+
+    return await standardClients(payload);
   }
 };
 
-export const closeOpenPullRequests = async (id: number) => {
-  if (['development', 'production'].includes(process.env.NODE_ENV)) {
-    const labels = ['auto_generated', 'request', String(id)];
+// export const closeOpenPullRequests = async (id: number) => {
+//   if (['development', 'production'].includes(process.env.NODE_ENV)) {
+//     const labels = ['auto_generated', 'request', String(id)];
 
-    // delete all open issues with the target client
-    const issuesRes = await octokit.rest.issues.listForRepo({
-      owner: process.env.GH_OWNER,
-      repo: process.env.GH_REPO,
-      state: 'open',
-      labels: labels.join(','),
-    });
+//     // delete all open issues with the target client
+//     const issuesRes = await octokit.rest.issues.listForRepo({
+//       owner: process.env.GH_OWNER,
+//       repo: process.env.GH_REPO,
+//       state: 'open',
+//       labels: labels.join(','),
+//     });
 
-    return Promise.all(
-      issuesRes.data.map((issue) => {
-        return octokit.rest.issues.update({
-          owner: process.env.GH_OWNER,
-          repo: process.env.GH_REPO,
-          issue_number: issue.number,
-          state: 'closed',
-        });
-      }),
-    );
-  }
-};
+//     return Promise.all(
+//       issuesRes.data.map((issue) => {
+//         return octokit.rest.issues.update({
+//           owner: process.env.GH_OWNER,
+//           repo: process.env.GH_REPO,
+//           issue_number: issue.number,
+//           state: 'closed',
+//         });
+//       }),
+//     );
+//   }
+// };
 
-export const skipGithubActionStep = async (integrationId) => {
-  try {
-    const integration = await models.request.findOne({ where: { id: integrationId } });
+// export const skipGithubActionStep = async (integrationId) => {
+//   try {
+//     const integration = await models.request.findOne({ where: { id: integrationId } });
 
-    setTimeout(async () => {
-      await handlePRstage({
-        id: integration.id,
-        success: true,
-        changes: {},
-        isEmpty: false,
-        isAllowedToMerge: false,
-      });
-    }, 5000);
+//     setTimeout(async () => {
+//       await handlePRstage({
+//         id: integration.id,
+//         success: true,
+//         changes: {},
+//         isEmpty: false,
+//         isAllowedToMerge: false,
+//       });
+//     }, 5000);
 
-    setTimeout(async () => {
-      await updatePlannedItems({
-        ids: [integration.id],
-        success: true,
-      });
-    }, 10000);
-  } catch (err) {
-    console.log(err);
-  }
-};
+//     setTimeout(async () => {
+//       await updatePlannedItems({
+//         ids: [integration.id],
+//         success: true,
+//       });
+//     }, 10000);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };

@@ -7,7 +7,7 @@ import { getDisplayName } from '../utils/helpers';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
-import { dispatchRequestWorkflow, closeOpenPullRequests } from '@lambda-app/github';
+import { dispatchRequestWorkflow } from '@lambda-app/github';
 import { disableIntegration } from '@lambda-app/keycloak/client';
 import { EMAILS } from '@lambda-shared/enums';
 import { sendTemplate } from '@lambda-shared/templates';
@@ -286,14 +286,14 @@ export const deleteStaleUsers = async (user: any) => {
             rqst.archived = true;
             if (rqst.status !== 'draft') {
               rqst.status = 'submitted';
-              const ghResult = await dispatchRequestWorkflow(rqst);
+              const kcResult = await dispatchRequestWorkflow(rqst);
 
-              if (ghResult.status !== 204) {
+              if (!kcResult) {
                 throw Error('failed to create a workflow dispatch event');
               }
 
-              await disableIntegration(rqst.get({ plain: true, clone: true }));
-              await closeOpenPullRequests(rqst.id);
+              //await disableIntegration(rqst.get({ plain: true, clone: true }));
+              //await closeOpenPullRequests(rqst.id);
             }
           }
           await rqst.save();

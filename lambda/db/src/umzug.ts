@@ -50,6 +50,8 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2023.10.26T10.13.85.add-vc-approved'),
       await import('./migrations/2023.11.01T13.26.56.update-vc-name'),
       await import('./migrations/2023.11.09T15.37.58.add-primary-users'),
+      await import('./migrations/2023.12.23T01.00.00.create-request-queues-table'),
+      await import('./migrations/2023.12.25T01.00.00.create-request-roles-table'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

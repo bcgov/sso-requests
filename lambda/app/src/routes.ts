@@ -53,7 +53,7 @@ import { getAllowedTeam, getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
-import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
+import { createClientRole, deleteRoles, listRoles, getClientRole, bulkCreateClientRoles } from './controllers/roles';
 import {
   getAllStandardIntegrations,
   getDatabaseTable,
@@ -450,7 +450,7 @@ export const setRoutes = (app: any) => {
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to create role' });
 
-      const result = await bulkCreateRole((req.session as Session).user.id, req.body);
+      const result = await bulkCreateClientRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
