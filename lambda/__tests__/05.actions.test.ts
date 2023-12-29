@@ -30,7 +30,7 @@ jest.mock('../shared/utils/ches', () => {
 
 jest.mock('../app/src/github', () => {
   return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
+    dispatchRequestWorkflow: jest.fn(() => true),
   };
 });
 

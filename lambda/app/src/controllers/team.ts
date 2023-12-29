@@ -214,12 +214,9 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
   serviceAccount.requester = requester;
 
-  const kcResult = await dispatchRequestWorkflow(serviceAccount);
+  await dispatchRequestWorkflow(serviceAccount);
 
-  if (!kcResult) {
-    await serviceAccount.destroy();
-    throw Error('failed to create a workflow dispatch event');
-  }
+  await serviceAccount.destroy();
 
   await serviceAccount.save();
 
@@ -302,10 +299,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 
     if (isMerged) {
       // Trigger workflow with empty environments to delete client
-      const kcResult = await dispatchRequestWorkflow(serviceAccount);
-      if (!kcResult) {
-        throw Error('failed to create a workflow dispatch event');
-      }
+      await dispatchRequestWorkflow(serviceAccount);
     }
 
     // disable the client while TF applying the changes

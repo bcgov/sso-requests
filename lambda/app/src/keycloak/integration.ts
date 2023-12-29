@@ -4,7 +4,7 @@ import { IntegrationData } from '@lambda-shared/interfaces';
 import AuthenticationFlowRepresentation from 'keycloak-admin/lib/defs/authenticationFlowRepresentation';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { createEvent } from '@lambda-app/controllers/requests';
-import { EMAILS, EVENTS } from '@lambda-shared/enums';
+import { ACTION_TYPES, EMAILS, EVENTS, REQUEST_TYPES } from '@lambda-shared/enums';
 import { getTeamById } from '@lambda-app/queries/team';
 import { sendTemplate } from '@lambda-shared/templates';
 import { usesBceid, usesGithub, usesDigitalCredential } from 'app/helpers/integration';
@@ -347,30 +347,30 @@ export const keycloakClient = async (environment: string, integration: Integrati
 export const standardClients = async (integration: IntegrationData) => {
   // add to the queue
   const queueItem = await models.requestQueue.create({
+    type: REQUEST_TYPES.INTEGRATION,
+    action: integration.archived ? ACTION_TYPES.DELETE : ACTION_TYPES.UPDATE,
     requestId: integration.id,
     request: integration,
   });
-
-  if (queueItem) {
-    await models.request.update({ status: 'planned' }, { where: { id: integration.id } });
-    createEvent({ eventCode: EVENTS.REQUEST_PLAN_SUCCESS, requestId: integration.id });
-  } else {
+  if (!queueItem) {
     createEvent({ eventCode: EVENTS.REQUEST_PLAN_FAILURE, requestId: integration.id });
-    throw Error(`Failed to update the status of the integration associated with id ${integration.id} to 'planned'`);
+    return false;
   }
+  await models.request.update({ status: 'planned' }, { where: { id: integration.id } });
+  createEvent({ eventCode: EVENTS.REQUEST_PLAN_SUCCESS, requestId: integration.id });
 
   const responses = await Promise.all(integration.environments.map((env: string) => keycloakClient(env, integration)));
   for (const res in responses) {
     if (!res) {
       createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: integration.id });
       await models.request.update({ status: 'applyFailed' }, { where: { id: integration?.id } });
-      throw Error(`Failed to process the integration associated with id ${integration?.id}`);
+      return false;
     }
   }
   createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id });
   await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
   // delete from the queue
-  await models.requestQueue.destroy({ where: { requestId: integration.id } });
+  await models.requestQueue.destroy({ where: { id: queueItem.id } });
   await updatePlannedIntegration(integration);
   return true;
 };

@@ -73,7 +73,7 @@ const mockedFindClientRole = findClientRole as jest.Mock<any>;
 jest.mock('@lambda-app/authenticate');
 jest.mock('@lambda-app/github', () => {
   return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
+    dispatchRequestWorkflow: jest.fn(() => true),
     closeOpenPullRequests: jest.fn(() => Promise.resolve()),
   };
 });
@@ -127,7 +127,7 @@ jest.mock('@lambda-app/authenticate');
 
 jest.mock('@lambda-app/github', () => {
   return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
+    dispatchRequestWorkflow: jest.fn(() => true),
     closeOpenPullRequests: jest.fn(() => Promise.resolve()),
   };
 });

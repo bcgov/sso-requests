@@ -286,13 +286,9 @@ export const deleteStaleUsers = async (user: any) => {
             rqst.archived = true;
             if (rqst.status !== 'draft') {
               rqst.status = 'submitted';
-              const kcResult = await dispatchRequestWorkflow(rqst);
 
-              if (!kcResult) {
-                throw Error('failed to create a workflow dispatch event');
-              }
-
-              //await disableIntegration(rqst.get({ plain: true, clone: true }));
+              await disableIntegration(rqst.get({ plain: true, clone: true }));
+              await dispatchRequestWorkflow(rqst);
               //await closeOpenPullRequests(rqst.id);
             }
           }

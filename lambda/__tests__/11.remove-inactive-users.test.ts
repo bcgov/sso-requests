@@ -52,7 +52,7 @@ jest.mock('../app/src/keycloak/client', () => {
 
 jest.mock('../app/src/github', () => {
   return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
+    dispatchRequestWorkflow: jest.fn(() => true),
     closeOpenPullRequests: jest.fn(() => Promise.resolve()),
   };
 });

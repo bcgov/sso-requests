@@ -20,7 +20,7 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
-      composite_roles: {
+      compositeRoles: {
         type: DataTypes.ARRAY(DataTypes.INTEGER),
         allowNull: false,
         defaultValue: [],

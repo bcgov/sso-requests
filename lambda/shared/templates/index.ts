@@ -19,6 +19,7 @@ import createTeamApiAccountApproved from './create-team-api-account-approved';
 import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
 import deleteInactiveIdirUsers from './delete-inactive-idir-users';
 import surveyCompleted from './survey-completed-notification';
+import restoreIntegration from './restore-integration';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -124,6 +125,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.SURVEY_COMPLETED:
       builder = surveyCompleted;
+      break;
+    case EMAILS.RESTORE_INTEGRATION:
+      builder = restoreIntegration;
       break;
     default:
       break;

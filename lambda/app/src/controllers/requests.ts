@@ -317,12 +317,9 @@ export const updateRequest = async (
 
       await createEvent(eventData);
 
-      const kcResult = await dispatchRequestWorkflow(updated);
-      if (!kcResult) {
-        throw Error('failed to create a workflow dispatch event');
-      } else {
-        updated = await getAllowedRequest(session, data.id);
-      }
+      await dispatchRequestWorkflow(updated);
+
+      updated = await getAllowedRequest(session, data.id);
     }
 
     return updated.get({ plain: true });
@@ -360,10 +357,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
     current.requester = await getRequester(session, current.id);
     current.changed('updatedAt', true);
 
-    const kcResult = await dispatchRequestWorkflow(getCurrentValue());
-    if (!kcResult) {
-      throw Error('failed to create a workflow dispatch event');
-    }
+    await dispatchRequestWorkflow(getCurrentValue());
 
     const updated = await current.save();
     if (!updated) {
@@ -468,14 +462,10 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     current.status = 'submitted';
 
-    // Trigger workflow with empty environments to delete client
-    const kcResult = await dispatchRequestWorkflow(current);
-    if (!kcResult) {
-      throw Error('failed to create a workflow dispatch event');
-    }
+    await disableIntegration(current.get({ plain: true, clone: true }));
 
-    // disable the client while TF applying the changes
-    //await disableIntegration(current.get({ plain: true, clone: true }));
+    // Trigger workflow with empty environments to delete client
+    await dispatchRequestWorkflow(current);
 
     // Close any pr's if they exist
     //await closeOpenPullRequests(id);

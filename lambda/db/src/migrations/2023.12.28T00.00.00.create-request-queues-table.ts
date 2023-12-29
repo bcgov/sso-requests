@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 
-export const name = '2023.12.23T01.00.00.create-request-queues-table';
+export const name = '2023.12.28T00.00.00.create-request-queues-table';
 
 // see https://sequelize.org/master/manual/naming-strategies.html
 export const up = async ({ context: sequelize }) => {
@@ -23,6 +23,14 @@ export const up = async ({ context: sequelize }) => {
       field: 'updated_at',
       allowNull: false,
       defaultValue: DataTypes.NOW,
+    },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    action: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     requestId: {
       type: DataTypes.INTEGER,
