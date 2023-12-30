@@ -5,11 +5,11 @@ function MyDashboard() {
   const router = useRouter();
 
   let url = '/my-dashboard/integrations';
-  if (router.query.integrationFailedMessageModal) {
-    url = url + `?integrationFailedMessageModal=${router.query.integrationFailedMessageModal}`;
-  }
 
   useEffect(() => {
+    if (router.query.integrationFailedMessageModal) {
+      url = url + `?integrationFailedMessageModal=${router.query.integrationFailedMessageModal}`;
+    }
     router.replace(url);
   }, []);
 

@@ -363,7 +363,6 @@ export const standardClients = async (integration: IntegrationData, restore: boo
       integration.environments.map((env: string) => keycloakClient(env, integration)),
     );
     for (const res of responses) {
-      console.log('🚀 ~ file: integration.ts:366 ~ standardClients ~ res:', res);
       if (!res) {
         throw Error('Unable to create client at keycloak');
       }
