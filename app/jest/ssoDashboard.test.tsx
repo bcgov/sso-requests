@@ -37,6 +37,7 @@ jest.mock('services/request', () => {
     deleteRequest: jest.fn(() => Promise.resolve([[''], null])),
     updateRequestMetadata: jest.fn(() => Promise.resolve([[], null])),
     updateRequest: jest.fn(() => Promise.resolve([[], null])),
+    restoreRequest: jest.fn(() => Promise.resolve([[''], null])),
   };
 });
 
