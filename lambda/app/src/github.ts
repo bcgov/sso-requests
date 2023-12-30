@@ -89,7 +89,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   return baseData;
 };
 
-export const dispatchRequestWorkflow = async (integration: any) => {
+export const dispatchRequestWorkflow = async (integration: any, restore: boolean = false) => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
   }
@@ -141,7 +141,7 @@ export const dispatchRequestWorkflow = async (integration: any) => {
     //   inputs: { integration: JSON.stringify(payload) },
     // });
 
-    return await standardClients(payload);
+    return await standardClients(payload, restore);
   }
 };
 

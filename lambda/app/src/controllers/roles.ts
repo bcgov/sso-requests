@@ -13,9 +13,7 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { Op, Sequelize } from 'sequelize';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
-  const int = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-  if (int.authType === 'service-account') throw Error('invalid auth type');
-  return int;
+  return await findAllowedIntegrationInfo(sessionUserId, integrationId);
 };
 
 export const createClientRole = async (
@@ -69,7 +67,7 @@ export const bulkCreateClientRoles = async (
       }
     }
 
-    return await bulkCreateRole(sessionUserId, { integrationId, roles });
+    return await bulkCreateRole(integration, roles);
   } catch (err) {
     console.error(err?.message || err);
     throw Error('Unable to create roles');
@@ -150,9 +148,8 @@ export const setCompositeRoles = async (
   }
   await dbRole.save();
 
-  return await setCompositeClientRoles(sessionUserId, {
+  return await setCompositeClientRoles(integration, {
     environment,
-    integrationId,
     roleName,
     compositeRoleNames,
   });

@@ -40,6 +40,7 @@ import {
   updateRequestMetadata,
   getIntegrations,
   isAllowedToDeleteIntegration,
+  restoreRequest,
 } from './controllers/requests';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
@@ -272,6 +273,20 @@ export const setRoutes = (app: any) => {
         throw Error('integration ID not found');
       }
       const result = await resubmitRequest(req.session as Session, Number(id));
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/requests/:id/restore`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const { id } = req.params || {};
+      if (!id) {
+        throw Error('integration ID not found');
+      }
+      const result = await restoreRequest(req.session as Session, Number(id));
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

@@ -4,8 +4,13 @@ import { useRouter } from 'next/router';
 function MyDashboard() {
   const router = useRouter();
 
+  let url = '/my-dashboard/integrations';
+  if (router.query.integrationFailedMessageModal) {
+    url = url + `?integrationFailedMessageModal=${router.query.integrationFailedMessageModal}`;
+  }
+
   useEffect(() => {
-    router.replace('/my-dashboard/integrations');
+    router.replace(url);
   }, []);
 
   return null;

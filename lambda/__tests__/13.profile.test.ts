@@ -9,6 +9,12 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
+jest.mock('@lambda-app/github', () => {
+  return {
+    dispatchRequestWorkflow: jest.fn(() => true),
+  };
+});
+
 describe('User Profile', () => {
   beforeEach(() => {
     createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);

@@ -204,6 +204,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
     teamId: sequelize.literal(`(${teamIdLiteral})`),
     apiServiceAccount: true,
   });
+  console.log('🚀 ~ file: team.ts:207 ~ requestServiceAccount ~ serviceAccount:', serviceAccount);
 
   if (!serviceAccount.teamId) {
     await serviceAccount.destroy();
@@ -213,12 +214,10 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   serviceAccount.status = 'submitted';
   serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
   serviceAccount.requester = requester;
+  serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
+  const saved = await serviceAccount.save();
 
-  await dispatchRequestWorkflow(serviceAccount);
-
-  await serviceAccount.destroy();
-
-  await serviceAccount.save();
+  await dispatchRequestWorkflow(saved);
 
   await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
 
@@ -296,20 +295,12 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
     serviceAccount.requester = requester;
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
+    const saved = await serviceAccount.save();
 
     if (isMerged) {
       // Trigger workflow with empty environments to delete client
-      await dispatchRequestWorkflow(serviceAccount);
+      await dispatchRequestWorkflow(saved);
     }
-
-    // disable the client while TF applying the changes
-    const { serviceType, realmName, clientId } = serviceAccount;
-
-    // all css api service accounts exist only in prod
-    //await disableClient({ serviceType, environment: 'prod', realmName, clientId });
-
-    // Close any pr's if they exist
-    //await closeOpenPullRequests(saId);
 
     await serviceAccount.save();
 

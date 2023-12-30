@@ -25,6 +25,7 @@ import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
 import DigitalCredentialPanel from './DigitalCredentialPanel';
 import MetricsPanel from './MetricsPanel';
+import { ErrorMessage } from '@app/components/MessageBox';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -74,6 +75,25 @@ const IntegrationWrapper = ({ integration, children }: { integration: Integratio
       <h2>INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}</h2>
       <Border>{children}</Border>
     </>
+  );
+};
+
+const getIntegrationErrorTab = () => {
+  return (
+    <Tab key={TAB_DETAILS} tab="Technical Details">
+      <TabWrapper short={false}>
+        <div style={{ display: 'inline-flex', margin: '20px 0 20px 0', background: '#FFCCCB', borderRadius: '5px' }}>
+          <div style={{ padding: 5 }}>
+            <ErrorMessage>
+              Your request for integration could not be completed. Please{' '}
+              <Link external href="mailto:bcgov.sso@gov.bc.ca">
+                contact the Pathfinder SSO Team
+              </Link>
+            </ErrorMessage>
+          </div>
+        </div>
+      </TabWrapper>
+    </Tab>
   );
 };
 
@@ -304,17 +324,21 @@ function IntegrationInfoTabs({ integration }: Props) {
     integration.devIdps?.length && integration.devIdps?.every((idp) => idp === 'digitalcredential');
 
   if (displayStatus === 'Submitted') {
-    if (bceidProdApplying || githubProdApplying || digitalCredentialProdApplying) {
-      tabs.push(getApprovalProgressTab({ integration, approvalContext }));
+    if (['planFailed', 'applyFailed'].includes(integration.status as string)) {
+      tabs.push(getIntegrationErrorTab());
       allowedTabs.push(TAB_DETAILS);
     } else {
-      tabs.push(getProgressTab({ integration, approvalContext }));
-      allowedTabs.push(TAB_DETAILS);
+      if (bceidProdApplying || githubProdApplying || digitalCredentialProdApplying) {
+        tabs.push(getApprovalProgressTab({ integration, approvalContext }));
+        allowedTabs.push(TAB_DETAILS);
+      } else {
+        tabs.push(getProgressTab({ integration, approvalContext }));
+        allowedTabs.push(TAB_DETAILS);
+      }
     }
   } else if (displayStatus === 'Completed') {
     tabs.push(getInstallationTab({ integration, approvalContext }));
     allowedTabs.push(TAB_DETAILS);
-
     // Exclude role management from integrations with only DC
     if (!digitalCredentialOnly) {
       tabs.push(getRoleManagementTab({ integration }));

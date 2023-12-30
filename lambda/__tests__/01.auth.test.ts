@@ -11,6 +11,12 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
+jest.mock('@lambda-app/github', () => {
+  return {
+    dispatchRequestWorkflow: jest.fn(() => true),
+  };
+});
+
 describe('authentication', () => {
   try {
     beforeAll(async () => {

@@ -30,6 +30,10 @@ import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
 import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
+import { bulkCreateClientRoles } from './roles';
+import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
+import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
+import { log } from 'console';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -363,6 +367,73 @@ export const resubmitRequest = async (session: Session, id: number) => {
     if (!updated) {
       throw Error('update failed');
     }
+
+    return updated.get({ plain: true });
+  } catch (err) {
+    console.log(err);
+    throw Error(err.message || err);
+  }
+};
+
+export const restoreRequest = async (session: Session, id: number) => {
+  const isMerged = await checkIfRequestMerged(id);
+  if (!isMerged) return;
+
+  try {
+    const current = await getAllowedRequest(session, id);
+    const getCurrentValue = () => current.get({ plain: true, clone: true });
+    const isAllowedStatus = ['submitted'].includes(current.status);
+
+    if (!current || (!isAllowedStatus && !current.archived)) {
+      throw Error('unauthorized request');
+    }
+
+    current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
+    current.archived = false;
+    current.changed('updatedAt', true);
+
+    await dispatchRequestWorkflow(current, true);
+
+    const updated = await current.save();
+    if (!updated) {
+      throw Error('update failed');
+    }
+
+    const int = getCurrentValue();
+
+    const dbRoles: NewRole[] = await getRolesWithEnvironments(int.id);
+
+    await bulkCreateRole(int, dbRoles);
+
+    const requestRoles = await models.requestRole.findAll({
+      where: {
+        requestId: int.id,
+      },
+      raw: true,
+    });
+
+    for (const role of requestRoles) {
+      let compRoleNames: { name: string }[];
+      if (role.composite) {
+        compRoleNames = await models.requestRole.findAll({
+          where: {
+            id: {
+              [Op.in]: role.compositeRoles,
+            },
+            requestId: int.id,
+          },
+          attributes: ['name'],
+          raw: true,
+        });
+        await setCompositeClientRoles(int, {
+          environment: role.environment,
+          roleName: role.name,
+          compositeRoleNames: compRoleNames.map((role: { name: string }) => role.name),
+        });
+      }
+    }
+
+    await sendTemplate(EMAILS.RESTORE_INTEGRATION, { integration: int });
 
     return updated.get({ plain: true });
   } catch (err) {

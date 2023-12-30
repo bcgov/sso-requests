@@ -13,6 +13,12 @@ jest.mock('../app/src/grafana', () => {
   };
 });
 
+jest.mock('@lambda-app/github', () => {
+  return {
+    dispatchRequestWorkflow: jest.fn(() => true),
+  };
+});
+
 describe('Fetch SSO Logs', () => {
   const integration = getUpdateIntegrationData({ integration: { projectName: 'test_project' } });
 

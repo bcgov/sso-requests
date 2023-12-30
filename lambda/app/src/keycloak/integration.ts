@@ -344,7 +344,7 @@ export const keycloakClient = async (environment: string, integration: Integrati
   }
 };
 
-export const standardClients = async (integration: IntegrationData) => {
+export const standardClients = async (integration: IntegrationData, restore: boolean = false) => {
   // add to the queue
   const queueItem = await models.requestQueue.create({
     type: REQUEST_TYPES.INTEGRATION,
@@ -353,25 +353,33 @@ export const standardClients = async (integration: IntegrationData) => {
     request: integration,
   });
   if (!queueItem) {
-    createEvent({ eventCode: EVENTS.REQUEST_PLAN_FAILURE, requestId: integration.id });
+    await createEvent({ eventCode: EVENTS.REQUEST_PLAN_FAILURE, requestId: integration.id });
     return false;
   }
   await models.request.update({ status: 'planned' }, { where: { id: integration.id } });
-  createEvent({ eventCode: EVENTS.REQUEST_PLAN_SUCCESS, requestId: integration.id });
-
-  const responses = await Promise.all(integration.environments.map((env: string) => keycloakClient(env, integration)));
-  for (const res in responses) {
-    if (!res) {
-      createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: integration.id });
-      await models.request.update({ status: 'applyFailed' }, { where: { id: integration?.id } });
-      return false;
+  await createEvent({ eventCode: EVENTS.REQUEST_PLAN_SUCCESS, requestId: integration.id });
+  try {
+    const responses = await Promise.all(
+      integration.environments.map((env: string) => keycloakClient(env, integration)),
+    );
+    for (const res of responses) {
+      console.log('🚀 ~ file: integration.ts:366 ~ standardClients ~ res:', res);
+      if (!res) {
+        throw Error('Unable to create client at keycloak');
+      }
     }
+  } catch (err) {
+    console.error(err);
+    await createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: integration.id });
+    await models.request.update({ status: 'applyFailed' }, { where: { id: integration?.id } });
+    return false;
   }
-  createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id });
+
+  await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id });
   await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
   // delete from the queue
   await models.requestQueue.destroy({ where: { id: queueItem.id } });
-  await updatePlannedIntegration(integration);
+  if (!restore) await updatePlannedIntegration(integration);
   return true;
 };
 

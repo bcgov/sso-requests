@@ -16,10 +16,6 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
-  waitingBceidProdApproval?: boolean;
-  hasBceid?: boolean;
-  waitingGithubProdApproval?: boolean;
-  waitingDigitalCredentialProdApproval?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
@@ -35,7 +31,6 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration } = data;
   const emails = await getIntegrationEmails(integration);
-
   return sendEmail({
     code: EMAILS.CREATE_INTEGRATION_APPLIED,
     to: emails,

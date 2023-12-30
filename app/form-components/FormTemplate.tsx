@@ -340,7 +340,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
         router.push({
           pathname: isAdmin ? '/admin-dashboard' : '/my-dashboard',
-          query: { id: formData.id },
+          query: { id: formData.id, integrationFailedMessageModal: true },
         });
         surveyContext?.setShowSurvey(true, 'createIntegration');
       }

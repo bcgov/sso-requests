@@ -58,6 +58,15 @@ export const resubmitRequest = async (requestId: number): Promise<[Integration, 
   }
 };
 
+export const restoreRequest = async (requestId?: number): Promise<[Integration, null] | [null, AxiosError]> => {
+  try {
+    const result: Integration = await instance.get(`requests/${requestId}/restore`).then((res) => res.data);
+    return [processRequest(result), null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
 interface RequestAllData {
   searchField: string[];
   searchKey: string;
