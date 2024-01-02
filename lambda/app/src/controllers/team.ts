@@ -6,7 +6,7 @@ import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
-import { createIntegration } from '../controllers/requests';
+import { processIntegrationRequest } from '../controllers/requests';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -216,7 +216,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
   const saved = await serviceAccount.save();
 
-  await createIntegration(saved);
+  await processIntegrationRequest(saved);
 
   await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
 
@@ -298,7 +298,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 
     if (isMerged) {
       // Trigger workflow with empty environments to delete client
-      await createIntegration(saved);
+      await processIntegrationRequest(saved);
     }
 
     await serviceAccount.save();

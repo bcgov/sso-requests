@@ -12,7 +12,7 @@ import { EMAILS } from '@lambda-shared/enums';
 import { sendTemplate } from '@lambda-shared/templates';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 import { UserSurveyInformation } from '@lambda-shared/interfaces';
-import { createIntegration } from './requests';
+import { processIntegrationRequest } from './requests';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -288,7 +288,7 @@ export const deleteStaleUsers = async (user: any) => {
               rqst.status = 'submitted';
 
               await disableIntegration(rqst.get({ plain: true, clone: true }));
-              await createIntegration(rqst);
+              await processIntegrationRequest(rqst);
             }
           }
           await rqst.save();

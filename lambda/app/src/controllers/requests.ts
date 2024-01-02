@@ -371,7 +371,7 @@ export const updateRequest = async (
 
       await createEvent(eventData);
 
-      await createIntegration(updated);
+      await processIntegrationRequest(updated);
 
       updated = await getAllowedRequest(session, data.id);
     }
@@ -411,7 +411,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
     current.requester = await getRequester(session, current.id);
     current.changed('updatedAt', true);
 
-    await createIntegration(getCurrentValue());
+    await processIntegrationRequest(getCurrentValue());
 
     const updated = await current.save();
     if (!updated) {
@@ -442,7 +442,7 @@ export const restoreRequest = async (session: Session, id: number) => {
     current.archived = false;
     current.changed('updatedAt', true);
 
-    await createIntegration(current, true);
+    await processIntegrationRequest(current, true);
 
     const updated = await current.save();
     if (!updated) {
@@ -585,7 +585,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     await disableIntegration(current.get({ plain: true, clone: true }));
 
-    await createIntegration(current);
+    await processIntegrationRequest(current);
 
     const result = await current.save();
     const integration = result.get({ plain: true });
@@ -669,7 +669,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   return baseData;
 };
 
-export const createIntegration = async (integration: any, restore: boolean = false) => {
+export const processIntegrationRequest = async (integration: any, restore: boolean = false) => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
   }
