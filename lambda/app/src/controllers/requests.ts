@@ -11,7 +11,6 @@ import {
   getDisplayName,
   getWhereClauseForAllRequests,
 } from '../utils/helpers';
-import { dispatchRequestWorkflow } from '../github';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
 import { EMAILS } from '@lambda-shared/enums';
@@ -22,21 +21,72 @@ import {
   getMyOrTeamRequest,
   getAllowedRequest,
   getBaseWhereForMyOrTeamIntegrations,
-  getIntegrationsByTeam,
   getIntegrationsByUserTeam,
   getIntegrationByClientId,
 } from '@lambda-app/queries/request';
 import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
-import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
-import { bulkCreateClientRoles } from './roles';
+import {
+  usesBceid,
+  usesGithub,
+  usesDigitalCredential,
+  checkDigitalCredential,
+  checkNotBceidGroup,
+  checkNotGithubGroup,
+} from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
 import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
-import { log } from 'console';
+import { standardClients } from '@lambda-app/keycloak/integration';
+import { getAccountableEntity } from '@lambda-shared/templates/helpers';
+import {
+  oidcDurationAdditionalFields,
+  samlDurationAdditionalFields,
+  samlFineGrainEndpointConfig,
+  samlSignedAssertions,
+} from 'app/schemas';
+import pick from 'lodash.pick';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
+
+const envFields = [
+  'DisplayHeaderTitle',
+  'LoginTitle',
+  'ValidRedirectUris',
+  'Idps',
+  ...oidcDurationAdditionalFields,
+  ...samlDurationAdditionalFields,
+  ...samlFineGrainEndpointConfig,
+  ...samlSignedAssertions,
+];
+
+const envFieldsAll = [];
+['dev', 'test', 'prod'].forEach((env) => {
+  envFields.forEach((prop) => envFieldsAll.push(`${env}${prop}`));
+});
+
+const allowedFieldsForGithub = [
+  'id',
+  'projectName',
+  'clientId',
+  'clientName',
+  'realm',
+  'publicAccess',
+  'environments',
+  'bceidApproved',
+  'archived',
+  'browserFlowOverride',
+  'serviceType',
+  'authType',
+  'protocol',
+  'additionalRoleAttribute',
+  'userId',
+  'teamId',
+  'apiServiceAccount',
+  'requester',
+  ...envFieldsAll,
+];
 
 export const createEvent = async (data) => {
   try {
@@ -321,7 +371,7 @@ export const updateRequest = async (
 
       await createEvent(eventData);
 
-      await dispatchRequestWorkflow(updated);
+      await createIntegration(updated);
 
       updated = await getAllowedRequest(session, data.id);
     }
@@ -361,7 +411,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
     current.requester = await getRequester(session, current.id);
     current.changed('updatedAt', true);
 
-    await dispatchRequestWorkflow(getCurrentValue());
+    await createIntegration(getCurrentValue());
 
     const updated = await current.save();
     if (!updated) {
@@ -392,7 +442,7 @@ export const restoreRequest = async (session: Session, id: number) => {
     current.archived = false;
     current.changed('updatedAt', true);
 
-    await dispatchRequestWorkflow(current, true);
+    await createIntegration(current, true);
 
     const updated = await current.save();
     if (!updated) {
@@ -535,11 +585,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     await disableIntegration(current.get({ plain: true, clone: true }));
 
-    // Trigger workflow with empty environments to delete client
-    await dispatchRequestWorkflow(current);
-
-    // Close any pr's if they exist
-    //await closeOpenPullRequests(id);
+    await createIntegration(current);
 
     const result = await current.save();
     const integration = result.get({ plain: true });
@@ -594,4 +640,50 @@ export const isAllowedToDeleteIntegration = async (session: Session, integration
   if (isAdmin(session)) return true;
   const integration = await getAllowedRequest(session, integrationId);
   return canDeleteIntegration(integration);
+};
+
+export const buildGitHubRequestData = (baseData: IntegrationData) => {
+  const hasBceid = usesBceid(baseData);
+  const hasGithub = usesGithub(baseData);
+  const hasDigitalCredential = usesDigitalCredential(baseData);
+
+  // let's use dev's idps until having a env-specific idp selections
+  if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
+  if (baseData.environments.includes('prod')) baseData.prodIdps = baseData.devIdps;
+
+  // prevent the TF from creating BCeID integration in prod environment if not approved
+  if (!baseData.bceidApproved && hasBceid) {
+    baseData.prodIdps = baseData.prodIdps.filter(checkNotBceidGroup);
+  }
+
+  // prevent the TF from creating VC integration in prod environment if not approved
+  if (!baseData.digitalCredentialApproved && hasDigitalCredential) {
+    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkDigitalCredential(idp));
+  }
+
+  // prevent the TF from creating GitHub integration in prod environment if not approved
+  if (!baseData.githubApproved && hasGithub) {
+    baseData.prodIdps = baseData.prodIdps.filter(checkNotGithubGroup);
+  }
+
+  return baseData;
+};
+
+export const createIntegration = async (integration: any, restore: boolean = false) => {
+  if (integration instanceof models.request) {
+    integration = integration.get({ plain: true, clone: true });
+  }
+
+  integration = buildGitHubRequestData(integration);
+
+  const idps = integration.devIdps;
+
+  const payload = pick(integration, allowedFieldsForGithub);
+  payload.accountableEntity = (await getAccountableEntity(integration)) || '';
+  payload.idpNames = idps || [];
+  if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
+
+  if (['development', 'production'].includes(process.env.NODE_ENV)) {
+    return await standardClients(payload, restore);
+  }
 };

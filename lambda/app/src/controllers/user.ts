@@ -7,12 +7,12 @@ import { getDisplayName } from '../utils/helpers';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
-import { dispatchRequestWorkflow } from '@lambda-app/github';
 import { disableIntegration } from '@lambda-app/keycloak/client';
 import { EMAILS } from '@lambda-shared/enums';
 import { sendTemplate } from '@lambda-shared/templates';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 import { UserSurveyInformation } from '@lambda-shared/interfaces';
+import { createIntegration } from './requests';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -288,8 +288,7 @@ export const deleteStaleUsers = async (user: any) => {
               rqst.status = 'submitted';
 
               await disableIntegration(rqst.get({ plain: true, clone: true }));
-              await dispatchRequestWorkflow(rqst);
-              //await closeOpenPullRequests(rqst.id);
+              await createIntegration(rqst);
             }
           }
           await rqst.save();

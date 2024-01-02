@@ -59,9 +59,17 @@ export const up = async ({ context: sequelize }) => {
       allowNull: false,
     },
   });
+
+  await sequelize.getQueryInterface().addIndex('request_roles', {
+    fields: ['name', 'environment', 'request_id'],
+    unique: true,
+    type: 'UNIQUE',
+    name: 'unique_name_env_requestid',
+  });
 };
 
 export const down = async ({ context: sequelize }) => {
+  await sequelize.getQueryInterface().removeIndex('request_roles', 'unique_name_env_requestid');
   await sequelize.getQueryInterface().dropTable('request_queues');
 };
 

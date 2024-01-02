@@ -6,14 +6,13 @@ import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
-import { dispatchRequestWorkflow } from '../github';
+import { createIntegration } from '../controllers/requests';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
-import { getAllowedRequest, getIntegrationsByTeam } from '@lambda-app/queries/request';
+import { getIntegrationsByTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent, getRequester } from './requests';
-import { disableClient } from '@lambda-app/keycloak/client';
 
 const serviceAccountCommonPopulation = [
   {
@@ -217,7 +216,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
   const saved = await serviceAccount.save();
 
-  await dispatchRequestWorkflow(saved);
+  await createIntegration(saved);
 
   await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
 
@@ -299,7 +298,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 
     if (isMerged) {
       // Trigger workflow with empty environments to delete client
-      await dispatchRequestWorkflow(saved);
+      await createIntegration(saved);
     }
 
     await serviceAccount.save();

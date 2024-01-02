@@ -27,7 +27,6 @@ function MyIntegrations({ session }: PageProps) {
   const handleModalFailedMessageModal = async () => (window.location.hash = integrationFailedMessageModalId);
 
   useEffect(() => {
-    // Check if the query parameter 'showModal' is present and set to 'true'
     if (router.query.integrationFailedMessageModal === 'true') {
       setShowModal(true);
       handleModalFailedMessageModal();
