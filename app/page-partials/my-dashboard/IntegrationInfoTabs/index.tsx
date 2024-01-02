@@ -85,7 +85,7 @@ const getIntegrationErrorTab = () => {
         <div style={{ display: 'inline-flex', margin: '20px 0 20px 0', background: '#FFCCCB', borderRadius: '5px' }}>
           <div style={{ padding: 5 }}>
             <ErrorMessage>
-              Your request for integration could not be completed. Please{' '}
+              Your request for an integration could not be completed. Please{' '}
               <Link external href="mailto:bcgov.sso@gov.bc.ca">
                 contact the Pathfinder SSO Team
               </Link>
