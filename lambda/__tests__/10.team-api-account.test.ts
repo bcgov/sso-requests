@@ -71,18 +71,7 @@ const deleteUserRoleMapping = {
 const mockedFindClientRole = findClientRole as jest.Mock<any>;
 
 jest.mock('@lambda-app/authenticate');
-jest.mock('@lambda-app/github', () => {
-  return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
-  };
-});
 
-jest.mock('../actions/src/github', () => {
-  return {
-    mergePR: jest.fn(),
-  };
-});
 jest.mock('@lambda-app/keycloak/users', () => {
   return {
     listClientRoles: jest.fn(() => {
@@ -125,12 +114,14 @@ jest.mock('@lambda-shared/utils/ches');
 
 jest.mock('@lambda-app/authenticate');
 
-jest.mock('@lambda-app/github', () => {
+jest.mock('@lambda-app/controllers/requests', () => {
+  const original = jest.requireActual('@lambda-app/controllers/requests');
   return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
+    ...original,
+    processIntegrationRequest: jest.fn(() => true),
   };
 });
+
 jest.mock('@lambda-app/helpers/token', () => {
   const actual = jest.requireActual('@lambda-app/helpers/token');
   return {

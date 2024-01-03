@@ -40,6 +40,7 @@ import {
   updateRequestMetadata,
   getIntegrations,
   isAllowedToDeleteIntegration,
+  restoreRequest,
 } from './controllers/requests';
 import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
@@ -53,7 +54,14 @@ import { getAllowedTeam, getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
 import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
-import { createClientRole, deleteRoles, listRoles, getClientRole } from './controllers/roles';
+import {
+  createClientRole,
+  deleteRoles,
+  listRoles,
+  getClientRole,
+  bulkCreateClientRoles,
+  setCompositeRoles,
+} from './controllers/roles';
 import {
   getAllStandardIntegrations,
   getDatabaseTable,
@@ -271,6 +279,20 @@ export const setRoutes = (app: any) => {
     }
   });
 
+  app.get(`/requests/:id/restore`, async (req, res) => {
+    try {
+      assertSessionRole(req.session, 'sso-admin');
+      const { id } = req.params || {};
+      if (!id) {
+        throw Error('integration ID not found');
+      }
+      const result = await restoreRequest(req.session as Session, Number(id));
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
   app.get(`/requests/:id/logs`, async (req, res) => {
     try {
       const { id } = req.params || {};
@@ -409,7 +431,7 @@ export const setRoutes = (app: any) => {
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to update composite roles' });
 
-      const result = await setCompositeClientRoles((req.session as Session).user.id, req.body);
+      const result = await setCompositeRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -450,7 +472,7 @@ export const setRoutes = (app: any) => {
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to create role' });
 
-      const result = await bulkCreateRole((req.session as Session).user.id, req.body);
+      const result = await bulkCreateClientRoles((req.session as Session).user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

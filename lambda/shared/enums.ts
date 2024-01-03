@@ -34,4 +34,18 @@ export const EMAILS = {
   DELETE_TEAM_API_ACCOUNT_SUBMITTED: 'delete-team-api-account-submitted',
   DELETE_INACTIVE_IDIR_USER: 'delete-inactive-idir-users',
   SURVEY_COMPLETED: 'survey-completed-notification',
+  RESTORE_INTEGRATION: 'restore-integration',
+};
+
+export const REQUEST_TYPES = {
+  INTEGRATION: 'integration',
+  ROLE: 'role',
+  CLIENT_SECRET: 'client-secret',
+  COMPOSITE_ROLE: 'composite-role',
+};
+
+export const ACTION_TYPES = {
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete',
 };

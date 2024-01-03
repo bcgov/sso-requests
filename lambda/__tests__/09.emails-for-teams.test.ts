@@ -13,12 +13,15 @@ import { createTeam, deleteMembersOfTeam, deleteTeam, getMembersOfTeam } from '.
 const TEST_TOKEN = 'testtoken';
 
 jest.mock('@lambda-app/authenticate');
-jest.mock('@lambda-app/github', () => {
+
+jest.mock('@lambda-app/controllers/requests', () => {
+  const original = jest.requireActual('@lambda-app/controllers/requests');
   return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
+    ...original,
+    processIntegrationRequest: jest.fn(() => true),
   };
 });
+
 jest.mock('@lambda-app/helpers/token', () => {
   const actual = jest.requireActual('@lambda-app/helpers/token');
   return {

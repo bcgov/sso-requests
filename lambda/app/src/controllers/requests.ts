@@ -11,7 +11,6 @@ import {
   getDisplayName,
   getWhereClauseForAllRequests,
 } from '../utils/helpers';
-import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
 import { EMAILS } from '@lambda-shared/enums';
@@ -22,17 +21,72 @@ import {
   getMyOrTeamRequest,
   getAllowedRequest,
   getBaseWhereForMyOrTeamIntegrations,
-  getIntegrationsByTeam,
   getIntegrationsByUserTeam,
   getIntegrationByClientId,
 } from '@lambda-app/queries/request';
 import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
-import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
+import {
+  usesBceid,
+  usesGithub,
+  usesDigitalCredential,
+  checkDigitalCredential,
+  checkNotBceidGroup,
+  checkNotGithubGroup,
+} from '@app/helpers/integration';
+import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
+import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
+import { standardClients } from '@lambda-app/keycloak/integration';
+import { getAccountableEntity } from '@lambda-shared/templates/helpers';
+import {
+  oidcDurationAdditionalFields,
+  samlDurationAdditionalFields,
+  samlFineGrainEndpointConfig,
+  samlSignedAssertions,
+} from '@app/schemas';
+import pick from 'lodash.pick';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
+
+const envFields = [
+  'DisplayHeaderTitle',
+  'LoginTitle',
+  'ValidRedirectUris',
+  'Idps',
+  ...oidcDurationAdditionalFields,
+  ...samlDurationAdditionalFields,
+  ...samlFineGrainEndpointConfig,
+  ...samlSignedAssertions,
+];
+
+const envFieldsAll = [];
+['dev', 'test', 'prod'].forEach((env) => {
+  envFields.forEach((prop) => envFieldsAll.push(`${env}${prop}`));
+});
+
+const allowedFieldsForGithub = [
+  'id',
+  'projectName',
+  'clientId',
+  'clientName',
+  'realm',
+  'publicAccess',
+  'environments',
+  'bceidApproved',
+  'archived',
+  'browserFlowOverride',
+  'serviceType',
+  'authType',
+  'protocol',
+  'additionalRoleAttribute',
+  'userId',
+  'teamId',
+  'apiServiceAccount',
+  'requester',
+  ...envFieldsAll,
+];
 
 export const createEvent = async (data) => {
   try {
@@ -232,11 +286,6 @@ export const updateRequest = async (
       const waitingDigitalCredentialProdApproval = hasDigitalCredentialProd && !current.digitalCredentialApproved;
       current.requester = await getRequester(session, current.id);
 
-      const ghResult = await dispatchRequestWorkflow(getCurrentValue());
-      if (ghResult.status !== 204) {
-        throw Error('failed to create a workflow dispatch event');
-      }
-
       finalData = getCurrentValue();
       const emails: { code: string; data: any }[] = [];
 
@@ -284,7 +333,7 @@ export const updateRequest = async (
 
     const changes = getDifferences(finalData, originalData);
     current.lastChanges = changes;
-    const updated = await current.save();
+    let updated = await current.save();
 
     if (!updated) {
       throw Error('update failed');
@@ -321,7 +370,12 @@ export const updateRequest = async (
       }
 
       await createEvent(eventData);
+
+      await processIntegrationRequest(updated);
+
+      updated = await getAllowedRequest(session, data.id);
     }
+
     return updated.get({ plain: true });
   } catch (err) {
     console.log(err);
@@ -357,15 +411,79 @@ export const resubmitRequest = async (session: Session, id: number) => {
     current.requester = await getRequester(session, current.id);
     current.changed('updatedAt', true);
 
-    const ghResult = await dispatchRequestWorkflow(getCurrentValue());
-    if (ghResult.status !== 204) {
-      throw Error('failed to create a workflow dispatch event');
-    }
+    await processIntegrationRequest(getCurrentValue());
 
     const updated = await current.save();
     if (!updated) {
       throw Error('update failed');
     }
+
+    return updated.get({ plain: true });
+  } catch (err) {
+    console.log(err);
+    throw Error(err.message || err);
+  }
+};
+
+export const restoreRequest = async (session: Session, id: number) => {
+  const isMerged = await checkIfRequestMerged(id);
+  if (!isMerged) return;
+
+  try {
+    const current = await getAllowedRequest(session, id);
+    const getCurrentValue = () => current.get({ plain: true, clone: true });
+    const isAllowedStatus = ['submitted'].includes(current.status);
+
+    if (!current || (!isAllowedStatus && !current.archived)) {
+      throw Error('unauthorized request');
+    }
+
+    current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
+    current.archived = false;
+    current.changed('updatedAt', true);
+
+    await processIntegrationRequest(current, true);
+
+    const updated = await current.save();
+    if (!updated) {
+      throw Error('update failed');
+    }
+
+    const int = getCurrentValue();
+
+    const dbRoles: NewRole[] = await getRolesWithEnvironments(int.id);
+
+    await bulkCreateRole(int, dbRoles);
+
+    const requestRoles = await models.requestRole.findAll({
+      where: {
+        requestId: int.id,
+      },
+      raw: true,
+    });
+
+    for (const role of requestRoles) {
+      let compRoleNames: { name: string }[];
+      if (role.composite) {
+        compRoleNames = await models.requestRole.findAll({
+          where: {
+            id: {
+              [Op.in]: role.compositeRoles,
+            },
+            requestId: int.id,
+          },
+          attributes: ['name'],
+          raw: true,
+        });
+        await setCompositeClientRoles(int, {
+          environment: role.environment,
+          roleName: role.name,
+          compositeRoleNames: compRoleNames.map((role: { name: string }) => role.name),
+        });
+      }
+    }
+
+    await sendTemplate(EMAILS.RESTORE_INTEGRATION, { integration: int });
 
     return updated.get({ plain: true });
   } catch (err) {
@@ -465,17 +583,9 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     current.status = 'submitted';
 
-    // Trigger workflow with empty environments to delete client
-    const ghResult = await dispatchRequestWorkflow(current);
-    if (ghResult.status !== 204) {
-      throw Error('failed to create a workflow dispatch event');
-    }
-
-    // disable the client while TF applying the changes
     await disableIntegration(current.get({ plain: true, clone: true }));
 
-    // Close any pr's if they exist
-    await closeOpenPullRequests(id);
+    await processIntegrationRequest(current);
 
     const result = await current.save();
     const integration = result.get({ plain: true });
@@ -530,4 +640,50 @@ export const isAllowedToDeleteIntegration = async (session: Session, integration
   if (isAdmin(session)) return true;
   const integration = await getAllowedRequest(session, integrationId);
   return canDeleteIntegration(integration);
+};
+
+export const buildGitHubRequestData = (baseData: IntegrationData) => {
+  const hasBceid = usesBceid(baseData);
+  const hasGithub = usesGithub(baseData);
+  const hasDigitalCredential = usesDigitalCredential(baseData);
+
+  // let's use dev's idps until having a env-specific idp selections
+  if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
+  if (baseData.environments.includes('prod')) baseData.prodIdps = baseData.devIdps;
+
+  // prevent the TF from creating BCeID integration in prod environment if not approved
+  if (!baseData.bceidApproved && hasBceid) {
+    baseData.prodIdps = baseData.prodIdps.filter(checkNotBceidGroup);
+  }
+
+  // prevent the TF from creating VC integration in prod environment if not approved
+  if (!baseData.digitalCredentialApproved && hasDigitalCredential) {
+    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkDigitalCredential(idp));
+  }
+
+  // prevent the TF from creating GitHub integration in prod environment if not approved
+  if (!baseData.githubApproved && hasGithub) {
+    baseData.prodIdps = baseData.prodIdps.filter(checkNotGithubGroup);
+  }
+
+  return baseData;
+};
+
+export const processIntegrationRequest = async (integration: any, restore: boolean = false) => {
+  if (integration instanceof models.request) {
+    integration = integration.get({ plain: true, clone: true });
+  }
+
+  integration = buildGitHubRequestData(integration);
+
+  const idps = integration.devIdps;
+
+  const payload = pick(integration, allowedFieldsForGithub);
+  payload.accountableEntity = (await getAccountableEntity(integration)) || '';
+  payload.idpNames = idps || [];
+  if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
+
+  if (['development', 'production'].includes(process.env.NODE_ENV)) {
+    return await standardClients(payload, restore);
+  }
 };

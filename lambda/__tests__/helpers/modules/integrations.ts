@@ -53,6 +53,10 @@ export const deleteIntegration = async (integrationId: number) => {
   return await supertest(app).del(`${APP_BASE_PATH}/requests?id=${integrationId}`);
 };
 
+export const restoreIntegration = async (integrationId: number) => {
+  return await supertest(app).get(`${APP_BASE_PATH}/requests/${integrationId}/restore`);
+};
+
 export const fetchMetrics = async (integrationId: number, fromDate: string, toDate: string, env: string) => {
   return await supertest(app).get(
     `${APP_BASE_PATH}/requests/${integrationId}/metrics?fromDate=${fromDate}&toDate=${toDate}&env=${env}`,

@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AdminDashboard from 'pages/admin-dashboard';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
-import { deleteRequest, updateRequestMetadata, updateRequest } from 'services/request';
+import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest } from 'services/request';
 
 const sampleSession = {
   email: '',
@@ -37,6 +37,7 @@ jest.mock('services/request', () => {
     deleteRequest: jest.fn(() => Promise.resolve([[''], null])),
     updateRequestMetadata: jest.fn(() => Promise.resolve([[], null])),
     updateRequest: jest.fn(() => Promise.resolve([[], null])),
+    restoreRequest: jest.fn(() => Promise.resolve([[''], null])),
   };
 });
 
@@ -74,7 +75,7 @@ describe('SSO Dashboard', () => {
     });
 
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
     });
     fireEvent.click(firstRow);
     await waitFor(() => {
@@ -134,7 +135,7 @@ describe('SSO Dashboard', () => {
       screen.getByText('project_name_1');
     });
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
     });
     fireEvent.click(firstRow);
     await waitFor(() => {
@@ -165,6 +166,18 @@ describe('SSO Dashboard', () => {
     fireEvent.click(confirmDeleteButton[0]);
     await waitFor(() => {
       expect(deleteRequest).toHaveBeenCalled();
+    });
+
+    //click on restore icon
+    const restoreButton = screen.getAllByRole('button', { name: 'Restore at Keycloak' });
+    fireEvent.click(restoreButton[0]);
+    await waitFor(() => {
+      expect(screen.getByTitle('Confirm Restoration')).toBeInTheDocument();
+    });
+    const confirmRestoreButton = screen.getAllByTestId('confirm-delete-confirm-restoration');
+    fireEvent.click(confirmRestoreButton[0]);
+    await waitFor(() => {
+      expect(restoreRequest).toHaveBeenCalled();
     });
   });
 
@@ -204,7 +217,7 @@ describe('SSO Dashboard', () => {
       screen.getByText('project_name_1');
     });
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
     });
     fireEvent.click(firstRow);
 
@@ -243,7 +256,7 @@ describe('SSO Dashboard', () => {
       screen.getByText('project_name_1');
     });
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
     });
     fireEvent.click(firstRow);
 
@@ -268,7 +281,7 @@ describe('SSO Dashboard', () => {
       screen.getByText('project_name_1');
     });
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
     });
     fireEvent.click(firstRow);
 
@@ -293,7 +306,7 @@ describe('SSO Dashboard', () => {
       screen.getByText('project_name_1');
     });
     const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak',
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
     });
     fireEvent.click(firstRow);
 

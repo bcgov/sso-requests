@@ -22,10 +22,12 @@ jest.mock('../app/src/grafana', () => {
 });
 
 jest.mock('@lambda-app/authenticate');
-jest.mock('@lambda-app/github', () => {
+
+jest.mock('@lambda-app/controllers/requests', () => {
+  const original = jest.requireActual('@lambda-app/controllers/requests');
   return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
+    ...original,
+    processIntegrationRequest: jest.fn(() => true),
   };
 });
 

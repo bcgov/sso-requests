@@ -321,7 +321,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const handleSubmit = async () => {
     try {
-      const [, err] = await updateRequest(formData, true);
+      const [data, err] = await updateRequest(formData, true);
 
       if (err) {
         alert.show({
@@ -340,7 +340,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
         router.push({
           pathname: isAdmin ? '/admin-dashboard' : '/my-dashboard',
-          query: { id: formData.id },
+          query: {
+            id: data.id,
+            integrationFailedMessageModal: ['planFailed', 'applyFailed'].includes(data.status!),
+            requestId: padStart(String(data.id), 8, '0'),
+          },
         });
         surveyContext?.setShowSurvey(true, 'createIntegration');
       }

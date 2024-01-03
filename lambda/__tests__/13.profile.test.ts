@@ -9,6 +9,14 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
+jest.mock('@lambda-app/controllers/requests', () => {
+  const original = jest.requireActual('@lambda-app/controllers/requests');
+  return {
+    ...original,
+    processIntegrationRequest: jest.fn(() => true),
+  };
+});
+
 describe('User Profile', () => {
   beforeEach(() => {
     createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
