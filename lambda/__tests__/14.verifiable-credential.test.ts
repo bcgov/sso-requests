@@ -1,4 +1,4 @@
-import { buildGitHubRequestData } from '@lambda-app/github';
+import { buildGitHubRequestData } from '@lambda-app/controllers/requests';
 import { Status } from 'app/interfaces/types';
 import app from './helpers/server';
 import supertest from 'supertest';
@@ -25,11 +25,11 @@ jest.mock('../shared/utils/ches', () => {
 });
 
 // Mock dispatchRequestWorkflow to ignore timeouts during unit test
-jest.mock('../app/src/github', () => {
-  return {
-    ...jest.requireActual('../app/src/github'),
-  };
-});
+// jest.mock('../app/src/github', () => {
+//   return {
+//     ...jest.requireActual('../app/src/github'),
+//   };
+// });
 
 jest.mock('../app/src/keycloak/integration', () => {
   return {

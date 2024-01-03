@@ -44,7 +44,7 @@ import {
   samlDurationAdditionalFields,
   samlFineGrainEndpointConfig,
   samlSignedAssertions,
-} from 'app/schemas';
+} from '@app/schemas';
 import pick from 'lodash.pick';
 
 const APP_ENV = process.env.APP_ENV || 'development';

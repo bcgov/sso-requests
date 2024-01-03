@@ -11,9 +11,11 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
-jest.mock('@lambda-app/github', () => {
+jest.mock('@lambda-app/controllers/requests', () => {
+  const original = jest.requireActual('@lambda-app/controllers/requests');
   return {
-    dispatchRequestWorkflow: jest.fn(() => true),
+    ...original,
+    processIntegrationRequest: jest.fn(() => true),
   };
 });
 

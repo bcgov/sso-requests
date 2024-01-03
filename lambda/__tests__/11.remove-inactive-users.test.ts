@@ -50,16 +50,11 @@ jest.mock('../app/src/keycloak/client', () => {
   };
 });
 
-jest.mock('../app/src/github', () => {
+jest.mock('@lambda-app/controllers/requests', () => {
+  const original = jest.requireActual('@lambda-app/controllers/requests');
   return {
-    dispatchRequestWorkflow: jest.fn(() => true),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
-  };
-});
-
-jest.mock('../actions/src/github', () => {
-  return {
-    mergePR: jest.fn(),
+    ...original,
+    processIntegrationRequest: jest.fn(() => true),
   };
 });
 

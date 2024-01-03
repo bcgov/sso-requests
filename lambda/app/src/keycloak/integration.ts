@@ -7,7 +7,7 @@ import { createEvent } from '@lambda-app/controllers/requests';
 import { ACTION_TYPES, EMAILS, EVENTS, REQUEST_TYPES } from '@lambda-shared/enums';
 import { getTeamById } from '@lambda-app/queries/team';
 import { sendTemplate } from '@lambda-shared/templates';
-import { usesBceid, usesGithub, usesDigitalCredential } from 'app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
 import axios from 'axios';
 
 const realm = 'standard';

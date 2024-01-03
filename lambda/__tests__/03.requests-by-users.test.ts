@@ -21,7 +21,6 @@ import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { applyIntegration, buildIntegration } from './helpers/modules/common';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { log } from 'console';
 
 const integrationRoles = [
   {
@@ -62,10 +61,11 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
-jest.mock('../app/src/github', () => {
+jest.mock('@lambda-app/controllers/requests', () => {
+  const original = jest.requireActual('@lambda-app/controllers/requests');
   return {
-    dispatchRequestWorkflow: jest.fn(() => true),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
+    ...original,
+    processIntegrationRequest: jest.fn(() => true),
   };
 });
 

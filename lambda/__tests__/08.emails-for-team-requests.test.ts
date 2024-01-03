@@ -29,10 +29,11 @@ jest.mock('../actions/src/authenticate', () => {
   };
 });
 
-jest.mock('../app/src/github', () => {
+jest.mock('@lambda-app/controllers/requests', () => {
+  const original = jest.requireActual('@lambda-app/controllers/requests');
   return {
-    dispatchRequestWorkflow: jest.fn(() => true),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
+    ...original,
+    processIntegrationRequest: jest.fn(() => true),
   };
 });
 
