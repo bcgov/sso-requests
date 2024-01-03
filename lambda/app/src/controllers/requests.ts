@@ -213,10 +213,13 @@ export const updateRequest = async (
   const isMerged = await checkIfRequestMerged(id);
 
   try {
+    let existingClientId: string = '';
     const current = await getAllowedRequest(session, data.id);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
     const originalData = getCurrentValue();
     const isAllowedStatus = ['draft', 'applied'].includes(current.status);
+
+    if (current.status === 'applied' && current.clientId !== rest.clientId) existingClientId = current.clientId;
 
     if (!current || !isAllowedStatus) {
       throw Error('unauthorized request');
@@ -371,7 +374,7 @@ export const updateRequest = async (
 
       await createEvent(eventData);
 
-      await processIntegrationRequest(updated);
+      await processIntegrationRequest(updated, false, existingClientId);
 
       updated = await getAllowedRequest(session, data.id);
     }
@@ -583,11 +586,12 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     current.status = 'submitted';
 
+    const result = await current.save();
+
     await disableIntegration(current.get({ plain: true, clone: true }));
 
-    await processIntegrationRequest(current);
+    await processIntegrationRequest(result);
 
-    const result = await current.save();
     const integration = result.get({ plain: true });
 
     const emailCode = EMAILS.DELETE_INTEGRATION_SUBMITTED;
@@ -669,7 +673,11 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   return baseData;
 };
 
-export const processIntegrationRequest = async (integration: any, restore: boolean = false) => {
+export const processIntegrationRequest = async (
+  integration: any,
+  restore: boolean = false,
+  existingClientId: string = '',
+) => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
   }
@@ -684,6 +692,6 @@ export const processIntegrationRequest = async (integration: any, restore: boole
   if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
 
   if (['development', 'production'].includes(process.env.NODE_ENV)) {
-    return await standardClients(payload, restore);
+    return await standardClients(payload, restore, existingClientId);
   }
 };
