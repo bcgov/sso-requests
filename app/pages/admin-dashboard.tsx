@@ -126,7 +126,7 @@ export default function AdminDashboard({ session }: PageProps) {
 
   const canRestore = (request: Integration) => {
     if (request.archived === false) return false;
-    else if (!['submitted'].includes(request?.status || '')) return false;
+    else if (!['applied'].includes(request?.status || '')) return false;
     else return true;
   };
 
