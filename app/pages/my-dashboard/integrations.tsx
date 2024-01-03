@@ -25,8 +25,10 @@ function MyIntegrations({ session }: PageProps) {
   const [showModal, setShowModal] = useState(false);
   const integrationFailedMessageModalId = 'integration-failed-modal';
   const handleModalFailedMessageModal = async () => (window.location.hash = integrationFailedMessageModalId);
+  const [processedRequestId, setProcessedRequestId] = useState('');
 
   useEffect(() => {
+    setProcessedRequestId(router.query.requestId as string);
     if (router?.query?.integrationFailedMessageModal === 'true') {
       setShowModal(true);
       handleModalFailedMessageModal();
@@ -42,7 +44,7 @@ function MyIntegrations({ session }: PageProps) {
         showResizable={integrationCount > 0}
       />
       <CenteredModal
-        title={`Integration request failed`}
+        title={`${processedRequestId} - Integration request failed`}
         icon={faExclamationTriangle}
         id={integrationFailedMessageModalId}
         content={

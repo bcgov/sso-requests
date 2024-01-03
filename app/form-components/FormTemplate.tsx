@@ -343,6 +343,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           query: {
             id: data.id,
             integrationFailedMessageModal: ['planFailed', 'applyFailed'].includes(data.status!),
+            requestId: padStart(String(data.id), 8, '0'),
           },
         });
         surveyContext?.setShowSurvey(true, 'createIntegration');
