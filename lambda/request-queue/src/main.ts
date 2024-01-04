@@ -7,13 +7,13 @@ export const handler = async () => {
     const requestQueue = await models.requestQueue.findAll();
 
     requestQueue.forEach((queuedRequest) => {
-      const environmentCreationPromises = queuedRequest.request.environments.map((env) =>
+      const environmentPromises = queuedRequest.request.environments.map((env) =>
         keycloakClient(env, queuedRequest.request),
       );
 
       // Update DB based on request results
       allPromises.push(
-        Promise.all(environmentCreationPromises).then((results) => {
+        Promise.all(environmentPromises).then((results) => {
           const allEnvironmentsSucceeded = results.every((result) => result);
           if (allEnvironmentsSucceeded) {
             return Promise.all([

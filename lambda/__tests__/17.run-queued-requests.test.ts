@@ -96,10 +96,6 @@ describe('Delete and Update', () => {
     (axios.get as jest.Mock).mockImplementation(() => Promise.resolve({ data: [] }));
   });
 
-  afterAll(async () => {
-    await cleanUpDatabaseTables();
-  });
-
   afterEach(async () => {
     await cleanUpDatabaseTables();
   });
