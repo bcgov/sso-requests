@@ -11,7 +11,8 @@
       "@lambda-app/*": ["./app/src/*"],
       "@lambda-actions/*": ["./actions/src/*"],
       "@lambda-shared/*": ["./shared/*"],
-      "@lambda-css-api/*": ["./css-api/src/*"]
+      "@lambda-css-api/*": ["./css-api/src/*"],
+      "@request-queue/*": ["./request-queue/src/*"]
     }
   }
 }
