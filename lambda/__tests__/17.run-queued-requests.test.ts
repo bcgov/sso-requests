@@ -1,4 +1,4 @@
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import * as IntegrationModule from '@lambda-app/keycloak/integration';
 import { formDataProd } from './helpers/fixtures';
 import axios from 'axios';

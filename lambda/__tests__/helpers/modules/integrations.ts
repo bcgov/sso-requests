@@ -1,9 +1,8 @@
 import app from '../../helpers/server';
 import supertest from 'supertest';
 import { APP_BASE_PATH } from '../constants';
-import { IntegrationData } from '@lambda-shared/interfaces';
+import { IntegrationData, QUEUE_ACTION } from '@lambda-shared/interfaces';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { QUEUE_ACTION } from '@lambda-shared/interfaces';
 
 export const createIntegration = async (data: IntegrationData = {}) => {
   return await supertest(app).post(`${APP_BASE_PATH}/requests`).send(data).set('Accept', 'application/json');
