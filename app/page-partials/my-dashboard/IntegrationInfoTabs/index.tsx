@@ -49,6 +49,10 @@ const TopMargin = styled.div`
   height: var(--field-top-spacing);
 `;
 
+const BottomMargin = styled.div`
+  margin-bottom: 60px;
+`;
+
 const TAB_DETAILS = 'tech-details';
 const TAB_ROLE_MANAGEMENT = 'role-management';
 const TAB_USER_ROLE_MANAGEMENT = 'user-role-management';
@@ -128,6 +132,23 @@ const getInstallationTab = ({
               <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
+        </Grid>
+      </TabWrapper>
+    </Tab>
+  );
+};
+
+const getLoadingSpinner = () => {
+  return (
+    <Tab key={TAB_DETAILS} tab="Technical Details">
+      <TabWrapper short={false}>
+        <Grid cols={15}>
+          <br />
+          <AlignCenter>
+            <TopMargin />
+            <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+            <BottomMargin />
+          </AlignCenter>
         </Grid>
       </TabWrapper>
     </Tab>
@@ -337,10 +358,8 @@ function IntegrationInfoTabs({ integration }: Props) {
       tabs.push(getIntegrationErrorTab());
       allowedTabs.push(TAB_DETAILS);
     } else {
-      <AlignCenter>
-        <TopMargin />
-        <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
-      </AlignCenter>;
+      tabs.push(getLoadingSpinner());
+      allowedTabs.push(TAB_DETAILS);
     }
   } else if (displayStatus === 'Completed') {
     tabs.push(getInstallationTab({ integration, approvalContext }));
