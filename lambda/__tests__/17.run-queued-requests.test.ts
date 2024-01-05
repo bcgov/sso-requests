@@ -18,11 +18,12 @@ jest.mock('@lambda-app/keycloak/adminClient');
 jest.mock('@lambda-shared/utils/ches');
 
 describe('Request Queue', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await cleanUpDatabaseTables();
     jest.clearAllMocks();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await cleanUpDatabaseTables();
   });
 
@@ -179,11 +180,13 @@ describe('Delete and Update', () => {
         find: jest.fn(() => Promise.resolve([formDataProd])),
       },
     });
+    const request = await generateRequest(formDataProd);
     await createRequestQueueItem(
-      1,
+      request.id,
       { ...formDataProd, existingClientId: existingClientId },
       ACTION_TYPES.CREATE as QUEUE_ACTION,
     );
+
     await handler();
 
     expect(kcAdminClient.clients.find).toHaveBeenCalledWith({ clientId: existingClientId, max: 1, realm: 'standard' });
@@ -195,7 +198,12 @@ describe('Delete and Update', () => {
         find: jest.fn(() => Promise.resolve([formDataProd])),
       },
     });
-    await createRequestQueueItem(1, { ...formDataProd, existingClientId: '' }, ACTION_TYPES.CREATE as QUEUE_ACTION);
+    const request = await generateRequest(formDataProd);
+    await createRequestQueueItem(
+      request.id,
+      { ...formDataProd, existingClientId: '' },
+      ACTION_TYPES.CREATE as QUEUE_ACTION,
+    );
     await handler();
 
     expect(kcAdminClient.clients.find).toHaveBeenCalledWith({

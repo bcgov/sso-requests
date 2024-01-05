@@ -1,5 +1,6 @@
 import { models } from '../../shared/sequelize/models/models';
-import { keycloakClient, updatePlannedIntegration } from '@lambda-app/keycloak/integration';
+import { keycloakClient } from '@lambda-app/keycloak/integration';
+import { updatePlannedIntegration } from '@lambda-app/controllers/requests';
 import { ACTION_TYPES, EMAILS, EVENTS } from '@lambda-shared/enums';
 import { createEvent } from '@lambda-app/controllers/requests';
 
@@ -36,12 +37,13 @@ export const handler = async () => {
                   },
                 },
               ),
-              createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id }),
             ];
             if (sendEmail) {
               promises.push(updatePlannedIntegration(request));
             }
-            return Promise.all(promises);
+            return Promise.all(promises).then(() =>
+              createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id }),
+            ) as Promise<any>;
           } else {
             return Promise.all([
               models.request.update(
