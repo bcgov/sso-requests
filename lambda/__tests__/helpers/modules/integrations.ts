@@ -64,7 +64,11 @@ export const fetchMetrics = async (integrationId: number, fromDate: string, toDa
   );
 };
 
-export const createRequestQueueItem = async (requestId: number, requestData: IntegrationData, action: QUEUE_ACTION) => {
+interface RequestData extends IntegrationData {
+  existingClientId?: string;
+}
+
+export const createRequestQueueItem = async (requestId: number, requestData: RequestData, action: QUEUE_ACTION) => {
   return models.requestQueue.create({ type: 'request', action, requestId, request: requestData });
 };
 
@@ -73,3 +77,5 @@ export const getQueueItems = async () => models.requestQueue.findAll();
 export const getRequest = async (id: number) => models.request.findOne({ where: { id } });
 
 export const generateRequest = async (data: IntegrationData) => models.request.create(data);
+
+export const getEventsByRequestId = async (id: number) => models.event.findAll({ where: { requestId: id } });

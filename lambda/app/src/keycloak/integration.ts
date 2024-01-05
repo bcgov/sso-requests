@@ -364,7 +364,7 @@ export const standardClients = async (
     type: REQUEST_TYPES.INTEGRATION,
     action: integration.archived ? ACTION_TYPES.DELETE : ACTION_TYPES.UPDATE,
     requestId: integration.id,
-    request: integration,
+    request: { ...integration, existingClientId },
   });
   if (!queueItem) {
     await models.request.update({ status: 'planFailed' }, { where: { id: integration?.id } });
@@ -428,8 +428,7 @@ const isPreservedClaim = (claim: string) => {
 export const updatePlannedIntegration = async (integration: IntegrationData) => {
   if (integration.archived) return;
   const isUpdate =
-    (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) > 1;
-
+    (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) >= 1;
   if (integration.apiServiceAccount) {
     const teamIntegrations = await models.request.findAll({
       where: {
