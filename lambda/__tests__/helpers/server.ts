@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import express from 'express';
 import * as appRoutes from '../../app/src/routes';
-import * as actionRoutes from '../../actions/src/routes';
 import * as apiRoutes from '../../css-api/src/routes';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -17,7 +16,6 @@ const tryJSON = (str) => {
 const app = express();
 app.use(bodyParser.json());
 const appRouter = express.Router();
-const actionsRouter = express.Router();
 const apiRouter = express.Router();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -34,9 +32,7 @@ app.use(
 );
 
 appRoutes.setRoutes(appRouter);
-actionRoutes.setRoutes(actionsRouter);
 apiRoutes.setRoutes(apiRouter);
-app.use('/actions', actionsRouter);
 app.use('/api/v1', apiRouter);
 app.use('/app', appRouter);
 

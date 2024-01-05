@@ -93,7 +93,8 @@ describe('Submitted Status', () => {
       />,
     );
 
-    expectAllTexts([PROGRESS_MESSAGE]);
+    expect(screen.queryByTestId('grid-svg')).toBeVisible();
+
     notExpectAllTexts([
       DRAFT_MESSAGE,
       INSTALLATION_LABEL,
@@ -124,13 +125,7 @@ describe('Submitted Status', () => {
       />,
     );
 
-    expectAllTexts([
-      PROGRESS_MESSAGE,
-      BCEID_PROD_LABEL,
-      BCEID_PROD_REQUESTED_MESSAGE,
-      GITHUB_PROD_LABEL,
-      GITHUB_PROD_REQUESTED_MESSAGE,
-    ]);
+    expect(screen.queryByTestId('grid-svg')).toBeVisible();
     notExpectAllTexts([
       DRAFT_MESSAGE,
       INSTALLATION_LABEL,
@@ -157,8 +152,7 @@ describe('Submitted Status', () => {
       />,
     );
 
-    expectAllTexts([INSTALLATION_LABEL, BCEID_PROD_LABEL, GITHUB_PROD_LABEL]);
-    expect(screen.getAllByText(BCEID_PROD_APPROVED)).toBeTruthy();
+    expect(screen.queryByTestId('grid-svg')).toBeVisible();
     notExpectAllTexts([
       DRAFT_MESSAGE,
       PROGRESS_MESSAGE,

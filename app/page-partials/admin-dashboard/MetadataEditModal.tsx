@@ -36,7 +36,7 @@ function MetadataEditModal({ request, onUpdate }: Props) {
         className="react-select-container"
         classNamePrefix="select"
         //@ts-ignore
-        options={workflowStatusOptions.filter((op) => ['submitted', 'planned'].includes(op.value))}
+        options={workflowStatusOptions.filter((op) => ['draft', 'submitted'].includes(op.value))}
         onChange={(val: any) => setStatus(val.value)}
         isSearchable={true}
       />

@@ -19,7 +19,7 @@ import {
 } from './helpers/modules/integrations';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { sendEmail } from '@lambda-shared/utils/ches';
-import { applyIntegration, buildIntegration } from './helpers/modules/common';
+import { buildIntegration } from './helpers/modules/common';
 import { models } from '@lambda-shared/sequelize/models/models';
 
 const integrationRoles = [
@@ -47,31 +47,17 @@ const integrationRoles = [
 
 jest.mock('../app/src/authenticate');
 
-jest.mock('../actions/src/authenticate', () => {
-  return {
-    authenticate: jest.fn(() => {
-      return Promise.resolve(true);
-    }),
-  };
-});
-
 jest.mock('../shared/utils/ches', () => {
   return {
     sendEmail: jest.fn(),
   };
 });
 
-jest.mock('@lambda-app/controllers/requests', () => {
-  const original = jest.requireActual('@lambda-app/controllers/requests');
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
     ...original,
-    processIntegrationRequest: jest.fn(() => true),
-  };
-});
-
-jest.mock('../actions/src/github', () => {
-  return {
-    mergePR: jest.fn(),
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 
@@ -160,12 +146,11 @@ describe('create/manage integration by authenticated user', () => {
 
     it('should allow to create a successful saml integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+
       const integrationRes = await buildIntegration({
         projectName: 'SAML Integration',
         prodEnv: true,
         submitted: true,
-        planned: true,
-        applied: true,
         protocol: 'saml',
       });
 
@@ -220,13 +205,9 @@ describe('create/manage integration by authenticated user', () => {
         }),
         true,
       );
+
       expect(updateIntegrationRes.status).toEqual(200);
       integration = updateIntegrationRes.body;
-      expect(integration.status).toEqual('submitted');
-
-      integrationRes = await applyIntegration({ integrationId: integration.id, planned: true, applied: true });
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
       expect(integration.status).toEqual('applied');
 
       const projNameAfterApplied = 'Project name after applied';
@@ -256,8 +237,6 @@ describe('roles and restore integration', () => {
       projectName: 'Roles and Restore',
       prodEnv: true,
       submitted: true,
-      planned: true,
-      applied: true,
     });
     integration = integrationRes.body;
   });

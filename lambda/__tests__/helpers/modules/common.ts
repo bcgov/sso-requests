@@ -48,8 +48,6 @@ export const buildIntegration = async (args: {
   publicAccess?: boolean;
   prodEnv?: boolean;
   submitted?: boolean;
-  planned?: boolean;
-  applied?: boolean;
 }) => {
   const {
     projectName,
@@ -61,8 +59,6 @@ export const buildIntegration = async (args: {
     publicAccess = true,
     prodEnv = false,
     submitted = false,
-    planned = false,
-    applied = false,
   } = args;
 
   let integration: Integration;
@@ -77,7 +73,8 @@ export const buildIntegration = async (args: {
   );
   expect(createIntRes.status).toEqual(200);
   integration = createIntRes.body;
-  let updateIntRes = await updateIntegration(
+
+  return await updateIntegration(
     getUpdateIntegrationData({
       integration,
       identityProviders: getIdentityProviderList(bceid, github),
@@ -86,10 +83,6 @@ export const buildIntegration = async (args: {
       authType,
       publicAccess,
     }),
-    submitted ? true : false,
+    submitted,
   );
-  expect(updateIntRes.status).toEqual(200);
-  integration = updateIntRes.body;
-
-  return await applyIntegration({ integrationId: integration.id, planned, applied });
 };
