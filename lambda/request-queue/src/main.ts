@@ -1,8 +1,7 @@
 import { models } from '../../shared/sequelize/models/models';
 import { keycloakClient } from '@lambda-app/keycloak/integration';
-import { updatePlannedIntegration } from '@lambda-app/controllers/requests';
-import { ACTION_TYPES, EMAILS, EVENTS } from '@lambda-shared/enums';
-import { createEvent } from '@lambda-app/controllers/requests';
+import { updatePlannedIntegration, createEvent } from '@lambda-app/controllers/requests';
+import { ACTION_TYPES, EVENTS } from '@lambda-shared/enums';
 
 export const handler = async () => {
   try {
