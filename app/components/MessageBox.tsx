@@ -33,9 +33,7 @@ export function ErrorMessage({ children }: Props) {
   return (
     <FlexContainer>
       <PaddedIcon icon={faExclamationTriangle} color={PRIMARY_RED} size="2x" />
-      <span>
-        <em>{children}</em>
-      </span>
+      <span>{children}</span>
     </FlexContainer>
   );
 }

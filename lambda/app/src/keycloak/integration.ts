@@ -68,6 +68,7 @@ export const samlClientProfile = (
   const assertionLifespan = integration[`${environment}AssertionLifespan`] || '';
   const logoutPostBindingUri = integration[`${environment}SamlLogoutPostBindingUri`] || '';
   const signAssertions = integration[`${environment}SamlSignAssertions`] || false;
+  const loginTheme = !integration[`${environment}DisplayHeaderTitle`] ? 'bcgov-idp-stopper-no-header-title' : '';
 
   let samlClient: ClientRepresentation = {
     clientId: integration.clientId,
@@ -75,6 +76,7 @@ export const samlClientProfile = (
     description: 'CSS App Created',
     protocol: 'saml',
     attributes: {
+      login_theme: loginTheme,
       'saml.authnstatement': true,
       'saml.server.signature': true,
       'saml.assertion.signature': signAssertions,
@@ -95,7 +97,11 @@ export const samlClientProfile = (
   return samlClient;
 };
 
-export const keycloakClient = async (environment: string, integration: IntegrationData) => {
+export const keycloakClient = async (
+  environment: string,
+  integration: IntegrationData,
+  existingClientId: string = '',
+) => {
   try {
     let client;
 
@@ -106,7 +112,11 @@ export const keycloakClient = async (environment: string, integration: Integrati
     const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
     // check if client exists
-    const clients = await kcAdminClient.clients.find({ realm, clientId: integration.clientId, max: 1 });
+    let clients = await kcAdminClient.clients.find({
+      realm,
+      clientId: existingClientId || integration.clientId,
+      max: 1,
+    });
 
     const realmRoleForClient = await kcAdminClient.roles.findOneByName({
       realm,
@@ -344,7 +354,11 @@ export const keycloakClient = async (environment: string, integration: Integrati
   }
 };
 
-export const standardClients = async (integration: IntegrationData, restore: boolean = false) => {
+export const standardClients = async (
+  integration: IntegrationData,
+  restore: boolean = false,
+  existingClientId: string = '',
+) => {
   // add to the queue
   const queueItem = await models.requestQueue.create({
     type: REQUEST_TYPES.INTEGRATION,
@@ -353,14 +367,16 @@ export const standardClients = async (integration: IntegrationData, restore: boo
     request: integration,
   });
   if (!queueItem) {
+    await models.request.update({ status: 'planFailed' }, { where: { id: integration?.id } });
     await createEvent({ eventCode: EVENTS.REQUEST_PLAN_FAILURE, requestId: integration.id });
     return false;
   }
+
   await models.request.update({ status: 'planned' }, { where: { id: integration.id } });
   await createEvent({ eventCode: EVENTS.REQUEST_PLAN_SUCCESS, requestId: integration.id });
   try {
     const responses = await Promise.all(
-      integration.environments.map((env: string) => keycloakClient(env, integration)),
+      integration.environments.map((env: string) => keycloakClient(env, integration, existingClientId)),
     );
     for (const res of responses) {
       if (!res) {

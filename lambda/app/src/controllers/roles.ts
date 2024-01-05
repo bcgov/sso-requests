@@ -69,7 +69,7 @@ export const bulkCreateClientRoles = async (
 
     return await bulkCreateRole(integration, roles);
   } catch (err) {
-    console.error(err?.message || err);
+    console.error('bulkCreateClientRoles', err);
     throw Error('Unable to create roles');
   }
 };
