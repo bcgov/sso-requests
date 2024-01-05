@@ -36,6 +36,7 @@ export const formDataDev: IntegrationData = {
   projectLead: true,
   newToSso: true,
   agreeWithTerms: true,
+  protocol: 'oidc',
   status: 'draft',
   archived: false,
   idirUserDisplayName: 'test user',

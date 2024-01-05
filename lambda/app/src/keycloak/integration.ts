@@ -51,7 +51,7 @@ export const openIdClientProfile = (
     webOrigins: validRedirectUris.concat('+'),
     fullScopeAllowed: false,
     authenticationFlowBindingOverrides: {
-      browser: authFlows.find((flow) => flow.alias === integration.browserFlowOverride).id || '',
+      browser: authFlows.find((flow) => flow.alias === integration.browserFlowOverride)?.id || '',
       direct_grant: '',
     },
   };
@@ -90,7 +90,7 @@ export const samlClientProfile = (
     redirectUris: validRedirectUris,
     fullScopeAllowed: false,
     authenticationFlowBindingOverrides: {
-      browser: authFlows.find((flow) => flow.alias === integration.browserFlowOverride).id || '',
+      browser: authFlows.find((flow) => flow.alias === integration.browserFlowOverride)?.id || '',
       direct_grant: '',
     },
   };
@@ -105,7 +105,7 @@ export const keycloakClient = async (
   try {
     let client;
 
-    if (isPreservedClaim(integration.additionalRoleAttribute.trim())) {
+    if (isPreservedClaim(integration.additionalRoleAttribute?.trim())) {
       throw Error(`${integration.additionalRoleAttribute} is a preserved claim and cannot be overwritten`);
     }
 
@@ -201,7 +201,7 @@ export const keycloakClient = async (
       for (const scope of defaultScopes.filter((n: string) => !existingDefaultScopes.includes(n))) {
         await kcAdminClient.clients.addDefaultClientScope({
           id: client.id,
-          clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === scope).id,
+          clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === scope)?.id,
           realm,
         });
       }
@@ -216,7 +216,7 @@ export const keycloakClient = async (
       if (existingOptionalScopes.includes('offline_access')) {
         await kcAdminClient.clients.addOptionalClientScope({
           id: client.id,
-          clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === 'offline_access').id,
+          clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === 'offline_access')?.id,
           realm,
         });
       }

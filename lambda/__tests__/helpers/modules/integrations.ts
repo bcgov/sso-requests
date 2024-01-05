@@ -1,7 +1,8 @@
 import app from '../../helpers/server';
 import supertest from 'supertest';
 import { APP_BASE_PATH } from '../constants';
-import { IntegrationData } from '@lambda-shared/interfaces';
+import { IntegrationData, QUEUE_ACTION } from '@lambda-shared/interfaces';
+import { models } from '@lambda-shared/sequelize/models/models';
 
 export const createIntegration = async (data: IntegrationData = {}) => {
   return await supertest(app).post(`${APP_BASE_PATH}/requests`).send(data).set('Accept', 'application/json');
@@ -62,3 +63,19 @@ export const fetchMetrics = async (integrationId: number, fromDate: string, toDa
     `${APP_BASE_PATH}/requests/${integrationId}/metrics?fromDate=${fromDate}&toDate=${toDate}&env=${env}`,
   );
 };
+
+interface RequestData extends IntegrationData {
+  existingClientId?: string;
+}
+
+export const createRequestQueueItem = async (requestId: number, requestData: RequestData, action: QUEUE_ACTION) => {
+  return models.requestQueue.create({ type: 'request', action, requestId, request: requestData });
+};
+
+export const getQueueItems = async () => models.requestQueue.findAll();
+
+export const getRequest = async (id: number) => models.request.findOne({ where: { id } });
+
+export const generateRequest = async (data: IntegrationData) => models.request.create(data);
+
+export const getEventsByRequestId = async (id: number) => models.event.findAll({ where: { requestId: id } });

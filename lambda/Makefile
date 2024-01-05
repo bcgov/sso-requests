@@ -19,3 +19,4 @@ build_all:
 	@cd db; make build
 	@cd css-api; make build
 	@cd siteminder-tests-scheduler; make build
+	@cd request-queue; make build
