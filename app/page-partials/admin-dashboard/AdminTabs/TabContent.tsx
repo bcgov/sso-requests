@@ -5,12 +5,13 @@ import startCase from 'lodash.startcase';
 import CenteredModal from 'components/CenteredModal';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
-import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import {
   checkIfBceidProdApplying,
   checkIfGithubProdApplying,
   checkIfDigitalCredentialProdApplying,
 } from '@app/utils/helpers';
+import { ErrorMessage } from '@app/components/MessageBox';
+import { Link } from '@button-inc/bcgov-theme';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -57,10 +58,16 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     );
   } else if (awaitingTFComplete && typeApproved) {
     content = (
-      <SubmittedStatusIndicator
-        integration={integration}
-        title="The terraform script will take approximately 20 minutes to complete."
-      />
+      <div style={{ display: 'inline-flex', background: '#FFCCCB', borderRadius: '5px' }}>
+        <div style={{ padding: 5 }}>
+          <ErrorMessage>
+            Your request for {type} approval could not be completed. Please{' '}
+            <Link external href="mailto:bcgov.sso@gov.bc.ca">
+              contact the Pathfinder SSO Team
+            </Link>
+          </ErrorMessage>
+        </div>
+      </div>
     );
   } else {
     content = <p>This integration has already been approved.</p>;

@@ -1,9 +1,7 @@
-import app from './helpers/server';
-import supertest from 'supertest';
-import { APP_BASE_PATH } from './helpers/constants';
 import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
 import { SSO_TEAM_IDIR_EMAIL, SSO_TEAM_IDIR_USER } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
+import { createSurvey } from './helpers/modules/surveys';
 
 const surveyData = {
   rating: 1,
@@ -18,11 +16,11 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
-jest.mock('@lambda-app/controllers/requests', () => {
-  const original = jest.requireActual('@lambda-app/controllers/requests');
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
     ...original,
-    processIntegrationRequest: jest.fn(() => true),
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 
@@ -32,27 +30,20 @@ describe('Submit Survey', () => {
   });
 
   it('requires authentication', async () => {
-    const result = await supertest(app)
-      .post(`${APP_BASE_PATH}/surveys`)
-      .send(surveyData)
-      .set('Accept', 'application/json');
+    const result = await createSurvey(surveyData);
     expect(result.status).toBe(401);
   });
 
   it('returns 422 if missing required data', async () => {
     createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
-    const result = await supertest(app).post(`${APP_BASE_PATH}/surveys`).send({}).set('Accept', 'application/json');
+    const result = await createSurvey({} as any);
     expect(result.status).toBe(422);
   });
 
   it('Saves survey result and returns 200 if all required data is provided', async () => {
     createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
-    const result = await supertest(app)
-      .post(`${APP_BASE_PATH}/surveys`)
-      .send(surveyData)
-      .set('Accept', 'application/json');
+    const result = await createSurvey(surveyData);
     expect(result.status).toBe(200);
-
     const survey = await models.survey.findOne({ where: { message: 'test message' } });
     expect(survey).not.toBeNull();
   });
@@ -61,7 +52,7 @@ describe('Submit Survey', () => {
     const userEmail = 'public.user@mail.com';
     createMockAuth(SSO_TEAM_IDIR_USER, userEmail);
     const emailList = createMockSendEmail();
-    await supertest(app).post(`${APP_BASE_PATH}/surveys`).send(surveyData).set('Accept', 'application/json');
+    await createSurvey(surveyData);
     expect(emailList.length).toBe(1);
     expect(emailList.find((email) => email.to.includes(userEmail))).toBeDefined();
     expect(emailList.find((email) => email.cc.includes(SSO_TEAM_IDIR_EMAIL))).toBeDefined();

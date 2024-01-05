@@ -14,11 +14,11 @@ const TEST_TOKEN = 'testtoken';
 
 jest.mock('@lambda-app/authenticate');
 
-jest.mock('@lambda-app/controllers/requests', () => {
-  const original = jest.requireActual('@lambda-app/controllers/requests');
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
     ...original,
-    processIntegrationRequest: jest.fn(() => true),
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 

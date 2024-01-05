@@ -8,8 +8,6 @@ install_all:
 	yarn --cwd ./shared install
 	@cd app; make install
 	@cd db; make install
-	@cd actions; make install
-	@cd scheduler; make install
 	@cd css-api; make install
 	@cd siteminder-tests-scheduler; make install
 
@@ -19,7 +17,5 @@ build_all:
 	yarn --cwd ./shared install
 	@cd app; make build
 	@cd db; make build
-	@cd actions; make build
-	@cd scheduler; make build
 	@cd css-api; make build
 	@cd siteminder-tests-scheduler; make build

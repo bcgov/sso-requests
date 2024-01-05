@@ -23,18 +23,10 @@ import { createTeam, verifyTeamMember } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { buildIntegration, applyIntegration } from './helpers/modules/common';
+import { buildIntegration } from './helpers/modules/common';
 import { Integration } from 'app/interfaces/Request';
 
 jest.mock('../app/src/authenticate');
-
-jest.mock('../actions/src/authenticate', () => {
-  return {
-    authenticate: jest.fn(() => {
-      return Promise.resolve(true);
-    }),
-  };
-});
 
 jest.mock('../shared/utils/ches', () => {
   return {
@@ -42,17 +34,11 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
-jest.mock('@lambda-app/controllers/requests', () => {
-  const original = jest.requireActual('@lambda-app/controllers/requests');
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
     ...original,
-    processIntegrationRequest: jest.fn(() => true),
-  };
-});
-
-jest.mock('../actions/src/github', () => {
-  return {
-    mergePR: jest.fn(),
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 
@@ -177,8 +163,6 @@ describe('create/manage integrations by authenticated user', () => {
         projectName: 'SAML Integration',
         prodEnv: true,
         submitted: true,
-        planned: true,
-        applied: true,
         protocol: 'saml',
         teamId,
       });
@@ -239,11 +223,6 @@ describe('create/manage integrations by authenticated user', () => {
       );
       expect(updateIntegrationRes.status).toEqual(200);
       integration = updateIntegrationRes.body;
-      expect(integration.status).toEqual('submitted');
-
-      integrationRes = await applyIntegration({ integrationId: integration.id, planned: true, applied: true });
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
       expect(integration.status).toEqual('applied');
 
       const projNameAfterApplied = 'Project name after applied';

@@ -76,42 +76,6 @@ variable "gh_access_token" {
   sensitive   = true
 }
 
-variable "gh_owner" {
-  type        = string
-  description = "organization owning the github repository to create keycloak client pull requests"
-  default     = "bcgov"
-}
-
-variable "gh_repo" {
-  type        = string
-  description = "repository to create keycloak client pull requests"
-  default     = "sso-terraform-dev"
-}
-
-variable "gh_branch" {
-  type        = string
-  description = "default branch in the gh_repo"
-  default     = "main"
-}
-
-variable "gh_workflow_id" {
-  type        = string
-  description = "workflow id or filename to trigger when saving requests"
-  default     = "request.yml"
-}
-
-variable "gh_apply_workflow_id" {
-  type        = string
-  description = "workflow id or filename to trigger when Terraform Batch"
-  default     = "terraform-batch.yml"
-}
-
-variable "gh_apply_workflow_v2_id" {
-  type        = string
-  description = "workflow id or filename to trigger when Terraform Batch"
-  default     = "terraform-v2-batch.yml"
-}
-
 variable "gh_secret" {
   type        = string
   description = "secret for comms with gh actions"

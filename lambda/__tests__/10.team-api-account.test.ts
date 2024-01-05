@@ -114,11 +114,11 @@ jest.mock('@lambda-shared/utils/ches');
 
 jest.mock('@lambda-app/authenticate');
 
-jest.mock('@lambda-app/controllers/requests', () => {
-  const original = jest.requireActual('@lambda-app/controllers/requests');
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
     ...original,
-    processIntegrationRequest: jest.fn(() => true),
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 
@@ -130,14 +130,6 @@ jest.mock('@lambda-app/helpers/token', () => {
   };
 });
 jest.mock('@lambda-shared/utils/ches');
-
-jest.mock('@lambda-actions/authenticate', () => {
-  return {
-    authenticate: jest.fn(() => {
-      return Promise.resolve(true);
-    }),
-  };
-});
 
 jest.mock('@lambda-css-api/authenticate', () => {
   return {
@@ -162,8 +154,6 @@ describe('emails for teams', () => {
       projectName: 'TEST CSS API',
       prodEnv: true,
       submitted: true,
-      planned: true,
-      applied: true,
       teamId: team.id,
     });
     integration = integrationRes.body;

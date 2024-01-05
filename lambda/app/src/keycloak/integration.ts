@@ -354,50 +354,6 @@ export const keycloakClient = async (
   }
 };
 
-export const standardClients = async (
-  integration: IntegrationData,
-  restore: boolean = false,
-  existingClientId: string = '',
-) => {
-  // add to the queue
-  const queueItem = await models.requestQueue.create({
-    type: REQUEST_TYPES.INTEGRATION,
-    action: integration.archived ? ACTION_TYPES.DELETE : ACTION_TYPES.UPDATE,
-    requestId: integration.id,
-    request: integration,
-  });
-  if (!queueItem) {
-    await models.request.update({ status: 'planFailed' }, { where: { id: integration?.id } });
-    await createEvent({ eventCode: EVENTS.REQUEST_PLAN_FAILURE, requestId: integration.id });
-    return false;
-  }
-
-  await models.request.update({ status: 'planned' }, { where: { id: integration.id } });
-  await createEvent({ eventCode: EVENTS.REQUEST_PLAN_SUCCESS, requestId: integration.id });
-  try {
-    const responses = await Promise.all(
-      integration.environments.map((env: string) => keycloakClient(env, integration, existingClientId)),
-    );
-    for (const res of responses) {
-      if (!res) {
-        throw Error('Unable to create client at keycloak');
-      }
-    }
-  } catch (err) {
-    console.error(err);
-    await createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: integration.id });
-    await models.request.update({ status: 'applyFailed' }, { where: { id: integration?.id } });
-    return false;
-  }
-
-  await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id });
-  await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
-  // delete from the queue
-  await models.requestQueue.destroy({ where: { id: queueItem.id } });
-  if (!restore) await updatePlannedIntegration(integration);
-  return true;
-};
-
 const isPreservedClaim = (claim: string) => {
   const PRESERVED_CLAIMS = [
     'exp',
@@ -423,47 +379,4 @@ const isPreservedClaim = (claim: string) => {
     'at_hash',
   ];
   return PRESERVED_CLAIMS.includes(claim);
-};
-
-export const updatePlannedIntegration = async (integration: IntegrationData) => {
-  if (integration.archived) return;
-  const isUpdate =
-    (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) > 1;
-
-  if (integration.apiServiceAccount) {
-    const teamIntegrations = await models.request.findAll({
-      where: {
-        teamId: integration.teamId,
-        apiServiceAccount: false,
-        archived: false,
-        serviceType: 'gold',
-      },
-      attributes: ['id', 'projectName', 'usesTeam', 'teamId', 'userId'],
-    });
-
-    const team = await getTeamById(integration.teamId as number);
-    await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED, {
-      requester: integration.requester,
-      team,
-      integrations: teamIntegrations,
-    });
-  } else {
-    const hasProd = integration.environments.includes('prod');
-    const hasBceid = usesBceid(integration);
-    const hasGithub = usesGithub(integration);
-    const hasDigitalCredential = usesDigitalCredential(integration);
-    const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
-    const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
-    const waitingDigitalCredentialProdApproval =
-      hasDigitalCredential && hasProd && !integration.digitalCredentialApproved;
-
-    const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
-    await sendTemplate(emailCode, {
-      integration,
-      waitingBceidProdApproval,
-      hasBceid,
-      waitingGithubProdApproval,
-      waitingDigitalCredentialProdApproval,
-    });
-  }
 };

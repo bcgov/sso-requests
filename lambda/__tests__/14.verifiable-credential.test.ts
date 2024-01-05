@@ -10,30 +10,17 @@ import { IntegrationData } from '@lambda-shared/interfaces';
 
 jest.mock('../app/src/authenticate');
 
-jest.mock('../actions/src/authenticate', () => {
-  return {
-    authenticate: jest.fn(() => {
-      return Promise.resolve(true);
-    }),
-  };
-});
-
 jest.mock('../shared/utils/ches', () => {
   return {
     sendEmail: jest.fn(),
   };
 });
 
-// Mock dispatchRequestWorkflow to ignore timeouts during unit test
-// jest.mock('../app/src/github', () => {
-//   return {
-//     ...jest.requireActual('../app/src/github'),
-//   };
-// });
-
 jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
-    standardClients: jest.fn(() => Promise.resolve(true)),
+    ...original,
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 

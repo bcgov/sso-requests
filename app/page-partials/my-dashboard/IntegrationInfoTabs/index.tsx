@@ -26,6 +26,7 @@ import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles'
 import DigitalCredentialPanel from './DigitalCredentialPanel';
 import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -38,6 +39,14 @@ const Requester = styled.div`
   font-weight: bold;
   color: #000;
   margin-bottom: 1rem;
+`;
+
+const AlignCenter = styled.div`
+  text-align: center;
+`;
+
+const TopMargin = styled.div`
+  height: var(--field-top-spacing);
 `;
 
 const TAB_DETAILS = 'tech-details';
@@ -328,13 +337,10 @@ function IntegrationInfoTabs({ integration }: Props) {
       tabs.push(getIntegrationErrorTab());
       allowedTabs.push(TAB_DETAILS);
     } else {
-      if (bceidProdApplying || githubProdApplying || digitalCredentialProdApplying) {
-        tabs.push(getApprovalProgressTab({ integration, approvalContext }));
-        allowedTabs.push(TAB_DETAILS);
-      } else {
-        tabs.push(getProgressTab({ integration, approvalContext }));
-        allowedTabs.push(TAB_DETAILS);
-      }
+      <AlignCenter>
+        <TopMargin />
+        <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+      </AlignCenter>;
     }
   } else if (displayStatus === 'Completed') {
     tabs.push(getInstallationTab({ integration, approvalContext }));
