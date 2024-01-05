@@ -177,7 +177,6 @@ resource "aws_api_gateway_integration_response" "openapi_swagger_assets" {
 resource "aws_api_gateway_deployment" "this" {
   depends_on = [
     aws_api_gateway_integration.app,
-    aws_api_gateway_integration.actions,
     aws_api_gateway_integration.api,
     aws_api_gateway_integration.openapi_swagger,
     aws_api_gateway_integration.openapi_swagger_assets
@@ -185,7 +184,6 @@ resource "aws_api_gateway_deployment" "this" {
 
   triggers = {
     redeployment = sha1(jsonencode([
-      aws_api_gateway_integration.actions.id,
       aws_api_gateway_integration.app.id,
       aws_api_gateway_integration.api.id,
       aws_api_gateway_integration.openapi_swagger,
@@ -205,17 +203,6 @@ resource "aws_lambda_permission" "apigw_auth" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.app.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The "/*/*" portion grants access from any method on any resource
-  # within the API Gateway REST API.
-  source_arn = "${aws_api_gateway_rest_api.sso_backend.execution_arn}/*/*"
-}
-
-resource "aws_lambda_permission" "apigw_actions" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.actions.function_name
   principal     = "apigateway.amazonaws.com"
 
   # The "/*/*" portion grants access from any method on any resource

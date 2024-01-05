@@ -76,6 +76,12 @@ variable "gh_access_token" {
   sensitive   = true
 }
 
+variable "gh_owner" {
+  type        = string
+  description = "organization owning the github repository to create keycloak client pull requests"
+  default     = "bcgov"
+}
+
 variable "gh_secret" {
   type        = string
   description = "secret for comms with gh actions"
