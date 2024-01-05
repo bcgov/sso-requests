@@ -151,13 +151,10 @@ describe('integration email updates for teams', () => {
       });
       expect(integrationRes.status).toEqual(200);
       let integration = integrationRes.body;
-      console.log('🚀 ~ file: 08.emails-for-team-requests.test.ts:154 ~ it.only ~ integration:', integration);
 
       const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
         integration,
       });
-
-      console.log('🚀 ~ file: 08.emails-for-team-requests.test.ts:169 ~ it ~ emailList:', emailList);
 
       expect(emailList.length).toEqual(2);
       expect(emailList[1].subject).toEqual(template.subject);
