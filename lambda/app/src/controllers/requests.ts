@@ -751,7 +751,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData) => 
   integration = Object.assign(integration, updatedIntegration);
   if (integration.archived) return;
   const isUpdate =
-    (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) >= 1;
+    (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) > 1;
 
   if (integration.apiServiceAccount) {
     const teamIntegrations = await models.request.findAll({

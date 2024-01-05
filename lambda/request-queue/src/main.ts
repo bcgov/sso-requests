@@ -21,7 +21,7 @@ export const handler = async () => {
           const allEnvironmentsSucceeded = results.every((result) => result);
           const sendEmail = queuedRequest.action !== ACTION_TYPES.DELETE;
           if (allEnvironmentsSucceeded) {
-            const promises = [
+            const promises = Promise.all([
               models.requestQueue.destroy({
                 where: {
                   id: queuedRequest.id,
@@ -37,13 +37,15 @@ export const handler = async () => {
                   },
                 },
               ),
-            ];
-            if (sendEmail) {
-              promises.push(updatePlannedIntegration(request));
-            }
-            return Promise.all(promises).then(() =>
               createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id }),
-            ) as Promise<any>;
+            ])
+              // Must send email after event creation, since event is used to determine update vs create
+              .then(() => {
+                if (sendEmail) {
+                  return updatePlannedIntegration(request);
+                }
+              });
+            return promises as Promise<any>;
           } else {
             return Promise.all([
               models.request.update(
