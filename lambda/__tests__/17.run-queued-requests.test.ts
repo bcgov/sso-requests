@@ -32,7 +32,7 @@ describe('Request Queue', () => {
     // Forcing failure so it doesn't remove queue item
     kcClientSpy.mockImplementation(() => Promise.resolve(false));
 
-    const request = await generateRequest(formDataProd);
+    await generateRequest(formDataProd);
     await standardClients(formDataProd, true, 'existing-id');
     const queueItems = await getQueueItems();
     expect(queueItems.length).toBe(1);
