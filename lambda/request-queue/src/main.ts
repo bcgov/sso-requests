@@ -11,11 +11,13 @@ export const handler = async () => {
 
     requestQueue.forEach((queuedRequest) => {
       const { existingClientId, ...request } = queuedRequest.request;
+
+      // Create/update/delete each environment, based on request data. e.g if archived is true will delete.
       const environmentPromises = queuedRequest.request.environments.map((env) =>
         keycloakClient(env, request, existingClientId),
       );
 
-      // Update DB based on request results
+      // Update DB, create event and send email based on keycloak results.
       allPromises.push(
         Promise.all(environmentPromises).then((results) => {
           const allEnvironmentsSucceeded = results.every((result) => result);
