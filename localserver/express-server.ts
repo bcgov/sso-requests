@@ -3,7 +3,6 @@ import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import { setRoutes } from '../lambda/app/src/routes';
-import * as actionRoutes from '../lambda/actions/src/routes';
 import * as apiRoutes from '../lambda/css-api/src/routes';
 import cors from 'cors';
 
@@ -16,7 +15,6 @@ interface Props {
 const initExpresss = async () => {
   const expressServer = express();
   const appRouter = express.Router();
-  const actionsRouter = express.Router();
   const apiRouter = express.Router();
 
   expressServer.use(logger);
@@ -29,10 +27,8 @@ const initExpresss = async () => {
   expressServer.set('trust proxy', 1);
 
   setRoutes(appRouter);
-  actionRoutes.setRoutes(actionsRouter);
   apiRoutes.setRoutes(apiRouter);
   expressServer.use('/app', appRouter);
-  expressServer.use('/actions', actionsRouter);
   expressServer.use('/api/v1', apiRouter);
   return expressServer;
 };

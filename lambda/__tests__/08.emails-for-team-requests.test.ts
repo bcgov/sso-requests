@@ -21,25 +21,11 @@ import { generateInvitationToken } from '@lambda-app/helpers/token';
 
 jest.mock('../app/src/authenticate');
 
-jest.mock('../actions/src/authenticate', () => {
-  return {
-    authenticate: jest.fn(() => {
-      return Promise.resolve(true);
-    }),
-  };
-});
-
-jest.mock('@lambda-app/controllers/requests', () => {
-  const original = jest.requireActual('@lambda-app/controllers/requests');
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
     ...original,
-    processIntegrationRequest: jest.fn(() => true),
-  };
-});
-
-jest.mock('../actions/src/github', () => {
-  return {
-    mergePR: jest.fn(),
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 
@@ -91,7 +77,7 @@ describe('integration email updates for teams', () => {
         waitingGithubProdApproval: false,
       });
 
-      expect(emailList.length).toEqual(1);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
@@ -114,7 +100,7 @@ describe('integration email updates for teams', () => {
         waitingGithubProdApproval: false,
       });
 
-      expect(emailList.length).toEqual(1);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
@@ -143,7 +129,7 @@ describe('integration email updates for teams', () => {
         waitingGithubProdApproval: false,
       });
 
-      expect(emailList.length).toEqual(1);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
@@ -156,68 +142,56 @@ describe('integration email updates for teams', () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const projectName: string = 'Non BCeID Apply';
 
+      emailList = createMockSendEmail();
+
       let integrationRes = await buildIntegration({
         projectName,
         teamId,
         submitted: true,
-        planned: false,
-        applied: false,
       });
       expect(integrationRes.status).toEqual(200);
       let integration = integrationRes.body;
-
-      emailList = createMockSendEmail();
-
-      integrationRes = await applyIntegration({ integrationId: integration.id, planned: true, applied: true });
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
 
       const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
         integration,
       });
 
-      expect(emailList.length).toEqual(1);
-      expect(emailList[0].subject).toEqual(template.subject);
-      expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
-      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
-      expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+      expect(emailList.length).toEqual(2);
+      expect(emailList[1].subject).toEqual(template.subject);
+      expect(emailList[1].body).toEqual(template.body);
+      expect(emailList[1].to.length).toEqual(2);
+      expect(emailList[1].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
+      expect(emailList[1].cc.length).toEqual(1);
+      expect(emailList[1].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
     });
 
     it('should render the expected template after approval of service account', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const projectName: string = 'Service Account Apply';
 
+      emailList = createMockSendEmail();
+
       let integrationRes = await buildIntegration({
         projectName,
         teamId,
         authType: 'service-account',
         submitted: true,
-        planned: false,
-        applied: false,
       });
       expect(integrationRes.status).toEqual(200);
       let integration = integrationRes.body;
-
-      emailList = createMockSendEmail();
-
-      integrationRes = await applyIntegration({ integrationId: integration.id, planned: true, applied: true });
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
 
       const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
         integration,
         authType: 'service-account',
       });
 
-      expect(emailList.length).toEqual(1);
-      expect(emailList[0].subject).toEqual(template.subject);
-      expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
-      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
-      expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+      expect(emailList.length).toEqual(2);
+      expect(emailList[1].subject).toEqual(template.subject);
+      expect(emailList[1].body).toEqual(template.body);
+      expect(emailList[1].to.length).toEqual(2);
+      expect(emailList[1].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
+      expect(emailList[1].cc.length).toEqual(1);
+      expect(emailList[1].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
     });
 
     it('should render the expected template after submitting approved bceid integration in non prod', async () => {
@@ -228,8 +202,6 @@ describe('integration email updates for teams', () => {
         bceid: true,
         teamId,
         submitted: true,
-        planned: true,
-        applied: true,
       });
       expect(integrationRes.status).toEqual(200);
       let integration = integrationRes.body;
@@ -252,7 +224,7 @@ describe('integration email updates for teams', () => {
         waitingGithubProdApproval: false,
       });
 
-      expect(emailList.length).toEqual(1);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
@@ -269,8 +241,6 @@ describe('integration email updates for teams', () => {
         bceid: true,
         teamId,
         submitted: true,
-        planned: true,
-        applied: true,
       });
       expect(integrationRes.status).toEqual(200);
       let integration = integrationRes.body;
@@ -294,7 +264,7 @@ describe('integration email updates for teams', () => {
         waitingGithubProdApproval: false,
       });
 
-      expect(emailList.length).toEqual(1);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
@@ -312,8 +282,6 @@ describe('integration email updates for teams', () => {
         bceid: true,
         teamId,
         submitted: true,
-        planned: true,
-        applied: true,
       });
       expect(integrationRes.status).toEqual(200);
       let integration = integrationRes.body;
@@ -329,12 +297,6 @@ describe('integration email updates for teams', () => {
       expect(updateIntRes.status).toEqual(200);
       integration = updateIntRes.body;
 
-      emailList = createMockSendEmail();
-
-      integrationRes = await applyIntegration({ integrationId: integration.id, planned: true, applied: true });
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
-
       const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, {
         integration,
         waitingBceidProdApproval: false,
@@ -342,13 +304,13 @@ describe('integration email updates for teams', () => {
         hasBceid: true,
       });
 
-      expect(emailList.length).toEqual(1);
-      expect(emailList[0].subject).toEqual(template.subject);
-      expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
-      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
-      expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+      expect(emailList.length).toEqual(2);
+      expect(emailList[1].subject).toEqual(template.subject);
+      expect(emailList[1].body).toEqual(template.body);
+      expect(emailList[1].to.length).toEqual(2);
+      expect(emailList[1].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
+      expect(emailList[1].cc.length).toEqual(1);
+      expect(emailList[1].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
     });
 
     it('should render the expected template after bceid prod approval of an integration', async () => {
@@ -359,8 +321,6 @@ describe('integration email updates for teams', () => {
         bceid: true,
         prodEnv: true,
         submitted: true,
-        planned: true,
-        applied: true,
         teamId,
       });
       expect(integrationRes.status).toEqual(200);
@@ -388,7 +348,7 @@ describe('integration email updates for teams', () => {
         type: 'BCeID',
       });
 
-      expect(emailList.length).toEqual(1);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
@@ -405,8 +365,6 @@ describe('integration email updates for teams', () => {
         github: true,
         prodEnv: true,
         submitted: true,
-        planned: true,
-        applied: true,
         teamId,
       });
       expect(integrationRes.status).toEqual(200);
@@ -434,7 +392,7 @@ describe('integration email updates for teams', () => {
         type: 'GitHub',
       });
 
-      expect(emailList.length).toEqual(1);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
@@ -450,8 +408,6 @@ describe('integration email updates for teams', () => {
         projectName,
         teamId,
         submitted: true,
-        planned: true,
-        applied: true,
       });
       expect(integrationRes.status).toEqual(200);
       integration = integrationRes.body;
@@ -484,8 +440,6 @@ describe('integration email updates for teams', () => {
         prodEnv: true,
         teamId,
         submitted: true,
-        planned: true,
-        applied: true,
       });
       expect(integrationRes.status).toEqual(200);
       integration = integrationRes.body;

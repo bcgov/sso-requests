@@ -29,17 +29,17 @@ const testUser = {
 
 jest.mock('../app/src/authenticate');
 
-jest.mock('../actions/src/authenticate', () => {
-  return {
-    authenticate: jest.fn(() => {
-      return Promise.resolve(true);
-    }),
-  };
-});
-
 jest.mock('../shared/utils/ches', () => {
   return {
     sendEmail: jest.fn(),
+  };
+});
+
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
+  return {
+    ...original,
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 
@@ -47,14 +47,6 @@ jest.mock('../app/src/keycloak/client', () => {
   return {
     disableIntegration: jest.fn(() => Promise.resolve()),
     fetchClient: jest.fn(() => Promise.resolve()),
-  };
-});
-
-jest.mock('@lambda-app/controllers/requests', () => {
-  const original = jest.requireActual('@lambda-app/controllers/requests');
-  return {
-    ...original,
-    processIntegrationRequest: jest.fn(() => true),
   };
 });
 
@@ -100,8 +92,6 @@ describe('users and teams', () => {
         bceid: false,
         prodEnv: false,
         submitted: true,
-        planned: true,
-        applied: true,
       });
       expect(integrationRes.status).toEqual(200);
       nonTeamIntegration = integrationRes.body;
@@ -114,8 +104,6 @@ describe('users and teams', () => {
         bceid: false,
         prodEnv: false,
         submitted: true,
-        planned: true,
-        applied: true,
         teamId: teamWithoutAdmins,
       });
       expect(integrationRes.status).toEqual(200);
@@ -136,7 +124,7 @@ describe('users and teams', () => {
       expect(deleteResponse.status).toEqual(200);
       const user = await models.user.findOne({ where: { idir_userid: TEAM_ADMIN_IDIR_USERID_01 }, raw: true });
       expect(user).toBeNull();
-      expect(emailList.length).toEqual(1);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
