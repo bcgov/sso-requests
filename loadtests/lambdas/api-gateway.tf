@@ -94,6 +94,10 @@ resource "aws_api_gateway_deployment" "this" {
 
   rest_api_id = aws_api_gateway_rest_api.sso_backend_test.id
   stage_name  = "test"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_lambda_permission" "apigw_app_test" {
