@@ -12,7 +12,7 @@ import {
 import { ACTION_TYPES, EMAILS, EVENTS } from '@lambda-shared/enums';
 import { QUEUE_ACTION } from '@lambda-shared/interfaces';
 import { handler } from '../request-queue/src/main';
-import { createEvent } from '@lambda-app/controllers/requests';
+import { createEvent, standardClients } from '@lambda-app/controllers/requests';
 
 jest.mock('@lambda-app/keycloak/adminClient');
 jest.mock('@lambda-shared/utils/ches');
@@ -25,6 +25,18 @@ describe('Request Queue', () => {
 
   afterAll(async () => {
     await cleanUpDatabaseTables();
+  });
+
+  it('Includes existing client id in the queue item body if passed to the standard client', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    // Forcing failure so it doesn't remove queue item
+    kcClientSpy.mockImplementation(() => Promise.resolve(false));
+
+    const request = await generateRequest(formDataProd);
+    await standardClients(formDataProd, true, 'existing-id');
+    const queueItems = await getQueueItems();
+    expect(queueItems.length).toBe(1);
+    expect(queueItems[0].request.existingClientId).toBe('existing-id');
   });
 
   it('Creates the integrations from the queue, removes queue item, creates event and sends email if successful', async () => {

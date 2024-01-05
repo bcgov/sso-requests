@@ -696,7 +696,7 @@ export const processIntegrationRequest = async (
   }
 };
 
-const standardClients = async (
+export const standardClients = async (
   integration: IntegrationData,
   restore: boolean = false,
   existingClientId: string = '',
@@ -706,7 +706,7 @@ const standardClients = async (
     type: REQUEST_TYPES.INTEGRATION,
     action: integration.archived ? ACTION_TYPES.DELETE : ACTION_TYPES.UPDATE,
     requestId: integration.id,
-    request: integration,
+    request: { ...integration, existingClientId },
   });
   if (!queueItem) {
     await models.request.update({ status: 'planFailed' }, { where: { id: integration?.id } });
