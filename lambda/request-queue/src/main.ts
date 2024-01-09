@@ -7,8 +7,12 @@ export const handler = async () => {
   try {
     const allPromises: Promise<any>[] = [];
     const requestQueue = await models.requestQueue.findAll();
+    if (requestQueue.length === 0) {
+      console.info('Request queue empty, exiting.');
+    }
 
     requestQueue.forEach((queuedRequest) => {
+      console.info(`processing queued request ${queuedRequest.request.id}`);
       const { existingClientId, ...request } = queuedRequest.request;
 
       // Create/update/delete each environment, based on request data. e.g if archived is true will delete.

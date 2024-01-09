@@ -33,6 +33,10 @@ resource "aws_lambda_function" "request_queue" {
       KEYCLOAK_V2_PROD_URL           = var.keycloak_v2_prod_url
       KEYCLOAK_V2_PROD_CLIENT_ID     = var.keycloak_v2_prod_client_id
       KEYCLOAK_V2_PROD_CLIENT_SECRET = var.keycloak_v2_prod_client_secret
+      CHES_API_ENDPOINT              = var.ches_api_endpoint
+      CHES_TOKEN_ENDPOINT            = var.ches_token_endpoint
+      CHES_PASSWORD                  = var.ches_password
+      CHES_USERNAME                  = var.ches_username
     }
   }
 
