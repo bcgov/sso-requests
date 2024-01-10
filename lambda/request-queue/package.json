@@ -6,11 +6,14 @@
   "scripts": {
     "compile": "../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias",
     "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m",
-    "copy-templates": "../node_modules/.bin/copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html ./src/**/*.json dist --flat"
+    "copy-templates": "../node_modules/.bin/copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html ./src/**/*.json dist --flat",
+    "start": "NODE_ENVIRONMENT=local ts-node src/main.ts"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "ts-node": "^10.9.2"
+    "dotenv": "^16.3.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
   }
 }

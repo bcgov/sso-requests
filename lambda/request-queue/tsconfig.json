@@ -13,6 +13,9 @@
       "@lambda-shared/*": ["../shared/*"]
     }
   },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
   "include": ["src/**/*", "../shared/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }

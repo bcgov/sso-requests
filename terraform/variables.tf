@@ -148,3 +148,9 @@ variable "uptime_status_domain_name" {
   type        = string
   description = "custom domain name for the uptime status page"
 }
+
+variable "gold_ip_address" {
+  type        = string
+  description = "IP address of service running in gold cluster"
+  default     = "142.34.229.4"
+}
