@@ -7,7 +7,7 @@ import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
 
-const SUBJECT_TEMPLATE = `SSO CSS API Account requested`;
+const SUBJECT_TEMPLATE = `SSO CSS API Account requested (email 1 of 2)`;
 const template = fs.readFileSync(__dirname + '/create-team-api-account-submitted.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

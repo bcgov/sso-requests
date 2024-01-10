@@ -9,7 +9,7 @@ import { EMAILS } from '@lambda-shared/enums';
 import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO change request submitted`;
+const SUBJECT_TEMPLATE = `Pathfinder SSO change request submitted (email 1 of 2)`;
 const template = fs.readFileSync(__dirname + '/update-integration-submitted.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

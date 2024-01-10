@@ -8,7 +8,7 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO change request approved and can be downloaded`;
+const SUBJECT_TEMPLATE = `Pathfinder SSO change request approved and can be downloaded (email 2 of 2)`;
 const template = fs.readFileSync(__dirname + '/update-integration-applied.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
