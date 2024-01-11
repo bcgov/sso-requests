@@ -162,43 +162,38 @@ variable "keycloak_v2_prod_url" {
   default     = ""
 }
 
-variable "keycloak_v2_dev_client_id" {
+variable "keycloak_v2_dev_username" {
   type        = string
-  description = "Keycloak v2 service account client id in customer dev environment"
-  default     = "terraform-cli"
-}
-
-variable "keycloak_v2_test_client_id" {
-  type        = string
-  description = "Keycloak v2 service account client id in customer test environment"
-  default     = "terraform-cli"
-}
-
-variable "keycloak_v2_prod_client_id" {
-  type        = string
-  description = "Keycloak v2 service account client id in customer prod environment"
-  default     = "terraform-cli"
-}
-
-variable "keycloak_v2_dev_client_secret" {
-  type        = string
-  description = "Keycloak v2 service account client secret in customer dev environment"
+  description = "The username of the user used by the provider for authentication via the password grant"
   default     = ""
-  sensitive   = true
 }
 
-variable "keycloak_v2_test_client_secret" {
+variable "keycloak_v2_dev_password" {
   type        = string
-  description = "Keycloak v2 service account client secret in customer test environment"
+  description = "The password of the user used by the provider for authentication via the password grant"
   default     = ""
-  sensitive   = true
+}
+variable "keycloak_v2_test_username" {
+  type        = string
+  description = "The username of the user used by the provider for authentication via the password grant"
+  default     = ""
 }
 
-variable "keycloak_v2_prod_client_secret" {
+variable "keycloak_v2_test_password" {
   type        = string
-  description = "Keycloak v2 service account client secret in customer prod environment"
+  description = "The password of the user used by the provider for authentication via the password grant"
   default     = ""
-  sensitive   = true
+}
+variable "keycloak_v2_prod_username" {
+  type        = string
+  description = "The username of the user used by the provider for authentication via the password grant"
+  default     = ""
+}
+
+variable "keycloak_v2_prod_password" {
+  type        = string
+  description = "The password of the user used by the provider for authentication via the password grant"
+  default     = ""
 }
 
 variable "realm_registry_api" {

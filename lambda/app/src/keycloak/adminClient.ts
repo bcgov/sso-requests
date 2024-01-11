@@ -4,21 +4,21 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
   const { environment } = data;
 
   let keycloakUrl;
-  let keycloakClientId;
-  let keycloakClientSecret;
+  let keycloakUsername;
+  let keycloakPassword;
 
   if (environment === 'dev') {
     keycloakUrl = process.env.KEYCLOAK_V2_DEV_URL;
-    keycloakClientId = process.env.KEYCLOAK_V2_DEV_CLIENT_ID || 'terraform-cli';
-    keycloakClientSecret = process.env.KEYCLOAK_V2_DEV_CLIENT_SECRET;
+    keycloakUsername = process.env.KEYCLOAK_V2_DEV_USERNAME;
+    keycloakPassword = process.env.KEYCLOAK_V2_DEV_PASSWORD;
   } else if (environment === 'test') {
     keycloakUrl = process.env.KEYCLOAK_V2_TEST_URL;
-    keycloakClientId = process.env.KEYCLOAK_V2_TEST_CLIENT_ID || 'terraform-cli';
-    keycloakClientSecret = process.env.KEYCLOAK_V2_TEST_CLIENT_SECRET;
+    keycloakUsername = process.env.KEYCLOAK_V2_TEST_USERNAME;
+    keycloakPassword = process.env.KEYCLOAK_V2_TEST_PASSWORD;
   } else if (environment === 'prod') {
     keycloakUrl = process.env.KEYCLOAK_V2_PROD_URL;
-    keycloakClientId = process.env.KEYCLOAK_V2_PROD_CLIENT_ID || 'terraform-cli';
-    keycloakClientSecret = process.env.KEYCLOAK_V2_PROD_CLIENT_SECRET;
+    keycloakUsername = process.env.KEYCLOAK_V2_PROD_USERNAME;
+    keycloakPassword = process.env.KEYCLOAK_V2_PROD_PASSWORD;
   } else {
     throw Error('invalid environment');
   }
@@ -30,9 +30,10 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
   });
 
   await kcAdminClient.auth({
-    grantType: 'client_credentials',
-    clientId: keycloakClientId,
-    clientSecret: keycloakClientSecret,
+    grantType: 'password',
+    clientId: 'admin-cli',
+    username: keycloakUsername,
+    password: keycloakPassword,
   });
 
   return { kcAdminClient, authServerUrl };
