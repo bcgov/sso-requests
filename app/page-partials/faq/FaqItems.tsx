@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
-import { wikiURL } from '@app/utils/constants';
+import { docusaurusURL, wikiURL } from '@app/utils/constants';
 
 interface Props {
   children?: React.ReactNode;
@@ -68,7 +68,7 @@ export default function FaqItems({ children }: Props) {
                   A decision if you want a public or confidential client.
                 </Link>{' '}
                 To learn more, review the Technical Details under the{' '}
-                <Link external href="https://bcgov.github.io/sso-docs/category/integrating-your-application">
+                <Link external href={`${docusaurusURL}/category/integrating-your-application`}>
                   Using Your SSO Client
                 </Link>{' '}
                 in our SSO Pathfinder Knowledge Base
@@ -117,7 +117,7 @@ export default function FaqItems({ children }: Props) {
             For additional endpoint information, such as the Authorization URL and Token URL, the{' '}
             <b>Provider Configuration Endpoint</b> can be used.
           </p>
-          <Link href="https://bcgov.github.io/sso-docs/integrating-your-application/installation-json" external>
+          <Link href={`${docusaurusURL}/integrating-your-application/installation-json`} external>
             Please see the wiki for accessing your provider endpoint information
           </Link>
         </Accordion.Panel>

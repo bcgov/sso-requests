@@ -6,8 +6,9 @@ import {
   updateServiceAccountCredentials,
 } from '@app/services/team';
 import { MyTeamsComponent } from './helpers';
+import { docusaurusURL } from '@app/utils/constants';
 
-const HYPERLINK = 'https://bcgov.github.io/sso-docs/integrating-your-application/css-app-api';
+const HYPERLINK = `${docusaurusURL}/integrating-your-application/css-app-api`;
 
 jest.mock('next/router', () => ({
   useRouter() {

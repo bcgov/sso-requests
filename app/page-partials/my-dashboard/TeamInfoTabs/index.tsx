@@ -45,6 +45,7 @@ import ServiceAccountsList from './ServiceAccountsList';
 import { ErrorMessage, InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
 import { SurveyContext } from '@app/pages/_app';
+import { docusaurusURL } from '@app/utils/constants';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -667,7 +668,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     <Grid.Row>
                       <InfoMessage>
                         For more information on how to use the CSS API Account with your integrations,{' '}
-                        <Link href="https://bcgov.github.io/sso-docs/integrating-your-application/css-app-api" external>
+                        <Link href={`${docusaurusURL}/integrating-your-application/css-app-api`} external>
                           click to learn more on our wiki page
                         </Link>
                         .
