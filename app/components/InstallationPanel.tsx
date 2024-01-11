@@ -15,6 +15,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { InfoMessage } from 'components/MessageBox';
 import { idpMap } from 'helpers/meta';
 import Link from '@button-inc/bcgov-theme/Link';
+import { docusaurusURL } from '@app/utils/constants';
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -125,7 +126,7 @@ const InstallationPanel = ({ integration, alert }: Props) => {
       </Grid>
       <InfoMessage>
         For more information on how to use these details, or for the public endpoints associated to your client,{' '}
-        <Link href="https://bcgov.github.io/sso-docs/integrating-your-application/installation-json" external>
+        <Link href={`${docusaurusURL}/integrating-your-application/installation-json`} external>
           click to learn more on our wiki page
         </Link>
         .

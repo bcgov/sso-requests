@@ -6,8 +6,9 @@ import {
   updateServiceAccountCredentials,
 } from '@app/services/team';
 import { MyTeamsComponent } from './helpers';
+import { docusaurusURL } from '@app/utils/constants';
 
-const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account';
+const HYPERLINK = `${docusaurusURL}/integrating-your-application/css-app-api`;
 
 jest.mock('next/router', () => ({
   useRouter() {

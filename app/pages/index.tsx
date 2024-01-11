@@ -11,6 +11,7 @@ import { Accordion } from '@bcgov-sso/common-react-components';
 import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 import GithubDiscussions from '@app/components/GithubDiscussions';
+import { wikiURL } from '@app/utils/constants';
 
 interface PanelProps {
   marginLeft?: boolean;
@@ -154,7 +155,7 @@ export default function Home({ onLoginClick }: PageProps) {
                 </StandardRealmsSplashContainer>
                 <Paragraph style={{ paddingLeft: '0px' }}>
                   To learn more about Pathfinder SSO visit the{' '}
-                  <Link size="large" href="https://github.com/bcgov/sso-keycloak/wiki" external>
+                  <Link size="large" href={wikiURL} external>
                     SSO Pathfinder Knowledge Base
                   </Link>
                 </Paragraph>
@@ -203,7 +204,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     </li>
                     <li>
                       To learn more about our service uptime monitoring, please visit our{' '}
-                      <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
+                      <Link external href={`${wikiURL}/Pathfinder-Uptime-Monitoring/`}>
                         uptime page on our wiki
                       </Link>{' '}
                       and join our{' '}
@@ -223,10 +224,7 @@ export default function Home({ onLoginClick }: PageProps) {
                       <li>Requires session management, scopes or changes in token times</li>
                     </ul>
                     If you would like to learn more about IM IT Standards,{' '}
-                    <Link
-                      href="https://github.com/bcgov/sso-keycloak/wiki/Useful-References#imit-identity-standards"
-                      external
-                    >
+                    <Link href={`${wikiURL}/Useful-References#imit-identity-standards`} external>
                       learn more here
                     </Link>
                   </div>
@@ -248,7 +246,7 @@ export default function Home({ onLoginClick }: PageProps) {
               </Link>
               <br />
               Review our{' '}
-              <Link href="https://github.com/bcgov/sso-keycloak/wiki" external>
+              <Link href={wikiURL} external>
                 helpful documentation
               </Link>
               <br />
