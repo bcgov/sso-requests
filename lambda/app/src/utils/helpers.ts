@@ -7,6 +7,7 @@ import { Integration } from '@app/interfaces/Request';
 import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import { validateForm } from '@app/utils/validate';
 import { Session, User } from '@lambda-shared/interfaces';
+import { User as TeamUser } from '@app/interfaces/team';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
@@ -169,15 +170,15 @@ export async function getUsersTeams(user) {
     .then((res) => res.map((res) => res.dataValues));
 }
 
-export async function inviteTeamMembers(users: User[], teamId: number) {
+export async function inviteTeamMembers(users: (User & { role: string })[], teamId: number) {
   const team = await getTeamById(teamId);
   if (!team) return;
 
   return Promise.all(
     users.map(async (user) => {
       const invitationLink = generateInvitationToken(user, team.id);
-      const { idirEmail: email } = user;
-      await sendTemplate(EMAILS.TEAM_INVITATION, { email, team, invitationLink });
+      const { idirEmail: email, role } = user;
+      await sendTemplate(EMAILS.TEAM_INVITATION, { email, team, invitationLink, role });
       return true;
     }),
   );

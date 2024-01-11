@@ -16,6 +16,7 @@ interface DataProps {
   team: string;
   invitationLink: string;
   apiUrl: string;
+  role: string;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {

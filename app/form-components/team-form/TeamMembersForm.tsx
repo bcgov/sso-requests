@@ -161,7 +161,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         <br />
         <div>
           <span className="underline">
-            <Link external href={`${wikiURL}/Creating-a-Role`}>
+            <Link external href={`${wikiURL}/CSS-App-My-Teams#ive-created-a-team-now-what`}>
               View a detailed breakdown of roles on our wiki page
             </Link>
           </span>

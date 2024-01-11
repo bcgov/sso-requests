@@ -60,6 +60,14 @@ const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): strin
     .join(', ');
 };
 
+const getRolePrivelege = (role: string) => {
+  if (role === 'member') return 'view';
+  if (role === 'admin') return 'manage';
+  return 'view';
+};
+
+const capitalize = (word: string) => word[0].toUpperCase() + word.slice(1).toLowerCase();
+
 Handlebars.registerPartial('footer', footer);
 Handlebars.registerPartial('hr', hr);
 Handlebars.registerPartial('createBceidBottom', createBceidBottom);
@@ -73,6 +81,8 @@ Handlebars.registerPartial('processingTime', processingTime);
 Handlebars.registerPartial('ssoUpdatesMailingListMessage', ssoUpdatesMailingListMessage);
 Handlebars.registerPartial('bceidWarning', bceidWarning);
 Handlebars.registerHelper('formatPrimaryUsers', formatPrimaryUsers);
+Handlebars.registerHelper('getRolePrivelege', getRolePrivelege);
+Handlebars.registerHelper('capitalize', capitalize);
 
 const getBuilder = (key: string) => {
   let builder = { render: (v) => v, send: noop };
