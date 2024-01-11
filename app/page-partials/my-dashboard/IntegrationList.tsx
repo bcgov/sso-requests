@@ -41,8 +41,7 @@ const NewEntityButton = ({
   handleNewIntegrationClick: Function;
   integrations?: Integration[];
 }) => {
-  // if (!integrations || integrations?.length == 0) {
-  if (1) {
+  if (!integrations || integrations?.length == 0) {
     return (
       <>
         <p>
