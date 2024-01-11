@@ -49,7 +49,7 @@ describe('emails for teams', () => {
 
   it('should render the expected template in the teams invitation email sent to users', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    const template = await renderTemplate(EMAILS.TEAM_INVITATION, { team, invitationLink: TEST_TOKEN });
+    const template = await renderTemplate(EMAILS.TEAM_INVITATION, { team, invitationLink: TEST_TOKEN, role: 'admin' });
     // four users are being added when creating a team
     expect(emailList.length).toEqual(4);
     expect(emailList[0].subject).toEqual(template.subject);

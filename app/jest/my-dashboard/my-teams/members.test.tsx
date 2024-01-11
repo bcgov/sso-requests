@@ -4,7 +4,7 @@ import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/tea
 import { MyTeamsComponent } from './helpers';
 import { wikiURL } from '@app/utils/constants';
 
-const HYPERLINK = `${wikiURL}/Creating-a-Role`;
+const HYPERLINK = `${wikiURL}/CSS-App-My-Teams#ive-created-a-team-now-what`;
 
 const spyValidateTeam = jest
   .spyOn(require('form-components/team-form/TeamMembersForm'), 'validateTeam')

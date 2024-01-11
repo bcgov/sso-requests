@@ -1,8 +1,12 @@
-<h1>Hello Pathfinder SSO friend,</h1>
-<p>You are invited to join <strong>{{team.name}} (#{{team.id}})</strong></p>
+<p>Hello Pathfinder SSO friend,</p>
+<p>
+  You are invited to join <strong>{{team.name}} (#{{team.id}})</strong>. You have been invited as a
+  <strong>Team {{capitalize role}}</strong> which gives you the
+  <strong>privilege to {{getRolePrivelege role}}</strong> the integration.
+</p>
 <p>
   Please follow this <a href="{{apiUrl}}/teams/verify?token={{invitationLink}}">link</a> to view your invitation in the
-  dashboard. This link will expire in <strong>2 business days.</strong>
+  dashboard. The link will expire in <strong>2 business days.</strong>
 </p>
 <p>
   If you think you're receiving this invitation by accident, or have any questions, please contact the SSO Pathfinder
@@ -10,6 +14,7 @@
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
   </a>
-  or reply to this email
+  or reply to this email.
 </p>
-{{> footer }}
+
+<p>Thank you,<br />Pathfinder SSO Team</p>

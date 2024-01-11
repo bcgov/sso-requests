@@ -30,7 +30,7 @@ const sampleTeam = [
     updatedAt: '',
   },
 ];
-const HYPERLINK = `${wikiURL}/Creating-a-Role`;
+const HYPERLINK = `${wikiURL}/CSS-App-My-Teams#ive-created-a-team-now-what`;
 const setTeam = jest.fn();
 const loadTeams = jest.fn();
 
