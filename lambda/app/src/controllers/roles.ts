@@ -9,8 +9,10 @@ import {
   bulkCreateRole,
   setCompositeClientRoles,
 } from '../keycloak/users';
-import { models } from '@lambda-shared/sequelize/models/models';
+import { models, sequelize } from '@lambda-shared/sequelize/models/models';
 import { Op, Sequelize } from 'sequelize';
+import { destroyRequestRole, getCompositeParentRoles, updateCompositeRoles } from '@lambda-app/queries/roles';
+import remove from 'lodash.remove';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
   return await findAllowedIntegrationInfo(sessionUserId, integrationId);
@@ -49,25 +51,24 @@ export const bulkCreateClientRoles = async (
 
     if (roles.length > 20) throw Error('Only 20 roles can be created at a time');
 
-    for (const role of roles) {
-      const roleObjs = await Promise.all(
-        role.envs.map((env) =>
-          models.requestRole.create({
-            name: role?.name,
-            environment: env,
-            requestId: integrationId,
-            createdBy: sessionUserId,
-            lastUpdatedBy: sessionUserId,
-          }),
-        ),
-      );
+    const envResults = await bulkCreateRole(integration, roles);
 
-      for (const res in roleObjs) {
-        if (!res) throw Error(`Unable to save roles at this moment`);
+    if (envResults.length > 0) {
+      for (const res of envResults) {
+        if (res?.success?.length > 0) {
+          for (const role of res?.success) {
+            await models.requestRole.create({
+              name: role,
+              environment: res.env,
+              requestId: integrationId,
+              createdBy: sessionUserId,
+              lastUpdatedBy: sessionUserId,
+            });
+          }
+        }
       }
     }
-
-    return await bulkCreateRole(integration, roles);
+    return envResults;
   } catch (err) {
     console.error('bulkCreateClientRoles', err);
     throw Error('Unable to create roles');
@@ -87,19 +88,16 @@ export const listRoles = async (sessionUserId: number, role: any) => {
 export const deleteRoles = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role?.integrationId);
   if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to delete role');
-  const dbRole = await models.requestRole.findOne({
-    where: {
-      name: role?.roleName,
-      requestId: integration?.id,
-      environment: role?.environment,
-    },
-  });
-  if (!dbRole) {
-    throw Error(`Role ${role?.roleName} not found`);
-  } else {
-    await dbRole.destroy();
+
+  await deleteRole(integration, role);
+
+  const deletedRole = await getClientRole(sessionUserId, role);
+
+  if (!deletedRole) {
+    await destroyRequestRole(integration?.id, role?.roleName, role?.environment);
   }
-  return await deleteRole(integration, role);
+
+  return;
 };
 
 export const setCompositeRoles = async (
@@ -119,38 +117,13 @@ export const setCompositeRoles = async (
   const integration = await validateIntegration(sessionUserId, integrationId);
   if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to create composite roles');
 
-  const dbRole = await models.requestRole.findOne({
-    where: {
-      name: roleName,
-      requestId: integration?.id,
-      environment: environment,
-    },
-  });
-  if (!dbRole) {
-    throw Error(`Role ${roleName} not found`);
-  }
-  const dbCompositeRoles = await models.requestRole.findAll({
-    where: {
-      name: {
-        [Op.in]: compositeRoleNames,
-      },
-      requestId: integration?.id,
-      environment: environment,
-    },
-    raw: true,
-  });
-  if (dbCompositeRoles.length > 0) {
-    dbRole.composite = true;
-    dbRole.compositeRoles = dbCompositeRoles.map((cr) => cr.id);
-  } else {
-    dbRole.composite = false;
-    dbRole.compositeRoles = [];
-  }
-  await dbRole.save();
-
-  return await setCompositeClientRoles(integration, {
+  const result = await setCompositeClientRoles(integration, {
     environment,
     roleName,
     compositeRoleNames,
   });
+
+  await updateCompositeRoles(result?.name, result?.composites, integration?.id, environment);
+
+  return result;
 };

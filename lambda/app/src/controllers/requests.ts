@@ -761,7 +761,8 @@ export const updatePlannedIntegration = async (integration: IntegrationData) => 
         archived: false,
         serviceType: 'gold',
       },
-      attributes: ['id', 'projectName', 'usesTeam', 'teamId', 'userId'],
+      raw: true,
+      attributes: ['id', 'projectName', 'usesTeam', 'teamId', 'userId', 'devIdps', 'environments', 'authType'],
     });
 
     const team = await getTeamById(integration.teamId as number);

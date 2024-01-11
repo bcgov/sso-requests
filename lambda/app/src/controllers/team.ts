@@ -210,6 +210,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
     throw Error(`team #${teamId} is not allowed for user #${userId}`);
   }
 
+  serviceAccount.authType = 'service-account';
   serviceAccount.status = 'submitted';
   serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
   serviceAccount.requester = requester;

@@ -91,7 +91,6 @@ jest.mock('@lambda-app/keycloak/users', () => {
     }),
     findClientRole: jest.fn(),
     manageUserRole: jest.fn(() => Promise.resolve([{ name: 'role1', composite: false }])),
-    manageRoleComposites: jest.fn(() => {}),
     getRoleComposites: jest.fn(() => {
       return Promise.resolve([{ name: 'role2', composite: false }]);
     }),
@@ -101,6 +100,7 @@ jest.mock('@lambda-app/keycloak/users', () => {
         rows: searchUsersByIdpRows,
       });
     }),
+    setCompositeClientRoles: jest.fn(() => Promise.resolve({ name: 'role1', composites: ['role2'] })),
   };
 });
 jest.mock('@lambda-app/helpers/token', () => {
