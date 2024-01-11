@@ -41,7 +41,8 @@ const NewEntityButton = ({
   handleNewIntegrationClick: Function;
   integrations?: Integration[];
 }) => {
-  if (!integrations || integrations?.length == 0) {
+  // if (!integrations || integrations?.length == 0) {
+  if (1) {
     return (
       <>
         <p>
@@ -66,10 +67,7 @@ const NewEntityButton = ({
                 <NumberedContents number={2} title="Technical Info" children={null} />
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Client type (
-                  <Link href={`${wikiURL}/Using-Your-SSO-Client/#confidential-vs-private-client`}>
-                    Public or Confidential, learn more
-                  </Link>
-                  )
+                  <Link href={`${wikiURL}/Useful-References#client`}>Public or Confidential, learn more</Link>)
                 </PNoMargin>
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, Azure, BCeID or Basic)

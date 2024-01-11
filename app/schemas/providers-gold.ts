@@ -92,7 +92,7 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
           return {
             content: `
             To learn the difference between IDIR and Azure IDIR,
-            <a href="${wikiURL}/Our-Partners-the-Identity-Providers/#azure-idir-and-idir" target="_blank" title="IDIR vs Azure IDIR" target="_blank" title="IDIR vs Azure IDIR">
+            <a href="${wikiURL}/Our-Partners-the-Identity-Providers#azure-idir-and-idir" target="_blank" title="IDIR vs Azure IDIR" target="_blank" title="IDIR vs Azure IDIR">
             please visit our GitHub page about choosing an Identity Provider
             </a>
             `,
@@ -101,7 +101,7 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
         }
         if (idp === 'digitalcredential')
           return {
-            content: `To learn more about using the Digital Credential option visit our <a href="${wikiURL}/Our-Partners-the-Identity-Providers/#what-are-identity-providers" target="_blank">additional information</a>.`,
+            content: `To learn more about using the Digital Credential option visit our <a href="${wikiURL}/Our-Partners-the-Identity-Providers#what-are-identity-providers" target="_blank">additional information</a>.`,
             hide: 3000,
             alpha: true,
           };

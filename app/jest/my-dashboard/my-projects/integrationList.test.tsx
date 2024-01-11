@@ -6,7 +6,7 @@ import { wikiURL } from '@app/utils/constants';
 
 const setIntegration = jest.fn();
 const setIntegrationCount = jest.fn();
-const HYPERLINK = `${wikiURL}/Using-Your-SSO-Client/#confidential-vs-private-client`;
+const HYPERLINK = `${wikiURL}/Useful-References#client`;
 
 function IntegrationListComponent() {
   return <IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />;

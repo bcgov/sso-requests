@@ -154,7 +154,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
         <Alert variant="info" closable={false} data-testid={`assign-svc-acct-role-risk-alert`}>
           <span className="normal">
             There may be a security risk if you rely on client roles of a service account,{' '}
-            <Link external href={`${wikiURL}/Creating-a-Role/#service-account-role-management`}>
+            <Link external href={`${wikiURL}/Creating-a-Role#service-account-role-management`}>
               click to visit our wiki page
             </Link>
           </span>

@@ -19,7 +19,7 @@ function ServiceAccountRolesComponent() {
 }
 
 const listClientRolesResponse = 'role1';
-const HYPERLINK = `${wikiURL}/Creating-a-Role/#service-account-role-management`;
+const HYPERLINK = `${wikiURL}/Creating-a-Role#service-account-role-management`;
 
 jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: listClientRolesResponse }], null])),
