@@ -5,6 +5,7 @@ import { updateProfile } from 'services/user';
 import { session } from './utils/helpers';
 import { SessionContext } from '@app/pages/_app';
 import { User } from 'interfaces/team';
+import { wikiURL } from '@app/utils/constants';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
@@ -32,7 +33,7 @@ function LayoutComponent() {
 const MY_PROFILE_HYPERLINK = '#user-profile';
 const ROCKET_CHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
 const PATHFINDER_SSO_HYPERLINK = 'mailto:bcgov.sso@gov.bc.ca';
-const DOCUMENTATION_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki';
+const DOCUMENTATION_HYPERLINK = wikiURL;
 const DISCLAIMER_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/disclaimer';
 const PRIVACY_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/privacy';
 const ACCESSIBILITY_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/accessible-government';

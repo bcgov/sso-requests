@@ -5,6 +5,7 @@ import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import { getInstallation } from 'services/keycloak';
 import { sampleRequest } from '../../samples/integrations';
 import type { Status } from 'interfaces/types';
+import { wikiURL } from '@app/utils/constants';
 
 type Text = string | RegExp;
 const expectText = (text: Text) => expect(screen.getByText(text)).toBeTruthy();
@@ -16,7 +17,7 @@ const bceidApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['bcei
 const githubApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['githubApproved'] };
 
 const HYPERLINK = 'https://bcgov.github.io/sso-docs/integrating-your-application/installation-json';
-const WIKI_PAGE_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role';
+const WIKI_PAGE_HYPERLINK = `${wikiURL}/Creating-a-Role`;
 
 const DRAFT_MESSAGE = /Your request has not been submitted/;
 const PROGRESS_MESSAGE = /Access to environment\(s\) will be provided/;

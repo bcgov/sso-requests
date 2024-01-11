@@ -7,7 +7,7 @@ import {
 } from '@app/services/team';
 import { MyTeamsComponent } from './helpers';
 
-const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account';
+const HYPERLINK = 'https://bcgov.github.io/sso-docs/integrating-your-application/css-app-api';
 
 jest.mock('next/router', () => ({
   useRouter() {

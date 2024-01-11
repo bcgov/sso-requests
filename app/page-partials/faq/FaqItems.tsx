@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
+import { wikiURL } from '@app/utils/constants';
 
 interface Props {
   children?: React.ReactNode;
@@ -29,7 +30,7 @@ export default function FaqItems({ children }: Props) {
               </li>
               <li>
                 To learn more about which identity provider to use, review the{' '}
-                <Link external href="https://github.com/bcgov/sso-keycloak/wiki/SSO-Onboarding">
+                <Link external href={`${wikiURL}/SSO-Onboarding`}>
                   SSO Onboarding section
                 </Link>{' '}
                 in our Knowledge base

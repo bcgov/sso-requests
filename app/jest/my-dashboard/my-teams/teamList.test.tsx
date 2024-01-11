@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, within, getByText, getAllByText } f
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 import { SessionContext } from '@app/pages/_app';
+import { wikiURL } from '@app/utils/constants';
 
 function TeamListComponent() {
   return (
@@ -29,7 +30,7 @@ const sampleTeam = [
     updatedAt: '',
   },
 ];
-const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-App-My-Teams';
+const HYPERLINK = `${wikiURL}/Creating-a-Role`;
 const setTeam = jest.fn();
 const loadTeams = jest.fn();
 

@@ -2,17 +2,17 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Home from 'pages/index';
 import { session } from './utils/helpers';
+import { wikiURL } from '@app/utils/constants';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
 
-const KNOWLEDGE_BASE_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki';
+const KNOWLEDGE_BASE_HYPERLINK = `${wikiURL}`;
 const ROCKET_CHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
 const PATHFINDER_SSO_HYPERLINK = 'mailto:bcgov.sso@gov.bc.ca';
-const LEARN_MORE_HERE_HYPERLINK =
-  'https://github.com/bcgov/sso-keycloak/wiki/Useful-References#imit-identity-standards';
+const LEARN_MORE_HERE_HYPERLINK = `${wikiURL}/Useful-References#imit-identity-standards`;
 const ROCKETCHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
-const HELPFUL_DOCUMENTATION_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki';
+const HELPFUL_DOCUMENTATION_HYPERLINK = `${wikiURL}`;
 
 describe('Home panel', () => {
   it('testing on the headings, button, external links', () => {

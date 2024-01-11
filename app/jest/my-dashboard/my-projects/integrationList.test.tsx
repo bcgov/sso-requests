@@ -2,10 +2,11 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import { sampleRequest } from '../../samples/integrations';
+import { wikiURL } from '@app/utils/constants';
 
 const setIntegration = jest.fn();
 const setIntegrationCount = jest.fn();
-const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#confidential-vs-private-client';
+const HYPERLINK = `${wikiURL}/Using-Your-SSO-Client/#confidential-vs-private-client`;
 
 function IntegrationListComponent() {
   return <IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />;
