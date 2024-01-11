@@ -49,6 +49,7 @@ resource "aws_lambda_function" "app" {
       INCLUDE_DIGITAL_CREDENTIAL     = var.include_digital_credential
       GRAFANA_API_TOKEN              = var.grafana_api_token
       GRAFANA_API_URL                = var.grafana_api_url
+      GOLD_IP_ADDRESS                = var.gold_ip_address
     }
   }
 

@@ -1,3 +1,6 @@
+if (process.env.NODE_ENVIRONMENT === 'local') {
+  require('dotenv').config();
+}
 import { models } from '../../shared/sequelize/models/models';
 import { keycloakClient } from '@lambda-app/keycloak/integration';
 import { updatePlannedIntegration, createEvent } from '@lambda-app/controllers/requests';
@@ -74,3 +77,7 @@ export const handler = async () => {
     console.error(err);
   }
 };
+
+if (process.env.NODE_ENVIRONMENT === 'local') {
+  handler();
+}
