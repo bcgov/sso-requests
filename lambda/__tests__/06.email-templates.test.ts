@@ -205,11 +205,23 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
-  it('Should return the expected email for TEAM_INVITATION', async () => {
+  it('Should return the expected email for TEAM_INVITATION members', async () => {
     const rendered = await renderTemplate(EMAILS.TEAM_INVITATION, {
       email: 'teat@bcgov.bc.ca',
       team: { id: 1, name: 'testteam' },
       invitationLink: `https://mysite.com/invitation-link`,
+      role: 'member',
+    });
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expected email for TEAM_INVITATION admins', async () => {
+    const rendered = await renderTemplate(EMAILS.TEAM_INVITATION, {
+      email: 'teat@bcgov.bc.ca',
+      team: { id: 1, name: 'testteam' },
+      invitationLink: `https://mysite.com/invitation-link`,
+      role: 'admin',
     });
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
