@@ -588,8 +588,6 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     const result = await current.save();
 
-    await disableIntegration(current.get({ plain: true, clone: true }));
-
     await processIntegrationRequest(result);
 
     const integration = result.get({ plain: true });
