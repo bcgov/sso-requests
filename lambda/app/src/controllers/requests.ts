@@ -725,12 +725,18 @@ export const standardClients = async (
     }
   } catch (err) {
     console.error(err);
-    await createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: integration.id });
+    await createEvent({
+      eventCode: restore ? EVENTS.REQUEST_RESTORE_FAILURE : EVENTS.REQUEST_APPLY_FAILURE,
+      requestId: integration.id,
+    });
     await models.request.update({ status: 'applyFailed' }, { where: { id: integration?.id } });
     return false;
   }
 
-  await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id });
+  await createEvent({
+    eventCode: restore ? EVENTS.REQUEST_RESTORE_SUCCESS : EVENTS.REQUEST_APPLY_SUCCESS,
+    requestId: integration.id,
+  });
   await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
   // delete from the queue
   await models.requestQueue.destroy({ where: { id: queueItem.id } });

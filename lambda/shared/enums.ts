@@ -4,6 +4,8 @@ export const EVENTS = {
   REQUEST_PLAN_SUCCESS: 'request-plan-success',
   REQUEST_PLAN_FAILURE: 'request-plan-failure',
   REQUEST_APPLY_SUCCESS: 'request-apply-success',
+  REQUEST_RESTORE_SUCCESS: 'request-restore-success',
+  REQUEST_RESTORE_FAILURE: 'request-restore-failure',
   REQUEST_APPLY_FAILURE: 'request-apply-failure',
   REQUEST_CREATE_SUCCESS: 'request-create-success',
   REQUEST_CREATE_FAILURE: 'request-create-failure',
