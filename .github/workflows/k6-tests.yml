@@ -9,6 +9,7 @@ on:
   pull_request:
     paths:
       - 'lambda/css-api/**'
+  workflow_dispatch:
 
 jobs:
   k6-tests:
