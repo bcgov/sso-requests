@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
-import { getDisplayName, inviteTeamMembers, isAdmin } from '@lambda-app/utils/helpers';
+import { getDisplayName, inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
@@ -12,7 +12,7 @@ import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
 import { getIntegrationsByTeam } from '@lambda-app/queries/request';
-import { checkIfRequestMerged, createEvent, getRequester } from './requests';
+import { checkIfRequestMerged, createEvent } from './requests';
 
 const serviceAccountCommonPopulation = [
   {
@@ -210,6 +210,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
     throw Error(`team #${teamId} is not allowed for user #${userId}`);
   }
 
+  serviceAccount.authType = 'service-account';
   serviceAccount.status = 'submitted';
   serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
   serviceAccount.requester = requester;

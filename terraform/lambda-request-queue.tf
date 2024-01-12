@@ -19,26 +19,25 @@ resource "aws_lambda_function" "request_queue" {
 
   environment {
     variables = {
-      NODE_ENV                       = "production"
-      DB_HOSTNAME                    = module.db.this_rds_cluster_endpoint
-      DB_USERNAME                    = var.db_username
-      DB_PASSWORD                    = random_password.db_password.result
-      DB_NAME                        = var.db_name
-      KEYCLOAK_V2_DEV_URL            = var.keycloak_v2_dev_url
-      KEYCLOAK_V2_DEV_CLIENT_ID      = var.keycloak_v2_dev_client_id
-      KEYCLOAK_V2_DEV_CLIENT_SECRET  = var.keycloak_v2_dev_client_secret
-      KEYCLOAK_V2_TEST_URL           = var.keycloak_v2_test_url
-      KEYCLOAK_V2_TEST_CLIENT_ID     = var.keycloak_v2_test_client_id
-      KEYCLOAK_V2_TEST_CLIENT_SECRET = var.keycloak_v2_test_client_secret
-      KEYCLOAK_V2_PROD_URL           = var.keycloak_v2_prod_url
-      KEYCLOAK_V2_PROD_CLIENT_ID     = var.keycloak_v2_prod_client_id
-      KEYCLOAK_V2_PROD_CLIENT_SECRET = var.keycloak_v2_prod_client_secret
-      CHES_API_ENDPOINT              = var.ches_api_endpoint
-      REALM_REGISTRY_API             = var.realm_registry_api
-      CHES_TOKEN_ENDPOINT            = var.ches_token_endpoint
-      CHES_PASSWORD                  = var.ches_password
-      CHES_USERNAME                  = var.ches_username
-      GOLD_IP_ADDRESS                = var.gold_ip_address
+      NODE_ENV                  = "production"
+      DB_HOSTNAME               = module.db.this_rds_cluster_endpoint
+      DB_USERNAME               = var.db_username
+      DB_PASSWORD               = random_password.db_password.result
+      DB_NAME                   = var.db_name
+      KEYCLOAK_V2_DEV_URL       = var.keycloak_v2_dev_url
+      KEYCLOAK_V2_TEST_URL      = var.keycloak_v2_test_url
+      KEYCLOAK_V2_PROD_URL      = var.keycloak_v2_prod_url
+      KEYCLOAK_V2_DEV_USERNAME  = var.keycloak_v2_dev_username
+      KEYCLOAK_V2_DEV_PASSWORD  = var.keycloak_v2_dev_password
+      KEYCLOAK_V2_TEST_USERNAME = var.keycloak_v2_test_username
+      KEYCLOAK_V2_TEST_PASSWORD = var.keycloak_v2_test_password
+      KEYCLOAK_V2_PROD_USERNAME = var.keycloak_v2_prod_username
+      KEYCLOAK_V2_PROD_PASSWORD = var.keycloak_v2_prod_password
+      CHES_API_ENDPOINT         = var.ches_api_endpoint
+      CHES_TOKEN_ENDPOINT       = var.ches_token_endpoint
+      CHES_PASSWORD             = var.ches_password
+      CHES_USERNAME             = var.ches_username
+      GOLD_IP_ADDRESS           = var.gold_ip_address
     }
   }
 

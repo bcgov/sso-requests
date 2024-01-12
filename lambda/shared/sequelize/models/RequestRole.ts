@@ -28,12 +28,12 @@ const init = (sequelize, DataTypes) => {
       createdBy: {
         type: DataTypes.INTEGER,
         field: 'created_by',
-        allowNull: false,
+        allowNull: true,
       },
       lastUpdatedBy: {
         type: DataTypes.INTEGER,
         field: 'last_updated_by',
-        allowNull: false,
+        allowNull: true,
       },
     },
     {

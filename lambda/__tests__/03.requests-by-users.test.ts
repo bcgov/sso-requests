@@ -78,8 +78,30 @@ jest.mock('../app/src/keycloak/client', () => {
 
 jest.mock('../app/src/keycloak/users', () => {
   return {
-    bulkCreateRole: jest.fn(() => Promise.resolve()),
-    setCompositeClientRoles: jest.fn(() => Promise.resolve()),
+    bulkCreateRole: jest.fn(() =>
+      Promise.resolve([
+        {
+          env: 'dev',
+          success: ['role1', 'role2', 'role3'],
+        },
+        {
+          env: 'test',
+          success: ['role2'],
+        },
+        {
+          env: 'prod',
+          success: ['role3'],
+        },
+      ]),
+    ),
+    setCompositeClientRoles: jest.fn(() =>
+      Promise.resolve({
+        name: 'role1',
+        composites: ['role2', 'role3'],
+      }),
+    ),
+    deleteRole: jest.fn(() => Promise.resolve()),
+    findClientRole: jest.fn(() => Promise.resolve(null)),
   };
 });
 

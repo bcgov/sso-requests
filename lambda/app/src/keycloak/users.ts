@@ -137,7 +137,7 @@ export const setCompositeClientRoles = async (
   if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
-  const role = await getRoleByName(kcAdminClient, client.id, roleName);
+  let role = await getRoleByName(kcAdminClient, client.id, roleName);
   if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
   const rolesToDel = await kcAdminClient.roles.getCompositeRolesForClient({
@@ -155,6 +155,8 @@ export const setCompositeClientRoles = async (
 
   // 2. add composite roles
   await kcAdminClient.roles.createComposite({ realm: 'standard', roleId: role.id }, rolesToAdd);
+
+  role = await getRoleByName(kcAdminClient, client.id, roleName);
 
   return populateComposites(kcAdminClient, client.id, role);
 };

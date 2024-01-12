@@ -9,6 +9,7 @@ on:
   pull_request:
     paths:
       - 'lambda/css-api/**'
+  workflow_dispatch:
 
 jobs:
   k6-tests:
@@ -68,8 +69,10 @@ jobs:
 
       - name: Run CSS API
         env:
-          KEYCLOAK_V2_DEV_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_DEV_CLIENT_SECRET }}
-          KEYCLOAK_V2_TEST_CLIENT_SECRET: ${{ secrets.DEV_KEYCLOAK_V2_TEST_CLIENT_SECRET }}
+          KEYCLOAK_V2_DEV_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_V2_DEV_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD}}
+          KEYCLOAK_V2_TEST_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_V2_TEST_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_TEST_PASSWORD }}
         run: |
           cp .env.example .env
           yarn dev &
