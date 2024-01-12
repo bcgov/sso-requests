@@ -130,8 +130,7 @@ export class RoleService {
         compositeRoleNames: compositeRoles.map((r) => r.name),
       });
 
-      const a = await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);
-      console.log('🚀 ~ RoleService ~ a:', a);
+      await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);
     } catch (err) {
       console.error(err);
       throw new createHttpError[500]('error creating composite roles');
