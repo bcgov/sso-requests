@@ -143,6 +143,20 @@ jest.mock('@lambda-css-api/authenticate', () => {
   };
 });
 
+const createIntegrationRoles = async (roleName: string, intId: number, env: string) => {
+  mockedFindClientRole.mockImplementationOnce(() => {
+    return Promise.resolve({
+      name: roleName,
+      composite: false,
+    });
+  });
+
+  return await supertest(app)
+    .post(`${API_BASE_PATH}/integrations/${intId}/dev/roles`)
+    .send({ name: roleName })
+    .set('Accept', 'application/json');
+};
+
 describe('emails for teams', () => {
   beforeAll(async () => {
     jest.clearAllMocks();
@@ -157,6 +171,9 @@ describe('emails for teams', () => {
       teamId: team.id,
     });
     integration = integrationRes.body;
+    await createIntegrationRoles('role1', integration.id, 'dev');
+    await createIntegrationRoles('role2', integration.id, 'dev');
+    await createIntegrationRoles('role3', integration.id, 'dev');
   });
   afterAll(async () => {
     await cleanUpDatabaseTables();
@@ -206,17 +223,7 @@ describe('emails for teams', () => {
   });
 
   it('creates team integration role for an environment', async () => {
-    mockedFindClientRole.mockImplementationOnce(() => {
-      return Promise.resolve({
-        name: 'role4',
-        composite: false,
-      });
-    });
-    const result = await supertest(app)
-      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles`)
-      .send({ name: createIntegrationRole })
-      .set('Accept', 'application/json')
-      .expect(201);
+    const result = await createIntegrationRoles(createIntegrationRole, integration.id, 'dev');
     expect(result.body.name).toBe(createIntegrationRole);
     expect(result.body.composite).toBe(false);
   });
@@ -240,7 +247,7 @@ describe('emails for teams', () => {
   it('create composite role', async () => {
     mockedFindClientRole.mockImplementationOnce(() => {
       return Promise.resolve({
-        name: 'role1',
+        name: 'role11',
         composite: true,
       });
     });
@@ -251,7 +258,7 @@ describe('emails for teams', () => {
       .set('Accept', 'application/json')
       .expect(200);
 
-    expect(result.body.name).toBe('role1');
+    expect(result.body.name).toBe('role11');
     expect(result.body.composite).toBe(true);
   });
 
