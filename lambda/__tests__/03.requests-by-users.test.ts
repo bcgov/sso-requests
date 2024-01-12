@@ -305,7 +305,7 @@ describe('roles and restore integration', () => {
   it('logs a restore failed event if restoration fails', async () => {
     createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
 
-    const deleteIntRes = await deleteIntegration(integration.id);
+    await deleteIntegration(integration.id);
 
     (keycloakClient as jest.Mock).mockImplementation(() => Promise.resolve(false));
     await restoreIntegration(integration.id);
