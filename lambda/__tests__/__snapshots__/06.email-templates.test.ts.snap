@@ -951,32 +951,55 @@ exports[`Email template snapshots Should return the expected email for TEAM_DELE
 "
 `;
 
-exports[`Email template snapshots Should return the expected email for TEAM_INVITATION 1`] = `"[DEV] Invitation to join testteam"`;
+exports[`Email template snapshots Should return the expected email for TEAM_INVITATION admins 1`] = `"[DEV] Invitation to join testteam"`;
 
-exports[`Email template snapshots Should return the expected email for TEAM_INVITATION 2`] = `
-"<h1>Hello Pathfinder SSO friend,</h1>
-<p>You are invited to join <strong>testteam (#1)</strong></p>
+exports[`Email template snapshots Should return the expected email for TEAM_INVITATION admins 2`] = `
+"<p>Hello Pathfinder SSO friend,</p>
+<p>
+  You are invited to join <strong>testteam (#1)</strong>. You have been invited as a
+  <strong>Team Admin</strong> which gives you the
+  <strong>privilege to manage</strong> the integration.
+</p>
 <p>
   Please follow this <a href="http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link">link</a> to view your invitation in the
-  dashboard. This link will expire in <strong>2 business days.</strong>
+  dashboard. The link will expire in <strong>2 business days.</strong>
 </p>
 <p>
-  If you think you're receiving this invitation by accident, or have any questions, please contact the SSO Pathfinder
+  If you think you have received this invite by accident, or have any other questions, please contact the Pathfinder SSO
   team by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
-    Rocket.Chat
+    rocketchat
   </a>
-  or reply to this email
+  or reply to this email.
+</p>
+
+<p>Thank you,<br />Pathfinder SSO Team</p>
+"
+`;
+
+exports[`Email template snapshots Should return the expected email for TEAM_INVITATION members 1`] = `"[DEV] Invitation to join testteam"`;
+
+exports[`Email template snapshots Should return the expected email for TEAM_INVITATION members 2`] = `
+"<p>Hello Pathfinder SSO friend,</p>
+<p>
+  You are invited to join <strong>testteam (#1)</strong>. You have been invited as a
+  <strong>Team Member</strong> which gives you the
+  <strong>privilege to view</strong> the integration.
 </p>
 <p>
-  If you have any questions, please contact us by
-  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
-    Rocket.Chat
-  </a>
-  or email at:
-  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
+  Please follow this <a href="http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link">link</a> to view your invitation in the
+  dashboard. The link will expire in <strong>2 business days.</strong>
 </p>
-<p>Thank you.<br />Pathfinder SSO Team</p>
+<p>
+  If you think you have received this invite by accident, or have any other questions, please contact the Pathfinder SSO
+  team by
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
+    rocketchat
+  </a>
+  or reply to this email.
+</p>
+
+<p>Thank you,<br />Pathfinder SSO Team</p>
 "
 `;
 

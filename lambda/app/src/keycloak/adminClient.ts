@@ -1,4 +1,5 @@
 import KcAdminClient from 'keycloak-admin';
+import dns from 'dns';
 
 export const getAdminClient = async (data: { serviceType: string; environment: string }) => {
   const { environment } = data;
@@ -21,6 +22,12 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
     keycloakPassword = process.env.KEYCLOAK_V2_PROD_PASSWORD;
   } else {
     throw Error('invalid environment');
+  }
+
+  const keycloakHostname = keycloakUrl.replace('https://', '');
+  const ip = await dns.promises.lookup(keycloakHostname);
+  if (ip.address !== process.env.GOLD_IP_ADDRESS) {
+    throw new Error(`Keycloak is not running in gold for environment ${environment}. Not updating resources.`);
   }
 
   const authServerUrl = `${keycloakUrl}/auth`;

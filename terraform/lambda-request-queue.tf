@@ -37,6 +37,7 @@ resource "aws_lambda_function" "request_queue" {
       CHES_TOKEN_ENDPOINT       = var.ches_token_endpoint
       CHES_PASSWORD             = var.ches_password
       CHES_USERNAME             = var.ches_username
+      GOLD_IP_ADDRESS           = var.gold_ip_address
     }
   }
 

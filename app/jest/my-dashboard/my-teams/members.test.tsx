@@ -2,8 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/team';
 import { MyTeamsComponent } from './helpers';
+import { wikiURL } from '@app/utils/constants';
 
-const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/CSS-App-My-Teams';
+const HYPERLINK = `${wikiURL}/CSS-App-My-Teams#ive-created-a-team-now-what`;
 
 const spyValidateTeam = jest
   .spyOn(require('form-components/team-form/TeamMembersForm'), 'validateTeam')
