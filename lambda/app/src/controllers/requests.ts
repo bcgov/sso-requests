@@ -24,7 +24,7 @@ import {
   getIntegrationsByUserTeam,
   getIntegrationByClientId,
 } from '@lambda-app/queries/request';
-import { disableIntegration, fetchClient } from '@lambda-app/keycloak/client';
+import { fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
 import { canDeleteIntegration } from '@app/helpers/permissions';
 import {
