@@ -9,10 +9,8 @@ import {
   bulkCreateRole,
   setCompositeClientRoles,
 } from '../keycloak/users';
-import { models, sequelize } from '@lambda-shared/sequelize/models/models';
-import { Op, Sequelize } from 'sequelize';
-import { destroyRequestRole, getCompositeParentRoles, updateCompositeRoles } from '@lambda-app/queries/roles';
-import remove from 'lodash.remove';
+import { models } from '@lambda-shared/sequelize/models/models';
+import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
   return await findAllowedIntegrationInfo(sessionUserId, integrationId);
@@ -55,8 +53,8 @@ export const bulkCreateClientRoles = async (
 
     if (envResults.length > 0) {
       for (const res of envResults) {
-        if (res?.success?.length > 0) {
-          for (const role of res?.success) {
+        if (res?.success.length > 0) {
+          for (const role of res.success || []) {
             await models.requestRole.create({
               name: role,
               environment: res.env,

@@ -13,7 +13,7 @@ import {
 import { generateInvitationToken } from '@lambda-app/helpers/token';
 import { createTeam, verifyTeamMember } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
-import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
+import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 
 jest.mock('@lambda-app/authenticate');
 

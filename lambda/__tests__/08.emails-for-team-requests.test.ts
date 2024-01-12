@@ -15,7 +15,7 @@ import { Integration } from 'app/interfaces/Request';
 import { renderTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
-import { applyIntegration, buildIntegration } from './helpers/modules/common';
+import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
 

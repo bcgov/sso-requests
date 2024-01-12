@@ -16,7 +16,7 @@ import { getAllowedRoleProps, updateRoleProps } from '../helpers/roles';
 import { Role, RolePayload } from '../types';
 import { Integration } from 'app/interfaces/Request';
 import { parseErrors } from '../util';
-import { sequelize, models } from '@lambda-shared/sequelize/models/models';
+import { models } from '@lambda-shared/sequelize/models/models';
 import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
 
 @injectable()
@@ -111,19 +111,20 @@ export class RoleService {
   ) {
     let rolesToAdd = [];
     const int = await this.integrationService.getById(integrationId, teamId);
+
+    const existingRoles = await listClientRoles(int, { environment, integrationId });
+    const role = existingRoles.find((role) => role.name === roleName);
+    if (!role) throw new createHttpError[404](`role ${roleName} not found`);
+    const valid = listOfrolesValidator(compositeRoles);
+    if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
+    for (let role of compositeRoles) {
+      if (role.name.trim().length === 0) throw new createHttpError[400]('invalid role');
+      if (role.name === roleName) throw new createHttpError[400](`role ${roleName} cannot be associated with itself`);
+      if (!existingRoles.find((existingRole) => existingRole.name === role.name))
+        throw new createHttpError[404](`role ${role.name} not found`);
+      rolesToAdd.push(existingRoles.find((existingRole) => role.name === existingRole.name));
+    }
     try {
-      const existingRoles = await listClientRoles(int, { environment, integrationId });
-      const role = existingRoles.find((role) => role.name === roleName);
-      if (!role) throw new createHttpError[404](`role ${roleName} not found`);
-      const valid = listOfrolesValidator(compositeRoles);
-      if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
-      for (let role of compositeRoles) {
-        if (role.name.trim().length === 0) throw new createHttpError[400]('invalid role');
-        if (role.name === roleName) throw new createHttpError[400](`role ${roleName} cannot be associated with itself`);
-        if (!existingRoles.find((existingRole) => existingRole.name === role.name))
-          throw new createHttpError[404](`role ${role.name} not found`);
-        rolesToAdd.push(existingRoles.find((existingRole) => role.name === existingRole.name));
-      }
       const result = await setCompositeClientRoles(int, {
         environment,
         roleName,
@@ -200,12 +201,17 @@ export class RoleService {
     if (!compRoles.find((role) => role.name === compositeRoleName))
       throw new createHttpError[404](`role ${compositeRoleName} is not associated with ${roleName}`);
 
-    const result = await setCompositeClientRoles(int, {
-      environment,
-      roleName,
-      compositeRoleNames: compRoles.filter((r) => r.name !== compositeRoleName).map((r) => r.name),
-    });
+    try {
+      const result = await setCompositeClientRoles(int, {
+        environment,
+        roleName,
+        compositeRoleNames: compRoles.filter((r) => r.name !== compositeRoleName).map((r) => r.name),
+      });
 
-    await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);
+      await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);
+    } catch (err) {
+      console.error(err);
+      throw new createHttpError[500]('error deleting composite roles');
+    }
   }
 }

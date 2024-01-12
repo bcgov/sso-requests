@@ -22,32 +22,38 @@ variable "keycloak_v2_dev_username" {
   type        = string
   description = "The username of the user used by the provider for authentication via the password grant"
   default     = ""
+  sensitive   = true
 }
 
 variable "keycloak_v2_dev_password" {
   type        = string
   description = "The password of the user used by the provider for authentication via the password grant"
   default     = ""
+  sensitive   = true
 }
 variable "keycloak_v2_test_username" {
   type        = string
   description = "The username of the user used by the provider for authentication via the password grant"
   default     = ""
+  sensitive   = true
 }
 
 variable "keycloak_v2_test_password" {
   type        = string
   description = "The password of the user used by the provider for authentication via the password grant"
   default     = ""
+  sensitive   = true
 }
 variable "keycloak_v2_prod_username" {
   type        = string
   description = "The username of the user used by the provider for authentication via the password grant"
   default     = ""
+  sensitive   = true
 }
 
 variable "keycloak_v2_prod_password" {
   type        = string
   description = "The password of the user used by the provider for authentication via the password grant"
   default     = ""
+  sensitive   = true
 }

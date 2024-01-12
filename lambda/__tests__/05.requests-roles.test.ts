@@ -1,25 +1,6 @@
-import { Integration } from 'app/interfaces/Request';
-import {
-  SSO_ADMIN_EMAIL_01,
-  SSO_ADMIN_USERID_01,
-  TEAM_ADMIN_IDIR_EMAIL_01,
-  TEAM_ADMIN_IDIR_USERID_01,
-  getCreateIntegrationData,
-  getUpdateIntegrationData,
-} from './helpers/fixtures';
-import {
-  createBulkRoles,
-  createCompositeRoles,
-  createIntegration,
-  deleteIntegration,
-  deleteRole,
-  getIntegration,
-  getIntegrations,
-  restoreIntegration,
-  updateIntegration,
-} from './helpers/modules/integrations';
+import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
+import { createBulkRoles, createCompositeRoles, deleteRole } from './helpers/modules/integrations';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
-import { sendEmail } from '@lambda-shared/utils/ches';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@lambda-shared/sequelize/models/models';
 
