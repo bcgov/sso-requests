@@ -825,7 +825,7 @@ exports[`Email template snapshots Should return the expected email for DELETE_IN
 "
 `;
 
-exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ BCeID 1`] = `"[DEV] BCeID Request ID 1 approved and being processed"`;
+exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ BCeID 1`] = `"[DEV] BCeID Request ID 1 approved and being processed (email 1 of 2)"`;
 
 exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ BCeID 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
@@ -874,7 +874,7 @@ exports[`Email template snapshots Should return the expected email for PROD_APPR
 "
 `;
 
-exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ GitHub 1`] = `"[DEV] GitHub Request ID 1 approved and being processed"`;
+exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ GitHub 1`] = `"[DEV] GitHub Request ID 1 approved and being processed (email 1 of 2)"`;
 
 exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ GitHub 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
