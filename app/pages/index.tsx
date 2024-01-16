@@ -186,15 +186,13 @@ export default function Home({ onLoginClick }: PageProps) {
                 <WhatsNewSVG />
               </Grid.Col>
               <Grid.Col span={5}>
-                <Paragraph style={{ paddingLeft: '0px' }}>
-                  <h2>What's new at SSO?</h2>
-                  <ul>
-                    <li>
-                      We’ve updated our wiki into two areas of focus: one for business areas and one for technical, take
-                      a look.
-                    </li>
-                  </ul>
-                </Paragraph>
+                <h2>What's new at SSO?</h2>
+                <ul>
+                  <li>
+                    We’ve updated our wiki into two areas of focus: one for business areas and one for technical, take a
+                    look.
+                  </li>
+                </ul>
               </Grid.Col>
             </Grid.Row>
           </Grid>
