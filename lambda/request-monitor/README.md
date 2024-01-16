@@ -1,4 +1,4 @@
-# Request Queue
+# Request Monitor
 
 This lambda function is built to periodically check the request queue table, and rerun any requests that failed to apply earlier.
 
