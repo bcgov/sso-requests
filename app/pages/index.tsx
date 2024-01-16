@@ -186,11 +186,11 @@ export default function Home({ onLoginClick }: PageProps) {
                 <WhatsNewSVG />
               </Grid.Col>
               <Grid.Col span={5}>
-                <h2>What's new at SSO?</h2>
+                <h2>What&apos;s new at SSO?</h2>
                 <ul>
                   <li>
-                    We’ve updated our wiki into two areas of focus: one for business areas and one for technical, take a
-                    look.
+                    We&apos;ve updated our wiki into two areas of focus: one for business areas and one for technical,
+                    take a look.
                   </li>
                 </ul>
               </Grid.Col>

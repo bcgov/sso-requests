@@ -1,6 +1,6 @@
 export default function StandardRealmsSVG() {
   return (
-    <svg width="100%" height="auto" viewBox="0 0 458 548" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="100%" height="100%" viewBox="0 0 458 548" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g filter="url(#filter0_d_193_946)">
         <rect x="4" width="450" height="540" rx="5" fill="white" />
         <rect x="6.5" y="2.5" width="445" height="535" rx="2.5" stroke="#F6B900" strokeWidth="5" />
