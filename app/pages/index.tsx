@@ -7,12 +7,13 @@ import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import StandardRealmsSVG from 'svg/StandardRealms';
+import WhatsNewSVG from '@app/svg/WhatsNewSVG';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 import GithubDiscussions from '@app/components/GithubDiscussions';
 import { wikiURL } from '@app/utils/constants';
-
+// import { Grid as FlexGrid, Row, Col } from 'react-flexbox-grid';
 interface PanelProps {
   marginLeft?: boolean;
   marginRight?: boolean;
@@ -103,6 +104,20 @@ const StandardRealmsSplashContainer = styled.div`
   }
 `;
 
+const WhatsNew = styled.div`
+  background: #38598a;
+  color: #ffffff;
+  font-size: 18px;
+  margin-bottom: 55px;
+  margin-top: 55px;
+  padding-bottom: 55px;
+  padding-top: 55px;
+  weight: 400px h2 {
+    font-size: 20px;
+    weight: 700;
+  }
+`;
+
 export default function Home({ onLoginClick }: PageProps) {
   return (
     <>
@@ -162,6 +177,32 @@ export default function Home({ onLoginClick }: PageProps) {
               </Panel>
             </Grid.Col>
           </Grid.Row>
+        </Grid>
+      </ResponsiveContainer>
+      <WhatsNew>
+        <ResponsiveContainer rules={defaultRules} style={{ marginTop: '0px' }}>
+          <Grid cols={6} gutter={[5, 2]}>
+            <Grid.Row collapse="800">
+              <Grid.Col span={1}>
+                <WhatsNewSVG />
+              </Grid.Col>
+              <Grid.Col span={5}>
+                <Paragraph style={{ paddingLeft: '0px' }}>
+                  <h2>What's new at SSO?</h2>
+                  <ul>
+                    <li>
+                      We’ve updated our wiki into two areas of focus: one for business areas and one for technical, take
+                      a look.
+                    </li>
+                  </ul>
+                </Paragraph>
+              </Grid.Col>
+            </Grid.Row>
+          </Grid>
+        </ResponsiveContainer>
+      </WhatsNew>
+      <ResponsiveContainer rules={defaultRules}>
+        <Grid cols={2} gutter={[5, 2]}>
           <Grid.Row>
             <Grid.Col span="2">
               <HorizontalRule />
