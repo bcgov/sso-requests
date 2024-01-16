@@ -1,6 +1,6 @@
 # Request Monitor
 
-This lambda function is built to daily check the requests table for applied requests, and find missing clients from Keycloak.
+This lambda function is built to daily check the requests table, and return any discrepencies found.
 
 ## Getting started
 
@@ -14,12 +14,12 @@ To build:
 
 To run this functions tests, from the [lambda directory](../) run:
 
-- `yarn jest 17`
+- `yarn jest 18`
 
 ## Running
 
-This queue is run on a schedule with cloudwatch, see the [lambda definition](../../terraform/lambda-request-queue.tf) and [cloudwatch definition](../../terraform/cloudwatch.tf) for details. To generate the zip file used by the terraform lambda, run `make build` from this directory.
+This request monitor is run on a schedule with cloudwatch, see the [lambda definition](../../terraform/lambda-request-monitor.tf) and [cloudwatch definition](../../terraform/cloudwatch.tf) for details. To generate the zip file used by the terraform lambda, run `make build` from this directory.
 
 ## Testing
 
-See [17.run-queued-requests.test.ts](../__tests__/17.run-queued-requests.test.ts) for tests related to this function.
+See [18.request-monitor.test.ts](../__tests__/18.request-monitor.test.ts) for tests related to this function.
