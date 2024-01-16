@@ -111,7 +111,8 @@ const WhatsNew = styled.div`
   margin-top: 55px;
   padding-bottom: 55px;
   padding-top: 55px;
-  weight: 400px h2 {
+  weight: 400px;
+  h2 {
     font-size: 20px;
     weight: 700;
   }
