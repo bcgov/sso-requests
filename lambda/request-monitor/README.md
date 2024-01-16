@@ -1,6 +1,6 @@
 # Request Monitor
 
-This lambda function is built to periodically check the request queue table, and rerun any requests that failed to apply earlier.
+This lambda function is built to daily check the requests table for applied requests, and find missing clients from Keycloak.
 
 ## Getting started
 
