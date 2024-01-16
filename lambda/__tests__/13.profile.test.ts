@@ -9,6 +9,14 @@ jest.mock('../shared/utils/ches', () => {
   };
 });
 
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
+  return {
+    ...original,
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
+  };
+});
+
 describe('User Profile', () => {
   beforeEach(() => {
     createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);

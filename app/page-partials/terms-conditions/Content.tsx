@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Link from '@button-inc/bcgov-theme/Link';
 import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
+import { wikiURL } from '@app/utils/constants';
 
 const Title = styled.h2`
   text-transform: uppercase;
@@ -97,7 +98,7 @@ export default function FaqItems() {
         </li>
         <li>
           To learn more about our service uptime monitoring, please visit our{' '}
-          <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Pathfinder-Uptime-Monitoring">
+          <Link external href={`${wikiURL}/Pathfinder-Uptime-Monitoring/`}>
             uptime page on our wiki
           </Link>{' '}
           and join our{' '}

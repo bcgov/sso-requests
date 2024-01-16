@@ -17,6 +17,7 @@ import { hasAnyPendingStatus } from 'utils/helpers';
 import { authTypeDisplay } from 'metadata/display';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import forEach from 'lodash.foreach';
+import { wikiURL } from '@app/utils/constants';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -65,10 +66,7 @@ const NewEntityButton = ({
                 <NumberedContents number={2} title="Technical Info" children={null} />
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Client type (
-                  <Link href="https://github.com/bcgov/sso-keycloak/wiki/Using-Your-SSO-Client#confidential-vs-private-client">
-                    Public or Confidential, learn more
-                  </Link>
-                  )
+                  <Link href={`${wikiURL}/Useful-References#client`}>Public or Confidential, learn more</Link>)
                 </PNoMargin>
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, Azure, BCeID or Basic)

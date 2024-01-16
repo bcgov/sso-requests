@@ -71,18 +71,7 @@ const deleteUserRoleMapping = {
 const mockedFindClientRole = findClientRole as jest.Mock<any>;
 
 jest.mock('@lambda-app/authenticate');
-jest.mock('@lambda-app/github', () => {
-  return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
-  };
-});
 
-jest.mock('../actions/src/github', () => {
-  return {
-    mergePR: jest.fn(),
-  };
-});
 jest.mock('@lambda-app/keycloak/users', () => {
   return {
     listClientRoles: jest.fn(() => {
@@ -102,7 +91,6 @@ jest.mock('@lambda-app/keycloak/users', () => {
     }),
     findClientRole: jest.fn(),
     manageUserRole: jest.fn(() => Promise.resolve([{ name: 'role1', composite: false }])),
-    manageRoleComposites: jest.fn(() => {}),
     getRoleComposites: jest.fn(() => {
       return Promise.resolve([{ name: 'role2', composite: false }]);
     }),
@@ -112,6 +100,7 @@ jest.mock('@lambda-app/keycloak/users', () => {
         rows: searchUsersByIdpRows,
       });
     }),
+    setCompositeClientRoles: jest.fn(() => Promise.resolve({ name: 'role1', composites: ['role2'] })),
   };
 });
 jest.mock('@lambda-app/helpers/token', () => {
@@ -125,12 +114,14 @@ jest.mock('@lambda-shared/utils/ches');
 
 jest.mock('@lambda-app/authenticate');
 
-jest.mock('@lambda-app/github', () => {
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
-    closeOpenPullRequests: jest.fn(() => Promise.resolve()),
+    ...original,
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
+
 jest.mock('@lambda-app/helpers/token', () => {
   const actual = jest.requireActual('@lambda-app/helpers/token');
   return {
@@ -139,14 +130,6 @@ jest.mock('@lambda-app/helpers/token', () => {
   };
 });
 jest.mock('@lambda-shared/utils/ches');
-
-jest.mock('@lambda-actions/authenticate', () => {
-  return {
-    authenticate: jest.fn(() => {
-      return Promise.resolve(true);
-    }),
-  };
-});
 
 jest.mock('@lambda-css-api/authenticate', () => {
   return {
@@ -160,6 +143,20 @@ jest.mock('@lambda-css-api/authenticate', () => {
   };
 });
 
+const createIntegrationRoles = async (roleName: string, intId: number, env: string) => {
+  mockedFindClientRole.mockImplementationOnce(() => {
+    return Promise.resolve({
+      name: roleName,
+      composite: false,
+    });
+  });
+
+  return await supertest(app)
+    .post(`${API_BASE_PATH}/integrations/${intId}/dev/roles`)
+    .send({ name: roleName })
+    .set('Accept', 'application/json');
+};
+
 describe('emails for teams', () => {
   beforeAll(async () => {
     jest.clearAllMocks();
@@ -171,11 +168,12 @@ describe('emails for teams', () => {
       projectName: 'TEST CSS API',
       prodEnv: true,
       submitted: true,
-      planned: true,
-      applied: true,
       teamId: team.id,
     });
     integration = integrationRes.body;
+    await createIntegrationRoles('role1', integration.id, 'dev');
+    await createIntegrationRoles('role2', integration.id, 'dev');
+    await createIntegrationRoles('role3', integration.id, 'dev');
   });
   afterAll(async () => {
     await cleanUpDatabaseTables();
@@ -225,17 +223,7 @@ describe('emails for teams', () => {
   });
 
   it('creates team integration role for an environment', async () => {
-    mockedFindClientRole.mockImplementationOnce(() => {
-      return Promise.resolve({
-        name: 'role4',
-        composite: false,
-      });
-    });
-    const result = await supertest(app)
-      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles`)
-      .send({ name: createIntegrationRole })
-      .set('Accept', 'application/json')
-      .expect(201);
+    const result = await createIntegrationRoles(createIntegrationRole, integration.id, 'dev');
     expect(result.body.name).toBe(createIntegrationRole);
     expect(result.body.composite).toBe(false);
   });
@@ -259,7 +247,7 @@ describe('emails for teams', () => {
   it('create composite role', async () => {
     mockedFindClientRole.mockImplementationOnce(() => {
       return Promise.resolve({
-        name: 'role1',
+        name: 'role11',
         composite: true,
       });
     });
@@ -270,7 +258,7 @@ describe('emails for teams', () => {
       .set('Accept', 'application/json')
       .expect(200);
 
-    expect(result.body.name).toBe('role1');
+    expect(result.body.name).toBe('role11');
     expect(result.body.composite).toBe(true);
   });
 

@@ -5,6 +5,7 @@ import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import { getInstallation } from 'services/keycloak';
 import { sampleRequest } from '../../samples/integrations';
 import type { Status } from 'interfaces/types';
+import { docusaurusURL, wikiURL } from '@app/utils/constants';
 
 type Text = string | RegExp;
 const expectText = (text: Text) => expect(screen.getByText(text)).toBeTruthy();
@@ -15,8 +16,8 @@ const notExpectAllTexts = (texts: Text[]) => texts.forEach(notExpectText);
 const bceidApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['bceidApproved'] };
 const githubApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['githubApproved'] };
 
-const HYPERLINK = 'https://bcgov.github.io/sso-docs/integrating-your-application/installation-json';
-const WIKI_PAGE_HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role';
+const HYPERLINK = `${docusaurusURL}/integrating-your-application/installation-json`;
+const WIKI_PAGE_HYPERLINK = `${wikiURL}/Creating-a-Role`;
 
 const DRAFT_MESSAGE = /Your request has not been submitted/;
 const PROGRESS_MESSAGE = /Access to environment\(s\) will be provided/;
@@ -93,7 +94,8 @@ describe('Submitted Status', () => {
       />,
     );
 
-    expectAllTexts([PROGRESS_MESSAGE]);
+    expect(screen.queryByTestId('grid-svg')).toBeVisible();
+
     notExpectAllTexts([
       DRAFT_MESSAGE,
       INSTALLATION_LABEL,
@@ -124,13 +126,7 @@ describe('Submitted Status', () => {
       />,
     );
 
-    expectAllTexts([
-      PROGRESS_MESSAGE,
-      BCEID_PROD_LABEL,
-      BCEID_PROD_REQUESTED_MESSAGE,
-      GITHUB_PROD_LABEL,
-      GITHUB_PROD_REQUESTED_MESSAGE,
-    ]);
+    expect(screen.queryByTestId('grid-svg')).toBeVisible();
     notExpectAllTexts([
       DRAFT_MESSAGE,
       INSTALLATION_LABEL,
@@ -157,8 +153,7 @@ describe('Submitted Status', () => {
       />,
     );
 
-    expectAllTexts([INSTALLATION_LABEL, BCEID_PROD_LABEL, GITHUB_PROD_LABEL]);
-    expect(screen.getAllByText(BCEID_PROD_APPROVED)).toBeTruthy();
+    expect(screen.queryByTestId('grid-svg')).toBeVisible();
     notExpectAllTexts([
       DRAFT_MESSAGE,
       PROGRESS_MESSAGE,

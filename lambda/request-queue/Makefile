@@ -1,7 +1,7 @@
 #!make
 
 SHELL := /usr/bin/env bash
-TARGET := ../../../terraform/lambda-scheduler.zip
+TARGET := ../../../terraform/lambda-request-queue.zip
 
 .PHONY: install
 install:
@@ -17,4 +17,5 @@ build: install
 build:
 	@rm -rf dist
 	@yarn build
+	@yarn copy-templates
 	@cd dist; rm -f $(TARGET); zip -rq $(TARGET) *

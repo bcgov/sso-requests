@@ -24,6 +24,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+**/.env
 .env.local
 .env.development.local
 .env.test.local
@@ -75,3 +76,6 @@ swagger-ui-dist
 .terraform*
 lambda/coverage/*
 lambda/jest-stare/*
+
+# Migration script
+role-migration/migrate-roles.sql

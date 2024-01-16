@@ -13,6 +13,13 @@ jest.mock('../app/src/grafana', () => {
   };
 });
 
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
+  return {
+    ...original,
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
+  };
+});
 describe('Fetch SSO Logs', () => {
   const integration = getUpdateIntegrationData({ integration: { projectName: 'test_project' } });
 

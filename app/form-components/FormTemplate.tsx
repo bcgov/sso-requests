@@ -34,6 +34,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/pages/_app';
+import { docusaurusURL } from '@app/utils/constants';
 
 const Description = styled.p`
   margin: 0;
@@ -321,7 +322,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const handleSubmit = async () => {
     try {
-      const [, err] = await updateRequest(formData, true);
+      const [data, err] = await updateRequest(formData, true);
 
       if (err) {
         alert.show({
@@ -340,7 +341,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
         router.push({
           pathname: isAdmin ? '/admin-dashboard' : '/my-dashboard',
-          query: { id: formData.id },
+          query: {
+            id: data.id,
+            integrationFailedMessageModal: ['planFailed', 'applyFailed'].includes(data.status!),
+            requestId: padStart(String(data.id), 8, '0'),
+          },
         });
         surveyContext?.setShowSurvey(true, 'createIntegration');
       }
@@ -406,7 +411,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         />
         <Description>
           If new to SSO, please{' '}
-          <Link external href="https://bcgov.github.io/sso-docs/category/integrating-your-application">
+          <Link external href={`${docusaurusURL}/category/integrating-your-application`}>
             click to learn more on our wiki page
           </Link>
           .

@@ -11,6 +11,7 @@ import { UserQuery } from 'keycloak-admin/lib/resources/users';
 import { asyncFilter } from '../helpers/array';
 import createHttpError from 'http-errors';
 import { checkIfUserIsServiceAccount } from '@app/helpers/users';
+import { IntegrationData } from '@lambda-shared/interfaces';
 
 // Helpers
 // TODO: encapsulate admin client with user session and associated client infomation
@@ -120,29 +121,23 @@ export const getCompositeClientRoles = async (
 };
 
 export const setCompositeClientRoles = async (
-  sessionUserId: number,
+  integration: IntegrationData,
   {
     environment,
-    integrationId,
     roleName,
     compositeRoleNames,
   }: {
     environment: string;
-    integrationId: number;
     roleName: string;
     compositeRoleNames: string[];
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-  if (integration.authType === 'service-account')
-    throw new createHttpError[400](`invalid auth type ${integration.authType}`);
-
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw new createHttpError[404](`client ${integration.clientId} not found`);
   const client = clients[0];
 
-  const role = await getRoleByName(kcAdminClient, client.id, roleName);
+  let role = await getRoleByName(kcAdminClient, client.id, roleName);
   if (!role) throw new createHttpError[404](`role ${roleName} not found`);
 
   const rolesToDel = await kcAdminClient.roles.getCompositeRolesForClient({
@@ -160,6 +155,8 @@ export const setCompositeClientRoles = async (
 
   // 2. add composite roles
   await kcAdminClient.roles.createComposite({ realm: 'standard', roleId: role.id }, rolesToAdd);
+
+  role = await getRoleByName(kcAdminClient, client.id, roleName);
 
   return populateComposites(kcAdminClient, client.id, role);
 };
@@ -397,26 +394,12 @@ export const createRole = async (
   }
 };
 
-interface NewRole {
+export interface NewRole {
   name: string;
   envs: string[];
 }
 
-export const bulkCreateRole = async (
-  sessionUserId: number,
-  {
-    integrationId,
-    roles,
-  }: {
-    integrationId: number;
-    roles: NewRole[];
-  },
-) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-
-  if (integration.authType === 'service-account')
-    throw new createHttpError[400](`invalid auth type ${integration.authType}`);
-
+export const bulkCreateRole = async (integration: Integration, roles: NewRole[]) => {
   // create 20 roles at a time
   const rolesToCreate = roles.slice(0, 20);
   const byEnv = { dev: [], test: [], prod: [] };

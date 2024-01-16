@@ -1,4 +1,4 @@
-import { buildGitHubRequestData } from '@lambda-app/github';
+import { buildGitHubRequestData } from '@lambda-app/controllers/requests';
 import { Status } from 'app/interfaces/types';
 import app from './helpers/server';
 import supertest from 'supertest';
@@ -10,25 +10,17 @@ import { IntegrationData } from '@lambda-shared/interfaces';
 
 jest.mock('../app/src/authenticate');
 
-jest.mock('../actions/src/authenticate', () => {
-  return {
-    authenticate: jest.fn(() => {
-      return Promise.resolve(true);
-    }),
-  };
-});
-
 jest.mock('../shared/utils/ches', () => {
   return {
     sendEmail: jest.fn(),
   };
 });
 
-// Mock dispatchRequestWorkflow to ignore timeouts during unit test
-jest.mock('../app/src/github', () => {
+jest.mock('../app/src/keycloak/integration', () => {
+  const original = jest.requireActual('../app/src/keycloak/integration');
   return {
-    ...jest.requireActual('../app/src/github'),
-    dispatchRequestWorkflow: jest.fn(() => ({ status: 204 })),
+    ...original,
+    keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
 
@@ -183,7 +175,6 @@ describe('Digital Credential Feature flag', () => {
   it('Allows digital credential as an IDP if feature flag is set to true', async () => {
     process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
     const result = await submitNewIntegration(mockIntegration);
-    console.log(result);
     expect(result.status).toBe(200);
   });
 });
@@ -203,7 +194,6 @@ describe('IDP notifications', () => {
 
   it('Allows and saves digital credential information correctly into database', async () => {
     const result = await submitNewIntegration(mockIntegration);
-    console.log(result);
     const request = await models.request.findOne({ where: { id: result.body.id }, raw: true });
 
     expect(request.prodIdps.includes('digitalcredential'));

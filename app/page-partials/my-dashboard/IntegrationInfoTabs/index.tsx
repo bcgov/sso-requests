@@ -25,6 +25,9 @@ import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
 import DigitalCredentialPanel from './DigitalCredentialPanel';
 import MetricsPanel from './MetricsPanel';
+import { ErrorMessage } from '@app/components/MessageBox';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
+import { wikiURL } from '@app/utils/constants';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -37,6 +40,18 @@ const Requester = styled.div`
   font-weight: bold;
   color: #000;
   margin-bottom: 1rem;
+`;
+
+const AlignCenter = styled.div`
+  text-align: center;
+`;
+
+const TopMargin = styled.div`
+  height: var(--field-top-spacing);
+`;
+
+const BottomMargin = styled.div`
+  margin-bottom: 60px;
 `;
 
 const TAB_DETAILS = 'tech-details';
@@ -77,6 +92,25 @@ const IntegrationWrapper = ({ integration, children }: { integration: Integratio
   );
 };
 
+const getIntegrationErrorTab = () => {
+  return (
+    <Tab key={TAB_DETAILS} tab="Technical Details">
+      <TabWrapper short={false}>
+        <div style={{ display: 'inline-flex', margin: '20px 0 20px 0', background: '#FFCCCB', borderRadius: '5px' }}>
+          <div style={{ padding: 5 }}>
+            <ErrorMessage>
+              Your request for an integration could not be completed. Please{' '}
+              <Link external href="mailto:bcgov.sso@gov.bc.ca">
+                contact the Pathfinder SSO Team
+              </Link>
+            </ErrorMessage>
+          </div>
+        </div>
+      </TabWrapper>
+    </Tab>
+  );
+};
+
 const getInstallationTab = ({
   integration,
   approvalContext,
@@ -99,6 +133,23 @@ const getInstallationTab = ({
               <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
+        </Grid>
+      </TabWrapper>
+    </Tab>
+  );
+};
+
+const getLoadingSpinner = () => {
+  return (
+    <Tab key={TAB_DETAILS} tab="Technical Details">
+      <TabWrapper short={false}>
+        <Grid cols={15}>
+          <br />
+          <AlignCenter>
+            <TopMargin />
+            <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+            <BottomMargin />
+          </AlignCenter>
         </Grid>
       </TabWrapper>
     </Tab>
@@ -171,7 +222,7 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
         <br />
         <div>
           Please visit our{' '}
-          <Link external href="https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role">
+          <Link external href={`${wikiURL}/Creating-a-Role`}>
             wiki page
           </Link>{' '}
           for more information on roles.
@@ -304,17 +355,16 @@ function IntegrationInfoTabs({ integration }: Props) {
     integration.devIdps?.length && integration.devIdps?.every((idp) => idp === 'digitalcredential');
 
   if (displayStatus === 'Submitted') {
-    if (bceidProdApplying || githubProdApplying || digitalCredentialProdApplying) {
-      tabs.push(getApprovalProgressTab({ integration, approvalContext }));
+    if (['planFailed', 'applyFailed'].includes(integration.status as string)) {
+      tabs.push(getIntegrationErrorTab());
       allowedTabs.push(TAB_DETAILS);
     } else {
-      tabs.push(getProgressTab({ integration, approvalContext }));
+      tabs.push(getLoadingSpinner());
       allowedTabs.push(TAB_DETAILS);
     }
   } else if (displayStatus === 'Completed') {
     tabs.push(getInstallationTab({ integration, approvalContext }));
     allowedTabs.push(TAB_DETAILS);
-
     // Exclude role management from integrations with only DC
     if (!digitalCredentialOnly) {
       tabs.push(getRoleManagementTab({ integration }));

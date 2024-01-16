@@ -1,19 +1,18 @@
 import { Op } from 'sequelize';
 import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
-import { getDisplayName, inviteTeamMembers, isAdmin } from '@lambda-app/utils/helpers';
+import { getDisplayName, inviteTeamMembers } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { User, Team, Member, Session } from '@lambda-shared/interfaces';
-import { dispatchRequestWorkflow, closeOpenPullRequests } from '../github';
+import { processIntegrationRequest } from '../controllers/requests';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
-import { getAllowedRequest, getIntegrationsByTeam } from '@lambda-app/queries/request';
-import { checkIfRequestMerged, createEvent, getRequester } from './requests';
-import { disableClient } from '@lambda-app/keycloak/client';
+import { getIntegrationsByTeam } from '@lambda-app/queries/request';
+import { checkIfRequestMerged, createEvent } from './requests';
 
 const serviceAccountCommonPopulation = [
   {
@@ -204,24 +203,21 @@ export const requestServiceAccount = async (session: Session, userId: number, te
     teamId: sequelize.literal(`(${teamIdLiteral})`),
     apiServiceAccount: true,
   });
+  console.log('🚀 ~ file: team.ts:207 ~ requestServiceAccount ~ serviceAccount:', serviceAccount);
 
   if (!serviceAccount.teamId) {
     await serviceAccount.destroy();
     throw Error(`team #${teamId} is not allowed for user #${userId}`);
   }
 
+  serviceAccount.authType = 'service-account';
   serviceAccount.status = 'submitted';
   serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
   serviceAccount.requester = requester;
+  serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
+  const saved = await serviceAccount.save();
 
-  const ghResult = await dispatchRequestWorkflow(serviceAccount);
-
-  if (ghResult.status !== 204) {
-    await serviceAccount.destroy();
-    throw Error('failed to create a workflow dispatch event');
-  }
-
-  await serviceAccount.save();
+  await processIntegrationRequest(saved);
 
   await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
 
@@ -299,23 +295,12 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
     serviceAccount.requester = requester;
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
+    const saved = await serviceAccount.save();
 
     if (isMerged) {
       // Trigger workflow with empty environments to delete client
-      const ghResult = await dispatchRequestWorkflow(serviceAccount);
-      if (ghResult.status !== 204) {
-        throw Error('failed to create a workflow dispatch event');
-      }
+      await processIntegrationRequest(saved);
     }
-
-    // disable the client while TF applying the changes
-    const { serviceType, realmName, clientId } = serviceAccount;
-
-    // all css api service accounts exist only in prod
-    await disableClient({ serviceType, environment: 'prod', realmName, clientId });
-
-    // Close any pr's if they exist
-    await closeOpenPullRequests(saId);
 
     await serviceAccount.save();
 

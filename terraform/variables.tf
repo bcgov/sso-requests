@@ -82,36 +82,6 @@ variable "gh_owner" {
   default     = "bcgov"
 }
 
-variable "gh_repo" {
-  type        = string
-  description = "repository to create keycloak client pull requests"
-  default     = "sso-terraform-dev"
-}
-
-variable "gh_branch" {
-  type        = string
-  description = "default branch in the gh_repo"
-  default     = "main"
-}
-
-variable "gh_workflow_id" {
-  type        = string
-  description = "workflow id or filename to trigger when saving requests"
-  default     = "request.yml"
-}
-
-variable "gh_apply_workflow_id" {
-  type        = string
-  description = "workflow id or filename to trigger when Terraform Batch"
-  default     = "terraform-batch.yml"
-}
-
-variable "gh_apply_workflow_v2_id" {
-  type        = string
-  description = "workflow id or filename to trigger when Terraform Batch"
-  default     = "terraform-v2-batch.yml"
-}
-
 variable "gh_secret" {
   type        = string
   description = "secret for comms with gh actions"
@@ -177,4 +147,10 @@ variable "custom_domain_name" {
 variable "uptime_status_domain_name" {
   type        = string
   description = "custom domain name for the uptime status page"
+}
+
+variable "gold_ip_address" {
+  type        = string
+  description = "IP address of service running in gold cluster"
+  default     = "142.34.229.4"
 }

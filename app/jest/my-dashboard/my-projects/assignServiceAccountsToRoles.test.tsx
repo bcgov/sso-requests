@@ -1,6 +1,7 @@
 import ServiceAccountRoles from '@app/page-partials/my-dashboard/ServiceAccountRoles';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { sampleRequest } from '@app/jest/samples/integrations';
+import { wikiURL } from '@app/utils/constants';
 
 function ServiceAccountRolesComponent() {
   return (
@@ -18,7 +19,7 @@ function ServiceAccountRolesComponent() {
 }
 
 const listClientRolesResponse = 'role1';
-const HYPERLINK = 'https://github.com/bcgov/sso-keycloak/wiki/Creating-a-Role#service-account-role-management';
+const HYPERLINK = `${wikiURL}/Creating-a-Role#service-account-role-management`;
 
 jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: listClientRolesResponse }], null])),

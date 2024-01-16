@@ -41,11 +41,11 @@ import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import ServiceAccountsList from './ServiceAccountsList';
-import { InfoMessage } from '@app/components/MessageBox';
+import { ErrorMessage, InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
 import { SurveyContext } from '@app/pages/_app';
+import { docusaurusURL } from '@app/utils/constants';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -644,17 +644,23 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     </Grid.Col>
                     <Grid.Col span={6}>
                       {serviceAccountInProgress && (
-                        <Grid cols={10}>
-                          <Grid.Row gutter={[]}>
-                            <Grid.Col span={10} align={'center'}>
-                              {activeServiceAccount?.requester && (
-                                <Requester>Submitted by: {activeServiceAccount?.requester}</Requester>
-                              )}
-                              <SubTitle>CSS API Account will be provisioned in approx 20 min</SubTitle>
-                              <SubmittedStatusIndicator integration={serviceAccountInProgress} />
-                            </Grid.Col>
-                          </Grid.Row>
-                        </Grid>
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            margin: '20px 0 20px 0',
+                            background: '#FFCCCB',
+                            borderRadius: '5px',
+                          }}
+                        >
+                          <div style={{ padding: 5 }}>
+                            <ErrorMessage>
+                              Your request for an API account could not be completed. Please{' '}
+                              <Link external href="mailto:bcgov.sso@gov.bc.ca">
+                                contact the Pathfinder SSO Team
+                              </Link>
+                            </ErrorMessage>
+                          </div>
+                        </div>
                       )}
                     </Grid.Col>
                   </Grid.Row>
@@ -662,7 +668,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     <Grid.Row>
                       <InfoMessage>
                         For more information on how to use the CSS API Account with your integrations,{' '}
-                        <Link href="https://github.com/bcgov/sso-keycloak/wiki/CSS-API-Account" external>
+                        <Link href={`${docusaurusURL}/integrating-your-application/css-app-api`} external>
                           click to learn more on our wiki page
                         </Link>
                         .

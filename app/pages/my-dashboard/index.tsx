@@ -5,7 +5,10 @@ function MyDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/my-dashboard/integrations');
+    router.replace({
+      pathname: '/my-dashboard/integrations',
+      query: router.query,
+    });
   }, []);
 
   return null;

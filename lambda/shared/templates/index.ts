@@ -19,6 +19,7 @@ import createTeamApiAccountApproved from './create-team-api-account-approved';
 import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
 import deleteInactiveIdirUsers from './delete-inactive-idir-users';
 import surveyCompleted from './survey-completed-notification';
+import restoreIntegration from './restore-integration';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -59,6 +60,14 @@ const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): strin
     .join(', ');
 };
 
+const getRolePrivelege = (role: string) => {
+  if (role === 'member') return 'view';
+  if (role === 'admin') return 'manage';
+  return 'view';
+};
+
+const capitalize = (word: string) => word[0].toUpperCase() + word.slice(1).toLowerCase();
+
 Handlebars.registerPartial('footer', footer);
 Handlebars.registerPartial('hr', hr);
 Handlebars.registerPartial('createBceidBottom', createBceidBottom);
@@ -72,6 +81,8 @@ Handlebars.registerPartial('processingTime', processingTime);
 Handlebars.registerPartial('ssoUpdatesMailingListMessage', ssoUpdatesMailingListMessage);
 Handlebars.registerPartial('bceidWarning', bceidWarning);
 Handlebars.registerHelper('formatPrimaryUsers', formatPrimaryUsers);
+Handlebars.registerHelper('getRolePrivelege', getRolePrivelege);
+Handlebars.registerHelper('capitalize', capitalize);
 
 const getBuilder = (key: string) => {
   let builder = { render: (v) => v, send: noop };
@@ -124,6 +135,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.SURVEY_COMPLETED:
       builder = surveyCompleted;
+      break;
+    case EMAILS.RESTORE_INTEGRATION:
+      builder = restoreIntegration;
       break;
     default:
       break;

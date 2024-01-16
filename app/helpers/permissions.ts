@@ -6,7 +6,7 @@ export const canDeleteIntegration = (integration: Integration) => {
     !integration ||
     integration.apiServiceAccount ||
     integration.archived ||
-    ['pr', 'planned', 'submitted'].includes(integration?.status || '')
+    ['planFailed', 'planned', 'applyFailed', 'submitted'].includes(integration?.status || '')
   ) {
     return false;
   }

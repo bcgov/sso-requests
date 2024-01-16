@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import startCase from 'lodash.startcase';
-import { faTrash, faEdit, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faEdit, faEye, faTrashRestoreAlt } from '@fortawesome/free-solid-svg-icons';
 import Table from 'components/TableNew';
-import { getRequestAll, deleteRequest } from 'services/request';
+import { getRequestAll, deleteRequest, restoreRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Integration, Option } from 'interfaces/Request';
 import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
@@ -124,6 +124,12 @@ export default function AdminDashboard({ session }: PageProps) {
     else return true;
   };
 
+  const canRestore = (request: Integration) => {
+    if (request.archived === false) return false;
+    else if (!['applied'].includes(request?.status || '')) return false;
+    else return true;
+  };
+
   const handleEdit = async (request: Integration) => {
     if (!request.id || !canEdit(request)) return;
     await router.push(`/request/${request.id}?status=${request.status}`);
@@ -135,9 +141,22 @@ export default function AdminDashboard({ session }: PageProps) {
     window.location.hash = 'delete-modal';
   };
 
+  const handleRestore = async (request: Integration) => {
+    if (!request.id || !canRestore(request)) return;
+    setSelectedId(request.id);
+    window.location.hash = 'restore-modal';
+  };
+
   const confirmDelete = async () => {
     if (!canDelete) return;
     await deleteRequest(selectedId);
+    await getData();
+    window.location.hash = '#';
+  };
+
+  const confirmRestore = async () => {
+    if (!canRestore) return;
+    await restoreRequest(selectedId);
     await getData();
     window.location.hash = '#';
   };
@@ -214,6 +233,16 @@ export default function AdminDashboard({ session }: PageProps) {
                       disabled={!canDelete(row)}
                       activeColor={PRIMARY_RED}
                       title="Delete from Keycloak"
+                    />
+                    <VerticalLine />
+                    <ActionButton
+                      icon={faTrashRestoreAlt}
+                      role="button"
+                      aria-label="restore"
+                      onClick={() => handleRestore(row)}
+                      disabled={!canRestore(row)}
+                      activeColor={PRIMARY_RED}
+                      title="Restore at Keycloak"
                     />
                   </ActionButtonContainer>
                 ),
@@ -295,6 +324,14 @@ export default function AdminDashboard({ session }: PageProps) {
         onConfirm={confirmDelete}
         confirmText="Delete"
         title="Confirm Deletion"
+      />
+      <CenteredModal
+        id="restore-modal"
+        data-testid="modal-restore-integration"
+        content="You are about to restore this integration."
+        onConfirm={confirmRestore}
+        confirmText="Restore"
+        title="Confirm Restoration"
       />
     </>
   );

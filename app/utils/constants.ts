@@ -2,6 +2,9 @@ import { EnvironmentOption, ErrorMessages } from '@app/interfaces/form';
 
 export const createTeamModalId = `create-team-modal`;
 
+export const wikiURL = 'https://mvp.developer.gov.bc.ca/docs/default/component/css-docs';
+export const docusaurusURL = 'https://bcgov.github.io/sso-docs';
+
 export const environmentOptions: EnvironmentOption[] = [
   {
     name: 'dev',

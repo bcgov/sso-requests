@@ -6,6 +6,7 @@ import {
   findClientRole,
   manageRoleComposites,
   getRoleComposites,
+  setCompositeClientRoles,
 } from '@lambda-app/keycloak/users';
 import { injectable } from 'tsyringe';
 import { IntegrationService } from './integration-service';
@@ -15,6 +16,8 @@ import { getAllowedRoleProps, updateRoleProps } from '../helpers/roles';
 import { Role, RolePayload } from '../types';
 import { Integration } from 'app/interfaces/Request';
 import { parseErrors } from '../util';
+import { models } from '@lambda-shared/sequelize/models/models';
+import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
 
 @injectable()
 export class RoleService {
@@ -36,13 +39,27 @@ export class RoleService {
   public async createRole(teamId: number, integrationId: number, role: RolePayload, environment: string) {
     this.validateRole(role);
     const int = await this.integrationService.getById(integrationId, teamId);
-    const roleObj: any = await createRole(int, { environment, integrationId, roleName: role.name });
-    return getAllowedRoleProps((await findClientRole(int, { environment, roleName: roleObj?.roleName })) as Role);
+    const kcRole = await createRole(int, { environment, integrationId, roleName: role.name });
+    if (kcRole) {
+      await models.requestRole.create({
+        name: role?.name,
+        environment: environment,
+        requestId: integrationId,
+      });
+    }
+    return getAllowedRoleProps((await findClientRole(int, { environment, roleName: role?.name })) as Role);
   }
 
   public async deleteRole(teamId: number, integrationId: number, roleName: string, environment: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    return await deleteRole(int, { environment, integrationId, roleName });
+    await deleteRole(int, { environment, integrationId, roleName });
+
+    const deletedRole = await findClientRole(int, { environment, roleName });
+
+    if (!deletedRole) {
+      await destroyRequestRole(int?.id, roleName, environment);
+    }
+    return;
   }
 
   public async updateRole(
@@ -54,8 +71,23 @@ export class RoleService {
   ) {
     this.validateRole(role);
     const int = await this.integrationService.getById(integrationId, teamId);
+    const dbRole = await models.requestRole.findOne({
+      where: {
+        name: roleName,
+        environment: environment,
+        requestId: integrationId,
+      },
+    });
+    if (!dbRole) throw new createHttpError[404](`role ${roleName} not found`);
     await updateRole(int, { environment, integrationId, roleName, newRoleName: role.name });
-    return getAllowedRoleProps((await findClientRole(int, { environment, roleName: role.name })) as Role);
+    const updatedRole = await findClientRole(int, { environment, roleName: role.name });
+
+    if (updatedRole) {
+      dbRole.name = role?.name;
+      dbRole.environment = environment;
+      await dbRole.save();
+    }
+    return getAllowedRoleProps(updatedRole as Role);
   }
 
   public validateRole(role: RolePayload) {
@@ -79,6 +111,7 @@ export class RoleService {
   ) {
     let rolesToAdd = [];
     const int = await this.integrationService.getById(integrationId, teamId);
+
     const existingRoles = await listClientRoles(int, { environment, integrationId });
     const role = existingRoles.find((role) => role.name === roleName);
     if (!role) throw new createHttpError[404](`role ${roleName} not found`);
@@ -91,7 +124,19 @@ export class RoleService {
         throw new createHttpError[404](`role ${role.name} not found`);
       rolesToAdd.push(existingRoles.find((existingRole) => role.name === existingRole.name));
     }
-    await manageRoleComposites(environment, role.id, rolesToAdd, 'add');
+    try {
+      const result = await setCompositeClientRoles(int, {
+        environment,
+        roleName,
+        compositeRoleNames: compositeRoles.map((r) => r.name),
+      });
+
+      await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);
+    } catch (err) {
+      console.error(err);
+      throw new createHttpError[500]('error creating composite roles');
+    }
+
     return getAllowedRoleProps((await findClientRole(int, { environment, roleName })) as Role);
   }
 
@@ -156,6 +201,17 @@ export class RoleService {
     if (!compRoles.find((role) => role.name === compositeRoleName))
       throw new createHttpError[404](`role ${compositeRoleName} is not associated with ${roleName}`);
 
-    await manageRoleComposites(environment, role.id, [compositeRole], 'del');
+    try {
+      const result = await setCompositeClientRoles(int, {
+        environment,
+        roleName,
+        compositeRoleNames: compRoles.filter((r) => r.name !== compositeRoleName).map((r) => r.name),
+      });
+
+      await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);
+    } catch (err) {
+      console.error(err);
+      throw new createHttpError[500]('error deleting composite roles');
+    }
   }
 }
