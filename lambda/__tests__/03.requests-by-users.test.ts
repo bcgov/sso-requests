@@ -12,6 +12,7 @@ import {
   createCompositeRoles,
   createIntegration,
   deleteIntegration,
+  getEventsByRequestId,
   getIntegration,
   getIntegrations,
   restoreIntegration,
@@ -21,6 +22,8 @@ import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@lambda-shared/sequelize/models/models';
+import { EVENTS } from '@lambda-shared/enums';
+import { keycloakClient } from '../app/src/keycloak/integration';
 
 const integrationRoles = [
   {
@@ -315,5 +318,22 @@ describe('roles and restore integration', () => {
     const restoreResult = await getIntegration(integration.id);
     expect(restoreResult.status).toEqual(200);
     expect(restoreResult.body.archived).toEqual(false);
+
+    const integrationEvents = await getEventsByRequestId(integration.id);
+    const restoreEvents = integrationEvents.filter((event) => event.eventCode === EVENTS.REQUEST_RESTORE_SUCCESS);
+    expect(restoreEvents.length).toBe(1);
+  });
+
+  it('logs a restore failed event if restoration fails', async () => {
+    createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
+
+    await deleteIntegration(integration.id);
+
+    (keycloakClient as jest.Mock).mockImplementation(() => Promise.resolve(false));
+    await restoreIntegration(integration.id);
+
+    const integrationEvents = await getEventsByRequestId(integration.id);
+    const restoreEvents = integrationEvents.filter((event) => event.eventCode === EVENTS.REQUEST_RESTORE_FAILURE);
+    expect(restoreEvents.length).toBe(1);
   });
 });
