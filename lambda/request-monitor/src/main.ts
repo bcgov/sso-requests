@@ -74,9 +74,10 @@ export const handler = async () => {
 
 const getActiveRequests = async (client: Client, environment: string) => {
   try {
-    const result = await client.query(
-      `SELECT id, project_name, environments, client_id, api_service_account FROM requests WHERE '${environment}' = ANY(environments) and status = 'applied' and archived = false;`,
-    );
+    const text =
+      "SELECT id, project_name, environments, client_id, api_service_account FROM requests WHERE $1 = ANY(environments) and status = 'applied' and archived = false";
+    const values = [environment];
+    const result = await client.query(text, values);
     return result?.rows || [];
   } catch (err) {
     console.error('could not get active requests', err);
