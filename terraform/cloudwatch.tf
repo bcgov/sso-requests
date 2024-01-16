@@ -19,7 +19,7 @@ resource "aws_lambda_permission" "request_queue" {
 
 resource "aws_cloudwatch_event_rule" "request_monitor" {
   name                = "request-monitor-scheduler"
-  schedule_expression = "cron(0 6 * * *)"
+  schedule_expression = "cron(0 6 * ? *)"
 }
 
 resource "aws_cloudwatch_event_target" "request_monitor" {
