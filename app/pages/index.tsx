@@ -13,7 +13,6 @@ import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 import GithubDiscussions from '@app/components/GithubDiscussions';
 import { wikiURL } from '@app/utils/constants';
-// import { Grid as FlexGrid, Row, Col } from 'react-flexbox-grid';
 interface PanelProps {
   marginLeft?: boolean;
   marginRight?: boolean;
