@@ -19,6 +19,7 @@ resource "aws_lambda_function" "request_monitor" {
 
   environment {
     variables = {
+      APP_ENV                   = var.app_env
       NODE_ENV                  = "production"
       DB_HOSTNAME               = module.db.this_rds_cluster_endpoint
       DB_USERNAME               = var.db_username
