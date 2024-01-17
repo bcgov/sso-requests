@@ -12,7 +12,7 @@ import { Accordion } from '@bcgov-sso/common-react-components';
 import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 import GithubDiscussions from '@app/components/GithubDiscussions';
-import { wikiURL } from '@app/utils/constants';
+import { wikiURL, docusaurusURL } from '@app/utils/constants';
 interface PanelProps {
   marginLeft?: boolean;
   marginRight?: boolean;
@@ -122,9 +122,6 @@ const WhatsNew = styled.div`
   }
 `;
 
-const technicalURL = 'https://bcgov.github.io/sso-docs/';
-const businessURL = 'https://mvp.developer.gov.bc.ca/docs/default/component/css-docs';
-
 export default function Home({ onLoginClick }: PageProps) {
   return (
     <>
@@ -198,11 +195,11 @@ export default function Home({ onLoginClick }: PageProps) {
                 <ul>
                   <li>
                     We&apos;ve updated our wiki into two areas of focus: one for{' '}
-                    <Link href={businessURL} target="_blank" rel="noreferrer" title="Business" external>
+                    <Link href={wikiURL} target="_blank" rel="noreferrer" title="Business" external>
                       business
                     </Link>{' '}
                     areas and one for{' '}
-                    <Link href={technicalURL} target="_blank" rel="noreferrer" title="Business" external>
+                    <Link href={docusaurusURL} target="_blank" rel="noreferrer" title="Business" external>
                       technical
                     </Link>
                     , take a look.
