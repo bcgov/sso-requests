@@ -116,7 +116,14 @@ const WhatsNew = styled.div`
     font-size: 20px;
     weight: 700;
   }
+  a {
+    color: #ffffff;
+    weight: 700;
+  }
 `;
+
+const technicalURL = 'https://bcgov.github.io/sso-docs/';
+const businessURL = 'https://mvp.developer.gov.bc.ca/docs/default/component/css-docs';
 
 export default function Home({ onLoginClick }: PageProps) {
   return (
@@ -190,8 +197,15 @@ export default function Home({ onLoginClick }: PageProps) {
                 <h2>What&apos;s new at SSO?</h2>
                 <ul>
                   <li>
-                    We&apos;ve updated our wiki into two areas of focus: one for business areas and one for technical,
-                    take a look.
+                    We&apos;ve updated our wiki into two areas of focus: one for{' '}
+                    <Link href={businessURL} target="_blank" rel="noreferrer" title="Business" external>
+                      business
+                    </Link>{' '}
+                    areas and one for{' '}
+                    <Link href={technicalURL} target="_blank" rel="noreferrer" title="Business" external>
+                      technical
+                    </Link>
+                    , take a look.
                   </li>
                 </ul>
               </Grid.Col>
