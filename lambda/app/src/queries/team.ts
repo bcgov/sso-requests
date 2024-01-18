@@ -1,10 +1,26 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
-import { User } from '../../../shared/interfaces';
-import { getMyTeamsLiteral } from './literals';
+import { Session, User } from '../../../shared/interfaces';
+import { getMyTeamsLiteral, getTeamIdLiteralOutOfRange } from './literals';
+import { isAdmin } from '@lambda-app/utils/helpers';
 
+export type ApiAccountQueryOptions = {
+  attributes?: string[];
+  raw?: boolean;
+};
+
+const serviceAccountCommonPopulation = [
+  {
+    model: models.user,
+    required: false,
+  },
+  {
+    model: models.team,
+    required: false,
+  },
+];
 export const getTeamById = async (teamId: number, options = { raw: true }) => {
-  return models.team.findOne({
+  return await models.team.findOne({
     where: { id: teamId },
     ...options,
   });
@@ -159,4 +175,58 @@ export const getAllEmailsOfTeam = async (teamId: number) => {
     },
   );
   return userEmails;
+};
+
+export const getAllTeamAPIAccounts = async (teamIdLiteral: string) => {
+  return await models.request.findAll({
+    where: {
+      serviceType: 'gold',
+      usesTeam: true,
+      apiServiceAccount: true,
+      archived: false,
+      teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
+    },
+    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived', 'requester'],
+    raw: true,
+  });
+};
+
+export const getAllowedTeamAPIAccount = async (
+  session: Session,
+  requestId: number,
+  userId: number,
+  teamId: number,
+  options?: ApiAccountQueryOptions,
+) => {
+  let queryPayload = {
+    where: {
+      id: requestId,
+      serviceType: 'gold',
+      usesTeam: true,
+      apiServiceAccount: true,
+    },
+    ...options,
+  };
+
+  if (!isAdmin(session)) {
+    const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+    queryPayload.where[teamId] = { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) };
+  }
+
+  return await models.request.findOne({
+    ...queryPayload,
+  });
+};
+
+export const isTeamAdmin = async (userId: number, teamId: number) => {
+  const userIsTeamAdmin = await models.usersTeam.findOne({
+    where: {
+      userId,
+      teamId,
+      role: 'admin',
+      pending: false,
+    },
+  });
+  if (userIsTeamAdmin) return true;
+  return false;
 };

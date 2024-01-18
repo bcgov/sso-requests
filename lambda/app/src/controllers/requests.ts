@@ -488,7 +488,7 @@ export const restoreRequest = async (session: Session, id: number) => {
 
     await sendTemplate(EMAILS.RESTORE_INTEGRATION, {
       integration: int,
-      hasClientSecret: ['both', 'service-account'].includes(int.authType),
+      hasClientSecret: !int.publicAccess || ['both', 'service-account'].includes(int.authType),
     });
 
     return updated.get({ plain: true });

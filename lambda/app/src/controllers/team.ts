@@ -1,6 +1,12 @@
 import { Op } from 'sequelize';
-import { findTeamsForUser, getMemberOnTeam } from '@lambda-app/queries/team';
-import { getDisplayName, inviteTeamMembers } from '@lambda-app/utils/helpers';
+import {
+  findTeamsForUser,
+  getAllTeamAPIAccounts,
+  getAllowedTeamAPIAccount,
+  getMemberOnTeam,
+  isTeamAdmin,
+} from '@lambda-app/queries/team';
+import { getDisplayName, inviteTeamMembers, isAdmin } from '@lambda-app/utils/helpers';
 import { lowcase } from '@lambda-app/helpers/string';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { sendTemplate } from '@lambda-shared/templates';
@@ -14,17 +20,6 @@ import { generateInstallation, updateClientSecret } from '../keycloak/installati
 import { getIntegrationsByTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent } from './requests';
 
-const serviceAccountCommonPopulation = [
-  {
-    model: models.user,
-    required: false,
-  },
-  {
-    model: models.team,
-    required: false,
-  },
-];
-
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
   return result;
@@ -33,14 +28,14 @@ export const listTeams = async (user: User) => {
 export const createTeam = async (user: User, data: Team) => {
   const { name, members } = data;
   const team = await models.team.create({ name });
-  await Promise.all([
-    addUsersToTeam(team.id, user.id, members),
-    models.usersTeam.create({ teamId: team.id, userId: user.id, role: 'admin', pending: false }),
-  ]);
+  await models.usersTeam.create({ teamId: team.id, userId: user.id, role: 'admin', pending: false });
+  await addUsersToTeam(team.id, user.id, members);
   return team;
 };
 
 export const addUsersToTeam = async (teamId: number, userId: number, members: Member[]) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) throw new Error('Not authorized');
   members = members.map((member) => ({ ...member, idirEmail: lowcase(member.idirEmail) }));
 
   const usersEmailsAlreadyOnTeam = await findAllowedTeamUsers(teamId, userId).then((result) =>
@@ -66,16 +61,18 @@ export const addUsersToTeam = async (teamId: number, userId: number, members: Me
   // Return IDs of new users
   return Promise.all([
     ...allUsers.map((user) => models.usersTeam.create({ teamId, userId: user.id, role: user.role, pending: true })),
-    inviteTeamMembers(allUsers, teamId),
+    inviteTeamMembers(userId, allUsers, teamId),
   ]).then((result) => result.slice(0, -1).map((userTeam) => userTeam.userId));
 };
 
-export const updateTeam = async (user: User, id: string, data: { name: string }) => {
+export const updateTeam = async (user: User, teamId: string, data: { name: string }) => {
+  const authorized = await isTeamAdmin(user.id, Number(teamId));
+  if (!authorized) throw new Error('Not authorized');
   const updated = await models.team.update(
     { name: data.name },
     {
       where: {
-        id,
+        id: teamId,
       },
       returning: true,
       plain: true,
@@ -89,13 +86,17 @@ export const updateTeam = async (user: User, id: string, data: { name: string })
   return updated[1].dataValues;
 };
 
-export const deleteTeam = async (user: User, id: string) => {
+export const deleteTeam = async (userId: number, teamId: number) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) {
+    throw Error('unauthorized request');
+  }
   // Clear fkey from teams archived requests
   await models.request.update(
     { teamId: null },
     {
       where: {
-        teamId: id,
+        teamId,
         archived: true,
       },
       returning: true,
@@ -103,7 +104,7 @@ export const deleteTeam = async (user: User, id: string) => {
     },
   );
 
-  const team = await models.team.findOne({ where: { id } });
+  const team = await models.team.findOne({ where: { id: teamId } });
 
   await sendTemplate(EMAILS.TEAM_DELETED, { team });
   await team.destroy();
@@ -123,16 +124,9 @@ export const verifyTeamMember = async (userId: number, teamId: number) => {
   return result[0] === 1;
 };
 
-export const userIsTeamAdmin = async (user: User, teamId: number) => {
-  const { id } = user;
-  return models.usersTeam.findOne({
-    where: {
-      userId: id,
-      teamId,
-      role: 'admin',
-      pending: false,
-    },
-  });
+export const canManageTeam = async (session: Session, userId: number, teamId: number) => {
+  if (isAdmin(session) || (await isTeamAdmin(userId, teamId))) return true;
+  return false;
 };
 
 export const userCanReadTeam = async (user: User, teamId: number) => {
@@ -154,13 +148,15 @@ const canRemoveUser = async (userId: number, teamId: number) => {
   return true;
 };
 
-export const removeUserFromTeam = async (userId: number, teamId: number) => {
-  const canRemove = await canRemoveUser(userId, teamId);
+export const removeUserFromTeam = async (userId: number, memberUserId: number, teamId: number) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) throw new Error('Not authorized');
+  const canRemove = await canRemoveUser(memberUserId, teamId);
   if (!canRemove) throw new Error('Not allowed');
 
-  await models.usersTeam.destroy({ where: { userId, teamId } });
+  await models.usersTeam.destroy({ where: { userId: memberUserId, teamId } });
 
-  const [user, team] = await Promise.all([getUserById(userId), getTeamById(teamId)]);
+  const [user, team] = await Promise.all([getUserById(memberUserId), getTeamById(teamId)]);
   await Promise.all([
     sendTemplate(EMAILS.TEAM_MEMBER_DELETED_ADMINS, { user, team }),
     sendTemplate(EMAILS.TEAM_MEMBER_DELETED_USER_REMOVED, { user, team }),
@@ -169,12 +165,19 @@ export const removeUserFromTeam = async (userId: number, teamId: number) => {
   return true;
 };
 
-export const updateMemberInTeam = async (teamId: number, userId: number, data: { role: string }) => {
+export const updateMemberInTeam = async (
+  userId: number,
+  teamId: number,
+  memberUserId: number,
+  data: { role: string },
+) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) throw new Error('Not authorized');
   await models.usersTeam.update(
     { role: data.role },
     {
       where: {
-        userId,
+        userId: memberUserId,
         teamId,
       },
       returning: true,
@@ -186,12 +189,14 @@ export const updateMemberInTeam = async (teamId: number, userId: number, data: {
 };
 
 export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) {
+    throw Error('unauthorized request');
+  }
   const existingServiceAccounts = await getServiceAccounts(userId, teamId);
-
   if (existingServiceAccounts.length > 0) {
     throw Error('CSS API Account already generated for this team');
   }
-
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
   const integrations = await getIntegrationsByTeam(teamId, 'gold');
   const team = await getTeamById(teamId);
@@ -203,7 +208,6 @@ export const requestServiceAccount = async (session: Session, userId: number, te
     teamId: sequelize.literal(`(${teamIdLiteral})`),
     apiServiceAccount: true,
   });
-  console.log('🚀 ~ file: team.ts:207 ~ requestServiceAccount ~ serviceAccount:', serviceAccount);
 
   if (!serviceAccount.teamId) {
     await serviceAccount.destroy();
@@ -225,24 +229,20 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 };
 
 export const getServiceAccounts = async (userId: number, teamId: number) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) {
+    throw Error('unauthorized request');
+  }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
-
-  return models.request.findAll({
-    where: {
-      serviceType: 'gold',
-      usesTeam: true,
-      apiServiceAccount: true,
-      archived: false,
-      teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
-    },
-    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived', 'requester'],
-    raw: true,
-  });
+  return await getAllTeamAPIAccounts(teamIdLiteral);
 };
 
 export const getServiceAccount = async (userId: number, teamId: number, saId: number) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) {
+    throw Error('unauthorized request');
+  }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
-
   return await models.request.findOne({
     where: {
       id: saId,
@@ -258,8 +258,11 @@ export const getServiceAccount = async (userId: number, teamId: number, saId: nu
 };
 
 export const getServiceAccountCredentials = async (userId: number, teamId: number, saId: number) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) {
+    throw Error('unauthorized request');
+  }
   const integration = await getServiceAccount(userId, teamId, saId);
-
   const installation = await generateInstallation({
     serviceType: integration.serviceType,
     environment: 'prod',
@@ -272,37 +275,27 @@ export const getServiceAccountCredentials = async (userId: number, teamId: numbe
 
 export const deleteServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
   try {
-    const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
-    const team = await getTeamById(teamId);
-    const serviceAccount = await models.request.findOne({
-      where: {
-        id: saId,
-        serviceType: 'gold',
-        usesTeam: true,
-        apiServiceAccount: true,
-        archived: false,
-        teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
-      },
-      include: serviceAccountCommonPopulation,
-    });
-
-    if (!serviceAccount) {
+    const authorized = await canManageTeam(session, userId, teamId);
+    if (!authorized) {
       throw Error('unauthorized request');
     }
-
+    const serviceAccount = await getAllowedTeamAPIAccount(session, saId, userId, teamId);
+    if (!serviceAccount) {
+      throw Error('could not find service account');
+    }
+    const team = await getTeamById(teamId);
     const isMerged = await checkIfRequestMerged(saId);
     const requester = getDisplayName(session);
     serviceAccount.requester = requester;
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
+    serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     const saved = await serviceAccount.save();
 
     if (isMerged) {
       // Trigger workflow with empty environments to delete client
       await processIntegrationRequest(saved);
     }
-
-    await serviceAccount.save();
 
     await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { team, requester });
 
@@ -326,12 +319,60 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 };
 
 export const updateServiceAccountSecret = async (userId: number, teamId: number, saId: number) => {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) {
+    throw Error('unauthorized request');
+  }
   const integration = await getServiceAccount(userId, teamId, saId);
-
   return await updateClientSecret({
     serviceType: integration.serviceType,
     environment: 'prod',
     realmName: 'standard',
     clientId: integration.clientId,
   });
+};
+
+export const restoreTeamServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
+  const authorized = await canManageTeam(session, userId, teamId);
+  if (!authorized) {
+    throw Error('unauthorized request');
+  }
+  const serviceAccount = await getAllowedTeamAPIAccount(session, saId, userId, teamId);
+  if (!serviceAccount) {
+    throw Error('could not find service account');
+  }
+  const team = await getTeamById(teamId);
+  const requester = getDisplayName(session);
+  serviceAccount.requester = requester;
+  serviceAccount.status = 'submitted';
+  serviceAccount.archived = false;
+  serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
+  const saved = await serviceAccount.save();
+
+  await processIntegrationRequest(saved, true);
+
+  const teamIntegrations = await models.request.findAll({
+    where: {
+      teamId: serviceAccount.teamId,
+      apiServiceAccount: false,
+      archived: false,
+      serviceType: 'gold',
+    },
+    raw: true,
+    attributes: ['id', 'projectName', 'usesTeam', 'teamId', 'userId', 'devIdps', 'environments', 'authType'],
+  });
+
+  await sendTemplate(EMAILS.RESTORE_TEAM_API_ACCOUNT, {
+    requester,
+    team,
+    integrations: teamIntegrations,
+  });
+
+  createEvent({
+    eventCode: EVENTS.REQUEST_RESTORE_SUCCESS,
+    requestId: saId,
+    userId: session.user.id,
+  });
+
+  return serviceAccount;
 };
