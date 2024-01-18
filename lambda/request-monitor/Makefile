@@ -17,5 +17,4 @@ build: install
 build:
 	@rm -rf dist
 	@yarn build
-	@yarn copy-templates
 	@cd dist; rm -f $(TARGET); zip -rq $(TARGET) *
