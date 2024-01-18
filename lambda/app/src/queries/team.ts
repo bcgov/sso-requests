@@ -198,23 +198,24 @@ export const getAllowedTeamAPIAccount = async (
   teamId: number,
   options?: ApiAccountQueryOptions,
 ) => {
-  let queryPayload = {
-    where: {
-      id: requestId,
-      serviceType: 'gold',
-      usesTeam: true,
-      apiServiceAccount: true,
-    },
-    ...options,
+  const where: any = {
+    id: requestId,
+    serviceType: 'gold',
+    usesTeam: true,
+    apiServiceAccount: true,
   };
 
-  if (!isAdmin(session)) {
-    const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
-    queryPayload.where[teamId] = { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) };
+  if (isAdmin(session)) {
+    return await models.request.findOne({
+      where,
+      ...options,
+    });
   }
-
+  const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
+  where.teamId = { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) };
   return await models.request.findOne({
-    ...queryPayload,
+    where,
+    ...options,
   });
 };
 
