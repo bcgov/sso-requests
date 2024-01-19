@@ -1,3 +1,4 @@
+import { Integration } from '@app/interfaces/Request';
 import { instance } from './axios';
 import { AxiosError } from 'axios';
 import { Team, User } from 'interfaces/team';
@@ -153,6 +154,20 @@ export const updateServiceAccountCredentials = async (teamId?: number, saId?: nu
 export const deleteServiceAccount = async (teamId?: number, saId?: number) => {
   try {
     const result = await instance.delete(`teams/${teamId}/service-accounts/${saId}`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
+export const restoreServiceAccount = async (
+  teamId?: number,
+  saId?: number,
+): Promise<[Integration, null] | [null, AxiosError]> => {
+  try {
+    const result: Integration = await instance
+      .get(`teams/${teamId}/service-accounts/${saId}/restore`)
+      .then((res) => res.data);
     return [result, null];
   } catch (err: any) {
     return handleAxiosError(err);
