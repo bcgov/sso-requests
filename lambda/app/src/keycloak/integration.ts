@@ -158,7 +158,9 @@ export const keycloakClient = async (
 
     if (clients.length === 0) {
       // if client does not exist then just create client
-      client = await kcAdminClient.clients.create({ realm, ...clientData });
+      let attributes = { login_theme: 'bcgov-sentence-case' };
+      if (clientData.attributes) attributes = { ...clientData.attributes, ...attributes };
+      client = await kcAdminClient.clients.create({ realm, ...clientData, attributes });
     } else {
       // if client exists then just update
       client = clients[0];
