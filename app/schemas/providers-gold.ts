@@ -92,7 +92,7 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
           return {
             content: `
             To learn the difference between IDIR and IDIR with MFA,
-            <a href="${wikiURL}/Our-Partners-the-Identity-Providers#azure-idir-and-idir" target="_blank" title="IDIR vs IDIR with MFA">
+            <a href="${wikiURL}/Our-Partners-the-Identity-Providers#idir-with-mfa" target="_blank" title="IDIR vs IDIR with MFA">
             please visit our GitHub page about choosing an Identity Provider
             </a>
             `,
