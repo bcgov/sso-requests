@@ -198,6 +198,16 @@ export const keycloakClient = async (
         })
       ).map((scope) => scope.name);
 
+      for (const scope of existingDefaultScopes) {
+        if (!defaultScopes.includes(scope)) {
+          await kcAdminClient.clients.delDefaultClientScope({
+            id: client.id,
+            clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === scope)?.id,
+            realm,
+          });
+        }
+      }
+
       for (const scope of defaultScopes.filter((n: string) => !existingDefaultScopes.includes(n))) {
         await kcAdminClient.clients.addDefaultClientScope({
           id: client.id,
