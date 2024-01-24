@@ -11,7 +11,7 @@ import { User as TeamUser } from '@app/interfaces/team';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
-import { getTeamById } from '../queries/team';
+import { getTeamById, isTeamAdmin } from '../queries/team';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
@@ -170,10 +170,10 @@ export async function getUsersTeams(user) {
     .then((res) => res.map((res) => res.dataValues));
 }
 
-export async function inviteTeamMembers(users: (User & { role: string })[], teamId: number) {
+export async function inviteTeamMembers(userId: number, users: (User & { role: string })[], teamId: number) {
+  const authorized = await isTeamAdmin(userId, teamId);
+  if (!authorized) throw new Error('Not authorized');
   const team = await getTeamById(teamId);
-  if (!team) return;
-
   return Promise.all(
     users.map(async (user) => {
       const invitationLink = generateInvitationToken(user, team.id);

@@ -154,3 +154,10 @@ variable "gold_ip_address" {
   description = "IP address of service running in gold cluster"
   default     = "142.34.229.4"
 }
+
+variable "rc_webhook" {
+  type        = string
+  description = "The Rocket.Chat webhook for sso-ops channel"
+  default     = ""
+  sensitive   = true
+}

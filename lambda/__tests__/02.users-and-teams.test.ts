@@ -183,19 +183,19 @@ describe('users and teams', () => {
     it('should not allow non-admins to add users to their team', async () => {
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const result = await addMembersToTeam(teamId, [{ idirEmail: 'test_user', role: 'member' }]);
-      expect(result.status).toEqual(401);
+      expect(result.status).toEqual(422);
     });
 
     it('should block pending admins from removing team members', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_03, TEAM_ADMIN_IDIR_EMAIL_03);
       const result = await deleteMembersOfTeam(teamId, teamMemberIds[0]);
-      expect(result.status).toEqual(401);
+      expect(result.status).toEqual(422);
     });
 
     it('should not allow team members to remove other team members or admins', async () => {
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const result = await deleteMembersOfTeam(teamId, teamMemberIds[0]);
-      expect(result.status).toEqual(401);
+      expect(result.status).toEqual(422);
     });
 
     it('should allow admins to remove team members', async () => {
@@ -214,13 +214,13 @@ describe('users and teams', () => {
     it('should not allow non-admins to resend invitations', async () => {
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const result = await sendTeamInvite(teamId, postTeamMembers[2]);
-      expect(result.status).toEqual(401);
+      expect(result.status).toEqual(422);
     });
 
     it('should not allow non-admins to delete team', async () => {
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const result = await deleteTeam(teamId);
-      expect(result.status).toEqual(401);
+      expect(result.status).toEqual(422);
     });
 
     it('should allow team admins to delete team', async () => {

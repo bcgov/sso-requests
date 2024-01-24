@@ -222,6 +222,7 @@ jobs:
           grafana_api_token="${{ env.GRAFANA_API_TOKEN }}"
           grafana_api_url="${{ env.GRAFANA_API_URL }}"
           include_digital_credential="${{ env.INCLUDE_DIGITAL_CREDENTIAL }}"
+          rc_webhook="${{ secrets.RC_SSO_OPS_WEBHOOK }}"
           EOF
 
         working-directory: ./terraform

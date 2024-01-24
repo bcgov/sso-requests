@@ -16,6 +16,7 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
+  hasClientSecret: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {

@@ -13,6 +13,7 @@ import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
+import { deleteServiceAccount, restoreServiceAccount } from '@app/services/team';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -117,7 +118,8 @@ export default function AdminDashboard({ session }: PageProps) {
     return null;
   }
 
-  const canEdit = (request: Integration) => !request.archived && ['applied'].includes(request?.status || '');
+  const canEdit = (request: Integration) =>
+    !request.archived && ['applied'].includes(request?.status || '') && !request.apiServiceAccount;
   const canDelete = (request: Integration) => {
     if (request.archived === true) return false;
     else if (['pr', 'planned', 'submitted'].includes(request?.status || '')) return false;
@@ -149,14 +151,18 @@ export default function AdminDashboard({ session }: PageProps) {
 
   const confirmDelete = async () => {
     if (!canDelete) return;
-    await deleteRequest(selectedId);
+    selectedRequest?.apiServiceAccount
+      ? await deleteServiceAccount(selectedRequest?.teamId as number, selectedId)
+      : await deleteRequest(selectedId);
     await getData();
     window.location.hash = '#';
   };
 
   const confirmRestore = async () => {
     if (!canRestore) return;
-    await restoreRequest(selectedId);
+    selectedRequest?.apiServiceAccount
+      ? await restoreServiceAccount(selectedRequest?.teamId as number, selectedId)
+      : await restoreRequest(selectedId);
     await getData();
     window.location.hash = '#';
   };

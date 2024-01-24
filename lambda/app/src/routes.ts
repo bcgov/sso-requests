@@ -8,7 +8,6 @@ import {
   deleteTeam,
   verifyTeamMember,
   updateTeam,
-  userIsTeamAdmin,
   removeUserFromTeam,
   updateMemberInTeam,
   getServiceAccount,
@@ -17,6 +16,7 @@ import {
   getServiceAccounts,
   getServiceAccountCredentials,
   updateServiceAccountSecret,
+  restoreTeamServiceAccount,
 } from './controllers/team';
 import {
   deleteStaleUsers,
@@ -569,11 +569,6 @@ export const setRoutes = (app: any) => {
   app.put(`/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, id);
-
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
-
       const result = await updateTeam(req.user, id, req.body);
       res.status(200).json(result);
     } catch (err) {
@@ -584,11 +579,6 @@ export const setRoutes = (app: any) => {
   app.post(`/teams/:id/members`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, id);
-
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
-
       const result = await addUsersToTeam(id, req.user.id, req.body);
       res.status(200).json(result);
     } catch (err) {
@@ -599,11 +589,7 @@ export const setRoutes = (app: any) => {
   app.put(`/teams/:id/members/:memberId`, async (req, res) => {
     try {
       const { id, memberId } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, id);
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
-
-      const result = await updateMemberInTeam(id, memberId, req.body);
+      const result = await updateMemberInTeam(req.user.id, id, memberId, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -613,10 +599,7 @@ export const setRoutes = (app: any) => {
   app.delete(`/teams/:id/members/:memberId`, async (req, res) => {
     try {
       const { id, memberId } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, id);
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to edit this team' });
-      const result = await removeUserFromTeam(memberId, id);
+      const result = await removeUserFromTeam(req.user.id, memberId, id);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -636,10 +619,7 @@ export const setRoutes = (app: any) => {
   app.post(`/teams/:id/invite`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, id);
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to read this team' });
-      await inviteTeamMembers([req.body], id);
+      await inviteTeamMembers(req.user.id, [req.body], id);
       res.status(200).send();
     } catch (err) {
       handleError(res, err);
@@ -649,10 +629,7 @@ export const setRoutes = (app: any) => {
   app.delete(`/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, id);
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to delete this team' });
-      const result = await deleteTeam(req.user, id);
+      const result = await deleteTeam(req.user.id, id);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -662,12 +639,6 @@ export const setRoutes = (app: any) => {
   app.post(`/teams/:id/service-accounts`, async (req, res) => {
     try {
       const { id: teamId } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, teamId);
-      if (!authorized)
-        return res.status(401).json({
-          success: false,
-          message: 'You are not authorized to create api account belonging to this team',
-        });
       const result = await requestServiceAccount(req.session as Session, req.user.id, teamId, req.user.displayName);
       res.status(200).json(result);
     } catch (err) {
@@ -678,12 +649,6 @@ export const setRoutes = (app: any) => {
   app.get(`/teams/:id/service-accounts`, async (req, res) => {
     try {
       const { id: teamId } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, teamId);
-      if (!authorized)
-        return res.status(401).json({
-          success: false,
-          message: 'You are not authorized to access api accounts belonging to this team',
-        });
       const result = await getServiceAccounts(req.user.id, teamId);
       res.status(200).json(result);
     } catch (err) {
@@ -694,13 +659,18 @@ export const setRoutes = (app: any) => {
   app.get(`/teams/:id/service-accounts/:saId`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, teamId);
-      if (!authorized)
-        return res.status(401).json({
-          success: false,
-          message: 'You are not authorized to access api account belonging to this team',
-        });
       const result = await getServiceAccount(req.user.id, teamId, saId);
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/teams/:id/service-accounts/:saId/restore`, async (req, res) => {
+    try {
+      const { id: teamId, saId } = req.params;
+      assertSessionRole(req.session, 'sso-admin');
+      const result = await restoreTeamServiceAccount(req.session as Session, req.user.id, teamId, saId);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -710,12 +680,6 @@ export const setRoutes = (app: any) => {
   app.get(`/teams/:id/service-accounts/:saId/credentials`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, teamId);
-      if (!authorized)
-        return res.status(401).json({
-          success: false,
-          message: 'You are not authorized to access api account credentials belonging to this team',
-        });
       const result = await getServiceAccountCredentials(req.user.id, teamId, saId);
       res.status(200).json(result);
     } catch (err) {
@@ -726,12 +690,6 @@ export const setRoutes = (app: any) => {
   app.put(`/teams/:id/service-accounts/:saId/credentials`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, teamId);
-      if (!authorized)
-        return res.status(401).json({
-          success: false,
-          message: 'You are not authorized to update api account credentials belonging to this team',
-        });
       const result = await updateServiceAccountSecret(req.user.id, teamId, saId);
       res.status(200).json(result);
     } catch (err) {
@@ -742,12 +700,6 @@ export const setRoutes = (app: any) => {
   app.delete(`/teams/:id/service-accounts/:saId`, async (req, res) => {
     try {
       const { id: teamId, saId } = req.params;
-      const authorized = await userIsTeamAdmin(req.user, teamId);
-      if (!authorized)
-        return res.status(401).json({
-          success: false,
-          message: 'You are not authorized to delete api account belonging to this team',
-        });
       const result = await deleteServiceAccount(req.session as Session, req.user.id, teamId, saId);
       res.status(200).json(result);
     } catch (err) {

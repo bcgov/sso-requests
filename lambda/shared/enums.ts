@@ -37,6 +37,7 @@ export const EMAILS = {
   DELETE_INACTIVE_IDIR_USER: 'delete-inactive-idir-users',
   SURVEY_COMPLETED: 'survey-completed-notification',
   RESTORE_INTEGRATION: 'restore-integration',
+  RESTORE_TEAM_API_ACCOUNT: 'restore-team-api-account',
 };
 
 export const REQUEST_TYPES = {
