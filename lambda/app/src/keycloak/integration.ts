@@ -84,6 +84,7 @@ export const samlClientProfile = (
       saml_name_id_format: 'username',
       'saml.assertion.lifespan': assertionLifespan,
       saml_single_logout_service_url_post: logoutPostBindingUri,
+      'saml.client.signature': false,
     },
     enabled: true,
     frontchannelLogout: true,
