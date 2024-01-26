@@ -12,7 +12,6 @@ const {
   sso_authorization_response_type,
   sso_redirect_uri,
   sso_token_grant_type,
-  sso_url,
 } = publicRuntimeConfig;
 
 import { meta } from './provider';
@@ -35,8 +34,6 @@ export const getAuthorizationUrl = async (otherParams: AuthUrlParams) => {
   const code_challenge = hashToBase64url(arrayHash);
   sessionStorage.setItem('code_challenge', code_challenge);
 
-  const authEndpoint = meta?.authorization_endpoint || `${sso_url}/protocol/openid-connect/auth`;
-
   const params = {
     client_id: sso_client_id,
     response_mode: sso_authorization_response_mode,
@@ -51,7 +48,7 @@ export const getAuthorizationUrl = async (otherParams: AuthUrlParams) => {
     ...otherParams,
   };
 
-  return `${authEndpoint}?${qs.stringify(params, { encode: false })}`;
+  return `${meta.authorization_endpoint}?${qs.stringify(params, { encode: false })}`;
 };
 
 export const getAccessToken = async ({ code, state }: { code: string; state: string }) => {
