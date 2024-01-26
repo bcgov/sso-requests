@@ -9,15 +9,16 @@ const ISSUER_URL = `${sso_url}/.well-known/openid-configuration1`;
 export const meta: any = {};
 
 export const fetchIssuerConfiguration = async () => {
-  const jwks_uri = `${sso_url}/protocol/openid-connect/certs`;
+  const commonOpenIdURL = `${sso_url}/protocol/openid-connect`;
+  const jwks_uri = `${commonOpenIdURL}/certs`;
   const keys = await axios.get(jwks_uri).then((res) => res.data?.keys || [], console.error);
 
   Object.assign(meta, {
-    authorization_endpoint: `${sso_url}/protocol/openid-connect/auth`,
-    token_endpoint: `${sso_url}/protocol/openid-connect/token`,
+    authorization_endpoint: `${commonOpenIdURL}/auth`,
+    token_endpoint: `${commonOpenIdURL}/token`,
     jwks_uri,
-    userinfo_endpoint: `${sso_url}/protocol/openid-connect/userinfo`,
-    end_session_endpoint: `${sso_url}/protocol/openid-connect/logout`,
+    userinfo_endpoint: `${commonOpenIdURL}/userinfo`,
+    end_session_endpoint: `${commonOpenIdURL}/logout`,
     keys,
   });
 };
