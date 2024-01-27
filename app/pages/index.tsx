@@ -126,7 +126,7 @@ const WhatsNew = styled.div`
   }
 `;
 
-export default function Home({ onLoginClick }: PageProps) {
+export default function Home({ onLoginClick }: Readonly<PageProps>) {
   const { width } = useWindowDimensions();
   return (
     <>
@@ -194,7 +194,7 @@ export default function Home({ onLoginClick }: PageProps) {
           <Grid.Row collapse="800">
             <Carousel viewableItems={width > 1200 ? 3 : 2}>
               {testimonials.map((testimonial) => (
-                <Testimonial testimonial={testimonial} />
+                <Testimonial testimonial={testimonial} key={testimonial.id} />
               ))}
             </Carousel>
           </Grid.Row>

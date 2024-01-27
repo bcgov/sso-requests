@@ -47,7 +47,7 @@ const Container = styled.div<{ viewableItems: number; index: number; totalItems:
   }
 `;
 
-export default function Carousel({ viewableItems, children }: Props) {
+export default function Carousel({ viewableItems, children }: Readonly<Props>) {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const { width } = useWindowDimensions();
 
@@ -72,8 +72,10 @@ export default function Carousel({ viewableItems, children }: Props) {
     <Container viewableItems={viewableItems} index={carouselIndex} totalItems={children.length}>
       <div className="all-items">
         <div className="displayed-items">
-          {children.map((child) => (
-            <div className="item-container">{child}</div>
+          {children.map((child, i) => (
+            <div className="item-container" key={i}>
+              {child}
+            </div>
           ))}
         </div>
       </div>
