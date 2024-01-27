@@ -54,7 +54,7 @@ const HalfStar = () => {
   );
 };
 
-export default function Testimonial({ testimonial }: Props) {
+export default function Testimonial({ testimonial }: Readonly<Props>) {
   const hasHalfRating = testimonial.rating % 1 === 0.5;
 
   const ratings = Array.from(Array(Math.floor(testimonial.rating)).keys());

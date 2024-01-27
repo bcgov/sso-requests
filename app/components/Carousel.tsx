@@ -72,8 +72,8 @@ export default function Carousel({ viewableItems, children }: Readonly<Props>) {
     <Container viewableItems={viewableItems} index={carouselIndex} totalItems={children.length}>
       <div className="all-items">
         <div className="displayed-items">
-          {children.map((child, i) => (
-            <div className="item-container" key={i}>
+          {children.map((child) => (
+            <div className="item-container" key={(child as any).key}>
               {child}
             </div>
           ))}
