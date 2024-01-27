@@ -36,13 +36,13 @@ const Container = styled.div<{ viewableItems: number; index: number; totalItems:
     .arrow-left {
       margin-right: 0.5em;
       cursor: ${(props) => (props.index === 0 ? 'not-allowed' : 'pointer')};
-      color: ${(props) => (props.index === 0 ? 'grey' : 'black')};
+      color: ${(props) => (props.index === 0 ? 'grey' : '#036')};
     }
 
     .arrow-right {
       margin-left: 0.5em;
       cursor: ${(props) => (props.index === props.totalItems - props.viewableItems ? 'not-allowed' : 'pointer')};
-      color: ${(props) => (props.index === props.totalItems - props.viewableItems ? 'grey' : 'black')};
+      color: ${(props) => (props.index === props.totalItems - props.viewableItems ? 'grey' : '#036')};
     }
   }
 `;
