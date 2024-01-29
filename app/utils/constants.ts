@@ -96,7 +96,7 @@ export const testimonials: ITestimonial[] = [
   {
     id: 3,
     author: {
-      name: 'Garry Wong',
+      name: 'Gary Wong',
       title: 'Senior Product Owner',
     },
     body: 'Having collaborated with the CSS team across multiple projects, their responsiveness to technical inquiries and support during onboarding has been invaluable. The user-friendly CSS Dashboard, technical support via RocketChat, and regular open demo sessions have greatly contributed to our collaborative community. With acknowledgment within 15 minutes and resolutions ranging from 15 minutes to the same day, the service has been consistently solid.',
