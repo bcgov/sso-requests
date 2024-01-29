@@ -12,7 +12,11 @@ import { Accordion } from '@bcgov-sso/common-react-components';
 import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 import GithubDiscussions from '@app/components/GithubDiscussions';
-import { wikiURL, docusaurusURL } from '@app/utils/constants';
+import { wikiURL, docusaurusURL, testimonials } from '@app/utils/constants';
+import Testimonial from 'components/Testimonial';
+import Carousel from 'components/Carousel';
+import useWindowDimensions from '@app/hooks/useWindowDimensions';
+
 interface PanelProps {
   marginLeft?: boolean;
   marginRight?: boolean;
@@ -122,7 +126,8 @@ const WhatsNew = styled.div`
   }
 `;
 
-export default function Home({ onLoginClick }: PageProps) {
+export default function Home({ onLoginClick }: Readonly<PageProps>) {
+  const { width } = useWindowDimensions();
   return (
     <>
       <Head>
@@ -183,6 +188,19 @@ export default function Home({ onLoginClick }: PageProps) {
           </Grid.Row>
         </Grid>
       </ResponsiveContainer>
+
+      <ResponsiveContainer rules={defaultRules}>
+        <Grid cols={2} gutter={[5, 2]}>
+          <Grid.Row collapse="800">
+            <Carousel viewableItems={width > 1200 ? 3 : 2}>
+              {testimonials.map((testimonial) => (
+                <Testimonial testimonial={testimonial} key={testimonial.id} />
+              ))}
+            </Carousel>
+          </Grid.Row>
+        </Grid>
+      </ResponsiveContainer>
+
       <WhatsNew>
         <ResponsiveContainer rules={defaultRules} style={{ marginTop: '0px' }}>
           <Grid cols={6} gutter={[5, 2]}>
