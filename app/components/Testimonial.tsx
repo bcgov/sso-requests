@@ -22,6 +22,10 @@ const Card = styled.div`
     margin-bottom: 0.5em;
   }
 
+  .title {
+    font-weight: bold;
+  }
+
   .author {
     .name {
       font-weight: bold;
@@ -72,12 +76,14 @@ export default function Testimonial({ testimonial }: Readonly<Props>) {
         ))}
       </div>
 
+      <p className="title">&quot;{testimonial.title}&quot;</p>
+
       <div className="body">{testimonial.body}</div>
 
       <div className="author">
         <hr className="seperator" />
         <span className="name">{testimonial.author.name}</span> |{' '}
-        <span className="title">{testimonial.author.title}</span>
+        <span className="position">{testimonial.author.title}</span>
       </div>
     </Card>
   );

@@ -11,12 +11,12 @@ interface Props {
 
 const Container = styled.div<{ viewableItems: number; index: number; totalItems: number }>`
   width: 100%;
-  .all-items {
+  .outer-window {
     padding: 1em 0;
     width: 100%;
     overflow-x: hidden;
     white-space: nowrap;
-    .displayed-items {
+    .inner-window {
       transform: translate(-${(props) => (100 / props.viewableItems) * props.index}%);
       transition: transform 400ms ease-in-out;
       .item-container {
@@ -70,8 +70,8 @@ export default function Carousel({ viewableItems, children }: Readonly<Props>) {
 
   return (
     <Container viewableItems={viewableItems} index={carouselIndex} totalItems={children.length}>
-      <div className="all-items">
-        <div className="displayed-items">
+      <div className="outer-window">
+        <div className="inner-window">
           {children.map((child) => (
             <div className="item-container" key={(child as any).key}>
               {child}

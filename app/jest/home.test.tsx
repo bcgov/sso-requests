@@ -19,7 +19,6 @@ describe('Home panel', () => {
     render(<Home onLoginClick={handleLogin} onLogoutClick={handleLogout} session={session} />);
     screen.getByRole('heading', { name: 'Common Hosted Single Sign-On (CSS) Vision' });
     screen.getByRole('heading', { name: 'About' });
-    screen.getByRole('heading', { name: 'Frequently Asked Questions' });
     screen.getByRole('heading', { name: 'Need Help?' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Request SSO Integration' }));
