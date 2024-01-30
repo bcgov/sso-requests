@@ -87,7 +87,7 @@ export const testimonials: ITestimonial[] = [
   },
   {
     id: 2,
-    title: 'Self Service: Configure Dev and Test ',
+    title: 'Self Service: Configure Dev and Test',
     author: {
       name: 'Aditya Sharma',
       title: 'Quality Assurance Lead',

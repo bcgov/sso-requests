@@ -76,7 +76,7 @@ export default function Testimonial({ testimonial }: Readonly<Props>) {
         ))}
       </div>
 
-      <p className="title">"{testimonial.title}"</p>
+      <p className="title">&quot;{testimonial.title}&quot;</p>
 
       <div className="body">{testimonial.body}</div>
 
