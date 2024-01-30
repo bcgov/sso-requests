@@ -139,6 +139,7 @@ const TopQuoteContainer = styled.div`
   .icon-circle {
     height: 90px;
     width: 90px;
+    flex-shrink: 0;
     border-radius: 45px;
     background: #38598a;
     display: flex;
