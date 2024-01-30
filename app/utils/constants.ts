@@ -77,6 +77,7 @@ export const preservedClaims = [
 export const testimonials: ITestimonial[] = [
   {
     id: 1,
+    title: 'Exceptional Customer Service',
     author: {
       name: 'Wim Mulder',
       title: 'Senior Technical Analyst, IM/IT Enterprise Projects',
@@ -86,6 +87,7 @@ export const testimonials: ITestimonial[] = [
   },
   {
     id: 2,
+    title: 'Self Service: Configure Dev and Test ',
     author: {
       name: 'Aditya Sharma',
       title: 'Quality Assurance Lead',
@@ -95,6 +97,7 @@ export const testimonials: ITestimonial[] = [
   },
   {
     id: 3,
+    title: 'Stable Service and Super Support',
     author: {
       name: 'Gary Wong',
       title: 'Senior Product Owner',
@@ -103,6 +106,7 @@ export const testimonials: ITestimonial[] = [
     rating: 4.5,
   },
   {
+    title: 'Really Positive Experience',
     id: 4,
     author: {
       name: 'Jessica Wade',

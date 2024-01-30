@@ -23,8 +23,14 @@ const Container = styled.div<{ viewableItems: number; index: number; totalItems:
         display: inline-block;
         vertical-align: top;
         width: calc(100% / ${(props) => props.viewableItems});
-        padding: 0 0.25em;
+        padding: 0 0.5em;
         white-space: wrap;
+      }
+      .item-container:first-child {
+        padding-left: 0.25em;
+      }
+      .item-container:last-child {
+        padding-right: 0.25em;
       }
     }
   }

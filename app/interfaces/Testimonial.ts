@@ -1,4 +1,5 @@
 export interface ITestimonial {
+  title: string;
   id: number;
   author: {
     name: string;
