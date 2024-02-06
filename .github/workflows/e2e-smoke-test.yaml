@@ -1,0 +1,31 @@
+name: E2E Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - debug
+  push:
+    branches:
+      - dev
+
+jobs:
+  trigger-remote-workflow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Start Test in sso-requests-e2e repo
+        run: |
+          curl \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${{ secrets.GH_ACCESS_TOKEN }}" \
+            https://api.github.com/repos/bcgov/sso-requests-e2e/actions/workflows/main-e2e.yml/dispatches \
+            -d '{"ref":"main", "inputs":{"smoketest":"true"}}'
