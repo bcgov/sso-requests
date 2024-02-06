@@ -17,6 +17,10 @@ on:
     workflows: ['Build and Deploy GH Pages', 'Terraform']
     types:
       - completed
+  
+  push:
+    branches:
+      - dev
 
 jobs:
   trigger-remote-workflow:
