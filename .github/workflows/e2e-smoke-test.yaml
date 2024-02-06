@@ -21,9 +21,9 @@ on:
 jobs:
   trigger-remote-workflow:
     runs-on: ubuntu-latest
-
     steps:
       - name: Start Test in sso-requests-e2e repo
+        if: github.event.pull_request.merged == true
         run: |
           curl \
             -X POST \
