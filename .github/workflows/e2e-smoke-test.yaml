@@ -14,7 +14,7 @@ on:
           - debug
   # Only trigger, when the build workflow succeeded
   workflow_run:
-    workflows: ['Build and Deploy GH Pages', 'Terraform']
+    workflows: ['Terraform']
     types:
       - completed
 
