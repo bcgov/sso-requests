@@ -12,9 +12,11 @@ on:
           - info
           - warning
           - debug
-  push:
-    branches:
-      - dev
+  # Only trigger, when the build workflow succeeded
+  workflow_run:
+    workflows: ['Build and Deploy GH Pages']
+    types:
+      - completed
 
 jobs:
   trigger-remote-workflow:
