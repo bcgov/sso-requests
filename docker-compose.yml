@@ -85,8 +85,6 @@ services:
   dev-keycloak:
     container_name: dev-keycloak
     image: ghcr.io/bcgov/sso:dev
-    # image: sso-keycloak:18.0.2
-    command: ['-Djboss.socket.binding.port-offset=1000']
     depends_on:
       - sso-db
     ports:
@@ -100,7 +98,7 @@ services:
       SSO_ADMIN_USERNAME: admin
       SSO_ADMIN_PASSWORD: admin
       TZ: America/Vancouver
-      JAVA_OPTS_APPEND: '-Djboss.persistent.log.dir=/opt/eap'
+      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1000 -Djboss.persistent.log.dir=/opt/eap'
       KC_HEALTH_ENABLED: 'true'
     networks:
       - css-net
