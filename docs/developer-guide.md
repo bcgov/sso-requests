@@ -208,6 +208,37 @@ The AWS API Gateway is served on custom domains with free public AWS certificate
 
 1. `Create a CNAME record for the domain`: once the API Gateway is properly configured with the random domain endpoint created, create another `CNAME` that points to the random domain endpoint.
 
+### Docker Compose for Local Development Environment
+
+- Since `amd64` based keycloak images cannot run on Macbooks anymore, below steps are required to setup keycloak
+- Build base keycloak docker image using `https://github.com/keycloak/keycloak-containers/blob/18.0.2/server/Dockerfile`
+- Use `https://github.com/bcgov/sso-keycloak/blob/dev/docker/keycloak/Dockerfile-7.6` for reference to build sso-keycloak:latest
+- Update `./docker-compose.yaml` using below service configuration
+
+```
+  dev-keycloak:
+    container_name: dev-keycloak
+    image: sso-keycloak:18.0.2
+    command: ['-Djboss.socket.binding.port-offset=1000']
+    depends_on:
+      - sso-db
+    ports:
+      - 9080:9080
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_PORT: 5432
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      DB_ADDR: sso-db:5432
+      DB_DATABASE: keycloak
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_LOGLEVEL: INFO
+      ROOT_LOGLEVEL: INFO
+    networks:
+      - css-net
+```
+
 ### References
 
 - see https://docs.aws.amazon.com/acm/latest/userguide/dns-validation.html

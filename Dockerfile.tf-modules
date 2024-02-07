@@ -1,0 +1,13 @@
+FROM hashicorp/terraform:latest
+
+RUN apk add --no-cache curl
+
+# Set working directory
+WORKDIR /terraform
+
+COPY /local/terraform/ .
+COPY /local/tf-migration-entrypoint.sh /tmp/tf-migration-entrypoint.sh
+
+RUN chmod +x /tmp/tf-migration-entrypoint.sh
+
+ENTRYPOINT ["/tmp/tf-migration-entrypoint.sh"]
