@@ -1,6 +1,8 @@
 import { getAllowedRequest } from '@lambda-app/queries/request';
 import { Session } from '@lambda-shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@lambda-app/grafana';
+import { createEvent } from './requests';
+import { EVENTS } from '@lambda-shared/enums';
 
 const LOG_SIZE_LIMIT = 5000;
 
@@ -35,15 +37,33 @@ export const fetchLogs = async (session: Session, env: string, id: number, start
     };
   }
 
+  const eventMeta = {
+    requestId: userRequest.id,
+    idirUserid: session.idir_userid,
+    details: {
+      environment: env,
+      clientId,
+    },
+  };
+
   try {
     const query = `{environment="${env}"} |= \`realmId=standard\` |= \`clientId=${clientId}\``;
     const allLogs = await queryGrafana(query, unixStartTime, unixEndTime, LOG_SIZE_LIMIT);
     let message = 'All logs retrieved';
     if (allLogs.length === LOG_SIZE_LIMIT)
       message = 'Log limit reached. There may be more logs available, try a more restricted date range.';
-    return { status: 200, message, data: allLogs.map((log) => JSON.parse(log)) };
+    const parsedLogs = allLogs.map((log) => JSON.parse(log));
+    await createEvent({
+      eventCode: EVENTS.LOGS_DOWNLOADED_SUCCESS,
+      ...eventMeta,
+    });
+    return { status: 200, message, data: parsedLogs };
   } catch (err) {
     console.info(`Error while fetching logs from loki: ${err}`);
+    await createEvent({
+      eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
+      ...eventMeta,
+    });
     return { status: 500, message: 'Unexpected error fetching logs.' };
   }
 };

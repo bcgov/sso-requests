@@ -5,6 +5,7 @@ import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { getUpdateIntegrationData } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { queryGrafana } from '../app/src/grafana';
+import { EVENTS } from '@lambda-shared/enums';
 
 jest.mock('../app/src/authenticate');
 jest.mock('../app/src/grafana', () => {
@@ -46,7 +47,7 @@ describe('Fetch SSO Logs', () => {
   };
 
   // A valid query string to use
-  const queryString = `env=dev&start=2020-10-10&end=2020-10-12&eventType=LOGIN`;
+  const queryString = `env=dev&start=2020-10-10&end=2020-10-12`;
 
   it('Handles validation correctly for directly owned requests', async () => {
     await setupIntegrationAndUser();
@@ -158,6 +159,13 @@ describe('Fetch SSO Logs', () => {
       .set('Accept', 'application/json');
 
     expect(response.status).toBe(500);
+    const event = await models.event.findOne({
+      where: {
+        eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
+        requestId: INTEGRATION_ID,
+      },
+    });
+    expect(event).not.toBeNull();
   });
 
   it('Returns the expected logs in JSON array if successful', async () => {
@@ -169,5 +177,12 @@ describe('Fetch SSO Logs', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual([{ log: 'log' }, { log: 'log' }]);
+    const event = await models.event.findOne({
+      where: {
+        eventCode: EVENTS.LOGS_DOWNLOADED_SUCCESS,
+        requestId: INTEGRATION_ID,
+      },
+    });
+    expect(event).not.toBeNull();
   });
 });
