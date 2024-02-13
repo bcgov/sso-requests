@@ -102,5 +102,12 @@
     "reportTitle": "Test Report",
     "reportHeadline": "CSS Lambda Unit Tests",
     "reportSummary": true
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageReporters": [
+      "json",
+      "html"
+    ]
   }
 }

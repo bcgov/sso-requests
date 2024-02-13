@@ -51,9 +51,15 @@ jobs:
 
       - name: Run frontend unit tests
         run: |
-          yarn test
+          yarn test --coverage
           yarn build
         working-directory: ./app
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        env:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: bcgov/sso-requests-app
 
       - name: Setup postgres
         env:
@@ -70,8 +76,14 @@ jobs:
           PGUSER: postgres
           DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
         run: |
-          yarn test
+          yarn test --coverage
         working-directory: ./lambda
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        env:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: bcgov/sso-requests-backend
 
   commitlint:
     runs-on: ubuntu-20.04

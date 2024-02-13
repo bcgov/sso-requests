@@ -1,6 +1,6 @@
 # sso-requests
 
-![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)
+![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00) [![codecov](https://codecov.io/gh/bcgov/sso-requests/graph/badge.svg?token=CAJYE46GZV)](https://codecov.io/gh/bcgov/sso-requests)
 
 The request process workflow tool for the RedHat SSO Dev Exchange service
 
