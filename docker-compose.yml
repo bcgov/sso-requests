@@ -31,8 +31,8 @@ services:
       SSO_AUTHORIZATION_SCOPE: openid
       SSO_TOKEN_GRANT_TYPE: authorization_code
       KC_IDP_HINT: idir
-      ENABLE_GOLD: true
-      MAINTENANCE_MODE_ACTIVE: false
+      ENABLE_GOLD: 'true'
+      MAINTENANCE_MODE_ACTIVE: 'false'
       SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests
       APP_URL: http://localhost:3000
     depends_on:
@@ -57,8 +57,8 @@ services:
       APP_ENV: local
       API_AUTH_SECRET: s3cr3t
       NODE_ENV: development
-      ALLOW_SILVER: false
-      ALLOW_GOLD: true
+      ALLOW_SILVER: 'false'
+      ALLOW_GOLD: 'true'
       DATABASE_URL: postgresql://postgres:postgres@sso-db:5432/ssorequests
       SSO_CLIENT_ID: css-app-in-gold-4128
       SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
@@ -74,7 +74,7 @@ services:
       VERIFY_USER_SECRET: s3cr3t
       API_URL: http://localhost:8080
       REALM_REGISTRY_API: https://realm-registry-sandbox.apps.gold.devops.gov.bc.ca/api
-      LOCAL_DEV: true
+      LOCAL_DEV: 'true'
       GRAFANA_API_TOKEN: s3cr3t
       GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
       GOLD_IP_ADDRESS: '142.34.229.4'
