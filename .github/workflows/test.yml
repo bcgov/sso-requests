@@ -83,7 +83,7 @@ jobs:
           flags: unitests
           name: codecov
           fail_ci_if_error: false
-          verbose: true  
+          verbose: true
 
   commitlint:
     runs-on: ubuntu-20.04
