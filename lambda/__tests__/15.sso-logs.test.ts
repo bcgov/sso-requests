@@ -9,7 +9,7 @@ import { queryGrafana } from '../app/src/grafana';
 jest.mock('../app/src/authenticate');
 jest.mock('../app/src/grafana', () => {
   return {
-    queryGrafana: jest.fn(() => Promise.resolve(['log', 'log'])),
+    queryGrafana: jest.fn(() => Promise.resolve(['{"log": "log"}', '{"log": "log"}'])),
   };
 });
 
@@ -118,22 +118,19 @@ describe('Fetch SSO Logs', () => {
       // Missing params
       '',
       'env=dev',
-      'env=dev&eventType=LOGIN',
-      'env=dev&eventType=LOGIN&start=2022-10-10',
+      'env=dev&start=2022-10-10',
       // Invalid values
-      'env=development&eventType=LOGIN&start=2022-10-10&end=2022-10-10',
-      'env=dev&eventType=MISSING&start=2022-10-10&end=2022-10-10',
-      'env=dev&eventType=LOGIN&start=somedate&end=2022-10-10',
-      'env=dev&eventType=LOGIN&start=2022-10-10&end=anotherDate',
-      'env=dev&eventType=LOGIN&start=2022-14-10&end=2022-10-42',
+      'env=development&start=2022-10-10&end=2022-10-10',
+      'env=dev&start=somedate&end=2022-10-10',
+      'env=dev&start=2022-10-10&end=anotherDate',
     ];
 
     const validParams = [
-      'env=dev&eventType=LOGIN&start=2022-10-10&end=2022-10-10',
-      'env=test&eventType=LOGIN&start=2022-10-10&end=2022-10-10',
-      'env=prod&eventType=LOGIN&start=2022-10-10&end=2022-10-10',
-      'env=dev&eventType=REFRESH_TOKEN&start=2022-10-10&end=2022-10-10',
-      'env=dev&eventType=CODE_TO_TOKEN&start=2022-12-10&end=2022-10-10',
+      'env=dev&start=2022-10-10&end=2022-10-10',
+      'env=test&start=2022-10-10&end=2022-10-10',
+      'env=prod&start=2022-10-10&end=2022-10-10',
+      'env=dev&start=2022-10-10&end=2022-10-10T12:10:10',
+      'env=dev&start=2022-12-10T10:10:10&end=2022-10-10T10:10:10',
     ];
 
     createMockAuth('2', MOCK_USER_EMAIL);
@@ -171,6 +168,6 @@ describe('Fetch SSO Logs', () => {
       .set('Accept', 'application/json');
 
     expect(response.status).toBe(200);
-    expect(response.body.data).toEqual(['log', 'log']);
+    expect(response.body.data).toEqual([{ log: 'log' }, { log: 'log' }]);
   });
 });

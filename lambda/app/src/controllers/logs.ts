@@ -16,7 +16,7 @@ export const fetchLogs = async (session: Session, env: string, id: number, start
   const hasRequiredQueryParams = start && end && env;
 
   if (!hasRequiredQueryParams) {
-    return { status: 400, message: 'Not all query params sent. Please include start, end, env, and eventType.' };
+    return { status: 400, message: 'Not all query params sent. Please include start, end and env.' };
   }
   if (!allowedEnvs.includes(env)) {
     return { status: 400, message: `The env query param must be one of ${allowedEnvs.join(', ')}.` };
