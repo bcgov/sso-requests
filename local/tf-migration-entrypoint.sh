@@ -1,7 +1,10 @@
 #!/bin/sh
 
-while [ ! $(curl -s -o /dev/null -w "%{http_code}" "$TF_VAR_keycloak_url/auth/realms/master") -eq 200 ]; do
+IP=$(ping -c 1 dev-keycloak | grep 'PING' | awk '{print $3}' | tr -d '()')
+echo $IP 9080/auth/realms/master
+while [ ! $(curl -s -o /dev/null -w "%{http_code}" "${IP}9080/auth/realms/master") -eq 200 ]; do
   sleep 5
+  IP=$(ping -c 1 dev-keycloak | grep 'PING' | awk '{print $3}' | tr -d '()')
   echo "keycloak is not up yet"
 done
 
