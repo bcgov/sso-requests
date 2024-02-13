@@ -17,4 +17,5 @@ module.exports = {
   testEnvironment: 'jsdom',
   rootDir: '.',
   verbose: true,
+  coverageReporters: ['json', 'html'],
 };
