@@ -71,14 +71,19 @@ jobs:
           DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
         run: |
           yarn test --coverage
-          echo ${{ secrets.CODECOV_TOKEN }}
         working-directory: ./lambda
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         env:
-          token: ${{ secrets.CODECOV_TOKEN }}
           slug: bcgov/sso-requests
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./app/coverage/lcov.info, ./lambda/coverage/lcov.info
+          flags: unitests
+          name: codecov
+          fail_ci_if_error: false
+          verbose: true  
 
   commitlint:
     runs-on: ubuntu-20.04
