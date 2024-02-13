@@ -12,3 +12,16 @@ export const getMetrics = async (id: number, env: string, fromDate?: string, toD
     return [null, err];
   }
 };
+
+export const getLogs = async (id: number, env: string, fromDate: Date, toDate: Date) => {
+  try {
+    const result = await instance
+      .get(`requests/${id}/logs?env=${env}&start=${fromDate}&end=${toDate}`)
+      .then((res: any) => res?.data);
+
+    return [result, null];
+  } catch (err) {
+    console.error(err);
+    return [null, err];
+  }
+};
