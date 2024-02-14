@@ -298,9 +298,14 @@ export const setRoutes = (app: any) => {
       const { id } = req.params || {};
       const { start, end, env } = req.query || {};
       const { status, message, data } = await fetchLogs(req.session, env, id, start, end);
-
-      if (status === 200) res.status(status).send({ message, data });
-      else res.status(status).send({ message, skipErrorPage: true });
+      if (status === 200) {
+        res.setHeader('Content-Length', JSON.stringify(data).length);
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename=logs.json');
+        res.status(status).send(data);
+      } else {
+        res.status(status).send({ message, skipErrorPage: true });
+      }
     } catch (err) {
       handleError(res, err);
     }

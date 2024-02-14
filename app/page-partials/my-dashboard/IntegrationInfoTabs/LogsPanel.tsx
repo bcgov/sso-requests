@@ -63,6 +63,17 @@ const Form = styled.form`
     width: 200px;
   }
 
+  .button-container {
+    display: flex;
+    flex-diretion: row;
+    align-items: center;
+
+    p {
+      margin: 0;
+      margin-left: 1em;
+    }
+  }
+
   .error-text {
     font-size: 14px;
     color: red;
@@ -114,6 +125,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
   const [fromDate, setFromDate] = useState<Date>(subtractHoursFromDate(1));
   const [toDate, setToDate] = useState<Date>(new Date());
   const [dateError, setDateError] = useState(false);
+  const [fileProgress, setFileProgress] = useState(0);
 
   const handleFromDateChange = (val: Date) => {
     setDateError(val > toDate);
@@ -125,12 +137,19 @@ const LogsPanel = ({ integration, alert }: Props) => {
     setToDate(val);
   };
 
+  const handleFileProgress = (progressEvent: ProgressEvent) => {
+    const percentComplete = Math.floor((progressEvent.loaded / progressEvent.total) * 100);
+    if (percentComplete !== fileProgress) {
+      setFileProgress(percentComplete);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       if (dateError) return;
       setLoading(true);
-      const [result, err] = await getLogs(integration.id as number, environment, fromDate, toDate);
+      const [result, err] = await getLogs(integration.id as number, environment, fromDate, toDate, handleFileProgress);
       if (err) {
         alert.show({
           variant: 'danger',
@@ -145,12 +164,14 @@ const LogsPanel = ({ integration, alert }: Props) => {
           closable: true,
           content: result?.message ?? 'Downloaded logs.',
         });
-        saveTemplateAsFile('logs.json', result.data);
+        const resultJSON = await result.text();
+        saveTemplateAsFile('logs.json', JSON.parse(resultJSON));
       }
     } catch (e) {
       console.error('Exception parsing file');
     } finally {
       setLoading(false);
+      setFileProgress(0);
     }
   };
 
@@ -206,16 +227,20 @@ const LogsPanel = ({ integration, alert }: Props) => {
           </div>
           <p className="error-text">{dateError ? 'Ensure start date is before end date.' : ' '}</p>
         </div>
-        <Button type="submit" disabled={dateError || loading}>
-          {loading ? ' ' : 'Submit'}{' '}
-          <SpinnerGrid
-            color="white"
-            visible={loading}
-            height={25}
-            width={25}
-            wrapperStyle={{ justifyContent: 'center' }}
-          />
-        </Button>
+        <div className="button-container">
+          <Button type="submit" disabled={dateError || loading}>
+            {loading ? ' ' : 'Submit'}{' '}
+            <SpinnerGrid
+              color="white"
+              visible={loading}
+              height={25}
+              width={25}
+              wrapperStyle={{ justifyContent: 'center' }}
+            />
+          </Button>
+          {loading && fileProgress === 0 && <p>Querying logs...</p>}
+          {loading && fileProgress !== 0 ? <p>{fileProgress}% downloaded.</p> : null}
+        </div>
       </Form>
     </>
   );

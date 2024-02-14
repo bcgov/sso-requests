@@ -4,7 +4,7 @@ import { clientEventsAggregationQuery, queryGrafana } from '@lambda-app/grafana'
 import { createEvent } from './requests';
 import { EVENTS } from '@lambda-shared/enums';
 
-const LOG_SIZE_LIMIT = 5000;
+const LOG_SIZE_LIMIT = 25000;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
 

@@ -13,11 +13,20 @@ export const getMetrics = async (id: number, env: string, fromDate?: string, toD
   }
 };
 
-export const getLogs = async (id: number, env: string, fromDate: Date, toDate: Date) => {
+export const getLogs = async (
+  id: number,
+  env: string,
+  fromDate: Date,
+  toDate: Date,
+  onProgress: (progressEvent: ProgressEvent) => void,
+) => {
   try {
-    const result = await instance
-      .get(`requests/${id}/logs?env=${env}&start=${fromDate}&end=${toDate}`)
-      .then((res: any) => res?.data);
+    const result = await instance({
+      url: `requests/${id}/logs?env=${env}&start=${fromDate}&end=${toDate}`,
+      method: 'GET',
+      responseType: 'blob',
+      onDownloadProgress: onProgress,
+    }).then((res: any) => res?.data);
 
     return [result, null];
   } catch (err) {
