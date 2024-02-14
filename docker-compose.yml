@@ -101,7 +101,8 @@ services:
       JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1000 -Djboss.persistent.log.dir=/opt/eap'
       KC_HEALTH_ENABLED: 'true'
     networks:
-      - css-net
+      css-net:
+        aliases: ['dev-keycloak.localtest.me']
 
   dev-kc-migration:
     container_name: dev-kc-migration
@@ -109,7 +110,7 @@ services:
       - dev-keycloak
     image: tf-modules-migrator:latest
     environment:
-      TF_VAR_keycloak_url: http://dev-keycloak:9080
+      TF_VAR_keycloak_url: http://dev-keycloak.localtest.me:9080
       TF_VAR_username: admin
       TF_VAR_password: admin
     build:
