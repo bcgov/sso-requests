@@ -10,12 +10,13 @@ import StandardRealmsSVG from 'svg/StandardRealms';
 import WhatsNewSVG from '@app/svg/WhatsNewSVG';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
-import { wikiURL, docusaurusURL, testimonials } from '@app/utils/constants';
+import { docusaurusURL, testimonials } from '@app/utils/constants';
 import Testimonial from 'components/Testimonial';
 import Carousel from 'components/Carousel';
 import useWindowDimensions from '@app/hooks/useWindowDimensions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
+import { formatWikiURL } from '@app/utils/text';
 
 interface PanelProps {
   marginLeft?: boolean;
@@ -202,7 +203,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                 </StandardRealmsSplashContainer>
                 <Paragraph style={{ paddingLeft: '0px' }}>
                   To learn more about Pathfinder SSO visit the{' '}
-                  <Link size="large" href={wikiURL} external>
+                  <Link size="large" href={formatWikiURL()} external>
                     SSO Pathfinder Knowledge Base
                   </Link>
                 </Paragraph>
@@ -226,7 +227,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                 <ul>
                   <li>
                     We&apos;ve updated our wiki into two areas of focus: one for{' '}
-                    <Link href={wikiURL} target="_blank" rel="noreferrer" title="Business" external>
+                    <Link href={formatWikiURL()} target="_blank" rel="noreferrer" title="Business" external>
                       business
                     </Link>{' '}
                     areas and one for{' '}
@@ -306,7 +307,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                     </li>
                     <li>
                       To learn more about our service uptime monitoring, please visit our{' '}
-                      <Link external href={`${wikiURL}/Pathfinder-Uptime-Monitoring/`}>
+                      <Link external href={formatWikiURL('Pathfinder-Uptime-Monitoring/')}>
                         uptime page on our wiki
                       </Link>{' '}
                       and join our{' '}
@@ -326,7 +327,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                       <li>Requires session management, scopes or changes in token times</li>
                     </ul>
                     If you would like to learn more about IM IT Standards,{' '}
-                    <Link href={`${wikiURL}/Useful-References#imit-identity-standards`} external>
+                    <Link href={formatWikiURL('Useful-References#imit-identity-standards')} external>
                       learn more here
                     </Link>
                   </div>
@@ -345,7 +346,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
               </Link>
               <br />
               Review our{' '}
-              <Link href={wikiURL} external>
+              <Link href={formatWikiURL()} external>
                 helpful documentation
               </Link>
               <br />

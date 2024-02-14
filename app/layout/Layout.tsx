@@ -14,7 +14,7 @@ import { Alert } from '@bcgov-sso/common-react-components';
 import TopAlertWrapper from 'components/TopAlertWrapper';
 import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
-import { wikiURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/text';
 
 const headerPlusFooterHeight = '152px';
 
@@ -151,7 +151,7 @@ const RightMenuItems = () => (
       </a>
     </HoverItem>
     <HoverItem>
-      <a href={wikiURL} target="_blank" title="Documentation">
+      <a href={formatWikiURL()} target="_blank" title="Documentation">
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </HoverItem>
@@ -194,7 +194,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
           <FontAwesomeIcon size="2x" icon={faEnvelope} />
         </a>
         &nbsp;&nbsp;
-        <a href={wikiURL} target="_blank" title="Wiki">
+        <a href={formatWikiURL()} target="_blank" title="Wiki">
           <FontAwesomeIcon size="2x" icon={faFileAlt} />
         </a>
       </li>

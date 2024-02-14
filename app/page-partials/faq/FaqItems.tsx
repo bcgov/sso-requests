@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
-import { docusaurusURL, wikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/text';
 
 interface Props {
   children?: React.ReactNode;
@@ -30,7 +31,7 @@ export default function FaqItems({ children }: Props) {
               </li>
               <li>
                 To learn more about which identity provider to use, review the{' '}
-                <Link external href={`${wikiURL}/SSO-Onboarding`}>
+                <Link external href={formatWikiURL('SSO-Onboarding')}>
                   SSO Onboarding section
                 </Link>{' '}
                 in our Knowledge base
