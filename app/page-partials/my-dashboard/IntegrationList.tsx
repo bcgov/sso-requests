@@ -16,7 +16,7 @@ import { getRequests } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { authTypeDisplay } from 'metadata/display';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
-import { formatWikiURL } from 'utils/helpers';
+import { formatWikiURL } from 'utils/text';
 
 const RightFloatButtons = styled.tr`
   float: right;
