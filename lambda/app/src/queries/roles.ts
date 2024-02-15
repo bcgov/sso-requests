@@ -51,7 +51,7 @@ export const updateCompositeRoles = async (
 
 export const getCompositeParentRoles = async (roleName: string, integrationId: number, environment: string) => {
   const [results] = await sequelize.query(
-    'select * from request_roles where (select id from request_roles where name = :roleName and environment = :environment) = ANY(composite_roles) and request_id = :integrationId and environment = :environment;',
+    'select * from request_roles where (select id from request_roles where name = :roleName and environment = :environment and request_id = :integrationId) = ANY(composite_roles) and request_id = :integrationId and environment = :environment;',
     {
       replacements: { integrationId, roleName, environment },
       raw: true,
