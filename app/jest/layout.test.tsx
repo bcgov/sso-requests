@@ -5,7 +5,7 @@ import { updateProfile } from 'services/user';
 import { session } from './utils/helpers';
 import { SessionContext } from '@app/pages/_app';
 import { User } from 'interfaces/team';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();

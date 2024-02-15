@@ -2,7 +2,7 @@ import React from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import { docusaurusURL } from '@app/utils/constants';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 interface Props {
   children?: React.ReactNode;

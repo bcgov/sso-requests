@@ -115,3 +115,8 @@ export const testimonials: ITestimonial[] = [
     rating: 4.5,
   },
 ];
+
+export const formatWikiURL = (page?: string) =>
+  `https://mvp.developer.gov.bc.ca/docs/default/component/css-docs/${
+    page ?? ''
+  }?utm_source=sso-wiki&utm_medium=web&utm_campaign=retirement-notice-sso`;

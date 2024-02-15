@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import MyDashboardLayout from 'page-partials/my-dashboard/Layout';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 const Container = styled.div`
   background-color: #e4f2fe;

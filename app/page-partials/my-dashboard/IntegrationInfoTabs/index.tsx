@@ -27,7 +27,7 @@ import DigitalCredentialPanel from './DigitalCredentialPanel';
 import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { formatWikiURL } from 'utils/text';
+import { formatWikiURL } from 'utils/constants';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;

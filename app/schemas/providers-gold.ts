@@ -2,7 +2,7 @@ import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 import { idpMap } from '@app/helpers/meta';
 import getConfig from 'next/config';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { include_digital_credential } = publicRuntimeConfig;

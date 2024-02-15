@@ -16,7 +16,7 @@ import Carousel from 'components/Carousel';
 import useWindowDimensions from '@app/hooks/useWindowDimensions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 interface PanelProps {
   marginLeft?: boolean;

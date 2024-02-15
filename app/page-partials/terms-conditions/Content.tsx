@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Link from '@button-inc/bcgov-theme/Link';
 import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 const Title = styled.h2`
   text-transform: uppercase;

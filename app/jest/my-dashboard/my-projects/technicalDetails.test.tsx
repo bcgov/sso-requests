@@ -5,8 +5,7 @@ import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import { getInstallation } from 'services/keycloak';
 import { sampleRequest } from '../../samples/integrations';
 import type { Status } from 'interfaces/types';
-import { docusaurusURL } from '@app/utils/constants';
-import { formatWikiURL } from '@app/utils/text';
+import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 
 type Text = string | RegExp;
 const expectText = (text: Text) => expect(screen.getByText(text)).toBeTruthy();

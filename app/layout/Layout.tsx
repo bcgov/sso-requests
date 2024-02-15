@@ -14,7 +14,7 @@ import { Alert } from '@bcgov-sso/common-react-components';
 import TopAlertWrapper from 'components/TopAlertWrapper';
 import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 const headerPlusFooterHeight = '152px';
 

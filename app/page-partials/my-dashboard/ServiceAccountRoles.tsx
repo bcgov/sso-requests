@@ -14,7 +14,7 @@ import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@button-inc/bcgov-theme/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
 import noop from 'lodash.noop';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 const Label = styled.label`
   font-weight: bold;

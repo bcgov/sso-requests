@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/team';
 import { MyTeamsComponent } from './helpers';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 const HYPERLINK = formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what');
 

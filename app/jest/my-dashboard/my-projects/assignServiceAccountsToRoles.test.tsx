@@ -1,7 +1,7 @@
 import ServiceAccountRoles from '@app/page-partials/my-dashboard/ServiceAccountRoles';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { sampleRequest } from '@app/jest/samples/integrations';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 function ServiceAccountRolesComponent() {
   return (

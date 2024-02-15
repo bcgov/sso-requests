@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, within, getByText, getAllByText } f
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 import { SessionContext } from '@app/pages/_app';
-import { formatWikiURL } from '@app/utils/text';
+import { formatWikiURL } from '@app/utils/constants';
 
 function TeamListComponent() {
   return (
