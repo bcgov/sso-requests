@@ -10,13 +10,12 @@ import StandardRealmsSVG from 'svg/StandardRealms';
 import WhatsNewSVG from '@app/svg/WhatsNewSVG';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
-import { docusaurusURL, testimonials } from '@app/utils/constants';
+import { docusaurusURL, testimonials, formatWikiURL } from '@app/utils/constants';
 import Testimonial from 'components/Testimonial';
 import Carousel from 'components/Carousel';
 import useWindowDimensions from '@app/hooks/useWindowDimensions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
-import { formatWikiURL } from '@app/utils/constants';
 
 interface PanelProps {
   marginLeft?: boolean;
