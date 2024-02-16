@@ -14,3 +14,7 @@ To run the module:
 ## About
 
 This script will generate a sql file that can then be run against the database to insert the required roles. It does not connect directly to the database instance, since our RDS database in amazon is inside of a VPC with no public access. The generated file can be run in the aws console.
+
+## Analyse Difference
+
+A small script to check for missing roles based on a CSV is under the analyse-role-difference.js file. To get the csv data, use the csv export from the "potentialy impacted roles" panel in the [CSS dashboard](https://uzw525hsr2.execute-api.ca-central-1.amazonaws.com/d/d9fae58a-8251-4d86-8bea-542f1f8963da/search-by-id-filter?orgId=1). Remove the top row of column names and save it in this repo as data.csv. See .env.example for required env vars. It will log out any roles that are not in keycloak, as an array of arrays containing `[clientid, rolename, environment]`.

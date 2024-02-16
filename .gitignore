@@ -79,3 +79,4 @@ lambda/jest-stare/*
 
 # Migration script
 role-migration/migrate-roles.sql
+role-migration/data.csv
