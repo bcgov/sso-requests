@@ -9,10 +9,14 @@ import { PageProps } from 'interfaces/props';
 import StandardRealmsSVG from 'svg/StandardRealms';
 import WhatsNewSVG from '@app/svg/WhatsNewSVG';
 import { Accordion } from '@bcgov-sso/common-react-components';
-import FaqItems from 'page-partials/faq/FaqItems';
 import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
-import GithubDiscussions from '@app/components/GithubDiscussions';
-import { wikiURL, docusaurusURL } from '@app/utils/constants';
+import { docusaurusURL, testimonials, formatWikiURL } from '@app/utils/constants';
+import Testimonial from 'components/Testimonial';
+import Carousel from 'components/Carousel';
+import useWindowDimensions from '@app/hooks/useWindowDimensions';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
+
 interface PanelProps {
   marginLeft?: boolean;
   marginRight?: boolean;
@@ -122,7 +126,31 @@ const WhatsNew = styled.div`
   }
 `;
 
-export default function Home({ onLoginClick }: PageProps) {
+const TopQuoteContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 2em;
+
+  .quote {
+    font-weight: bold;
+    margin-left: 2em;
+  }
+
+  .icon-circle {
+    height: 90px;
+    width: 90px;
+    flex-shrink: 0;
+    border-radius: 45px;
+    background: #38598a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+`;
+
+export default function Home({ onLoginClick }: Readonly<PageProps>) {
+  const { width } = useWindowDimensions();
   return (
     <>
       <Head>
@@ -174,7 +202,7 @@ export default function Home({ onLoginClick }: PageProps) {
                 </StandardRealmsSplashContainer>
                 <Paragraph style={{ paddingLeft: '0px' }}>
                   To learn more about Pathfinder SSO visit the{' '}
-                  <Link size="large" href={wikiURL} external>
+                  <Link size="large" href={formatWikiURL()} external>
                     SSO Pathfinder Knowledge Base
                   </Link>
                 </Paragraph>
@@ -183,6 +211,9 @@ export default function Home({ onLoginClick }: PageProps) {
           </Grid.Row>
         </Grid>
       </ResponsiveContainer>
+
+      <br />
+
       <WhatsNew>
         <ResponsiveContainer rules={defaultRules} style={{ marginTop: '0px' }}>
           <Grid cols={6} gutter={[5, 2]}>
@@ -195,7 +226,7 @@ export default function Home({ onLoginClick }: PageProps) {
                 <ul>
                   <li>
                     We&apos;ve updated our wiki into two areas of focus: one for{' '}
-                    <Link href={wikiURL} target="_blank" rel="noreferrer" title="Business" external>
+                    <Link href={formatWikiURL()} target="_blank" rel="noreferrer" title="Business" external>
                       business
                     </Link>{' '}
                     areas and one for{' '}
@@ -210,6 +241,27 @@ export default function Home({ onLoginClick }: PageProps) {
           </Grid>
         </ResponsiveContainer>
       </WhatsNew>
+
+      <ResponsiveContainer rules={defaultRules}>
+        <Grid cols={2} gutter={[5, 2]}>
+          <Grid.Row collapse="800">
+            <TopQuoteContainer>
+              <div className="icon-circle">
+                <FontAwesomeIcon icon={faQuoteLeft} size="4x" />
+              </div>
+              <div className="quote">The service and support has been consistently solid and extremely good.</div>
+            </TopQuoteContainer>
+          </Grid.Row>
+          <Grid.Row collapse="800">
+            <Carousel viewableItems={width > 1200 ? 3 : 2}>
+              {testimonials.map((testimonial) => (
+                <Testimonial testimonial={testimonial} key={testimonial.id} />
+              ))}
+            </Carousel>
+          </Grid.Row>
+        </Grid>
+      </ResponsiveContainer>
+
       <ResponsiveContainer rules={defaultRules}>
         <Grid cols={2} gutter={[5, 2]}>
           <Grid.Row>
@@ -254,7 +306,7 @@ export default function Home({ onLoginClick }: PageProps) {
                     </li>
                     <li>
                       To learn more about our service uptime monitoring, please visit our{' '}
-                      <Link external href={`${wikiURL}/Pathfinder-Uptime-Monitoring/`}>
+                      <Link external href={formatWikiURL('Pathfinder-Uptime-Monitoring/')}>
                         uptime page on our wiki
                       </Link>{' '}
                       and join our{' '}
@@ -274,15 +326,12 @@ export default function Home({ onLoginClick }: PageProps) {
                       <li>Requires session management, scopes or changes in token times</li>
                     </ul>
                     If you would like to learn more about IM IT Standards,{' '}
-                    <Link href={`${wikiURL}/Useful-References#imit-identity-standards`} external>
+                    <Link href={formatWikiURL('Useful-References#imit-identity-standards')} external>
                       learn more here
                     </Link>
                   </div>
                 </Accordion.Panel>
               </Accordion>
-              <br />
-              <GithubDiscussions />
-              {/* <FaqItems /> */}
               <br />
               <h2>Need Help?</h2>
               Message us on{' '}
@@ -296,7 +345,7 @@ export default function Home({ onLoginClick }: PageProps) {
               </Link>
               <br />
               Review our{' '}
-              <Link href={wikiURL} external>
+              <Link href={formatWikiURL()} external>
                 helpful documentation
               </Link>
               <br />

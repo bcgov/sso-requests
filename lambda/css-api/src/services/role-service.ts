@@ -125,10 +125,17 @@ export class RoleService {
       rolesToAdd.push(existingRoles.find((existingRole) => role.name === existingRole.name));
     }
     try {
+      const existingComposites = await getRoleComposites(int, environment, role.id);
+      // merge two arrays and remove duplicates
+      const compositeRolesToAdd = existingComposites
+        .map((r) => r.name)
+        .concat(rolesToAdd.map((r) => r.name))
+        .filter((r, i, a) => a.indexOf(r) === i);
+
       const result = await setCompositeClientRoles(int, {
         environment,
         roleName,
-        compositeRoleNames: compositeRoles.map((r) => r.name),
+        compositeRoleNames: compositeRolesToAdd,
       });
 
       await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);

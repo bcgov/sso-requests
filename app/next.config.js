@@ -29,7 +29,7 @@ module.exports = {
     return [
       {
         source: '/app/:path*',
-        destination: 'http://localhost:8080/app/:path*', // Proxy to Backend
+        destination: `http://${process.env.SSO_REQUESTS_BACKEND_HOSTNAME || 'localhost'}:8080/app/:path*`, // Proxy to Backend
       },
     ];
   },

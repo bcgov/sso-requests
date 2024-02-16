@@ -1,8 +1,9 @@
-import { wikiURL } from '@app/utils/constants';
 import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 import { idpMap } from '@app/helpers/meta';
 import getConfig from 'next/config';
+import { formatWikiURL } from '@app/utils/constants';
+
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { include_digital_credential } = publicRuntimeConfig;
 
@@ -92,19 +93,24 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
           return {
             content: `
             To learn the difference between IDIR and IDIR with MFA,
-            <a href="${wikiURL}/Our-Partners-the-Identity-Providers#idir-with-mfa" target="_blank" title="IDIR vs IDIR with MFA">
+            <a href="${formatWikiURL(
+              '/Our-Partners-the-Identity-Providers#idir-with-mfa',
+            )}" target="_blank" title="IDIR vs IDIR with MFA">
             please visit our GitHub page about choosing an Identity Provider
             </a>
             `,
             hide: 3000,
           };
         }
-        if (idp === 'digitalcredential')
+        if (idp === 'digitalcredential') {
           return {
-            content: `To learn more about using the Digital Credential option visit our <a href="${wikiURL}/Our-Partners-the-Identity-Providers#what-are-identity-providers" target="_blank">additional information</a>.`,
+            content: `To learn more about using the Digital Credential option visit our <a href="${formatWikiURL(
+              'Our-Partners-the-Identity-Providers#what-are-identity-providers',
+            )}" target="_blank">additional information</a>.`,
             hide: 3000,
             alpha: true,
           };
+        }
         return null;
       }),
       uniqueItems: true,
@@ -129,11 +135,17 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
     },
   };
 
+  // It is expected behavior that for SAML clients, attribute created by client mapper of type client-role-list overrides attribute created by client scope mapper of the same type
+  // However, for OIDC clients the attributes from both mappers co-exist
   properties.additionalRoleAttribute = {
     type: 'string',
-    title: 'Additional Role Attribute (optional)',
+    title: `${protocol === 'saml' ? 'Override' : 'Additional'} Role Attribute(optional)`,
     tooltip: {
-      content: `by default "client_roles" is the default attribute key name to include roles info, if you wish to include same info in another attribute, then use this`,
+      content: `by default "client_roles" is the default attribute key name to include roles info, ${
+        protocol === 'saml'
+          ? 'if you wish to override the key name then use this'
+          : 'if you wish to include same info in another attribute, then use this'
+      }`,
     },
     maxLength: 50,
   };

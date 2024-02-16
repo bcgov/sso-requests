@@ -84,6 +84,7 @@ export const samlClientProfile = (
       saml_name_id_format: 'username',
       'saml.assertion.lifespan': assertionLifespan,
       saml_single_logout_service_url_post: logoutPostBindingUri,
+      'saml.client.signature': false,
     },
     enabled: true,
     frontchannelLogout: true,
@@ -154,7 +155,7 @@ export const keycloakClient = async (
     const defaultScopes =
       integration.protocol === 'oidc'
         ? ['common', 'profile', 'email'].concat(integration[`${environment}Idps`] || [])
-        : integration[`${environment}Idps`].map((idp: string) => `${idp}-saml`) || [];
+        : ['common-saml'].concat(integration[`${environment}Idps`].map((idp: string) => `${idp}-saml`) || []);
 
     if (clients.length === 0) {
       // if client does not exist then just create client

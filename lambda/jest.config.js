@@ -14,4 +14,5 @@ module.exports = {
     '^@lambda-css-api/(.*)$': '<rootDir>/css-api/src/$1',
   },
   verbose: true,
+  coverageReporters: ['json', 'html'],
 };

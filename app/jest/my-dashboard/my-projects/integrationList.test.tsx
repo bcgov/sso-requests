@@ -2,11 +2,11 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import { sampleRequest } from '../../samples/integrations';
-import { wikiURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/constants';
 
 const setIntegration = jest.fn();
 const setIntegrationCount = jest.fn();
-const HYPERLINK = `${wikiURL}/Useful-References#client`;
+const HYPERLINK = formatWikiURL('Useful-References#client');
 
 function IntegrationListComponent() {
   return <IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />;
