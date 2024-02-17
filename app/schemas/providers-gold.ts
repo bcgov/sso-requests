@@ -135,20 +135,17 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
     },
   };
 
-  // It is expected behavior that for SAML clients, attribute created by client mapper of type client-role-list overrides attribute created by client scope mapper of the same type
-  // However, for OIDC clients the attributes from both mappers co-exist
-  properties.additionalRoleAttribute = {
-    type: 'string',
-    title: `${protocol === 'saml' ? 'Override' : 'Additional'} Role Attribute(optional)`,
-    tooltip: {
-      content: `by default "client_roles" is the default attribute key name to include roles info, ${
-        protocol === 'saml'
-          ? 'if you wish to override the key name then use this'
-          : 'if you wish to include same info in another attribute, then use this'
-      }`,
-    },
-    maxLength: 50,
-  };
+  if (protocol !== 'saml') {
+    properties.additionalRoleAttribute = {
+      type: 'string',
+      title: 'Additional Role Attribute(optional)',
+      tooltip: {
+        content: `by default "client_roles" is the default attribute key name to include roles info, if you wish to include same info in another attribute, then use this'
+        }`,
+      },
+      maxLength: 50,
+    };
+  }
 
   if (protocol === 'saml' && context.isAdmin) {
     properties.clientId = {
