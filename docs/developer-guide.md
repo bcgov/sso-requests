@@ -184,6 +184,10 @@ For the backend application, run:
 
 We now have a cypress test suite built out. To test out new CSS app changes:
 
+cypress run --browser chrome --config viewportWidth=1280,viewportHeight=720
+
+e2e: {
+baseUrl: 'http://localhost:3000/',
 TO BE WRITTEN
 
 ## Committing

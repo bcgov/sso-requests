@@ -104,6 +104,50 @@ services:
       css-net:
         aliases: ['dev-keycloak.localtest.me']
 
+  test-keycloak:
+    container_name: test-keycloak
+    image: ghcr.io/bcgov/sso:dev
+    depends_on:
+      - sso-db
+    ports:
+      - 9080:9080
+    environment:
+      DB_POSTGRESQL_SERVICE_HOST: sso-db
+      DB_POSTGRESQL_SERVICE_PORT: 5432
+      DB_USERNAME: keycloak
+      DB_PASSWORD: keycloak
+      DB_DATABASE: keycloak-test
+      SSO_ADMIN_USERNAME: admin
+      SSO_ADMIN_PASSWORD: admin
+      TZ: America/Vancouver
+      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1000 -Djboss.persistent.log.dir=/opt/eap'
+      KC_HEALTH_ENABLED: 'true'
+    networks:
+      css-net:
+        aliases: ['test-keycloak.localtest.me']
+
+  prod-keycloak:
+    container_name: prod-keycloak
+    image: ghcr.io/bcgov/sso:dev
+    depends_on:
+      - sso-db
+    ports:
+      - 9080:9080
+    environment:
+      DB_POSTGRESQL_SERVICE_HOST: sso-db
+      DB_POSTGRESQL_SERVICE_PORT: 5432
+      DB_USERNAME: keycloak
+      DB_PASSWORD: keycloak
+      DB_DATABASE: keycloak-prod
+      SSO_ADMIN_USERNAME: admin
+      SSO_ADMIN_PASSWORD: admin
+      TZ: America/Vancouver
+      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1000 -Djboss.persistent.log.dir=/opt/eap'
+      KC_HEALTH_ENABLED: 'true'
+    networks:
+      css-net:
+        aliases: ['prod-keycloak.localtest.me']
+
   dev-kc-migration:
     container_name: dev-kc-migration
     depends_on:
