@@ -321,13 +321,8 @@ export const keycloakClient = async (
                 protocol: 'saml',
                 protocolMapper: 'saml-client-role-list-mapper',
                 config: {
-                  'claim.name': integration.additionalRoleAttribute,
-                  'jsonType.label': 'String',
-                  'usermodel.clientRoleMapping.clientId': integration.clientId,
-                  'id.token.claim': 'true',
-                  'access.token.claim': 'true',
-                  'userinfo.token.claim': 'true',
-                  multivalued: 'true',
+                  'attribute.name': integration.additionalRoleAttribute,
+                  single: 'true',
                 },
               },
             );

@@ -8,7 +8,7 @@ import { faPlusCircle, faMinusCircle, faStar } from '@fortawesome/free-solid-svg
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import Link from '@button-inc/bcgov-theme/Link';
-import { wikiURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/constants';
 
 const Container = styled.div`
   display: grid;
@@ -161,7 +161,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         <br />
         <div>
           <span className="underline">
-            <Link external href={`${wikiURL}/CSS-App-My-Teams#ive-created-a-team-now-what`}>
+            <Link external href={formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what')}>
               View a detailed breakdown of roles on our wiki page
             </Link>
           </span>
