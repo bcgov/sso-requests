@@ -5,6 +5,7 @@ import { createEvent } from './requests';
 import { EVENTS } from '@lambda-shared/enums';
 
 const LOG_SIZE_LIMIT = 25000;
+const MAX_DAYS = 8;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
 
@@ -35,6 +36,10 @@ export const fetchLogs = async (session: Session, env: string, id: number, start
       message: 'Include parsable dates for the start and end parameters, e.g YYYY-MM-DD.',
       skipErrorPage: true,
     };
+  }
+
+  if (unixEndTime - unixStartTime > MAX_DAYS * 60 * 60 * 24 * 1000) {
+    return { status: 400, message: `Date range must be less ${MAX_DAYS} days.` };
   }
 
   const eventMeta = {

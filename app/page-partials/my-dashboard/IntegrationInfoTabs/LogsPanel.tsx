@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FormEvent, useRef, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { Integration } from 'interfaces/Request';
 import { TopAlert, withTopAlert } from 'layout/TopAlert';
@@ -116,24 +116,51 @@ const envNames = {
 
 // Logs started earlier, this is the date label syntax was changed.
 // If we change again should update this to the new deployment time.
-const logsStartDate = 'February 13, 2024';
+const logsStartDate = new Date('February 13, 2024');
+// 7 days
+const DATE_RANGE = 7 * 24 * 60 * 60 * 1000;
 
 const LogsPanel = ({ integration, alert }: Props) => {
   const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
   const [loading, setLoading] = useState(false);
-  const [fromDate, setFromDate] = useState<Date>(subtractHoursFromDate(1));
-  const [toDate, setToDate] = useState<Date>(new Date());
-  const [dateError, setDateError] = useState(false);
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
+  const [dateError, setDateError] = useState('');
   const [fileProgress, setFileProgress] = useState(0);
+  const [maxDate, setMaxDate] = useState(new Date());
+  const [logsQueryController, setLogsQueryController] = useState<AbortController>();
+
+  useEffect(() => {
+    if (!fromDate) return;
+    // Set the toDate limit
+    if (Date.now() - fromDate.getTime() > DATE_RANGE) {
+      setMaxDate(new Date(fromDate.getTime() + DATE_RANGE));
+    } else {
+      setMaxDate(new Date());
+    }
+
+    // Clear toDate if too early or too late for new range
+    if (!toDate) return;
+    if (toDate.getTime() < fromDate.getTime() || toDate.getTime() - fromDate.getTime() > DATE_RANGE) {
+      setToDate(null);
+    }
+  }, [fromDate]);
+
+  useEffect(() => {
+    if (!toDate || !fromDate) return;
+    if (toDate.getTime() < fromDate.getTime()) {
+      setDateError('Please ensure your end date is later than your start date.');
+    }
+  }, [toDate]);
 
   const handleFromDateChange = (val: Date) => {
-    setDateError(val > toDate);
+    setDateError('');
     setFromDate(val);
   };
 
   const handleToDateChange = (val: Date) => {
-    setDateError(val < fromDate);
+    setDateError('');
     setToDate(val);
   };
 
@@ -144,13 +171,34 @@ const LogsPanel = ({ integration, alert }: Props) => {
     }
   };
 
+  // Abort logs fetch on unmount
+  useEffect(() => {
+    const controler = new AbortController();
+    setLogsQueryController(controler);
+    return () => {
+      controler.abort();
+    };
+  }, []);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      if (dateError) return;
+      if (!fromDate || !toDate) {
+        setDateError('Please select a date range.');
+        return;
+      }
       setLoading(true);
-      const [result, err] = await getLogs(integration.id as number, environment, fromDate, toDate, handleFileProgress);
+      const [result, err] = await getLogs(
+        integration.id as number,
+        environment,
+        fromDate,
+        toDate,
+        handleFileProgress,
+        logsQueryController,
+      );
       if (err) {
+        // Ignore error if request cancelled
+        if (err.code === 'ERR_CANCELED') return;
         alert.show({
           variant: 'danger',
           fadeOut: 10000,
@@ -206,26 +254,27 @@ const LogsPanel = ({ integration, alert }: Props) => {
           <div className="date-picker-container">
             <DateTimePicker
               placeholderText="Start Date"
-              selected={new Date(fromDate)}
+              selected={fromDate}
               onChange={(date: Date) => handleFromDateChange(date)}
-              maxDate={toDate}
-              minDate={new Date(logsStartDate)}
+              minDate={logsStartDate}
+              shouldCloseOnSelect={false}
               label="Start Date"
               showTimeInput={true}
               dateFormat="MM/dd/yyyy h:mm aa"
             />
             <DateTimePicker
               placeholderText="End Date"
-              selected={new Date(toDate)}
+              selected={toDate}
               onChange={(date: Date) => handleToDateChange(date)}
               minDate={fromDate}
-              maxDate={new Date()}
+              maxDate={maxDate}
               label="End Date"
+              shouldCloseOnSelect={false}
               showTimeInput={true}
               dateFormat="MM/dd/yyyy h:mm aa"
             />
           </div>
-          <p className="error-text">{dateError ? 'Ensure start date is before end date.' : ' '}</p>
+          <p className="error-text">{dateError}</p>
         </div>
         <div className="button-container">
           <Button type="submit" disabled={dateError || loading}>

@@ -19,6 +19,7 @@ export const getLogs = async (
   fromDate: Date,
   toDate: Date,
   onProgress: (progressEvent: ProgressEvent) => void,
+  controller?: AbortController,
 ) => {
   try {
     const result = await instance({
@@ -26,6 +27,7 @@ export const getLogs = async (
       method: 'GET',
       responseType: 'blob',
       onDownloadProgress: onProgress,
+      signal: controller?.signal,
     }).then((res: any) => res?.data);
 
     return [result, null];
