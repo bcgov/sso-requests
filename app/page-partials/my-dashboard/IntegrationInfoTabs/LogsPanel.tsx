@@ -1,10 +1,9 @@
-import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Integration } from 'interfaces/Request';
 import { TopAlert, withTopAlert } from 'layout/TopAlert';
 import { getLogs } from '@app/services/grafana';
 import DateTimePicker from '@app/components/DateTimePicker';
-import { subtractDaysFromDate, subtractHoursFromDate } from '@app/utils/helpers';
 import BaseButton from '@button-inc/bcgov-theme/Button';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import InfoOverlay from 'components/InfoOverlay';
@@ -228,70 +227,68 @@ const LogsPanel = ({ integration, alert }: Props) => {
   };
 
   return (
-    <>
-      <Form onSubmit={handleSubmit}>
-        <div className="header">
-          <p>Download Logs</p>
-          <InfoOverlay content="You can download upto 5,000 logs at a time. Result will indicate if all logs in the selected time interval were retrieved or a smaller time interval is required." />
-        </div>
-        <fieldset className="env-controls">
-          <legend>Select an Environment</legend>
-          {environments.map((env) => (
-            <span key={env}>
-              <input
-                id={`radio-${env}`}
-                type="radio"
-                name="environmentSelection"
-                value={env}
-                checked={environment === env}
-                onChange={handleEnvChange}
-              />
-              <label htmlFor={`radio-${env}`}>{(envNames as any)[env]}</label>
-            </span>
-          ))}
-        </fieldset>
-        <div>
-          <div className="date-picker-container">
-            <DateTimePicker
-              placeholderText="Start Date"
-              selected={fromDate}
-              onChange={(date: Date) => handleFromDateChange(date)}
-              minDate={logsStartDate}
-              shouldCloseOnSelect={false}
-              label="Start Date"
-              showTimeInput={true}
-              dateFormat="MM/dd/yyyy h:mm aa"
+    <Form onSubmit={handleSubmit}>
+      <div className="header">
+        <p>Download Logs</p>
+        <InfoOverlay content="You can download upto 5,000 logs at a time. Result will indicate if all logs in the selected time interval were retrieved or a smaller time interval is required." />
+      </div>
+      <fieldset className="env-controls">
+        <legend>Select an Environment</legend>
+        {environments.map((env) => (
+          <span key={env}>
+            <input
+              id={`radio-${env}`}
+              type="radio"
+              name="environmentSelection"
+              value={env}
+              checked={environment === env}
+              onChange={handleEnvChange}
             />
-            <DateTimePicker
-              placeholderText="End Date"
-              selected={toDate}
-              onChange={(date: Date) => handleToDateChange(date)}
-              minDate={fromDate}
-              maxDate={maxDate}
-              label="End Date"
-              shouldCloseOnSelect={false}
-              showTimeInput={true}
-              dateFormat="MM/dd/yyyy h:mm aa"
-            />
-          </div>
-          <p className="error-text">{dateError}</p>
+            <label htmlFor={`radio-${env}`}>{(envNames as any)[env]}</label>
+          </span>
+        ))}
+      </fieldset>
+      <div>
+        <div className="date-picker-container">
+          <DateTimePicker
+            placeholderText="Start Date"
+            selected={fromDate}
+            onChange={(date: Date) => handleFromDateChange(date)}
+            minDate={logsStartDate}
+            shouldCloseOnSelect={false}
+            label="Start Date"
+            showTimeInput={true}
+            dateFormat="MM/dd/yyyy h:mm aa"
+          />
+          <DateTimePicker
+            placeholderText="End Date"
+            selected={toDate}
+            onChange={(date: Date) => handleToDateChange(date)}
+            minDate={fromDate}
+            maxDate={maxDate}
+            label="End Date"
+            shouldCloseOnSelect={false}
+            showTimeInput={true}
+            dateFormat="MM/dd/yyyy h:mm aa"
+          />
         </div>
-        <div className="button-container">
-          <Button type="submit" disabled={dateError || loading}>
-            {loading ? ' ' : 'Submit'}{' '}
-            <SpinnerGrid
-              color="white"
-              visible={loading}
-              height={25}
-              width={25}
-              wrapperStyle={{ justifyContent: 'center' }}
-            />
-          </Button>
-          {loading && fileProgress === 0 && <p>Querying logs...</p>}
-          {loading && fileProgress !== 0 ? <p>{fileProgress}% downloaded.</p> : null}
-        </div>
-      </Form>
-    </>
+        <p className="error-text">{dateError}</p>
+      </div>
+      <div className="button-container">
+        <Button type="submit" disabled={dateError || loading}>
+          {loading ? ' ' : 'Submit'}{' '}
+          <SpinnerGrid
+            color="white"
+            visible={loading}
+            height={25}
+            width={25}
+            wrapperStyle={{ justifyContent: 'center' }}
+          />
+        </Button>
+        {loading && fileProgress === 0 && <p>Querying logs...</p>}
+        {loading && fileProgress !== 0 ? <p>{fileProgress}% downloaded.</p> : null}
+      </div>
+    </Form>
   );
 };
 

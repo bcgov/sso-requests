@@ -124,6 +124,8 @@ describe('Fetch SSO Logs', () => {
       'env=development&start=2022-10-10&end=2022-10-10',
       'env=dev&start=somedate&end=2022-10-10',
       'env=dev&start=2022-10-10&end=anotherDate',
+      // Range too large
+      'env=dev&start=2022-10-10&end=2022-12-12',
     ];
 
     const validParams = [
@@ -176,7 +178,7 @@ describe('Fetch SSO Logs', () => {
       .set('Accept', 'application/json');
 
     expect(response.status).toBe(200);
-    expect(response.body.data).toEqual([{ log: 'log' }, { log: 'log' }]);
+    expect(response.body).toEqual([{ log: 'log' }, { log: 'log' }]);
     const event = await models.event.findOne({
       where: {
         eventCode: EVENTS.LOGS_DOWNLOADED_SUCCESS,

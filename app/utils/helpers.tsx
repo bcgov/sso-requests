@@ -327,9 +327,3 @@ export const subtractDaysFromDate = (days: number) => {
   d.setDate(d.getDate() - days);
   return d;
 };
-
-export const subtractHoursFromDate = (hours: number) => {
-  const d = new Date();
-  d.setHours(d.getHours() - hours);
-  return d;
-};
