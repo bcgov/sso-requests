@@ -304,7 +304,7 @@ export const setRoutes = (app: any) => {
         res.setHeader('Content-Disposition', 'attachment; filename=logs.json');
         res.status(status).send(data);
       } else {
-        res.status(status).send({ message, skipErrorPage: true });
+        res.status(status).send({ message });
       }
     } catch (err) {
       handleError(res, err);

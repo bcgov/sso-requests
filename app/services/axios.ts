@@ -47,13 +47,12 @@ instance.interceptors.response.use(
           });
           break;
         default:
-          if (!error.response?.data?.skipErrorPage)
-            Router.push({
-              pathname: '/application-error',
-              query: {
-                error: 'E05',
-              },
-            });
+          Router.push({
+            pathname: '/application-error',
+            query: {
+              error: 'E05',
+            },
+          });
           break;
       }
     }

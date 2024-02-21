@@ -34,7 +34,6 @@ export const fetchLogs = async (session: Session, env: string, id: number, start
     return {
       status: 400,
       message: 'Include parsable dates for the start and end parameters, e.g YYYY-MM-DD.',
-      skipErrorPage: true,
     };
   }
 
