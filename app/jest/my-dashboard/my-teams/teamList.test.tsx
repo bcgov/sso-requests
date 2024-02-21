@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, within, getByText, getAllByText } f
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 import { SessionContext } from '@app/pages/_app';
-import { wikiURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/constants';
 
 function TeamListComponent() {
   return (
@@ -30,7 +30,7 @@ const sampleTeam = [
     updatedAt: '',
   },
 ];
-const HYPERLINK = `${wikiURL}/CSS-App-My-Teams#ive-created-a-team-now-what`;
+const HYPERLINK = formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what');
 const setTeam = jest.fn();
 const loadTeams = jest.fn();
 

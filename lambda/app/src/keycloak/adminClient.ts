@@ -24,10 +24,12 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
     throw Error('invalid environment');
   }
 
-  const keycloakHostname = keycloakUrl.replace('https://', '');
-  const ip = await dns.promises.lookup(keycloakHostname);
-  if (ip.address !== process.env.GOLD_IP_ADDRESS) {
-    throw new Error(`Keycloak is not running in gold for environment ${environment}. Not updating resources.`);
+  if (process.env.APP_ENV !== 'local') {
+    const keycloakHostname = keycloakUrl.replace('https://', '');
+    const ip = await dns.promises.lookup(keycloakHostname);
+    if (ip.address !== process.env.GOLD_IP_ADDRESS) {
+      throw new Error(`Keycloak is not running in gold for environment ${environment}. Not updating resources.`);
+    }
   }
 
   const authServerUrl = `${keycloakUrl}/auth`;

@@ -9,15 +9,14 @@ import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import PageLoader from 'components/PageLoader';
-import ActionButtons, { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
-import { getRequests, deleteRequest } from 'services/request';
+import ActionButtons from 'components/ActionButtons';
+import { getRequests } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { authTypeDisplay } from 'metadata/display';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
-import forEach from 'lodash.foreach';
-import { wikiURL } from '@app/utils/constants';
+import { formatWikiURL } from 'utils/constants';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -66,7 +65,7 @@ const NewEntityButton = ({
                 <NumberedContents number={2} title="Technical Info" children={null} />
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Client type (
-                  <Link href={`${wikiURL}/Useful-References#client`}>Public or Confidential, learn more</Link>)
+                  <Link href={formatWikiURL('Useful-References#client')}>Public or Confidential, learn more</Link>)
                 </PNoMargin>
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, Azure, BCeID or Basic)

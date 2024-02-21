@@ -184,10 +184,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const processed = { ...newData, devIdps };
 
     if (newData.protocol !== 'saml') {
-      if (formData.protocol !== newData.protocol) processed.clientId = null;
-      processed.devSamlLogoutPostBindingUri = null;
-      processed.testSamlLogoutPostBindingUri = null;
-      processed.prodSamlLogoutPostBindingUri = null;
+      if (formData.protocol !== newData.protocol) processed.clientId = '';
+      processed.devSamlLogoutPostBindingUri = '';
+      processed.testSamlLogoutPostBindingUri = '';
+      processed.prodSamlLogoutPostBindingUri = '';
     }
 
     if (newData.authType !== 'browser-login') processed.publicAccess = false;

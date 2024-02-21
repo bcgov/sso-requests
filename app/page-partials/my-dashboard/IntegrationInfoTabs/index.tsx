@@ -27,8 +27,8 @@ import DigitalCredentialPanel from './DigitalCredentialPanel';
 import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { wikiURL } from '@app/utils/constants';
 import LogsPanel from './LogsPanel';
+import { formatWikiURL } from 'utils/constants';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -224,7 +224,7 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
         <br />
         <div>
           Please visit our{' '}
-          <Link external href={`${wikiURL}/Creating-a-Role`}>
+          <Link external href={formatWikiURL('Creating-a-Role')}>
             wiki page
           </Link>{' '}
           for more information on roles.

@@ -56,7 +56,7 @@ export const handler = async () => {
       listOfDiscrepencies.prod.length > 0
     ) {
       const header = `**${
-        process.env.APP_ENV === 'development' ? '[SANDBOX] ' : ''
+        process.env.APP_ENV === 'production' ? '' : '[SANDBOX] '
       }List of discrepancies by environment:** \n\n`;
 
       if (listOfDiscrepencies.dev.length > 0) data = data + `**dev:** \n${listOfDiscrepencies.dev.join(', ')}\n\n`;

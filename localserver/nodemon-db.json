@@ -1,8 +1,4 @@
 {
   "watch": false,
-  "exec": "ts-node -r tsconfig-paths/register ./migrate-db.ts",
-  "env": {
-    "NODE_ENV": "development",
-    "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/ssorequests"
-  }
+  "exec": "ts-node -r tsconfig-paths/register -r dotenv/config ./migrate-db.ts"
 }
