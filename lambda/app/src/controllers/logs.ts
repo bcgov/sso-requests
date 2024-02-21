@@ -52,7 +52,7 @@ export const fetchLogs = async (session: Session, env: string, id: number, start
   };
 
   try {
-    const query = `{environment="${env}"} |= \`realmId=standard\` |= \`clientId=${clientId}\``;
+    const query = `{environment="${env}"}  |= \`clientId=${clientId}\` |= \`realmId=standard\``;
     const allLogs = await queryGrafana(query, unixStartTime, unixEndTime, LOG_SIZE_LIMIT);
     let message = 'All logs retrieved';
     if (allLogs.length === LOG_SIZE_LIMIT)

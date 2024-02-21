@@ -230,7 +230,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
     <Form onSubmit={handleSubmit}>
       <div className="header">
         <p>Download Logs</p>
-        <InfoOverlay content="You can download upto 5,000 logs at a time. Result will indicate if all logs in the selected time interval were retrieved or a smaller time interval is required." />
+        <InfoOverlay content="You can download upto 25,000 logs at a time. Result will indicate if all logs in the selected time interval were retrieved or a smaller time interval is required." />
       </div>
       <fieldset className="env-controls">
         <legend>Select an Environment</legend>
