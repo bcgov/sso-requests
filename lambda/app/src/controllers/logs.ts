@@ -6,7 +6,7 @@ import { EVENTS } from '@lambda-shared/enums';
 
 // Loki limit lower in sandbox.
 const LOG_SIZE_LIMIT = process.env.APP_ENV === 'production' ? 25000 : 5000;
-const MAX_DAYS = 8;
+const MAX_DAYS = 3;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
 

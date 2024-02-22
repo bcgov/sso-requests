@@ -10,7 +10,7 @@ import InfoOverlay from 'components/InfoOverlay';
 import { subtractDaysFromDate } from '@app/utils/helpers';
 
 const Button = styled(BaseButton)`
-  width: 120px;
+  width: 150px;
   text-align: center;
 `;
 
@@ -117,8 +117,8 @@ const envNames = {
 // Logs started earlier, this is the date label syntax was changed.
 // If we change again should update this to the new deployment time.
 const logsStartDate = new Date('February 13, 2024');
-// 7 days
-const DATE_RANGE = 7 * 24 * 60 * 60 * 1000;
+// 2 days
+const DATE_RANGE = 2 * 24 * 60 * 60 * 1000;
 
 const LogsPanel = ({ integration, alert }: Props) => {
   const [environment, setEnvironment] = useState('dev');
@@ -289,7 +289,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
       </div>
       <div className="button-container">
         <Button type="submit" disabled={dateError || loading}>
-          {loading ? ' ' : 'Submit'}{' '}
+          {loading ? ' ' : 'Download'}{' '}
           <SpinnerGrid
             color="white"
             visible={loading}
