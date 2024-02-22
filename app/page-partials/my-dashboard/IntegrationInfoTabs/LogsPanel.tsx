@@ -7,6 +7,7 @@ import DateTimePicker from '@app/components/DateTimePicker';
 import BaseButton from '@button-inc/bcgov-theme/Button';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import InfoOverlay from 'components/InfoOverlay';
+import { subtractDaysFromDate } from '@app/utils/helpers';
 
 const Button = styled(BaseButton)`
   width: 120px;
@@ -123,8 +124,8 @@ const LogsPanel = ({ integration, alert }: Props) => {
   const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
   const [loading, setLoading] = useState(false);
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
+  const [fromDate, setFromDate] = useState<Date | null>(subtractDaysFromDate(1));
+  const [toDate, setToDate] = useState<Date | null>(new Date());
   const [dateError, setDateError] = useState('');
   const [fileProgress, setFileProgress] = useState(0);
   const [maxDate, setMaxDate] = useState(new Date());
@@ -170,14 +171,21 @@ const LogsPanel = ({ integration, alert }: Props) => {
     }
   };
 
-  // Abort logs fetch on unmount
+  const resetForm = () => {
+    setEnvironment('dev');
+    setFromDate(subtractDaysFromDate(1));
+    setToDate(new Date());
+  };
+
+  // Abort fetch request and reset form on integration change
   useEffect(() => {
+    resetForm();
     const controler = new AbortController();
     setLogsQueryController(controler);
     return () => {
       controler.abort();
     };
-  }, []);
+  }, [integration.clientId]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -235,7 +243,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
         <p>Download Logs</p>
         <InfoOverlay content="You can download upto 25,000 logs at a time. Result will indicate if all logs in the selected time interval were retrieved or a smaller time interval is required." />
       </div>
-      <fieldset className="env-controls">
+      <fieldset className="env-controls" disabled={loading}>
         <legend>Select an Environment</legend>
         {environments.map((env) => (
           <span key={env}>
@@ -262,6 +270,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
             label="Start Date"
             showTimeInput={true}
             dateFormat="MM/dd/yyyy h:mm aa"
+            disabled={loading}
           />
           <DateTimePicker
             placeholderText="End Date"
@@ -273,6 +282,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
             shouldCloseOnSelect={false}
             showTimeInput={true}
             dateFormat="MM/dd/yyyy h:mm aa"
+            disabled={loading}
           />
         </div>
         <p className="error-text">{dateError}</p>
