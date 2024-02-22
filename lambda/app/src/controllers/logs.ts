@@ -4,7 +4,8 @@ import { clientEventsAggregationQuery, queryGrafana } from '@lambda-app/grafana'
 import { createEvent } from './requests';
 import { EVENTS } from '@lambda-shared/enums';
 
-const LOG_SIZE_LIMIT = 25000;
+// Loki limit lower in sandbox.
+const LOG_SIZE_LIMIT = process.env.APP_ENV === 'production' ? 25000 : 5000;
 const MAX_DAYS = 8;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
