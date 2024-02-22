@@ -17,6 +17,8 @@ export const EVENTS = {
   REQUEST_LIMIT_REACHED: 'request-limit-reached',
   TEAM_API_ACCOUNT_DELETE_SUCCESS: 'api-account-delete-success',
   TEAM_API_ACCOUNT_DELETE_FAILURE: 'api-account-delete-failure',
+  LOGS_DOWNLOADED_SUCCESS: 'logs-download-success',
+  LOGS_DOWNLOADED_FAILURE: 'logs-download-failure',
 };
 
 export const EMAILS = {

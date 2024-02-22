@@ -296,11 +296,16 @@ export const setRoutes = (app: any) => {
   app.get(`/requests/:id/logs`, async (req, res) => {
     try {
       const { id } = req.params || {};
-      const { start, end, env, eventType } = req.query || {};
-      const { status, message, data } = await fetchLogs(req.session, env, id, start, end, eventType);
-
-      if (status === 200) res.status(status).send({ message, data });
-      else res.status(status).send({ message });
+      const { start, end, env } = req.query || {};
+      const { status, message, data } = await fetchLogs(req.session, env, id, start, end);
+      if (status === 200) {
+        res.setHeader('Content-Length', JSON.stringify(data).length);
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment`);
+        res.status(status).send(data);
+      } else {
+        res.status(status).send({ message });
+      }
     } catch (err) {
       handleError(res, err);
     }
