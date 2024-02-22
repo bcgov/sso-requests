@@ -116,7 +116,7 @@ services:
     depends_on:
       - sso-db
     ports:
-      - 9081:9080
+      - 9081:9081
     environment:
       DB_POSTGRESQL_SERVICE_HOST: sso-db
       DB_POSTGRESQL_SERVICE_PORT: 5432
@@ -126,7 +126,7 @@ services:
       SSO_ADMIN_USERNAME: admin
       SSO_ADMIN_PASSWORD: admin
       TZ: America/Vancouver
-      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1000 -Djboss.persistent.log.dir=/opt/eap'
+      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1001 -Djboss.persistent.log.dir=/opt/eap'
       KC_HEALTH_ENABLED: 'true'
     networks:
       css-net:
@@ -138,7 +138,7 @@ services:
     depends_on:
       - sso-db
     ports:
-      - 9082:9080
+      - 9082:9082
     environment:
       DB_POSTGRESQL_SERVICE_HOST: sso-db
       DB_POSTGRESQL_SERVICE_PORT: 5432
@@ -148,7 +148,7 @@ services:
       SSO_ADMIN_USERNAME: admin
       SSO_ADMIN_PASSWORD: admin
       TZ: America/Vancouver
-      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1000 -Djboss.persistent.log.dir=/opt/eap'
+      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1002 -Djboss.persistent.log.dir=/opt/eap'
       KC_HEALTH_ENABLED: 'true'
     networks:
       css-net:
@@ -169,7 +169,7 @@ services:
       context: .
       dockerfile: ./Dockerfile.tf-modules
     volumes:
-      - sso-kc-terraform:/terraform
+      - sso-kc-terraform-dev:/terraform
     networks:
       - css-net
 
@@ -179,8 +179,8 @@ services:
       - test-keycloak
     image: tf-modules-migrator:latest
     environment:
-      HEALTH_CHECK_URL: http://test-keycloak.localtest.me:9080
-      TF_VAR_keycloak_url: http://test-keycloak:9080
+      HEALTH_CHECK_URL: http://test-keycloak.localtest.me:9081
+      TF_VAR_keycloak_url: http://test-keycloak:9081
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: test
@@ -198,8 +198,8 @@ services:
       - prod-keycloak
     image: tf-modules-migrator:latest
     environment:
-      HEALTH_CHECK_URL: http://prod-keycloak.localtest.me:9080
-      TF_VAR_keycloak_url: http://prod-keycloak:9080
+      HEALTH_CHECK_URL: http://prod-keycloak.localtest.me:9082
+      TF_VAR_keycloak_url: http://prod-keycloak:9082
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: prod
@@ -207,14 +207,14 @@ services:
       context: .
       dockerfile: ./Dockerfile.tf-modules
     volumes:
-      - sso-kc-terraform-test:/terraform
+      - sso-kc-terraform-prod:/terraform
     networks:
       - css-net
 
 volumes:
   sso-requests-data:
     driver: local
-  sso-kc-terraform:
+  sso-kc-terraform-dev:
     driver: local
   sso-kc-terraform-test:
     driver: local
