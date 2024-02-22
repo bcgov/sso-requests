@@ -27,6 +27,7 @@ import DigitalCredentialPanel from './DigitalCredentialPanel';
 import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
+import LogsPanel from './LogsPanel';
 import { formatWikiURL } from 'utils/constants';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
@@ -61,6 +62,7 @@ const TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT = 'service-account-role-management';
 const TAB_SECRET = 'secret';
 const TAB_HISTORY = 'history';
 const TAB_METRICS = 'metrics';
+const TAB_LOGS = 'Logs';
 
 const joinEnvs = (integration: Integration) => {
   if (!integration?.environments) return '';
@@ -273,6 +275,16 @@ const getMetricsTab = ({ integration }: { integration: Integration }) => {
   );
 };
 
+const getLogsTab = ({ integration }: { integration: Integration }) => {
+  return (
+    <Tab key={TAB_LOGS} tab="Logs">
+      <TabWrapper short={false}>
+        <LogsPanel integration={integration} />
+      </TabWrapper>
+    </Tab>
+  );
+};
+
 const getHistoryTab = ({ integration }: { integration: Integration }) => {
   return (
     <Tab key={TAB_HISTORY} tab="Change History">
@@ -392,6 +404,9 @@ function IntegrationInfoTabs({ integration }: Props) {
 
     tabs.push(getMetricsTab({ integration }));
     allowedTabs.push(TAB_METRICS);
+
+    tabs.push(getLogsTab({ integration }));
+    allowedTabs.push(TAB_LOGS);
   }
 
   let activeKey = activeTab;
