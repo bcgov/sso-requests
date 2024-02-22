@@ -212,7 +212,10 @@ const LogsPanel = ({ integration, alert }: Props) => {
           content: result?.message ?? 'Downloaded logs.',
         });
         const resultJSON = await result.text();
-        saveTemplateAsFile('logs.json', JSON.parse(resultJSON));
+        saveTemplateAsFile(
+          `${integration.clientId}-${fromDate.toLocaleString()}-${toDate.toLocaleString()}.json`,
+          JSON.parse(resultJSON),
+        );
       }
     } catch (e) {
       console.error('Exception parsing file');

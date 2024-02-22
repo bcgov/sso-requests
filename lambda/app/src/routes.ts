@@ -301,7 +301,7 @@ export const setRoutes = (app: any) => {
       if (status === 200) {
         res.setHeader('Content-Length', JSON.stringify(data).length);
         res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', 'attachment; filename=logs.json');
+        res.setHeader('Content-Disposition', `attachment`);
         res.status(status).send(data);
       } else {
         res.status(status).send({ message });
