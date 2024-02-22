@@ -168,12 +168,24 @@ export default function AdminReports({ session }: PageProps) {
       {loading ? (
         <SpinnerGrid color="#000" height={25} width={25} wrapperClass="d-block" visible={loading} />
       ) : (
-        <DatabaseReportContainer>
-          <ReportTypeOptions />
-          <DownloadIconStyle>
-            <DownloadIcon type={reportType} handleClick={handleDownloadReportClick} />
-          </DownloadIconStyle>
-        </DatabaseReportContainer>
+        <>
+          <DatabaseReportContainer>
+            <ReportTypeOptions />
+            <DownloadIconStyle>
+              <DownloadIcon type={reportType} handleClick={handleDownloadReportClick} />
+            </DownloadIconStyle>
+          </DatabaseReportContainer>
+          {reportType === 'all-events' && (
+            <>
+              <br />
+              <p>
+                <em>
+                  Event downloads limited to 5000 most recent events. Please use dashboard for long-term event analysis.
+                </em>
+              </p>
+            </>
+          )}
+        </>
       )}
     </ResponsiveContainer>
   );
