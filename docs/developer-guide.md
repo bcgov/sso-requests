@@ -197,7 +197,7 @@ Confirm the containers are up using `docker ps`, there should be six containers 
 
 #### Step 2) Configure cypres environment
 
-Pull a copy of the [sso-requests-e2e](https://github.com/bcgov/sso-requests-e2e/) repo. The config will need to be changed in two places for the tests to run against the local CSS app. In the file `/testing/cypress.env.json` set `"host": "http://localhost:3000"`, and in `/testing/cypress.config.ts` set `baseUrl: 'http://localhost:3000/`.
+Pull a copy of the [sso-requests-e2e](https://github.com/bcgov/sso-requests-e2e/) repo. The config will need to be changed in two places for the tests to run against the local CSS app. In the file `/testing/cypress.env.json` set `{"host": "http://localhost:3000", "smoketest": true}`, and in `/testing/cypress.config.ts` set `baseUrl: 'http://localhost:3000/`.
 
 #### Step 3) Configure the initial test data
 
