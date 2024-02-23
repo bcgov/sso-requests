@@ -54,7 +54,7 @@ export async function callAzureGraphApi(endpoint: string) {
 
 export const fuzzySearchIdirEmail = async (email: string) => {
   const url = `https://graph.microsoft.com/v1.0/users?$filter=startswith(mail,'${email}')&$orderby=userPrincipalName&$count=true&$top=25`;
-  return callAzureGraphApi(url).then((res) => res.value);
+  return callAzureGraphApi(url).then((res) => res.value?.map((value) => ({ mail: value.mail, id: value.id })));
 };
 
 /**Search IDIR users using the bceid service by a general field and value */
