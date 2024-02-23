@@ -218,6 +218,12 @@ The integration that must be created is: "Test Automation do not delete".
 
 #### Step 4) Run the tests.
 
+To run the first integration test run:
+
+`npx cypress run --spec 'cypress/e2e/**/integration-010-**.cy.ts' --browser chrome --reporter mochawesome`
+
+To run all the integration tests, use the command:
+
 `npm run integrations`
 
 ## Committing
