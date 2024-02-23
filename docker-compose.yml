@@ -67,10 +67,10 @@ services:
       KEYCLOAK_V2_DEV_URL: http://dev-keycloak:9080
       KEYCLOAK_V2_TEST_USERNAME: admin
       KEYCLOAK_V2_TEST_PASSWORD: admin
-      KEYCLOAK_V2_TEST_URL: http://test-keycloak:9080
+      KEYCLOAK_V2_TEST_URL: http://test-keycloak:9081
       KEYCLOAK_V2_PROD_USERNAME: admin
       KEYCLOAK_V2_PROD_PASSWORD: admin
-      KEYCLOAK_V2_PROD_URL: http://prod-keycloak:9080
+      KEYCLOAK_V2_PROD_URL: http://prod-keycloak:9082
       GH_BRANCH: main
       GH_OWNER: bcgov
       CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email

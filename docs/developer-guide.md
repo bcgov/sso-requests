@@ -182,13 +182,43 @@ For the backend application, run:
 
 ### Cypress tests
 
-We now have a cypress test suite built out. To test out new CSS app changes:
+We now have a cypress test suite built out. These can be run against a local version of the app using the docker instances.
 
-cypress run --browser chrome --config viewportWidth=1280,viewportHeight=720
+#### Step 1) Run app locally
 
-e2e: {
-baseUrl: 'http://localhost:3000/',
-TO BE WRITTEN
+Using `docker-compose`, run the app locally.
+
+```
+docker-compose build
+docker-compose up
+```
+
+Confirm the containers are up using `docker ps`, there should be six containers running. Confirm the standard realm has been created in the keycloak containers. Local username and password are created by the docker-compose file.
+
+#### Step 2) Configure cypres environment
+
+Pull a copy of the [sso-requests-e2e](https://github.com/bcgov/sso-requests-e2e/) repo. The config will need to be changed in two places for the tests to run against the local CSS app. In the file `/testing/cypress.env.json` set `"host": "http://localhost:3000"`, and in `/testing/cypress.config.ts` set `baseUrl: 'http://localhost:3000/`.
+
+#### Step 3) Configure the initial test data
+
+Currently there are two pieces of seed data needed in the test environment for the tests to run. Any time the local database volumes are purged they will need to be recreated. There is a WIP to automate this using cypress, the documentation will be updated when this is possible.
+
+There is a WIP to do this using cypress, however until that change is merged we need to create a team and integration manually.
+
+Log into the local css app with the default account from the `cypress.config.ts` file.
+
+The team name is: "Roland and Training Account" and and admin with email "pathfinder.ssotraining2@gov.bc.ca" is added to that team.
+
+The integration that must be created is: "Test Automation do not delete".
+
+- Connect it to the "Roland and Training Account" team.
+- It needs three IDPs "Idir", "Idir - MFA", and "Basic or Business BCeID".
+- It is integrated with dev, test, and prod.
+- The redirect urls are `*`, `*`, `any-valid-url.com`.
+
+#### Step 4) Run the tests.
+
+`npm run integrations`
 
 ## Committing
 
