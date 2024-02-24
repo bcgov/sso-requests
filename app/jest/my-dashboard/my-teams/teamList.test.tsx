@@ -97,7 +97,7 @@ describe('Team List', () => {
     });
 
     const memberEmailInputField = document.querySelector('.email-select input') as Element;
-    fireEvent.change(await memberEmailInputField, { target: { value: MOCK_EMAIL } });
+    fireEvent.change(memberEmailInputField, { target: { value: MOCK_EMAIL } });
     await waitFor(() => {
       expect(screen.getByDisplayValue(MOCK_EMAIL)).toBeInTheDocument();
       screen.getByText(MOCK_EMAIL).click();
