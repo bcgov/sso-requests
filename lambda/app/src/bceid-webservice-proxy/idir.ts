@@ -1,5 +1,5 @@
 import { createIdirUser } from '../keycloak/users';
-import { ConfidentialClientApplication, IConfidentialClientApplication, ProtocolMode } from '@azure/msal-node';
+import { ConfidentialClientApplication, IConfidentialClientApplication } from '@azure/msal-node';
 import axios from 'axios';
 
 let msalInstance: IConfidentialClientApplication;

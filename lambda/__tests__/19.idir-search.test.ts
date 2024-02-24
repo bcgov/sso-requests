@@ -29,7 +29,7 @@ describe('User Search', () => {
 
   it('Returns error code when MS API fails', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    (fuzzySearchIdirEmail as jest.Mock).mockImplementationOnce(() => Promise.reject(false));
+    (fuzzySearchIdirEmail as jest.Mock).mockImplementationOnce(() => Promise.reject(new Error('failure')));
     const result = await searchIdirUsers('email');
     expect(result.status).toBe(422);
   });
