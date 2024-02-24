@@ -221,6 +221,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                 menuPlacement="top"
                 maxMenuHeight={120}
                 classNamePrefix={'select-inner'}
+                placeholder={'Enter email address'}
               />
               {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
             </div>
