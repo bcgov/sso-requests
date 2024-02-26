@@ -1,5 +1,6 @@
 import { createIdirUser } from '../keycloak/users';
 import { ConfidentialClientApplication, IConfidentialClientApplication } from '@azure/msal-node';
+import { MS_GRAPH_URL } from '@lambda-app/utils/constants';
 import axios from 'axios';
 
 let msalInstance: IConfidentialClientApplication;
@@ -14,7 +15,7 @@ const msalConfig = {
 
 export async function getAzureAccessToken() {
   const request = {
-    scopes: ['https://graph.microsoft.com/.default'],
+    scopes: [`${MS_GRAPH_URL}/.default`],
   };
 
   try {
@@ -53,7 +54,7 @@ export async function callAzureGraphApi(endpoint: string) {
 }
 
 export const fuzzySearchIdirEmail = async (email: string) => {
-  const url = `https://graph.microsoft.com/v1.0/users?$filter=startswith(mail,'${email}')&$orderby=userPrincipalName&$count=true&$top=25`;
+  const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(mail,'${email}')&$orderby=userPrincipalName&$count=true&$top=25`;
   return callAzureGraphApi(url).then((res) => res.value?.map((value) => ({ mail: value.mail, id: value.id })));
 };
 
