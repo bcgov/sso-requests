@@ -184,6 +184,11 @@ For the backend application, run:
 
 We now have a cypress test suite built out. These can be run against a local version of the app using the docker instances.
 
+#### Step 0) Requirements
+
+- nodejs version 18
+- docker-compose 2.24.6
+
 #### Step 1) Run app locally
 
 Using `docker-compose`, run the app locally.
@@ -197,7 +202,7 @@ Confirm the containers are up using `docker ps`, there should be six containers 
 
 #### Step 2) Configure cypres environment
 
-Pull a copy of the [sso-requests-e2e](https://github.com/bcgov/sso-requests-e2e/) repo. The config will need to be changed in two places for the tests to run against the local CSS app. In the file `/testing/cypress.env.json` set `{"host": "http://localhost:3000", "smoketest": true}`, and in `/testing/cypress.config.ts` set `baseUrl: 'http://localhost:3000/`.
+Pull a copy of the [sso-requests-e2e](https://github.com/bcgov/sso-requests-e2e/) repo. The config will need to be changed in two places for the tests to run against the local CSS app. In the file `/testing/cypress.env.json` set `{"host": "http://localhost:3000", "smoketest": true, "localtest": true}`, and in `/testing/cypress.config.ts` set `baseUrl: 'http://localhost:3000/`.
 
 #### Step 3) Configure the initial test data
 
@@ -218,9 +223,14 @@ The integration that must be created is: "Test Automation do not delete".
 
 #### Step 4) Run the tests.
 
-To run the first integration test run:
+To delete old data run:
 
-`npx cypress run --spec 'cypress/e2e/**/integration-010-**.cy.ts' --browser chrome --reporter mochawesome`
+```
+npm run delete
+npm run deleteteams
+```
+
+These many not complete successfully, but that will not block the actual tests.
 
 To run all the integration tests, use the command:
 
