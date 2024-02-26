@@ -200,7 +200,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
           <Divider />
         </Container>
         <EmailAddrValidHeader>
-          *Please enter email address tied to and IDIR to allow your user to login
+          *Please enter email address tied to an IDIR to allow your user to login
         </EmailAddrValidHeader>
         {currentUser && (
           <MemberContainer>

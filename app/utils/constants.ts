@@ -1,5 +1,6 @@
 import { ITestimonial } from '@app/interfaces/Testimonial';
 import { EnvironmentOption, ErrorMessages } from '@app/interfaces/form';
+import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from './validate';
 
 export const createTeamModalId = `create-team-modal`;
 
@@ -33,6 +34,8 @@ export const errorMessages: ErrorMessages = {
   teamId: 'Please select an existing team',
   devIdps: 'Please select an identity provider',
   samlLogoutPostBindingUri: 'Please enter a valid URI',
+  clientMaxLifespan: `Must be ${MAX_LIFETIME_SECONDS / 60} minutes or fewer.`,
+  clientIdleTimeout: `Must be ${MAX_IDLE_SECONDS / 60} minutes or fewer.`,
 };
 
 export const bceidBody = `Organization Details (Organization/Division/Branch/Program): \n

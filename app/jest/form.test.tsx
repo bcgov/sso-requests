@@ -6,6 +6,7 @@ import { Integration } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
+import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
 
 const formButtonText = ['Next', 'Save and Close'];
 
@@ -162,6 +163,9 @@ describe('Form Template Loading Data', () => {
     expect(
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
+    // Pre-load should convert from seconds to minutes
+    screen.getByDisplayValue(String((sampleRequest.devSessionIdleTimeout as number) / 60));
+    screen.getByDisplayValue(String((sampleRequest.devSessionMaxLifespan as number) / 60));
 
     fireEvent.click(termsAndConditionsBox);
     const fourthStageElementSelector = '#root_agreeWithTerms';
@@ -191,7 +195,10 @@ describe('Error messages', () => {
   });
 
   it('Should display the expected page 2 errors', async () => {
-    setUpRender({ id: 0, environments: ['dev'], devValidRedirectUris: [''], serviceType: 'gold' });
+    setUpRender(
+      { id: 0, environments: ['dev'], devValidRedirectUris: [''], serviceType: 'gold' },
+      { client_roles: ['sso-admin'], isAdmin: true },
+    );
 
     // Navigate away and back to page
     fireEvent.click(sandbox.developmentBox);
@@ -199,12 +206,20 @@ describe('Error messages', () => {
     const devValidRedirectUrisSelector = '#root_devValidRedirectUris_0';
     await waitFor(() => document.querySelector(devValidRedirectUrisSelector));
     const uriInput = document.querySelector(devValidRedirectUrisSelector) as HTMLElement;
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
     fireEvent.change(uriInput, { target: { value: 'invalid-url' } });
+
+    // Set each input over the limit
+    fireEvent.change(clientIdleInput, { target: { value: MAX_IDLE_SECONDS / 60 + 1 } });
+    fireEvent.change(clientMaxInput, { target: { value: MAX_LIFETIME_SECONDS / 60 + 1 } });
 
     fireEvent.click(sandbox.basicInfoBox);
     fireEvent.click(sandbox.developmentBox);
 
     screen.getAllByText(errorMessages.redirectUris);
+    screen.getByText(errorMessages.clientMaxLifespan);
+    screen.getByText(errorMessages.clientIdleTimeout);
   });
 
   it('Should display the expected page 3 errors after navigating away from the page', async () => {
@@ -216,6 +231,34 @@ describe('Error messages', () => {
     fireEvent.click(sandbox.termsAndConditionsBox);
 
     await waitFor(() => screen.getByText(errorMessages.agreeWithTerms));
+  });
+});
+
+describe('Submission', () => {
+  it('Sends client session idle and max as seconds when making calls to the API', () => {
+    setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
+    const { developmentBox, adminReview } = sandbox;
+    fireEvent.click(developmentBox);
+
+    jest.clearAllMocks();
+
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
+
+    const idleTimeout = 10;
+    const maxLifespan = 100;
+    fireEvent.change(clientIdleInput, { target: { value: String(idleTimeout) } });
+    fireEvent.change(clientMaxInput, { target: { value: String(maxLifespan) } });
+
+    fireEvent.click(adminReview);
+    screen.getByText('Submit').click();
+    screen.getByText('Confirm').click();
+
+    const updateRequestCalls = (updateRequest as jest.Mock).mock.calls;
+    expect(updateRequestCalls.length).toBe(1);
+    expect(updateRequestCalls[0][0].devSessionIdleTimeout).toBe(idleTimeout * 60);
+    expect(updateRequestCalls[0][0].devSessionMaxLifespan).toBe(maxLifespan * 60);
+    expect(updateRequest).toHaveBeenCalled();
   });
 });
 

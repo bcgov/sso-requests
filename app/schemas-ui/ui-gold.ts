@@ -12,6 +12,7 @@ import FieldAccessTokenLifespan from '@app/form-components/FieldAccessTokenLifes
 import { checkBceidGroup, checkGithubGroup } from '@app/helpers/integration';
 import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
+import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
 
 interface Props {
   integration: Integration;
@@ -55,8 +56,9 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
 
   for (let x = 0; x < envs.length; x++) {
     for (let y = 0; y < durationAdditionalFields.length; y++) {
-      const def: any = {
-        'ui:widget': ClientTokenWidget,
+      const minuteOnlyFields = ['SessionIdleTimeout', 'SessionMaxLifespan'];
+      let def: any = {
+        'ui:widget': minuteOnlyFields.includes(durationAdditionalFields[y]) ? MinutesToSeconds : ClientTokenWidget,
         'ui:label': false,
         'ui:readonly': !isAdmin,
       };
