@@ -110,7 +110,7 @@ export const getDatabaseTable = async (table: string, orderBy: string) => {
     return results;
   } else if (table == 'Events') {
     const [results] = await sequelize.query(`
-    SELECT id, created_at, updated_at, request_id, event_code, idir_userid, details::text, idir_user_display_name FROM ${table} ORDER BY ${orderBy};
+    SELECT id, created_at, updated_at, request_id, event_code, idir_userid, details::text, idir_user_display_name FROM ${table} ORDER BY created_at desc, ${orderBy} limit 5000;
     `);
     return results;
   } else {

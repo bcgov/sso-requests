@@ -2,9 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/team';
 import { MyTeamsComponent } from './helpers';
-import { wikiURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/constants';
 
-const HYPERLINK = `${wikiURL}/CSS-App-My-Teams#ive-created-a-team-now-what`;
+const HYPERLINK = formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what');
 
 const spyValidateTeam = jest
   .spyOn(require('form-components/team-form/TeamMembersForm'), 'validateTeam')
@@ -112,10 +112,10 @@ describe('Members tab', () => {
     expect(screen.findByRole('option', { name: 'Member' }));
 
     fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
-    expect(screen.queryAllByPlaceholderText('Enter email address')).toHaveLength(3);
+    expect(screen.queryAllByText('Enter email address')).toHaveLength(3);
     const removeMember = screen.getAllByRole('img', { name: 'Delete' });
     fireEvent.click(removeMember[1]);
-    expect(screen.queryAllByPlaceholderText('Enter email address')).toHaveLength(2);
+    expect(screen.queryAllByText('Enter email address')).toHaveLength(2);
 
     const confirmButton = await screen.findByRole('button', { name: 'Confirm' });
     fireEvent.click(confirmButton);

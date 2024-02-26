@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import MyDashboardLayout from 'page-partials/my-dashboard/Layout';
-import { wikiURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/constants';
 
 const Container = styled.div`
   background-color: #e4f2fe;
@@ -32,11 +32,11 @@ function MyIntegrations() {
         <ul>
           <li>
             Visit out{' '}
-            <a href={wikiURL} target="_blank" rel="noreferrer" title="Wiki">
+            <a href={formatWikiURL()} target="_blank" rel="noreferrer" title="Wiki">
               wiki
             </a>{' '}
             and our{' '}
-            <a href={wikiURL} target="_blank" rel="noreferrer" title="How to Docs">
+            <a href={formatWikiURL()} target="_blank" rel="noreferrer" title="How to Docs">
               How to Docs
             </a>
           </li>

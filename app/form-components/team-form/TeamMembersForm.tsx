@@ -8,7 +8,11 @@ import { faPlusCircle, faMinusCircle, faStar } from '@fortawesome/free-solid-svg
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import Link from '@button-inc/bcgov-theme/Link';
-import { wikiURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/constants';
+import debounce from 'lodash.debounce';
+import { getIdirUsersByEmail } from '@app/services/user';
+import AsyncSelect from 'react-select/async';
+import { SingleValue } from 'react-select';
 
 const Container = styled.div`
   display: grid;
@@ -41,12 +45,22 @@ const AddMemberButton = styled.span`
 const MembersSection = styled.section`
   max-height: 50vh;
   overflow-y: scroll;
+  padding-left: 1em;
 `;
 
 const MemberContainer = styled(Container)`
   grid-template-columns: 2.2fr 0.9fr 1.2fr;
   align-items: start;
   margin-bottom: 20px;
+  .email-select > .select-inner__control {
+    padding: 0.13em 0;
+    border: 2px solid #606060;
+
+    &:focus-within {
+      outline: 4px solid #3b99fc !important;
+      outline-offset: 2px !important;
+    }
+  }
 `;
 
 const Icon = styled(FontAwesomeIcon)`
@@ -78,6 +92,18 @@ const EmailAddrValidHeader = styled.p`
   font-size: 0.95em;
 `;
 
+const throttledIdirSearch = debounce(
+  (email, cb) => {
+    if (email.length <= 2) {
+      cb([]);
+      return;
+    }
+    getIdirUsersByEmail(email).then(([data]) => cb(data?.map((user) => ({ value: user.id, label: user.mail })) || []));
+  },
+  300,
+  { trailing: true },
+);
+
 export interface Errors {
   name: string;
   members: string[];
@@ -104,9 +130,9 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
     ]);
   };
 
-  const handleEmailChange = (index: number, e: any) => {
+  const handleEmailChange = (selected: SingleValue<{ value: string; label: string }>, index: number) => {
     const newMember: User = { ...members[index] };
-    newMember.idirEmail = e.target.value;
+    newMember.idirEmail = selected?.label.toLowerCase() || '';
     const newMembers = [...members];
     newMembers[index] = newMember;
     setMembers(newMembers);
@@ -161,7 +187,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         <br />
         <div>
           <span className="underline">
-            <Link external href={`${wikiURL}/CSS-App-My-Teams#ive-created-a-team-now-what`}>
+            <Link external href={formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what')}>
               View a detailed breakdown of roles on our wiki page
             </Link>
           </span>
@@ -178,43 +204,45 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         </EmailAddrValidHeader>
         {currentUser && (
           <MemberContainer>
-            <Input value={currentUser?.email || ''} readOnly />
+            <Input value={currentUser?.email || ''} readOnly fullWidth />
             <Dropdown label="Role" disabled value={'admin'} readOnlyRole={true}>
               <option value="admin">Admin</option>
             </Dropdown>
           </MemberContainer>
         )}
         {members.map((member, i) => (
-          <>
-            <MemberContainer key={member.id}>
-              <div>
-                <Input
-                  placeholder="Enter email address"
-                  onChange={(e: any) => handleEmailChange(i, e)}
-                  value={member.idirEmail}
-                  data-testid="user-email"
-                />
-                {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
-              </div>
-              <Dropdown
-                label="Role"
-                onChange={(e: any) => handleRoleChange(i, e)}
-                value={member.role}
-                data-testid="user-role"
-              >
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-              </Dropdown>
-              {i >= 0 && allowDelete && (
-                <Icon
-                  icon={faMinusCircle}
-                  onClick={() => handleMemberDelete(i)}
-                  title="Delete"
-                  data-testid="delete-user-role"
-                />
-              )}
-            </MemberContainer>
-          </>
+          <MemberContainer key={member.id}>
+            <div>
+              <AsyncSelect
+                loadOptions={throttledIdirSearch}
+                onChange={(option: SingleValue<{ value: string; label: string }>) => handleEmailChange(option, i)}
+                noOptionsMessage={() => 'Start typing email...'}
+                className="email-select"
+                menuPlacement="top"
+                maxMenuHeight={120}
+                classNamePrefix={'select-inner'}
+                placeholder={'Enter email address'}
+              />
+              {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
+            </div>
+            <Dropdown
+              label="Role"
+              onChange={(e: any) => handleRoleChange(i, e)}
+              value={member.role}
+              data-testid="user-role"
+            >
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+            </Dropdown>
+            {i >= 0 && allowDelete && (
+              <Icon
+                icon={faMinusCircle}
+                onClick={() => handleMemberDelete(i)}
+                title="Delete"
+                data-testid="delete-user-role"
+              />
+            )}
+          </MemberContainer>
         ))}
         <AddMemberButton onClick={handleAddMember}>
           <FontAwesomeIcon

@@ -27,7 +27,8 @@ import DigitalCredentialPanel from './DigitalCredentialPanel';
 import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import { wikiURL } from '@app/utils/constants';
+import LogsPanel from './LogsPanel';
+import { formatWikiURL } from 'utils/constants';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -61,6 +62,7 @@ const TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT = 'service-account-role-management';
 const TAB_SECRET = 'secret';
 const TAB_HISTORY = 'history';
 const TAB_METRICS = 'metrics';
+const TAB_LOGS = 'Logs';
 
 const joinEnvs = (integration: Integration) => {
   if (!integration?.environments) return '';
@@ -222,7 +224,7 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
         <br />
         <div>
           Please visit our{' '}
-          <Link external href={`${wikiURL}/Creating-a-Role`}>
+          <Link external href={formatWikiURL('Creating-a-Role')}>
             wiki page
           </Link>{' '}
           for more information on roles.
@@ -268,6 +270,16 @@ const getMetricsTab = ({ integration }: { integration: Integration }) => {
     <Tab key={TAB_METRICS} tab="Metrics">
       <TabWrapper short={false}>
         <MetricsPanel integration={integration} />
+      </TabWrapper>
+    </Tab>
+  );
+};
+
+const getLogsTab = ({ integration }: { integration: Integration }) => {
+  return (
+    <Tab key={TAB_LOGS} tab="Logs">
+      <TabWrapper short={false}>
+        <LogsPanel integration={integration} />
       </TabWrapper>
     </Tab>
   );
@@ -392,6 +404,9 @@ function IntegrationInfoTabs({ integration }: Props) {
 
     tabs.push(getMetricsTab({ integration }));
     allowedTabs.push(TAB_METRICS);
+
+    tabs.push(getLogsTab({ integration }));
+    allowedTabs.push(TAB_LOGS);
   }
 
   let activeKey = activeTab;
