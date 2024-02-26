@@ -1,6 +1,64 @@
-import axios from 'axios';
 import { createIdirUser } from '../keycloak/users';
+import { ConfidentialClientApplication, IConfidentialClientApplication } from '@azure/msal-node';
+import { MS_GRAPH_URL } from '@lambda-app/utils/constants';
+import axios from 'axios';
 
+let msalInstance: IConfidentialClientApplication;
+
+const msalConfig = {
+  auth: {
+    authority: process.env.MS_GRAPH_API_AUTHORITY || '',
+    clientId: process.env.MS_GRAPH_API_CLIENT_ID || '',
+    clientSecret: process.env.MS_GRAPH_API_CLIENT_SECRET || '',
+  },
+};
+
+export async function getAzureAccessToken() {
+  const request = {
+    scopes: [`${MS_GRAPH_URL}/.default`],
+  };
+
+  try {
+    if (!msalInstance) {
+      msalInstance = new ConfidentialClientApplication(msalConfig);
+    }
+
+    const response = await msalInstance.acquireTokenByClientCredential(request);
+    return response?.accessToken;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error acquiring access token');
+  }
+}
+
+/**
+ * Search idir users by email via the azure graph api
+ * @param endpoint - The url to hit
+ * @returns
+ */
+export async function callAzureGraphApi(endpoint: string) {
+  const accessToken = await getAzureAccessToken();
+  const options = {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ConsistencyLevel: 'eventual',
+    },
+  };
+  try {
+    const response = await axios.get(endpoint, options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+}
+
+export const fuzzySearchIdirEmail = async (email: string) => {
+  const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(mail,'${email}')&$orderby=userPrincipalName&$count=true&$top=25`;
+  return callAzureGraphApi(url).then((res) => res.value?.map((value) => ({ mail: value.mail, id: value.id })));
+};
+
+/**Search IDIR users using the bceid service by a general field and value */
 export const searchIdirUsers = async (bearerToken: string, { field, search }: { field: string; search: string }) => {
   const results = await axios
     .post(

@@ -31,12 +31,32 @@ variable "include_digital_credential" {
 variable "grafana_api_token" {
   description = "API token for the grafana service account."
   type        = string
+  sensitive   = true
 }
 
 variable "grafana_api_url" {
   description = "Base url to call the grafana api"
   type        = string
 }
+
+variable "ms_graph_api_authority" {
+  description = "API authority for microsoft azure idir lookup"
+  type        = string
+  sensitive   = true
+}
+
+variable "ms_graph_api_client_id" {
+  description = "Client ID for microsoft azure idir lookup"
+  type        = string
+  sensitive   = true
+}
+
+variable "ms_graph_api_client_secret" {
+  description = "Client secret for microsoft azure idir lookup"
+  type        = string
+  sensitive   = true
+}
+
 
 variable "sso_client_id" {
   description = "The required audience for authentication"
