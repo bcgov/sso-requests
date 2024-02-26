@@ -112,10 +112,10 @@ describe('Members tab', () => {
     expect(screen.findByRole('option', { name: 'Member' }));
 
     fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
-    expect(screen.queryAllByPlaceholderText('Enter email address')).toHaveLength(3);
+    expect(screen.queryAllByText('Enter email address')).toHaveLength(3);
     const removeMember = screen.getAllByRole('img', { name: 'Delete' });
     fireEvent.click(removeMember[1]);
-    expect(screen.queryAllByPlaceholderText('Enter email address')).toHaveLength(2);
+    expect(screen.queryAllByText('Enter email address')).toHaveLength(2);
 
     const confirmButton = await screen.findByRole('button', { name: 'Confirm' });
     fireEvent.click(confirmButton);
