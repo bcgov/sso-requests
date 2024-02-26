@@ -234,7 +234,7 @@ describe('Error messages', () => {
   });
 });
 
-describe('Submission', () => {
+describe('Client Sessions', () => {
   it('Sends client session idle and max as seconds when making calls to the API', () => {
     setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
     const { developmentBox, adminReview } = sandbox;
@@ -259,6 +259,44 @@ describe('Submission', () => {
     expect(updateRequestCalls[0][0].devSessionIdleTimeout).toBe(idleTimeout * 60);
     expect(updateRequestCalls[0][0].devSessionMaxLifespan).toBe(maxLifespan * 60);
     expect(updateRequest).toHaveBeenCalled();
+  });
+
+  it('Prevents non-admins from updating client session settings', () => {
+    setUpRender(sampleRequest, { client_roles: [], isAdmin: false });
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
+
+    expect(clientIdleInput).toBeDisabled();
+    expect(clientMaxInput).toBeDisabled();
+  });
+
+  it('Handles non-numeric and negative input appropriately', () => {
+    setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLInputElement;
+    const baseValue = clientIdleInput.value;
+
+    // Text does not change value
+    fireEvent.change(clientIdleInput, { target: { value: 'stringnumber' } });
+    expect(clientIdleInput.value).toBe(baseValue);
+
+    // Negative numbers not allowed
+    fireEvent.change(clientIdleInput, { target: { value: '-10' } });
+    expect(clientIdleInput.value).toBe(baseValue);
+
+    // Allows backspace. Being unable to clear the 0 kills me
+    fireEvent.change(clientIdleInput, { target: { value: '' } });
+    expect(clientIdleInput.value).toBe('');
+
+    // Defaults back to 0 if field left empty
+    fireEvent.change(clientIdleInput, { target: { value: '' } });
+    fireEvent.blur(clientIdleInput);
+    expect(clientIdleInput.value).toBe('0');
   });
 });
 
