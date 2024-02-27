@@ -226,15 +226,15 @@ The integration that must be created is: "Test Automation do not delete".
 To delete old data run:
 
 ```
-npm run delete
-npm run deleteteams
+npm run delete:local
+npm run deleteteams:local
 ```
 
 These many not complete successfully, but that will not block the actual tests.
 
 To run all the integration tests, use the command:
 
-`npm run integrations`
+`npm run integrations:local`
 
 ## Committing
 
