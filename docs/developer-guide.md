@@ -202,7 +202,7 @@ Confirm the containers are up using `docker ps`, there should be six containers 
 
 #### Step 2) Configure cypres environment
 
-Pull a copy of the [sso-requests-e2e](https://github.com/bcgov/sso-requests-e2e/) repo. The config will need to be changed in two places for the tests to run against the local CSS app. In the file `/testing/cypress.env.json` set `{"host": "http://localhost:3000", "smoketest": true, "localtest": true}`, and in `/testing/cypress.config.ts` set `baseUrl: 'http://localhost:3000/`.
+Pull a copy of the [sso-requests-e2e](https://github.com/bcgov/sso-requests-e2e/) repo. The environment will need to be changed to run against the local CSS app. In the file `/testing/cypress.env.json` set `{"host": "http://localhost:3000", "smoketest": true, "localtest": true}`.
 
 #### Step 3) Configure the initial test data
 
@@ -226,15 +226,15 @@ The integration that must be created is: "Test Automation do not delete".
 To delete old data run:
 
 ```
-npm run delete
-npm run deleteteams
+npm run delete:local
+npm run deleteteams:local
 ```
 
 These many not complete successfully, but that will not block the actual tests.
 
 To run all the integration tests, use the command:
 
-`npm run integrations`
+`npm run integrations:local`
 
 ## Committing
 
