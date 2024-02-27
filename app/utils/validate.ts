@@ -25,6 +25,8 @@ export const isValidKeycloakURIDev = isValidKeycloakURI.bind(null, false);
 export const isValidKeycloakURIProd = isValidKeycloakURI.bind(null, true);
 
 const validationMessage = 'Please enter a valid URI';
+export const MAX_IDLE_SECONDS = 30 * 60;
+export const MAX_LIFETIME_SECONDS = 600 * 60;
 
 export const customValidate = (formData: any, errors: FormValidation, fields?: string[]) => {
   const {
@@ -43,7 +45,29 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     devIdps = [],
     protocol = 'oidc',
     projectLead,
+    devSessionIdleTimeout,
+    testSessionIdleTimeout,
+    prodSessionIdleTimeout,
+    devSessionMaxLifespan,
+    testSessionMaxLifespan,
+    prodSessionMaxLifespan,
   } = formData;
+
+  const sessionIdleTimeout = (value: number, key: string) => {
+    return () => {
+      if (value > MAX_IDLE_SECONDS) {
+        errors[key].addError(`Must be ${MAX_IDLE_SECONDS / 60} minutes or fewer.`);
+      }
+    };
+  };
+
+  const sessionMaxLifespan = (value: number, key: string) => {
+    return () => {
+      if (value > MAX_LIFETIME_SECONDS) {
+        errors[key].addError(`Must be ${MAX_LIFETIME_SECONDS / 60} minutes or fewer.`);
+      }
+    };
+  };
 
   const fieldMap: any = {
     projectName: () => {
@@ -51,6 +75,12 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
         errors['projectName'].addError('Please have your project name start with a letter');
       }
     },
+    devSessionIdleTimeout: sessionIdleTimeout(devSessionIdleTimeout, 'devSessionIdleTimeout'),
+    testSessionIdleTimeout: sessionIdleTimeout(testSessionIdleTimeout, 'testSessionIdleTimeout'),
+    prodSessionIdleTimeout: sessionIdleTimeout(prodSessionIdleTimeout, 'prodSessionIdleTimeout'),
+    devSessionMaxLifespan: sessionMaxLifespan(devSessionMaxLifespan, 'devSessionMaxLifespan'),
+    testSessionMaxLifespan: sessionMaxLifespan(testSessionMaxLifespan, 'testSessionMaxLifespan'),
+    prodSessionMaxLifespan: sessionMaxLifespan(prodSessionMaxLifespan, 'prodSessionMaxLifespan'),
     devValidRedirectUris: () => {
       const isAllValid = devValidRedirectUris.every(isValidKeycloakURIDev);
       if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURIDev);
