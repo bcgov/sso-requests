@@ -174,7 +174,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (session) {
       const interval = setInterval(async () => {
         const tokenPayload = parseJWTPayload(getTokens().refresh_token);
-        if (Date.now() >= tokenPayload.exp * 1000) {
+        if (Date.now() >= tokenPayload?.exp * 1000) {
           setRefreshTokenState('expired');
           sessionExpiringModalRef.current.close();
           sessionExpiredModalRef.current.open();

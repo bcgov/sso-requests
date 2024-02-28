@@ -24,5 +24,7 @@ CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 LICENSE
 *.lock
-node_modules
-.env
+**/node_modules
+**/.env
+**/.next
+**/.terraform
