@@ -1,6 +1,6 @@
 import { createIdirUser } from '../keycloak/users';
 import { ConfidentialClientApplication, IConfidentialClientApplication } from '@azure/msal-node';
-import { MS_GRAPH_URL } from '@lambda-app/utils/constants';
+import { CYPRESS_MOCKED_IDIR_LOOKUP, MS_GRAPH_URL } from '@lambda-app/utils/constants';
 import axios from 'axios';
 
 let msalInstance: IConfidentialClientApplication;
@@ -54,6 +54,9 @@ export async function callAzureGraphApi(endpoint: string) {
 }
 
 export const fuzzySearchIdirEmail = async (email: string) => {
+  if (process.env.CYPRESS_RUNNER) {
+    return CYPRESS_MOCKED_IDIR_LOOKUP;
+  }
   const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(mail,'${email}')&$orderby=userPrincipalName&$count=true&$top=25`;
   return callAzureGraphApi(url).then((res) => res.value?.map((value) => ({ mail: value.mail, id: value.id })));
 };
