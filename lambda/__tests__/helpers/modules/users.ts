@@ -18,3 +18,7 @@ export const deleteInactiveUsers = async (userData: any) => {
     .set('Accept', 'application/json')
     .set('Authorization', 'test');
 };
+
+export const searchIdirUsers = async (email: any) => {
+  return supertest(app).get(`${APP_BASE_PATH}/idir-users?email=${email}`);
+};

@@ -18,7 +18,7 @@ services:
     container_name: sso-portal-ui
     image: sso-requests:latest
     entrypoint: yarn
-    command: ['--cwd', './app', 'dev']
+    command: ['--cwd', './app', 'docker-build']
     ports:
       - 3000:3000
     environment:
@@ -65,6 +65,12 @@ services:
       KEYCLOAK_V2_DEV_USERNAME: admin
       KEYCLOAK_V2_DEV_PASSWORD: admin
       KEYCLOAK_V2_DEV_URL: http://dev-keycloak:9080
+      KEYCLOAK_V2_TEST_USERNAME: admin
+      KEYCLOAK_V2_TEST_PASSWORD: admin
+      KEYCLOAK_V2_TEST_URL: http://test-keycloak:9081
+      KEYCLOAK_V2_PROD_USERNAME: admin
+      KEYCLOAK_V2_PROD_PASSWORD: admin
+      KEYCLOAK_V2_PROD_URL: http://prod-keycloak:9082
       GH_BRANCH: main
       GH_OWNER: bcgov
       CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email
@@ -78,6 +84,7 @@ services:
       GRAFANA_API_TOKEN: s3cr3t
       GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
       GOLD_IP_ADDRESS: '142.34.229.4'
+      CYPRESS_RUNNER: 'true'
     networks:
       css-net:
         aliases: [sso-requests-api]
@@ -104,27 +111,115 @@ services:
       css-net:
         aliases: ['dev-keycloak.localtest.me']
 
+  test-keycloak:
+    container_name: test-keycloak
+    image: ghcr.io/bcgov/sso:dev
+    depends_on:
+      - sso-db
+    ports:
+      - 9081:9081
+    environment:
+      DB_POSTGRESQL_SERVICE_HOST: sso-db
+      DB_POSTGRESQL_SERVICE_PORT: 5432
+      DB_USERNAME: keycloak
+      DB_PASSWORD: keycloak
+      DB_DATABASE: keycloak-test
+      SSO_ADMIN_USERNAME: admin
+      SSO_ADMIN_PASSWORD: admin
+      TZ: America/Vancouver
+      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1001 -Djboss.persistent.log.dir=/opt/eap'
+      KC_HEALTH_ENABLED: 'true'
+    networks:
+      css-net:
+        aliases: ['test-keycloak.localtest.me']
+
+  prod-keycloak:
+    container_name: prod-keycloak
+    image: ghcr.io/bcgov/sso:dev
+    depends_on:
+      - sso-db
+    ports:
+      - 9082:9082
+    environment:
+      DB_POSTGRESQL_SERVICE_HOST: sso-db
+      DB_POSTGRESQL_SERVICE_PORT: 5432
+      DB_USERNAME: keycloak
+      DB_PASSWORD: keycloak
+      DB_DATABASE: keycloak-prod
+      SSO_ADMIN_USERNAME: admin
+      SSO_ADMIN_PASSWORD: admin
+      TZ: America/Vancouver
+      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1002 -Djboss.persistent.log.dir=/opt/eap'
+      KC_HEALTH_ENABLED: 'true'
+    networks:
+      css-net:
+        aliases: ['prod-keycloak.localtest.me']
+
   dev-kc-migration:
     container_name: dev-kc-migration
     depends_on:
       - dev-keycloak
     image: tf-modules-migrator:latest
     environment:
-      TF_VAR_keycloak_url: http://dev-keycloak.localtest.me:9080
+      HEALTH_CHECK_URL: http://dev-keycloak.localtest.me:9080
+      TF_VAR_keycloak_url: http://dev-keycloak:9080
       TF_VAR_username: admin
       TF_VAR_password: admin
+      KC_ENV: dev
     build:
       context: .
       dockerfile: ./Dockerfile.tf-modules
     volumes:
-      - sso-kc-terraform:/terraform
+      - sso-kc-terraform-dev:/terraform
     networks:
       - css-net
+
+  test-kc-migration:
+    container_name: test-kc-migration
+    depends_on:
+      - test-keycloak
+    image: tf-modules-migrator:latest
+    environment:
+      HEALTH_CHECK_URL: http://test-keycloak.localtest.me:9081
+      TF_VAR_keycloak_url: http://test-keycloak:9081
+      TF_VAR_username: admin
+      TF_VAR_password: admin
+      KC_ENV: test
+    build:
+      context: .
+      dockerfile: ./Dockerfile.tf-modules
+    volumes:
+      - sso-kc-terraform-test:/terraform
+    networks:
+      - css-net
+
+  prod-kc-migration:
+    container_name: prod-kc-migration
+    depends_on:
+      - prod-keycloak
+    image: tf-modules-migrator:latest
+    environment:
+      HEALTH_CHECK_URL: http://prod-keycloak.localtest.me:9082
+      TF_VAR_keycloak_url: http://prod-keycloak:9082
+      TF_VAR_username: admin
+      TF_VAR_password: admin
+      KC_ENV: prod
+    build:
+      context: .
+      dockerfile: ./Dockerfile.tf-modules
+    volumes:
+      - sso-kc-terraform-prod:/terraform
+    networks:
+      - css-net
+
 volumes:
   sso-requests-data:
     driver: local
-  sso-kc-terraform:
+  sso-kc-terraform-dev:
     driver: local
-
+  sso-kc-terraform-test:
+    driver: local
+  sso-kc-terraform-prod:
+    driver: local
 networks:
   css-net: {}

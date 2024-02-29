@@ -121,7 +121,10 @@ export default function getSchemas(formData: Integration) {
         }
       : {};
 
-    const customValidation = hasLoginFlow ? [redirectUriField, samlLogoutPostBindingUriField] : [];
+    const sharedCustomFields = [`${env}SessionIdleTimeout`, `${env}SessionMaxLifespan`];
+    const customValidation = hasLoginFlow
+      ? [...sharedCustomFields, redirectUriField, samlLogoutPostBindingUriField]
+      : sharedCustomFields;
 
     let fineGrainEndpointConfig: any = {};
 

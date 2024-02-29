@@ -223,6 +223,9 @@ jobs:
           grafana_api_url="${{ env.GRAFANA_API_URL }}"
           include_digital_credential="${{ env.INCLUDE_DIGITAL_CREDENTIAL }}"
           rc_webhook="${{ secrets.RC_SSO_OPS_WEBHOOK }}"
+          ms_graph_api_authority="${{secrets.MS_GRAPH_API_AUTHORITY}}"
+          ms_graph_api_client_id="${{secrets.MS_GRAPH_API_CLIENT_ID}}"
+          ms_graph_api_client_secret="${{secrets.MS_GRAPH_API_CLIENT_SECRET}}"
           EOF
 
         working-directory: ./terraform

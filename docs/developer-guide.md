@@ -182,9 +182,59 @@ For the backend application, run:
 
 ### Cypress tests
 
-We now have a cypress test suite built out. To test out new CSS app changes:
+We now have a cypress test suite built out. These can be run against a local version of the app using the docker instances.
 
-TO BE WRITTEN
+#### Step 0) Requirements
+
+- nodejs version 18
+- docker-compose 2.24.6
+
+#### Step 1) Run app locally
+
+Using `docker-compose`, run the app locally.
+
+```
+docker-compose build
+docker-compose up
+```
+
+Confirm the containers are up using `docker ps`, there should be six containers running. Confirm the standard realm has been created in the keycloak containers. Local username and password are created by the docker-compose file.
+
+#### Step 2) Configure cypres environment
+
+Pull a copy of the [sso-requests-e2e](https://github.com/bcgov/sso-requests-e2e/) repo. The environment will need to be changed to run against the local CSS app. In the file `/testing/cypress.env.json` set `{"host": "http://localhost:3000", "smoketest": true, "localtest": true}`.
+
+#### Step 3) Configure the initial test data
+
+Currently there are two pieces of seed data needed in the test environment for the tests to run. Any time the local database volumes are purged they will need to be recreated. There is a WIP to automate this using cypress, the documentation will be updated when this is possible.
+
+There is a WIP to do this using cypress, however until that change is merged we need to create a team and integration manually.
+
+Log into the local css app with the default account from the `cypress.config.ts` file.
+
+The team name is: "Roland and Training Account" and and admin with email "pathfinder.ssotraining2@gov.bc.ca" is added to that team.
+
+The integration that must be created is: "Test Automation do not delete".
+
+- Connect it to the "Roland and Training Account" team.
+- It needs three IDPs "Idir", "Idir - MFA", and "Basic or Business BCeID".
+- It is integrated with dev, test, and prod.
+- The redirect urls are `*`, `*`, `any-valid-url.com`.
+
+#### Step 4) Run the tests.
+
+To delete old data run:
+
+```
+npm run delete:local
+npm run deleteteams:local
+```
+
+These many not complete successfully, but that will not block the actual tests.
+
+To run all the integration tests, use the command:
+
+`npm run integrations:local`
 
 ## Committing
 

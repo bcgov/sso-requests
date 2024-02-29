@@ -1,8 +1,8 @@
 #!/bin/sh
 
-while [ ! $(curl -s -o /dev/null -w "%{http_code}" "$TF_VAR_keycloak_url/auth/realms/master") -eq 200 ]; do
+while [ ! $(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_CHECK_URL/auth/realms/master") -eq 200 ]; do
   sleep 5
-  echo "keycloak is not up yet"
+  echo "keycloak $KC_ENV is not up yet using $HEALTH_CHECK_URL"
 done
 
 echo "keycloak is up"
