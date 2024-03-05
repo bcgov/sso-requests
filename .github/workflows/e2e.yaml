@@ -1,0 +1,20 @@
+name: Lint PR
+
+on:
+  # pull_request_target:
+  #   types:
+  #     - opened
+  #     - edited
+  #     - synchronize
+  push:
+    branches:
+      - ssoteam-1572
+
+jobs:
+  trigger-remote-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: 'bcgov/sso-requests-e2e'
+      - run: ls
