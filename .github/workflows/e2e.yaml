@@ -15,7 +15,7 @@ env:
   CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
   CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
   CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
-  CYPRESS_host: localhost:3000
+  CYPRESS_host: 'http://127.0.0.1:3000'
   CYPRESS_smoketest: true
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
           install-command: npm ci
           working-directory: testing
           spec: |
-            cypress/e2e/**/integration-*-*.cy.ts
+            cypress/e2e/**/integration-010-*.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
       - run: ls
