@@ -15,7 +15,7 @@ env:
   CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
   CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
   CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
-  CYPRESS_host: 'http://127.0.0.1:3000'
+  CYPRESS_host: 'http://localhost:3000'
   CYPRESS_smoketest: true
 
 jobs:
@@ -33,8 +33,8 @@ jobs:
           repository: 'bcgov/sso-requests-e2e'
       # - run: |
       #     sleep 300
-      #     echo "127.0.0.1"
-      #     curl http://127.0.0.1:3000 || true
+      #     echo "localhost"
+      #     curl http://localhost:3000 || true
       - name: E2E Smoke tests
         uses: cypress-io/github-action@v6
         id: smoke
@@ -42,7 +42,7 @@ jobs:
         with:
           summary-title: 'E2E Smoke tests'
           record: false
-          wait-on: 'http://127.0.0.1:3000'
+          wait-on: 'http://localhost:3000'
           wait-on-timeout: 180
           install-command: npm ci
           working-directory: testing
