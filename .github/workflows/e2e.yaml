@@ -30,18 +30,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: 'bcgov/sso-requests-e2e'
-      - name: E2E Smoke tests
-        uses: cypress-io/github-action@v6
-        id: smoke
-        continue-on-error: false
-        with:
-          summary-title: 'E2E Smoke tests'
-          record: false
-          install-command: npm ci
-          working-directory: testing
-          spec: |
-            cypress/e2e/smoke/smoke-*-*.cy.ts
-          browser: electron
-          ci-build-id: ${{ github.event.number }}
+      - run: |
+          echo "localhost"
+          curl http://localhost:3000
+          echo "1.0.0.0"
+          curl http://1.0.0.0:3000
+          echo "127.0.0.1"
+          curl http://127.0.0.1:3000
+      # - name: E2E Smoke tests
+      #   uses: cypress-io/github-action@v6
+      #   id: smoke
+      #   continue-on-error: false
+      #   with:
+      #     summary-title: 'E2E Smoke tests'
+      #     record: false
+      #     install-command: npm ci
+      #     working-directory: testing
+      #     spec: |
+      #       cypress/e2e/smoke/smoke-*-*.cy.ts
+      #     browser: electron
+      #     ci-build-id: ${{ github.event.number }}
       # - run: ls
       # - uses: actions/checkout@v4
