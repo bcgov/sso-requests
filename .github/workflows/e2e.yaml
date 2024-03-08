@@ -36,8 +36,6 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E Smoke tests'
-          wait-on: localhost:3000
-          wait-on-timeout: 120
           record: true
           install-command: npm ci
           working-directory: testing
