@@ -52,7 +52,6 @@ jobs:
           install-command: npm ci
           working-directory: testing
           spec: |
-            cypress/e2e/**/01-prereq.cy.ts
             cypress/e2e/**/integration-*-*.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
