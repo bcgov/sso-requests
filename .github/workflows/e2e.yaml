@@ -53,6 +53,7 @@ jobs:
           working-directory: testing
           spec: |
             cypress/e2e/**/prereq.cy.ts
+            cypress/e2e/**/integration-*-*.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
       - uses: actions/checkout@v4
