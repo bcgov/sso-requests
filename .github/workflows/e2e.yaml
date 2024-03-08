@@ -43,6 +43,7 @@ jobs:
           summary-title: 'E2E Smoke tests'
           record: false
           wait-on: 'http://127.0.0.1:3000'
+          wait-on-timeout: 180
           install-command: npm ci
           working-directory: testing
           spec: |
