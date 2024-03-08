@@ -19,7 +19,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_host: 'http://localhost:3000'
   CYPRESS_smoketest: true
-  CYPRESS_localtest: true
+  CYPRESS_localtest: 'true'
 
 jobs:
   smoke-test:
@@ -53,5 +53,4 @@ jobs:
             cypress/e2e/**/integration-010-*.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
-      - run: ls
       - uses: actions/checkout@v4
