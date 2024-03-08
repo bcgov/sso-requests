@@ -1,14 +1,11 @@
 name: Run E2E tests
 
 on:
-  # pull_request_target:
-  #   types:
-  #     - opened
-  #     - edited
-  #     - synchronize
-  push:
-    branches:
-      - ssoteam-1572
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
@@ -19,14 +16,14 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_host: 'http://localhost:3000'
   CYPRESS_smoketest: true
-  CYPRESS_localtest: 'true'
+  CYPRESS_localtest: true
   CYPRESS_BASE_URL: 'http://localhost:3000'
 
 jobs:
   smoke-test:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false # https://github.com/cypress-io/github-action/issues/48
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - uses: isbang/compose-action@v1.5.1
@@ -36,10 +33,6 @@ jobs:
         with:
           repository: 'bcgov/sso-requests-e2e'
           ref: 'fix/prereqs'
-      # - run: |
-      #     sleep 300
-      #     echo "localhost"
-      #     curl http://localhost:3000 || true
       - name: E2E Smoke tests
         uses: cypress-io/github-action@v6
         id: smoke
@@ -58,4 +51,3 @@ jobs:
             cypress/e2e/**/integration-990-deleteAllIntegrations.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
-      - uses: actions/checkout@v4
