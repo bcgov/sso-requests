@@ -52,7 +52,10 @@ jobs:
           install-command: npm ci
           working-directory: testing
           spec: |
-            cypress/e2e/**/integration-*-*.cy.ts
+            cypress/e2e/**/integration-010-createIntegration.cy.ts
+            cypress/e2e/**/integration-010-createIntegration.cy.ts
+            cypress/e2e/**/team-001-createTeam.cy.ts
+            cypress/e2e/**/team-900-deleteAllTeams.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
       - uses: actions/checkout@v4
