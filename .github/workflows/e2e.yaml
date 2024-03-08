@@ -31,10 +31,6 @@ jobs:
         with:
           repository: 'bcgov/sso-requests-e2e'
       - run: |
-          echo "localhost"
-          curl http://localhost:3000 || true
-          echo "1.0.0.0"
-          curl http://1.0.0.0:3000 || true
           echo "127.0.0.1"
           curl http://127.0.0.1:3000 || true
       # - name: E2E Smoke tests
