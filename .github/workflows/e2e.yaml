@@ -1,11 +1,14 @@
 name: Run E2E tests
 
 on:
-  pull_request_target:
-    types:
-      - opened
-      - edited
-      - synchronize
+  # pull_request_target:
+  #   types:
+  #     - opened
+  #     - edited
+  #     - synchronize
+  push:
+    branches:
+      - ssoteam-1571
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
@@ -32,13 +35,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: 'bcgov/sso-requests-e2e'
-          ref: 'fix/prereqs'
-      - name: E2E Smoke tests
+      - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
         continue-on-error: false
         with:
-          summary-title: 'E2E Smoke tests'
+          summary-title: 'E2E tests'
           record: true
           wait-on: 'http://localhost:3000'
           wait-on-timeout: 180
@@ -46,8 +48,6 @@ jobs:
           working-directory: testing
           spec: |
             cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
-            cypress/e2e/**/integration-010-createIntegration.cy.ts
-            cypress/e2e/**/team-001-createTeam.cy.ts
-            cypress/e2e/**/integration-990-deleteAllIntegrations.cy.ts
+            cypress/e2e/ci/*.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
