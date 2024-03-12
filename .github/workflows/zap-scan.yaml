@@ -12,15 +12,6 @@ on:
           - info
           - warning
           - debug
-  # Only trigger, when the build workflow succeeded
-  workflow_run:
-    workflows:
-      - Terraform
-    branches:
-      - dev
-    types:
-      - completed
-
 jobs:
   zap-scan:
     runs-on: ubuntu-latest
