@@ -20,6 +20,9 @@ on:
       - dev
     types:
       - completed
+    paths:
+      - app/**
+      - lambda/**
 
 jobs:
   trigger-remote-workflow:

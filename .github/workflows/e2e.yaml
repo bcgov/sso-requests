@@ -6,6 +6,9 @@ on:
       - opened
       - edited
       - synchronize
+    paths:
+      - app/**
+      - lambda/**
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
