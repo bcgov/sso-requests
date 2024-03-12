@@ -22,7 +22,7 @@ jobs:
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
-      - uses: iFaxity/wait-on-action
+      - uses: iFaxity/wait-on-action@v1.1.0
         with:
           resource: http://localhost:3000
           delay: 20000
