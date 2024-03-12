@@ -1,14 +1,11 @@
 name: Run E2E tests
 
 on:
-  # pull_request_target:
-  #   types:
-  #     - opened
-  #     - edited
-  #     - synchronize
-  push:
-    branches:
-      - ssoteam-1571
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
