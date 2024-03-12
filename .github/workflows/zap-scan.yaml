@@ -25,8 +25,6 @@ jobs:
       - uses: iFaxity/wait-on-action@v1.1.0
         with:
           resource: http://localhost:3000
-          delay: 20000
-          timeout: 60000
       - name: ZAP Scan App
         uses: zaproxy/action-full-scan@v0.9.0
         with:
