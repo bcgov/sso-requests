@@ -18,7 +18,7 @@ services:
     container_name: sso-portal-ui
     image: sso-requests:latest
     entrypoint: yarn
-    command: ['--cwd', './app', 'dev']
+    command: ['--cwd', './app', 'docker-build']
     ports:
       - 3000:3000
     environment:
@@ -84,6 +84,7 @@ services:
       GRAFANA_API_TOKEN: s3cr3t
       GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
       GOLD_IP_ADDRESS: '142.34.229.4'
+      CYPRESS_RUNNER: 'true'
     networks:
       css-net:
         aliases: [sso-requests-api]

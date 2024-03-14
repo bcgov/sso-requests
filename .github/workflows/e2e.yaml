@@ -1,0 +1,53 @@
+name: Run E2E tests
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+    paths:
+      - app/**
+      - lambda/**
+
+env:
+  CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+  CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
+  CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
+  CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
+  CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CYPRESS_host: 'http://localhost:3000'
+  CYPRESS_smoketest: true
+  CYPRESS_localtest: true
+  CYPRESS_BASE_URL: 'http://localhost:3000'
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: isbang/compose-action@v1.5.1
+        with:
+          compose-file: './docker-compose.yml'
+      - uses: actions/checkout@v4
+        with:
+          repository: 'bcgov/sso-requests-e2e'
+      - name: E2E Tests
+        uses: cypress-io/github-action@v6
+        id: smoke
+        continue-on-error: false
+        with:
+          summary-title: 'E2E tests'
+          record: true
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 180
+          install-command: npm ci
+          working-directory: testing
+          spec: |
+            cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
+            cypress/e2e/ci/*.cy.ts
+          browser: electron
+          ci-build-id: ${{ github.event.number }}
