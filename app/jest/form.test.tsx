@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within, prettyDOM } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
@@ -7,7 +7,6 @@ import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
-import { JestAxe } from 'jest-axe';
 
 const formButtonText = ['Next', 'Save and Close'];
 
@@ -18,10 +17,7 @@ jest.mock('next/router', () => ({
 jest.mock('services/request', () => {
   return {
     createRequest: jest.fn(),
-    updateRequest: jest.fn(() => {
-      console.log('what the hell');
-      return Promise.resolve([{}, null]);
-    }),
+    updateRequest: jest.fn(() => Promise.resolve([{}, null])),
     getRequest: jest.fn(),
   };
 });
