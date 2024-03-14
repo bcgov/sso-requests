@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, prettyDOM } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
@@ -7,6 +7,7 @@ import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
+import { JestAxe } from 'jest-axe';
 
 const formButtonText = ['Next', 'Save and Close'];
 
@@ -17,7 +18,10 @@ jest.mock('next/router', () => ({
 jest.mock('services/request', () => {
   return {
     createRequest: jest.fn(),
-    updateRequest: jest.fn(() => Promise.resolve([{}, null])),
+    updateRequest: jest.fn(() => {
+      console.log('what the hell');
+      return Promise.resolve([{}, null]);
+    }),
     getRequest: jest.fn(),
   };
 });
@@ -83,6 +87,31 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => document.querySelector("svg[testid='rotating-lines-svg']"));
     // wait for spinner to change to checkmark
     await waitFor(() => document.querySelector("svg[icon='check']"));
+  });
+
+  it('Should call the update function with the most recent data', async () => {
+    setUpRender({ id: 1, status: 'draft', protocol: 'oidc', authType: 'browser-login' });
+    fireEvent.click(sandbox.basicInfoBox);
+    jest.clearAllMocks();
+
+    const THROTTLE_TIMEOUT = 2000;
+
+    const publicAccessRadioButton = document.querySelector('#root_publicAccess-Public') as HTMLElement;
+    const serviceAccountRadioButton = document.querySelector('input[value="service-account"]') as HTMLElement;
+
+    // Set access public, then switch to service account. API request should have the updated value as confidential.
+    fireEvent.click(publicAccessRadioButton);
+    fireEvent.click(serviceAccountRadioButton);
+
+    // Wait for the throttle to catch all api calls
+    await new Promise((res, rej) => {
+      setTimeout(() => {
+        res(true);
+      }, THROTTLE_TIMEOUT);
+    });
+
+    expect((updateRequest as jest.Mock).mock.calls[0].length).toBe(1);
+    expect((updateRequest as jest.Mock).mock.calls[0][0].publicAccess).toBe(false);
   });
 
   it('Should advance the form when clicking next', async () => {

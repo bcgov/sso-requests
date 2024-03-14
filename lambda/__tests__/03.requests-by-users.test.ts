@@ -169,6 +169,25 @@ describe('create/manage integration by authenticated user', () => {
       expect(sendEmail).toHaveBeenCalled();
     });
 
+    it('Should not allow public service accounts', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const integrationClone = { ...integration };
+
+      integrationClone.authType = 'service-account';
+      integrationClone.publicAccess = true;
+      let result = await updateIntegration(getUpdateIntegrationData({ integration: integrationClone }), true);
+      expect(result.status).toEqual(422);
+
+      integrationClone.authType = 'both';
+      result = await updateIntegration(getUpdateIntegrationData({ integration: integrationClone }), true);
+      expect(result.status).toEqual(422);
+
+      // Public is okay if browser-login auth type
+      integrationClone.authType = 'browser-login';
+      result = await updateIntegration(getUpdateIntegrationData({ integration: integrationClone }), true);
+      expect(result.status).toEqual(200);
+    });
+
     it('should allow to create a successful saml integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
 
