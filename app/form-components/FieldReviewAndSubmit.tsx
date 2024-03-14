@@ -23,7 +23,7 @@ export default function FieldReviewAndSubmit(props: FieldTemplateProps) {
         title={`Your ${hasBceid ? 'Dev and/or Test' : ''} environment(s) will be provided by the SSO Pathfinder team.`}
         number={2}
       >
-        <p>Once you submit the request, access will be provided in 20 minutes or fewer.</p>
+        <p>Upon submission of your request, access will be granted promptly, typically within seconds.</p>
       </NumberedContents>
       {hasBceidProd && (
         <NumberedContents number={3} title="Your Prod environment will be provided by the BCeID Team" showLine={false}>
