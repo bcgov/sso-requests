@@ -160,7 +160,7 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
 
   return {
     type: 'object',
-    customValidation: ['additionalRoleAttribute', 'clientId', 'devIdps'],
+    customValidation: ['additionalRoleAttribute', 'clientId', 'devIdps', 'authType'],
     headerText: 'Choose providers',
     stepText: 'Basic Info',
     properties,

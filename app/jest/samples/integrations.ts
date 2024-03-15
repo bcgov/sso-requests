@@ -18,4 +18,5 @@ export const sampleRequest: Integration = {
   serviceType: 'gold',
   primaryEndUsers: ['livingInBC'],
   primaryEndUsersOther: '',
+  authType: 'browser-login',
 };
