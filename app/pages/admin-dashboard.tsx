@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import startCase from 'lodash.startcase';
 import { faTrash, faEdit, faEye, faTrashRestoreAlt } from '@fortawesome/free-solid-svg-icons';
@@ -13,7 +13,12 @@ import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
-import { deleteServiceAccount, restoreServiceAccount } from '@app/services/team';
+import { deleteServiceAccount, getAllowedTeam, restoreServiceAccount } from '@app/services/team';
+import AsyncSelect from 'react-select/async';
+import { SingleValue } from 'react-select';
+import debounce from 'lodash.debounce';
+import { getIdirUsersByEmail } from '@app/services/user';
+import styled from 'styled-components';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -38,6 +43,131 @@ const pageLimits = [5, 10, 15, 30, 50, 100];
 function ActionsHeader() {
   return <span style={{ marginLeft: '40%' }}>Actions</span>;
 }
+
+const RequestRestorationContainer = styled.div`
+  label {
+    margin-bottom: 0.5em;
+  }
+  .error-text {
+    margin-top: 0.5em;
+    color: red;
+  }
+`;
+
+const throttledIdirSearch = debounce(
+  (email, cb) => {
+    if (email.length <= 2) {
+      cb([]);
+      return;
+    }
+    getIdirUsersByEmail(email).then(([data]) => cb(data?.map((user) => ({ value: user.id, label: user.mail })) || []));
+  },
+  300,
+  { trailing: true },
+);
+
+/**
+ * Component to control restoration. Rules are:
+ *  1. If the integration is team owned and the team still exists, restore it.
+ *  2. If the integration is team owned and the team does not exist, require an email.
+ *  3. If the integration is not team owned, require an email.
+ *  4. If the integration for a team service account, and the team is deleted, do not allow restoration.
+ */
+const RestoreModalContent = ({
+  selectedIntegration,
+  loadData,
+}: {
+  selectedIntegration?: Integration;
+  loadData: () => Promise<void>;
+}) => {
+  const [teamExists, setTeamExists] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedEmail, setSelectedEmail] = useState<string>('');
+  const [error, setError] = useState('');
+
+  const checkTeamExistence = async () => {
+    setLoading(true);
+    const [teamExists, _err] = await getAllowedTeam(String(selectedIntegration!.teamId));
+    setTeamExists(!!teamExists);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    setError('');
+    setSelectedEmail('');
+    if (selectedIntegration?.usesTeam) {
+      checkTeamExistence();
+    }
+  }, [selectedIntegration?.id]);
+
+  useEffect(() => {
+    setError('');
+  }, [selectedEmail]);
+
+  const confirmRestore = async () => {
+    const emailRequired = !(selectedIntegration?.usesTeam && teamExists);
+
+    if (emailRequired && !selectedEmail) {
+      setError('Please select an email address to restore the integration to.');
+      return;
+    }
+
+    if (selectedIntegration?.apiServiceAccount) {
+      await restoreServiceAccount(Number(selectedIntegration?.teamId), selectedIntegration?.id);
+    } else {
+      await restoreRequest(selectedIntegration?.id, selectedEmail);
+    }
+    await loadData();
+    handleClose();
+    window.location.hash = '#';
+  };
+
+  const handleClose = () => {
+    setSelectedEmail('');
+    setError('');
+  };
+
+  if (!selectedIntegration) return null;
+
+  let content: string | ReactNode = '';
+  if (loading) {
+    content = 'Checking if the team exists...';
+  } else if (selectedIntegration.usesTeam && teamExists) {
+    content = 'You are about to restore this integration.';
+  } else if (selectedIntegration.apiServiceAccount && !teamExists) {
+    content = 'Cannot restore this team account, team does not exist.';
+  } else {
+    content = (
+      <RequestRestorationContainer>
+        <label htmlFor="restoration-email-select">Select an email to assign the integration to.</label>
+        <AsyncSelect
+          loadOptions={throttledIdirSearch}
+          value={{ value: selectedEmail, label: selectedEmail }}
+          onChange={(option: SingleValue<{ value: string; label: string }>) => setSelectedEmail(option?.label || '')}
+          noOptionsMessage={() => 'Start typing email...'}
+          maxMenuHeight={120}
+          placeholder={'Enter email address'}
+          id="restoration-email-select"
+        />
+        {error && <p className="error-text">Select an email address</p>}
+      </RequestRestorationContainer>
+    );
+  }
+
+  return (
+    <CenteredModal
+      id="restore-modal"
+      data-testid="modal-restore-integration"
+      content={content}
+      onConfirm={confirmRestore}
+      confirmText="Restore"
+      title="Confirm Restoration"
+      skipCloseOnConfirm
+      showConfirm={!(selectedIntegration.apiServiceAccount && !teamExists)}
+      onClose={handleClose}
+    />
+  );
+};
 
 export default function AdminDashboard({ session }: PageProps) {
   const router = useRouter();
@@ -146,7 +276,10 @@ export default function AdminDashboard({ session }: PageProps) {
   const handleRestore = async (request: Integration) => {
     if (!request.id || !canRestore(request)) return;
     setSelectedId(request.id);
-    window.location.hash = 'restore-modal';
+    window.location.hash = '';
+    process.nextTick(() => {
+      window.location.hash = 'restore-modal';
+    });
   };
 
   const confirmDelete = async () => {
@@ -154,15 +287,6 @@ export default function AdminDashboard({ session }: PageProps) {
     selectedRequest?.apiServiceAccount
       ? await deleteServiceAccount(selectedRequest?.teamId as number, selectedId)
       : await deleteRequest(selectedId);
-    await getData();
-    window.location.hash = '#';
-  };
-
-  const confirmRestore = async () => {
-    if (!canRestore) return;
-    selectedRequest?.apiServiceAccount
-      ? await restoreServiceAccount(selectedRequest?.teamId as number, selectedId)
-      : await restoreRequest(selectedId);
     await getData();
     window.location.hash = '#';
   };
@@ -331,14 +455,7 @@ export default function AdminDashboard({ session }: PageProps) {
         confirmText="Delete"
         title="Confirm Deletion"
       />
-      <CenteredModal
-        id="restore-modal"
-        data-testid="modal-restore-integration"
-        content="You are about to restore this integration."
-        onConfirm={confirmRestore}
-        confirmText="Restore"
-        title="Confirm Restoration"
-      />
+      <RestoreModalContent selectedIntegration={selectedRequest} loadData={loadData} />
     </>
   );
 }

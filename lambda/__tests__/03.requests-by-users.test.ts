@@ -18,12 +18,14 @@ import {
   restoreIntegration,
   updateIntegration,
 } from './helpers/modules/integrations';
+import { createTeam, deleteTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { EVENTS } from '@lambda-shared/enums';
 import { keycloakClient } from '../app/src/keycloak/integration';
+import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
 
 const integrationRoles = [
   {
@@ -61,6 +63,19 @@ jest.mock('../app/src/keycloak/integration', () => {
   return {
     ...original,
     keycloakClient: jest.fn(() => Promise.resolve(true)),
+  };
+});
+
+const AZURE_FUZZY_SEARCH_RESPONSE = ['some.user@email.com'];
+const AZURE_EMAIL_RESPONSE = {
+  given_name: 'John',
+  family_name: 'Doe',
+};
+
+jest.mock('../app/src/bceid-webservice-proxy/idir', () => {
+  return {
+    fuzzySearchIdirEmail: jest.fn(() => Promise.resolve(AZURE_FUZZY_SEARCH_RESPONSE)),
+    validateIdirEmail: jest.fn(() => Promise.resolve(AZURE_EMAIL_RESPONSE)),
   };
 });
 
@@ -341,6 +356,176 @@ describe('roles and restore integration', () => {
     const integrationEvents = await getEventsByRequestId(integration.id);
     const restoreEvents = integrationEvents.filter((event) => event.eventCode === EVENTS.REQUEST_RESTORE_SUCCESS);
     expect(restoreEvents.length).toBe(1);
+  });
+
+  it('Restores the integration to the same team if the team still exists', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+    // Create a team
+    const team = await createTeam({
+      name: 'Team 1',
+      members: [
+        {
+          idirEmail: TEAM_ADMIN_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    }).then((res) => res.body);
+    const integration = await createIntegration(
+      getCreateIntegrationData({ projectName: 'Integration 1', teamIntegration: true, teamId: team.id }),
+    ).then((res) => res.body);
+    await updateIntegration(getUpdateIntegrationData({ integration }), true);
+    await deleteIntegration(integration.id);
+    await restoreIntegration(integration.id);
+    const restoreResult = await getIntegration(integration.id).then((res) => res.body);
+
+    expect(restoreResult.teamId).toEqual(team.id);
+    expect(restoreResult.usesTeam).toEqual(true);
+  });
+
+  it('Restores the integration to the provided email if the team no longer exists', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+
+    const team = await createTeam({
+      name: 'Team 1',
+      members: [
+        {
+          idirEmail: TEAM_ADMIN_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    }).then((res) => res.body);
+
+    const integration = await createIntegration(
+      getCreateIntegrationData({ projectName: 'Integration 1', teamIntegration: true, teamId: team.id }),
+    ).then((res) => res.body);
+    await updateIntegration(getUpdateIntegrationData({ integration }), true);
+    await deleteIntegration(integration.id);
+    await deleteTeam(team.id);
+    const teamAdminUser = await models.user.findOne({ where: { idirEmail: TEAM_ADMIN_IDIR_EMAIL_01 } });
+
+    await restoreIntegration(integration.id, TEAM_ADMIN_IDIR_EMAIL_01);
+    const restoreResult = await getIntegration(integration.id).then((res) => res.body);
+
+    expect(restoreResult.teamId).toBeNull();
+    expect(restoreResult.usesTeam).toEqual(false);
+    expect(restoreResult.requester).toEqual('SSO Admin');
+    expect(restoreResult.idirUserDisplayName).toEqual('John Doe');
+    expect(restoreResult.projectLead).toBe(true);
+    expect(restoreResult.userId).toBe(teamAdminUser.id);
+  });
+
+  it('Creates a new user from the given email when restoring if not in the system', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+    const MOCK_EMAIL = 'some@email.com';
+
+    const team = await createTeam({
+      name: 'Team 1',
+      members: [
+        {
+          idirEmail: TEAM_ADMIN_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    }).then((res) => res.body);
+
+    const integration = await createIntegration(
+      getCreateIntegrationData({ projectName: 'Integration 1', teamIntegration: true, teamId: team.id }),
+    ).then((res) => res.body);
+    await updateIntegration(getUpdateIntegrationData({ integration }), true);
+    await deleteIntegration(integration.id);
+    await deleteTeam(team.id);
+
+    // User does not exist before restore call
+    let mockUser = await models.user.findOne({ where: { idirEmail: MOCK_EMAIL } });
+    expect(mockUser).toBeNull();
+
+    await restoreIntegration(integration.id, MOCK_EMAIL);
+
+    // User created from AZURE_EMAIL_RESPONSE data
+    mockUser = await models.user.findOne({ where: { idirEmail: MOCK_EMAIL } });
+    expect(mockUser.displayName).toEqual('John Doe');
+
+    const restoreResult = await getIntegration(integration.id).then((res) => res.body);
+
+    // Integration details updated with new user
+    expect(restoreResult.teamId).toBeNull();
+    expect(restoreResult.usesTeam).toEqual(false);
+    expect(restoreResult.requester).toEqual('SSO Admin');
+    expect(restoreResult.projectLead).toBe(true);
+    expect(restoreResult.idirUserDisplayName).toEqual('John Doe');
+    expect(restoreResult.userId).toBe(mockUser.id);
+  });
+
+  it('Restores the integration to the provided email if the provided integration does not use a team', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+    const MOCK_EMAIL = 'some@email.com';
+
+    const integration = await createIntegration(
+      getCreateIntegrationData({ projectName: 'Integration 1', teamIntegration: false }),
+    ).then((res) => res.body);
+    await updateIntegration(getUpdateIntegrationData({ integration }), true);
+    await deleteIntegration(integration.id);
+
+    // User does not exist before restore call
+    let mockUser = await models.user.findOne({ where: { idirEmail: MOCK_EMAIL } });
+    expect(mockUser).toBeNull();
+
+    await restoreIntegration(integration.id, MOCK_EMAIL);
+
+    // User created from AZURE_EMAIL_RESPONSE data
+    mockUser = await models.user.findOne({ where: { idirEmail: MOCK_EMAIL } });
+    expect(mockUser.displayName).toEqual('John Doe');
+
+    const restoreResult = await getIntegration(integration.id).then((res) => res.body);
+
+    // Integration details updated with new user
+    expect(restoreResult.teamId).toBeNull();
+    expect(restoreResult.usesTeam).toEqual(false);
+    expect(restoreResult.requester).toEqual('SSO Admin');
+    expect(restoreResult.projectLead).toBe(true);
+    expect(restoreResult.idirUserDisplayName).toEqual('John Doe');
+    expect(restoreResult.userId).toBe(mockUser.id);
+  });
+
+  it('Returns an error if the provided email is required but invalid and leaves the integration archived', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+    const MOCK_EMAIL = 'some@email.com';
+
+    const integration = await createIntegration(
+      getCreateIntegrationData({ projectName: 'Integration 1', teamIntegration: false }),
+    ).then((res) => res.body);
+    await updateIntegration(getUpdateIntegrationData({ integration }), true);
+    await deleteIntegration(integration.id);
+
+    (validateIdirEmail as jest.Mock).mockImplementation(() => Promise.resolve(false));
+    const restoreResponse = await restoreIntegration(integration.id, MOCK_EMAIL);
+    expect(restoreResponse.status).toEqual(422);
+
+    const restoreResult = await getIntegration(integration.id).then((res) => res.body);
+    expect(restoreResult.archived).toBe(true);
+  });
+
+  it('Returns an error if the team is deleted but no email is provided', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+    const team = await createTeam({
+      name: 'Team 1',
+      members: [
+        {
+          idirEmail: TEAM_ADMIN_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    }).then((res) => res.body);
+
+    const integration = await createIntegration(
+      getCreateIntegrationData({ projectName: 'Integration 1', teamIntegration: true, teamId: team.id }),
+    ).then((res) => res.body);
+    await updateIntegration(getUpdateIntegrationData({ integration }), true);
+    await deleteIntegration(integration.id);
+    await deleteTeam(integration.teamId);
+
+    const restoreResponse = await restoreIntegration(integration.id);
+    expect(restoreResponse.status).toEqual(422);
   });
 
   it('logs a restore failed event if restoration fails', async () => {

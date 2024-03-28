@@ -61,6 +61,16 @@ export const fuzzySearchIdirEmail = async (email: string) => {
   return callAzureGraphApi(url).then((res) => res.value?.map((value) => ({ mail: value.mail, id: value.id })));
 };
 
+export const validateIdirEmail = async (email: string) => {
+  const url = `${MS_GRAPH_URL}/v1.0/users/${email}`;
+  try {
+    const response = await callAzureGraphApi(url);
+    return { given_name: response.givenName, family_name: response.surname };
+  } catch (error) {
+    return false;
+  }
+};
+
 /**Search IDIR users using the bceid service by a general field and value */
 export const searchIdirUsers = async (bearerToken: string, { field, search }: { field: string; search: string }) => {
   const results = await axios

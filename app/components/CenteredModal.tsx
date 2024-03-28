@@ -137,19 +137,21 @@ const CenteredModal = ({
                 Cancel
               </Button>
             )}
-            <Button
-              data-testid={dataTestId}
-              onClick={handleConfirm}
-              variant={confirmButtonVariant}
-              type="button"
-              className="text-center"
-            >
-              {loading ? (
-                <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
-              ) : (
-                confirmText
-              )}
-            </Button>
+            {showConfirm && (
+              <Button
+                data-testid={dataTestId}
+                onClick={handleConfirm}
+                variant={confirmButtonVariant}
+                type="button"
+                className="text-center"
+              >
+                {loading ? (
+                  <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
+                ) : (
+                  confirmText
+                )}
+              </Button>
+            )}
           </ButtonContainer>
         )}
       </Modal.Content>

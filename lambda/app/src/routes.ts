@@ -279,14 +279,18 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`/requests/:id/restore`, async (req, res) => {
+  app.post(`/requests/:id/restore`, async (req, res) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
       const { id } = req.params || {};
+      let { email } = req.body || {};
+      if (typeof email === 'string') {
+        email = email.toLowerCase();
+      }
       if (!id) {
         throw Error('integration ID not found');
       }
-      const result = await restoreRequest(req.session as Session, Number(id));
+      const result = await restoreRequest(req.session as Session, Number(id), email);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
