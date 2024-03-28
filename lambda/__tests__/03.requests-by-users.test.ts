@@ -378,13 +378,17 @@ describe('Restoration User Assignment', () => {
 
   beforeAll(async () => {
     jest.clearAllMocks();
-    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
   });
 
   afterEach(async () => {
     await cleanUpDatabaseTables();
   });
 
+  /**
+   * Setup a created and deleted integration to test restoration.
+   * @param withTeam Set true to make a team owned integration
+   * @returns
+   */
   const setupIntegrationForRestore = async (withTeam: boolean) => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
     let team: any;
