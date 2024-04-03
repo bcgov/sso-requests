@@ -1,4 +1,4 @@
-name: Run E2E tests test
+name: Run E2E tests
 
 on:
   pull_request_target:
@@ -9,6 +9,7 @@ on:
     paths:
       - app/**
       - lambda/**
+      - docker-compose.yml
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
@@ -23,7 +24,7 @@ env:
   CYPRESS_BASE_URL: 'http://localhost:3000'
 
 jobs:
-  ci-test:
+  smoke-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
