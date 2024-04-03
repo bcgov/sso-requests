@@ -1,17 +1,14 @@
 name: Run E2E tests test
 
 on:
-  # pull_request_target:
-  #   types:
-  #     - opened
-  #     - edited
-  #     - synchronize
-  #   paths:
-  #     - app/**
-  #     - lambda/**
-  push:
-    branches:
-      - ssoteam-1408
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+    paths:
+      - app/**
+      - lambda/**
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
@@ -54,6 +51,3 @@ jobs:
             cypress/e2e/ci/*.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
-      - uses: actions/checkout@v4
-        with:
-          repository: 'bcgov/sso-requests'
