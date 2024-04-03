@@ -30,6 +30,7 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
+      - run: cat docker-compose.yml
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
