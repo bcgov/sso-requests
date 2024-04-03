@@ -1,14 +1,17 @@
-name: Run E2E tests
+name: Run E2E tests test
 
 on:
-  pull_request_target:
-    types:
-      - opened
-      - edited
-      - synchronize
-    paths:
-      - app/**
-      - lambda/**
+  # pull_request_target:
+  #   types:
+  #     - opened
+  #     - edited
+  #     - synchronize
+  #   paths:
+  #     - app/**
+  #     - lambda/**
+  push:
+    branches:
+      - ssoteam-1408
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
