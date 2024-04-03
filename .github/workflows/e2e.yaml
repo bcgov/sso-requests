@@ -35,6 +35,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: 'bcgov/sso-requests-e2e'
+      - name: wait
+        run: sleep 180s
+        shell: bash
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
