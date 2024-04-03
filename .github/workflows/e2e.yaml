@@ -10,6 +10,7 @@ on:
       - app/**
       - lambda/**
       - docker-compose.yml
+      - github/workflows/e2e.yaml
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
