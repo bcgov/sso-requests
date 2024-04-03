@@ -23,7 +23,7 @@ env:
   CYPRESS_BASE_URL: 'http://localhost:3000'
 
 jobs:
-  smoke-test:
+  ci-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
