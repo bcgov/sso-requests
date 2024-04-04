@@ -1,4 +1,4 @@
-import { Op } from 'sequelize';
+import { Op, Model } from 'sequelize';
 import kebabCase from 'lodash.kebabcase';
 import assign from 'lodash.assign';
 import isEmpty from 'lodash.isempty';
@@ -46,6 +46,7 @@ import {
   samlSignedAssertions,
 } from '@app/schemas';
 import pick from 'lodash.pick';
+import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -428,7 +429,40 @@ export const resubmitRequest = async (session: Session, id: number) => {
   }
 };
 
-export const restoreRequest = async (session: Session, id: number) => {
+/**
+ * Function to set the required properties on an integration to be owned by the supplied email IDIR address.
+ * This function mutates the model.
+ * @param integration The integration to update. Caution, this mutates the model.
+ * @param email The email to set as the new user.
+ */
+const setIntegrationOwner = async (integration: Model & IntegrationData, email?: string) => {
+  if (!email) throw Error('email is required');
+
+  const userInfo = await validateIdirEmail(email);
+  if (!userInfo) throw Error('invalid email address');
+
+  let user = await models.user.findOne({
+    where: {
+      idirEmail: email,
+    },
+  });
+
+  if (!user) {
+    user = await models.user.create({
+      idirEmail: email,
+      displayName: getDisplayName(userInfo as Session),
+    });
+  }
+
+  integration.idirUserDisplayName = getDisplayName(userInfo as Session);
+  integration.usesTeam = false;
+  integration.teamId = null;
+  integration.projectLead = true;
+  integration.requester = 'SSO Admin';
+  integration.userId = user.id;
+};
+
+export const restoreRequest = async (session: Session, id: number, email?: string) => {
   const isMerged = await checkIfRequestMerged(id);
   if (!isMerged) return;
 
@@ -439,6 +473,15 @@ export const restoreRequest = async (session: Session, id: number) => {
 
     if (!current || (!isAllowedStatus && !current.archived)) {
       throw Error('unauthorized request');
+    }
+    if (current.usesTeam) {
+      const teamExists = await getTeamById(current.teamId);
+      if (!teamExists) {
+        await setIntegrationOwner(current, email);
+      }
+      // Always update with new email for non-team integrations
+    } else {
+      await setIntegrationOwner(current, email);
     }
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');

@@ -91,7 +91,7 @@ services:
 
   dev-keycloak:
     container_name: dev-keycloak
-    image: ghcr.io/bcgov/sso:dev
+    image: ghcr.io/bcgov/sso:7.6.39-build.1
     depends_on:
       - sso-db
     ports:
@@ -113,7 +113,7 @@ services:
 
   test-keycloak:
     container_name: test-keycloak
-    image: ghcr.io/bcgov/sso:dev
+    image: ghcr.io/bcgov/sso:7.6.39-build.1
     depends_on:
       - sso-db
     ports:
@@ -135,7 +135,7 @@ services:
 
   prod-keycloak:
     container_name: prod-keycloak
-    image: ghcr.io/bcgov/sso:dev
+    image: ghcr.io/bcgov/sso:7.6.39-build.1
     depends_on:
       - sso-db
     ports:

@@ -58,9 +58,12 @@ export const resubmitRequest = async (requestId: number): Promise<[Integration, 
   }
 };
 
-export const restoreRequest = async (requestId?: number): Promise<[Integration, null] | [null, AxiosError]> => {
+export const restoreRequest = async (
+  requestId?: number,
+  email?: string,
+): Promise<[Integration, null] | [null, AxiosError]> => {
   try {
-    const result: Integration = await instance.get(`requests/${requestId}/restore`).then((res) => res.data);
+    const result: Integration = await instance.post(`requests/${requestId}/restore`, { email }).then((res) => res.data);
     return [processRequest(result), null];
   } catch (err: any) {
     return handleAxiosError(err);
