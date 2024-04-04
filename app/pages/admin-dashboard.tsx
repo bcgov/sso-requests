@@ -139,7 +139,10 @@ const RestoreModalContent = ({
   } else {
     content = (
       <RequestRestorationContainer>
-        <label htmlFor="restoration-email-select">Select an email to assign the integration to.</label>
+        <label htmlFor="restoration-email-select">
+          Please validate the requestor who is asking to restore (get one more government employee confirming their
+          role). Please enter new requestor email address. Note this requestor can then assign to a new team as needed.
+        </label>
         <AsyncSelect
           loadOptions={throttledIdirSearch}
           value={{ value: selectedEmail, label: selectedEmail }}
