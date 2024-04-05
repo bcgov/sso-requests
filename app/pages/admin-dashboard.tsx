@@ -19,6 +19,8 @@ import { SingleValue } from 'react-select';
 import debounce from 'lodash.debounce';
 import { getIdirUsersByEmail } from '@app/services/user';
 import styled from 'styled-components';
+import { SystemUnavailableMessage } from '@app/page-partials/my-dashboard/Messages';
+import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -76,9 +78,11 @@ const throttledIdirSearch = debounce(
 const RestoreModalContent = ({
   selectedIntegration,
   loadData,
+  alert,
 }: {
   selectedIntegration?: Integration;
   loadData: () => Promise<void>;
+  alert: TopAlert;
 }) => {
   const [teamExists, setTeamExists] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -106,6 +110,7 @@ const RestoreModalContent = ({
 
   const confirmRestore = async () => {
     const emailRequired = !(selectedIntegration?.usesTeam && teamExists);
+    let hasError = false;
 
     if (emailRequired && !selectedEmail) {
       setError('Please select an email address to restore the integration to.');
@@ -113,9 +118,20 @@ const RestoreModalContent = ({
     }
 
     if (selectedIntegration?.apiServiceAccount) {
-      await restoreServiceAccount(Number(selectedIntegration?.teamId), selectedIntegration?.id);
+      const [_result, error] = await restoreServiceAccount(
+        Number(selectedIntegration?.teamId),
+        selectedIntegration?.id,
+      );
+      hasError = !!error;
     } else {
-      await restoreRequest(selectedIntegration?.id, selectedEmail);
+      const [_result, error] = await restoreRequest(selectedIntegration?.id, selectedEmail);
+      hasError = !!error;
+    }
+    if (hasError) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to restore integration, please try again.',
+      });
     }
     await loadData();
     handleClose();
@@ -172,7 +188,7 @@ const RestoreModalContent = ({
   );
 };
 
-export default function AdminDashboard({ session }: PageProps) {
+function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
@@ -248,7 +264,7 @@ export default function AdminDashboard({ session }: PageProps) {
   }, [rows]);
 
   if (hasError) {
-    return null;
+    return <SystemUnavailableMessage />;
   }
 
   const canEdit = (request: Integration) =>
@@ -287,10 +303,17 @@ export default function AdminDashboard({ session }: PageProps) {
 
   const confirmDelete = async () => {
     if (!canDelete) return;
-    selectedRequest?.apiServiceAccount
+    const [_result, error] = selectedRequest?.apiServiceAccount
       ? await deleteServiceAccount(selectedRequest?.teamId as number, selectedId)
       : await deleteRequest(selectedId);
-    await getData();
+    if (error) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to delete the integration, please try again.',
+      });
+    } else {
+      await getData();
+    }
     window.location.hash = '#';
   };
 
@@ -458,7 +481,9 @@ export default function AdminDashboard({ session }: PageProps) {
         confirmText="Delete"
         title="Confirm Deletion"
       />
-      <RestoreModalContent selectedIntegration={selectedRequest} loadData={loadData} />
+      <RestoreModalContent selectedIntegration={selectedRequest} loadData={loadData} alert={alert} />
     </>
   );
 }
+
+export default withTopAlert(AdminDashboard);

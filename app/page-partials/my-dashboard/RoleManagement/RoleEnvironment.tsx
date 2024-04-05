@@ -1,8 +1,7 @@
 import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faExclamationTriangle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
-import { faExclamationCircle, faEye, faDownload, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import throttle from 'lodash.throttle';
 import get from 'lodash.get';
@@ -147,6 +146,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
   const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
   const [rightPanelTab, setRightPanelTab] = useState<string>('');
   const [serviceAccountIntMap, setServiceAccountIntMap] = useState<SvcAcctUserIntegrationMapType[]>([]);
+  const [compositeRoleError, setCompositeRoleError] = useState(false);
 
   const populateTabs = () => {
     if (integration.authType === 'service-account') {
@@ -166,7 +166,8 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       async (newValues: Option[]) => {
         if (!selectedRole) return;
 
-        await setSaving(true);
+        setSaving(true);
+        setCompositeRoleError(false);
         const [, err] = await setCompositeClientRoles({
           environment,
           integrationId: integration.id as number,
@@ -174,9 +175,16 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           compositeRoleNames: newValues.map((v) => v.value) as string[],
         });
 
+        if (err) {
+          setSavingMessage('Failed to save changes.');
+          setCompositeRoleError(true);
+          setSaving(false);
+          return false;
+        }
+
         if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         await setSaving(false);
-        await fetchRoles();
+        return true;
       },
       2000,
       { trailing: true },
@@ -227,9 +235,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     if (err || !data) {
       alert.show({
         variant: 'danger',
-        fadeOut: 5000,
-        closable: true,
-        content: err?.message || 'failed to fetch roles',
+        content: 'Failed to fetch roles.',
       });
     }
 
@@ -265,6 +271,13 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       first: _first,
       max: maxUser,
     });
+
+    if (err) {
+      return alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch users.',
+      });
+    }
 
     let _data = data || [];
 
@@ -305,7 +318,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
         variant: 'danger',
         fadeOut: 5000,
         closable: true,
-        content: err || 'failed to fetch composite roles',
+        content: 'Failed to fetch composite roles.',
       });
       return;
     }
@@ -493,13 +506,18 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
             isMulti={true}
             placeholder="Select..."
             noOptionsMessage={() => 'No roles'}
-            onChange={(newValues) => {
-              setCompositeRoles(newValues as Option[]);
-              throttleCompositeRoleUpdate(newValues as Option[]);
+            onChange={async (newValues) => {
+              await throttleCompositeRoleUpdate(newValues as Option[])?.then(
+                (updateSucceeded) => updateSucceeded && setCompositeRoles(newValues as Option[]),
+              );
             }}
             isDisabled={!canCreateOrDeleteRole}
           />
-          <LastSavedMessage saving={saving} content={savingMessage} />
+          <LastSavedMessage
+            saving={saving}
+            content={savingMessage}
+            variant={compositeRoleError ? 'error' : 'success'}
+          />
         </>
       );
     }
@@ -597,11 +615,18 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
         title="Delete Role"
         icon={faExclamationTriangle}
         onConfirm={async (contentRef: any, roleName: string) => {
-          await deleteRole({
+          const [_, error] = await deleteRole({
             environment,
             integrationId: integration.id as number,
             roleName,
           });
+
+          if (error) {
+            alert.show({
+              variant: 'danger',
+              content: `Failed to delete role ${roleName}. Please try again.`,
+            });
+          }
 
           await reset();
         }}
@@ -630,8 +655,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           if (err) {
             alert.show({
               variant: 'danger',
-              fadeOut: 5000,
-              closable: true,
               content: err,
             });
           }
@@ -663,8 +686,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           if (err) {
             alert.show({
               variant: 'danger',
-              fadeOut: 5000,
-              closable: true,
               content: err,
             });
           }

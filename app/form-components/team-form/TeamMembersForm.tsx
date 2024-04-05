@@ -55,6 +55,7 @@ const MemberContainer = styled(Container)`
   .email-select > .select-inner__control {
     padding: 0.13em 0;
     border: 2px solid #606060;
+    visibility: inherit;
 
     &:focus-within {
       outline: 4px solid #3b99fc !important;

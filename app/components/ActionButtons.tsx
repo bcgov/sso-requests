@@ -79,9 +79,9 @@ export default function Actionbuttons({
     const canDelete = !['pr', 'planned', 'submitted'].includes(request?.status || '');
     if (!canDelete) return;
 
-    await deleteRequest(request.id);
+    const [_result, error] = await deleteRequest(request.id);
     window.location.hash = '#';
-    if (onDelete) onDelete(request);
+    if (onDelete) onDelete(request, error);
   };
 
   return (

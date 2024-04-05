@@ -200,23 +200,31 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const [userAssignmentError, setUserAssignmentError] = useState(false);
   const surveyContext = useContext(SurveyContext);
 
   const throttleUpdate = useCallback(
     throttle(
       async (roleNames: string[]) => {
         await setSaving(true);
+        setSavingMessage('Assigning role...');
+        setUserAssignmentError(false);
         const [, err] = await manageUserRoles({
           environment: selectedEnvironment,
           integrationId: selectedRequest.id as number,
           username: selectedId as string,
           roleNames,
         });
+        setSaving(false);
         if (!err) {
           setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
           surveyContext?.setShowSurvey(true, 'addUserToRole');
+          return true;
+        } else {
+          setUserAssignmentError(true);
+          setSavingMessage('Failed to update roles.');
+          return false;
         }
-        await setSaving(false);
       },
       2000,
       { trailing: true },
@@ -323,7 +331,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setRows([]);
     setUserRoles([]);
     setSelectedId(undefined);
-    setSearched(true);
 
     const [data, err] = await searchKeycloakUsers({
       environment: selectedEnvironment,
@@ -333,7 +340,15 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       integrationId: selectedRequest.id || -1,
     });
 
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch users.',
+      });
+    }
+
     if (data) {
+      setSearched(true);
       setRows(sliceRows(_page, data.rows));
       setCount(data.count);
     }
@@ -361,8 +376,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
     // Only send update if roles have been added or removed. Prevents excessive API calls if jamming backspace button when empty.
     if (newRoles.length !== userRoles.length) {
-      throttleUpdate(newRoles);
-      setUserRoles(newRoles);
+      const succeeded = await throttleUpdate(newRoles);
+      if (succeeded) {
+        setUserRoles(newRoles);
+      }
     }
   };
 
@@ -388,7 +405,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           onChange={handleRoleChange}
           data-testid="user-role-select"
         />
-        <LastSavedMessage saving={saving} content={savingMessage} />
+        <LastSavedMessage saving={saving} content={savingMessage} variant={userAssignmentError ? 'error' : 'success'} />
       </>
     );
   }

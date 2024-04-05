@@ -14,7 +14,6 @@ import FieldTemplate from 'form-components/FieldTemplate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import CenteredModal from 'components/CenteredModal';
 import { validateForm, customValidate } from 'utils/validate';
-import { parseError } from 'utils/helpers';
 import {
   checkBceidBoth,
   checkBceidGroup,
@@ -289,7 +288,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
             variant: 'danger',
             fadeOut: 5000,
             closable: true,
-            content: err,
+            content: 'Failed to submit request. Please try again.',
           });
         }
 
@@ -329,7 +328,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           variant: 'danger',
           fadeOut: 10000,
           closable: true,
-          content: parseError(err),
+          content: 'Failed to submit request. Please try again.',
         });
       } else {
         alert.show({
