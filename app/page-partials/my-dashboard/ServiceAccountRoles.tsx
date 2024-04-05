@@ -82,13 +82,13 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
           roleNames,
         });
         setSaving(false);
-        if (!err) {
-          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
-          return true;
-        } else {
+        if (err) {
           setUserAssignmentError(true);
           setSavingMessage('Failed to update roles.');
           return false;
+        } else {
+          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+          return true;
         }
       },
       2000,
@@ -114,9 +114,9 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
       newRoles = [...userRoles, actionMeta.option?.value as string];
     }
 
-    if (newRoles.length !== userRoles.length) {
-      const succeeded = await throttleUpdate(newRoles);
-      if (succeeded) {
+    if (userRoles.length !== newRoles.length) {
+      const success = await throttleUpdate(newRoles);
+      if (success) {
         setUserRoles(newRoles);
       }
     }
