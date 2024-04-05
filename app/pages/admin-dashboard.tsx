@@ -75,117 +75,115 @@ const throttledIdirSearch = debounce(
  *  3. If the integration is not team owned, require an email.
  *  4. If the integration for a team service account, and the team is deleted, do not allow restoration.
  */
-const RestoreModalContent = withTopAlert(
-  ({
-    selectedIntegration,
-    loadData,
-    alert,
-  }: {
-    selectedIntegration?: Integration;
-    loadData: () => Promise<void>;
-    alert: TopAlert;
-  }) => {
-    const [teamExists, setTeamExists] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [selectedEmail, setSelectedEmail] = useState<string>('');
-    const [error, setError] = useState('');
+const RestoreModalContent = ({
+  selectedIntegration,
+  loadData,
+  alert,
+}: {
+  selectedIntegration?: Integration;
+  loadData: () => Promise<void>;
+  alert: TopAlert;
+}) => {
+  const [teamExists, setTeamExists] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedEmail, setSelectedEmail] = useState<string>('');
+  const [error, setError] = useState('');
 
-    const checkTeamExistence = async () => {
-      setLoading(true);
-      const [teamExists, _err] = await getAllowedTeam(String(selectedIntegration!.teamId));
-      setTeamExists(!!teamExists);
-      setLoading(false);
-    };
+  const checkTeamExistence = async () => {
+    setLoading(true);
+    const [teamExists, _err] = await getAllowedTeam(String(selectedIntegration!.teamId));
+    setTeamExists(!!teamExists);
+    setLoading(false);
+  };
 
-    useEffect(() => {
-      setError('');
-      setSelectedEmail('');
-      if (selectedIntegration?.usesTeam) {
-        checkTeamExistence();
-      }
-    }, [selectedIntegration?.id]);
+  useEffect(() => {
+    setError('');
+    setSelectedEmail('');
+    if (selectedIntegration?.usesTeam) {
+      checkTeamExistence();
+    }
+  }, [selectedIntegration?.id]);
 
-    useEffect(() => {
-      setError('');
-    }, [selectedEmail]);
+  useEffect(() => {
+    setError('');
+  }, [selectedEmail]);
 
-    const confirmRestore = async () => {
-      const emailRequired = !(selectedIntegration?.usesTeam && teamExists);
-      let hasError = false;
+  const confirmRestore = async () => {
+    const emailRequired = !(selectedIntegration?.usesTeam && teamExists);
+    let hasError = false;
 
-      if (emailRequired && !selectedEmail) {
-        setError('Please select an email address to restore the integration to.');
-        return;
-      }
-
-      if (selectedIntegration?.apiServiceAccount) {
-        const [_result, error] = await restoreServiceAccount(
-          Number(selectedIntegration?.teamId),
-          selectedIntegration?.id,
-        );
-        hasError = !!error;
-      } else {
-        const [_result, error] = await restoreRequest(selectedIntegration?.id, selectedEmail);
-        hasError = !!error;
-      }
-      if (hasError) {
-        alert.show({
-          variant: 'danger',
-          content: 'Failed to restore integration, please try again.',
-        });
-      }
-      await loadData();
-      handleClose();
-      window.location.hash = '#';
-    };
-
-    const handleClose = () => {
-      setSelectedEmail('');
-      setError('');
-    };
-
-    if (!selectedIntegration) return null;
-
-    let content: string | ReactNode = '';
-    if (loading) {
-      content = 'Checking if the team exists...';
-    } else if (selectedIntegration.usesTeam && teamExists) {
-      content = 'You are about to restore this integration.';
-    } else if (selectedIntegration.apiServiceAccount && !teamExists) {
-      content = 'Cannot restore this team account, team does not exist.';
-    } else {
-      content = (
-        <RequestRestorationContainer>
-          <label htmlFor="restoration-email-select">Select an email to assign the integration to.</label>
-          <AsyncSelect
-            loadOptions={throttledIdirSearch}
-            value={{ value: selectedEmail, label: selectedEmail }}
-            onChange={(option: SingleValue<{ value: string; label: string }>) => setSelectedEmail(option?.label || '')}
-            noOptionsMessage={() => 'Start typing email...'}
-            maxMenuHeight={120}
-            placeholder={'Enter email address'}
-            id="restoration-email-select"
-          />
-          {error && <p className="error-text">Select an email address</p>}
-        </RequestRestorationContainer>
-      );
+    if (emailRequired && !selectedEmail) {
+      setError('Please select an email address to restore the integration to.');
+      return;
     }
 
-    return (
-      <CenteredModal
-        id="restore-modal"
-        data-testid="modal-restore-integration"
-        content={content}
-        onConfirm={confirmRestore}
-        confirmText="Restore"
-        title="Confirm Restoration"
-        skipCloseOnConfirm
-        showConfirm={!(selectedIntegration.apiServiceAccount && !teamExists)}
-        onClose={handleClose}
-      />
+    if (selectedIntegration?.apiServiceAccount) {
+      const [_result, error] = await restoreServiceAccount(
+        Number(selectedIntegration?.teamId),
+        selectedIntegration?.id,
+      );
+      hasError = !!error;
+    } else {
+      const [_result, error] = await restoreRequest(selectedIntegration?.id, selectedEmail);
+      hasError = !!error;
+    }
+    if (hasError) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to restore integration, please try again.',
+      });
+    }
+    await loadData();
+    handleClose();
+    window.location.hash = '#';
+  };
+
+  const handleClose = () => {
+    setSelectedEmail('');
+    setError('');
+  };
+
+  if (!selectedIntegration) return null;
+
+  let content: string | ReactNode = '';
+  if (loading) {
+    content = 'Checking if the team exists...';
+  } else if (selectedIntegration.usesTeam && teamExists) {
+    content = 'You are about to restore this integration.';
+  } else if (selectedIntegration.apiServiceAccount && !teamExists) {
+    content = 'Cannot restore this team account, team does not exist.';
+  } else {
+    content = (
+      <RequestRestorationContainer>
+        <label htmlFor="restoration-email-select">Select an email to assign the integration to.</label>
+        <AsyncSelect
+          loadOptions={throttledIdirSearch}
+          value={{ value: selectedEmail, label: selectedEmail }}
+          onChange={(option: SingleValue<{ value: string; label: string }>) => setSelectedEmail(option?.label || '')}
+          noOptionsMessage={() => 'Start typing email...'}
+          maxMenuHeight={120}
+          placeholder={'Enter email address'}
+          id="restoration-email-select"
+        />
+        {error && <p className="error-text">Select an email address</p>}
+      </RequestRestorationContainer>
     );
-  },
-);
+  }
+
+  return (
+    <CenteredModal
+      id="restore-modal"
+      data-testid="modal-restore-integration"
+      content={content}
+      onConfirm={confirmRestore}
+      confirmText="Restore"
+      title="Confirm Restoration"
+      skipCloseOnConfirm
+      showConfirm={!(selectedIntegration.apiServiceAccount && !teamExists)}
+      onClose={handleClose}
+    />
+  );
+};
 
 function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const router = useRouter();
@@ -480,7 +478,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         confirmText="Delete"
         title="Confirm Deletion"
       />
-      <RestoreModalContent selectedIntegration={selectedRequest} loadData={loadData} />
+      <RestoreModalContent selectedIntegration={selectedRequest} loadData={loadData} alert={alert} />
     </>
   );
 }
