@@ -235,8 +235,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     if (err || !data) {
       alert.show({
         variant: 'danger',
-        fadeOut: 5000,
-        closable: true,
         content: 'Failed to fetch roles.',
       });
     }
@@ -277,8 +275,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
     if (err) {
       return alert.show({
         variant: 'danger',
-        fadeOut: 5000,
-        closable: true,
         content: 'Failed to fetch users.',
       });
     }
@@ -628,8 +624,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           if (error) {
             alert.show({
               variant: 'danger',
-              fadeOut: 5000,
-              closable: true,
               content: `Failed to delete role ${roleName}. Please try again.`,
             });
           }
@@ -661,8 +655,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           if (err) {
             alert.show({
               variant: 'danger',
-              fadeOut: 5000,
-              closable: true,
               content: err,
             });
           }
@@ -694,8 +686,6 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
           if (err) {
             alert.show({
               variant: 'danger',
-              fadeOut: 5000,
-              closable: true,
               content: err,
             });
           }
