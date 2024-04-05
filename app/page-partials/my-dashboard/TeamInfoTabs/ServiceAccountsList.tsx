@@ -54,7 +54,7 @@ function ServiceAccountsList({
   teamServiceAccounts,
   getTeamServiceAccounts,
   alert,
-}: Props) {
+}: Readonly<Props>) {
   const deleteServiceAccountModalId = 'delete-service-account-modal';
   const updateServiceAccountSecretModalId = 'update-service-account-secret-modal';
 
@@ -91,7 +91,6 @@ function ServiceAccountsList({
         variant: 'danger',
         content: 'Failed to update secret, please try again.',
       });
-      return;
     }
   };
 

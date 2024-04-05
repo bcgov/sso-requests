@@ -105,7 +105,7 @@ interface Props {
   alert: TopAlert;
 }
 
-function IntegrationList({ setIntegration, setIntegrationCount, alert }: Props) {
+function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonly<Props>) {
   const router = useRouter();
   let { integr } = router.query;
 

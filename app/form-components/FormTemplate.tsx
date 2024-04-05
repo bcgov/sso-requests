@@ -14,7 +14,6 @@ import FieldTemplate from 'form-components/FieldTemplate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import CenteredModal from 'components/CenteredModal';
 import { validateForm, customValidate } from 'utils/validate';
-import { parseError } from 'utils/helpers';
 import {
   checkBceidBoth,
   checkBceidGroup,
