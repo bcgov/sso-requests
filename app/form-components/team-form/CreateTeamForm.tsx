@@ -37,13 +37,17 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
   const [members, setMembers] = useState<User[]>([emptyUser]);
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Errors>();
+  const [errors, setErrors] = useState<Errors | null>(null);
 
   const handleNameChange = (e: any) => {
     setTeamName(e.target.value);
   };
 
   const handleCancel = () => {
+    setMembers([emptyUser]);
+    setTeamName('');
+    setLoading(false);
+    setErrors(null);
     window.location.hash = '#';
   };
 
@@ -60,7 +64,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
         variant: 'danger',
         fadeOut: 10000,
         closable: true,
-        content: err,
+        content: 'Failed to create team. Please try again.',
       });
     } else {
       alert.show({
@@ -74,6 +78,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
     setMembers([emptyUser]);
     setTeamName('');
     setLoading(false);
+    setErrors(null);
     window.location.hash = '#';
   };
 

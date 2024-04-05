@@ -424,7 +424,7 @@ function Table({
                     >
                       {row.cells.map((cell: Cell) => {
                         return (
-                          <td {...cell.getCellProps()} key={cell.value}>
+                          <td {...cell.getCellProps()} key={cell.getCellProps().key}>
                             {cell.render('Cell')}
                           </td>
                         );

@@ -79,6 +79,11 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
       }
 
       const [results, error] = await bulkCreateRole({ integrationId, roles: _roles });
+
+      if (error) {
+        return [true, false];
+      }
+
       const _failures: Result = {};
       const _duplicates: Result = {};
       let hasError = false;

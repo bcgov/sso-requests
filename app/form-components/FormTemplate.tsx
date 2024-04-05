@@ -289,7 +289,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
             variant: 'danger',
             fadeOut: 5000,
             closable: true,
-            content: err,
+            content: 'Failed to submit request. Please try again.',
           });
         }
 
@@ -329,7 +329,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           variant: 'danger',
           fadeOut: 10000,
           closable: true,
-          content: parseError(err),
+          content: 'Failed to submit request. Please try again.',
         });
       } else {
         alert.show({

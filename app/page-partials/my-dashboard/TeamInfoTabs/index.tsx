@@ -387,7 +387,10 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const handleMemberRoleChange = async (memberId: number, role: string) => {
     const [data, err] = await updateTeamMember(team.id as number, memberId, { role });
     if (err) {
-      console.error(err);
+      alert.show({
+        variant: 'danger',
+        content: `Failed to update user role. Please try again.`,
+      });
       return;
     }
 
@@ -695,6 +698,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           />
         }
         onConfirm={onConfirmAdd}
+        onClose={() => {
+          setTempMembers([emptyMember]);
+          setMembers([]);
+          setErrors(null);
+        }}
         skipCloseOnConfirm={true}
         buttonStyle="custom"
         closable
