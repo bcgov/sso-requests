@@ -58,7 +58,7 @@ interface Props {
   alert: TopAlert;
 }
 
-function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, alert }: Props) {
+function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, alert }: Readonly<Props>) {
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
   const [serviceAccounts, setServiceAccounts] = useState<Integration[]>([]);

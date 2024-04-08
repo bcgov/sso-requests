@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
-import Link from '@button-inc/bcgov-theme/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import Giscus from '@giscus/react';
 import { fetchDiscussions } from '@app/services/github';
@@ -16,7 +14,7 @@ interface Props {
 //   overflow-y: scroll;
 // `;
 
-function GithubDiscussions({ children }: Props) {
+function GithubDiscussions({ children }: Readonly<Props>) {
   const requiredCategory = 'Getting Started with our Common Hosted Single Sign on(CSS)';
   const [repo, setRepo] = useState<any>({});
   const [nodes, setNodes] = useState([]);

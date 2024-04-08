@@ -5,7 +5,6 @@ import { Button } from '@bcgov-sso/common-react-components';
 import { editTeamName } from 'services/team';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import ErrorText from 'components/ErrorText';
-import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 
 const ButtonsContainer = styled.div`
   display: flex;
