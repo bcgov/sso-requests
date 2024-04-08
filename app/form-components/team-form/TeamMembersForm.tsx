@@ -9,10 +9,9 @@ import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import Link from '@button-inc/bcgov-theme/Link';
 import { formatWikiURL } from '@app/utils/constants';
-import debounce from 'lodash.debounce';
-import { getIdirUsersByEmail } from '@app/services/user';
 import AsyncSelect from 'react-select/async';
 import { SingleValue } from 'react-select';
+import { throttledIdirSearch } from '@app/utils/users';
 
 const Container = styled.div`
   display: grid;
@@ -92,18 +91,6 @@ const EmailAddrValidHeader = styled.p`
   font-style: italic;
   font-size: 0.95em;
 `;
-
-const throttledIdirSearch = debounce(
-  (email, cb) => {
-    if (email.length <= 2) {
-      cb([]);
-      return;
-    }
-    getIdirUsersByEmail(email).then(([data]) => cb(data?.map((user) => ({ value: user.id, label: user.mail })) || []));
-  },
-  300,
-  { trailing: true },
-);
 
 export interface Errors {
   name: string;

@@ -134,7 +134,14 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
-    const roles = data == null ? [] : data.map((role: any) => role.name);
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch roles.',
+      });
+    }
+
+    const roles = data === null ? [] : data.map((role: any) => role.name);
 
     setRoles(roles);
     setLoading(false);
@@ -142,11 +149,20 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
 
   const fetchUserRoles = async (username: string) => {
     await setLoadingRight(true);
-    const [data] = await listUserRoles({
+    const [data, err] = await listUserRoles({
       environment: environment,
       integrationId: selectedRequest.id as number,
       username,
     });
+
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch roles.',
+      });
+      setLoadingRight(false);
+      return;
+    }
 
     await setUserRoles(data || []);
     setLoadingRight(false);

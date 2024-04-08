@@ -5,6 +5,7 @@ import { Button } from '@bcgov-sso/common-react-components';
 import { editTeamName } from 'services/team';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import ErrorText from 'components/ErrorText';
+import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 
 const ButtonsContainer = styled.div`
   display: flex;
@@ -30,6 +31,7 @@ export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: 
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>();
+  const [updateTeamNameError, setUpdateTeamNameError] = useState(false);
 
   useEffect(() => {
     setTeamName(initialTeamName);
@@ -57,13 +59,16 @@ export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: 
   };
 
   const handleEditName = async () => {
+    setUpdateTeamNameError(false);
     const team = { name: teamName.trim(), id: teamId };
     const errors = validateTeam(team);
     if (errors) return setErrors(errors);
     setLoading(true);
     const [, err] = await editTeamName(team);
     if (err) {
-      console.error(err);
+      setUpdateTeamNameError(true);
+      setLoading(false);
+      return;
     }
     await onSubmit();
     setLoading(false);
@@ -74,6 +79,7 @@ export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: 
     <div>
       <Input label="New Team Name" onChange={handleNameChange} value={teamName} data-testid="edit-name" />
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
+      {updateTeamNameError && <ErrorText>Failed to update team name</ErrorText>}
       <br />
       <ButtonsContainer>
         <Button
