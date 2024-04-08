@@ -244,10 +244,17 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
-    const roles = data == null ? [] : data.map((role: any) => role.name);
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch roles.',
+      });
+    }
+
+    const roles = data === null ? [] : data.map((role: any) => role.name);
 
     setRoles(roles);
-    setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
+    setCompositeResult(data === null ? [] : data.map((role: any) => role.composite));
     setLoading(false);
   };
 
@@ -278,6 +285,15 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       integrationId: selectedRequest.id as number,
       username,
     });
+
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch user roles.',
+      });
+      setLoadingRight(false);
+      return;
+    }
 
     await setUserRoles(data || []);
     setLoadingRight(false);

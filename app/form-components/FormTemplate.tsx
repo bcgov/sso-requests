@@ -212,8 +212,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const getTeams = isNew ? getMyTeams : getAllowedTeams;
     const [teams, err] = await getTeams();
     if (err) {
-      // add err handling
-      console.error(err);
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to load teams. Please refresh.',
+      });
     } else {
       setTeams(teams || []);
     }

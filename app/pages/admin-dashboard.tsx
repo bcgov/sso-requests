@@ -16,11 +16,10 @@ import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
 import { deleteServiceAccount, getAllowedTeam, restoreServiceAccount } from '@app/services/team';
 import AsyncSelect from 'react-select/async';
 import { SingleValue } from 'react-select';
-import debounce from 'lodash.debounce';
-import { getIdirUsersByEmail } from '@app/services/user';
 import styled from 'styled-components';
 import { SystemUnavailableMessage } from '@app/page-partials/my-dashboard/Messages';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
+import { throttledIdirSearch } from '@app/utils/users';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -55,18 +54,6 @@ const RequestRestorationContainer = styled.div`
     color: red;
   }
 `;
-
-const throttledIdirSearch = debounce(
-  (email, cb) => {
-    if (email.length <= 2) {
-      cb([]);
-      return;
-    }
-    getIdirUsersByEmail(email).then(([data]) => cb(data?.map((user) => ({ value: user.id, label: user.mail })) || []));
-  },
-  300,
-  { trailing: true },
-);
 
 /**
  * Component to control restoration. Rules are:
