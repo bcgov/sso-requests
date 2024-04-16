@@ -85,6 +85,31 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => document.querySelector("svg[icon='check']"));
   });
 
+  it('Should call the update function with the most recent data', async () => {
+    setUpRender({ id: 1, status: 'draft', protocol: 'oidc', authType: 'browser-login' });
+    fireEvent.click(sandbox.basicInfoBox);
+    jest.clearAllMocks();
+
+    const THROTTLE_TIMEOUT = 2000;
+
+    const publicAccessRadioButton = document.querySelector('#root_publicAccess-Public') as HTMLElement;
+    const serviceAccountRadioButton = document.querySelector('input[value="service-account"]') as HTMLElement;
+
+    // Set access public, then switch to service account. API request should have the updated value as confidential.
+    fireEvent.click(publicAccessRadioButton);
+    fireEvent.click(serviceAccountRadioButton);
+
+    // Wait for the throttle to catch all api calls
+    await new Promise((res, rej) => {
+      setTimeout(() => {
+        res(true);
+      }, THROTTLE_TIMEOUT);
+    });
+
+    expect((updateRequest as jest.Mock).mock.calls[0].length).toBe(1);
+    expect((updateRequest as jest.Mock).mock.calls[0][0].publicAccess).toBe(false);
+  });
+
   it('Should advance the form when clicking next', async () => {
     setUpRender({
       id: 0,

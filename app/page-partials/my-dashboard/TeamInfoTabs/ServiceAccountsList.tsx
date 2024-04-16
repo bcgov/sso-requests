@@ -13,6 +13,7 @@ import Table from 'components/TableNew';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 
 const RightFloatButtons = styled.td`
   float: right;
@@ -43,15 +44,17 @@ interface Props {
   setSelectedServiceAccount: (serviceAccount: Integration | null) => void;
   teamServiceAccounts: Integration[];
   getTeamServiceAccounts: (teamId: number) => void;
+  alert: TopAlert;
 }
 
-export default function ServiceAccountsList({
+function ServiceAccountsList({
   team,
   selectedServiceAccount,
   setSelectedServiceAccount,
   teamServiceAccounts,
   getTeamServiceAccounts,
-}: Props) {
+  alert,
+}: Readonly<Props>) {
   const deleteServiceAccountModalId = 'delete-service-account-modal';
   const updateServiceAccountSecretModalId = 'update-service-account-secret-modal';
 
@@ -65,7 +68,14 @@ export default function ServiceAccountsList({
   };
 
   const handleConfirmDelete = async () => {
-    await deleteServiceAccount(team.id, selectedServiceAccount?.id);
+    const [_result, error] = await deleteServiceAccount(team.id, selectedServiceAccount?.id);
+    if (error) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to delete service account, please try again.',
+      });
+      return;
+    }
     getTeamServiceAccounts(team.id);
   };
 
@@ -75,12 +85,25 @@ export default function ServiceAccountsList({
   };
 
   const handleConfirmUpdate = async () => {
-    await updateServiceAccountCredentials(team.id, selectedServiceAccount?.id);
+    const [_, error] = await updateServiceAccountCredentials(team.id, selectedServiceAccount?.id);
+    if (error) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to update secret, please try again.',
+      });
+    }
   };
 
   const copyOrDownloadServiceAccount = async (download: boolean) => {
     if (checkDisabled(selectedServiceAccount)) return;
-    let [data] = await getServiceAccountCredentials(team.id, selectedServiceAccount?.id);
+    let [data, error] = await getServiceAccountCredentials(team.id, selectedServiceAccount?.id);
+    if (error) {
+      alert.show({
+        variant: 'danger',
+        content: `Failed to ${download ? 'download' : 'copy'}, please try again.`,
+      });
+      return;
+    }
     data = data || {};
 
     const text = {
@@ -179,3 +202,5 @@ export default function ServiceAccountsList({
     </>
   );
 }
+
+export default withTopAlert(ServiceAccountsList);

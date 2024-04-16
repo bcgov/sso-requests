@@ -35,6 +35,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
   const [selectedIdp, setSelectedIdp] = useState<string>('');
   const [selectedProperty, setSelectedProperty] = useState<string>(property);
   const [searchKey, setSearchKey] = useState<string>(search);
+  const [importError, setImportError] = useState(false);
 
   useEffect(() => {
     setSelectedIdp(idp);
@@ -61,7 +62,6 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
     setLoading(true);
     setRows([]);
     setSearched(true);
-
     const [data, err] = await searchIdirUsers({
       field,
       search: searchKey,
@@ -72,113 +72,121 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
   };
 
   const handleImport = async (data: IdirUser) => {
-    await importIdirUser({ guid: data.guid, userId: data.userId });
-    parentModalRef.current.close({ idp: selectedIdp, guid: data.guid });
+    setImportError(false);
+    const [_, err] = await importIdirUser({ guid: data.guid, userId: data.userId });
+    if (err) {
+      setImportError(true);
+    } else {
+      parentModalRef.current.close({ idp: selectedIdp, guid: data.guid });
+    }
   };
 
   return (
-    <Table
-      searchPlaceholder="Enter search criteria"
-      variant="mini"
-      headers={[
-        {
-          accessor: 'firstName',
-          Header: 'First name',
-        },
-        {
-          accessor: 'lastName',
-          Header: 'Last Name',
-        },
-        {
-          accessor: 'email',
-          Header: 'Email',
-        },
-        {
-          accessor: 'idirUsername',
-          Header: 'IDIR username',
-        },
-        {
-          accessor: 'actions',
-          Header: '',
-          disableSortBy: true,
-        },
-      ]}
-      rowSelectorKey={'guid'}
-      data={rows.map((row) => {
-        return {
-          guid: row.guid,
-          firstName: row.individualIdentity.name.firstname,
-          lastName: row.individualIdentity.name.surname,
-          email: row.contact.email,
-          idirUsername: row.userId,
-          actions: (
-            <ActionButtonContainer>
-              <ActionButton
-                icon={faEye}
-                role="button"
-                aria-label="view"
-                onClick={() => {
-                  infoModalRef.current.open({
-                    guid: row.guid,
-                    attributes: {
-                      username: row.userId,
-                      displayName: row.displayName,
-                      firstName: row.individualIdentity.name.firstname,
-                      middleName: row.individualIdentity.name.middleName,
-                      lastName: row.individualIdentity.name.surname,
-                      initials: row.individualIdentity.name.initials,
-                      email: row.contact.email,
-                      telephone: row.contact.telephone,
-                      company: row.internalIdentity.company,
-                      department: row.internalIdentity.department,
-                      title: row.internalIdentity.title,
-                    },
-                    _hash: parentModalRef.current.getId(),
-                  });
-                }}
-                title="View"
-                size="lg"
-              />
-              <ActionButton
-                icon={faDownload}
-                role="button"
-                aria-label="import"
-                onClick={() => handleImport(row)}
-                title="Import"
-                size="lg"
-              />
-            </ActionButtonContainer>
-          ),
-        };
-      })}
-      colfilters={[
-        {
-          value: selectedIdp,
-          multiselect: false,
-          onChange: setSelectedIdp,
-          options: idpOptions,
-        },
-        {
-          value: selectedProperty,
-          multiselect: false,
-          onChange: setSelectedProperty,
-          options: propertyOptions.filter((v) => v.allowed.includes(selectedIdp)),
-        },
-      ]}
-      showFilters={true}
-      loading={loading}
-      totalColSpan={20}
-      searchColSpan={10}
-      headerAlign={'bottom'}
-      headerGutter={[5, 0]}
-      searchKey={searchKey}
-      searchLocation={'right'}
-      onSearch={handleSearch}
-      onEnter={handleSearch}
-      noDataFoundElement={
-        <p>The user you searched for does not exist. Please try again, by entering the full search criteria.</p>
-      }
-    ></Table>
+    <>
+      <Table
+        searchPlaceholder="Enter search criteria"
+        variant="mini"
+        headers={[
+          {
+            accessor: 'firstName',
+            Header: 'First name',
+          },
+          {
+            accessor: 'lastName',
+            Header: 'Last Name',
+          },
+          {
+            accessor: 'email',
+            Header: 'Email',
+          },
+          {
+            accessor: 'idirUsername',
+            Header: 'IDIR username',
+          },
+          {
+            accessor: 'actions',
+            Header: '',
+            disableSortBy: true,
+          },
+        ]}
+        rowSelectorKey={'guid'}
+        data={rows.map((row) => {
+          return {
+            guid: row.guid,
+            firstName: row.individualIdentity.name.firstname,
+            lastName: row.individualIdentity.name.surname,
+            email: row.contact.email,
+            idirUsername: row.userId,
+            actions: (
+              <ActionButtonContainer>
+                <ActionButton
+                  icon={faEye}
+                  role="button"
+                  aria-label="view"
+                  onClick={() => {
+                    infoModalRef.current.open({
+                      guid: row.guid,
+                      attributes: {
+                        username: row.userId,
+                        displayName: row.displayName,
+                        firstName: row.individualIdentity.name.firstname,
+                        middleName: row.individualIdentity.name.middleName,
+                        lastName: row.individualIdentity.name.surname,
+                        initials: row.individualIdentity.name.initials,
+                        email: row.contact.email,
+                        telephone: row.contact.telephone,
+                        company: row.internalIdentity.company,
+                        department: row.internalIdentity.department,
+                        title: row.internalIdentity.title,
+                      },
+                      _hash: parentModalRef.current.getId(),
+                    });
+                  }}
+                  title="View"
+                  size="lg"
+                />
+                <ActionButton
+                  icon={faDownload}
+                  role="button"
+                  aria-label="import"
+                  onClick={() => handleImport(row)}
+                  title="Import"
+                  size="lg"
+                />
+              </ActionButtonContainer>
+            ),
+          };
+        })}
+        colfilters={[
+          {
+            value: selectedIdp,
+            multiselect: false,
+            onChange: setSelectedIdp,
+            options: idpOptions,
+          },
+          {
+            value: selectedProperty,
+            multiselect: false,
+            onChange: setSelectedProperty,
+            options: propertyOptions.filter((v) => v.allowed.includes(selectedIdp)),
+          },
+        ]}
+        showFilters={true}
+        loading={loading}
+        totalColSpan={20}
+        searchColSpan={10}
+        headerAlign={'bottom'}
+        headerGutter={[5, 0]}
+        searchKey={searchKey}
+        searchLocation={'right'}
+        onSearch={handleSearch}
+        onEnter={handleSearch}
+        noDataFoundElement={
+          <p>The user you searched for does not exist. Please try again, by entering the full search criteria.</p>
+        }
+      ></Table>
+      {importError && <p className="text-danger">Failed to import the user. Please try again.</p>}
+    </>
   );
 }
 

@@ -35,3 +35,10 @@ export const NoEntitiesMessage = ({ message }: { message: string }) => (
     &nbsp; {message}
   </NoProjects>
 );
+
+export const FailureMessage = ({ message }: { message: string }) => (
+  <NotAvailable>
+    <FontAwesomeIcon icon={faExclamationCircle} title="Error" />
+    &nbsp; {message}
+  </NotAvailable>
+);

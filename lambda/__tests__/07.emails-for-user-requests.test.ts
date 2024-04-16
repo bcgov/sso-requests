@@ -141,6 +141,7 @@ describe('integration email updates for individual users', () => {
         projectName,
         authType: 'service-account',
         submitted: true,
+        publicAccess: false,
       });
       expect(integrationRes.status).toEqual(200);
       let integration = integrationRes.body;

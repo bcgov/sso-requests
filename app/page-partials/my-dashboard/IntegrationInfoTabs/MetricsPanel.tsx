@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { EventCountMetric, Integration } from 'interfaces/Request';
-import { withTopAlert } from 'layout/TopAlert';
+import { TopAlert, withTopAlert } from 'layout/TopAlert';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import startCase from 'lodash.startcase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Text, Legend } from 'recharts';
 import { getMetrics } from '@app/services/grafana';
 import throttle from 'lodash.throttle';
-import moment from 'moment';
 import DateTimePicker from '@app/components/DateTimePicker';
 import { InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
@@ -54,6 +53,7 @@ const StyledHr = styled.hr`
 
 interface Props {
   integration: Integration;
+  alert: TopAlert;
 }
 
 const getFormattedDateString = (d: Date) => {
@@ -61,7 +61,7 @@ const getFormattedDateString = (d: Date) => {
 };
 
 const metricsStartDate = 'December 01, 2023';
-const MetricsPanel = ({ integration }: Props) => {
+const MetricsPanel = ({ integration, alert }: Props) => {
   const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
   const [metrics, setMetrics] = useState<EventCountMetric[]>([]);
@@ -85,9 +85,11 @@ const MetricsPanel = ({ integration }: Props) => {
   const fetchMetrics = useCallback(
     throttle(async (fromDate: string, toDate: string, environment: string) => {
       const [metricsData, err] = await getMetrics(integration?.id as number, environment, fromDate, toDate);
-
-      if (err || metricsData.length === 0) {
-        setMetrics([]);
+      if (err) {
+        alert.show({
+          variant: 'danger',
+          content: 'Failed to fetch metrics',
+        });
       } else {
         setMetrics(metricsData);
       }

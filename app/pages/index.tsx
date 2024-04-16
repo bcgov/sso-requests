@@ -186,7 +186,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                     <p>Included:</p>
                     <ul>
                       <li>Pre-configured realms</li>
-                      <li>Access to dev and test &lt; 20 mins.</li>
+                      <li>Access to dev and test</li>
                       <li>Client IDs and secrets</li>
                       <li>24/7 service availability</li>
                       <li>Service Accounts</li>

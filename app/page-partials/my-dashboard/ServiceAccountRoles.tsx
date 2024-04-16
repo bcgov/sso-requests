@@ -65,21 +65,31 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [environment, setEnvironment] = useState('dev');
+  const [userAssignmentError, setUserAssignmentError] = useState(false);
 
   const environments = selectedRequest?.environments || [];
 
   const throttleUpdate = useCallback(
     throttle(
       async (roleNames: string[]) => {
-        await setSaving(true);
+        setSaving(true);
+        setSavingMessage('Assigning role...');
+        setUserAssignmentError(false);
         const [, err] = await manageUserRoles({
           environment: environment,
           integrationId: selectedRequest.id as number,
           username: getServiceAccountUsername(selectedRequest.clientId as string),
           roleNames,
         });
-        if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
-        await setSaving(false);
+        setSaving(false);
+        if (err) {
+          setUserAssignmentError(true);
+          setSavingMessage('Failed to update roles.');
+          return false;
+        } else {
+          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+          return true;
+        }
       },
       2000,
       { trailing: true },
@@ -98,12 +108,18 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
     if (actionMeta.action === 'clear') {
     } else if (actionMeta.action === 'remove-value') {
       newRoles = userRoles.filter((role) => role !== (actionMeta.removedValue?.value as string));
+    } else if (actionMeta.action === 'pop-value') {
+      newRoles = [...userRoles.slice(0, -1)];
     } else {
       newRoles = [...userRoles, actionMeta.option?.value as string];
     }
 
-    throttleUpdate(newRoles);
-    setUserRoles(newRoles);
+    if (userRoles.length !== newRoles.length) {
+      const success = await throttleUpdate(newRoles);
+      if (success) {
+        setUserRoles(newRoles);
+      }
+    }
   };
 
   const getRoles = async () => {
@@ -118,7 +134,14 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
       max: 1000,
     });
 
-    const roles = data == null ? [] : data.map((role: any) => role.name);
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch roles.',
+      });
+    }
+
+    const roles = data === null ? [] : data.map((role: any) => role.name);
 
     setRoles(roles);
     setLoading(false);
@@ -126,11 +149,20 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
 
   const fetchUserRoles = async (username: string) => {
     await setLoadingRight(true);
-    const [data] = await listUserRoles({
+    const [data, err] = await listUserRoles({
       environment: environment,
       integrationId: selectedRequest.id as number,
       username,
     });
+
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch roles.',
+      });
+      setLoadingRight(false);
+      return;
+    }
 
     await setUserRoles(data || []);
     setLoadingRight(false);
@@ -197,7 +229,11 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
                         />
                       </div>
 
-                      <LastSavedMessage saving={saving} content={savingMessage} />
+                      <LastSavedMessage
+                        saving={saving}
+                        content={savingMessage}
+                        variant={userAssignmentError ? 'error' : 'success'}
+                      />
                     </div>
                   )}
                 </Grid.Col>
