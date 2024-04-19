@@ -105,7 +105,7 @@ export const keycloakClient = async (
 ) => {
   try {
     let client;
-
+    const offlineAccessEnabled = integration[`${environment}OfflineAccessEnabled`] || false;
     if (isPreservedClaim(integration.additionalRoleAttribute?.trim())) {
       throw Error(`${integration.additionalRoleAttribute} is a preserved claim and cannot be overwritten`);
     }
@@ -166,12 +166,10 @@ export const keycloakClient = async (
       await kcAdminClient.clients.update({ id: client?.id, realm }, { ...clientData });
     }
 
-    const protocolMappersForClient = (
-      await kcAdminClient.clients.listProtocolMappers({
-        id: client?.id,
-        realm,
-      })
-    ).map((mapper) => mapper.name);
+    const protocolMappersForClient = await kcAdminClient.clients.listProtocolMappers({
+      id: client?.id,
+      realm,
+    });
 
     if (!integration.apiServiceAccount) {
       // check existing roles
@@ -223,13 +221,25 @@ export const keycloakClient = async (
           realm,
         })
       ).map((scope) => scope.name);
+      console.log('🚀 ~ existingOptionalScopes:', existingOptionalScopes);
 
-      if (existingOptionalScopes.includes('offline_access')) {
+      console.log('🚀 ~ offlineAccessEnabled:', offlineAccessEnabled);
+
+      if (offlineAccessEnabled && !existingOptionalScopes.includes('offline_access')) {
         await kcAdminClient.clients.addOptionalClientScope({
           id: client.id,
           clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === 'offline_access')?.id,
           realm,
         });
+      } else {
+        if (existingOptionalScopes.includes('offline_access') && !offlineAccessEnabled) {
+          await kcAdminClient.clients.delOptionalClientScope({
+            id: client.id,
+            clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === 'offline_access')
+              ?.id,
+            realm,
+          });
+        }
       }
 
       if (!realmRoleForClient) {
@@ -242,7 +252,7 @@ export const keycloakClient = async (
       }
 
       if (integration.protocol === 'oidc') {
-        if (!protocolMappersForClient.includes('client_roles')) {
+        if (!protocolMappersForClient.find((mapper) => mapper.name === 'client_roles')) {
           await kcAdminClient.clients.addProtocolMapper(
             {
               id: client.id,
@@ -265,7 +275,7 @@ export const keycloakClient = async (
           );
         }
 
-        if (!protocolMappersForClient.includes('access_token_aud')) {
+        if (!protocolMappersForClient.find((mapper) => mapper.name === 'access_token_aud')) {
           await kcAdminClient.clients.addProtocolMapper(
             {
               id: client.id,
@@ -284,33 +294,57 @@ export const keycloakClient = async (
           );
         }
 
+        const additionalClientRolesMapper = protocolMappersForClient.find(
+          (mapper) => mapper.name === 'additional_client_roles',
+        );
         if (integration.additionalRoleAttribute) {
-          if (!protocolMappersForClient.includes('additional_client_roles')) {
+          const mapperPayload = {
+            name: 'additional_client_roles',
+            protocol: 'openid-connect',
+            protocolMapper: 'oidc-usermodel-client-role-mapper',
+            config: {
+              'claim.name': integration.additionalRoleAttribute,
+              'jsonType.label': 'String',
+              'usermodel.clientRoleMapping.clientId': integration.clientId,
+              'id.token.claim': 'true',
+              'access.token.claim': 'true',
+              'userinfo.token.claim': 'true',
+              multivalued: 'true',
+            },
+          };
+          if (!additionalClientRolesMapper) {
             await kcAdminClient.clients.addProtocolMapper(
               {
                 id: client.id,
                 realm,
               },
               {
-                name: 'additional_client_roles',
-                protocol: 'openid-connect',
-                protocolMapper: 'oidc-usermodel-client-role-mapper',
-                config: {
-                  'claim.name': integration.additionalRoleAttribute,
-                  'jsonType.label': 'String',
-                  'usermodel.clientRoleMapping.clientId': integration.clientId,
-                  'id.token.claim': 'true',
-                  'access.token.claim': 'true',
-                  'userinfo.token.claim': 'true',
-                  multivalued: 'true',
-                },
+                ...mapperPayload,
               },
             );
+          } else if (
+            additionalClientRolesMapper &&
+            additionalClientRolesMapper.config['claim.name'] !== integration.additionalRoleAttribute
+          ) {
+            await kcAdminClient.clients.updateProtocolMapper(
+              {
+                id: client.id,
+                realm,
+                mapperId: additionalClientRolesMapper.id,
+              },
+              { ...mapperPayload, id: additionalClientRolesMapper.id },
+            );
           }
+        } else if (!integration.additionalRoleAttribute && additionalClientRolesMapper) {
+          await kcAdminClient.clients.delProtocolMapper({
+            id: client.id,
+            realm,
+            mapperId: additionalClientRolesMapper?.id,
+          });
         }
       } else if (integration.protocol === 'saml') {
         if (integration.additionalRoleAttribute) {
-          if (!protocolMappersForClient.includes('additional_client_roles')) {
+          if (!protocolMappersForClient.find((mapper) => mapper.name === 'additional_client_roles')) {
             await kcAdminClient.clients.addProtocolMapper(
               {
                 id: client.id,
@@ -330,7 +364,7 @@ export const keycloakClient = async (
         }
       }
     } else {
-      if (!protocolMappersForClient.includes('team')) {
+      if (!protocolMappersForClient.find((mapper) => mapper.name === 'team')) {
         await kcAdminClient.clients.addProtocolMapper(
           {
             id: client.id,
@@ -355,6 +389,7 @@ export const keycloakClient = async (
 
     return true;
   } catch (err) {
+    console.error(err);
     console.trace('Failed to apply integration', err.message || err);
     return false;
   }

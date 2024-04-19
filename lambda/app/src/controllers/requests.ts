@@ -56,6 +56,7 @@ const envFields = [
   'LoginTitle',
   'ValidRedirectUris',
   'Idps',
+  'OfflineAccessEnabled',
   ...oidcDurationAdditionalFields,
   ...samlDurationAdditionalFields,
   ...samlFineGrainEndpointConfig,
@@ -228,6 +229,7 @@ export const updateRequest = async (
 
     const allowedData = processRequest(rest, isMerged, userIsAdmin);
     assign(current, allowedData);
+
     const mergedData = getCurrentValue();
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
@@ -243,6 +245,7 @@ export const updateRequest = async (
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
+    console.log('🚀 ~ finalData:', finalData);
 
     if (submit) {
       const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);

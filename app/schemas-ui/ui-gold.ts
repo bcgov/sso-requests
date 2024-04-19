@@ -13,6 +13,8 @@ import { checkBceidGroup, checkGithubGroup } from '@app/helpers/integration';
 import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
+import SwitchWidget from '@app/form-components/widgets/SwitchWidget';
+import get from 'lodash.get';
 
 interface Props {
   integration: Integration;
@@ -55,6 +57,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     formData?.protocol === 'saml' ? samlDurationAdditionalFields : oidcDurationAdditionalFields;
 
   for (let x = 0; x < envs.length; x++) {
+    const OfflineAccessEnabled = get(formData, `${envs[x]}OfflineAccessEnabled`, false);
     for (let y = 0; y < durationAdditionalFields.length; y++) {
       const minuteOnlyFields = ['SessionIdleTimeout', 'SessionMaxLifespan'];
       let def: any = {
@@ -65,6 +68,17 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
 
       if (y === 0) def['ui:FieldTemplate'] = FieldAccessTokenLifespan;
       tokenFields[`${envs[x]}${durationAdditionalFields[y]}`] = def;
+    }
+
+    tokenFields[`${envs[x]}OfflineAccessEnabled`] = {
+      'ui:widget': SwitchWidget,
+      'ui:label': false,
+      'ui:readonly': !isAdmin,
+    };
+
+    if (!OfflineAccessEnabled) {
+      tokenFields[`${envs[x]}OfflineSessionIdleTimeout`]['ui:readonly'] = true;
+      tokenFields[`${envs[x]}OfflineSessionMaxLifespan`]['ui:readonly'] = true;
     }
   }
 
