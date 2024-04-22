@@ -20,6 +20,17 @@ export const up = async ({ context: sequelize }) => {
     allowNull: false,
     defaultValue: false,
   });
+
+  // grandfather existing clients
+  await sequelize
+    .getQueryInterface()
+    .bulkUpdate('requests', { dev_offline_access_enabled: true }, { dev_offline_access_enabled: { [Op.eq]: null } });
+  await sequelize
+    .getQueryInterface()
+    .bulkUpdate('requests', { test_offline_access_enabled: true }, { test_offline_access_enabled: { [Op.eq]: null } });
+  await sequelize
+    .getQueryInterface()
+    .bulkUpdate('requests', { prod_offline_access_enabled: true }, { prod_offline_access_enabled: { [Op.eq]: null } });
 };
 
 export const down = async ({ context: sequelize }) => {
