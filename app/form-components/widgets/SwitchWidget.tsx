@@ -43,7 +43,7 @@ function SwitchWidget(props: WidgetProps) {
           height={15}
           width={48}
           className="react-switch"
-          id="material-switch"
+          id={id}
           disabled={disabled || readonly}
         />
       </span>
