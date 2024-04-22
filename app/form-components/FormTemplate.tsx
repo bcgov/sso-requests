@@ -391,7 +391,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   if (isLastStage) {
     buttonTexts.continue = isApplied ? 'Update' : 'Submit';
     buttonTexts.back = isApplied ? 'Cancel' : 'Save and Close';
-  } else if (isFirstStage) {
+  } else if (isFirstStage && isNew) {
     buttonTexts.continue = 'Next';
     buttonTexts.back = isApplied ? 'Cancel' : 'Close';
   } else {
