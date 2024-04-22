@@ -51,6 +51,8 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     devSessionMaxLifespan,
     testSessionMaxLifespan,
     prodSessionMaxLifespan,
+    authType,
+    publicAccess,
   } = formData;
 
   const sessionIdleTimeout = (value: number, key: string) => {
@@ -73,6 +75,11 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     projectName: () => {
       if (/^\d/.test(projectName)) {
         errors['projectName'].addError('Please have your project name start with a letter');
+      }
+    },
+    authType: () => {
+      if (authType !== 'browser-login' && publicAccess) {
+        errors['authType'].addError('Ensure your access is confidential when using a service account.');
       }
     },
     devSessionIdleTimeout: sessionIdleTimeout(devSessionIdleTimeout, 'devSessionIdleTimeout'),

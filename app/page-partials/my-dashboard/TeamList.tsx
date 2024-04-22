@@ -1,10 +1,8 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Table from 'components/TableNew';
 import styled from 'styled-components';
-import { Button, NumberedContents } from '@bcgov-sso/common-react-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import { Team, User } from 'interfaces/team';
+import { Button } from '@bcgov-sso/common-react-components';
+import { Team } from 'interfaces/team';
 import { deleteTeam, deleteServiceAccount, getTeamMembers, getServiceAccounts } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
@@ -17,6 +15,8 @@ import { Integration } from 'interfaces/Request';
 import TeamActionButtons from '@app/components/TeamActionButtons';
 import isEmpty from 'lodash.isempty';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
+import ErrorText from '@app/components/ErrorText';
+import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 
 const deleteTeamModalId = 'delete-team-modal';
 const editTeamNameModalId = 'edit-team-name-modal';
@@ -55,12 +55,14 @@ interface Props {
   teams: Team[];
   loadTeams: () => void;
   hasError: boolean;
+  alert: TopAlert;
 }
 
-export default function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError }: Props) {
+function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, alert }: Readonly<Props>) {
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
   const [serviceAccounts, setServiceAccounts] = useState<Integration[]>([]);
+  const [teamDeleteError, setTeamDeleteError] = useState(false);
 
   const deleteServiceAccontNote =
     '*By deleting this team, you are also deleting the CSS App API Account that belongs to this team.';
@@ -75,7 +77,11 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
 
   const updateServiceAccounts = async () => {
     if (activeTeam?.role === 'admin') {
-      const [data] = await getServiceAccounts(activeTeamId);
+      const [data, error] = await getServiceAccounts(activeTeamId);
+      if (error) {
+        alert.show({ variant: 'danger', content: 'Failed to load service accounts for team. Please refresh.' });
+        return;
+      }
       setServiceAccounts(data);
     } else {
       setServiceAccounts([]);
@@ -101,6 +107,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
   const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
 
   const showDeleteModal = (team: Team) => {
+    setTeamDeleteError(false);
     updateActiveTeam(team);
     if (activeTeamId !== team.id) return;
     window.location.hash = deleteTeamModalId;
@@ -165,6 +172,7 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
   const content = getTableContents();
 
   const handleDeleteTeam = async () => {
+    setTeamDeleteError(false);
     if (!canDelete) return;
 
     if (serviceAccounts.length > 0) {
@@ -175,8 +183,12 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
       );
     }
 
-    await deleteTeam(activeTeamId);
-    await loadTeams();
+    const [_result, error] = await deleteTeam(activeTeamId);
+    if (error) {
+      setTeamDeleteError(true);
+    } else {
+      await loadTeams();
+    }
   };
 
   if (loading) return <PageLoader />;
@@ -220,16 +232,22 @@ export default function TeamList({ currentUser, setTeam, loading, teams, loadTea
         onConfirm={handleDeleteTeam}
         id={deleteTeamModalId}
         content={
-          <WarningModalContents
-            title="Are you sure that you want to delete this team?"
-            content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-            note={canDelete && !isEmpty(serviceAccounts) ? deleteServiceAccontNote : ''}
-          />
+          <>
+            <WarningModalContents
+              title="Are you sure that you want to delete this team?"
+              content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
+              note={canDelete && !isEmpty(serviceAccounts) ? deleteServiceAccontNote : ''}
+            />
+            {teamDeleteError && <ErrorText>Failed to delete. Please try again</ErrorText>}
+          </>
         }
         buttonStyle={canDelete ? 'danger' : 'custom'}
         confirmText={canDelete ? 'Delete Team' : 'Okay'}
+        skipCloseOnConfirm={true}
         closable
       />
     </>
   );
 }
+
+export default withTopAlert(TeamList);

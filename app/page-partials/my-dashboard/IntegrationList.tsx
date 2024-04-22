@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, Dispatch, SetStateAction } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Integration } from 'interfaces/Request';
 import padStart from 'lodash.padstart';
@@ -17,6 +17,8 @@ import { hasAnyPendingStatus } from 'utils/helpers';
 import { authTypeDisplay } from 'metadata/display';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import { formatWikiURL } from 'utils/constants';
+import { AxiosError } from 'axios';
+import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -100,14 +102,15 @@ const NewEntityButton = ({
 interface Props {
   setIntegration: Function;
   setIntegrationCount: (integrations: number) => void;
+  alert: TopAlert;
 }
 
-export default function IntegrationList({ setIntegration, setIntegrationCount }: Props) {
+function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonly<Props>) {
   const router = useRouter();
   let { integr } = router.query;
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [hasError, setHasError] = useState<boolean>(false);
+  const [hasIntegrationLoadError, setHasIntegrationLoadError] = useState<boolean>(false);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [activeIntegrationId, setActiveIntegrationId] = useState<number | undefined>(
     (integr && Number(integr)) || undefined,
@@ -135,7 +138,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
   const loadIntegrations = async () => {
     setLoading(true);
     const [integrations, err] = await getRequests();
-    setHasError(!!err);
+    setHasIntegrationLoadError(!!err);
     updateIntegrations(integrations || []);
     setLoading(false);
   };
@@ -175,7 +178,7 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
   };
 
   const getTableContents = () => {
-    if (hasError) return <SystemUnavailableMessage />;
+    if (hasIntegrationLoadError) return <SystemUnavailableMessage />;
 
     if (!integrations || integrations.length === 0) return <NoEntitiesMessage message="No Requests Submitted" />;
 
@@ -221,8 +224,15 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
                 <RightFloatButtons>
                   <ActionButtons
                     request={integration}
-                    onDelete={() => {
-                      loadIntegrations();
+                    onDelete={(_: any, error: AxiosError | null) => {
+                      if (error) {
+                        alert.show({
+                          variant: 'danger',
+                          content: `Failed to delete integration ${integration.projectName}.`,
+                        });
+                      } else {
+                        loadIntegrations();
+                      }
                     }}
                     defaultActiveColor="#fff"
                     delIconStyle={{ marginLeft: '7px' }}
@@ -253,3 +263,5 @@ export default function IntegrationList({ setIntegration, setIntegrationCount }:
     </>
   );
 }
+
+export default withTopAlert(IntegrationList);

@@ -14,6 +14,8 @@ import {
 import styled from 'styled-components';
 import Select from 'react-select';
 import { ActionButton } from 'components/ActionButtons';
+import { AxiosError } from 'axios';
+import { FailureMessage } from '@app/page-partials/my-dashboard/Messages';
 
 const BorderLine = styled.div`
   border-bottom: 1px solid #707070;
@@ -78,6 +80,7 @@ function DownloadIcon(props: { type: string; handleClick: any }) {
 export default function AdminReports({ session }: PageProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [reportType, setreportType] = useState<any>('');
+  const [downloadError, setDownloadError] = useState(false);
 
   const ReportTypeOptions = () => {
     return (
@@ -103,29 +106,25 @@ export default function AdminReports({ session }: PageProps) {
     );
   };
 
-  const handleAllStandardReportClick = async () => {
+  const handleDownloadClick = async (reportDownloadFunction: () => Promise<[true, null] | [null, AxiosError]>) => {
     setLoading(true);
-    await downloadAllStandardIntegrationsReport();
+    setDownloadError(false);
+    const [_, err] = await reportDownloadFunction();
+    if (err) {
+      setDownloadError(true);
+    }
     setLoading(false);
   };
 
-  const handleAllBceidApprovedRequestsAndEventsReportClick = async () => {
-    setLoading(true);
-    await downloadAllBceidApprovedRequestsAndEventsReport();
-    setLoading(false);
-  };
-
-  const handleIntegrationDataIntegrityReportClick = async () => {
-    setLoading(true);
-    await downloadIntegrationDataIntegrityReport();
-    setLoading(false);
-  };
-
-  const handleDownloadReportClick = async () => {
-    setLoading(true);
-    await downloadDatabaseReport(reportTypeMap[reportType], primaryKeyMap[reportTypeMap[reportType]]);
-    setLoading(false);
-  };
+  const handleAllStandardReportClick = async () => handleDownloadClick(downloadAllStandardIntegrationsReport);
+  const handleAllBceidApprovedRequestsAndEventsReportClick = async () =>
+    handleDownloadClick(downloadAllBceidApprovedRequestsAndEventsReport);
+  const handleIntegrationDataIntegrityReportClick = async () =>
+    handleDownloadClick(downloadIntegrationDataIntegrityReport);
+  const handleDownloadReportClick = async () =>
+    handleDownloadClick(() =>
+      downloadDatabaseReport(reportTypeMap[reportType], primaryKeyMap[reportTypeMap[reportType]]),
+    );
 
   return (
     <ResponsiveContainer rules={mediaRules}>
@@ -185,6 +184,12 @@ export default function AdminReports({ session }: PageProps) {
               </p>
             </>
           )}
+        </>
+      )}
+      {downloadError && (
+        <>
+          <br />
+          <FailureMessage message="Failed to download report. Please try again." />
         </>
       )}
     </ResponsiveContainer>

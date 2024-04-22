@@ -14,7 +14,6 @@ import FieldTemplate from 'form-components/FieldTemplate';
 import ArrayFieldTemplate from 'form-components/ArrayFieldTemplate';
 import CenteredModal from 'components/CenteredModal';
 import { validateForm, customValidate } from 'utils/validate';
-import { parseError } from 'utils/helpers';
 import {
   checkBceidBoth,
   checkBceidGroup,
@@ -146,11 +145,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const throttleUpdate = useCallback(
     throttle(
-      async (event: any) => {
+      async (data: Integration) => {
         if (isNew || isApplied) return;
         if (request) {
           setSaving(true);
-          const [, err] = await updateRequest({ ...event.formData, id: request.id });
+          const [, err] = await updateRequest({ ...data, id: request.id });
           if (!err) setSaveMessage(`Last saved at ${new Date().toLocaleString()}`);
           setSaving(false);
         }
@@ -206,15 +205,17 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       window.location.hash = 'info-modal';
     }
 
-    throttleUpdate(e);
+    throttleUpdate(processed);
   };
 
   const loadTeams = async () => {
     const getTeams = isNew ? getMyTeams : getAllowedTeams;
     const [teams, err] = await getTeams();
     if (err) {
-      // add err handling
-      console.error(err);
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to load teams. Please refresh.',
+      });
     } else {
       setTeams(teams || []);
     }
@@ -289,7 +290,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
             variant: 'danger',
             fadeOut: 5000,
             closable: true,
-            content: err,
+            content: 'Failed to submit request. Please try again.',
           });
         }
 
@@ -329,7 +330,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           variant: 'danger',
           fadeOut: 10000,
           closable: true,
-          content: parseError(err),
+          content: 'Failed to submit request. Please try again.',
         });
       } else {
         alert.show({

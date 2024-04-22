@@ -54,27 +54,30 @@ const InstallationPanel = ({ integration, alert }: Props) => {
 
   const handleInstallationClick = async (environment: Environment) => {
     setLoading(true);
-    const [data] = await getInstallation(integration.id as number, environment);
+    const [data, error] = await getInstallation(integration.id as number, environment);
     setLoading(false);
+    if (error) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to download installation',
+      });
+      return null;
+    }
     return data;
   };
 
   const handleCopyClick = async (env: Environment) => {
     const inst = await handleInstallationClick(env);
-    copyTextToClipboard(prettyJSON(inst));
-    const variant = inst ? 'success' : 'danger';
-    const content = inst ? 'Installation copied to clipboard' : 'Failed to download installation';
-    alert.show({
-      variant,
-      fadeOut: 10000,
-      closable: true,
-      content,
-    });
+    if (inst) {
+      copyTextToClipboard(prettyJSON(inst));
+    }
   };
 
   const handleDownloadClick = async (env: Environment) => {
     const inst = await handleInstallationClick(env);
-    downloadText(prettyJSON(inst), `${integration.projectName}-installation-${env}.json`);
+    if (inst) {
+      downloadText(prettyJSON(inst), `${integration.projectName}-installation-${env}.json`);
+    }
   };
 
   if (loading)

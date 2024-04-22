@@ -9,6 +9,8 @@ const sampleSession = {
   isAdmin: true,
 };
 
+const MOCK_EMAIL = 'some@email.com';
+
 function MockRequestAllResult() {
   let requestAllResult: Integration[] = [];
   for (let i = 1; i <= 6; i++) {
@@ -44,6 +46,12 @@ jest.mock('services/request', () => {
 jest.mock('services/event', () => {
   return {
     getEvents: jest.fn(() => Promise.resolve([[], null])),
+  };
+});
+
+jest.mock('services/user', () => {
+  return {
+    getIdirUsersByEmail: jest.fn(() => Promise.resolve([[{ mail: MOCK_EMAIL, id: 1 }]])),
   };
 });
 
@@ -170,6 +178,12 @@ describe('SSO Dashboard', () => {
 
     //click on restore icon
     const restoreButton = screen.getAllByRole('button', { name: 'Restore at Keycloak' });
+    const userSearch = document.querySelector('#restoration-email-select input') as Element;
+    fireEvent.change(userSearch, { target: { value: MOCK_EMAIL } });
+    await waitFor(() => {
+      expect(screen.getByDisplayValue(MOCK_EMAIL)).toBeInTheDocument();
+      screen.getByText(MOCK_EMAIL).click();
+    });
     fireEvent.click(restoreButton[0]);
     await waitFor(() => {
       expect(screen.getByTitle('Confirm Restoration')).toBeInTheDocument();

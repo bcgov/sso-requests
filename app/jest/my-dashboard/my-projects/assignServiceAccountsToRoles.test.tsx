@@ -79,6 +79,8 @@ describe('assign service accounts to roles', () => {
     });
 
     // step: 3 Check the selected value
-    expect(getByTestId('assign-svc-acct-to-role-select')).toHaveTextContent(listClientRolesResponse);
+    await waitFor(() => {
+      expect(getByTestId('assign-svc-acct-to-role-select')).toHaveTextContent(listClientRolesResponse);
+    });
   });
 });

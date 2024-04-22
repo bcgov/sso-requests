@@ -180,6 +180,10 @@ describe('assign user to roles tab', () => {
     fireEvent.change(searchUserInput, { target: { value: 'sample_user' } });
     fireEvent.click(screen.getByRole('button', { name: 'Search' }));
 
+    await waitFor(() => {
+      screen.getByRole('button', { name: 'Search in IDIM Web Service Lookup' });
+    });
+
     fireEvent.click(screen.getByRole('button', { name: 'Search in IDIM Web Service Lookup' }));
     await waitFor(() => {
       expect(screen.getByTitle('IDIM Web Service Lookup')).toBeInTheDocument();

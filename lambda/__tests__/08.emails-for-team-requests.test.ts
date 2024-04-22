@@ -176,6 +176,7 @@ describe('integration email updates for teams', () => {
         teamId,
         authType: 'service-account',
         submitted: true,
+        publicAccess: false,
       });
       expect(integrationRes.status).toEqual(200);
       let integration = integrationRes.body;

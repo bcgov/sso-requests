@@ -6,14 +6,14 @@ jobs:
   test_pre-commit:
     runs-on: ubuntu-20.04
     steps:
-      - uses: hmarr/debug-action@v2
-      - uses: actions/checkout@v3
+      - uses: hmarr/debug-action@v3
+      - uses: actions/checkout@v4
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
       - name: Cache Node dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -21,9 +21,9 @@ jobs:
           restore-keys: ${{ runner.os }}-yarn-
 
       - name: Install asdf
-        uses: asdf-vm/actions/setup@v1
+        uses: asdf-vm/actions/setup@v3
       - name: Cache asdf tools
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             /home/runner/.asdf
@@ -74,7 +74,7 @@ jobs:
         working-directory: ./lambda
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
+        uses: codecov/codecov-action@v4
         env:
           slug: bcgov/sso-requests
         with:
@@ -88,7 +88,7 @@ jobs:
   commitlint:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@v5.2.2
+      - uses: wagoid/commitlint-github-action@v5
