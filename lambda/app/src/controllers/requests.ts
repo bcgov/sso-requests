@@ -245,7 +245,6 @@ export const updateRequest = async (
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
-    console.log('🚀 ~ finalData:', finalData);
 
     if (submit) {
       const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);

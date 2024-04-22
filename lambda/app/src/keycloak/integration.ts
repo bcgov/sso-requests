@@ -221,9 +221,6 @@ export const keycloakClient = async (
           realm,
         })
       ).map((scope) => scope.name);
-      console.log('🚀 ~ existingOptionalScopes:', existingOptionalScopes);
-
-      console.log('🚀 ~ offlineAccessEnabled:', offlineAccessEnabled);
 
       if (offlineAccessEnabled && !existingOptionalScopes.includes('offline_access')) {
         await kcAdminClient.clients.addOptionalClientScope({
