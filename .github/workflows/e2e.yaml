@@ -11,6 +11,7 @@ on:
       - lambda/**
       - docker-compose.yml
       - github/workflows/e2e.yaml
+      - local/terraform/*
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
