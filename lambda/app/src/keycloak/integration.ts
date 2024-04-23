@@ -228,15 +228,12 @@ export const keycloakClient = async (
           clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === 'offline_access')?.id,
           realm,
         });
-      } else {
-        if (existingOptionalScopes.includes('offline_access') && !offlineAccessEnabled) {
-          await kcAdminClient.clients.delOptionalClientScope({
-            id: client.id,
-            clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === 'offline_access')
-              ?.id,
-            realm,
-          });
-        }
+      } else if (existingOptionalScopes.includes('offline_access') && !offlineAccessEnabled) {
+        await kcAdminClient.clients.delOptionalClientScope({
+          id: client.id,
+          clientScopeId: clientScopeList.find((defaultClientscope) => defaultClientscope.name === 'offline_access')?.id,
+          realm,
+        });
       }
 
       if (!realmRoleForClient) {
@@ -339,49 +336,47 @@ export const keycloakClient = async (
             mapperId: additionalClientRolesMapper?.id,
           });
         }
-      } else if (integration.protocol === 'saml') {
-        if (integration.additionalRoleAttribute) {
-          if (!protocolMappersForClient.find((mapper) => mapper.name === 'additional_client_roles')) {
-            await kcAdminClient.clients.addProtocolMapper(
-              {
-                id: client.id,
-                realm,
-              },
-              {
-                name: 'additional_client_roles',
-                protocol: 'saml',
-                protocolMapper: 'saml-client-role-list-mapper',
-                config: {
-                  'attribute.name': integration.additionalRoleAttribute,
-                  single: 'true',
-                },
-              },
-            );
-          }
-        }
-      }
-    } else {
-      if (!protocolMappersForClient.find((mapper) => mapper.name === 'team')) {
+      } else if (
+        integration.protocol === 'saml' &&
+        integration.additionalRoleAttribute &&
+        !protocolMappersForClient.find((mapper) => mapper.name === 'additional_client_roles')
+      ) {
         await kcAdminClient.clients.addProtocolMapper(
           {
             id: client.id,
             realm,
           },
           {
-            name: 'team',
-            protocol: 'openid-connect',
-            protocolMapper: 'oidc-hardcoded-claim-mapper',
+            name: 'additional_client_roles',
+            protocol: 'saml',
+            protocolMapper: 'saml-client-role-list-mapper',
             config: {
-              'access.token.claim': 'true',
-              'access.tokenResponse.claim': 'false',
-              'claim.name': 'team',
-              'claim.value': integration.teamId,
-              'id.token.claim': 'true',
-              'userinfo.token.claim': 'true',
+              'attribute.name': integration.additionalRoleAttribute,
+              single: 'true',
             },
           },
         );
       }
+    } else if (!protocolMappersForClient.find((mapper) => mapper.name === 'team')) {
+      await kcAdminClient.clients.addProtocolMapper(
+        {
+          id: client.id,
+          realm,
+        },
+        {
+          name: 'team',
+          protocol: 'openid-connect',
+          protocolMapper: 'oidc-hardcoded-claim-mapper',
+          config: {
+            'access.token.claim': 'true',
+            'access.tokenResponse.claim': 'false',
+            'claim.name': 'team',
+            'claim.value': integration.teamId,
+            'id.token.claim': 'true',
+            'userinfo.token.claim': 'true',
+          },
+        },
+      );
     }
 
     return true;
