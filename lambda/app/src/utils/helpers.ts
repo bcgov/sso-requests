@@ -60,6 +60,13 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
   // client id cannot be updated by non-admin
   if (!isAdmin) immutableFields.push(...durationAdditionalFields, 'clientId');
 
+  if (isAdmin) {
+    ['dev', 'test', 'prod'].forEach((env) => {
+      if (!data[`${env}OfflineAccessEnabled`])
+        immutableFields.push(`${env}OfflineSessionIdleTimeout`, `${env}OfflineSessionMaxLifespan`);
+    });
+  }
+
   data = omit(data, immutableFields);
   data = sortURIFields(data);
   data.testIdps = data.testIdps || [];

@@ -81,6 +81,9 @@ export interface Integration {
   devSamlSignAssertions?: boolean;
   testSamlSignAssertions?: boolean;
   prodSamlSignAssertions?: boolean;
+  devOfflineAccessEnabled?: boolean;
+  testOfflineAccessEnabled?: boolean;
+  prodOfflineAccessEnabled?: boolean;
 }
 
 export interface Option {
