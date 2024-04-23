@@ -1,6 +1,6 @@
 import { DataTypes, Op } from 'sequelize';
 
-export const name = '2024.04.18T00.00.00.add-flag-offline-access-enabled';
+export const name = '2024.04.23T00.00.00.add-flag-offline-access-enabled';
 
 export const up = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().addColumn('requests', 'dev_offline_access_enabled', {
@@ -24,13 +24,13 @@ export const up = async ({ context: sequelize }) => {
   // grandfather existing clients
   await sequelize
     .getQueryInterface()
-    .bulkUpdate('requests', { dev_offline_access_enabled: true }, { dev_offline_access_enabled: { [Op.eq]: null } });
+    .bulkUpdate('requests', { dev_offline_access_enabled: true }, { dev_offline_access_enabled: { [Op.eq]: false } });
   await sequelize
     .getQueryInterface()
-    .bulkUpdate('requests', { test_offline_access_enabled: true }, { test_offline_access_enabled: { [Op.eq]: null } });
+    .bulkUpdate('requests', { test_offline_access_enabled: true }, { test_offline_access_enabled: { [Op.eq]: false } });
   await sequelize
     .getQueryInterface()
-    .bulkUpdate('requests', { prod_offline_access_enabled: true }, { prod_offline_access_enabled: { [Op.eq]: null } });
+    .bulkUpdate('requests', { prod_offline_access_enabled: true }, { prod_offline_access_enabled: { [Op.eq]: false } });
 };
 
 export const down = async ({ context: sequelize }) => {
