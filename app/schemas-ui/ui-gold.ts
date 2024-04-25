@@ -76,9 +76,11 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:readonly': !isAdmin,
     };
 
-    if (!OfflineAccessEnabled) {
-      tokenFields[`${envs[x]}OfflineSessionIdleTimeout`]['ui:readonly'] = true;
-      tokenFields[`${envs[x]}OfflineSessionMaxLifespan`]['ui:readonly'] = true;
+    if (formData?.protocol === 'oidc') {
+      if (!OfflineAccessEnabled) {
+        tokenFields[`${envs[x]}OfflineSessionIdleTimeout`]['ui:readonly'] = true;
+        tokenFields[`${envs[x]}OfflineSessionMaxLifespan`]['ui:readonly'] = true;
+      }
     }
   }
 
