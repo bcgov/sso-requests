@@ -19,4 +19,5 @@ export const sampleRequest: Integration = {
   primaryEndUsers: ['livingInBC'],
   primaryEndUsersOther: '',
   authType: 'browser-login',
+  protocol: 'oidc',
 };
