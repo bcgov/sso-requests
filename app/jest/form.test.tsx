@@ -303,6 +303,12 @@ describe('Client Sessions', () => {
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
 
+    const clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
+    const clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+
+    expect(clientOfflineIdleInput).toBeDisabled();
+    expect(clientOfflineMaxInput).toBeDisabled();
+
     const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLInputElement;
     const baseValue = clientIdleInput.value;
 
@@ -322,6 +328,25 @@ describe('Client Sessions', () => {
     fireEvent.change(clientIdleInput, { target: { value: '' } });
     fireEvent.blur(clientIdleInput);
     expect(clientIdleInput.value).toBe('0');
+  });
+
+  it('Handles offline access switch and dependent fields (offline session idle and max)', () => {
+    setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    let clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
+    let clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+
+    expect(clientOfflineIdleInput).toBeDisabled();
+    expect(clientOfflineMaxInput).toBeDisabled();
+
+    // enable the offline access scope and it enables the offline idle and max fields
+    const offlineAccessSwitch = document.querySelector('#root_devOfflineAccessEnabled') as HTMLElement;
+    fireEvent.click(offlineAccessSwitch);
+
+    expect(clientOfflineIdleInput).not.toBeDisabled();
+    expect(clientOfflineMaxInput).not.toBeDisabled();
   });
 });
 

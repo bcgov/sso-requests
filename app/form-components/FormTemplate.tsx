@@ -141,6 +141,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
   const isLastStage = formStage === schemas.length - 1;
+  const isFirstStage = formStage === 0;
   const schema = schemas[formStage] || {};
 
   const throttleUpdate = useCallback(
@@ -387,10 +388,12 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
   const buttonTexts = { continue: '', back: '' };
   const hasDigitalCredential = formData.devIdps?.includes('digitalcredential');
-
   if (isLastStage) {
     buttonTexts.continue = isApplied ? 'Update' : 'Submit';
     buttonTexts.back = isApplied ? 'Cancel' : 'Save and Close';
+  } else if (isFirstStage && isNew) {
+    buttonTexts.continue = 'Next';
+    buttonTexts.back = isApplied ? 'Cancel' : 'Close';
   } else {
     buttonTexts.continue = 'Next';
     buttonTexts.back = isApplied ? 'Cancel' : 'Save and Close';
