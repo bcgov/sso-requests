@@ -735,7 +735,13 @@ export const processIntegrationRequest = async (
   const payload = pick(integration, allowedFieldsForGithub);
   payload.accountableEntity = (await getAccountableEntity(integration)) || '';
   payload.idpNames = idps || [];
-  if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
+
+  if (payload.serviceType === 'gold') {
+    const hasDigitalCredential = usesDigitalCredential(integration);
+    const browserFlowAlias = hasDigitalCredential ? 'client stopper' : 'idp stopper';
+
+    payload.browserFlowOverride = browserFlowAlias;
+  }
 
   if (['development', 'production'].includes(process.env.NODE_ENV)) {
     return await standardClients(payload, restore, existingClientId);
