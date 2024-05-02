@@ -7,6 +7,9 @@ import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './he
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { IntegrationData } from '@lambda-shared/interfaces';
+import { DIT_EMAIL_ADDRESS } from '@lambda-shared/local';
+import { updateIntegration } from './helpers/modules/integrations';
+import { EMAILS } from '@lambda-shared/enums';
 
 jest.mock('../app/src/authenticate');
 
@@ -203,6 +206,49 @@ describe('IDP notifications', () => {
     expect(request.devIdps.includes('digitalcredential'));
     expect(request.testIdps.includes('digitalcredential'));
     expect(request.digitalCredentialApproved).toBe(false);
+  });
+
+  it('CCs DIT when requesting prod integration with Digital Credential as an IDP', async () => {
+    const emailList = createMockSendEmail();
+    await submitNewIntegration(mockIntegration);
+
+    const submissionEmails = emailList.filter((email) => email.code === EMAILS.CREATE_INTEGRATION_SUBMITTED);
+
+    expect(submissionEmails.length).toBe(1);
+    const ccList = emailList[0].cc;
+
+    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
+  });
+
+  it('Does not CC DIT when prod is unselected', async () => {
+    const emailList = createMockSendEmail();
+    await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
+
+    const submissionEmails = emailList.filter((email) => email.code === EMAILS.CREATE_INTEGRATION_SUBMITTED);
+    expect(submissionEmails.length).toBe(1);
+    const ccList = emailList[0].cc;
+
+    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
+  });
+
+  it('CCs DIT only when updates add prod to a DC client', async () => {
+    const emailList = createMockSendEmail();
+    const result = await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
+    await updateIntegration({ ...mockIntegration, id: result.body.id, environments: ['dev', 'test', 'prod'] }, true);
+
+    let updateEmails = emailList.filter((email) => email.code === EMAILS.UPDATE_INTEGRATION_SUBMITTED);
+    expect(updateEmails.length).toBe(1);
+
+    let ccList = updateEmails[0].cc;
+    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
+
+    // Clear emails and update again. Should not CC DIT since already in production
+    emailList.length = 0;
+    await updateIntegration({ ...mockIntegration, id: result.body.id, publicAccess: false }, true);
+    updateEmails = emailList.filter((email) => email.code === EMAILS.UPDATE_INTEGRATION_SUBMITTED);
+    expect(updateEmails.length).toBe(1);
+    ccList = updateEmails[0].cc;
+    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
   });
 
   it('Includes VC footer in email when requesting prod integration', async () => {

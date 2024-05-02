@@ -277,6 +277,7 @@ export const updateRequest = async (
       let environments = current.environments.concat();
 
       const hasProd = environments.includes('prod');
+      const addingProd = !originalData.environments.includes('prod') && hasProd;
 
       const hasBceid = usesBceid(current);
       const hasBceidProd = hasBceid && hasProd;
@@ -320,6 +321,7 @@ export const updateRequest = async (
               waitingBceidProdApproval,
               waitingGithubProdApproval,
               waitingDigitalCredentialProdApproval,
+              addingProd,
             },
           });
         }
