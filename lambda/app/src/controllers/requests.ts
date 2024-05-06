@@ -208,7 +208,7 @@ export const updateRequest = async (
 ) => {
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
-
+  let addingProd = false;
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
@@ -277,7 +277,7 @@ export const updateRequest = async (
       let environments = current.environments.concat();
 
       const hasProd = environments.includes('prod');
-      const addingProd = !originalData.environments.includes('prod') && hasProd;
+      addingProd = !originalData.environments.includes('prod') && hasProd;
 
       const hasBceid = usesBceid(current);
       const hasBceidProd = hasBceid && hasProd;
@@ -379,7 +379,7 @@ export const updateRequest = async (
 
       await createEvent(eventData);
 
-      await processIntegrationRequest(updated, false, existingClientId);
+      await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
       updated = await getAllowedRequest(session, data.id);
     }
@@ -725,6 +725,7 @@ export const processIntegrationRequest = async (
   integration: any,
   restore: boolean = false,
   existingClientId: string = '',
+  addingProd: boolean = false,
 ) => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
@@ -746,7 +747,7 @@ export const processIntegrationRequest = async (
   }
 
   if (['development', 'production'].includes(process.env.NODE_ENV)) {
-    return await standardClients(payload, restore, existingClientId);
+    return await standardClients(payload, restore, existingClientId, addingProd);
   }
 };
 
@@ -754,6 +755,7 @@ export const standardClients = async (
   integration: IntegrationData,
   restore: boolean = false,
   existingClientId: string = '',
+  addingProd: boolean = false,
 ) => {
   // add to the queue
   const queueItem = await models.requestQueue.create({
@@ -796,11 +798,11 @@ export const standardClients = async (
   await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
   // delete from the queue
   await models.requestQueue.destroy({ where: { id: queueItem.id } });
-  if (!restore) await updatePlannedIntegration(integration);
+  if (!restore) await updatePlannedIntegration(integration, addingProd);
   return true;
 };
 
-export const updatePlannedIntegration = async (integration: IntegrationData) => {
+export const updatePlannedIntegration = async (integration: IntegrationData, addingProd: boolean = false) => {
   const updatedIntegration = await models.request.findOne({
     where: {
       id: integration.id,
@@ -848,6 +850,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData) => 
       hasBceid,
       waitingGithubProdApproval,
       waitingDigitalCredentialProdApproval,
+      addingProd,
     });
   }
 };
