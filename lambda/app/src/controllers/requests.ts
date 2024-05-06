@@ -56,6 +56,7 @@ const envFields = [
   'LoginTitle',
   'ValidRedirectUris',
   'Idps',
+  'OfflineAccessEnabled',
   ...oidcDurationAdditionalFields,
   ...samlDurationAdditionalFields,
   ...samlFineGrainEndpointConfig,
@@ -228,6 +229,7 @@ export const updateRequest = async (
 
     const allowedData = processRequest(rest, isMerged, userIsAdmin);
     assign(current, allowedData);
+
     const mergedData = getCurrentValue();
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
@@ -275,6 +277,7 @@ export const updateRequest = async (
       let environments = current.environments.concat();
 
       const hasProd = environments.includes('prod');
+      const addingProd = !originalData.environments.includes('prod') && hasProd;
 
       const hasBceid = usesBceid(current);
       const hasBceidProd = hasBceid && hasProd;
@@ -318,6 +321,7 @@ export const updateRequest = async (
               waitingBceidProdApproval,
               waitingGithubProdApproval,
               waitingDigitalCredentialProdApproval,
+              addingProd,
             },
           });
         }
@@ -733,7 +737,13 @@ export const processIntegrationRequest = async (
   const payload = pick(integration, allowedFieldsForGithub);
   payload.accountableEntity = (await getAccountableEntity(integration)) || '';
   payload.idpNames = idps || [];
-  if (payload.serviceType === 'gold') payload.browserFlowOverride = 'idp stopper';
+
+  if (payload.serviceType === 'gold') {
+    const hasDigitalCredential = usesDigitalCredential(integration);
+    const browserFlowAlias = hasDigitalCredential ? 'client stopper' : 'idp stopper';
+
+    payload.browserFlowOverride = browserFlowAlias;
+  }
 
   if (['development', 'production'].includes(process.env.NODE_ENV)) {
     return await standardClients(payload, restore, existingClientId);

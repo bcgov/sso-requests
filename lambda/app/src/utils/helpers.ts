@@ -48,6 +48,7 @@ const durationAdditionalFields = [];
   const addDurationAdditionalField = (field) => durationAdditionalFields.push(`${env}${field}`);
   oidcDurationAdditionalFields.forEach(addDurationAdditionalField);
   samlDurationAdditionalFields.forEach(addDurationAdditionalField);
+  durationAdditionalFields.push(`${env}OfflineAccessEnabled`);
 });
 
 export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
@@ -59,6 +60,15 @@ export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) =
   }
   // client id cannot be updated by non-admin
   if (!isAdmin) immutableFields.push(...durationAdditionalFields, 'clientId');
+
+  if (isAdmin) {
+    if (data?.protocol === 'oidc') {
+      ['dev', 'test', 'prod'].forEach((env) => {
+        if (!data[`${env}OfflineAccessEnabled`])
+          immutableFields.push(`${env}OfflineSessionIdleTimeout`, `${env}OfflineSessionMaxLifespan`);
+      });
+    }
+  }
 
   data = omit(data, immutableFields);
   data = sortURIFields(data);

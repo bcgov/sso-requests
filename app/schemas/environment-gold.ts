@@ -45,6 +45,7 @@ export default function getSchemas(formData: Integration) {
       const sessionMaxLifespanField = `${env}SessionMaxLifespan`;
       const offlineSessionIdleTimeoutField = `${env}OfflineSessionIdleTimeout`;
       const offlineSessionMaxLifespanField = `${env}OfflineSessionMaxLifespan`;
+      const offlineAccessEnabledField = `${env}OfflineAccessEnabled`;
 
       tokenSchemas = {
         [accessTokenLifespanField]: {
@@ -67,6 +68,12 @@ export default function getSchemas(formData: Integration) {
           tooltipContent:
             'Max time before a client session is expired. Tokens are invalidated when a client session is expired. If not set, it uses the standard SSO Session Max value.',
           additionalClassNames: 'mt-1',
+        },
+        [offlineAccessEnabledField]: {
+          type: 'boolean',
+          title: 'Allow offline access',
+          tooltipContent: 'Allow offline access for this client.',
+          default: false,
         },
         [offlineSessionIdleTimeoutField]: {
           title: 'Client Offline Session Idle',
