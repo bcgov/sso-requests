@@ -49,6 +49,10 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     if (!isApplied || !devIdps.includes('githubpublic')) idpHidden.push('githubpublic');
   }
 
+  if (formData?.protocol === 'saml') {
+    idpDisabled.push('digitalcredential');
+  }
+
   const includeComment = isApplied && isAdmin;
 
   const tokenFields: any = {};

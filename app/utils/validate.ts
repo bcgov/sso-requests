@@ -2,6 +2,7 @@ import { FormValidation } from 'react-jsonschema-form';
 import validate from 'react-jsonschema-form/lib/validate';
 import { Integration } from '@app/interfaces/Request';
 import { preservedClaims } from './constants';
+import { usesDigitalCredential } from '@app/helpers/integration';
 
 const isValidKeycloakURI = (isProd: boolean, uri: string) => {
   try {
@@ -150,6 +151,9 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     devIdps: () => {
       if (protocol === 'saml' && devIdps.length > 1) {
         errors['devIdps'].addError('Only one identity provider is allowed for saml integrations');
+      }
+      if (protocol === 'saml' && usesDigitalCredential(formData)) {
+        errors['devIdps'].addError('Digital Credential is not allowed for saml integrations');
       }
     },
     projectLead: () => {

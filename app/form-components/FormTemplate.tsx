@@ -22,6 +22,7 @@ import {
   checkIdirGroupAndNotBceidRegularGroup,
   checkGithubGroup,
   checkNotGithubGroup,
+  usesDigitalCredential,
 } from '@app/helpers/integration';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
@@ -188,6 +189,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       processed.devSamlLogoutPostBindingUri = '';
       processed.testSamlLogoutPostBindingUri = '';
       processed.prodSamlLogoutPostBindingUri = '';
+    }
+
+    // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
+    if (newData.protocol === 'saml' && usesDigitalCredential(newData)) {
+      processed.devIdps = [];
     }
 
     if (newData.authType !== 'browser-login') processed.publicAccess = false;

@@ -479,4 +479,48 @@ describe('Basic Info - Identity Providers', () => {
     expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
     await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked());
   });
+
+  it("Should only disable digital credential if it's a SAML integration", async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      protocol: 'saml',
+      devIdps: [],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const digitalCredentialCheckbox =
+      getByText('Digital Credential')?.parentElement?.querySelector("input[type='checkbox");
+    expect(digitalCredentialCheckbox).toBeDisabled();
+
+    // Switch to OIDC and check if it's enabled
+    const oidcRadio = screen.getByLabelText('OpenID Connect');
+    oidcRadio.click();
+
+    expect(digitalCredentialCheckbox).toBeEnabled();
+  });
+
+  it("Removes digital credential from the list of IDPs if it's a SAML integration", async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      protocol: 'oidc',
+      devIdps: ['digitalcredential'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const digitalCredentialCheckbox = getByText('Digital Credential')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(digitalCredentialCheckbox?.checked).toBeTruthy();
+
+    const samlRadio = screen.getByLabelText('SAML');
+    samlRadio.click();
+
+    expect(digitalCredentialCheckbox?.checked).toBeFalsy();
+  });
 });
