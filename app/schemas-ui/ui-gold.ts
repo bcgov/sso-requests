@@ -49,6 +49,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     if (!isApplied || !devIdps.includes('githubpublic')) idpHidden.push('githubpublic');
   }
 
+  // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
     idpDisabled.push('digitalcredential');
   }

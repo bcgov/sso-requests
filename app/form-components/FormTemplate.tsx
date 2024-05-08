@@ -191,7 +191,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       processed.prodSamlLogoutPostBindingUri = '';
     }
 
-    // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
     if (newData.protocol === 'saml' && usesDigitalCredential(newData)) {
       processed.devIdps = [];
     }
