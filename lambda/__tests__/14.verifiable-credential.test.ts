@@ -161,6 +161,22 @@ describe('Build Github Dispatch', () => {
   });
 });
 
+describe('Digital Credential Validations', () => {
+  beforeEach(async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
+  });
+
+  it('Only allows Digital Credential as an IDP for OIDC integrations', async () => {
+    const samlResult = await submitNewIntegration({ ...mockIntegration, protocol: 'saml' });
+    expect(samlResult.status).toBe(422);
+
+    const oidcResult = await submitNewIntegration({ ...mockIntegration, protocol: 'oidc' });
+    console.log(oidcResult.body);
+    expect(oidcResult.status).toBe(200);
+  });
+});
+
 describe('Digital Credential Feature flag', () => {
   beforeAll(async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
