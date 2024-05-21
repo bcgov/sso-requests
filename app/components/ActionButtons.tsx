@@ -119,7 +119,6 @@ export default function Actionbuttons({
         onConfirm={confirmDelete}
         title="Confirm Deletion"
         content="You are about to delete this integration request. This action cannot be undone."
-        confirmText="Delete"
       />
     </>
   );
