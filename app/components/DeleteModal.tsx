@@ -13,9 +13,9 @@ interface Props {
 export default function DeleteModal({ id, onConfirm, title, content, projectName }: Readonly<Props>) {
   const [nameConfirmation, setNameConfirmation] = useState('');
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (nameConfirmation === projectName) {
-      onConfirm();
+      await onConfirm();
     }
   };
   return (
