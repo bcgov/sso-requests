@@ -189,7 +189,7 @@ describe('Integrations tab', () => {
     fireEvent.click(actionDeleteButton[0]);
     expect(screen.findByTitle('Confirm Deletion'));
 
-    const confirmationInput = await screen.findByTestId('delete-confirmation-input');
+    const confirmationInput = await screen.getAllByTestId('delete-confirmation-input')[0];
     fireEvent.change(confirmationInput, { target: { value: 'test project' } });
 
     const confirmDeleteButton = screen.getAllByTestId('confirm-delete-confirm-deletion');
