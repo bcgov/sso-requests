@@ -47,6 +47,10 @@ const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
     min-width: 150px;
     margin-right: 20px;
     display: inline-block;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
   }
 `;
 
@@ -67,6 +71,7 @@ interface Props {
   buttonAlign?: 'center' | 'default';
   skipCloseOnConfirm?: boolean;
   style?: CSSProperties;
+  disableConfirm?: boolean;
 }
 
 const CenteredModal = ({
@@ -84,6 +89,7 @@ const CenteredModal = ({
   buttonAlign = 'default',
   skipCloseOnConfirm = false,
   style = {},
+  disableConfirm = false,
 }: Props) => {
   const [loading, setLoading] = useState(false);
   const showButtons = showCancel || showConfirm;
@@ -144,6 +150,7 @@ const CenteredModal = ({
                 variant={confirmButtonVariant}
                 type="button"
                 className="text-center"
+                disabled={disableConfirm}
               >
                 {loading ? (
                   <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
