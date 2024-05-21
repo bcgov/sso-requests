@@ -4,7 +4,7 @@ import Input from '@button-inc/bcgov-theme/Input';
 
 interface Props {
   id: string;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   content: string;
   title: string;
   projectName?: string;
