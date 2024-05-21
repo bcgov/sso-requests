@@ -4,7 +4,7 @@ import Input from '@button-inc/bcgov-theme/Input';
 
 interface Props {
   id: string;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   content: string;
   title: string;
   projectName?: string;
@@ -13,9 +13,9 @@ interface Props {
 export default function DeleteModal({ id, onConfirm, title, content, projectName }: Readonly<Props>) {
   const [nameConfirmation, setNameConfirmation] = useState('');
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (nameConfirmation === projectName) {
-      onConfirm();
+      await onConfirm();
     }
   };
   return (
