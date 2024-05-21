@@ -7,11 +7,10 @@ interface Props {
   onConfirm: () => void;
   content: string;
   title: string;
-  confirmText: string;
   projectName?: string;
 }
 
-export default function DeleteModal({ id, onConfirm, title, content, projectName }: Props) {
+export default function DeleteModal({ id, onConfirm, title, content, projectName }: Readonly<Props>) {
   const [nameConfirmation, setNameConfirmation] = useState('');
 
   const handleConfirm = () => {
