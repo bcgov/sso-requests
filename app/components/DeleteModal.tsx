@@ -1,5 +1,5 @@
 import CenteredModal from './CenteredModal';
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 
 interface Props {
@@ -31,7 +31,7 @@ export default function DeleteModal({ id, onConfirm, title, content, projectName
               data-testid="delete-confirmation-input"
               label="Please enter the project name to confirm deletion."
               value={nameConfirmation}
-              onChange={(e: any) => setNameConfirmation(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setNameConfirmation(e.target.value)}
             />
           </>
         }
