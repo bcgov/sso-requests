@@ -170,8 +170,12 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       expect(screen.getByTitle('Confirm Deletion')).toBeInTheDocument();
     });
-    const confirmDeleteButton = screen.getAllByTestId('confirm-delete-confirm-deletion');
-    fireEvent.click(confirmDeleteButton[0]);
+    const confirmDeleteButton = screen.getByTestId('confirm-delete-confirm-deletion');
+
+    const confirmationInput = await screen.getByTestId('delete-confirmation-input');
+    fireEvent.change(confirmationInput, { target: { value: 'project_name_1' } });
+
+    fireEvent.click(confirmDeleteButton);
     await waitFor(() => {
       expect(deleteRequest).toHaveBeenCalled();
     });
