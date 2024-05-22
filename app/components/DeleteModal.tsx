@@ -1,6 +1,7 @@
 import CenteredModal from './CenteredModal';
 import { ChangeEvent, useState } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
+import trim from 'lodash.trim';
 
 interface Props {
   id: string;
@@ -16,8 +17,10 @@ export default function DeleteModal({ id, onConfirm, title, content, projectName
     ? `Please enter ${projectName} below to confirm deletion.`
     : 'Please enter the project name below to confirm deletion.';
 
+  const canDelete = trim(projectName) === trim(nameConfirmation);
+
   const handleConfirm = async () => {
-    if (nameConfirmation === projectName) {
+    if (canDelete) {
       await onConfirm();
     }
   };
@@ -41,7 +44,7 @@ export default function DeleteModal({ id, onConfirm, title, content, projectName
         title={title}
         confirmText="Delete"
         buttonStyle="danger"
-        disableConfirm={nameConfirmation !== projectName}
+        disableConfirm={!canDelete}
       />
     </div>
   );
