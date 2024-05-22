@@ -12,6 +12,9 @@ interface Props {
 
 export default function DeleteModal({ id, onConfirm, title, content, projectName }: Readonly<Props>) {
   const [nameConfirmation, setNameConfirmation] = useState('');
+  const label = projectName
+    ? `Please enter ${projectName} below to confirm deletion.`
+    : 'Please enter the project name below to confirm deletion.';
 
   const handleConfirm = async () => {
     if (nameConfirmation === projectName) {
@@ -28,7 +31,7 @@ export default function DeleteModal({ id, onConfirm, title, content, projectName
             <p>{content}</p>
             <Input
               data-testid="delete-confirmation-input"
-              label="Please enter the project name to confirm deletion."
+              label={label}
               value={nameConfirmation}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setNameConfirmation(e.target.value)}
             />
@@ -37,6 +40,7 @@ export default function DeleteModal({ id, onConfirm, title, content, projectName
         onConfirm={handleConfirm}
         title={title}
         confirmText="Delete"
+        buttonStyle="danger"
         disableConfirm={nameConfirmation !== projectName}
       />
     </div>
