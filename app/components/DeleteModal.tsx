@@ -40,6 +40,7 @@ export default function DeleteModal({ id, onConfirm, title, content, projectName
         onConfirm={handleConfirm}
         title={title}
         confirmText="Delete"
+        buttonStyle="danger"
         disableConfirm={nameConfirmation !== projectName}
       />
     </div>
