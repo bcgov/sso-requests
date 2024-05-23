@@ -34,7 +34,7 @@ resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_atta
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
     data.aws_iam_policy.iam_sso_grafana_read_secret_policy[1].arn # secret and policy manually created in AWS
-  ]) : []
+  ]) : toset([])
   policy_arn = each.value
 }
 
