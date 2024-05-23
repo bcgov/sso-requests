@@ -197,5 +197,6 @@ resource "aws_ecs_service" "sso_grafana_service" {
 }
 
 data "aws_secretsmanager_secret_version" "sso_grafana_secret" {
+  count     = var.install_sso_css_grafana
   secret_id = "sso-grafana"
 }

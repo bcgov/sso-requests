@@ -14,7 +14,8 @@ data "aws_iam_policy_document" "ecs_sso_grafana_task_execution_role" {
 }
 
 data "aws_iam_policy" "iam_sso_grafana_read_secret_policy" {
-  name = "SSOPathfinderReadGrafanaSecret"
+  count = var.install_sso_css_grafana
+  name  = "SSOPathfinderReadGrafanaSecret"
 }
 
 # ECS task execution role
