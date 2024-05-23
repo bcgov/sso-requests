@@ -18,7 +18,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
   count                    = var.install_sso_css_grafana
   depends_on               = [aws_apigatewayv2_api.sso_grafana_api]
   family                   = var.sso_grafana_name
-  execution_role_arn       = aws_iam_role.ecs_sso_grafana_task_execution_role.arn
+  execution_role_arn       = aws_iam_role.ecs_sso_grafana_task_execution_role[1].arn
   task_role_arn            = aws_iam_role.sso_grafana_container_role[count.index].arn
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
