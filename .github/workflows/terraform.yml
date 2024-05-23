@@ -72,7 +72,7 @@ jobs:
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_URL=https://bcgov.github.io/sso-requests-preview
-          API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app
+          API_URL=https://kcbkts0s8a.execute-api.ca-central-1.amazonaws.com/test/app
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           APP_ENV=test
           GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
