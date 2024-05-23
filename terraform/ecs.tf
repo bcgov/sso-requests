@@ -146,15 +146,15 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
       secrets = [
         {
           name      = "GF_SECURITY_ADMIN_PASSWORD",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_SECURITY_ADMIN_PASSWORD::"
+          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret[1].arn}:GF_SECURITY_ADMIN_PASSWORD::"
         },
         {
           name      = "GF_AUTH_GENERIC_OAUTH_CLIENT_ID",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_ID::"
+          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret[1].arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_ID::"
         },
         {
           name      = "GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret.arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET::"
+          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret[1].arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET::"
         },
       ]
     }

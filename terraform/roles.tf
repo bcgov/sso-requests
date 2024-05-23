@@ -33,7 +33,7 @@ resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_atta
   for_each = var.install_sso_css_grafana == 1 ? toset([
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
-    data.aws_iam_policy.iam_sso_grafana_read_secret_policy.arn # secret and policy manually created in AWS
+    data.aws_iam_policy.iam_sso_grafana_read_secret_policy[1].arn # secret and policy manually created in AWS
   ]) : []
   policy_arn = each.value
 }
