@@ -82,10 +82,10 @@ jobs:
           TF_STATE_DYNAMODB_TABLE=xgr00q-test-sso-requests-state-locking
           TERRAFORM_DEPLOY_ROLE_ARN=${{ secrets.TEST_TERRAFORM_DEPLOY_ROLE_ARN }}
           SSO_ISSUER_URL=https://test.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
-          SUBNET_A=App_Dev_aza_net
-          SUBNET_B=App_Dev_azb_net
-          SUBNET_DATA_A=Data_Dev_aza_net
-          SUBNET_DATA_B=Data_Dev_azb_net
+          SUBNET_A=App_Test_aza_net
+          SUBNET_B=App_Test_azb_net
+          SUBNET_DATA_A=Data_Test_aza_net
+          SUBNET_DATA_B=Data_Test_azb_net
           KEYCLOAK_V2_DEV_URL=https://sso-keycloak-c6af30-dev.apps.golddr.devops.gov.bc.ca
           KEYCLOAK_V2_TEST_URL=https://sso-keycloak-c6af30-test.apps.golddr.devops.gov.bc.ca
           KEYCLOAK_V2_PROD_URL=https://sso-keycloak-c6af30-prod.apps.golddr.devops.gov.bc.ca

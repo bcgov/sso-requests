@@ -19,6 +19,7 @@ data "aws_iam_policy" "iam_sso_grafana_read_secret_policy" {
 
 # ECS task execution role
 resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
+  count              = var.install_sso_css_grafana
   name               = "SSODefaultECSTaskExecutionRole"
   assume_role_policy = data.aws_iam_policy_document.ecs_sso_grafana_task_execution_role.json
 
@@ -27,7 +28,8 @@ resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
 
 # Attaching task execution and read from RDS policies to task execution role
 resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_attachment" {
-  role = aws_iam_role.ecs_sso_grafana_task_execution_role.name
+  count = var.install_sso_css_grafana
+  role  = aws_iam_role.ecs_sso_grafana_task_execution_role.name
   for_each = toset([
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
