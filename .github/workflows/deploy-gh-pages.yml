@@ -51,7 +51,7 @@ jobs:
           EOF
 
       - name: Set env to preview
-        if: endsWith(github.ref, '/main') && matrix.env == 'preview'
+        if: endsWith(github.ref, '/test') && matrix.env == 'preview'
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_ENV=production
