@@ -102,7 +102,7 @@ jobs:
           CUSTOM_DOMAIN_NAME=api.loginproxy.gov.bc.ca
           UPTIME_STATUS_DOMAIN_NAME=status.loginproxy.gov.bc.ca
           AWS_ECR_URI=${{secrets.PROD_AWS_ECR_URI}}
-          INCLUDE_DIGITAL_CREDENTIAL=false
+          INCLUDE_DIGITAL_CREDENTIAL=true
           EOF
 
       - uses: hmarr/debug-action@v3
