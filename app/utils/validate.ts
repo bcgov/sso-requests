@@ -4,19 +4,26 @@ import { Integration } from '@app/interfaces/Request';
 import { preservedClaims } from './constants';
 import { usesDigitalCredential } from '@app/helpers/integration';
 
-export const isValidKeycloakURI = (uri: string) => {
+const isValidKeycloakURI = (isProd: boolean, uri: string) => {
   try {
-    if (uri === '*') return false;
+    if (uri === '*') return !isProd;
     // Throws error if invalid url
     new URL(uri);
     if (uri !== uri.trim()) return false;
     if (uri.match(/\s|#/)) return false;
-    if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/([^*\s]+\/\S*|[^*\s]*[^*\s]$)/)) return false;
+    if (isProd) {
+      if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/([^*\s]+\/\S*|[^*\s]*[^*\s]$)/)) return false;
+    } else {
+      if (!uri.match(/^[\w+.-]+:.*$/)) return false;
+    }
     return true;
   } catch (err) {
     return false;
   }
 };
+
+export const isValidKeycloakURIDev = isValidKeycloakURI.bind(null, false);
+export const isValidKeycloakURIProd = isValidKeycloakURI.bind(null, true);
 
 const validationMessage = 'Please enter a valid URI';
 export const MAX_IDLE_SECONDS = 30 * 60;
@@ -83,21 +90,21 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     testSessionMaxLifespan: sessionMaxLifespan(testSessionMaxLifespan, 'testSessionMaxLifespan'),
     prodSessionMaxLifespan: sessionMaxLifespan(prodSessionMaxLifespan, 'prodSessionMaxLifespan'),
     devValidRedirectUris: () => {
-      const isAllValid = devValidRedirectUris.every(isValidKeycloakURI);
-      if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURI);
+      const isAllValid = devValidRedirectUris.every(isValidKeycloakURIDev);
+      if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURIDev);
     },
     testValidRedirectUris: () => {
       if (environments.includes('test')) {
-        const isAllValid = testValidRedirectUris.every(isValidKeycloakURI);
+        const isAllValid = testValidRedirectUris.every(isValidKeycloakURIDev);
         if (!isAllValid)
-          validateArrayFields(testValidRedirectUris, errors, 'testValidRedirectUris', isValidKeycloakURI);
+          validateArrayFields(testValidRedirectUris, errors, 'testValidRedirectUris', isValidKeycloakURIDev);
       }
     },
     prodValidRedirectUris: () => {
       if (environments.includes('prod')) {
-        const isAllValid = prodValidRedirectUris.every(isValidKeycloakURI);
+        const isAllValid = prodValidRedirectUris.every(isValidKeycloakURIProd);
         if (!isAllValid)
-          validateArrayFields(prodValidRedirectUris, errors, 'prodValidRedirectUris', isValidKeycloakURI);
+          validateArrayFields(prodValidRedirectUris, errors, 'prodValidRedirectUris', isValidKeycloakURIProd);
       }
     },
     createTeam: () => {
@@ -116,7 +123,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       if (
         devSamlLogoutPostBindingUri !== '' &&
         devSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURI(devSamlLogoutPostBindingUri)
+        !isValidKeycloakURIDev(devSamlLogoutPostBindingUri)
       )
         errors['devSamlLogoutPostBindingUri'].addError(validationMessage);
     },
@@ -124,7 +131,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       if (
         testSamlLogoutPostBindingUri !== '' &&
         testSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURI(testSamlLogoutPostBindingUri)
+        !isValidKeycloakURIDev(testSamlLogoutPostBindingUri)
       )
         errors['testSamlLogoutPostBindingUri'].addError(validationMessage);
     },
@@ -132,7 +139,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       if (
         prodSamlLogoutPostBindingUri !== '' &&
         prodSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURI(prodSamlLogoutPostBindingUri)
+        !isValidKeycloakURIProd(prodSamlLogoutPostBindingUri)
       )
         errors['prodSamlLogoutPostBindingUri'].addError(validationMessage);
     },
