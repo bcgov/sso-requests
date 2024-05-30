@@ -21,6 +21,7 @@ VALUES
     FALSE
   );
 
+---
 INSERT INTO
   public.teams (id, NAME, created_at, updated_at)
 VALUES
