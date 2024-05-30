@@ -4,11 +4,11 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Integration } from 'interfaces/Request';
-import CenteredModal from 'components/CenteredModal';
 import { deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
 import noop from 'lodash.noop';
 import { canDeleteIntegration, canEditIntegration } from '@app/helpers/permissions';
+import DeleteModal from './DeleteModal';
 
 export const ActionButtonContainer = styled.div`
   height: 100%;
@@ -113,13 +113,12 @@ export default function Actionbuttons({
           style={delIconStyle}
         />
       </ActionButtonContainer>
-      <CenteredModal
+      <DeleteModal
+        projectName={request.projectName}
         id={deleteModalId}
-        data-testid="modal-delete-integration"
-        content="You are about to delete this integration request. This action cannot be undone."
         onConfirm={confirmDelete}
         title="Confirm Deletion"
-        confirmText="Delete"
+        content="You are about to delete this integration request. This action cannot be undone."
       />
     </>
   );

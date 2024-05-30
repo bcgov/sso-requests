@@ -20,6 +20,7 @@ import styled from 'styled-components';
 import { SystemUnavailableMessage } from '@app/page-partials/my-dashboard/Messages';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import { throttledIdirSearch } from '@app/utils/users';
+import DeleteModal from '@app/components/DeleteModal';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -46,6 +47,11 @@ function ActionsHeader() {
 }
 
 const RequestRestorationContainer = styled.div`
+  .restoration-email-select {
+    * {
+      visibility: inherit;
+    }
+  }
   label {
     margin-bottom: 0.5em;
   }
@@ -154,6 +160,7 @@ const RestoreModalContent = ({
           maxMenuHeight={120}
           placeholder={'Enter email address'}
           id="restoration-email-select"
+          className="restoration-email-select"
         />
         {error && <p className="error-text">Select an email address</p>}
       </RequestRestorationContainer>
@@ -460,13 +467,12 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
           )
         }
       />
-      <CenteredModal
+      <DeleteModal
+        projectName={selectedRequest?.projectName}
         id="delete-modal"
-        data-testid="modal-delete-integration"
-        content="You are about to delete this integration request. This action cannot be undone."
         onConfirm={confirmDelete}
-        confirmText="Delete"
         title="Confirm Deletion"
+        content="You are about to delete this integration request. This action cannot be undone."
       />
       <RestoreModalContent selectedIntegration={selectedRequest} loadData={loadData} alert={alert} />
     </>

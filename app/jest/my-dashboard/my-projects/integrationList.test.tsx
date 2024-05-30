@@ -58,6 +58,12 @@ describe('Integration list', () => {
       expect(screen.getByTitle('Confirm Deletion'));
     });
 
+    const confirmationInput = await screen.findByTestId('delete-confirmation-input');
+    const confirmDeleteButton = await screen.findByTestId('confirm-delete-confirm-deletion');
+
+    fireEvent.change(confirmationInput, { target: { value: sampleRequest.projectName } });
+    expect((confirmDeleteButton as HTMLButtonElement).disabled).toBeFalsy();
+
     await waitFor(async () => {
       fireEvent.click(await screen.findByTestId('confirm-delete-confirm-deletion'));
     });

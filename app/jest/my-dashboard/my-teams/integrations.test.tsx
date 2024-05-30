@@ -188,6 +188,10 @@ describe('Integrations tab', () => {
     const actionDeleteButton = screen.getAllByTestId('action-button-delete');
     fireEvent.click(actionDeleteButton[0]);
     expect(screen.findByTitle('Confirm Deletion'));
+
+    const confirmationInput = await screen.getAllByTestId('delete-confirmation-input')[0];
+    fireEvent.change(confirmationInput, { target: { value: 'test project' } });
+
     const confirmDeleteButton = screen.getAllByTestId('confirm-delete-confirm-deletion');
     fireEvent.click(confirmDeleteButton[0]);
     expect(deleteRequest).toHaveBeenCalledTimes(1);

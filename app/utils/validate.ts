@@ -2,27 +2,21 @@ import { FormValidation } from 'react-jsonschema-form';
 import validate from 'react-jsonschema-form/lib/validate';
 import { Integration } from '@app/interfaces/Request';
 import { preservedClaims } from './constants';
+import { usesDigitalCredential } from '@app/helpers/integration';
 
-const isValidKeycloakURI = (isProd: boolean, uri: string) => {
+export const isValidKeycloakURI = (uri: string) => {
   try {
-    if (uri === '*') return !isProd;
+    if (uri === '*') return false;
     // Throws error if invalid url
     new URL(uri);
     if (uri !== uri.trim()) return false;
     if (uri.match(/\s|#/)) return false;
-    if (isProd) {
-      if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/([^*\s]+\/\S*|[^*\s]*[^*\s]$)/)) return false;
-    } else {
-      if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/\S+/)) return false;
-    }
+    if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/([^*\s]+\/\S*|[^*\s]*[^*\s]$)/)) return false;
     return true;
   } catch (err) {
     return false;
   }
 };
-
-export const isValidKeycloakURIDev = isValidKeycloakURI.bind(null, false);
-export const isValidKeycloakURIProd = isValidKeycloakURI.bind(null, true);
 
 const validationMessage = 'Please enter a valid URI';
 export const MAX_IDLE_SECONDS = 30 * 60;
@@ -89,21 +83,21 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     testSessionMaxLifespan: sessionMaxLifespan(testSessionMaxLifespan, 'testSessionMaxLifespan'),
     prodSessionMaxLifespan: sessionMaxLifespan(prodSessionMaxLifespan, 'prodSessionMaxLifespan'),
     devValidRedirectUris: () => {
-      const isAllValid = devValidRedirectUris.every(isValidKeycloakURIDev);
-      if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURIDev);
+      const isAllValid = devValidRedirectUris.every(isValidKeycloakURI);
+      if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURI);
     },
     testValidRedirectUris: () => {
       if (environments.includes('test')) {
-        const isAllValid = testValidRedirectUris.every(isValidKeycloakURIDev);
+        const isAllValid = testValidRedirectUris.every(isValidKeycloakURI);
         if (!isAllValid)
-          validateArrayFields(testValidRedirectUris, errors, 'testValidRedirectUris', isValidKeycloakURIDev);
+          validateArrayFields(testValidRedirectUris, errors, 'testValidRedirectUris', isValidKeycloakURI);
       }
     },
     prodValidRedirectUris: () => {
       if (environments.includes('prod')) {
-        const isAllValid = prodValidRedirectUris.every(isValidKeycloakURIProd);
+        const isAllValid = prodValidRedirectUris.every(isValidKeycloakURI);
         if (!isAllValid)
-          validateArrayFields(prodValidRedirectUris, errors, 'prodValidRedirectUris', isValidKeycloakURIProd);
+          validateArrayFields(prodValidRedirectUris, errors, 'prodValidRedirectUris', isValidKeycloakURI);
       }
     },
     createTeam: () => {
@@ -122,7 +116,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       if (
         devSamlLogoutPostBindingUri !== '' &&
         devSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURIDev(devSamlLogoutPostBindingUri)
+        !isValidKeycloakURI(devSamlLogoutPostBindingUri)
       )
         errors['devSamlLogoutPostBindingUri'].addError(validationMessage);
     },
@@ -130,7 +124,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       if (
         testSamlLogoutPostBindingUri !== '' &&
         testSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURIDev(testSamlLogoutPostBindingUri)
+        !isValidKeycloakURI(testSamlLogoutPostBindingUri)
       )
         errors['testSamlLogoutPostBindingUri'].addError(validationMessage);
     },
@@ -138,7 +132,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       if (
         prodSamlLogoutPostBindingUri !== '' &&
         prodSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURIProd(prodSamlLogoutPostBindingUri)
+        !isValidKeycloakURI(prodSamlLogoutPostBindingUri)
       )
         errors['prodSamlLogoutPostBindingUri'].addError(validationMessage);
     },
@@ -150,6 +144,9 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     devIdps: () => {
       if (protocol === 'saml' && devIdps.length > 1) {
         errors['devIdps'].addError('Only one identity provider is allowed for saml integrations');
+      }
+      if (protocol === 'saml' && usesDigitalCredential(formData)) {
+        errors['devIdps'].addError('Digital Credential is not allowed for saml integrations');
       }
     },
     projectLead: () => {

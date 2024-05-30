@@ -17,6 +17,7 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
+  addingProd?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
@@ -30,12 +31,14 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 };
 
 export const send = async (data: DataProps, rendered: RenderResult) => {
-  const { integration } = data;
+  const { integration, addingProd } = data;
   const emails = await getIntegrationEmails(integration);
   const cc = [SSO_EMAIL_ADDRESS];
   if (usesBceid(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
-  if (usesDigitalCredential(integration)) cc.push(DIT_EMAIL_ADDRESS);
+  if (usesDigitalCredential(integration) && addingProd) {
+    cc.push(DIT_EMAIL_ADDRESS);
+  }
 
   return sendEmail({
     code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,

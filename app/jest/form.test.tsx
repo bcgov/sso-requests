@@ -7,6 +7,7 @@ import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
+import { debug } from 'jest-preview';
 
 const formButtonText = ['Next', 'Save and Close'];
 
@@ -478,5 +479,78 @@ describe('Basic Info - Identity Providers', () => {
     expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
     expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
     await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked());
+  });
+
+  it("Should only disable digital credential if it's a SAML integration", async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      protocol: 'saml',
+      devIdps: [],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const digitalCredentialCheckbox =
+      getByText('Digital Credential')?.parentElement?.querySelector("input[type='checkbox");
+    expect(digitalCredentialCheckbox).toBeDisabled();
+
+    // Switch to OIDC and check if it's enabled
+    const oidcRadio = screen.getByLabelText('OpenID Connect');
+    oidcRadio.click();
+
+    expect(digitalCredentialCheckbox).toBeEnabled();
+  });
+
+  it("Removes digital credential from the list of IDPs if it's a SAML integration", async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      protocol: 'oidc',
+      devIdps: ['digitalcredential'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const digitalCredentialCheckbox = getByText('Digital Credential')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(digitalCredentialCheckbox?.checked).toBeTruthy();
+
+    const samlRadio = screen.getByLabelText('SAML');
+    samlRadio.click();
+
+    expect(digitalCredentialCheckbox?.checked).toBeFalsy();
+  });
+});
+
+describe('Form Validations', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  it('validates redirect URIs', async () => {
+    setUpRender({
+      id: 0,
+      projectName: 'test project',
+      projectLead: true,
+      usesTeam: false,
+      teamId: undefined,
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: [''],
+      testValidRedirectUris: [''],
+      prodValidRedirectUris: [''],
+      serviceType: 'gold',
+    });
+    fireEvent.click(sandbox.developmentBox);
+    ['dev', 'test', 'prod'].forEach((env) => {
+      const validRedirectUrisSelector = `#root_${env}ValidRedirectUris_0`;
+      fireEvent.change(document.querySelector(validRedirectUrisSelector) as HTMLInputElement, {
+        target: { value: '*' },
+      });
+      expect(screen.getByText('Please enter a valid URI')).not.toBeNull();
+      fireEvent.click(screen.getByText('Next') as HTMLElement);
+    });
   });
 });
