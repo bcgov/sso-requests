@@ -4,7 +4,7 @@ import { Integration } from '@app/interfaces/Request';
 import { preservedClaims } from './constants';
 import { usesDigitalCredential } from '@app/helpers/integration';
 
-const isValidKeycloakURI = (uri: string) => {
+export const isValidKeycloakURI = (uri: string) => {
   try {
     if (uri === '*') return false;
     // Throws error if invalid url
