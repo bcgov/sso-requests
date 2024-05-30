@@ -23,7 +23,7 @@ data "aws_iam_policy" "iam_sso_grafana_read_secret_policy" {
 resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
   count              = var.install_sso_css_grafana
   name               = "SSODefaultECSTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_sso_grafana_task_execution_role.json
+  assume_role_policy = data.aws_iam_policy_document.ecs_sso_grafana_task_execution_role[1].json
 
   tags = var.sso_grafana_tags
 }
