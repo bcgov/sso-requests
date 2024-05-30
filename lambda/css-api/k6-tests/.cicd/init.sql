@@ -1,5 +1,5 @@
 INSERT INTO
-  users (
+  public.users (
     id,
     idir_userid,
     idir_email,
@@ -22,7 +22,7 @@ VALUES
   );
 
 INSERT INTO
-  teams (id, NAME, created_at, updated_at)
+  public.teams (id, NAME, created_at, updated_at)
 VALUES
   (
     2016,
@@ -32,7 +32,7 @@ VALUES
   );
 
 INSERT INTO
-  users_teams (
+  public.users_teams (
     ROLE,
     created_at,
     updated_at,
@@ -51,7 +51,7 @@ VALUES
   );
 
 INSERT INTO
-  requests (
+  public.requests (
     id,
     project_name,
     client_name,
@@ -190,7 +190,7 @@ VALUES
   );
 
 INSERT INTO
-  requests (
+  public.requests (
     project_name,
     client_name,
     realm,
