@@ -1,5 +1,6 @@
 # ECS task execution role data
 data "aws_iam_policy_document" "ecs_sso_grafana_task_execution_role" {
+  count   = var.install_sso_css_grafana
   version = "2012-10-17"
   statement {
     sid     = ""
