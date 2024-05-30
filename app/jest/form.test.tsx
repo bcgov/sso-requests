@@ -7,6 +7,7 @@ import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
+import { debug } from 'jest-preview';
 
 const formButtonText = ['Next', 'Save and Close'];
 
@@ -522,5 +523,34 @@ describe('Basic Info - Identity Providers', () => {
     samlRadio.click();
 
     expect(digitalCredentialCheckbox?.checked).toBeFalsy();
+  });
+});
+
+describe('Form Validations', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  it('validates redirect URIs', async () => {
+    setUpRender({
+      id: 0,
+      projectName: 'test project',
+      projectLead: true,
+      usesTeam: false,
+      teamId: undefined,
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: [''],
+      testValidRedirectUris: [''],
+      prodValidRedirectUris: [''],
+      serviceType: 'gold',
+    });
+    fireEvent.click(sandbox.developmentBox);
+    ['dev', 'test', 'prod'].forEach((env) => {
+      const validRedirectUrisSelector = `#root_${env}ValidRedirectUris_0`;
+      fireEvent.change(document.querySelector(validRedirectUrisSelector) as HTMLInputElement, {
+        target: { value: '*' },
+      });
+      expect(screen.getByText('Please enter a valid URI')).not.toBeNull();
+      fireEvent.click(screen.getByText('Next') as HTMLElement);
+    });
   });
 });

@@ -1,5 +1,6 @@
 # ECS task execution role data
 data "aws_iam_policy_document" "ecs_sso_grafana_task_execution_role" {
+  count   = var.install_sso_css_grafana
   version = "2012-10-17"
   statement {
     sid     = ""
@@ -22,18 +23,18 @@ data "aws_iam_policy" "iam_sso_grafana_read_secret_policy" {
 resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
   count              = var.install_sso_css_grafana
   name               = "SSODefaultECSTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_sso_grafana_task_execution_role.json
+  assume_role_policy = data.aws_iam_policy_document.ecs_sso_grafana_task_execution_role[0].json
 
   tags = var.sso_grafana_tags
 }
 
 # Attaching task execution and read from RDS policies to task execution role
 resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_attachment" {
-  role = aws_iam_role.ecs_sso_grafana_task_execution_role[1].name
+  role = aws_iam_role.ecs_sso_grafana_task_execution_role[0].name
   for_each = var.install_sso_css_grafana == 1 ? toset([
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
-    data.aws_iam_policy.iam_sso_grafana_read_secret_policy[1].arn # secret and policy manually created in AWS
+    data.aws_iam_policy.iam_sso_grafana_read_secret_policy[0].arn # secret and policy manually created in AWS
   ]) : toset([])
   policy_arn = each.value
 }
@@ -41,7 +42,7 @@ resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_atta
 resource "aws_iam_role_policy" "ecs_sso_grafana_task_execution_cwlogs" {
   count = var.install_sso_css_grafana
   name  = "ecs-sso-grafana-task-exec-cwlogs"
-  role  = aws_iam_role.ecs_sso_grafana_task_execution_role[1].id
+  role  = aws_iam_role.ecs_sso_grafana_task_execution_role[0].id
 
   policy = <<-EOF
   {
