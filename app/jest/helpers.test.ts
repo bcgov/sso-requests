@@ -40,3 +40,120 @@ describe('kecloak URIs', () => {
     expect(isValidKeycloakURIProd('https://exam***ple.com*')).toBe(false);
   });
 });
+
+describe('Get Requested Environments', () => {
+  it('returns the expected environments for idir', () => {
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev'],
+      }).map((v) => v.name),
+    ).toEqual(['dev']);
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['test'],
+      }).map((v) => v.name),
+    ).toEqual(['test']);
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev', 'test'],
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test']);
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev', 'test', 'prod'],
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test', 'prod']);
+  });
+  it('returns the expected environments for bceid', () => {
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev'],
+      }).map((v) => v.name),
+    ).toEqual(['dev']);
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['test'],
+      }).map((v) => v.name),
+    ).toEqual(['test']);
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev', 'test'],
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test']);
+    console.log(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev', 'test', 'prod'],
+        bceidApproved: false,
+      }),
+    );
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev', 'test', 'prod'],
+        bceidApproved: false,
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test', 'prod']);
+    console.log(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev', 'test', 'prod'],
+        bceidApproved: true,
+      }),
+    );
+    expect(
+      getRequestedEnvironments({
+        realm: 'standard',
+        environments: ['dev', 'test', 'prod'],
+        bceidApproved: true,
+      }).map((v) => v.name),
+    ).toEqual(['dev', 'test', 'prod']);
+  });
+});
+describe('Can Delete Member', () => {
+  it('Should return false if the user is the last admin', () => {
+    expect(
+      canDeleteMember(
+        [
+          {
+            role: 'admin',
+            id: 1,
+            idirEmail: '',
+          },
+          {
+            role: 'member',
+            id: 2,
+            idirEmail: '',
+          },
+        ],
+        1,
+      ),
+    ).toBe(false);
+  });
+  it('Should return true if the user is not an admin', () => {
+    expect(
+      canDeleteMember(
+        [
+          {
+            role: 'admin',
+            id: 1,
+            idirEmail: '',
+          },
+          {
+            role: 'member',
+            id: 2,
+            idirEmail: '',
+          },
+        ],
+        2,
+      ),
+    ).toBe(true);
+  });
+});
