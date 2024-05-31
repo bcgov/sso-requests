@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import Link from '@button-inc/bcgov-theme/Link';
 import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 
 const Title = styled.h2`
   text-transform: uppercase;
@@ -27,6 +27,7 @@ const Container = styled.div`
 `;
 
 export default function FaqItems() {
+  const wikiUrl = formatWikiURL();
   return (
     <Container>
       <Title>Requirements</Title>
@@ -38,6 +39,10 @@ export default function FaqItems() {
             ask us at rocketchat
           </Link>{' '}
           for the detailed info
+        </li>
+        <li>
+          In order to reduce your application's potential exposure, we recommend using a unique integration for each
+          application.
         </li>
       </StyledList>
       <Title>We&apos;re a Community</Title>
@@ -120,6 +125,10 @@ export default function FaqItems() {
             Email
           </Link>{' '}
           the Pathfinder SSO Product Owner.
+        </li>
+        <li>
+          Visit our documentation: one for <a href={wikiUrl}>business</a> areas and one for{' '}
+          <a href={docusaurusURL}>technical</a> areas.
         </li>
       </StyledList>
     </Container>
