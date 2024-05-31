@@ -4,6 +4,10 @@ import { isValidKeycloakURIDev, isValidKeycloakURIProd } from 'utils/validate';
 describe('kecloak URIs', () => {
   it('should validate the URI correctly', () => {
     expect(isValidKeycloakURIDev('*')).toBe(true);
+    expect(isValidKeycloakURIDev('*:')).toBe(false);
+    expect(isValidKeycloakURIDev(':/')).toBe(false);
+    expect(isValidKeycloakURIDev('//')).toBe(false);
+    expect(isValidKeycloakURIDev('example://*')).toBe(true);
     expect(isValidKeycloakURIProd('*')).toBe(false);
 
     expect(isValidKeycloakURIProd('http://a')).toBe(true);
