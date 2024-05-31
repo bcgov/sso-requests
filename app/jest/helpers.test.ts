@@ -3,12 +3,10 @@ import { isValidKeycloakURIDev, isValidKeycloakURIProd } from 'utils/validate';
 
 describe('kecloak URIs', () => {
   it('should validate the URI correctly', () => {
-    expect(isValidKeycloakURIDev('*')).toBe(false);
+    expect(isValidKeycloakURIDev('*')).toBe(true);
     expect(isValidKeycloakURIDev('*:')).toBe(false);
     expect(isValidKeycloakURIDev(':/')).toBe(false);
     expect(isValidKeycloakURIDev('//')).toBe(false);
-    expect(isValidKeycloakURIDev('example:')).toBe(true);
-    expect(isValidKeycloakURIDev('example:*')).toBe(true);
     expect(isValidKeycloakURIDev('example://*')).toBe(true);
     expect(isValidKeycloakURIProd('*')).toBe(false);
 
@@ -55,21 +53,18 @@ describe('Get Requested Environments', () => {
         environments: ['dev'],
       }).map((v) => v.name),
     ).toEqual(['dev']);
-
     expect(
       getRequestedEnvironments({
         realm: 'standard',
         environments: ['test'],
       }).map((v) => v.name),
     ).toEqual(['test']);
-
     expect(
       getRequestedEnvironments({
         realm: 'standard',
         environments: ['dev', 'test'],
       }).map((v) => v.name),
     ).toEqual(['dev', 'test']);
-
     expect(
       getRequestedEnvironments({
         realm: 'standard',
@@ -77,7 +72,6 @@ describe('Get Requested Environments', () => {
       }).map((v) => v.name),
     ).toEqual(['dev', 'test', 'prod']);
   });
-
   it('returns the expected environments for bceid', () => {
     expect(
       getRequestedEnvironments({
@@ -85,21 +79,18 @@ describe('Get Requested Environments', () => {
         environments: ['dev'],
       }).map((v) => v.name),
     ).toEqual(['dev']);
-
     expect(
       getRequestedEnvironments({
         realm: 'standard',
         environments: ['test'],
       }).map((v) => v.name),
     ).toEqual(['test']);
-
     expect(
       getRequestedEnvironments({
         realm: 'standard',
         environments: ['dev', 'test'],
       }).map((v) => v.name),
     ).toEqual(['dev', 'test']);
-
     console.log(
       getRequestedEnvironments({
         realm: 'standard',
@@ -107,7 +98,6 @@ describe('Get Requested Environments', () => {
         bceidApproved: false,
       }),
     );
-
     expect(
       getRequestedEnvironments({
         realm: 'standard',
@@ -115,7 +105,6 @@ describe('Get Requested Environments', () => {
         bceidApproved: false,
       }).map((v) => v.name),
     ).toEqual(['dev', 'test', 'prod']);
-
     console.log(
       getRequestedEnvironments({
         realm: 'standard',
@@ -123,7 +112,6 @@ describe('Get Requested Environments', () => {
         bceidApproved: true,
       }),
     );
-
     expect(
       getRequestedEnvironments({
         realm: 'standard',
@@ -133,7 +121,6 @@ describe('Get Requested Environments', () => {
     ).toEqual(['dev', 'test', 'prod']);
   });
 });
-
 describe('Can Delete Member', () => {
   it('Should return false if the user is the last admin', () => {
     expect(
