@@ -13,8 +13,8 @@ const isValidKeycloakURI = (isProd: boolean, uri: string) => {
     if (uri.match(/\s|#/)) return false;
     if (isProd) {
       if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/([^*\s]+\/\S*|[^*\s]*[^*\s]$)/)) return false;
-    } else {
-      if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/\S+/)) return false;
+    } else if (!uri.match(/^[a-zA-Z][a-zA-Z-.]*:\/\/\S+/)) {
+      return false;
     }
     return true;
   } catch (err) {
