@@ -8,6 +8,17 @@ import BaseButton from '@button-inc/bcgov-theme/Button';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import InfoOverlay from 'components/InfoOverlay';
 import { subtractDaysFromDate } from '@app/utils/helpers';
+import CenteredModal from '@app/components/CenteredModal';
+
+const ModalContent = styled.div`
+  display: flex;
+  flex-direction: row;
+  column-gap: 1.5em;
+  justify-content: center;
+  min-width: 20em;
+  margin: 0;
+  padding: 0;
+`;
 
 const Button = styled(BaseButton)`
   width: 150px;
@@ -177,18 +188,25 @@ const LogsPanel = ({ integration, alert }: Props) => {
     setToDate(new Date());
   };
 
-  // Abort fetch request and reset form on integration change
-  useEffect(() => {
-    resetForm();
-    const controler = new AbortController();
-    setLogsQueryController(controler);
-    return () => {
-      controler.abort();
-    };
-  }, [integration.clientId]);
+  const toggleModal = (open: boolean) => {
+    window.location.hash = open ? 'logs-modal' : '';
+  };
+
+  const cancelLogsDownload = () => {
+    logsQueryController?.abort();
+    setLoading(false);
+    setFileProgress(0);
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Track query for cancellation
+    logsQueryController?.abort();
+    const controller = new AbortController();
+    setLogsQueryController(controller);
+
+    toggleModal(true);
     try {
       if (!fromDate || !toDate) {
         setDateError('Please select a date range.');
@@ -201,7 +219,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
         fromDate,
         toDate,
         handleFileProgress,
-        logsQueryController,
+        controller,
       );
       if (err) {
         // Ignore error if request cancelled
@@ -230,6 +248,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
     } finally {
       setLoading(false);
       setFileProgress(0);
+      toggleModal(false);
     }
   };
 
@@ -238,70 +257,82 @@ const LogsPanel = ({ integration, alert }: Props) => {
   };
 
   return (
-    <Form onSubmit={handleSubmit}>
-      <div className="header">
-        <p>Download Logs</p>
-        <InfoOverlay content="You can download upto 25,000 logs at a time. Result will indicate if all logs in the selected time interval were retrieved or a smaller time interval is required." />
-      </div>
-      <fieldset className="env-controls" disabled={loading}>
-        <legend>Select an Environment</legend>
-        {environments.map((env) => (
-          <span key={env}>
-            <input
-              id={`radio-${env}`}
-              type="radio"
-              name="environmentSelection"
-              value={env}
-              checked={environment === env}
-              onChange={handleEnvChange}
-            />
-            <label htmlFor={`radio-${env}`}>{(envNames as any)[env]}</label>
-          </span>
-        ))}
-      </fieldset>
-      <div>
-        <div className="date-picker-container">
-          <DateTimePicker
-            placeholderText="Start Date"
-            selected={fromDate}
-            onChange={(date: Date) => handleFromDateChange(date)}
-            minDate={logsStartDate}
-            shouldCloseOnSelect={false}
-            label="Start Date"
-            showTimeInput={true}
-            dateFormat="MM/dd/yyyy h:mm aa"
-            disabled={loading}
-          />
-          <DateTimePicker
-            placeholderText="End Date"
-            selected={toDate}
-            onChange={(date: Date) => handleToDateChange(date)}
-            minDate={fromDate}
-            maxDate={maxDate}
-            label="End Date"
-            shouldCloseOnSelect={false}
-            showTimeInput={true}
-            dateFormat="MM/dd/yyyy h:mm aa"
-            disabled={loading}
-          />
+    <>
+      <Form onSubmit={handleSubmit}>
+        <div className="header">
+          <p>Download Logs</p>
+          <InfoOverlay content="You can download upto 25,000 logs at a time. Result will indicate if all logs in the selected time interval were retrieved or a smaller time interval is required." />
         </div>
-        <p className="error-text">{dateError}</p>
-      </div>
-      <div className="button-container">
-        <Button type="submit" disabled={dateError || loading}>
-          {loading ? ' ' : 'Download'}{' '}
-          <SpinnerGrid
-            color="white"
-            visible={loading}
-            height={25}
-            width={25}
-            wrapperStyle={{ justifyContent: 'center' }}
-          />
-        </Button>
-        {loading && fileProgress === 0 && <p>Querying logs...</p>}
-        {loading && fileProgress !== 0 ? <p>{fileProgress}% downloaded.</p> : null}
-      </div>
-    </Form>
+        <fieldset className="env-controls" disabled={loading}>
+          <legend>Select an Environment</legend>
+          {environments.map((env) => (
+            <span key={env}>
+              <input
+                id={`radio-${env}`}
+                type="radio"
+                name="environmentSelection"
+                value={env}
+                checked={environment === env}
+                onChange={handleEnvChange}
+              />
+              <label htmlFor={`radio-${env}`}>{(envNames as any)[env]}</label>
+            </span>
+          ))}
+        </fieldset>
+        <div>
+          <div className="date-picker-container">
+            <DateTimePicker
+              placeholderText="Start Date"
+              selected={fromDate}
+              onChange={(date: Date) => handleFromDateChange(date)}
+              minDate={logsStartDate}
+              shouldCloseOnSelect={false}
+              label="Start Date"
+              showTimeInput={true}
+              dateFormat="MM/dd/yyyy h:mm aa"
+              disabled={loading}
+            />
+            <DateTimePicker
+              placeholderText="End Date"
+              selected={toDate}
+              onChange={(date: Date) => handleToDateChange(date)}
+              minDate={fromDate}
+              maxDate={maxDate}
+              label="End Date"
+              shouldCloseOnSelect={false}
+              showTimeInput={true}
+              dateFormat="MM/dd/yyyy h:mm aa"
+              disabled={loading}
+            />
+          </div>
+          <p className="error-text">{dateError}</p>
+        </div>
+        <div className="button-container">
+          <Button type="submit" disabled={dateError || loading}>
+            Download
+          </Button>
+        </div>
+      </Form>
+      <CenteredModal
+        showConfirm={false}
+        title="Downloading Logs"
+        onClose={cancelLogsDownload}
+        content={
+          <ModalContent>
+            <SpinnerGrid
+              color="black"
+              visible={loading}
+              height={25}
+              width={25}
+              wrapperStyle={{ justifyContent: 'center' }}
+            />
+            {loading && fileProgress === 0 && <p>Querying logs...</p>}
+            {loading && fileProgress !== 0 ? <p>{fileProgress}% downloaded.</p> : null}
+          </ModalContent>
+        }
+        id="logs-modal"
+      />
+    </>
   );
 };
 
