@@ -1,42 +1,49 @@
 import { getRequestedEnvironments, canDeleteMember } from 'utils/helpers';
-import { isValidKeycloakURI } from 'utils/validate';
+import { isValidKeycloakURIDev, isValidKeycloakURIProd } from 'utils/validate';
 
 describe('kecloak URIs', () => {
   it('should validate the URI correctly', () => {
-    expect(isValidKeycloakURI('*')).toBe(false);
+    expect(isValidKeycloakURIDev('*')).toBe(false);
+    expect(isValidKeycloakURIDev('*:')).toBe(false);
+    expect(isValidKeycloakURIDev(':/')).toBe(false);
+    expect(isValidKeycloakURIDev('//')).toBe(false);
+    expect(isValidKeycloakURIDev('example:')).toBe(true);
+    expect(isValidKeycloakURIDev('example:*')).toBe(true);
+    expect(isValidKeycloakURIDev('example://*')).toBe(true);
+    expect(isValidKeycloakURIProd('*')).toBe(false);
 
-    expect(isValidKeycloakURI('http://a')).toBe(true);
-    expect(isValidKeycloakURI('https://a')).toBe(true);
-    expect(isValidKeycloakURI('custom://a')).toBe(true);
-    expect(isValidKeycloakURI('custom://')).toBe(false);
-    expect(isValidKeycloakURI('https://')).toBe(false);
-    expect(isValidKeycloakURI('http://')).toBe(false);
-    expect(isValidKeycloakURI('http:/')).toBe(false);
-    expect(isValidKeycloakURI(' http:/')).toBe(false);
-    expect(isValidKeycloakURI('http://a ')).toBe(false);
-    expect(isValidKeycloakURI('http://a b')).toBe(false);
-    expect(isValidKeycloakURI('http://a#b')).toBe(false);
-    expect(isValidKeycloakURI('http://ab#')).toBe(false);
+    expect(isValidKeycloakURIProd('http://a')).toBe(true);
+    expect(isValidKeycloakURIProd('https://a')).toBe(true);
+    expect(isValidKeycloakURIProd('custom://a')).toBe(true);
+    expect(isValidKeycloakURIProd('custom://')).toBe(false);
+    expect(isValidKeycloakURIProd('https://')).toBe(false);
+    expect(isValidKeycloakURIProd('http://')).toBe(false);
+    expect(isValidKeycloakURIProd('http:/')).toBe(false);
+    expect(isValidKeycloakURIProd(' http:/')).toBe(false);
+    expect(isValidKeycloakURIProd('http://a ')).toBe(false);
+    expect(isValidKeycloakURIProd('http://a b')).toBe(false);
+    expect(isValidKeycloakURIProd('http://a#b')).toBe(false);
+    expect(isValidKeycloakURIProd('http://ab#')).toBe(false);
 
-    expect(isValidKeycloakURI('a://b')).toBe(true);
-    expect(isValidKeycloakURI('://b')).toBe(false);
-    expect(isValidKeycloakURI('//b')).toBe(false);
+    expect(isValidKeycloakURIProd('a://b')).toBe(true);
+    expect(isValidKeycloakURIProd('://b')).toBe(false);
+    expect(isValidKeycloakURIProd('//b')).toBe(false);
 
-    expect(isValidKeycloakURI('a-b://c')).toBe(true);
-    expect(isValidKeycloakURI('ab-://c')).toBe(true);
-    expect(isValidKeycloakURI('a-b-://c')).toBe(true);
-    expect(isValidKeycloakURI('-ab://c')).toBe(false);
+    expect(isValidKeycloakURIProd('a-b://c')).toBe(true);
+    expect(isValidKeycloakURIProd('ab-://c')).toBe(true);
+    expect(isValidKeycloakURIProd('a-b-://c')).toBe(true);
+    expect(isValidKeycloakURIProd('-ab://c')).toBe(false);
 
-    expect(isValidKeycloakURI('a.b://c')).toBe(true);
-    expect(isValidKeycloakURI('ab.://c')).toBe(true);
-    expect(isValidKeycloakURI('a.b.://c')).toBe(true);
-    expect(isValidKeycloakURI('.ab://c')).toBe(false);
+    expect(isValidKeycloakURIProd('a.b://c')).toBe(true);
+    expect(isValidKeycloakURIProd('ab.://c')).toBe(true);
+    expect(isValidKeycloakURIProd('a.b.://c')).toBe(true);
+    expect(isValidKeycloakURIProd('.ab://c')).toBe(false);
 
-    expect(isValidKeycloakURI('https://example.com/apple')).toBe(true);
-    expect(isValidKeycloakURI('https://example.com/*')).toBe(true);
-    expect(isValidKeycloakURI('https://example*')).toBe(false);
-    expect(isValidKeycloakURI('https://example.com*')).toBe(false);
-    expect(isValidKeycloakURI('https://exam***ple.com*')).toBe(false);
+    expect(isValidKeycloakURIProd('https://example.com/apple')).toBe(true);
+    expect(isValidKeycloakURIProd('https://example.com/*')).toBe(true);
+    expect(isValidKeycloakURIProd('https://example*')).toBe(false);
+    expect(isValidKeycloakURIProd('https://example.com*')).toBe(false);
+    expect(isValidKeycloakURIProd('https://exam***ple.com*')).toBe(false);
   });
 });
 
