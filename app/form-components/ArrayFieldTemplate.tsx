@@ -95,8 +95,8 @@ export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
         </RedirectInfoText>
       ) : (
         <RedirectInfoText>
-          *Note: Wildcards* are only permitted for domains or paths, not for the scheme in development and test
-          environments.
+          *Note: wildcard* redirect URIs are <strong>only</strong> allowed in <strong>Dev</strong> and{' '}
+          <strong>Test</strong> environments (but not in Prod for security reasons).
         </RedirectInfoText>
       )}
       {props.canAdd && (
