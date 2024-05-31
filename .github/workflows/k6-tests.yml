@@ -56,11 +56,12 @@ jobs:
       - name: Setup postgres
         env:
           PGUSER: postgres
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ssorequests
         run: |
           pg_ctl start
           createdb runner || true
           chmod +x ./.bin/db-setup.sh
-          ./.bin/db-setup.sh
+          ./.bin/db-setup.sh ssorequests
           yarn --cwd ./localserver migrate-db
 
       - name: Load Test Data
