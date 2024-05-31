@@ -188,6 +188,10 @@ const LogsPanel = ({ integration, alert }: Props) => {
     setToDate(new Date());
   };
 
+  useEffect(() => {
+    resetForm();
+  }, [integration.clientId]);
+
   const toggleModal = (open: boolean) => {
     window.location.hash = open ? 'logs-modal' : '';
   };
