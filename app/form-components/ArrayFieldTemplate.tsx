@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { MAX_STRING_FIELD_WIDTH } from 'styles/theme';
 import InfoOverlay from 'components/InfoOverlay';
-import { Link } from '@button-inc/bcgov-theme';
 
 const FieldContainer = styled.div`
   position: relative;
@@ -90,16 +89,16 @@ export default function ArrayFieldTemplate(props: ArrayFieldTemplateProps) {
           </React.Fragment>
         );
       })}
-      <RedirectInfoText>
-        *Note: wildcard* redirect URIs are not allowed. Learn more{' '}
-        <Link
-          href="https://bcgov.github.io/sso-docs/integrating-your-application/redirects#wildcards-and-web-origins"
-          external
-        >
-          here
-        </Link>{' '}
-        and reach out to us if you have questions.
-      </RedirectInfoText>
+      {currentEnvironment === 'prod' ? (
+        <RedirectInfoText>
+          *Note: wildcard* redirect URIs are <strong>not</strong> allowed in Prod for security reasons.
+        </RedirectInfoText>
+      ) : (
+        <RedirectInfoText>
+          *Note: Wildcards* are only permitted for domains or paths, not for the scheme in development and test
+          environments.
+        </RedirectInfoText>
+      )}
       {props.canAdd && (
         <AddContainer onClick={props.onAddClick}>
           <FontAwesomeIcon
