@@ -6,14 +6,15 @@ import { usesDigitalCredential } from '@app/helpers/integration';
 
 const isValidKeycloakURI = (isProd: boolean, uri: string) => {
   try {
+    if (uri === '*') return !isProd;
     // Throws error if invalid url
-    //new URL(uri);
+    new URL(uri);
     if (uri !== uri.trim()) return false;
     if (uri.match(/\s|#/)) return false;
     if (isProd) {
       if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/([^*\s]+\/\S*|[^*\s]*[^*\s]$)/)) return false;
     } else {
-      if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:.*$/)) return false;
+      if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/\S+/)) return false;
     }
     return true;
   } catch (err) {
@@ -27,7 +28,6 @@ export const isValidKeycloakURIProd = isValidKeycloakURI.bind(null, true);
 const validationMessage = 'Please enter a valid URI';
 export const MAX_IDLE_SECONDS = 30 * 60;
 export const MAX_LIFETIME_SECONDS = 600 * 60;
-
 export const customValidate = (formData: any, errors: FormValidation, fields?: string[]) => {
   const {
     projectName = '',
@@ -54,7 +54,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     authType,
     publicAccess,
   } = formData;
-
   const sessionIdleTimeout = (value: number, key: string) => {
     return () => {
       if (value > MAX_IDLE_SECONDS) {
@@ -62,7 +61,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       }
     };
   };
-
   const sessionMaxLifespan = (value: number, key: string) => {
     return () => {
       if (value > MAX_LIFETIME_SECONDS) {
@@ -70,7 +68,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       }
     };
   };
-
   const fieldMap: any = {
     projectName: () => {
       if (/^\d/.test(projectName)) {
@@ -162,39 +159,30 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       }
     },
   };
-
   if (!fields) fields = Object.keys(fieldMap);
-
   for (let x = 0; x < fields.length; x++) {
     const fn = fieldMap[fields[x]];
     if (fn) fn();
   }
-
   return errors;
 };
-
 export const createCustomValidate = (fields: string[]) => {
   return function (formData: any, errors: any) {
     return customValidate(formData, errors, fields);
   };
 };
-
 const validateArrayFields = (arrayValues: any, errors: any, key: string, func: (val: string) => boolean) => {
   arrayValues.forEach((value: any, i: number) => {
     const valid = func(value);
-
     let hasError = false;
-
     if (i === 0 && !valid) {
       hasError = true;
     } else if (value !== '' && !valid) {
       hasError = true;
     }
-
     if (hasError) errors[key][i].addError(validationMessage);
   });
 };
-
 export const validateForm = (formData: Integration, schemas: any[], visited?: any) => {
   const errors: any = {};
   schemas.forEach((schema, i) => {
@@ -207,6 +195,5 @@ export const validateForm = (formData: Integration, schemas: any[], visited?: an
     );
     if (err.length > 0) errors[i] = err;
   });
-
   return errors;
 };
