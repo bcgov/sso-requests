@@ -127,8 +127,15 @@ export default function FaqItems() {
           the Pathfinder SSO Product Owner.
         </li>
         <li>
-          Visit our documentation: one for <a href={wikiUrl}>business</a> areas and one for{' '}
-          <a href={docusaurusURL}>technical</a> areas.
+          Visit our documentation: one for{' '}
+          <Link external href={wikiUrl}>
+            business
+          </Link>{' '}
+          areas and one for{' '}
+          <Link external href={docusaurusURL}>
+            technical
+          </Link>{' '}
+          areas.
         </li>
       </StyledList>
     </Container>
