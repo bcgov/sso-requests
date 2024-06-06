@@ -35,6 +35,7 @@ services:
       MAINTENANCE_MODE_ACTIVE: 'false'
       SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests
       APP_URL: http://localhost:3000
+      INCLUDE_DIGITAL_CREDENTIAL: 'true'
     depends_on:
       - sso-requests
     networks:
@@ -85,13 +86,14 @@ services:
       GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
       GOLD_IP_ADDRESS: '142.34.229.4'
       CYPRESS_RUNNER: 'true'
+      INCLUDE_DIGITAL_CREDENTIAL: 'true'
     networks:
       css-net:
         aliases: [sso-requests-api]
 
   dev-keycloak:
     container_name: dev-keycloak
-    image: ghcr.io/bcgov/sso:7.6.39-build.1
+    image: ghcr.io/bcgov/sso:7.6.39-build.2
     depends_on:
       - sso-db
     ports:
@@ -113,7 +115,7 @@ services:
 
   test-keycloak:
     container_name: test-keycloak
-    image: ghcr.io/bcgov/sso:7.6.39-build.1
+    image: ghcr.io/bcgov/sso:7.6.39-build.2
     depends_on:
       - sso-db
     ports:
@@ -135,7 +137,7 @@ services:
 
   prod-keycloak:
     container_name: prod-keycloak
-    image: ghcr.io/bcgov/sso:7.6.39-build.1
+    image: ghcr.io/bcgov/sso:7.6.39-build.2
     depends_on:
       - sso-db
     ports:
