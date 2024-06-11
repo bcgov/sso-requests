@@ -66,6 +66,7 @@ export interface Integration {
   bceidApproved?: boolean;
   githubApproved?: boolean;
   digitalCredentialApproved?: boolean;
+  bcServicesCardApproved?: boolean;
   archived?: boolean;
   provisioned?: boolean;
   provisionedAt?: string;
@@ -84,6 +85,8 @@ export interface Integration {
   devOfflineAccessEnabled?: boolean;
   testOfflineAccessEnabled?: boolean;
   prodOfflineAccessEnabled?: boolean;
+  bcscPrivacyZone?: string;
+  bcscAttributes?: string[];
 }
 
 export interface Option {

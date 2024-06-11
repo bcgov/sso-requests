@@ -73,6 +73,7 @@ import { fetchDiscussions } from './graphql';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { fetchLogs, fetchMetrics } from '@lambda-app/controllers/logs';
+import { getPrivacyZones, getAttributes } from './controllers/bc-services-card';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -764,6 +765,24 @@ export const setRoutes = (app: any) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
       const result = await getDataIntegrityReport();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get('/bc-services-card/privacy-zones', async (req, res) => {
+    try {
+      const result = await getPrivacyZones();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get('/bc-services-card/claim-types', async (req, res) => {
+    try {
+      const result = await getAttributes();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

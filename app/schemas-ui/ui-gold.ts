@@ -15,6 +15,8 @@ import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app
 import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
 import SwitchWidget from '@app/form-components/widgets/SwitchWidget';
 import get from 'lodash.get';
+import BcscAttributesWidget from '@app/form-components/widgets/BcscAttributesWidget';
+import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneWidget';
 
 interface Props {
   integration: Integration;
@@ -52,11 +54,33 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
     idpDisabled.push('digitalcredential');
+    idpDisabled.push('bcservicescard');
+  } else if (formData?.status !== 'draft') {
+    idpDisabled.push('bcservicescard');
   }
 
   const includeComment = isApplied && isAdmin;
 
   const tokenFields: any = {};
+
+  const bcServicesCardFields: any = {
+    bcscPrivacyZone: {
+      'ui:widget': BcscPrivacyZoneWidget,
+      classNames: 'short-field-string',
+      'ui:disabled': formData?.status !== 'draft',
+    },
+    bcscAttributes: {
+      'ui:widget': BcscAttributesWidget,
+      'ui:disabled': formData?.status !== 'draft',
+    },
+  };
+
+  if (!formData?.devIdps?.includes('bcservicescard')) {
+    bcServicesCardFields['bcscPrivacyZone']['ui:widget'] = 'hidden';
+    bcServicesCardFields['bcscPrivacyZone']['ui:label'] = false;
+    bcServicesCardFields['bcscAttributes']['ui:widget'] = 'hidden';
+    bcServicesCardFields['bcscAttributes']['classNames'] = 'hidden-title';
+  }
 
   const durationAdditionalFields =
     formData?.protocol === 'saml' ? samlDurationAdditionalFields : oidcDurationAdditionalFields;
@@ -201,6 +225,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:widget': includeComment ? 'textarea' : 'hidden',
       'ui:label': includeComment,
     },
+    ...bcServicesCardFields,
     ...tokenFields,
   };
 };

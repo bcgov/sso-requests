@@ -219,3 +219,7 @@ ul.error-detail {
   max-height: 300px;
   overflow-y: scroll;
 }
+
+.hidden-title {
+  display: none;
+}
