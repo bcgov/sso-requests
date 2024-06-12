@@ -6,7 +6,7 @@ import { sendEmail } from '@lambda-shared/utils/ches';
 import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS, OCIO_EMAIL_ADDRESS, DIT_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
-import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request submitted & additional important information (email 1 of 2)`;
@@ -36,7 +36,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration } = data;
   const emails = await getIntegrationEmails(integration);
   const cc = [SSO_EMAIL_ADDRESS];
-  if (usesBceid(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceid(integration) || usesBcServicesCard(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
   if (usesDigitalCredential(integration) && integration.environments.includes('prod')) {
     cc.push(DIT_EMAIL_ADDRESS);

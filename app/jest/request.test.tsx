@@ -17,6 +17,17 @@ jest.mock('services/request', () => {
   };
 });
 
+jest.mock('services/bc-services-card', () => {
+  return {
+    fetchPrivacyZones: jest.fn(() => {
+      return Promise.resolve([[], null]);
+    }),
+    fetchAttributes: jest.fn(() => {
+      return Promise.resolve([[], null]);
+    }),
+  };
+});
+
 let sandbox: any = {};
 
 describe('Fetching data', () => {

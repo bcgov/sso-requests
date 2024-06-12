@@ -23,6 +23,7 @@ import {
   checkGithubGroup,
   checkNotGithubGroup,
   usesDigitalCredential,
+  usesBcServicesCard,
 } from '@app/helpers/integration';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
@@ -35,6 +36,8 @@ import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/pages/_app';
 import { docusaurusURL } from '@app/utils/constants';
+import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
+import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
 
 const Description = styled.p`
   margin: 0;
@@ -135,7 +138,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
   const [schemas, setSchemas] = useState<any[]>([]);
+  const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>([]);
+  const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>([]);
+
   const surveyContext = useContext(SurveyContext);
+
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
   const isAdmin = currentUser.isAdmin || false;
@@ -191,7 +198,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       processed.prodSamlLogoutPostBindingUri = '';
     }
 
-    if (newData.protocol === 'saml' && usesDigitalCredential(newData)) {
+    if (newData.protocol === 'saml' && (usesDigitalCredential(newData) || usesBcServicesCard(newData))) {
       processed.devIdps = [];
     }
 
@@ -227,12 +234,24 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     }
   };
 
+  const loadBcscPrivacyZones = async () => {
+    const [data] = await fetchPrivacyZones();
+    setBcscPrivacyZones(data || []);
+  };
+
+  const loadBcscAttributes = async () => {
+    const [data] = await fetchAttributes();
+    setBcscAttributes(data || []);
+  };
+
   const updateInfo = () => {
     const schemas = getSchemas({
       integration: request,
       formData,
       teams,
       isAdmin,
+      bcscPrivacyZones,
+      bcscAttributes,
     });
 
     setSchemas(schemas);
@@ -240,6 +259,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   useEffect(() => {
     loadTeams();
+    loadBcscPrivacyZones();
+    loadBcscAttributes();
   }, []);
 
   // Clear other details when other is unselected

@@ -1,13 +1,14 @@
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
-import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
 import AdminEventPanel from 'page-partials/admin-dashboard/AdminEventPanel';
 import { LoggedInUser } from 'interfaces/team';
 import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
 import DigitalCredentialTabContent from './DigitalCredentialTabContent';
+import BcServicesCardTabContent from './BcServicesCardTabContent';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -46,9 +47,13 @@ function AdminTabs({
   const hasDigitalCredential = usesDigitalCredential(integration);
   const hasDigitalCredentialProd = hasDigitalCredential && hasProd;
 
+  const hasBcServicesCard = usesBcServicesCard(integration);
+  const hasBcServicesCardProd = hasBcServicesCard && hasProd;
+
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
   const handleDigitCredentialApproved = () => setRows();
+  const handleBcServicesCardApproved = () => setRows();
 
   return (
     <>
@@ -71,6 +76,11 @@ function AdminTabs({
         {hasDigitalCredentialProd && (
           <Tab key="vc-prod" tab="Digital Credential Prod">
             <DigitalCredentialTabContent integration={integration} onApproved={handleDigitCredentialApproved} />
+          </Tab>
+        )}
+        {hasBcServicesCardProd && (
+          <Tab key="bcsc-prod" tab="BC Services Card Prod">
+            <BcServicesCardTabContent integration={integration} onApproved={handleBcServicesCardApproved} />
           </Tab>
         )}
 

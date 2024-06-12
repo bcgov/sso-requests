@@ -9,6 +9,7 @@ import {
   checkIfBceidProdApplying,
   checkIfGithubProdApplying,
   checkIfDigitalCredentialProdApplying,
+  checkIfBcServicesCardProdApplying,
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
@@ -20,7 +21,7 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github' | 'digitalCredential';
+  type: 'bceid' | 'github' | 'digitalCredential' | 'BCServicesCard';
   canApproveProd: boolean;
   awaitingTFComplete: boolean;
   onApproved?: () => void;
@@ -43,6 +44,9 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
       break;
     case 'digitalCredential':
       typeApproved = checkIfDigitalCredentialProdApplying(integration);
+      break;
+    case 'BCServicesCard':
+      typeApproved = checkIfBcServicesCardProdApplying(integration);
       break;
   }
 

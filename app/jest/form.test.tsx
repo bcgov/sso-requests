@@ -30,6 +30,44 @@ jest.mock('services/team', () => {
   };
 });
 
+const samplePrivacyZones = [
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:health:mocksit',
+    privacy_zone_name: 'Health (Citizen)',
+  },
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:fin:ctz:pz:sit',
+    privacy_zone_name: 'Finance (Citizen)',
+  },
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:educ:sit',
+    privacy_zone_name: 'Education (Citizen)',
+  },
+];
+
+const sampleAttributes = [
+  {
+    name: 'postal_code',
+  },
+  {
+    name: 'user_type',
+  },
+  {
+    name: 'birthdate',
+  },
+];
+
+jest.mock('services/bc-services-card', () => {
+  return {
+    fetchPrivacyZones: jest.fn(() => {
+      return Promise.resolve([samplePrivacyZones, null]);
+    }),
+    fetchAttributes: jest.fn(() => {
+      return Promise.resolve([sampleAttributes, null]);
+    }),
+  };
+});
+
 const STEPPER_ERROR = 'Some additional fields require your attention.';
 
 // Container to expose variables from beforeeach to test functions
@@ -523,5 +561,81 @@ describe('Basic Info - Identity Providers', () => {
     samlRadio.click();
 
     expect(digitalCredentialCheckbox?.checked).toBeFalsy();
+  });
+});
+
+describe('BC Services Card IDP and dependencies', () => {
+  it('should show the BC Services Card IDP but hide privacy zone and attributes if not selected', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['idir', 'bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).toBeNull();
+  });
+
+  it('should show the BC Services Card IDP and show error upon leaving privacy zone and attributes blank', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).not.toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).not.toBeNull();
+
+    // Navigate away and back again
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('Privacy zone is required for BC Services Card')).toBeInTheDocument();
+    expect(screen.getByText('Please select at least one attribute')).toBeInTheDocument();
+
+    debug();
+  });
+
+  it('should show the BC Services Card IDP and show privacy zone and attributes if selected', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard', 'bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).not.toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).not.toBeNull();
+
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    const privacyZoneinput = bcscPrivacyZoneDropDown.lastChild;
+    fireEvent.keyDown(privacyZoneinput as HTMLElement, { keyCode: 40 });
+    const privacyZoneOption = await screen.findByText(samplePrivacyZones[0].privacy_zone_name);
+    fireEvent.click(privacyZoneOption);
+
+    const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
+    const attributesInput = bcscAttributesDropDown.lastChild;
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    let attributesOption = await screen.findByText(sampleAttributes[0].name);
+    fireEvent.click(attributesOption);
+
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    attributesOption = await screen.findByText(sampleAttributes[1].name);
+    fireEvent.click(attributesOption);
+
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    attributesOption = await screen.findByText(sampleAttributes[2].name);
+    fireEvent.click(attributesOption);
   });
 });

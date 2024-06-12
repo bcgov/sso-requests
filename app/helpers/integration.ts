@@ -2,6 +2,7 @@ import { Integration } from '@app/interfaces/Request';
 
 export const checkBceidBoth = (idp: string) => idp === 'bceidboth';
 export const checkDigitalCredential = (idp: string) => idp === 'digitalcredential';
+export const checkBcServicesCard = (idp: string) => idp === 'bcservicescard';
 export const checkIdirGroup = (idp: string) => ['idir', 'azureidir'].includes(idp);
 export const checkBceidGroup = (idp: string) => idp.startsWith('bceid');
 export const checkNotBceidGroup = (idp: string) => !checkBceidGroup(idp);
@@ -35,6 +36,14 @@ export const usesDigitalCredential = (integration: Integration) => {
   const { devIdps = [] } = integration;
 
   return devIdps.some(checkDigitalCredential);
+};
+
+export const usesBcServicesCard = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { devIdps = [] } = integration;
+
+  return devIdps.some(checkBcServicesCard);
 };
 
 export const usesBceidProd = (integration: Integration) => {

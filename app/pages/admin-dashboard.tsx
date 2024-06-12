@@ -27,6 +27,7 @@ const idpOptions = [
   { value: 'bceid', label: 'BCeID' },
   { value: 'github', label: 'GitHub' },
   { value: 'digitalcredential', label: 'Digital Credential' },
+  { value: 'bcservicescard', label: 'BC Services Card' },
 ];
 
 const archiveStatusOptions = [
