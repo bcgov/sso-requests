@@ -53,7 +53,10 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     prodSessionMaxLifespan,
     authType,
     publicAccess,
+    bcscPrivacyZone,
+    bcscAttributes = [],
   } = formData;
+
   const sessionIdleTimeout = (value: number, key: string) => {
     return () => {
       if (value > MAX_IDLE_SECONDS) {
@@ -156,6 +159,16 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       if (usesTeam === false && projectLead === false) {
         //do not allow to submit a non team integration if user is not a project lead. The error is already shown on the UI
         errors['projectLead'].addError('');
+      }
+    },
+    bcscPrivacyZone: () => {
+      if (devIdps.includes('bcservicescard') && !bcscPrivacyZone) {
+        errors['bcscPrivacyZone']?.addError('Privacy zone is required for BC Services Card');
+      }
+    },
+    bcscAttributes: () => {
+      if (devIdps.includes('bcservicescard') && bcscAttributes?.length === 0) {
+        errors['bcscAttributes']?.addError('Please select at least one attribute');
       }
     },
   };

@@ -7,6 +7,7 @@ import getEnvironmentGoldSchemas from '@app/schemas/environment-gold';
 import getReviewSubmitSchema from '@app/schemas/review-submit';
 import { Team } from '@app/interfaces/team';
 import { Integration } from '@app/interfaces/Request';
+import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 
 export interface Schema extends JSONSchema6 {
   customValidation?: string[];
@@ -19,11 +20,15 @@ export const getSchemas = ({
   formData,
   teams = [],
   isAdmin = false,
+  bcscPrivacyZones = [],
+  bcscAttributes = [],
 }: {
   integration?: Integration | undefined;
   formData: Integration;
   teams: Team[];
   isAdmin?: boolean;
+  bcscPrivacyZones?: BcscPrivacyZone[];
+  bcscAttributes?: BcscAttribute[];
 }) => {
   if (!integration) integration = formData;
 
@@ -35,14 +40,14 @@ export const getSchemas = ({
   if (isNew) {
     schemas.push(
       getRequesterInfoSchema(teams, formData),
-      getProvidersGoldSchema(formData, { isAdmin }),
+      getProvidersGoldSchema(formData, { isAdmin }, bcscPrivacyZones, bcscAttributes),
       ...environmentSchemas,
       termsAndConditionsSchema,
     );
   } else {
     schemas.push(
       getRequesterInfoSchema(teams, formData),
-      getProvidersGoldSchema(formData, { isAdmin }),
+      getProvidersGoldSchema(formData, { isAdmin }, bcscPrivacyZones, bcscAttributes),
       ...environmentSchemas,
     );
     if (!isApplied) schemas.push(termsAndConditionsSchema);

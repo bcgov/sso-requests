@@ -5,3 +5,4 @@ jest.setTimeout(10000); // in milliseconds
 global.crypto = new Crypto();
 
 process.env.INCLUDE_DIGITAL_CREDENTIAL = true;
+process.env.INCLUDE_BC_SERVICES_CARD = true;

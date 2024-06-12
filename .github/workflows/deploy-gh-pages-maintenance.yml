@@ -38,6 +38,7 @@ jobs:
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
           INCLUDE_DIGITAL_CREDENTIAL=true
+          INCLUDE_BC_SERVICES_CARD=false
           EOF
 
       - name: Set env to production
@@ -52,6 +53,7 @@ jobs:
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
+          INCLUDE_BC_SERVICES_CARD=false
           EOF
 
       - name: Checkout 🛎️

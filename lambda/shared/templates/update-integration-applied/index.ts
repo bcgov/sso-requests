@@ -21,6 +21,7 @@ interface DataProps {
   hadBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingDigitalCredentialProdApproval?: boolean;
+  waitingBcServicesCardProdApproval?: boolean;
   addingProd: boolean;
 }
 
