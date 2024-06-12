@@ -39,7 +39,7 @@ function BcscAttributesWidget(props: WidgetProps) {
 
   return (
     <div>
-      <div>
+      <div data-testid="bcsc-attributes">
         <Select
           isMulti={true}
           options={eOptions}

@@ -22,7 +22,7 @@ function BcscPrivacyZoneWidget(props: WidgetProps) {
   };
 
   return (
-    <div>
+    <div data-testid="bcsc-privacy-zone">
       <Select
         options={eOptions}
         value={eOptions.find((option) => option.value === privacyZone)}

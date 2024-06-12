@@ -21,6 +21,7 @@ interface DataProps {
   hasBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingDigitalCredentialProdApproval?: boolean;
+  waitingBcServicesCardProdApproval?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {

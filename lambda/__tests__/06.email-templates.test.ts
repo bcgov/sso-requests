@@ -137,6 +137,41 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
+  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ BC Services Card', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: {
+        ...formDataProd,
+        devIdps: ['bcservicescard'],
+        testIdps: ['bcservicescard'],
+        prodIdps: ['bcservicescard'],
+      },
+      waitingBcServicesCardProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ approved BC Services Card prod', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...formDataDev, devIdps: ['bcservicescard'] },
+      waitingBcServicesCardProdApproval: false,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BC Services Card prod', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...formDataDev, devIdps: ['bcservicescard'] },
+      waitingBcServicesCardProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
   it('Should return the expected email for UPDATE_INTEGRATION_SUBMITTED', async () => {
     const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
       integration: formDataDevTest,
@@ -181,6 +216,21 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
+  it('Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ unapproved BC Services Card', async () => {
+    const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
+      integration: {
+        ...formDataProd,
+        devIdps: ['bcservicescard'],
+        testIdps: ['bcservicescard'],
+        prodIdps: ['bcservicescard'],
+      },
+      waitingBcServicesCardProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
   it('Should return the expected email for UPDATE_INTEGRATION_APPLIED', async () => {
     const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, { integration: formDataDev });
     expect(rendered.subject).toMatchSnapshot();
@@ -195,6 +245,15 @@ describe('Email template snapshots', () => {
 
   it('Should return the expected email for PROD_APPROVED w/ GitHub', async () => {
     const rendered = await renderTemplate(EMAILS.PROD_APPROVED, { integration: formDataDev, type: 'GitHub' });
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expected email for PROD_APPROVED w/ BC Services Card', async () => {
+    const rendered = await renderTemplate(EMAILS.PROD_APPROVED, {
+      integration: { ...formDataDev, devIdps: ['bcservicescard'] },
+      type: 'BC Services Card',
+    });
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
   });

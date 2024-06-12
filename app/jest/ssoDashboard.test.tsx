@@ -21,7 +21,7 @@ function MockRequestAllResult() {
       status: 'applied',
       serviceType: 'gold',
       environments: ['dev', 'prod'],
-      devIdps: ['bceidbasic', 'githubpublic'],
+      devIdps: ['bceidbasic', 'githubpublic', 'bcservicescard'],
     });
   }
   return requestAllResult;
@@ -336,6 +336,31 @@ describe('SSO Dashboard', () => {
     const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
     fireEvent.click(approveProdButton);
     expect(screen.getByTitle('Github Approve'));
+
+    //test on confirm button
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateRequest).toHaveBeenCalled();
+  });
+
+  it('testing on BC Services Prod tab', async () => {
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
+    const firstRow = screen.getByRole('row', {
+      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
+    });
+    fireEvent.click(firstRow);
+
+    //open the tabpanel
+    const BCSCProdTabPanel = screen.getByRole('tab', { name: 'BC Services Card Prod' });
+    fireEvent.click(BCSCProdTabPanel);
+
+    //open the modal
+    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+    fireEvent.click(approveProdButton);
+    expect(screen.getByTitle('BC Services Card Approve'));
 
     //test on confirm button
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));

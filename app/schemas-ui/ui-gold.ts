@@ -79,7 +79,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     bcServicesCardFields['bcscPrivacyZone']['ui:widget'] = 'hidden';
     bcServicesCardFields['bcscPrivacyZone']['ui:label'] = false;
     bcServicesCardFields['bcscAttributes']['ui:widget'] = 'hidden';
-    bcServicesCardFields['bcscAttributes']['classNames'] = 'hidden-title';
+    bcServicesCardFields['bcscAttributes']['ui:field'] = 'hidden';
   }
 
   const durationAdditionalFields =
