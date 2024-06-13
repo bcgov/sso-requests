@@ -7,7 +7,7 @@ import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
-import { usesBceidProd, usesBcServicesCardProd } from 'app/helpers/integration';
+import { usesBceidProd, usesBcServicesCardProd } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved and being processed (email 1 of 2)`;
 const template = fs.readFileSync(__dirname + '/prod-approved.html', 'utf8');
