@@ -34,6 +34,7 @@ import {
   checkDigitalCredential,
   checkNotBceidGroup,
   checkNotGithubGroup,
+  usesBcServicesCard,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
 import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
@@ -47,6 +48,14 @@ import {
 } from '@app/schemas';
 import pick from 'lodash.pick';
 import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
+import { BCSCClientParameters, createBCSCClient } from '@lambda-app/bcsc/client';
+import { createIdp, createIdpMapper, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
+import {
+  createClientScope,
+  createClientScopeMapper,
+  getClientScope,
+  getClientScopeMapper,
+} from '@lambda-app/keycloak/clientScopes';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -200,6 +209,196 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
   return { ...result.dataValues, numOfRequestsForToday };
 };
 
+const updateBCSCRecord = async (
+  originalData: IntegrationData,
+  mergedData: IntegrationData,
+): Promise<BCSCClientParameters | null> => {
+  const notUsingBCSC =
+    !originalData.devIdps.includes('bcservicescard') && !mergedData.devIdps.includes('bcservicescard');
+  if (notUsingBCSC) return;
+
+  const removingBCSC =
+    originalData.devIdps.includes('bcservicescard') && !mergedData.devIdps.includes('bcservicescard');
+  const addingBCSC = mergedData.devIdps.includes('bcservicescard') && !originalData.devIdps.includes('bcservicescard');
+
+  let response: Promise<BCSCClientParameters>;
+
+  if (removingBCSC) {
+    await models.bcscClient.destroy({
+      where: {
+        requestId: mergedData.id,
+      },
+    });
+    return null;
+  } else if (addingBCSC) {
+    const bcscClientName = `${mergedData.projectName}-${mergedData.id}`;
+    return models.bcscClient.create({
+      clientName: bcscClientName,
+      requestId: mergedData.id,
+      claims: mergedData.bcscAttributes,
+      scopes: ['openid', 'address', 'email', 'profile'],
+      privacyZoneUri: mergedData.bcscPrivacyZone,
+    });
+  } else {
+    return models.bcscClient
+      .update(
+        {
+          claims: mergedData.bcscAttributes,
+          privacyZoneUri: mergedData.bcscPrivacyZone,
+        },
+        {
+          where: {
+            requestId: mergedData.id,
+          },
+          returning: true,
+        },
+      )
+      .then((res) => res[1][0]);
+  }
+};
+
+const createBCSCIntegration = async (request: BCSCClientParameters, userId: string) => {
+  /*
+    - Need to create (bcsc client, idp, idp mapper, client scope, client scope mappers, keycloak client)
+    - Add flag to the request queue to indicate bcsc client, client_type
+    - Ensure each step is idempotent, e.g create client if not exists,
+    - Walk through each creation
+    -
+  */
+
+  if (!request.created) {
+    const clientResponse: any = await createBCSCClient(request, userId);
+    await models.bcscClient.update(
+      {
+        clientSecret: clientResponse.client_secret,
+        registrationAccessToken: clientResponse.registration_access_token,
+        created: true,
+        clientId: clientResponse.client_id,
+      },
+      {
+        where: {
+          id: request.id,
+        },
+      },
+    );
+    request.clientSecret = clientResponse.client_secret;
+    request.clientId = clientResponse.client_id;
+  }
+
+  const idpCreated = await getIdp('dev', request.clientId);
+  if (!idpCreated) {
+    await createIdp(
+      {
+        alias: request.clientId,
+        displayName: `BC Services Card - ${request.clientId}`,
+        enabled: true,
+        storeToken: true,
+        providerId: 'oidc',
+        realm: 'standard',
+        config: {
+          clientId: request.clientId,
+          clientSecret: request.clientSecret,
+          authorizationUrl: `${process.env.BCSC_REGISTRATION_BASE_URL}/login/oidc/authorize`,
+          tokenUrl: `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/token`,
+          userInfoUrl: `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/userinfo`,
+          defaultScope: 'openid',
+          jwksUrl: `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/jwks`,
+          syncMode: 'IMPORT',
+          disableUserInfo: true,
+          clientAuthMethod: 'client_secret_post',
+          validateSignature: true,
+          useJwksUrl: true,
+        },
+      },
+      'dev',
+    );
+  }
+
+  const idpMappers = await getIdpMappers({
+    environment: 'dev',
+    idpAlias: request.clientId,
+  });
+
+  const requiredIdpMapperNames = [
+    { name: 'email', type: 'hardcoded-attribute-idp-mapper', template: '' },
+    { name: 'first_name', type: 'hardcoded-attribute-idp-mapper', template: '' },
+    { name: 'last_name', type: 'hardcoded-attribute-idp-mapper', template: '' },
+    { name: 'username', type: 'oidc-username-idp-mapper', template: '${CLAIM.sub}@${ALIAS}' },
+  ];
+
+  const createIdpMapperPromises = requiredIdpMapperNames.map((mapper) => {
+    const alreadyExists = idpMappers.some((existingMapper) => existingMapper.name === mapper.name);
+    if (!alreadyExists) {
+      return createIdpMapper({
+        environment: 'dev',
+        name: mapper.name,
+        idpAlias: request.clientId,
+        idpMapper: mapper.type,
+        idpMapperConfig: {
+          claim: mapper.name,
+          attribute: mapper.name,
+          syncMode: 'FORCE',
+          template: mapper.template,
+        },
+      });
+    }
+  });
+
+  await Promise.all(createIdpMapperPromises);
+
+  const clientScopeData = {
+    environment: 'dev',
+    realmName: 'standard',
+    scopeName: request.clientId,
+  };
+
+  let clientScope = await getClientScope(clientScopeData);
+  if (!clientScope) {
+    clientScope = await createClientScope(clientScopeData);
+  }
+
+  const clientScopeMappers = [
+    'given_name',
+    'email',
+    'display_name',
+    'given_names',
+    'family_name',
+    'sector_identifier_uri',
+    'address',
+  ];
+
+  const createMappersIfNotExistsPromises = clientScopeMappers.map((mapperName) => {
+    getClientScopeMapper({
+      environment: 'dev',
+      scopeId: clientScope.id,
+      mapperName,
+    }).then((mapperExists) => {
+      if (!mapperExists) {
+        createClientScopeMapper({
+          environment: 'dev',
+          realmName: 'standard',
+          scopeName: clientScope.name,
+          protocol: 'openid-connect',
+          protocolMapper: 'oidc-idp-userinfo-mapper',
+          protocolMapperName: mapperName,
+          protocolMapperConfig: {
+            'user.attribute': mapperName,
+            userAttribute: mapperName,
+            decodeUserInfoResponse: true,
+            'claim.name': mapperName,
+            'jsonType.label': 'String',
+            'id.token.claim': true,
+            'access.token.claim': true,
+            'userinfo.token.claim': true,
+          },
+        });
+      }
+    });
+  });
+
+  await Promise.all(createMappersIfNotExistsPromises);
+};
+
 export const updateRequest = async (
   session: Session,
   data: IntegrationData,
@@ -246,6 +445,8 @@ export const updateRequest = async (
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
 
+    const bcscClientData = await updateBCSCRecord(originalData, current);
+
     if (submit) {
       const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);
       if (!isEmpty(validationErrors)) {
@@ -281,6 +482,9 @@ export const updateRequest = async (
 
       const hasBceid = usesBceid(current);
       const hasBceidProd = hasBceid && hasProd;
+
+      const hasBcServicesCard = usesBcServicesCard(current);
+      const hasBcServicesCardProd = hasBcServicesCard && hasProd;
 
       const hasGithub = usesGithub(current);
       const hasGithubProd = hasGithub && hasProd;
@@ -380,6 +584,17 @@ export const updateRequest = async (
       await createEvent(eventData);
 
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
+      await createBCSCIntegration(bcscClientData, current.userId);
+      await models.bcscClient.update(
+        {
+          created: true,
+        },
+        {
+          where: {
+            requestId: mergedData.id,
+          },
+        },
+      );
 
       updated = await getAllowedRequest(session, data.id);
     }

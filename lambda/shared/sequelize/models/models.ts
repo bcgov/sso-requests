@@ -8,6 +8,7 @@ import Survey from './Survey';
 import UserTeam from './UserTeam';
 import RequestQueue from './RequestQueue';
 import RequestRole from './RequestRole';
+import BcscClient from './BcscClient';
 
 const env = process.env.NODE_ENV || 'development';
 const config = configs[env];
@@ -26,7 +27,7 @@ if (config.databaseUrl) {
 
 console.log('sequelize initialized', !!sequelize);
 
-[Event, Request, Team, User, UserTeam, Survey, RequestQueue, RequestRole].forEach((init) => {
+[Event, Request, Team, User, UserTeam, Survey, RequestQueue, RequestRole, BcscClient].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;
   modelNames.push(model.name);
