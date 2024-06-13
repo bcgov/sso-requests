@@ -61,3 +61,19 @@ export const usesGithubProd = (integration: Integration) => {
 
   return usesGithub(integration) && environments.includes('prod');
 };
+
+export const usesBcServicesCardProd = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { environments = [] } = integration;
+
+  return usesBcServicesCard(integration) && environments.includes('prod');
+};
+
+export const usesDigitalCredentialProd = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { environments = [] } = integration;
+
+  return usesDigitalCredential(integration) && environments.includes('prod');
+};
