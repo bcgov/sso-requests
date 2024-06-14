@@ -235,12 +235,14 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const loadBcscPrivacyZones = async () => {
-    const [data] = await fetchPrivacyZones();
+    let [data] = await fetchPrivacyZones();
+    if (data && data?.length > 0) data = data?.sort((a, b) => a.privacy_zone_name.localeCompare(b.privacy_zone_name))!;
     setBcscPrivacyZones(data || []);
   };
 
   const loadBcscAttributes = async () => {
-    const [data] = await fetchAttributes();
+    let [data] = await fetchAttributes();
+    if (data && data?.length > 0) data = data?.sort((a, b) => a.name.localeCompare(b.name))!;
     setBcscAttributes(data || []);
   };
 

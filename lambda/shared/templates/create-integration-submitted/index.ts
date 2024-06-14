@@ -38,7 +38,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const cc = [SSO_EMAIL_ADDRESS];
   if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
-  if (usesDigitalCredentialProd) cc.push(DIT_EMAIL_ADDRESS);
+  if (usesDigitalCredentialProd(integration)) cc.push(DIT_EMAIL_ADDRESS);
 
   return sendEmail({
     code: EMAILS.CREATE_INTEGRATION_SUBMITTED,

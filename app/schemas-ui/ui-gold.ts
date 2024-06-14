@@ -43,6 +43,8 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
         } else if (checkGithubGroup(idp)) {
           idpDisabled.push('githubpublic', 'githubbcgov');
         }
+
+        if (idp === 'bcservicescard') idpDisabled.push('bcservicescard');
       });
     }
 
@@ -53,10 +55,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
 
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
-    idpDisabled.push('digitalcredential');
-    idpDisabled.push('bcservicescard');
-  } else if (formData?.status !== 'draft') {
-    idpDisabled.push('bcservicescard');
+    idpDisabled.push('digitalcredential', 'bcservicescard');
   }
 
   const includeComment = isApplied && isAdmin;
