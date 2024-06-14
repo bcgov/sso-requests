@@ -105,8 +105,8 @@ describe('integration email updates for teams', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(2);
-      expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
+      expect(emailList[0].cc.length).toEqual(1);
+      expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS].sort());
     });
 
     it('should render the expected template after submission of bceid integration in prod environment', async () => {
@@ -230,7 +230,7 @@ describe('integration email updates for teams', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(2);
+      expect(emailList[0].cc.length).toEqual(1);
       expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
     });
 
@@ -354,7 +354,7 @@ describe('integration email updates for teams', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
+      expect(emailList[0].cc.length).toEqual(2);
       expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
     });
 
