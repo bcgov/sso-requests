@@ -10,6 +10,7 @@ import {
   isAdmin,
   getDisplayName,
   getWhereClauseForAllRequests,
+  getBCSCEnvVars,
 } from '../utils/helpers';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
@@ -35,6 +36,7 @@ import {
   checkNotBceidGroup,
   checkNotGithubGroup,
   usesBcServicesCard,
+  checkBcServicesCard,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
 import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
@@ -48,14 +50,16 @@ import {
 } from '@app/schemas';
 import pick from 'lodash.pick';
 import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
-import { BCSCClientParameters, createBCSCClient } from '@lambda-app/bcsc/client';
-import { createIdp, createIdpMapper, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
+import { BCSCClientParameters, createBCSCClient, deleteBCSCClient } from '@lambda-app/bcsc/client';
+import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
 import {
   createClientScope,
   createClientScopeMapper,
+  deleteClientScope,
   getClientScope,
   getClientScopeMapper,
 } from '@lambda-app/keycloak/clientScopes';
+import { bcscClientScopeMappers, bcscIdpMappers } from '@lambda-app/utils/constants';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -209,100 +213,59 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
   return { ...result.dataValues, numOfRequestsForToday };
 };
 
-const updateBCSCRecord = async (
-  originalData: IntegrationData,
-  mergedData: IntegrationData,
-): Promise<BCSCClientParameters | null> => {
-  const notUsingBCSC =
-    !originalData.devIdps.includes('bcservicescard') && !mergedData.devIdps.includes('bcservicescard');
-  if (notUsingBCSC) return;
+export const createBCSCIntegration = async (env: string, integration: IntegrationData, userId: number) => {
+  const { bcscBaseUrl } = getBCSCEnvVars(env);
 
-  const removingBCSC =
-    originalData.devIdps.includes('bcservicescard') && !mergedData.devIdps.includes('bcservicescard');
-  const addingBCSC = mergedData.devIdps.includes('bcservicescard') && !originalData.devIdps.includes('bcservicescard');
+  const bcscClient = await models.bcscClient.findOne({
+    where: {
+      requestId: integration.id,
+      environment: env,
+    },
+  });
 
-  let response: Promise<BCSCClientParameters>;
-
-  if (removingBCSC) {
-    await models.bcscClient.destroy({
-      where: {
-        requestId: mergedData.id,
-      },
-    });
-    return null;
-  } else if (addingBCSC) {
-    const bcscClientName = `${mergedData.projectName}-${mergedData.id}`;
-    return models.bcscClient.create({
-      clientName: bcscClientName,
-      requestId: mergedData.id,
-      claims: mergedData.bcscAttributes,
-      scopes: ['openid', 'address', 'email', 'profile'],
-      privacyZoneUri: mergedData.bcscPrivacyZone,
-    });
-  } else {
-    return models.bcscClient
-      .update(
-        {
-          claims: mergedData.bcscAttributes,
-          privacyZoneUri: mergedData.bcscPrivacyZone,
-        },
-        {
-          where: {
-            requestId: mergedData.id,
-          },
-          returning: true,
-        },
-      )
-      .then((res) => res[1][0]);
-  }
-};
-
-const createBCSCIntegration = async (request: BCSCClientParameters, userId: string) => {
-  /*
-    - Need to create (bcsc client, idp, idp mapper, client scope, client scope mappers, keycloak client)
-    - Add flag to the request queue to indicate bcsc client, client_type
-    - Ensure each step is idempotent, e.g create client if not exists,
-    - Walk through each creation
-    -
-  */
-
-  if (!request.created) {
-    const clientResponse: any = await createBCSCClient(request, userId);
-    await models.bcscClient.update(
+  let bcscClientSecret = bcscClient?.clientSecret;
+  let bcscClientId = bcscClient?.clientId;
+  if (!bcscClient) {
+    const bcscClientName = `${integration.projectName}-${integration.id}`;
+    const clientResponse: any = await createBCSCClient(
       {
-        clientSecret: clientResponse.client_secret,
-        registrationAccessToken: clientResponse.registration_access_token,
-        created: true,
-        clientId: clientResponse.client_id,
+        clientName: bcscClientName,
+        environment: env,
       },
-      {
-        where: {
-          id: request.id,
-        },
-      },
+      integration,
+      userId,
     );
-    request.clientSecret = clientResponse.client_secret;
-    request.clientId = clientResponse.client_id;
+    await models.bcscClient.create({
+      clientName: bcscClientName,
+      requestId: integration.id,
+      environment: env,
+      clientSecret: clientResponse.data.client_secret,
+      registrationAccessToken: clientResponse.data.registration_access_token,
+      created: true,
+      clientId: clientResponse.data.client_id,
+    });
+    bcscClientSecret = clientResponse.data.client_secret;
+    bcscClientId = clientResponse.data.client_id;
   }
 
-  const idpCreated = await getIdp('dev', request.clientId);
+  const idpCreated = await getIdp(env, integration.clientId);
   if (!idpCreated) {
     await createIdp(
       {
-        alias: request.clientId,
-        displayName: `BC Services Card - ${request.clientId}`,
+        alias: integration.clientId,
+        displayName: `BC Services Card - ${integration.clientId}`,
         enabled: true,
         storeToken: true,
         providerId: 'oidc',
         realm: 'standard',
         config: {
-          clientId: request.clientId,
-          clientSecret: request.clientSecret,
-          authorizationUrl: `${process.env.BCSC_REGISTRATION_BASE_URL}/login/oidc/authorize`,
-          tokenUrl: `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/token`,
-          userInfoUrl: `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/userinfo`,
+          clientId: bcscClientId,
+          clientSecret: bcscClientSecret,
+          authorizationUrl: `${bcscBaseUrl}/login/oidc/authorize`,
+          tokenUrl: `${bcscBaseUrl}/oauth2/token`,
+          userInfoUrl: `${bcscBaseUrl}/oauth2/userinfo`,
           defaultScope: 'openid',
-          jwksUrl: `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/jwks`,
+          jwksUrl: `${bcscBaseUrl}/oauth2/jwk`,
           syncMode: 'IMPORT',
           disableUserInfo: true,
           clientAuthMethod: 'client_secret_post',
@@ -310,29 +273,22 @@ const createBCSCIntegration = async (request: BCSCClientParameters, userId: stri
           useJwksUrl: true,
         },
       },
-      'dev',
+      env,
     );
   }
 
   const idpMappers = await getIdpMappers({
-    environment: 'dev',
-    idpAlias: request.clientId,
+    environment: env,
+    idpAlias: integration.clientId,
   });
 
-  const requiredIdpMapperNames = [
-    { name: 'email', type: 'hardcoded-attribute-idp-mapper', template: '' },
-    { name: 'first_name', type: 'hardcoded-attribute-idp-mapper', template: '' },
-    { name: 'last_name', type: 'hardcoded-attribute-idp-mapper', template: '' },
-    { name: 'username', type: 'oidc-username-idp-mapper', template: '${CLAIM.sub}@${ALIAS}' },
-  ];
-
-  const createIdpMapperPromises = requiredIdpMapperNames.map((mapper) => {
+  const createIdpMapperPromises = bcscIdpMappers.map((mapper) => {
     const alreadyExists = idpMappers.some((existingMapper) => existingMapper.name === mapper.name);
     if (!alreadyExists) {
       return createIdpMapper({
-        environment: 'dev',
+        environment: env,
         name: mapper.name,
-        idpAlias: request.clientId,
+        idpAlias: integration.clientId,
         idpMapper: mapper.type,
         idpMapperConfig: {
           claim: mapper.name,
@@ -347,9 +303,9 @@ const createBCSCIntegration = async (request: BCSCClientParameters, userId: stri
   await Promise.all(createIdpMapperPromises);
 
   const clientScopeData = {
-    environment: 'dev',
+    environment: env,
     realmName: 'standard',
-    scopeName: request.clientId,
+    scopeName: integration.clientId,
   };
 
   let clientScope = await getClientScope(clientScopeData);
@@ -357,25 +313,15 @@ const createBCSCIntegration = async (request: BCSCClientParameters, userId: stri
     clientScope = await createClientScope(clientScopeData);
   }
 
-  const clientScopeMappers = [
-    'given_name',
-    'email',
-    'display_name',
-    'given_names',
-    'family_name',
-    'sector_identifier_uri',
-    'address',
-  ];
-
-  const createMappersIfNotExistsPromises = clientScopeMappers.map((mapperName) => {
+  const createMappersIfNotExistsPromises = bcscClientScopeMappers.map((mapperName) => {
     getClientScopeMapper({
-      environment: 'dev',
+      environment: env,
       scopeId: clientScope.id,
       mapperName,
     }).then((mapperExists) => {
       if (!mapperExists) {
         createClientScopeMapper({
-          environment: 'dev',
+          environment: env,
           realmName: 'standard',
           scopeName: clientScope.name,
           protocol: 'openid-connect',
@@ -397,6 +343,41 @@ const createBCSCIntegration = async (request: BCSCClientParameters, userId: stri
   });
 
   await Promise.all(createMappersIfNotExistsPromises);
+};
+
+export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
+  if (request.created) {
+    await deleteBCSCClient({
+      clientId: request.clientId,
+      registrationToken: request.registrationAccessToken,
+      environment: request.environment,
+    });
+  }
+  await models.bcscClient.destroy({
+    where: {
+      id: request.id,
+    },
+  });
+  const idpExists = await getIdp(request.environment, keycoakClientId);
+  if (idpExists) {
+    await deleteIdp({
+      environment: request.environment,
+      realmName: 'standard',
+      idpAlias: keycoakClientId,
+    });
+  }
+  const clientScope = await getClientScope({
+    environment: request.environment,
+    realmName: 'standard',
+    scopeName: keycoakClientId,
+  });
+  if (clientScope) {
+    await deleteClientScope({
+      realmName: 'standard',
+      environment: request.environment,
+      scopeName: keycoakClientId,
+    });
+  }
 };
 
 export const updateRequest = async (
@@ -440,12 +421,13 @@ export const updateRequest = async (
     const isApprovingDigitalCredential = !originalData.digitalCredentialApproved && current.digitalCredentialApproved;
     if (isApprovingDigitalCredential && !userIsAdmin) throw Error('unauthorized request');
 
+    const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
+    if (isApprovingBCSC && !userIsAdmin) throw Error('unauthorized request');
+
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
-
-    const bcscClientData = await updateBCSCRecord(originalData, current);
 
     if (submit) {
       const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);
@@ -482,9 +464,6 @@ export const updateRequest = async (
 
       const hasBceid = usesBceid(current);
       const hasBceidProd = hasBceid && hasProd;
-
-      const hasBcServicesCard = usesBcServicesCard(current);
-      const hasBcServicesCardProd = hasBcServicesCard && hasProd;
 
       const hasGithub = usesGithub(current);
       const hasGithubProd = hasGithub && hasProd;
@@ -582,19 +561,7 @@ export const updateRequest = async (
       }
 
       await createEvent(eventData);
-
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
-      await createBCSCIntegration(bcscClientData, current.userId);
-      await models.bcscClient.update(
-        {
-          created: true,
-        },
-        {
-          where: {
-            requestId: mergedData.id,
-          },
-        },
-      );
 
       updated = await getAllowedRequest(session, data.id);
     }
@@ -913,6 +880,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
   const hasDigitalCredential = usesDigitalCredential(baseData);
+  const hasBCSC = usesBcServicesCard(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -926,6 +894,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   // prevent the TF from creating VC integration in prod environment if not approved
   if (!baseData.digitalCredentialApproved && hasDigitalCredential) {
     baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkDigitalCredential(idp));
+  }
+
+  if (!baseData.bcServicesCardApproved && hasBCSC) {
+    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkBcServicesCard(idp));
   }
 
   // prevent the TF from creating GitHub integration in prod environment if not approved

@@ -24,23 +24,13 @@ export const up = async ({ context: sequelize }) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    privacy_zone_uri: {
+    environment: {
       type: DataTypes.TEXT,
-      allowNull: true,
+      allowNull: false,
     },
     client_name: {
       type: DataTypes.TEXT,
       allowNull: false,
-    },
-    claims: {
-      type: DataTypes.ARRAY(DataTypes.TEXT),
-      allowNull: false,
-      defaultValue: [],
-    },
-    scopes: {
-      type: DataTypes.ARRAY(DataTypes.TEXT),
-      allowNull: false,
-      defaultValue: [],
     },
     created: {
       type: DataTypes.BOOLEAN,
@@ -64,10 +54,28 @@ export const up = async ({ context: sequelize }) => {
       defaultValue: DataTypes.NOW,
     },
   });
+
+  await sequelize.getQueryInterface().addConstraint('bcsc_clients', {
+    fields: ['request_id', 'environment'],
+    type: 'unique',
+  });
+
+  await sequelize.getQueryInterface().addColumn('requests', 'bcsc_privacy_zone', {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  });
+
+  await sequelize.getQueryInterface().addColumn('requests', 'bcsc_attributes', {
+    type: DataTypes.ARRAY(DataTypes.TEXT),
+    allowNull: false,
+    defaultValue: [],
+  });
 };
 
 export const down = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().dropTable('bcsc_clients');
+  await sequelize.getQueryInterface().removeColumn('requests', 'bcsc_privacy_zone');
+  await sequelize.getQueryInterface().removeColumn('requests', 'bcsc_attributes');
 };
 
 export default { name, up, down };

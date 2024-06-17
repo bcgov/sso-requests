@@ -13,6 +13,8 @@ import { EMAILS } from '@lambda-shared/enums';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { getTeamById, isTeamAdmin } from '../queries/team';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
+import { getAttributes, getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
+import { usesBcServicesCard } from '@app/helpers/integration';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
@@ -92,13 +94,15 @@ export const getDifferences = (newData: any, originalData: Integration) => {
   return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };
 
-export const validateRequest = (formData: any, original: Integration, isUpdate = false, teams: any[]) => {
-  // if (isUpdate) {
-  //   const differences = getDifferences(formData, original);
-  //   if (!differences) return errorMessage;
-  // }
+export const validateRequest = async (formData: any, original: Integration, isUpdate = false, teams: any[]) => {
+  const validationArgs: any = { formData, teams };
 
-  const schemas = getSchemas({ formData, teams });
+  if (usesBcServicesCard(formData)) {
+    const [validPrivacyZones, validAttributes] = await Promise.all([getPrivacyZones(), getAttributes()]);
+    validationArgs.bcscPrivacyZones = validPrivacyZones;
+    validationArgs.bcscAttributes = validAttributes;
+  }
+  const schemas = getSchemas(validationArgs);
   return validateForm(formData, schemas);
 };
 
@@ -193,3 +197,30 @@ export async function inviteTeamMembers(userId: number, users: (User & { role: s
     }),
   );
 }
+
+export const getBCSCEnvVars = (env: string) => {
+  let bcscBaseUrl: string;
+  let accessToken: string;
+  let kcBaseUrl: string;
+
+  if (env === 'dev') {
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_DEV;
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_DEV;
+    kcBaseUrl = process.env.KEYCLOAK_V2_DEV_URL;
+  }
+  if (env === 'test') {
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_TEST;
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_TEST;
+    kcBaseUrl = process.env.KEYCLOAK_V2_TEST_URL;
+  }
+  if (env === 'prod') {
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_PROD;
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_PROD;
+    kcBaseUrl = process.env.KEYCLOAK_V2_PROD_URL;
+  }
+  return {
+    bcscBaseUrl,
+    accessToken,
+    kcBaseUrl,
+  };
+};

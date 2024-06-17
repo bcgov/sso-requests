@@ -1,46 +1,53 @@
 import { models } from '../../../shared/sequelize/models/models';
 import axios from 'axios';
+import { IntegrationData } from '@lambda-shared/interfaces';
+import { getBCSCEnvVars } from '@lambda-app/utils/helpers';
 
 export interface BCSCClientParameters {
   id?: number;
-  clientId: string;
-  clientName: string;
-  clientUri: string;
-  clientSecret: string;
+  clientId?: string;
+  clientName?: string;
+  clientUri?: string;
+  clientSecret?: string;
   /** Provide scope as a space-separated string, e.g "openid address profile" */
-  scope: string;
-  contacts: string[];
-  tokenEndpointAuthMethod: string;
-  idTokenSignedResponseAlg: string;
-  userinfoSignedResponseAlg: string;
-  claims: string[];
-  created: boolean;
+  contacts?: string[];
+  tokenEndpointAuthMethod?: string;
+  idTokenSignedResponseAlg?: string;
+  userinfoSignedResponseAlg?: string;
+  created?: boolean;
+  registrationAccessToken?: string;
+  environment?: string;
 }
 
-export const createBCSCClient = async (data: BCSCClientParameters, idirUserId: string) => {
+export const createBCSCClient = async (data: BCSCClientParameters, integration: IntegrationData, userId: number) => {
   const contact = await models.user.findOne({
     where: {
-      id: idirUserId,
+      id: userId,
     },
   });
 
+  const { bcscBaseUrl, kcBaseUrl, accessToken } = getBCSCEnvVars(data.environment);
+  const jwksUri = `${kcBaseUrl}/realms/standard/protocol/openid-connect/certs`;
+
   const result = await axios.post(
-    `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/register`,
+    `${bcscBaseUrl}/oauth2/register`,
     {
-      client_name: data.clientName,
-      // TODO: How the heck to get this part? redirect uris? I think it is the client app
-      client_uri: 'http://localhost:3000',
-      redirect_uris: [process.env.BCSC_IDP_REDIRECT_URI],
+      client_name: `${data.clientName}-${data.environment}`,
+      // TODO: I think we will need a form field for the landing page per env
+      client_uri: 'https://example.com',
+      redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
       scope: 'openid profile email address',
       contacts: [contact.idirEmail || ''],
       token_endpoint_auth_method: 'client_secret_post',
       id_token_signed_response_alg: 'RS256',
       userinfo_signed_response_alg: 'RS256',
-      claims: data.claims,
+      claims: integration.bcscAttributes,
+      privacy_zone_uri: integration.bcscPrivacyZone,
+      jwks_uri: jwksUri,
     },
     {
       headers: {
-        Authorization: `Bearer ${process.env.BCSC_INITIAL_ACCESS_TOKEN}`,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
     },
@@ -48,38 +55,34 @@ export const createBCSCClient = async (data: BCSCClientParameters, idirUserId: s
   return result;
 };
 
-export const updateBCSCClient = async (
-  data: BCSCClientParameters & {
-    clientId: string;
-    registrationToken: string;
-  },
-) => {
+export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integration: IntegrationData) => {
   const result = await axios.put(
-    `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/register/${data.clientId}`,
+    `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/register/${integration.clientId}`,
     {
-      client_name: data.clientName,
-      client_uri: data.clientUri,
-      redirect_uris: [process.env.BCSC_IDP_REDIRECT_URI],
-      scope: data.scope,
-      contacts: data.contacts,
-      token_endpoint_auth_method: data.tokenEndpointAuthMethod,
-      id_token_signed_response_alg: data.idTokenSignedResponseAlg,
-      userinfo_signed_response_alg: data.userinfoSignedResponseAlg,
-      claims: data.claims,
-      client_id: data.clientId,
-      registration_access_token: data.registrationToken,
+      client_name: `${bcscClient.clientName}-${bcscClient.environment}`,
+      client_uri: bcscClient.clientUri,
+      redirect_uris: [process.env.BCSC_IDP_REDIRECT_URI_DEV],
+      contacts: bcscClient.contacts,
+      token_endpoint_auth_method: bcscClient.tokenEndpointAuthMethod,
+      id_token_signed_response_alg: bcscClient.idTokenSignedResponseAlg,
+      userinfo_signed_response_alg: bcscClient.userinfoSignedResponseAlg,
+      claims: integration.bcscAttributes,
+      privacy_zone_uri: integration.bcscPrivacyZone,
+      client_id: integration.clientId,
+      registration_access_token: bcscClient.registrationAccessToken,
     },
     {
       headers: {
-        Authorization: `Bearer ${data.registrationToken}`,
+        Authorization: `Bearer ${bcscClient.registrationAccessToken}`,
       },
     },
   );
   return result;
 };
 
-export const deleteBCSCClient = async (data: { clientId: string; registrationToken: string }) => {
-  const result = await axios.delete(`${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/register/${data.clientId}`, {
+export const deleteBCSCClient = async (data: { clientId: string; registrationToken: string; environment: string }) => {
+  const { bcscBaseUrl } = getBCSCEnvVars(data.environment);
+  const result = await axios.delete(`${bcscBaseUrl}/oauth2/register/${data.clientId}`, {
     headers: {
       Authorization: `Bearer ${data.registrationToken}`,
     },

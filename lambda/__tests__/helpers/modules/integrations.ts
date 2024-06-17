@@ -79,3 +79,23 @@ export const getRequest = async (id: number) => models.request.findOne({ where: 
 export const generateRequest = async (data: IntegrationData) => models.request.create(data);
 
 export const getEventsByRequestId = async (id: number) => models.event.findAll({ where: { requestId: id } });
+
+export const submitNewIntegration = async (integration: IntegrationData) => {
+  const { projectName, projectLead, serviceType, usesTeam } = integration;
+  const {
+    body: { id },
+  } = await supertest(app)
+    .post(`${APP_BASE_PATH}/requests`)
+    .send({
+      projectName,
+      projectLead,
+      serviceType,
+      usesTeam,
+    })
+    .set('Accept', 'application/json');
+
+  return supertest(app)
+    .put(`${APP_BASE_PATH}/requests?submit=true`)
+    .send({ ...integration, id })
+    .set('Accept', 'application/json');
+};

@@ -21,23 +21,13 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      privacyZoneUri: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
       clientName: {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      claims: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
+      environment: {
+        type: DataTypes.TEXT,
         allowNull: false,
-        defaultValue: [],
-      },
-      scopes: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        allowNull: false,
-        defaultValue: [],
       },
       requestId: {
         type: DataTypes.INTEGER,

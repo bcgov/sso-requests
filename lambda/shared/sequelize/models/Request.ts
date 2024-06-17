@@ -368,12 +368,22 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
+      bcscPrivacyZone: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      bcscAttributes: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: false,
+        defaultValue: [],
+      },
     },
     {
       underscored: true,
       associate: function (models) {
         Request.belongsTo(models.team);
         Request.belongsTo(models.user);
+        Request.hasMany(models.bcscClient);
       },
     },
   );
