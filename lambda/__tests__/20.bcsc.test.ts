@@ -1,10 +1,20 @@
-import { cleanUpDatabaseTables, createMockSendEmail } from './helpers/utils';
+import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import * as IdpModule from '@lambda-app/keycloak/idp';
 import * as ClientScopeModule from '@lambda-app/keycloak/clientScopes';
-import { createBCSCIntegration } from '@lambda-app/controllers/requests';
-import { formDataProd } from './helpers/fixtures';
+import { buildGitHubRequestData, createBCSCIntegration } from '@lambda-app/controllers/requests';
+import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, formDataProd } from './helpers/fixtures';
 import { bcscClientScopeMappers, bcscIdpMappers } from '@lambda-app/utils/constants';
 import { submitNewIntegration } from './helpers/modules/integrations';
+import { IntegrationData } from '@lambda-shared/interfaces';
+
+jest.mock('@lambda-app/controllers/bc-services-card', () => {
+  return {
+    getPrivacyZones: jest.fn(() => Promise.resolve([{ privacy_zone_uri: 'zone', privacy_zone_name: 'zone' }])),
+    getAttributes: jest.fn(() => Promise.resolve([{ name: 'attr' }])),
+  };
+});
+
+jest.mock('../app/src/authenticate');
 
 jest.mock('@lambda-app/keycloak/adminClient', () => {
   return {
@@ -28,7 +38,17 @@ jest.mock('@lambda-app/bcsc/client', () => {
   };
 });
 
-describe.skip('BCSC', () => {
+const OLD_ENV = process.env;
+beforeEach(() => {
+  jest.resetModules();
+  process.env = { ...OLD_ENV };
+});
+
+afterAll(() => {
+  process.env = OLD_ENV;
+});
+
+describe('BCSC', () => {
   const spies = {
     getIdp: null,
     getIdpMappers: null,
@@ -120,27 +140,54 @@ describe.skip('BCSC', () => {
   });
 });
 
-const bcscProdIntegration = {
+const bcscProdIntegration: IntegrationData = {
   ...formDataProd,
-  devIdps: ['bcservicescard'],
+  devIdps: ['bcservicescard', 'idir'],
+  bcscPrivacyZone: 'zone',
+  bcscAttributes: ['attr'],
+  primaryEndUsers: [],
 };
 
 describe('Feature flag', () => {
-  it('Does not allow digital credential as an IDP if feature flag is not included in env vars', async () => {
+  beforeAll(async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+  });
+
+  it('Does not allow bc services card as an IDP if feature flag is not included in env vars', async () => {
     process.env.INCLUDE_BC_SERVICES_CARD = undefined;
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(422);
   });
 
-  it('Does not allow digital credential as an IDP if feature flag is set but not true', async () => {
+  it('Does not allow bc services card as an IDP if feature flag is set but not true', async () => {
     process.env.INCLUDE_BC_SERVICES_CARD = 'false';
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(422);
   });
 
-  it('Allows digital credential as an IDP if feature flag is set to true', async () => {
+  it('Allows bc services card as an IDP if feature flag is set to true', async () => {
     process.env.INCLUDE_BC_SERVICES_CARD = 'true';
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(200);
+  });
+});
+
+describe('Build Github Dispatch', () => {
+  it('Removes bc services card from production IDP list if not approved yet, but keeps it in dev and test', () => {
+    const processedIntegration = buildGitHubRequestData(bcscProdIntegration);
+    expect(processedIntegration.prodIdps.includes('bcservicescard')).toBe(false);
+
+    // Leaves other idp alone
+    expect(processedIntegration.prodIdps.includes('idir')).toBe(true);
+
+    // Keeps VC in dev and test
+    expect(processedIntegration.testIdps.includes('bcservicescard')).toBe(true);
+    expect(processedIntegration.devIdps.includes('bcservicescard')).toBe(true);
+  });
+
+  it('Keeps bc services card in production IDP list if approved', () => {
+    const approvedIntegration = { ...bcscProdIntegration, bcServicesCardApproved: true };
+    const processedIntegration = buildGitHubRequestData(approvedIntegration);
+    expect(processedIntegration.prodIdps.includes('bcservicescard')).toBe(true);
   });
 });
