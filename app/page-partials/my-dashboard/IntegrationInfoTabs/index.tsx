@@ -197,7 +197,7 @@ const getApprovalProgressTab = ({
   approvalContext: ApprovalContext;
 }) => {
   return (
-    <Tab key={TAB_DETAILS} tab="Technical Details">
+    <Tab key={TAB_DETAILS} tab="Technical Details" data-testid="technical-details-tab">
       <TabWrapper short={false}>
         <Grid cols={15}>
           <Grid.Row gutter={[]}>
@@ -219,7 +219,7 @@ const getApprovalProgressTab = ({
 
 const getRoleManagementTab = ({ integration }: { integration: Integration }) => {
   return (
-    <Tab key={TAB_ROLE_MANAGEMENT} tab="Role Management">
+    <Tab key={TAB_ROLE_MANAGEMENT} tab="Role Management" data-testid="role-management-tab">
       <TabWrapper>
         <br />
         <div>
@@ -237,7 +237,7 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
 
 const getUserAssignmentTab = ({ integration }: { integration: Integration }) => {
   return (
-    <Tab key={TAB_USER_ROLE_MANAGEMENT} tab="Assign Users to Roles">
+    <Tab key={TAB_USER_ROLE_MANAGEMENT} tab="Assign Users to Roles" data-testid="assign-users-to-roles-tab">
       <TabWrapper>
         <UserRoles selectedRequest={integration} />
       </TabWrapper>
