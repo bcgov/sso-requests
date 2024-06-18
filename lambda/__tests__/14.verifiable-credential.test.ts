@@ -8,7 +8,7 @@ import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/f
 import { models } from '@lambda-shared/sequelize/models/models';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { DIT_EMAIL_ADDRESS } from '@lambda-shared/local';
-import { updateIntegration } from './helpers/modules/integrations';
+import { submitNewIntegration, updateIntegration } from './helpers/modules/integrations';
 import { EMAILS } from '@lambda-shared/enums';
 
 jest.mock('../app/src/authenticate');
@@ -109,26 +109,6 @@ const mockIntegration: IntegrationData = {
   testSamlSignAssertions: false,
   prodSamlSignAssertions: false,
   primaryEndUsers: [],
-};
-
-const submitNewIntegration = async (integration: IntegrationData) => {
-  const { projectName, projectLead, serviceType, usesTeam } = integration;
-  const {
-    body: { id },
-  } = await supertest(app)
-    .post(`${APP_BASE_PATH}/requests`)
-    .send({
-      projectName,
-      projectLead,
-      serviceType,
-      usesTeam,
-    })
-    .set('Accept', 'application/json');
-
-  return supertest(app)
-    .put(`${APP_BASE_PATH}/requests?submit=true`)
-    .send({ ...integration, id })
-    .set('Accept', 'application/json');
 };
 
 const OLD_ENV = process.env;

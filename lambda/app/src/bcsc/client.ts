@@ -56,12 +56,14 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
 };
 
 export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integration: IntegrationData) => {
+  const { kcBaseUrl } = getBCSCEnvVars(bcscClient.environment);
+
   const result = await axios.put(
     `${process.env.BCSC_REGISTRATION_BASE_URL}/oauth2/register/${integration.clientId}`,
     {
       client_name: `${bcscClient.clientName}-${bcscClient.environment}`,
       client_uri: bcscClient.clientUri,
-      redirect_uris: [process.env.BCSC_IDP_REDIRECT_URI_DEV],
+      redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
       contacts: bcscClient.contacts,
       token_endpoint_auth_method: bcscClient.tokenEndpointAuthMethod,
       id_token_signed_response_alg: bcscClient.idTokenSignedResponseAlg,

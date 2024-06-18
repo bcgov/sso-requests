@@ -27,7 +27,7 @@ export const createClientScope = async (data: { environment: string; realmName: 
   const { environment, realmName, scopeName } = data;
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
-  // For some unknown reason this doesnt return the damned result, need to fetch after
+  // Create does not return the id unfortunately, need to fetch again after.
   await kcAdminClient.clientScopes.create({
     realm: realmName,
     name: scopeName,
