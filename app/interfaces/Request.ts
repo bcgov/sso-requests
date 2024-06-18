@@ -85,6 +85,9 @@ export interface Integration {
   devOfflineAccessEnabled?: boolean;
   testOfflineAccessEnabled?: boolean;
   prodOfflineAccessEnabled?: boolean;
+  devHomePageUri?: string;
+  testHomePageUri?: string;
+  prodHomePageUri?: string;
   bcscPrivacyZone?: string;
   bcscAttributes?: string[];
 }
