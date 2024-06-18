@@ -53,6 +53,17 @@ resource "aws_lambda_function" "app" {
       MS_GRAPH_API_AUTHORITY     = var.ms_graph_api_authority
       MS_GRAPH_API_CLIENT_ID     = var.ms_graph_api_client_id
       MS_GRAPH_API_CLIENT_SECRET = var.ms_graph_api_client_secret
+
+      INCLUDE_BC_SERVICES_CARD        = var.include_bc_services_card
+      BCSC_INITIAL_ACCESS_TOKEN_DEV   = var.bcsc_initial_access_token_dev
+      BCSC_INITIAL_ACCESS_TOKEN_TEST  = var.bcsc_initial_access_token_test
+      BCSC_INITIAL_ACCESS_TOKEN_PROD  = var.bcsc_initial_access_token_prod
+      BCSC_REGISTRATION_BASE_URL_DEV  = var.bcsc_registration_base_url_dev
+      BCSC_REGISTRATION_BASE_URL_TEST = var.bcsc_registration_base_url_test
+      BCSC_REGISTRATION_BASE_URL_PROD = var.bcsc_registration_base_url_prod
+      BCSC_IDP_REDIRECT_URI_DEV       = var.bcsc_idp_redirect_uri_dev
+      BCSC_IDP_REDIRECT_URI_TEST      = var.bcsc_idp_redirect_uri_test
+      BCSC_IDP_REDIRECT_URI_PROD      = var.bcsc_idp_redirect_uri_prod
     }
   }
 
