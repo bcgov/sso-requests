@@ -61,9 +61,6 @@ resource "aws_lambda_function" "app" {
       BCSC_REGISTRATION_BASE_URL_DEV  = var.bcsc_registration_base_url_dev
       BCSC_REGISTRATION_BASE_URL_TEST = var.bcsc_registration_base_url_test
       BCSC_REGISTRATION_BASE_URL_PROD = var.bcsc_registration_base_url_prod
-      BCSC_IDP_REDIRECT_URI_DEV       = var.bcsc_idp_redirect_uri_dev
-      BCSC_IDP_REDIRECT_URI_TEST      = var.bcsc_idp_redirect_uri_test
-      BCSC_IDP_REDIRECT_URI_PROD      = var.bcsc_idp_redirect_uri_prod
     }
   }
 
