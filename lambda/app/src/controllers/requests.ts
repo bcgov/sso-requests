@@ -430,7 +430,7 @@ export const updateRequest = async (
     let finalData = getCurrentValue();
 
     if (submit) {
-      const validationErrors = await validateRequest(mergedData, originalData, isMerged, allowedTeams);
+      const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
       if (!isEmpty(validationErrors)) {
         if (isString(validationErrors)) throw Error(validationErrors);
         else throw Error(JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }));

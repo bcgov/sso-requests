@@ -1,8 +1,5 @@
 import { buildGitHubRequestData } from '@lambda-app/controllers/requests';
 import { Status } from 'app/interfaces/types';
-import app from './helpers/server';
-import supertest from 'supertest';
-import { APP_BASE_PATH } from './helpers/constants';
 import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';

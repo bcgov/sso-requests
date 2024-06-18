@@ -94,7 +94,7 @@ export const getDifferences = (newData: any, originalData: Integration) => {
   return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };
 
-export const validateRequest = async (formData: any, original: Integration, isUpdate = false, teams: any[]) => {
+export const validateRequest = async (formData: any, original: Integration, teams: any[], isUpdate = false) => {
   const validationArgs: any = { formData, teams };
 
   if (usesBcServicesCard(formData)) {
