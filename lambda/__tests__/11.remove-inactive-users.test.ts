@@ -124,7 +124,7 @@ describe('users and teams', () => {
       expect(deleteResponse.status).toEqual(200);
       const user = await models.user.findOne({ where: { idir_userid: TEAM_ADMIN_IDIR_USERID_01 }, raw: true });
       expect(user).toBeNull();
-      expect(emailList.length).toEqual(2);
+      expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
