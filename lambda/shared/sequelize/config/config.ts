@@ -5,13 +5,11 @@ const config = {
     dialect: 'postgres',
     dialectModule: pg,
     use_env_variable: 'DATABASE_URL',
-    logging: false,
   },
   development: {
     dialect: 'postgres',
     dialectModule: pg,
     use_env_variable: 'DATABASE_URL',
-    logging: false,
   },
   test: {
     dialect: 'postgres',
