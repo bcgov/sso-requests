@@ -42,7 +42,7 @@ export const formDataDev: IntegrationData = {
   idirUserDisplayName: 'test user',
   usesTeam: false,
   requester: 'SSO Admin',
-  userId: 0,
+  userId: 1,
   user: {
     id: 0,
     idirUserid: 'QWERASDF',

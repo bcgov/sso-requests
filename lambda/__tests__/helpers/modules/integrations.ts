@@ -87,7 +87,17 @@ export const getQueueItems = async () => models.requestQueue.findAll();
 
 export const getRequest = async (id: number) => models.request.findOne({ where: { id } });
 
-export const generateRequest = async (data: IntegrationData) => models.request.create(data);
+export const generateRequest = async (data: IntegrationData) => {
+  if (data.userId) {
+    await models.user.findOrCreate({
+      where: { id: data.userId },
+      defaults: {
+        idirEmail: 'mail',
+      },
+    });
+  }
+  return models.request.create(data);
+};
 
 export const getEventsByRequestId = async (id: number) => models.event.findAll({ where: { requestId: id } });
 
