@@ -33,7 +33,7 @@ const init = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      created: {
+      archived: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,

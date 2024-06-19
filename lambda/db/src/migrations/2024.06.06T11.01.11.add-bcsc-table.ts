@@ -32,7 +32,7 @@ export const up = async ({ context: sequelize }) => {
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    created: {
+    archived: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,

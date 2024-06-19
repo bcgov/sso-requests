@@ -68,8 +68,19 @@ interface RequestData extends IntegrationData {
   existingClientId?: string;
 }
 
-export const createRequestQueueItem = async (requestId: number, requestData: RequestData, action: QUEUE_ACTION) => {
-  return models.requestQueue.create({ type: 'request', action, requestId, request: requestData });
+export const createRequestQueueItem = async (
+  requestId: number,
+  requestData: RequestData,
+  action: QUEUE_ACTION,
+  ageSeconds?: number,
+) => {
+  const queueItem: any = { type: 'request', action, requestId, request: requestData };
+  if (ageSeconds) {
+    const currentTime = new Date();
+    const secondsAgoTime = currentTime.getTime() - ageSeconds * 1000;
+    queueItem.createdAt = new Date(secondsAgoTime);
+  }
+  return models.requestQueue.create(queueItem);
 };
 
 export const getQueueItems = async () => models.requestQueue.findAll();

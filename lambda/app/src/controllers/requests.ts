@@ -50,7 +50,7 @@ import {
 } from '@app/schemas';
 import pick from 'lodash.pick';
 import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
-import { BCSCClientParameters, createBCSCClient, deleteBCSCClient } from '@lambda-app/bcsc/client';
+import { BCSCClientParameters, createBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
 import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
 import {
   createClientScope,
@@ -252,6 +252,20 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     });
     bcscClientSecret = clientResponse.data.client_secret;
     bcscClientId = clientResponse.data.client_id;
+  } else if (bcscClient.archived) {
+    await models.bcscClient.update(
+      {
+        archived: false,
+      },
+      {
+        where: {
+          requestId: integration.id,
+          environment: env,
+        },
+      },
+    );
+  } else {
+    await updateBCSCClient(bcscClient, integration);
   }
 
   const idpCreated = await getIdp(env, integration.clientId);
@@ -336,7 +350,6 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
           signatureExpected: true,
           'user.attribute': 'attributes',
           userAttributes: integration.bcscAttributes?.join(','),
-          decodeUserInfoResponse: true,
           'claim.name': 'attributes',
           'jsonType.label': 'String',
           'id.token.claim': true,
@@ -349,18 +362,17 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
-  if (request.created) {
-    await deleteBCSCClient({
-      clientId: request.clientId,
-      registrationToken: request.registrationAccessToken,
-      environment: request.environment,
-    });
-  }
-  await models.bcscClient.destroy({
-    where: {
-      id: request.id,
+  // Keeping the bcsc client for restoration if needed. Just setting it as archived.
+  await models.bcscClient.update(
+    {
+      archived: true,
     },
-  });
+    {
+      where: {
+        id: request.id,
+      },
+    },
+  );
   const idpExists = await getIdp(request.environment, keycoakClientId);
   if (idpExists) {
     await deleteIdp({
