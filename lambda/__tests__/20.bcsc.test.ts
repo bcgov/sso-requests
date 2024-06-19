@@ -32,6 +32,7 @@ jest.mock('@lambda-app/bcsc/client', () => {
         data: {
           client_secret: 'secret',
           client_id: 'client_id',
+          registration_access_token: 'token',
         },
       }),
     ),
@@ -146,6 +147,9 @@ const bcscProdIntegration: IntegrationData = {
   bcscPrivacyZone: 'zone',
   bcscAttributes: ['attr'],
   primaryEndUsers: [],
+  devHomePageUri: 'https://example.com',
+  testHomePageUri: 'https://example.com',
+  prodHomePageUri: 'https://example.com',
 };
 
 describe('Feature flag', () => {
