@@ -125,9 +125,9 @@ describe('BCSC', () => {
 
   it('Only creates the client scope if not found', async () => {
     // Return all requiredMappers
-    // spies.getClientScope.mockImplementation(() => Promise.resolve(null));
-    // await createBCSCIntegration('dev', bcscProdIntegration, 1);
-    // expect(spies.createClientScope).toHaveBeenCalled();
+    spies.getClientScope.mockImplementation(() => Promise.resolve(null));
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
+    expect(spies.createClientScope).toHaveBeenCalled();
 
     jest.clearAllMocks();
 

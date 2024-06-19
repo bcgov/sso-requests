@@ -228,8 +228,10 @@ export const getBCSCEnvVars = (env: string) => {
 };
 
 export const getRequiredBCSCScopes = async (claims) => {
-  let allClaims = cachedClaims;
-  if (allClaims.length === 0) allClaims = await getAttributes();
+  if (cachedClaims.length === 0) {
+    cachedClaims = await getAttributes();
+  }
+  const allClaims = cachedClaims;
   const requiredScopes = allClaims.filter((claim) => claims.includes(claim.name)).map((claim) => claim.scope);
   return ['openid', ...new Set(requiredScopes)].join(' ');
 };
