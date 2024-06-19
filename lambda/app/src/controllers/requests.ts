@@ -11,6 +11,7 @@ import {
   getDisplayName,
   getWhereClauseForAllRequests,
   getBCSCEnvVars,
+  getRequiredBCSCScopes,
 } from '../utils/helpers';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
@@ -59,7 +60,7 @@ import {
   getClientScope,
   getClientScopeMapper,
 } from '@lambda-app/keycloak/clientScopes';
-import { bcscDefaultScopes, bcscIdpMappers } from '@lambda-app/utils/constants';
+import { bcscIdpMappers } from '@lambda-app/utils/constants';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -267,7 +268,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
   } else {
     await updateBCSCClient(bcscClient, integration);
   }
-
+  const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
   const idpCreated = await getIdp(env, integration.clientId);
   if (!idpCreated) {
     await createIdp(
@@ -290,7 +291,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
           clientAuthMethod: 'client_secret_post',
           validateSignature: true,
           useJwksUrl: true,
-          defaultScope: bcscDefaultScopes,
+          defaultScope: requiredScopes,
         },
       },
       env,

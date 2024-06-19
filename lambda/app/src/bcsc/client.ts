@@ -1,8 +1,7 @@
 import { models } from '../../../shared/sequelize/models/models';
 import axios from 'axios';
 import { IntegrationData } from '@lambda-shared/interfaces';
-import { getBCSCEnvVars } from '@lambda-app/utils/helpers';
-import { bcscDefaultScopes } from '@lambda-app/utils/constants';
+import { getBCSCEnvVars, getRequiredBCSCScopes } from '@lambda-app/utils/helpers';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 
 export interface BCSCClientParameters {
@@ -41,6 +40,7 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
   const contacts = await getBCSCContacts(integration);
   const { bcscBaseUrl, kcBaseUrl, accessToken } = getBCSCEnvVars(data.environment);
   const jwksUri = `${kcBaseUrl}/realms/standard/protocol/openid-connect/certs`;
+  const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
 
   const result = await axios.post(
     `${bcscBaseUrl}/oauth2/register`,
@@ -48,7 +48,7 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
       client_name: `${data.clientName}-${data.environment}`,
       client_uri: integration[`${data.environment}HomePageUri`],
       redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
-      scope: bcscDefaultScopes,
+      scope: requiredScopes,
       contacts: contacts,
       token_endpoint_auth_method: 'client_secret_post',
       id_token_signed_response_alg: 'RS256',
@@ -71,13 +71,15 @@ export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integra
   const { kcBaseUrl, bcscBaseUrl } = getBCSCEnvVars(bcscClient.environment);
   const contacts = await getBCSCContacts(integration);
   const jwksUri = `${kcBaseUrl}/realms/standard/protocol/openid-connect/certs`;
+  const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
+
   const result = await axios.put(
     `${bcscBaseUrl}/oauth2/register/${bcscClient.clientId}`,
     {
       client_name: `${bcscClient.clientName}-${bcscClient.environment}`,
       client_uri: integration[`${bcscClient.environment}HomePageUri`],
       redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
-      scope: bcscDefaultScopes,
+      scope: requiredScopes,
       contacts,
       token_endpoint_auth_method: 'client_secret_post',
       id_token_signed_response_alg: 'RS256',

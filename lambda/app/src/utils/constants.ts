@@ -3,4 +3,3 @@ export const CYPRESS_MOCKED_IDIR_LOOKUP = [{ mail: 'pathfinder.ssotraining2@gov.
 export const bcscIdpMappers = [
   { name: 'username', type: 'oidc-username-idp-mapper', template: '${CLAIM.sub}@${ALIAS}' },
 ];
-export const bcscDefaultScopes = 'openid profile email address';

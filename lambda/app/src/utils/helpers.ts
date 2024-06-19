@@ -19,6 +19,8 @@ import { usesBcServicesCard } from '@app/helpers/integration';
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 
+let cachedClaims = [];
+
 export const omitNonFormFields = (data: Integration) =>
   omit(data, [
     'updatedAt',
@@ -223,4 +225,11 @@ export const getBCSCEnvVars = (env: string) => {
     accessToken,
     kcBaseUrl,
   };
+};
+
+export const getRequiredBCSCScopes = async (claims) => {
+  let allClaims = cachedClaims;
+  if (allClaims.length === 0) allClaims = await getAttributes();
+  const requiredScopes = allClaims.filter((claim) => claims.includes(claim.name)).map((claim) => claim.scope);
+  return ['openid', ...new Set(requiredScopes)].join(' ');
 };
