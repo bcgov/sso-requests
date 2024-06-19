@@ -565,7 +565,7 @@ describe('Basic Info - Identity Providers', () => {
 });
 
 describe('BC Services Card IDP and dependencies', () => {
-  it('should show the BC Services Card IDP but hide privacy zone and attributes if not selected', async () => {
+  it('should show the BC Services Card IDP but hide privacy zone, attributes, and home page uri if not selected', async () => {
     setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -577,15 +577,20 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(screen.getByText('BC Services Card')).toBeInTheDocument();
     expect(screen.queryByTestId('root_bcscPrivacyZone_title')).toBeNull();
     expect(screen.queryByTestId('root_bcscAttributes_title')).toBeNull();
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).toBeNull();
   });
 
-  it('should show the BC Services Card IDP and show error upon leaving privacy zone and attributes blank', async () => {
+  it('should show the BC Services Card IDP and show error upon leaving dependencies blank', async () => {
     setUpRender({
       id: 0,
       serviceType: 'gold',
       devIdps: ['bcservicescard'],
       status: 'draft',
       environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
+      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
+      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
     });
     fireEvent.click(sandbox.basicInfoBox);
 
@@ -597,11 +602,11 @@ describe('BC Services Card IDP and dependencies', () => {
     const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
     fireEvent.click(sandbox.basicInfoBox);
-
     expect(screen.getByText('Privacy zone is required for BC Services Card')).toBeInTheDocument();
     expect(screen.getByText('Please select at least one attribute')).toBeInTheDocument();
-
-    debug();
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+    expect(screen.getByText('Please enter a valid URI')).toBeInTheDocument();
   });
 
   it('should show the BC Services Card IDP and show privacy zone and attributes if selected', async () => {
@@ -611,6 +616,9 @@ describe('BC Services Card IDP and dependencies', () => {
       devIdps: ['bcservicescard', 'bceidbasic'],
       status: 'draft',
       environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
+      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
+      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
     });
     fireEvent.click(sandbox.basicInfoBox);
 
@@ -637,5 +645,10 @@ describe('BC Services Card IDP and dependencies', () => {
     fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
     attributesOption = await screen.findByText(sampleAttributes[2].name);
     fireEvent.click(attributesOption);
+
+    fireEvent.click(sandbox.developmentBox);
+    const devHomePageUrisSelector = '#root_devHomePageUri';
+    const uriInput = document.querySelector(devHomePageUrisSelector) as HTMLElement;
+    fireEvent.change(uriInput, { target: { value: 'https://valid-uri' } });
   });
 });

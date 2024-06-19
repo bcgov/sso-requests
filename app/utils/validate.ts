@@ -53,6 +53,9 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     prodSessionMaxLifespan,
     authType,
     publicAccess,
+    devHomePageUri = '',
+    testHomePageUri = '',
+    prodHomePageUri = '',
     bcscPrivacyZone,
     bcscAttributes = [],
   } = formData;
@@ -172,6 +175,15 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       }
     },
   };
+
+  ['dev', 'test', 'prod'].map((env) => {
+    fieldMap[`${env}HomePageUri`] = () => {
+      if (devIdps.includes('bcservicescard') && !isValidKeycloakURIProd(formData[`${env}HomePageUri`])) {
+        errors[`${env}HomePageUri`]?.addError(validationMessage);
+      }
+    };
+  });
+
   if (!fields) fields = Object.keys(fieldMap);
   for (let x = 0; x < fields.length; x++) {
     const fn = fieldMap[fields[x]];

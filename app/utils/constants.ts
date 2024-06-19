@@ -331,14 +331,6 @@ export const bcscAttributes = () => {
       scope: 'profile',
     },
     {
-      name: 'client_id',
-      user_friendly_name: 'Relying Party Identifier',
-      user_friendly_description:
-        "An identifier of a relying party's system or endpoint.Â  It is used to associate information sharing and technical configurations.",
-      data_type: 'xs:anyURI',
-      scope: 'profile',
-    },
-    {
       name: 'given_names',
       user_friendly_name: 'Given Names',
       user_friendly_description:
@@ -352,14 +344,6 @@ export const bcscAttributes = () => {
       user_friendly_description: "The street address lines of an individual's provided residential address.",
       data_type: 'xs:string',
       scope: 'address',
-    },
-    {
-      name: 'sub',
-      user_friendly_name: 'User Identifier',
-      user_friendly_description:
-        'An identifier issued by one party for the sole use of another party. It must be opaque so it cannot infer any information about the individual except its existence and uniqueness.',
-      data_type: 'xs:string',
-      scope: 'profile',
     },
     {
       name: 'country',

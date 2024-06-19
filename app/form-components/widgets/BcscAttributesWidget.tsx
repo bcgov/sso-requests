@@ -63,7 +63,7 @@ function BcscAttributesWidget(props: WidgetProps) {
       </div>
       <div>
         <BcscAttributeInfo>
-          <Link href={'https://bcgov.github.io/sso-docs/advanced/identity-mappers'} external>
+          <Link href={'https://bcgov.github.io/sso-docs/advanced/bc-services-card'} external>
             Click here
           </Link>
           {` `}to learn more about available attributes.

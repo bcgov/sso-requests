@@ -6,7 +6,7 @@ import { sendEmail } from '@lambda-shared/utils/ches';
 import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS, OCIO_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
-import { usesBceid, usesGithub, usesBcServicesCard } from '@app/helpers/integration';
+import { usesBceidProd, usesGithub, usesBcServicesCardProd } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO integration ID {{integration.id}} deleted`;
@@ -34,7 +34,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration } = data;
   const emails = await getIntegrationEmails(integration);
   const cc = [SSO_EMAIL_ADDRESS];
-  if (usesBceid(integration) || usesBcServicesCard(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
 
   return sendEmail({

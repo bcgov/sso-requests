@@ -5,7 +5,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import Link from '@button-inc/bcgov-theme/Link';
 
-const BcscAttributeInfo = styled.p`
+const BcscPrivacyZoneInfo = styled.p`
   margin-top: 0.5rem;
 `;
 
@@ -22,27 +22,37 @@ function BcscPrivacyZoneWidget(props: WidgetProps) {
   };
 
   return (
-    <div data-testid="bcsc-privacy-zone">
-      <Select
-        options={eOptions}
-        value={eOptions.find((option) => option.value === privacyZone)}
-        onChange={handlePrivacyZoneChange}
-        placeholder=""
-        noOptionsMessage={() => 'No privacy zones found...'}
-        isDisabled={disabled}
-        isClearable={true}
-        styles={{
-          control: (base, state) => ({
-            ...base,
-            border: '2px solid #606060',
-            '&:hover': {},
-            boxShadow: 'none',
-            outline: state.isFocused ? '4px solid #3B99FC' : 'none',
-            outlineOffset: '1px',
-          }),
-        }}
-      />
-    </div>
+    <>
+      <div data-testid="bcsc-privacy-zone">
+        <Select
+          options={eOptions}
+          value={eOptions.find((option) => option.value === privacyZone)}
+          onChange={handlePrivacyZoneChange}
+          placeholder=""
+          noOptionsMessage={() => 'No privacy zones found...'}
+          isDisabled={disabled}
+          isClearable={true}
+          styles={{
+            control: (base, state) => ({
+              ...base,
+              border: '2px solid #606060',
+              '&:hover': {},
+              boxShadow: 'none',
+              outline: state.isFocused ? '4px solid #3B99FC' : 'none',
+              outlineOffset: '1px',
+            }),
+          }}
+        />
+      </div>
+      <div>
+        <BcscPrivacyZoneInfo>
+          <Link href={'https://bcgov.github.io/sso-docs/advanced/bc-services-card'} external>
+            Click here
+          </Link>
+          {` `}to learn more about privacy zones.
+        </BcscPrivacyZoneInfo>
+      </div>
+    </>
   );
 }
 
