@@ -7,11 +7,11 @@ import { getDisplayName } from '../utils/helpers';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
-import { EMAILS } from '@lambda-shared/enums';
+import { EMAILS, EVENTS } from '@lambda-shared/enums';
 import { sendTemplate } from '@lambda-shared/templates';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 import { UserSurveyInformation } from '@lambda-shared/interfaces';
-import { processIntegrationRequest } from './requests';
+import { createEvent, processIntegrationRequest } from './requests';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -278,17 +278,26 @@ export const deleteStaleUsers = async (user: any) => {
 
       if (nonTeamRequests.length > 0) {
         for (let rqst of nonTeamRequests) {
-          // assign sso team user
-          rqst.userId = ssoUser.id;
+          try {
+            // assign sso team user
+            rqst.userId = ssoUser.id;
 
-          if (!rqst.archived) {
-            rqst.archived = true;
-            if (rqst.status !== 'draft') {
-              rqst.status = 'submitted';
+            if (!rqst.archived) {
+              rqst.archived = true;
+              if (rqst.status !== 'draft') {
+                rqst.status = 'submitted';
+              }
             }
+            await rqst.save();
+            await processIntegrationRequest(rqst);
+          } catch (err) {
+            console.log(err);
+            createEvent({
+              eventCode: EVENTS.REQUEST_DELETE_FAILURE,
+              requestId: rqst?.id,
+              userId: ssoUser.id,
+            });
           }
-          await rqst.save();
-          await processIntegrationRequest(rqst);
         }
       }
 
