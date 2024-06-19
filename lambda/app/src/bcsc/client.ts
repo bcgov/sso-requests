@@ -25,14 +25,14 @@ const getBCSCContacts = async (integration: IntegrationData) => {
   let contacts = [];
   if (integration.usesTeam) {
     const teamEmails = await getAllEmailsOfTeam(Number(integration.teamId));
-    contacts = teamEmails.map((member) => member.idir_email);
+    contacts = teamEmails.map((member) => member?.idir_email);
   } else {
     const contact = await models.user.findOne({
       where: {
         id: integration.userId,
       },
     });
-    contacts.push(contact.idirEmail);
+    contacts.push(contact?.idirEmail);
   }
   return contacts;
 };
