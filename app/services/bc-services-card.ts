@@ -15,6 +15,7 @@ export const fetchPrivacyZones = async (): Promise<[BcscPrivacyZone[], null] | [
 export const fetchAttributes = async (): Promise<[BcscAttribute[], null] | [null, AxiosError]> => {
   try {
     let result = await instance.get('bc-services-card/claim-types').then((res) => res.data);
+    result = result.filter((claim: BcscAttribute) => !['sub', 'client_id'].includes(claim.name));
     return [result, null];
   } catch (err: any) {
     return [bcscAttributes(), null];

@@ -1,5 +1,9 @@
 import { Integration } from '../interfaces/Request';
 import { devValidRedirectUris } from './providers';
+import getConfig from 'next/config';
+
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { include_bc_services_card } = publicRuntimeConfig;
 
 export const roles = {
   type: 'array',
@@ -24,6 +28,7 @@ export default function getSchemas(formData: Integration) {
     const roleField = `${env}Roles`;
     const samlLogoutPostBindingUriField = `${env}SamlLogoutPostBindingUri`;
     const samlSignAssertionsField = `${env}SamlSignAssertions`;
+    const homePageUriField = `${env}HomePageUri`;
 
     let tokenSchemas: any = {};
 
@@ -130,13 +135,13 @@ export default function getSchemas(formData: Integration) {
 
     const sharedCustomFields = [`${env}SessionIdleTimeout`, `${env}SessionMaxLifespan`];
     const customValidation = hasLoginFlow
-      ? [...sharedCustomFields, redirectUriField, samlLogoutPostBindingUriField]
+      ? [...sharedCustomFields, redirectUriField, samlLogoutPostBindingUriField, homePageUriField]
       : sharedCustomFields;
 
-    let fineGrainEndpointConfig: any = {};
+    let additionalConfig: any = {};
 
     if (formData?.protocol === 'saml') {
-      fineGrainEndpointConfig = {
+      additionalConfig = {
         [samlLogoutPostBindingUriField]: {
           type: 'string',
           title: 'Logout Service URL',
@@ -157,6 +162,23 @@ export default function getSchemas(formData: Integration) {
           default: false,
         },
       };
+    } else {
+      if (
+        (include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true') &&
+        formData?.devIdps?.includes('bcservicescard')
+      ) {
+        additionalConfig = {
+          [homePageUriField]: {
+            type: 'string',
+            title: 'Home Page URL',
+            tooltip: {
+              content: `URL of the home page of your application. The value of this field MUST point to a valid Web page, and will be presented to end users in BCSC Service Listing, and possibly during authentication.`,
+            },
+            placeholder: 'e.g. https://example.com',
+            default: '',
+          },
+        };
+      }
     }
 
     return {
@@ -167,7 +189,7 @@ export default function getSchemas(formData: Integration) {
       required: [],
       properties: {
         ...loginFlowSchemas,
-        ...fineGrainEndpointConfig,
+        ...additionalConfig,
         ...tokenSchemas,
       },
     } as any;
