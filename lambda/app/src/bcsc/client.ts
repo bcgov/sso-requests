@@ -42,7 +42,7 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
     {
       client_name: `${data.clientName}-${data.environment}`,
       // TODO: I think we will need a form field for the landing page per env
-      client_uri: 'https://example.com',
+      client_uri: integration[`${data.environment}HomePageUri`],
       redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
       scope: bcscDefaultScopes,
       contacts: contacts,

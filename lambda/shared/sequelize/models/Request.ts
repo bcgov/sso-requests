@@ -377,6 +377,18 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: [],
       },
+      devHomePageUri: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      testHomePageUri: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      prodHomePageUri: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       underscored: true,

@@ -14,15 +14,15 @@ export const up = async ({ context: sequelize }) => {
     },
     client_id: {
       type: DataTypes.TEXT,
-      allowNull: true,
+      allowNull: false,
     },
     client_secret: {
       type: DataTypes.TEXT,
-      allowNull: true,
+      allowNull: false,
     },
     registration_access_token: {
       type: DataTypes.TEXT,
-      allowNull: true,
+      allowNull: false,
     },
     environment: {
       type: DataTypes.TEXT,
@@ -65,6 +65,21 @@ export const up = async ({ context: sequelize }) => {
     allowNull: true,
   });
 
+  await sequelize.getQueryInterface().addColumn('requests', 'dev_home_page_uri', {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  });
+
+  await sequelize.getQueryInterface().addColumn('requests', 'test_home_page_uri', {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  });
+
+  await sequelize.getQueryInterface().addColumn('requests', 'prod_home_page_uri', {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  });
+
   await sequelize.getQueryInterface().addColumn('requests', 'bcsc_attributes', {
     type: DataTypes.ARRAY(DataTypes.TEXT),
     allowNull: false,
@@ -76,6 +91,9 @@ export const down = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().dropTable('bcsc_clients');
   await sequelize.getQueryInterface().removeColumn('requests', 'bcsc_privacy_zone');
   await sequelize.getQueryInterface().removeColumn('requests', 'bcsc_attributes');
+  await sequelize.getQueryInterface().removeColumn('requests', 'dev_home_page_uri');
+  await sequelize.getQueryInterface().removeColumn('requests', 'test_home_page_uri');
+  await sequelize.getQueryInterface().removeColumn('requests', 'prod_home_page_uri');
 };
 
 export default { name, up, down };

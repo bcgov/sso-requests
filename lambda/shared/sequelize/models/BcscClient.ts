@@ -11,15 +11,15 @@ const init = (sequelize, DataTypes) => {
       },
       clientId: {
         type: DataTypes.TEXT,
-        allowNull: true,
+        allowNull: false,
       },
       clientSecret: {
         type: DataTypes.TEXT,
-        allowNull: true,
+        allowNull: false,
       },
       registrationAccessToken: {
         type: DataTypes.TEXT,
-        allowNull: true,
+        allowNull: false,
       },
       clientName: {
         type: DataTypes.TEXT,
