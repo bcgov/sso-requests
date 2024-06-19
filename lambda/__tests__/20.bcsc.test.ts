@@ -3,7 +3,7 @@ import * as IdpModule from '@lambda-app/keycloak/idp';
 import * as ClientScopeModule from '@lambda-app/keycloak/clientScopes';
 import { buildGitHubRequestData, createBCSCIntegration } from '@lambda-app/controllers/requests';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, formDataProd } from './helpers/fixtures';
-import { bcscClientScopeMappers, bcscIdpMappers } from '@lambda-app/utils/constants';
+import { bcscIdpMappers } from '@lambda-app/utils/constants';
 import { submitNewIntegration } from './helpers/modules/integrations';
 import { IntegrationData } from '@lambda-shared/interfaces';
 
