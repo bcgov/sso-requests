@@ -348,7 +348,6 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
         protocolMapperName: 'attributes',
         protocolMapperConfig: {
           signatureExpected: true,
-          'user.attribute': 'attributes',
           userAttributes: integration.bcscAttributes?.join(','),
           'claim.name': 'attributes',
           'jsonType.label': 'String',
