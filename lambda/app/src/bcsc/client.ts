@@ -2,6 +2,8 @@ import { models } from '../../../shared/sequelize/models/models';
 import axios from 'axios';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { getBCSCEnvVars } from '@lambda-app/utils/helpers';
+import { bcscDefaultScopes } from '@lambda-app/utils/constants';
+import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 
 export interface BCSCClientParameters {
   id?: number;
@@ -20,12 +22,18 @@ export interface BCSCClientParameters {
 }
 
 export const createBCSCClient = async (data: BCSCClientParameters, integration: IntegrationData, userId: number) => {
-  const contact = await models.user.findOne({
-    where: {
-      id: userId,
-    },
-  });
-
+  let contacts = [];
+  if (integration.usesTeam) {
+    const teamEmails = await getAllEmailsOfTeam(Number(integration.teamId));
+    contacts = teamEmails.map((member) => member.idir_email);
+  } else {
+    const contact = await models.user.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    contacts.push(contact.idirEmail);
+  }
   const { bcscBaseUrl, kcBaseUrl, accessToken } = getBCSCEnvVars(data.environment);
   const jwksUri = `${kcBaseUrl}/realms/standard/protocol/openid-connect/certs`;
 
@@ -36,8 +44,8 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
       // TODO: I think we will need a form field for the landing page per env
       client_uri: 'https://example.com',
       redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
-      scope: 'openid profile email address',
-      contacts: [contact.idirEmail || ''],
+      scope: bcscDefaultScopes,
+      contacts: contacts,
       token_endpoint_auth_method: 'client_secret_post',
       id_token_signed_response_alg: 'RS256',
       userinfo_signed_response_alg: 'RS256',

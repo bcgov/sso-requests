@@ -90,52 +90,52 @@ describe('BCSC', () => {
 
   it('Only creates the idp if not found', async () => {
     spies.getIdp.mockImplementation(() => Promise.resolve(null));
-    await createBCSCIntegration('dev', formDataProd, 1);
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createIdp).toHaveBeenCalled();
 
     jest.clearAllMocks();
 
     spies.getIdp.mockImplementation(() => Promise.resolve({}));
-    await createBCSCIntegration('dev', formDataProd, 1);
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createIdp).not.toHaveBeenCalled();
   });
 
   it('Only creates the idp mappers if not found', async () => {
     // Return all requiredMappers
     spies.getIdpMappers.mockImplementation(() => Promise.resolve(bcscIdpMappers));
-    await createBCSCIntegration('dev', formDataProd, 1);
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createIdpMapper).not.toHaveBeenCalled();
 
     jest.clearAllMocks();
 
     spies.getIdpMappers.mockImplementation(() => Promise.resolve([]));
-    await createBCSCIntegration('dev', formDataProd, 1);
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createIdpMapper).toHaveBeenCalledTimes(bcscIdpMappers.length);
   });
 
   it('Only creates the client scope if not found', async () => {
     // Return all requiredMappers
     spies.getClientScope.mockImplementation(() => Promise.resolve(null));
-    await createBCSCIntegration('dev', formDataProd, 1);
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createClientScope).toHaveBeenCalled();
 
     jest.clearAllMocks();
 
     spies.getClientScope.mockImplementation(() => Promise.resolve({ id: '1', name: 'name' }));
-    await createBCSCIntegration('dev', formDataProd, 1);
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createClientScope).not.toHaveBeenCalled();
   });
 
   it('Only creates the client scope mappers if not found', async () => {
     // Return all requiredMappers
     spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
-    await createBCSCIntegration('dev', formDataProd, 1);
-    expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(bcscClientScopeMappers.length);
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
+    expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
 
     jest.clearAllMocks();
 
-    spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(bcscClientScopeMappers));
-    await createBCSCIntegration('dev', formDataProd, 1);
+    spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(bcscProdIntegration.bcscAttributes));
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createClientScopeMapper).not.toHaveBeenCalled();
   });
 });

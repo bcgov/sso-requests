@@ -59,7 +59,7 @@ import {
   getClientScope,
   getClientScopeMapper,
 } from '@lambda-app/keycloak/clientScopes';
-import { bcscClientScopeMappers, bcscIdpMappers } from '@lambda-app/utils/constants';
+import { bcscClientScopeMappers, bcscDefaultScopes, bcscIdpMappers } from '@lambda-app/utils/constants';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -100,6 +100,9 @@ const allowedFieldsForGithub = [
   'teamId',
   'apiServiceAccount',
   'requester',
+  'bcscAttributes',
+  'bcscPrivacyZone',
+  'usesTeam',
   ...envFieldsAll,
 ];
 
@@ -264,13 +267,13 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
           authorizationUrl: `${bcscBaseUrl}/login/oidc/authorize`,
           tokenUrl: `${bcscBaseUrl}/oauth2/token`,
           userInfoUrl: `${bcscBaseUrl}/oauth2/userinfo`,
-          defaultScope: 'openid',
           jwksUrl: `${bcscBaseUrl}/oauth2/jwk`,
           syncMode: 'IMPORT',
           disableUserInfo: true,
           clientAuthMethod: 'client_secret_post',
           validateSignature: true,
           useJwksUrl: true,
+          defaultScope: bcscDefaultScopes,
         },
       },
       env,
@@ -313,36 +316,33 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     clientScope = await createClientScope(clientScopeData);
   }
 
-  const createMappersIfNotExistsPromises = bcscClientScopeMappers.map((mapperName) => {
-    getClientScopeMapper({
-      environment: env,
-      scopeId: clientScope.id,
-      mapperName,
-    }).then((mapperExists) => {
-      if (!mapperExists) {
-        createClientScopeMapper({
-          environment: env,
-          realmName: 'standard',
-          scopeName: clientScope.name,
-          protocol: 'openid-connect',
-          protocolMapper: 'oidc-idp-userinfo-mapper',
-          protocolMapperName: mapperName,
-          protocolMapperConfig: {
-            'user.attribute': mapperName,
-            userAttribute: mapperName,
-            decodeUserInfoResponse: true,
-            'claim.name': mapperName,
-            'jsonType.label': 'String',
-            'id.token.claim': true,
-            'access.token.claim': true,
-            'userinfo.token.claim': true,
-          },
-        });
-      }
-    });
+  await getClientScopeMapper({
+    environment: env,
+    scopeId: clientScope.id,
+    mapperName: 'attributes',
+  }).then((mapperExists) => {
+    if (!mapperExists) {
+      createClientScopeMapper({
+        environment: env,
+        realmName: 'standard',
+        scopeName: clientScope.name,
+        protocol: 'openid-connect',
+        protocolMapper: 'oidc-idp-userinfo-mapper',
+        protocolMapperName: 'attributes',
+        protocolMapperConfig: {
+          signatureExpected: true,
+          'user.attribute': 'attributes',
+          userAttributes: integration.bcscAttributes?.join(','),
+          decodeUserInfoResponse: true,
+          'claim.name': 'attributes',
+          'jsonType.label': 'String',
+          'id.token.claim': true,
+          'access.token.claim': true,
+          'userinfo.token.claim': true,
+        },
+      });
+    }
   });
-
-  await Promise.all(createMappersIfNotExistsPromises);
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
