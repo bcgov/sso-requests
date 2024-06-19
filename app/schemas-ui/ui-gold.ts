@@ -30,6 +30,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
   const { id, status, devIdps = [], environments = [], bceidApproved = false } = integration || {};
   const isNew = isNil(id);
   const isApplied = status === 'applied';
+  const disableBcscUpdate = integration?.devIdps?.includes('bcservicescard') && integration?.status !== 'draft';
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
   let idpDisabled: string[] = [];
@@ -66,11 +67,11 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     bcscPrivacyZone: {
       'ui:widget': BcscPrivacyZoneWidget,
       classNames: 'short-field-string',
-      'ui:disabled': formData?.status !== 'draft',
+      'ui:disabled': disableBcscUpdate,
     },
     bcscAttributes: {
       'ui:widget': BcscAttributesWidget,
-      'ui:disabled': formData?.status !== 'draft',
+      'ui:disabled': disableBcscUpdate,
     },
   };
 
