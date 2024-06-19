@@ -7,7 +7,6 @@ import { getDisplayName } from '../utils/helpers';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
-import { disableIntegration } from '@lambda-app/keycloak/client';
 import { EMAILS } from '@lambda-shared/enums';
 import { sendTemplate } from '@lambda-shared/templates';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
@@ -286,12 +285,10 @@ export const deleteStaleUsers = async (user: any) => {
             rqst.archived = true;
             if (rqst.status !== 'draft') {
               rqst.status = 'submitted';
-
-              await disableIntegration(rqst.get({ plain: true, clone: true }));
-              await processIntegrationRequest(rqst);
             }
           }
           await rqst.save();
+          await processIntegrationRequest(rqst);
         }
       }
 
