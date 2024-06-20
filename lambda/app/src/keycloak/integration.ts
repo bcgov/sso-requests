@@ -3,11 +3,11 @@ import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import AuthenticationFlowRepresentation from 'keycloak-admin/lib/defs/authenticationFlowRepresentation';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { createEvent } from '@lambda-app/controllers/requests';
+import { createBCSCIntegration, createEvent, deleteBCSCIntegration } from '@lambda-app/controllers/requests';
 import { ACTION_TYPES, EMAILS, EVENTS, REQUEST_TYPES } from '@lambda-shared/enums';
 import { getTeamById } from '@lambda-app/queries/team';
 import { sendTemplate } from '@lambda-shared/templates';
-import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
 import axios from 'axios';
 
 const realm = 'standard';
@@ -98,6 +98,22 @@ export const samlClientProfile = (
   return samlClient;
 };
 
+const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
+  const defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common-saml'];
+
+  // BCSC client scope is named after the client id on bcsc side
+  if (usesBcServicesCard(integration)) {
+    defaultScopes.push(integration.clientId);
+  }
+  const otherIdpScopes = integration[`${environment}Idps`]?.filter((idp) => idp !== 'bcservicescard') || [];
+  if (integration.protocol === 'oidc') {
+    defaultScopes.concat(otherIdpScopes);
+  } else {
+    defaultScopes.concat(otherIdpScopes).map((idp: string) => `${idp}-saml`);
+  }
+  return defaultScopes;
+};
+
 export const keycloakClient = async (
   environment: string,
   integration: IntegrationData,
@@ -126,6 +142,15 @@ export const keycloakClient = async (
 
     if (integration.archived) {
       if (clients.length > 0) {
+        if (usesBcServicesCard(integration)) {
+          const bcscClientDetails = await models.bcscClient.findOne({
+            where: {
+              requestId: integration.id,
+              environment,
+            },
+          });
+          await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
+        }
         // delete the client
         await kcAdminClient.clients.del({ id: clients[0].id, realm });
       }
@@ -140,6 +165,9 @@ export const keycloakClient = async (
 
       return true;
     }
+    if (usesBcServicesCard(integration)) {
+      await createBCSCIntegration(environment, integration, integration.userId);
+    }
 
     const authenticationFlows = await axios.get(`${kcAdminClient.baseUrl}/admin/realms/standard/authentication/flows`, {
       headers: {
@@ -152,11 +180,8 @@ export const keycloakClient = async (
       integration.protocol === 'oidc'
         ? openIdClientProfile(integration, environment, authenticationFlows.data)
         : samlClientProfile(integration, environment, authenticationFlows.data);
-    const defaultScopes =
-      integration.protocol === 'oidc'
-        ? ['common', 'profile', 'email'].concat(integration[`${environment}Idps`] || [])
-        : ['common-saml'].concat(integration[`${environment}Idps`].map((idp: string) => `${idp}-saml`) || []);
 
+    const defaultScopes = getDefaultClientScopes(integration, environment);
     if (clients.length === 0) {
       // if client does not exist then just create client
       client = await kcAdminClient.clients.create({ realm, ...clientData });
@@ -206,7 +231,6 @@ export const keycloakClient = async (
           });
         }
       }
-
       for (const scope of defaultScopes.filter((n: string) => !existingDefaultScopes.includes(n))) {
         await kcAdminClient.clients.addDefaultClientScope({
           id: client.id,
