@@ -65,6 +65,15 @@ jobs:
           AWS_ECR_URI=${{secrets.DEV_AWS_ECR_URI}}
           INCLUDE_DIGITAL_CREDENTIAL=true
           INSTALL_SSO_CSS_GRAFANA=true
+
+          INCLUDE_BC_SERVICES_CARD=false
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_REGISTRATION_BASE_URL_DEV=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
+          BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
+          BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
+
           EOF
 
       - name: Set env to test
@@ -108,12 +117,12 @@ jobs:
           INSTALL_SSO_CSS_GRAFANA=false
 
           INCLUDE_BC_SERVICES_CARD=true
-          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_DEV}}
-          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
-          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_DPROD}
-          BCSC_REGISTRATION_BASE_URL_DEV=${{secrets.BCSC_REGISTRATION_BASE_URL_DEV}}
-          BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
-          BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_DPROD}
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_REGISTRATION_BASE_URL_DEV=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
+          BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
+          BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
 
           EOF
 
@@ -286,6 +295,14 @@ jobs:
           ms_graph_api_client_id="${{secrets.MS_GRAPH_API_CLIENT_ID}}"
           ms_graph_api_client_secret="${{secrets.MS_GRAPH_API_CLIENT_SECRET}}"
           install_sso_css_grafana="${{ env.INSTALL_SSO_CSS_GRAFANA == 'true' && 1 || 0 }}"
+          include_bc_services_card="${{env.INCLUDE_BC_SERVICES_CARD}}"
+          bcsc_initial_access_token_dev="${{env.BCSC_INITIAL_ACCESS_TOKEN_DEV}}"
+          bcsc_initial_access_token_test="${{env.BCSC_INITIAL_ACCESS_TOKEN_TEST}}"
+          bcsc_initial_access_token_prod="${{env.BCSC_INITIAL_ACCESS_TOKEN_PROD}}"
+          bcsc_registration_base_url_dev="${{env.BCSC_REGISTRATION_BASE_URL_DEV}}"
+          bcsc_registration_base_url_test="${{env.BCSC_REGISTRATION_BASE_URL_TEST}}"
+          bcsc_registration_base_url_prod="${{env.BCSC_REGISTRATION_BASE_URL_PROD}}"
+
           EOF
 
         working-directory: ./terraform
