@@ -97,15 +97,21 @@ export const getDifferences = (newData: any, originalData: Integration) => {
 };
 
 export const validateRequest = async (formData: any, original: Integration, teams: any[], isUpdate = false) => {
-  const validationArgs: any = { formData, teams };
+  const formCopy = { ...formData };
+  const validationArgs: any = { formData: formCopy, teams };
 
-  if (usesBcServicesCard(formData)) {
+  if (usesBcServicesCard(formCopy)) {
     const [validPrivacyZones, validAttributes] = await Promise.all([getPrivacyZones(), getAttributes()]);
     validationArgs.bcscPrivacyZones = validPrivacyZones;
     validationArgs.bcscAttributes = validAttributes;
+  } else {
+    // Skip api calls if not validating bcsc. Note that enums require at least one dummy object.
+    validationArgs.bcscPrivacyZones = [{}];
+    validationArgs.bcscAttributes = [{}];
+    delete formCopy.bcscPrivacyZone;
   }
   const schemas = getSchemas(validationArgs);
-  return validateForm(formData, schemas);
+  return validateForm(formCopy, schemas);
 };
 
 export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
