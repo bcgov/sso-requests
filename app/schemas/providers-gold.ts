@@ -2,8 +2,9 @@ import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 import { idpMap } from '@app/helpers/meta';
 import getConfig from 'next/config';
-import { bcscAttributes, formatWikiURL } from '@app/utils/constants';
+import { formatWikiURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
+import { usesBcServicesCard } from '@app/helpers/integration';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { include_digital_credential, include_bc_services_card } = publicRuntimeConfig;
@@ -17,6 +18,7 @@ export default function getSchema(
   const { protocol, authType, status } = integration;
   const applied = status === 'applied';
   const include_bcsc = include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true';
+  const bcscSelected = usesBcServicesCard(integration);
 
   const protocolSchema = {
     type: 'string',
@@ -147,7 +149,7 @@ export default function getSchema(
     };
   }
 
-  if (include_bcsc) {
+  if (bcscSelected) {
     properties.bcscPrivacyZone = privacyZonesSchema;
 
     properties.bcscAttributes = {
