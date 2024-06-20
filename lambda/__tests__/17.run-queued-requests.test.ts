@@ -44,7 +44,7 @@ describe('Request Queue', () => {
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
     const emailResults = createMockSendEmail();
 
-    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION);
+    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION, 61);
     const request = await generateRequest(formDataProd);
     expect(request.status).toBe('draft');
 
@@ -72,12 +72,26 @@ describe('Request Queue', () => {
     kcClientSpy.mockRestore();
   });
 
+  it('Ignores queue items if created too recently', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    kcClientSpy.mockImplementation(() => Promise.resolve(true));
+    // Simulate one second old
+    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION, 1);
+
+    await handler();
+    expect(kcClientSpy).not.toHaveBeenCalled();
+
+    // Check the queue item is still there
+    const queueItems = await getQueueItems();
+    expect(queueItems.length).toBe(1);
+  });
+
   it('Sends an update email if request was previously applied', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
     const emailResults = createMockSendEmail();
 
-    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.UPDATE as QUEUE_ACTION);
+    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.UPDATE as QUEUE_ACTION, 61);
     const request = await generateRequest(formDataProd);
     // Insert a previous applied event
     await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id });
@@ -94,7 +108,7 @@ describe('Request Queue', () => {
   it('Keeps item in the queue if any environments fail and updates request status to failed', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
 
-    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION);
+    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION, 61);
     const request = await generateRequest(formDataProd);
 
     // Have one environment fail
@@ -162,7 +176,7 @@ describe('Delete and Update', () => {
         find: jest.fn(() => Promise.resolve([archivedData])),
       },
     });
-    await createRequestQueueItem(1, archivedData, ACTION_TYPES.DELETE as QUEUE_ACTION);
+    await createRequestQueueItem(1, archivedData, ACTION_TYPES.DELETE as QUEUE_ACTION, 61);
     await generateRequest(archivedData);
     const emailResults = createMockSendEmail();
 
@@ -177,7 +191,7 @@ describe('Delete and Update', () => {
         find: jest.fn(() => Promise.resolve([formDataProd])),
       },
     });
-    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION);
+    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION, 61);
     await generateRequest(formDataProd);
 
     await handler();
@@ -197,6 +211,7 @@ describe('Delete and Update', () => {
       request.id,
       { ...formDataProd, existingClientId: existingClientId },
       ACTION_TYPES.CREATE as QUEUE_ACTION,
+      61,
     );
 
     await handler();
@@ -215,6 +230,7 @@ describe('Delete and Update', () => {
       request.id,
       { ...formDataProd, existingClientId: '' },
       ACTION_TYPES.CREATE as QUEUE_ACTION,
+      61,
     );
     await handler();
 

@@ -181,3 +181,38 @@ variable "rc_webhook" {
   default     = ""
   sensitive   = true
 }
+
+variable "include_bc_services_card" {
+  type    = string
+  default = false
+}
+
+variable "bcsc_initial_access_token_dev" {
+  type      = string
+  sensitive = true
+}
+
+variable "bcsc_initial_access_token_test" {
+  type      = string
+  sensitive = true
+}
+
+variable "bcsc_initial_access_token_prod" {
+  type      = string
+  sensitive = true
+}
+
+variable "bcsc_registration_base_url_dev" {
+  type      = string
+  sensitive = true
+}
+
+variable "bcsc_registration_base_url_test" {
+  type      = string
+  sensitive = true
+}
+
+variable "bcsc_registration_base_url_prod" {
+  type      = string
+  sensitive = true
+}
