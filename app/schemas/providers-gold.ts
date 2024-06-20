@@ -149,7 +149,7 @@ export default function getSchema(
     };
   }
 
-  if (bcscSelected) {
+  if (bcscSelected && include_bcsc) {
     properties.bcscPrivacyZone = privacyZonesSchema;
 
     properties.bcscAttributes = {
