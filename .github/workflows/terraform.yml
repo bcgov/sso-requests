@@ -295,6 +295,13 @@ jobs:
           ms_graph_api_client_id="${{secrets.MS_GRAPH_API_CLIENT_ID}}"
           ms_graph_api_client_secret="${{secrets.MS_GRAPH_API_CLIENT_SECRET}}"
           install_sso_css_grafana="${{ env.INSTALL_SSO_CSS_GRAFANA == 'true' && 1 || 0 }}"
+          include_bc_services_card=${{env.INCLUDE_BC_SERVICES_CARD}}
+          bcsc_initial_access_token_dev=${{env.BCSC_INITIAL_ACCESS_TOKEN_DEV}}
+          bcsc_initial_access_token_test=${{env.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
+          bcsc_initial_access_token_prod=${{env.BCSC_INITIAL_ACCESS_TOKEN_PROD}}
+          bcsc_registration_base_url_dev=${{env.BCSC_REGISTRATION_BASE_URL_DEV}}
+          bcsc_registration_base_url_test=${{env.BCSC_REGISTRATION_BASE_URL_TEST}}
+          bcsc_registration_base_url_prod=${{env.BCSC_REGISTRATION_BASE_URL_PROD}}
           EOF
 
         working-directory: ./terraform
