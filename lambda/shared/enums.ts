@@ -19,6 +19,7 @@ export const EVENTS = {
   TEAM_API_ACCOUNT_DELETE_FAILURE: 'api-account-delete-failure',
   LOGS_DOWNLOADED_SUCCESS: 'logs-download-success',
   LOGS_DOWNLOADED_FAILURE: 'logs-download-failure',
+  TRANSFER_OF_OWNERSHIP_FAILURE: 'transfer-of-ownership-failure',
 };
 
 export const EMAILS = {
@@ -40,6 +41,7 @@ export const EMAILS = {
   SURVEY_COMPLETED: 'survey-completed-notification',
   RESTORE_INTEGRATION: 'restore-integration',
   RESTORE_TEAM_API_ACCOUNT: 'restore-team-api-account',
+  ORPHAN_INTEGRATION: 'orphan-integration',
 };
 
 export const REQUEST_TYPES = {
