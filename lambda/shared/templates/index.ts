@@ -21,6 +21,7 @@ import deleteInactiveIdirUsers from './delete-inactive-idir-users';
 import surveyCompleted from './survey-completed-notification';
 import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
+import orphanIntegration from './orphan-integration';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -146,6 +147,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.RESTORE_TEAM_API_ACCOUNT:
       builder = restoreTeamApiAccount;
+      break;
+    case EMAILS.ORPHAN_INTEGRATION:
+      builder = orphanIntegration;
       break;
     default:
       break;

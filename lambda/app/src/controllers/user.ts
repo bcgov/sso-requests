@@ -281,19 +281,17 @@ export const deleteStaleUsers = async (user: any) => {
           try {
             // assign sso team user
             rqst.userId = ssoUser.id;
+            await rqst.save();
 
             if (!rqst.archived) {
-              rqst.archived = true;
-              if (rqst.status !== 'draft') {
-                rqst.status = 'submitted';
-              }
+              sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
+                integration: rqst,
+              });
             }
-            await rqst.save();
-            await processIntegrationRequest(rqst);
           } catch (err) {
             console.log(err);
             createEvent({
-              eventCode: EVENTS.REQUEST_DELETE_FAILURE,
+              eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_FAILURE,
               requestId: rqst?.id,
               userId: ssoUser.id,
             });
