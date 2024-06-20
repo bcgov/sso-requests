@@ -108,6 +108,7 @@ export const validateRequest = async (formData: any, original: Integration, team
     // Skip api calls if not validating bcsc. Note that enums require at least one dummy object.
     validationArgs.bcscPrivacyZones = [{}];
     validationArgs.bcscAttributes = [{}];
+    // GPrivacy Zone gets defaulted to null in database, which triggers validation failure.
     delete formCopy.bcscPrivacyZone;
   }
   const schemas = getSchemas(validationArgs);
