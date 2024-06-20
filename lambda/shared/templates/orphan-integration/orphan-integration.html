@@ -5,4 +5,21 @@
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
   team.
 </p>
-{{> integrationDetail }} {{> footer }}
+<strong>Project name: </strong>{{integration.projectName}}<br />
+<strong>Environments: </strong>{{integration.envNames}}<br />
+{{#if integration.browserLoginEnabled}}
+<strong>URIs:</strong>
+<ul>
+  {{#each integration.redirectUris}}
+  <li>
+    {{this.name}}:
+    <ul>
+      {{#each this.uris}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </li>
+  {{/each}}
+</ul>
+{{/if}}
+<p>Thank you.<br />Pathfinder SSO Team</p>
