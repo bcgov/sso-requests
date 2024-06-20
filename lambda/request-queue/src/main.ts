@@ -6,6 +6,8 @@ import { keycloakClient } from '@lambda-app/keycloak/integration';
 import { updatePlannedIntegration, createEvent } from '@lambda-app/controllers/requests';
 import { ACTION_TYPES, EVENTS } from '@lambda-shared/enums';
 
+const REQUEST_QUEUE_INTERVAL_SECONDS = 60;
+
 export const handler = async () => {
   try {
     const allPromises: Promise<any>[] = [];
@@ -15,6 +17,9 @@ export const handler = async () => {
     }
 
     requestQueue.forEach((queuedRequest) => {
+      const requestQueueSecondsAgo = (new Date().getTime() - new Date(queuedRequest.createdAt).getTime()) / 1000;
+      // Only act on queued items more than a minute old to prevent potential duplication.
+      if (requestQueueSecondsAgo < REQUEST_QUEUE_INTERVAL_SECONDS) return;
       console.info(`processing queued request ${queuedRequest.request.id}`);
       const { existingClientId, ...request } = queuedRequest.request;
 

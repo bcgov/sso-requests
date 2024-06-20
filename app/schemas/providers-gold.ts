@@ -3,13 +3,22 @@ import { Schema } from './index';
 import { idpMap } from '@app/helpers/meta';
 import getConfig from 'next/config';
 import { formatWikiURL } from '@app/utils/constants';
+import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
+import { usesBcServicesCard } from '@app/helpers/integration';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { include_digital_credential } = publicRuntimeConfig;
+const { include_digital_credential, include_bc_services_card } = publicRuntimeConfig;
 
-export default function getSchema(integration: Integration, context: { isAdmin?: boolean } = { isAdmin: true }) {
+export default function getSchema(
+  integration: Integration,
+  context: { isAdmin?: boolean } = { isAdmin: true },
+  bcscPrivacyZones?: BcscPrivacyZone[],
+  bcscAttributes?: BcscAttribute[],
+) {
   const { protocol, authType, status } = integration;
   const applied = status === 'applied';
+  const include_bcsc = include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true';
+  const bcscSelected = usesBcServicesCard(integration);
 
   const protocolSchema = {
     type: 'string',
@@ -19,6 +28,13 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
     tooltip: {
       content: 'The OpenID Connect (OIDC) client protocol is recommended.',
     },
+  };
+
+  const privacyZonesSchema = {
+    type: 'string',
+    title: 'Please select privacy zone',
+    enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_uri || []),
+    enumNames: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
   };
 
   const properties: any = {
@@ -77,6 +93,10 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
       idpEnum.push('digitalcredential');
     }
 
+    if (include_bcsc) {
+      idpEnum.push('bcservicescard');
+    }
+
     const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
 
     properties.devIdps = {
@@ -111,11 +131,38 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
             alpha: true,
           };
         }
+        if (idp === 'bcservicescard') {
+          return {
+            content: `To learn more about using the BC Services Card option visit our <a href="${formatWikiURL(
+              'Our-Partners-the-Identity-Providers#what-are-identity-providers',
+            )}" target="_blank">additional information</a>.`,
+            hide: 3000,
+            alpha: true,
+          };
+        }
         return null;
       }),
       uniqueItems: true,
       tooltip: {
         content: `The identity providers you add will let your users authenticate with those services.`,
+      },
+    };
+  }
+
+  if (bcscSelected && include_bcsc) {
+    properties.bcscPrivacyZone = privacyZonesSchema;
+
+    properties.bcscAttributes = {
+      type: 'array',
+      title: 'Please select attribute(s)',
+      items: {
+        type: 'string',
+        enum: bcscAttributes?.map((attribute) => attribute.name),
+        enumNames: bcscAttributes?.map((attribute) => attribute.name),
+      },
+      uniqueItems: true,
+      tooltip: {
+        content: `We will provide a separate client for each attribute you can select. Select the attributes required for your project.`,
       },
     };
   }
@@ -160,7 +207,14 @@ export default function getSchema(integration: Integration, context: { isAdmin?:
 
   return {
     type: 'object',
-    customValidation: ['additionalRoleAttribute', 'clientId', 'devIdps', 'authType'],
+    customValidation: [
+      'additionalRoleAttribute',
+      'clientId',
+      'devIdps',
+      'authType',
+      'bcscPrivacyZone',
+      'bcscAttributes',
+    ],
     headerText: 'Choose providers',
     stepText: 'Basic Info',
     properties,

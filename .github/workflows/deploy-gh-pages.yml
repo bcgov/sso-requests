@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - test
       - main
     paths:
       - '.github/**'
@@ -35,6 +36,7 @@ jobs:
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
           INCLUDE_DIGITAL_CREDENTIAL=true
+          INCLUDE_BC_SERVICES_CARD=false
           EOF
       - name: Set env to production
         if: endsWith(github.ref, '/main') && matrix.env == 'prod'
@@ -48,20 +50,24 @@ jobs:
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
+          INCLUDE_DIGITAL_CREDENTIAL=true
+          INCLUDE_BC_SERVICES_CARD=false
           EOF
 
       - name: Set env to preview
-        if: endsWith(github.ref, '/main') && matrix.env == 'preview'
+        if: endsWith(github.ref, '/test') && matrix.env == 'preview'
         run: |
           cat >> $GITHUB_ENV <<EOF
-          APP_ENV=production
+          APP_ENV=test
           APP_URL=https://bcgov.github.io/sso-requests-preview
           APP_BASE_PATH=/sso-requests-preview
-          API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
+          API_URL=https://kcbkts0s8a.execute-api.ca-central-1.amazonaws.com/test/app/
+          SSO_URL=https://test.loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests-preview
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
+          INCLUDE_DIGITAL_CREDENTIAL=true
+          INCLUDE_BC_SERVICES_CARD=true
           EOF
 
       - name: Checkout 🛎️

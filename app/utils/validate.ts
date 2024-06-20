@@ -2,6 +2,7 @@ import { FormValidation } from 'react-jsonschema-form';
 import validate from 'react-jsonschema-form/lib/validate';
 import { Integration } from '@app/interfaces/Request';
 import { preservedClaims } from './constants';
+import { usesDigitalCredential } from '@app/helpers/integration';
 
 const isValidKeycloakURI = (isProd: boolean, uri: string) => {
   try {
@@ -12,8 +13,8 @@ const isValidKeycloakURI = (isProd: boolean, uri: string) => {
     if (uri.match(/\s|#/)) return false;
     if (isProd) {
       if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/([^*\s]+\/\S*|[^*\s]*[^*\s]$)/)) return false;
-    } else {
-      if (!uri.match(/^[a-zA-Z][a-zA-Z-\.]*:\/\/\S+/)) return false;
+    } else if (!uri.match(/^[a-zA-Z][a-zA-Z-.]*:\/\/\S+/)) {
+      return false;
     }
     return true;
   } catch (err) {
@@ -27,7 +28,6 @@ export const isValidKeycloakURIProd = isValidKeycloakURI.bind(null, true);
 const validationMessage = 'Please enter a valid URI';
 export const MAX_IDLE_SECONDS = 30 * 60;
 export const MAX_LIFETIME_SECONDS = 600 * 60;
-
 export const customValidate = (formData: any, errors: FormValidation, fields?: string[]) => {
   const {
     projectName = '',
@@ -53,6 +53,11 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     prodSessionMaxLifespan,
     authType,
     publicAccess,
+    devHomePageUri = '',
+    testHomePageUri = '',
+    prodHomePageUri = '',
+    bcscPrivacyZone,
+    bcscAttributes = [],
   } = formData;
 
   const sessionIdleTimeout = (value: number, key: string) => {
@@ -62,7 +67,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       }
     };
   };
-
   const sessionMaxLifespan = (value: number, key: string) => {
     return () => {
       if (value > MAX_LIFETIME_SECONDS) {
@@ -70,7 +74,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       }
     };
   };
-
   const fieldMap: any = {
     projectName: () => {
       if (/^\d/.test(projectName)) {
@@ -151,6 +154,9 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
       if (protocol === 'saml' && devIdps.length > 1) {
         errors['devIdps'].addError('Only one identity provider is allowed for saml integrations');
       }
+      if (protocol === 'saml' && usesDigitalCredential(formData)) {
+        errors['devIdps'].addError('Digital Credential is not allowed for saml integrations');
+      }
     },
     projectLead: () => {
       if (usesTeam === false && projectLead === false) {
@@ -158,40 +164,50 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
         errors['projectLead'].addError('');
       }
     },
+    bcscPrivacyZone: () => {
+      if (devIdps.includes('bcservicescard') && !bcscPrivacyZone) {
+        errors['bcscPrivacyZone']?.addError('Privacy zone is required for BC Services Card');
+      }
+    },
+    bcscAttributes: () => {
+      if (devIdps.includes('bcservicescard') && bcscAttributes?.length === 0) {
+        errors['bcscAttributes']?.addError('Please select at least one attribute');
+      }
+    },
   };
 
-  if (!fields) fields = Object.keys(fieldMap);
+  ['dev', 'test', 'prod'].map((env) => {
+    fieldMap[`${env}HomePageUri`] = () => {
+      if (devIdps.includes('bcservicescard') && !isValidKeycloakURIProd(formData[`${env}HomePageUri`])) {
+        errors[`${env}HomePageUri`]?.addError(validationMessage);
+      }
+    };
+  });
 
+  if (!fields) fields = Object.keys(fieldMap);
   for (let x = 0; x < fields.length; x++) {
     const fn = fieldMap[fields[x]];
     if (fn) fn();
   }
-
   return errors;
 };
-
 export const createCustomValidate = (fields: string[]) => {
   return function (formData: any, errors: any) {
     return customValidate(formData, errors, fields);
   };
 };
-
 const validateArrayFields = (arrayValues: any, errors: any, key: string, func: (val: string) => boolean) => {
   arrayValues.forEach((value: any, i: number) => {
     const valid = func(value);
-
     let hasError = false;
-
     if (i === 0 && !valid) {
       hasError = true;
     } else if (value !== '' && !valid) {
       hasError = true;
     }
-
     if (hasError) errors[key][i].addError(validationMessage);
   });
 };
-
 export const validateForm = (formData: Integration, schemas: any[], visited?: any) => {
   const errors: any = {};
   schemas.forEach((schema, i) => {
@@ -204,6 +220,5 @@ export const validateForm = (formData: Integration, schemas: any[], visited?: an
     );
     if (err.length > 0) errors[i] = err;
   });
-
   return errors;
 };

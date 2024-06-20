@@ -15,6 +15,8 @@ import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app
 import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
 import SwitchWidget from '@app/form-components/widgets/SwitchWidget';
 import get from 'lodash.get';
+import BcscAttributesWidget from '@app/form-components/widgets/BcscAttributesWidget';
+import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneWidget';
 
 interface Props {
   integration: Integration;
@@ -28,6 +30,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
   const { id, status, devIdps = [], environments = [], bceidApproved = false } = integration || {};
   const isNew = isNil(id);
   const isApplied = status === 'applied';
+  const disableBcscUpdate = integration?.devIdps?.includes('bcservicescard') && integration?.status !== 'draft';
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
   let idpDisabled: string[] = [];
@@ -41,6 +44,8 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
         } else if (checkGithubGroup(idp)) {
           idpDisabled.push('githubpublic', 'githubbcgov');
         }
+
+        if (idp === 'bcservicescard') idpDisabled.push('bcservicescard');
       });
     }
 
@@ -49,9 +54,33 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     if (!isApplied || !devIdps.includes('githubpublic')) idpHidden.push('githubpublic');
   }
 
+  // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
+  if (formData?.protocol === 'saml') {
+    idpDisabled.push('digitalcredential', 'bcservicescard');
+  }
+
   const includeComment = isApplied && isAdmin;
 
   const tokenFields: any = {};
+
+  const bcServicesCardFields: any = {
+    bcscPrivacyZone: {
+      'ui:widget': BcscPrivacyZoneWidget,
+      classNames: 'short-field-string',
+      'ui:disabled': disableBcscUpdate,
+    },
+    bcscAttributes: {
+      'ui:widget': BcscAttributesWidget,
+      'ui:disabled': disableBcscUpdate,
+    },
+  };
+
+  if (!formData?.devIdps?.includes('bcservicescard')) {
+    bcServicesCardFields['bcscPrivacyZone']['ui:widget'] = 'hidden';
+    bcServicesCardFields['bcscPrivacyZone']['ui:label'] = false;
+    bcServicesCardFields['bcscAttributes']['ui:widget'] = 'hidden';
+    bcServicesCardFields['bcscAttributes']['ui:field'] = 'hidden';
+  }
 
   const durationAdditionalFields =
     formData?.protocol === 'saml' ? samlDurationAdditionalFields : oidcDurationAdditionalFields;
@@ -196,6 +225,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:widget': includeComment ? 'textarea' : 'hidden',
       'ui:label': includeComment,
     },
+    ...bcServicesCardFields,
     ...tokenFields,
   };
 };

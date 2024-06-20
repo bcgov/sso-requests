@@ -7,6 +7,7 @@ export const idpMap: any = {
   githubbcgov: 'GitHub BC Gov',
   githubpublic: 'GitHub',
   digitalcredential: 'Digital Credential',
+  bcservicescard: 'BC Services Card',
 };
 
 export const envMap: any = {

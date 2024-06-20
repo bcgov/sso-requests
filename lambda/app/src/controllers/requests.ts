@@ -10,6 +10,8 @@ import {
   isAdmin,
   getDisplayName,
   getWhereClauseForAllRequests,
+  getBCSCEnvVars,
+  getRequiredBCSCScopes,
 } from '../utils/helpers';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
@@ -34,6 +36,8 @@ import {
   checkDigitalCredential,
   checkNotBceidGroup,
   checkNotGithubGroup,
+  usesBcServicesCard,
+  checkBcServicesCard,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
 import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
@@ -47,6 +51,16 @@ import {
 } from '@app/schemas';
 import pick from 'lodash.pick';
 import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
+import { BCSCClientParameters, createBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
+import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
+import {
+  createClientScope,
+  createClientScopeMapper,
+  deleteClientScope,
+  getClientScope,
+  getClientScopeMapper,
+} from '@lambda-app/keycloak/clientScopes';
+import { bcscIdpMappers } from '@lambda-app/utils/constants';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -87,6 +101,12 @@ const allowedFieldsForGithub = [
   'teamId',
   'apiServiceAccount',
   'requester',
+  'bcscAttributes',
+  'devHomePageUri',
+  'testHomePageUri',
+  'prodHomePageUri',
+  'bcscPrivacyZone',
+  'usesTeam',
   ...envFieldsAll,
 ];
 
@@ -200,6 +220,181 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
   return { ...result.dataValues, numOfRequestsForToday };
 };
 
+export const createBCSCIntegration = async (env: string, integration: IntegrationData, userId: number) => {
+  const { bcscBaseUrl } = getBCSCEnvVars(env);
+
+  const bcscClient = await models.bcscClient.findOne({
+    where: {
+      requestId: integration.id,
+      environment: env,
+    },
+  });
+
+  let bcscClientSecret = bcscClient?.clientSecret;
+  let bcscClientId = bcscClient?.clientId;
+  if (!bcscClient) {
+    const bcscClientName = `${integration.projectName}-${integration.id}`;
+    const clientResponse: any = await createBCSCClient(
+      {
+        clientName: bcscClientName,
+        environment: env,
+      },
+      integration,
+      userId,
+    );
+    await models.bcscClient.create({
+      clientName: bcscClientName,
+      requestId: integration.id,
+      environment: env,
+      clientSecret: clientResponse.data.client_secret,
+      registrationAccessToken: clientResponse.data.registration_access_token,
+      created: true,
+      clientId: clientResponse.data.client_id,
+    });
+    bcscClientSecret = clientResponse.data.client_secret;
+    bcscClientId = clientResponse.data.client_id;
+  } else if (bcscClient.archived) {
+    await models.bcscClient.update(
+      {
+        archived: false,
+      },
+      {
+        where: {
+          requestId: integration.id,
+          environment: env,
+        },
+      },
+    );
+  } else {
+    await updateBCSCClient(bcscClient, integration);
+  }
+  const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
+  const idpCreated = await getIdp(env, integration.clientId);
+  if (!idpCreated) {
+    await createIdp(
+      {
+        alias: integration.clientId,
+        displayName: `BC Services Card - ${integration.clientId}`,
+        enabled: true,
+        storeToken: true,
+        providerId: 'oidc',
+        realm: 'standard',
+        config: {
+          clientId: bcscClientId,
+          clientSecret: bcscClientSecret,
+          authorizationUrl: `${bcscBaseUrl}/login/oidc/authorize`,
+          tokenUrl: `${bcscBaseUrl}/oauth2/token`,
+          userInfoUrl: `${bcscBaseUrl}/oauth2/userinfo`,
+          jwksUrl: `${bcscBaseUrl}/oauth2/jwk`,
+          syncMode: 'IMPORT',
+          disableUserInfo: true,
+          clientAuthMethod: 'client_secret_post',
+          validateSignature: true,
+          useJwksUrl: true,
+          defaultScope: requiredScopes,
+        },
+      },
+      env,
+    );
+  }
+
+  const idpMappers = await getIdpMappers({
+    environment: env,
+    idpAlias: integration.clientId,
+  });
+
+  const createIdpMapperPromises = bcscIdpMappers.map((mapper) => {
+    const alreadyExists = idpMappers.some((existingMapper) => existingMapper.name === mapper.name);
+    if (!alreadyExists) {
+      return createIdpMapper({
+        environment: env,
+        name: mapper.name,
+        idpAlias: integration.clientId,
+        idpMapper: mapper.type,
+        idpMapperConfig: {
+          claim: mapper.name,
+          attribute: mapper.name,
+          syncMode: 'FORCE',
+          template: mapper.template,
+        },
+      });
+    }
+  });
+
+  await Promise.all(createIdpMapperPromises);
+
+  const clientScopeData = {
+    environment: env,
+    realmName: 'standard',
+    scopeName: integration.clientId,
+  };
+
+  let clientScope = await getClientScope(clientScopeData);
+  if (!clientScope) {
+    clientScope = await createClientScope(clientScopeData);
+  }
+
+  await getClientScopeMapper({
+    environment: env,
+    scopeId: clientScope.id,
+    mapperName: 'attributes',
+  }).then((mapperExists) => {
+    if (!mapperExists) {
+      createClientScopeMapper({
+        environment: env,
+        realmName: 'standard',
+        scopeName: clientScope.name,
+        protocol: 'openid-connect',
+        protocolMapper: 'oidc-idp-userinfo-mapper',
+        protocolMapperName: 'attributes',
+        protocolMapperConfig: {
+          signatureExpected: true,
+          userAttributes: integration.bcscAttributes?.join(','),
+          'claim.name': 'attributes',
+          'jsonType.label': 'String',
+          'id.token.claim': true,
+          'access.token.claim': true,
+          'userinfo.token.claim': true,
+        },
+      });
+    }
+  });
+};
+
+export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
+  // Keeping the bcsc client for restoration if needed. Just setting it as archived.
+  await models.bcscClient.update(
+    {
+      archived: true,
+    },
+    {
+      where: {
+        id: request.id,
+      },
+    },
+  );
+  const idpExists = await getIdp(request.environment, keycoakClientId);
+  if (idpExists) {
+    await deleteIdp({
+      environment: request.environment,
+      realmName: 'standard',
+      idpAlias: keycoakClientId,
+    });
+  }
+  const clientScope = await getClientScope({
+    environment: request.environment,
+    realmName: 'standard',
+    scopeName: keycoakClientId,
+  });
+  if (clientScope) {
+    await deleteClientScope({
+      realmName: 'standard',
+      environment: request.environment,
+      scopeName: keycoakClientId,
+    });
+  }
+};
+
 export const updateRequest = async (
   session: Session,
   data: IntegrationData,
@@ -208,7 +403,7 @@ export const updateRequest = async (
 ) => {
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
-
+  let addingProd = false;
   const userIsAdmin = isAdmin(session);
   const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
@@ -241,13 +436,16 @@ export const updateRequest = async (
     const isApprovingDigitalCredential = !originalData.digitalCredentialApproved && current.digitalCredentialApproved;
     if (isApprovingDigitalCredential && !userIsAdmin) throw Error('unauthorized request');
 
+    const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
+    if (isApprovingBCSC && !userIsAdmin) throw Error('unauthorized request');
+
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
 
     if (submit) {
-      const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);
+      const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
       if (!isEmpty(validationErrors)) {
         if (isString(validationErrors)) throw Error(validationErrors);
         else throw Error(JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }));
@@ -277,7 +475,7 @@ export const updateRequest = async (
       let environments = current.environments.concat();
 
       const hasProd = environments.includes('prod');
-      const addingProd = !originalData.environments.includes('prod') && hasProd;
+      addingProd = !originalData.environments.includes('prod') && hasProd;
 
       const hasBceid = usesBceid(current);
       const hasBceidProd = hasBceid && hasProd;
@@ -378,8 +576,7 @@ export const updateRequest = async (
       }
 
       await createEvent(eventData);
-
-      await processIntegrationRequest(updated, false, existingClientId);
+      await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
       updated = await getAllowedRequest(session, data.id);
     }
@@ -698,6 +895,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
   const hasDigitalCredential = usesDigitalCredential(baseData);
+  const hasBCSC = usesBcServicesCard(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -713,6 +911,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
     baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkDigitalCredential(idp));
   }
 
+  if (!baseData.bcServicesCardApproved && hasBCSC) {
+    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkBcServicesCard(idp));
+  }
+
   // prevent the TF from creating GitHub integration in prod environment if not approved
   if (!baseData.githubApproved && hasGithub) {
     baseData.prodIdps = baseData.prodIdps.filter(checkNotGithubGroup);
@@ -725,6 +927,7 @@ export const processIntegrationRequest = async (
   integration: any,
   restore: boolean = false,
   existingClientId: string = '',
+  addingProd: boolean = false,
 ) => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
@@ -746,7 +949,7 @@ export const processIntegrationRequest = async (
   }
 
   if (['development', 'production'].includes(process.env.NODE_ENV)) {
-    return await standardClients(payload, restore, existingClientId);
+    return await standardClients(payload, restore, existingClientId, addingProd);
   }
 };
 
@@ -754,6 +957,7 @@ export const standardClients = async (
   integration: IntegrationData,
   restore: boolean = false,
   existingClientId: string = '',
+  addingProd: boolean = false,
 ) => {
   // add to the queue
   const queueItem = await models.requestQueue.create({
@@ -796,11 +1000,11 @@ export const standardClients = async (
   await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
   // delete from the queue
   await models.requestQueue.destroy({ where: { id: queueItem.id } });
-  if (!restore) await updatePlannedIntegration(integration);
+  if (!restore) await updatePlannedIntegration(integration, addingProd);
   return true;
 };
 
-export const updatePlannedIntegration = async (integration: IntegrationData) => {
+export const updatePlannedIntegration = async (integration: IntegrationData, addingProd: boolean = false) => {
   const updatedIntegration = await models.request.findOne({
     where: {
       id: integration.id,
@@ -848,6 +1052,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData) => 
       hasBceid,
       waitingGithubProdApproval,
       waitingDigitalCredentialProdApproval,
+      addingProd,
     });
   }
 };

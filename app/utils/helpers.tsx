@@ -191,8 +191,13 @@ export const transformErrors = (errors: any) => {
     if (propertiesToTransform.includes(error.property)) {
       const errorMessageKey = error.property.slice(1);
       error.message = errorMessages[errorMessageKey] || error.message;
-    } else if (error.property.includes('ValidRedirectUris') || error.property.includes('SamlLogoutPostBindingUri')) {
+    } else if (
+      error.property.includes('ValidRedirectUris') ||
+      error.property.includes('SamlLogoutPostBindingUri') ||
+      error.property.includes('bcscAttributes')
+    ) {
       if (error.message === 'should be string') error.message = '';
+      else if (error.message === 'should NOT have fewer than 1 items') error.message = '';
       else error.message = errorMessages.redirectUris;
     }
 
@@ -319,6 +324,11 @@ export const checkIfGithubProdApplying = (integration: Integration) => {
 
 export const checkIfDigitalCredentialProdApplying = (integration: Integration) => {
   const prodApplying = checkIfProdApplying(integration, 'digitalCredentialApproved');
+  return prodApplying;
+};
+
+export const checkIfBcServicesCardProdApplying = (integration: Integration) => {
+  const prodApplying = checkIfProdApplying(integration, 'bcServicesCardApproved');
   return prodApplying;
 };
 

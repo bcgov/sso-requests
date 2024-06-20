@@ -24,7 +24,7 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
     throw Error('invalid environment');
   }
 
-  if (process.env.APP_ENV !== 'local') {
+  if (['development', 'production'].includes(process.env.APP_ENV)) {
     const keycloakHostname = keycloakUrl.replace('https://', '');
     const ip = await dns.promises.lookup(keycloakHostname);
     if (ip.address !== process.env.GOLD_IP_ADDRESS) {

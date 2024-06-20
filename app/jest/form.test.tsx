@@ -7,6 +7,7 @@ import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
+import { debug } from 'jest-preview';
 
 const formButtonText = ['Next', 'Save and Close'];
 
@@ -26,6 +27,44 @@ jest.mock('services/team', () => {
   return {
     getMyTeams: jest.fn(() => Promise.resolve([[], null])),
     getAllowedTeams: jest.fn(() => Promise.resolve([[], null])),
+  };
+});
+
+const samplePrivacyZones = [
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:health:mocksit',
+    privacy_zone_name: 'Health (Citizen)',
+  },
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:fin:ctz:pz:sit',
+    privacy_zone_name: 'Finance (Citizen)',
+  },
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:educ:sit',
+    privacy_zone_name: 'Education (Citizen)',
+  },
+];
+
+const sampleAttributes = [
+  {
+    name: 'postal_code',
+  },
+  {
+    name: 'user_type',
+  },
+  {
+    name: 'birthdate',
+  },
+];
+
+jest.mock('services/bc-services-card', () => {
+  return {
+    fetchPrivacyZones: jest.fn(() => {
+      return Promise.resolve([samplePrivacyZones, null]);
+    }),
+    fetchAttributes: jest.fn(() => {
+      return Promise.resolve([sampleAttributes, null]);
+    }),
   };
 });
 
@@ -478,5 +517,138 @@ describe('Basic Info - Identity Providers', () => {
     expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
     expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
     await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked());
+  });
+
+  it("Should only disable digital credential if it's a SAML integration", async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      protocol: 'saml',
+      devIdps: [],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const digitalCredentialCheckbox =
+      getByText('Digital Credential')?.parentElement?.querySelector("input[type='checkbox");
+    expect(digitalCredentialCheckbox).toBeDisabled();
+
+    // Switch to OIDC and check if it's enabled
+    const oidcRadio = screen.getByLabelText('OpenID Connect');
+    oidcRadio.click();
+
+    expect(digitalCredentialCheckbox).toBeEnabled();
+  });
+
+  it("Removes digital credential from the list of IDPs if it's a SAML integration", async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      protocol: 'oidc',
+      devIdps: ['digitalcredential'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const digitalCredentialCheckbox = getByText('Digital Credential')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(digitalCredentialCheckbox?.checked).toBeTruthy();
+
+    const samlRadio = screen.getByLabelText('SAML');
+    samlRadio.click();
+
+    expect(digitalCredentialCheckbox?.checked).toBeFalsy();
+  });
+});
+
+describe('BC Services Card IDP and dependencies', () => {
+  it('should show the BC Services Card IDP but hide privacy zone, attributes, and home page uri if not selected', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['idir', 'bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).toBeNull();
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).toBeNull();
+  });
+
+  it('should show the BC Services Card IDP and show error upon leaving dependencies blank', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
+      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
+      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).not.toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).not.toBeNull();
+
+    // Navigate away and back again
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(screen.getByText('Privacy zone is required for BC Services Card')).toBeInTheDocument();
+    expect(screen.getByText('Please select at least one attribute')).toBeInTheDocument();
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+    expect(screen.getByText('Please enter a valid URI')).toBeInTheDocument();
+  });
+
+  it('should show the BC Services Card IDP and show privacy zone and attributes if selected', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard', 'bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
+      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
+      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).not.toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).not.toBeNull();
+
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    const privacyZoneinput = bcscPrivacyZoneDropDown.lastChild;
+    fireEvent.keyDown(privacyZoneinput as HTMLElement, { keyCode: 40 });
+    const privacyZoneOption = await screen.findByText(samplePrivacyZones[0].privacy_zone_name);
+    fireEvent.click(privacyZoneOption);
+
+    const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
+    const attributesInput = bcscAttributesDropDown.lastChild;
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    let attributesOption = await screen.findByText(sampleAttributes[0].name);
+    fireEvent.click(attributesOption);
+
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    attributesOption = await screen.findByText(sampleAttributes[1].name);
+    fireEvent.click(attributesOption);
+
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    attributesOption = await screen.findByText(sampleAttributes[2].name);
+    fireEvent.click(attributesOption);
+
+    fireEvent.click(sandbox.developmentBox);
+    const devHomePageUrisSelector = '#root_devHomePageUri';
+    const uriInput = document.querySelector(devHomePageUrisSelector) as HTMLElement;
+    fireEvent.change(uriInput, { target: { value: 'https://valid-uri' } });
   });
 });

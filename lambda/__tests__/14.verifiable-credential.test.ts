@@ -1,14 +1,11 @@
 import { buildGitHubRequestData } from '@lambda-app/controllers/requests';
 import { Status } from 'app/interfaces/types';
-import app from './helpers/server';
-import supertest from 'supertest';
-import { APP_BASE_PATH } from './helpers/constants';
 import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { DIT_EMAIL_ADDRESS } from '@lambda-shared/local';
-import { updateIntegration } from './helpers/modules/integrations';
+import { submitNewIntegration, updateIntegration } from './helpers/modules/integrations';
 import { EMAILS } from '@lambda-shared/enums';
 
 jest.mock('../app/src/authenticate');
@@ -111,26 +108,6 @@ const mockIntegration: IntegrationData = {
   primaryEndUsers: [],
 };
 
-const submitNewIntegration = async (integration: IntegrationData) => {
-  const { projectName, projectLead, serviceType, usesTeam } = integration;
-  const {
-    body: { id },
-  } = await supertest(app)
-    .post(`${APP_BASE_PATH}/requests`)
-    .send({
-      projectName,
-      projectLead,
-      serviceType,
-      usesTeam,
-    })
-    .set('Accept', 'application/json');
-
-  return supertest(app)
-    .put(`${APP_BASE_PATH}/requests?submit=true`)
-    .send({ ...integration, id })
-    .set('Accept', 'application/json');
-};
-
 const OLD_ENV = process.env;
 beforeEach(() => {
   jest.resetModules();
@@ -158,6 +135,22 @@ describe('Build Github Dispatch', () => {
     const approvedIntegration = { ...mockIntegration, digitalCredentialApproved: true };
     const processedIntegration = buildGitHubRequestData(approvedIntegration);
     expect(processedIntegration.prodIdps.includes('digitalcredential')).toBe(true);
+  });
+});
+
+describe('Digital Credential Validations', () => {
+  beforeEach(async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
+  });
+
+  it('Only allows Digital Credential as an IDP for OIDC integrations', async () => {
+    const samlResult = await submitNewIntegration({ ...mockIntegration, protocol: 'saml' });
+    expect(samlResult.status).toBe(422);
+
+    const oidcResult = await submitNewIntegration({ ...mockIntegration, protocol: 'oidc' });
+    console.log(oidcResult.body);
+    expect(oidcResult.status).toBe(200);
   });
 });
 
@@ -213,11 +206,15 @@ describe('IDP notifications', () => {
     await submitNewIntegration(mockIntegration);
 
     const submissionEmails = emailList.filter((email) => email.code === EMAILS.CREATE_INTEGRATION_SUBMITTED);
+    const appliedEmails = emailList.filter((email) => email.code === EMAILS.CREATE_INTEGRATION_APPLIED);
 
     expect(submissionEmails.length).toBe(1);
-    const ccList = emailList[0].cc;
+    const submissionCCList = emailList[0].cc;
+    expect(submissionCCList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
 
-    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
+    expect(appliedEmails.length).toBe(1);
+    const appliedCCList = emailList[0].cc;
+    expect(appliedCCList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
   });
 
   it('Does not CC DIT when prod is unselected', async () => {
@@ -225,10 +222,16 @@ describe('IDP notifications', () => {
     await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
 
     const submissionEmails = emailList.filter((email) => email.code === EMAILS.CREATE_INTEGRATION_SUBMITTED);
+    const appliedEmails = emailList.filter((email) => email.code === EMAILS.CREATE_INTEGRATION_APPLIED);
+
     expect(submissionEmails.length).toBe(1);
     const ccList = emailList[0].cc;
 
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
+
+    expect(appliedEmails.length).toBe(1);
+    const appliedCCList = emailList[0].cc;
+    expect(appliedCCList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
   });
 
   it('CCs DIT only when updates add prod to a DC client', async () => {
@@ -237,17 +240,31 @@ describe('IDP notifications', () => {
     await updateIntegration({ ...mockIntegration, id: result.body.id, environments: ['dev', 'test', 'prod'] }, true);
 
     let updateEmails = emailList.filter((email) => email.code === EMAILS.UPDATE_INTEGRATION_SUBMITTED);
+    let appliedEmails = emailList.filter((email) => email.code === EMAILS.UPDATE_INTEGRATION_APPLIED);
+
     expect(updateEmails.length).toBe(1);
+    expect(appliedEmails.length).toBe(1);
 
     let ccList = updateEmails[0].cc;
+    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
+
+    ccList = appliedEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
 
     // Clear emails and update again. Should not CC DIT since already in production
     emailList.length = 0;
     await updateIntegration({ ...mockIntegration, id: result.body.id, publicAccess: false }, true);
+
     updateEmails = emailList.filter((email) => email.code === EMAILS.UPDATE_INTEGRATION_SUBMITTED);
+    appliedEmails = emailList.filter((email) => email.code === EMAILS.UPDATE_INTEGRATION_APPLIED);
+
     expect(updateEmails.length).toBe(1);
+    expect(appliedEmails.length).toBe(1);
+
     ccList = updateEmails[0].cc;
+    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
+
+    ccList = appliedEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
   });
 

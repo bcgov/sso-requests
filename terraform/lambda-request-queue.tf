@@ -38,6 +38,14 @@ resource "aws_lambda_function" "request_queue" {
       CHES_PASSWORD             = var.ches_password
       CHES_USERNAME             = var.ches_username
       GOLD_IP_ADDRESS           = var.gold_ip_address
+
+      INCLUDE_BC_SERVICES_CARD        = var.include_bc_services_card
+      BCSC_INITIAL_ACCESS_TOKEN_DEV   = var.bcsc_initial_access_token_dev
+      BCSC_INITIAL_ACCESS_TOKEN_TEST  = var.bcsc_initial_access_token_test
+      BCSC_INITIAL_ACCESS_TOKEN_PROD  = var.bcsc_initial_access_token_prod
+      BCSC_REGISTRATION_BASE_URL_DEV  = var.bcsc_registration_base_url_dev
+      BCSC_REGISTRATION_BASE_URL_TEST = var.bcsc_registration_base_url_test
+      BCSC_REGISTRATION_BASE_URL_PROD = var.bcsc_registration_base_url_prod
     }
   }
 

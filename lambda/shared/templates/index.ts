@@ -21,6 +21,7 @@ import deleteInactiveIdirUsers from './delete-inactive-idir-users';
 import surveyCompleted from './survey-completed-notification';
 import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
+import orphanIntegration from './orphan-integration';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -31,7 +32,9 @@ const hr = readTemplate('hr');
 const createBceidBottom = readTemplate('create-bceid-bottom');
 const createGithubBottom = readTemplate('create-github-bottom');
 const createDigitalCredentialBottom = readTemplate('create-verified-credential-bottom');
+const createBcServicesCardBottom = readTemplate('create-bc-services-card-bottom');
 const applyBceidBottom = readTemplate('apply-bceid-bottom');
+const applyBcServicesCardBottom = readTemplate('apply-bc-services-card-bottom');
 const applyGithubBottom = readTemplate('apply-github-bottom');
 const integrationDetail = readTemplate('integration-detail');
 const dashboardLogin = readTemplate('dashboard-login');
@@ -74,8 +77,10 @@ Handlebars.registerPartial('hr', hr);
 Handlebars.registerPartial('createBceidBottom', createBceidBottom);
 Handlebars.registerPartial('createGithubBottom', createGithubBottom);
 Handlebars.registerPartial('createDigitalCredentialBottom', createDigitalCredentialBottom);
+Handlebars.registerPartial('createBcServicesCardBottom', createBcServicesCardBottom);
 Handlebars.registerPartial('applyBceidBottom', applyBceidBottom);
 Handlebars.registerPartial('applyGithubBottom', applyGithubBottom);
+Handlebars.registerPartial('applyBcServicesCardBottom', applyBcServicesCardBottom);
 Handlebars.registerPartial('integrationDetail', integrationDetail);
 Handlebars.registerPartial('dashboardLogin', dashboardLogin);
 Handlebars.registerPartial('processingTime', processingTime);
@@ -142,6 +147,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.RESTORE_TEAM_API_ACCOUNT:
       builder = restoreTeamApiAccount;
+      break;
+    case EMAILS.ORPHAN_INTEGRATION:
+      builder = orphanIntegration;
       break;
     default:
       break;
