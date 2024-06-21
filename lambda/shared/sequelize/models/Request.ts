@@ -377,6 +377,10 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: [],
       },
+      bcServicesCardApproved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+      },
       devHomePageUri: {
         type: DataTypes.TEXT,
         allowNull: true,
