@@ -19,8 +19,6 @@ const serviceAccountIntegration: Integration = {
 const digitalCredentialIntegration: Integration = {
   ...sampleRequest,
   devIdps: ['digitalcredential'],
-  environments: ['dev'],
-  authType: 'browser-login',
   status: 'applied',
   publicAccess: false,
 };
@@ -28,8 +26,13 @@ const digitalCredentialIntegration: Integration = {
 const bcServicesCardIntegration: Integration = {
   ...sampleRequest,
   devIdps: ['bcservicescard'],
-  environments: ['dev'],
-  authType: 'browser-login',
+  status: 'applied',
+  publicAccess: false,
+};
+
+const bcAndDcIntegration: Integration = {
+  ...sampleRequest,
+  devIdps: ['bcservicescard', 'digitalcredential'],
   status: 'applied',
   publicAccess: false,
 };
@@ -52,7 +55,18 @@ describe('SSO Dashboard', () => {
   });
 
   it('Hides role management tab for a bc services card only integration', () => {
-    render(<IntegrationTabs integration={digitalCredentialIntegration} />);
+    render(<IntegrationTabs integration={bcServicesCardIntegration} />);
+    browerLoginTabs.forEach((name) => {
+      if (['Role Management', 'Assign Users to Roles'].includes(name)) {
+        expect(screen.queryByText(name)).toBeNull();
+      } else {
+        screen.getByText(name);
+      }
+    });
+  });
+
+  it('Hides role management tab for a bc services card and digital credential only integration', () => {
+    render(<IntegrationTabs integration={bcAndDcIntegration} />);
     browerLoginTabs.forEach((name) => {
       if (['Role Management', 'Assign Users to Roles'].includes(name)) {
         expect(screen.queryByText(name)).toBeNull();
