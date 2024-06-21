@@ -21,18 +21,26 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github' | 'digitalCredential' | 'bcServicesCard';
+  type: 'bceid' | 'github' | 'digitalCredential' | 'BCServicesCard';
   canApproveProd: boolean;
   awaitingTFComplete: boolean;
   onApproved?: () => void;
 }
 
+const approvalTypeMap = {
+  bceid: 'bceidApproved',
+  github: 'githubApproved',
+  digitalCredential: 'digitalCredentialApproved',
+  BCServicesCard: 'bcServicesCardApproved',
+};
+
 function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onApproved }: Props) {
   if (!integration) return null;
 
-  let displayType = startCase(type);
+  const displayType = startCase(type);
   const modalId = `${type}-approval-modal`;
   const openModal = () => (window.location.hash = modalId);
+  const approvalPropertyName = approvalTypeMap[type];
 
   let typeApproved = false;
   switch (type) {
@@ -45,10 +53,8 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     case 'digitalCredential':
       typeApproved = checkIfDigitalCredentialProdApplying(integration);
       break;
-    case 'bcServicesCard':
+    case 'BCServicesCard':
       typeApproved = checkIfBcServicesCardProdApplying(integration);
-      // Overriding start case to capitalize BC.
-      displayType = 'BC Services Card';
       break;
   }
 
@@ -83,7 +89,7 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     const [, err] = await updateRequest(
       {
         ...integration,
-        [`${type}Approved`]: true,
+        [approvalPropertyName]: true,
       },
       true,
     );
