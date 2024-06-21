@@ -21,7 +21,7 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github' | 'digitalCredential' | 'BCServicesCard';
+  type: 'bceid' | 'github' | 'digitalCredential' | 'bcServicesCard';
   canApproveProd: boolean;
   awaitingTFComplete: boolean;
   onApproved?: () => void;
@@ -45,7 +45,7 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     case 'digitalCredential':
       typeApproved = checkIfDigitalCredentialProdApplying(integration);
       break;
-    case 'BCServicesCard':
+    case 'bcServicesCard':
       typeApproved = checkIfBcServicesCardProdApplying(integration);
       break;
   }

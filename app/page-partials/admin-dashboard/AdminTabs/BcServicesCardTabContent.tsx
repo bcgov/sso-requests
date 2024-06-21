@@ -15,7 +15,7 @@ function BcServicesCardTabContent({ integration, onApproved }: Readonly<Props>) 
 
   return (
     <TabContent
-      type="BCServicesCard"
+      type="bcServicesCard"
       integration={integration}
       canApproveProd={canApproveProd}
       awaitingTFComplete={awaitingTFComplete}

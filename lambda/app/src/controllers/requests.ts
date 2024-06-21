@@ -300,8 +300,6 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     );
   }
 
-  console.log(bcscClient);
-
   const idpMappers = await getIdpMappers({
     environment: env,
     idpAlias: integration.clientId,
@@ -490,9 +488,14 @@ export const updateRequest = async (
       const hasDigitalCredential = usesDigitalCredential(current);
       const hasDigitalCredentialProd = hasDigitalCredential && hasProd;
 
+      const hasBcServicesCard = usesBcServicesCard(current);
+      const hasBcServicesCardProd = hasBcServicesCard && hasProd;
+
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
       const waitingDigitalCredentialProdApproval = hasDigitalCredentialProd && !current.digitalCredentialApproved;
+      const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
+
       current.requester = await getRequester(session, current.id);
 
       finalData = getCurrentValue();
@@ -515,6 +518,11 @@ export const updateRequest = async (
             code: EMAILS.PROD_APPROVED,
             data: { integration: finalData, type: 'Digital Credential' },
           });
+        } else if (isApprovingBCSC) {
+          emails.push({
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'BC Services Card' },
+          });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
@@ -523,6 +531,7 @@ export const updateRequest = async (
               waitingBceidProdApproval,
               waitingGithubProdApproval,
               waitingDigitalCredentialProdApproval,
+              waitingBcServicesCardProdApproval,
               addingProd,
             },
           });
@@ -535,6 +544,7 @@ export const updateRequest = async (
             waitingBceidProdApproval,
             waitingGithubProdApproval,
             waitingDigitalCredentialProdApproval,
+            waitingBcServicesCardProdApproval,
           },
         });
       }
@@ -1044,10 +1054,12 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const hasBceid = usesBceid(integration);
     const hasGithub = usesGithub(integration);
     const hasDigitalCredential = usesDigitalCredential(integration);
+    const hasBcServicesCard = usesBcServicesCard(integration);
     const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
     const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
     const waitingDigitalCredentialProdApproval =
       hasDigitalCredential && hasProd && !integration.digitalCredentialApproved;
+    const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
 
     const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
     await sendTemplate(emailCode, {
@@ -1056,6 +1068,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
       hasBceid,
       waitingGithubProdApproval,
       waitingDigitalCredentialProdApproval,
+      waitingBcServicesCardProdApproval,
       addingProd,
     });
   }
