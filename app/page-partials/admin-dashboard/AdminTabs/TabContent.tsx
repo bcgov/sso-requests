@@ -30,7 +30,7 @@ interface Props {
 function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onApproved }: Props) {
   if (!integration) return null;
 
-  const displayType = startCase(type);
+  let displayType = startCase(type);
   const modalId = `${type}-approval-modal`;
   const openModal = () => (window.location.hash = modalId);
 
@@ -47,6 +47,8 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
       break;
     case 'bcServicesCard':
       typeApproved = checkIfBcServicesCardProdApplying(integration);
+      // Overriding start case to capitalize BC.
+      displayType = 'BC Services Card';
       break;
   }
 
