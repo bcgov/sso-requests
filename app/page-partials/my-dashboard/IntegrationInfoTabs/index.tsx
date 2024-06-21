@@ -362,9 +362,10 @@ function IntegrationInfoTabs({ integration }: Props) {
   const tabs = [];
   const allowedTabs = [];
 
-  // Integrations can potentially have no IDPs, e.g service accounts only.
-  const digitalCredentialOnly =
-    integration.devIdps?.length && integration.devIdps?.every((idp) => idp === 'digitalcredential');
+  // Integrations with only DC or BC services card should not have role management
+  const idpOnlyIntegrationsWithRoleManagementDisabled =
+    integration.devIdps?.length &&
+    integration.devIdps?.every((idp) => ['digitalcredential', 'bcservicescard'].includes(idp));
 
   if (displayStatus === 'Submitted') {
     if (['planFailed', 'applyFailed'].includes(integration.status as string)) {
@@ -378,13 +379,13 @@ function IntegrationInfoTabs({ integration }: Props) {
     tabs.push(getInstallationTab({ integration, approvalContext }));
     allowedTabs.push(TAB_DETAILS);
     // Exclude role management from integrations with only DC
-    if (!digitalCredentialOnly) {
+    if (!idpOnlyIntegrationsWithRoleManagementDisabled) {
       tabs.push(getRoleManagementTab({ integration }));
       allowedTabs.push(TAB_ROLE_MANAGEMENT);
     }
 
     // Exclude user assignment from integrations with DC only
-    if (isGold && hasBrowserFlow && !digitalCredentialOnly) {
+    if (isGold && hasBrowserFlow && !idpOnlyIntegrationsWithRoleManagementDisabled) {
       tabs.push(getUserAssignmentTab({ integration }));
       allowedTabs.push(TAB_USER_ROLE_MANAGEMENT);
     }
