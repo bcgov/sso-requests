@@ -366,6 +366,9 @@ function IntegrationInfoTabs({ integration }: Props) {
   const digitalCredentialOnly =
     integration.devIdps?.length && integration.devIdps?.every((idp) => idp === 'digitalcredential');
 
+  const bcServicesCardOnly =
+    integration.devIdps?.length && integration.devIdps?.every((idp) => idp === 'bcservicescard');
+
   if (displayStatus === 'Submitted') {
     if (['planFailed', 'applyFailed'].includes(integration.status as string)) {
       tabs.push(getIntegrationErrorTab());
@@ -378,13 +381,13 @@ function IntegrationInfoTabs({ integration }: Props) {
     tabs.push(getInstallationTab({ integration, approvalContext }));
     allowedTabs.push(TAB_DETAILS);
     // Exclude role management from integrations with only DC
-    if (!digitalCredentialOnly) {
+    if (!digitalCredentialOnly && !bcServicesCardOnly) {
       tabs.push(getRoleManagementTab({ integration }));
       allowedTabs.push(TAB_ROLE_MANAGEMENT);
     }
 
     // Exclude user assignment from integrations with DC only
-    if (isGold && hasBrowserFlow && !digitalCredentialOnly) {
+    if (isGold && hasBrowserFlow && !digitalCredentialOnly && !bcServicesCardOnly) {
       tabs.push(getUserAssignmentTab({ integration }));
       allowedTabs.push(TAB_USER_ROLE_MANAGEMENT);
     }
