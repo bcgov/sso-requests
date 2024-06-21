@@ -279,6 +279,8 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
         storeToken: true,
         providerId: 'oidc',
         realm: 'standard',
+        firstBrokerLoginFlowAlias: 'first broker login',
+        postBrokerLoginFlowAlias: 'idp post login',
         config: {
           clientId: bcscClientId,
           clientSecret: bcscClientSecret,
@@ -297,6 +299,8 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
       env,
     );
   }
+
+  console.log(bcscClient);
 
   const idpMappers = await getIdpMappers({
     environment: env,
