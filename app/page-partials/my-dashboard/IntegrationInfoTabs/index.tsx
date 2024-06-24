@@ -12,8 +12,9 @@ import {
   checkIfBceidProdApplying,
   checkIfGithubProdApplying,
   checkIfDigitalCredentialProdApplying,
+  checkIfBcServicesCardProdApplying,
 } from 'utils/helpers';
-import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
 import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -24,6 +25,7 @@ import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
 import DigitalCredentialPanel from './DigitalCredentialPanel';
+import BcServicesCardPanel from './BcServicesCardStatusPanel';
 import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -133,6 +135,7 @@ const getInstallationTab = ({
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
               <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
+              <BcServicesCardPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -181,6 +184,7 @@ const getProgressTab = ({
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
               <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
+              <BcServicesCardPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -209,6 +213,7 @@ const getApprovalProgressTab = ({
               <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
               <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
               <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
+              <BcServicesCardPanel integration={integration} approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -309,33 +314,41 @@ function IntegrationInfoTabs({ integration }: Props) {
     bceidApproved = false,
     githubApproved = false,
     digitalCredentialApproved = false,
+    bcServicesCardApproved = false,
   } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
   const hasProd = environments.includes('prod');
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
   const hasDigitalCredential = usesDigitalCredential(integration);
+  const hasBcServicesCard = usesBcServicesCard(integration);
   const awaitingBceidProd = hasBceid && hasProd && !bceidApproved;
   const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
   const awaitingDigitalCredentialProd = hasDigitalCredential && hasProd && !digitalCredentialApproved;
+  const awaitingBcServicesCardProd = hasBcServicesCard && hasProd && !bcServicesCardApproved;
   const bceidProdApplying = checkIfBceidProdApplying(integration);
   const githubProdApplying = checkIfGithubProdApplying(integration);
   const digitalCredentialProdApplying = checkIfDigitalCredentialProdApplying(integration);
+  const bcServicesCardProdApplying = checkIfBcServicesCardProdApplying(integration);
 
   const approvalContext: ApprovalContext = {
     hasProd,
     hasBceid,
     hasGithub,
     hasDigitalCredential,
+    hasBcServicesCard,
     bceidApproved,
     githubApproved,
     digitalCredentialApproved,
+    bcServicesCardApproved,
     awaitingBceidProd,
     awaitingGithubProd,
     awaitingDigitalCredentialProd,
+    awaitingBcServicesCardProd,
     bceidProdApplying,
     githubProdApplying,
     digitalCredentialProdApplying,
+    bcServicesCardProdApplying,
   };
 
   const isGold = integration.serviceType === 'gold';

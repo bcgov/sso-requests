@@ -26,12 +26,21 @@ const BCEID_PROD_LABEL = /Access to BCeID Prod/;
 const BCEID_PROD_REQUESTED_MESSAGE = /Please reach out to IDIM/;
 const BCEID_PROD_APPROVED = /Your integration has been approved/;
 const BCEID_PROD_AVAILABLE = /Your integration is approved and available/;
+const DC_PROD_LABEL = /Access to Digital Credential Prod/;
+const DC_PROD_REQUESTED_MESSAGE = /Please reach out to DIT/;
+const DC_PROD_APPROVED = /Your integration has been approved/;
+const DC_PROD_AVAILABLE = /Your integration is approved and available/;
+const BCSC_PROD_LABEL = /Access to BC Services Card Prod/;
+const BCSC_PROD_REQUESTED_MESSAGE = /Please reach out to IDIM/;
+const BCSC_PROD_APPROVED = /Your integration has been approved/;
+const BCSC_PROD_AVAILABLE = /Your integration is approved and available/;
 const GITHUB_PROD_LABEL = /Access to GitHub Prod/;
 const GITHUB_PROD_REQUESTED_MESSAGE = /Requirements email sent to GCIO/;
 const GITHUB_PROD_APPROVED = /Your integration has been approved/;
 const GITHUB_PROD_AVAILABLE = /Your integration is approved and available/;
-const DEV_IDIR_BCEID_ENV_HEADER = /Development \(IDIR, Basic BCeID, GitHub\)/;
-const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR, Basic BCeID, GitHub\)/;
+
+const DEV_IDIR_BCEID_ENV_HEADER = /Development \(IDIR, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
+const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
 
 jest.mock('services/keycloak', () => ({
   getInstallation: jest.fn(() => Promise.resolve([['installation_data'], null])),
@@ -257,6 +266,67 @@ describe('Applied Status', () => {
       GITHUB_PROD_REQUESTED_MESSAGE,
     ]);
   });
+
+  it('should display BCSC-prod-DC-prod-integration screen', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['idir', 'bcservicescard', 'digitalcredential'],
+          lastChanges: null,
+          digitalCredentialApproved: false,
+          bcServicesCardApproved: false,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectAllTexts([
+      INSTALLATION_LABEL,
+      BCSC_PROD_LABEL,
+      BCSC_PROD_REQUESTED_MESSAGE,
+      DC_PROD_LABEL,
+      DC_PROD_REQUESTED_MESSAGE,
+    ]);
+    notExpectAllTexts([
+      DRAFT_MESSAGE,
+      PROGRESS_MESSAGE,
+      BCSC_PROD_APPROVED,
+      BCSC_PROD_AVAILABLE,
+      DC_PROD_APPROVED,
+      DC_PROD_AVAILABLE,
+    ]);
+  });
+
+  it('should display BCSC-prod-DC-prod-approved integration screen', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['idir', 'bcservicescard', 'digitalcredential'],
+          lastChanges: null,
+          digitalCredentialApproved: true,
+          bcServicesCardApproved: true,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectAllTexts([INSTALLATION_LABEL, BCSC_PROD_LABEL, DC_PROD_LABEL]);
+    expect(screen.getAllByText(BCSC_PROD_AVAILABLE)).toBeTruthy();
+    notExpectAllTexts([
+      DRAFT_MESSAGE,
+      PROGRESS_MESSAGE,
+      BCSC_PROD_APPROVED,
+      BCSC_PROD_REQUESTED_MESSAGE,
+      DC_PROD_APPROVED,
+      DC_PROD_REQUESTED_MESSAGE,
+    ]);
+  });
 });
 
 describe('Applied Status header, button and link test', () => {
@@ -267,7 +337,7 @@ describe('Applied Status header, button and link test', () => {
           status: 'applied',
           authType: 'browser-login',
           environments: ['dev', 'test'],
-          devIdps: ['idir', 'bceidbasic', 'githubpublic'],
+          devIdps: ['idir', 'bceidbasic', 'githubpublic', 'digitalcredential', 'bcservicescard'],
           lastChanges: null,
           bceidApproved: false,
           githubApproved: false,
