@@ -10,7 +10,18 @@ import { IntegrationData } from '@lambda-shared/interfaces';
 jest.mock('@lambda-app/controllers/bc-services-card', () => {
   return {
     getPrivacyZones: jest.fn(() => Promise.resolve([{ privacy_zone_uri: 'zone', privacy_zone_name: 'zone' }])),
-    getAttributes: jest.fn(() => Promise.resolve([{ name: 'attr' }])),
+    getAttributes: jest.fn(() =>
+      Promise.resolve([
+        {
+          name: 'age',
+          scope: 'profile',
+        },
+        {
+          name: 'postal_code',
+          scope: 'address',
+        },
+      ]),
+    ),
   };
 });
 
@@ -148,13 +159,37 @@ describe('BCSC', () => {
     await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createClientScopeMapper).not.toHaveBeenCalled();
   });
+
+  it('Adds in the address claim to the userinfo mapper when requesting any claim with an address scope', async () => {
+    spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
+
+    // Only including postal code. See mock above which includes address scope on this claim.
+    await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['postal_code'] }, 1);
+    expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+
+    // Get the arguments supplied to createClientScopeMapper
+    const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
+    expect(mapperArgs.protocolMapperConfig.userAttributes.includes('address')).toBe(true);
+  });
+
+  it('Does not add in the address claim to the userinfo mapper when no claim requires the address scope', async () => {
+    spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
+
+    // Only including postal code. See mock above which includes address scope on this claim.
+    await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['age'] }, 1);
+    expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+
+    // Get the arguments supplied to createClientScopeMapper
+    const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
+    expect(mapperArgs.protocolMapperConfig.userAttributes.includes('address')).toBe(false);
+  });
 });
 
 const bcscProdIntegration: IntegrationData = {
   ...formDataProd,
   devIdps: ['bcservicescard', 'idir'],
   bcscPrivacyZone: 'zone',
-  bcscAttributes: ['attr'],
+  bcscAttributes: ['age'],
   primaryEndUsers: [],
   devHomePageUri: 'https://example.com',
   testHomePageUri: 'https://example.com',
