@@ -233,5 +233,10 @@ export const getRequiredBCSCScopes = async (claims) => {
   }
   const allClaims = cachedClaims;
   const requiredScopes = allClaims.filter((claim) => claims.includes(claim.name)).map((claim) => claim.scope);
+
+  // Profile will always be a required scope since the sub depends on it
+  if (!requiredScopes.includes('profile')) {
+    requiredScopes.push('profile');
+  }
   return ['openid', ...new Set(requiredScopes)].join(' ');
 };
