@@ -184,7 +184,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:widget': ClientTypeWidget,
     },
     protocol: {
-      'ui:widget': 'radio',
+      'ui:widget': TooltipRadioWidget,
       'ui:default': 'oidc',
       'ui:readonly': isApplied,
     },

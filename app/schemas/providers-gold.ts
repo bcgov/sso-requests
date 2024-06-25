@@ -28,6 +28,16 @@ export default function getSchema(
     tooltip: {
       content: 'The OpenID Connect (OIDC) client protocol is recommended.',
     },
+    tooltips: [
+      null,
+      {
+        content: `To read more about SAML connestions, see
+        <a href="${formatWikiURL(
+          'Useful-References',
+        )}#learn-about-the-open-id-connect-and-oauth-protocols" target="_blank" title="References">here</a>.`,
+        hide: 3000,
+      },
+    ],
   };
 
   const privacyZonesSchema = {
@@ -187,8 +197,7 @@ export default function getSchema(
       type: 'string',
       title: 'Additional Role Attribute(optional)',
       tooltip: {
-        content: `by default "client_roles" is the default attribute key name to include roles info, if you wish to include same info in another attribute, then use this'
-        }`,
+        content: `By default "client_roles" is the default attribute key name to include roles info, if you wish to include same info in another attribute, then use this.`,
       },
       maxLength: 50,
     };
