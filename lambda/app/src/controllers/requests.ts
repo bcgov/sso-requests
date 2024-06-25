@@ -336,6 +336,12 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     clientScope = await createClientScope(clientScopeData);
   }
 
+  let userAttributes = integration.bcscAttributes.join(',');
+  // When requesting any claim under the address scope, the address claim must also be included for it to be on the token.
+  if (requiredScopes.includes('address') && !integration.bcscAttributes.includes('address')) {
+    userAttributes += ',address';
+  }
+
   await getClientScopeMapper({
     environment: env,
     scopeId: clientScope.id,
@@ -351,7 +357,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
         protocolMapperName: 'attributes',
         protocolMapperConfig: {
           signatureExpected: true,
-          userAttributes: integration.bcscAttributes?.join(','),
+          userAttributes,
           'claim.name': 'attributes',
           'jsonType.label': 'String',
           'id.token.claim': true,
