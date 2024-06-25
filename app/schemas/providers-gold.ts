@@ -2,7 +2,7 @@ import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
 import { idpMap } from '@app/helpers/meta';
 import getConfig from 'next/config';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard } from '@app/helpers/integration';
 
@@ -31,10 +31,7 @@ export default function getSchema(
     tooltips: [
       null,
       {
-        content: `To read more about SAML connections, see
-        <a href="${formatWikiURL(
-          'Useful-References',
-        )}#learn-about-the-open-id-connect-and-oauth-protocols" target="_blank" title="References">here</a>.`,
+        content: `To read more about SAML configuration options and limitations, see <a href="${docusaurusURL}/integrating-your-application/saml" target="_blank" title="SAML Integrations">here</a>.`,
         hide: 3000,
       },
     ],
