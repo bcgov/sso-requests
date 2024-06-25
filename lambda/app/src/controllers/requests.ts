@@ -274,7 +274,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     await createIdp(
       {
         alias: integration.clientId,
-        displayName: `BC Services Card - ${integration.clientId}`,
+        displayName: `BC Services Card`,
         enabled: true,
         storeToken: true,
         providerId: 'oidc',

@@ -49,6 +49,7 @@ function BcscAttributesWidget(props: WidgetProps) {
           noOptionsMessage={() => 'No attributes found...'}
           isClearable={true}
           isDisabled={disabled}
+          closeMenuOnSelect={false}
           styles={{
             control: (base, state) => ({
               ...base,
