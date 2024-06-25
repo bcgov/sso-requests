@@ -31,7 +31,7 @@ export default function getSchema(
     tooltips: [
       null,
       {
-        content: `To read more about SAML connestions, see
+        content: `To read more about SAML connections, see
         <a href="${formatWikiURL(
           'Useful-References',
         )}#learn-about-the-open-id-connect-and-oauth-protocols" target="_blank" title="References">here</a>.`,
