@@ -464,7 +464,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const environments = selectedRequest?.environments || [];
   const idps = (selectedRequest?.devIdps || []) as IDPS[];
   const searchTooltip =
-    selectedProperty === 'guid' || selectedIdp.startsWith('bceid')
+    selectedProperty === 'guid' || selectedIdp?.startsWith('bceid')
       ? 'Exact text match results will be displayed'
       : 'Partial text match results will be displayed';
 

@@ -46,7 +46,7 @@ import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
 import { wakeUpAll } from './controllers/heartbeat';
 import { bulkCreateRole, getCompositeClientRoles, setCompositeClientRoles } from './keycloak/users';
-import { searchIdirUsers, importIdirUser, fuzzySearchIdirEmail } from './bceid-webservice-proxy/idir';
+import { searchIdirUsers, importIdirUser, searchIdirEmail } from './ms-graph/idir';
 import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
@@ -505,8 +505,9 @@ export const setRoutes = (app: any) => {
 
   app.post(`/bceid-webservice/idir/search`, async (req, res) => {
     try {
-      const result = await searchIdirUsers((req.session as Session).bearerToken, req.body);
-      res.status(200).json(result);
+      const result = await searchIdirUsers(req.body);
+      if (!result) res.status(404).send();
+      else res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
@@ -514,7 +515,8 @@ export const setRoutes = (app: any) => {
 
   app.post(`/bceid-webservice/idir/import`, async (req, res) => {
     try {
-      const result = await importIdirUser((req.session as Session).bearerToken, req.body);
+      const result = await importIdirUser(req.body);
+      if (!result) res.status(404).send();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -528,7 +530,7 @@ export const setRoutes = (app: any) => {
         res.status(400).send('Must include email query parameter');
         return;
       }
-      const result = await fuzzySearchIdirEmail(email);
+      const result = await searchIdirEmail(email);
       res.status(200).send(result);
     } catch (err) {
       handleError(res, err);
