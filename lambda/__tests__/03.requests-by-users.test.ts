@@ -25,7 +25,7 @@ import { buildIntegration } from './helpers/modules/common';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { EVENTS } from '@lambda-shared/enums';
 import { keycloakClient } from '../app/src/keycloak/integration';
-import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
+import { validateIdirEmail } from '@lambda-app/ms-graph/idir';
 
 const integrationRoles = [
   {

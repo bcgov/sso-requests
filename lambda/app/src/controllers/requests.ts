@@ -50,7 +50,7 @@ import {
   samlSignedAssertions,
 } from '@app/schemas';
 import pick from 'lodash.pick';
-import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
+import { validateIdirEmail } from '@lambda-app/ms-graph/idir';
 import { BCSCClientParameters, createBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
 import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
 import {
