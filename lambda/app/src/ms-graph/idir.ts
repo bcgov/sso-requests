@@ -34,8 +34,6 @@ export async function getAzureAccessToken() {
 
 /**
  * Search idir users by email via the azure graph api
- * @param endpoint - The url to hit
- * @returns
  */
 export async function callAzureGraphApi(endpoint: string) {
   const accessToken = await getAzureAccessToken();
@@ -83,7 +81,7 @@ const formatUser = (data: MsGraphUserValue) => {
   return { guid, userId, email, firstName, lastName, displayName, company, phone, department, jobTitle };
 };
 
-/** Search for an IDIR user by any field and value. */
+/** Search for an IDIR user by any field and value. Search expects the actual value to start with the provided value. */
 export const searchIdirUsers = async ({ field, search }: { field: string; search: string }) => {
   const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(${field},'${search}')&$top=25&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone`;
   try {
@@ -96,7 +94,7 @@ export const searchIdirUsers = async ({ field, search }: { field: string; search
   }
 };
 
-/** Import a user into the keycloak instances */
+/** Import a user into the keycloak instances for all envs. */
 export const importIdirUser = async ({ guid, userId }: { guid: string; userId: string }) => {
   const url = `${MS_GRAPH_URL}/v1.0/users?$filter=mailNickname eq '${userId}'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname`;
   const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
