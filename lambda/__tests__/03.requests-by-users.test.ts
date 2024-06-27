@@ -72,9 +72,9 @@ const AZURE_EMAIL_RESPONSE = {
   family_name: 'Doe',
 };
 
-jest.mock('../app/src/bceid-webservice-proxy/idir', () => {
+jest.mock('../app/src/ms-graph/idir', () => {
   return {
-    fuzzySearchIdirEmail: jest.fn(() => Promise.resolve(AZURE_FUZZY_SEARCH_RESPONSE)),
+    searchIdirEmail: jest.fn(() => Promise.resolve(AZURE_FUZZY_SEARCH_RESPONSE)),
     validateIdirEmail: jest.fn(() => Promise.resolve(AZURE_EMAIL_RESPONSE)),
   };
 });

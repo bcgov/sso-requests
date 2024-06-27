@@ -7,9 +7,9 @@ jest.mock('../app/src/authenticate');
 
 const AZURE_RESPONSE = ['some.user@email.com'];
 
-jest.mock('../app/src/bceid-webservice-proxy/idir', () => {
+jest.mock('../app/src/ms-graph/idir', () => {
   return {
-    fuzzySearchIdirEmail: jest.fn(() => Promise.resolve(AZURE_RESPONSE)),
+    searchIdirEmail: jest.fn(() => Promise.resolve(AZURE_RESPONSE)),
   };
 });
 
