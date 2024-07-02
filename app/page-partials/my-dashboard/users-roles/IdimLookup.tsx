@@ -11,7 +11,7 @@ const propertyOptions = [
   { value: 'givenName', label: 'First Name', allowed: ['idir'] },
   { value: 'surname', label: 'Last Name', allowed: ['idir'] },
   { value: 'mail', label: 'Email', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
-  { value: 'userId', label: 'Username', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
+  { value: 'mailNickname', label: 'Username', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
   { value: 'guid', label: 'IDP GUID', allowed: ['bceidbasic', 'bceidbusiness'] },
 ];
 
