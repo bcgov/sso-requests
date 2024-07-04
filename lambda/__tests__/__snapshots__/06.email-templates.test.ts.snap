@@ -46,6 +46,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>BC Services Card<br />
+
 <strong>Privacy Zone:</strong> zone <br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
@@ -94,6 +95,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>BC Services Card<br />
+
 <strong>Privacy Zone:</strong> zone <br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
@@ -543,6 +545,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>BC Services Card<br />
+
 <strong>Privacy Zone:</strong> zone <br />
 <strong>Environments: </strong>Development, Test, Production<br />
 <strong>Accountable person(s): </strong>Test User<br />
@@ -1040,6 +1043,7 @@ exports[`Email template snapshots Should return the expected email for PROD_APPR
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>BC Services Card<br />
+
 <strong>Privacy Zone:</strong> zone <br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
@@ -1688,6 +1692,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>BC Services Card<br />
+
 <strong>Privacy Zone:</strong> zone <br />
 <strong>Environments: </strong>Development, Test, Production<br />
 <strong>Accountable person(s): </strong>Test User<br />
