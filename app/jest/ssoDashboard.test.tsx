@@ -2,7 +2,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AdminDashboard from 'pages/admin-dashboard';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
-import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest } from 'services/request';
+import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, getRequestAll } from 'services/request';
+
+const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
+const MOCK_PRIVACY_ZONE_NAME = 'uniqueZoneName';
 
 const sampleSession = {
   email: '',
@@ -52,6 +55,15 @@ jest.mock('services/event', () => {
 jest.mock('services/user', () => {
   return {
     getIdirUsersByEmail: jest.fn(() => Promise.resolve([[{ mail: MOCK_EMAIL, id: 1 }]])),
+  };
+});
+
+jest.mock('services/bc-services-card', () => {
+  return {
+    ...jest.requireActual('services/bc-services-card'),
+    fetchPrivacyZones: jest.fn(() =>
+      Promise.resolve([[{ privacy_zone_uri: MOCK_PRIVACY_ZONE_URI, privacy_zone_name: MOCK_PRIVACY_ZONE_NAME }]]),
+    ),
   };
 });
 
@@ -265,6 +277,53 @@ describe('SSO Dashboard', () => {
     //test on confirm button
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(updateRequestMetadata).toHaveBeenCalled();
+  });
+
+  it('Displays the privacy zone name in the request details for BCSC integrations', async () => {
+    (getRequestAll as jest.Mock).mockImplementationOnce(() => {
+      return Promise.resolve([
+        {
+          count: 1,
+          rows: [
+            {
+              ...sampleRequest,
+              projectName: 'testProject',
+              devIdps: ['bcservicescard'],
+              bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
+            },
+          ],
+        },
+      ]);
+    });
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+    await waitFor(() => {
+      screen.getByText('testProject');
+    });
+
+    const firstRow = screen.getByText('testProject');
+    fireEvent.click(firstRow);
+    const privacyZoneElement = screen.queryByText('Privacy Zone:');
+    expect(privacyZoneElement).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(MOCK_PRIVACY_ZONE_NAME)).toBeInTheDocument();
+    });
+  });
+
+  it('Does not display the privacy zone name in the request details for other integrations', async () => {
+    (getRequestAll as jest.Mock).mockImplementationOnce(() => {
+      return Promise.resolve([
+        { count: 1, rows: [{ ...sampleRequest, projectName: 'testProject', devIdps: ['idir'] }] },
+      ]);
+    });
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+    await waitFor(() => {
+      screen.getByText('testProject');
+    });
+    const firstRow = screen.getByText('testProject');
+    fireEvent.click(firstRow);
+    const privacyZoneElement = screen.queryByText('Privacy Zone:');
+    expect(privacyZoneElement).not.toBeInTheDocument();
   });
 
   it('testing on Events tab', async () => {

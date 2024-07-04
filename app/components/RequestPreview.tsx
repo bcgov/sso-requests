@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';
 import { Team } from 'interfaces/team';
 import { idpMap } from 'helpers/meta';
+import { usesBcServicesCard } from '@app/helpers/integration';
 
 const Table = styled.table`
   font-size: unset;
@@ -94,13 +95,15 @@ interface Props {
   request: Integration;
   teams?: Team[];
   children?: React.ReactNode;
+  privacyZone?: string;
 }
 
-function RequestPreview({ children, request, teams = [] }: Props) {
+function RequestPreview({ children, request, teams = [], privacyZone }: Props) {
   if (!request) return null;
   const idpDisplay = request.devIdps ?? [];
   const isOIDC = request.protocol !== 'saml';
   const fullIdpDisplay = idpDisplay.map((name: any) => idpMap[name]);
+  const hasBCSC = usesBcServicesCard(request);
 
   let teamName = '';
   if (request.usesTeam) {
@@ -171,6 +174,14 @@ function RequestPreview({ children, request, teams = [] }: Props) {
             </tr>
           )}
           <FormattedList list={fullIdpDisplay} title="Identity Providers Required:" inline testid="idp-required" />
+          {hasBCSC && (
+            <tr>
+              <td>Privacy Zone:</td>
+              <td>
+                <SemiBold>{privacyZone || 'Unavailable'}</SemiBold>
+              </td>
+            </tr>
+          )}
           {request.environments?.includes('dev') && (
             <FormattedList list={request.devValidRedirectUris} title="Dev Redirect URIs:" testid="dev-uri" />
           )}
