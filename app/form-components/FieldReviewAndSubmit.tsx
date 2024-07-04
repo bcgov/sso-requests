@@ -1,11 +1,9 @@
 import React from 'react';
-import styled from 'styled-components';
 import { FieldTemplateProps } from 'react-jsonschema-form';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import RequestPreview from 'components/RequestPreview';
-import { usesBceid } from '@app/helpers/integration';
+import { getPrivacyZoneDisplayName, usesBceid } from '@app/helpers/integration';
 import FieldTemplate from './FieldTemplate';
-import { BcscPrivacyZone } from '@app/interfaces/types';
 
 export default function FieldReviewAndSubmit(props: FieldTemplateProps) {
   const { formContext } = props;
@@ -13,14 +11,11 @@ export default function FieldReviewAndSubmit(props: FieldTemplateProps) {
 
   const hasBceid = usesBceid(formData);
   const hasBceidProd = hasBceid && formData.environments?.includes('prod');
-  const privacyZone = formContext.bcscPrivacyZones?.find(
-    (zone: BcscPrivacyZone) => zone?.privacy_zone_uri === formData.bcscPrivacyZone,
-  );
-
+  const privacyZoneName = getPrivacyZoneDisplayName(formContext.bcscPrivacyZones, formData.bcscPrivacyZone);
   const top = (
     <div>
       <NumberedContents title="Please review your information to make sure it is correct." number={1}>
-        <RequestPreview request={formData} teams={teams} privacyZone={privacyZone?.privacy_zone_name} />
+        <RequestPreview request={formData} teams={teams} privacyZone={privacyZoneName} />
       </NumberedContents>
 
       <NumberedContents

@@ -6,6 +6,7 @@ import MetadataEditModal from 'page-partials/admin-dashboard/MetadataEditModal';
 import { LoggedInUser } from 'interfaces/team';
 import { fetchPrivacyZones } from '@app/services/bc-services-card';
 import { BcscPrivacyZone } from '@app/interfaces/types';
+import { getPrivacyZoneDisplayName } from '@app/helpers/integration';
 
 const EventContent = styled.div`
   max-height: calc(100vh - 250px);
@@ -31,8 +32,8 @@ export default function AdminRequestPanel({ currentUser, request, onUpdate }: Pr
   }, []);
 
   useEffect(() => {
-    const bcscPrivacyZone = privacyZones.find((zone) => zone.privacy_zone_uri === request?.bcscPrivacyZone);
-    setPrivacyZoneName(bcscPrivacyZone?.privacy_zone_name || '');
+    const bcscPrivacyZone = getPrivacyZoneDisplayName(privacyZones, request?.bcscPrivacyZone);
+    setPrivacyZoneName(bcscPrivacyZone);
   }, [request?.id, privacyZones]);
 
   if (!request) return null;

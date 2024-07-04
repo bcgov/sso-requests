@@ -178,7 +178,7 @@ function RequestPreview({ children, request, teams = [], privacyZone }: Readonly
             <tr>
               <td>Privacy Zone:</td>
               <td>
-                <SemiBold>{privacyZone || 'Unavailable'}</SemiBold>
+                <SemiBold>{privacyZone}</SemiBold>
               </td>
             </tr>
           )}

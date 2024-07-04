@@ -3,6 +3,7 @@ import AdminDashboard from 'pages/admin-dashboard';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
 import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, getRequestAll } from 'services/request';
+import { bcscPrivacyZones } from '@app/utils/constants';
 
 const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
 const MOCK_PRIVACY_ZONE_NAME = 'uniqueZoneName';
@@ -279,19 +280,19 @@ describe('SSO Dashboard', () => {
     expect(updateRequestMetadata).toHaveBeenCalled();
   });
 
+  const bcscRequest = {
+    ...sampleRequest,
+    projectName: 'testProject',
+    devIdps: ['bcservicescard'],
+    bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
+  };
+
   it('Displays the privacy zone name in the request details for BCSC integrations', async () => {
     (getRequestAll as jest.Mock).mockImplementationOnce(() => {
       return Promise.resolve([
         {
           count: 1,
-          rows: [
-            {
-              ...sampleRequest,
-              projectName: 'testProject',
-              devIdps: ['bcservicescard'],
-              bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
-            },
-          ],
+          rows: [bcscRequest],
         },
       ]);
     });
@@ -307,6 +308,32 @@ describe('SSO Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText(MOCK_PRIVACY_ZONE_NAME)).toBeInTheDocument();
+    });
+  });
+
+  it('Falls back to check the privacy zone constant for privacy zone name in the request details for BCSC integrations if not in api result', async () => {
+    const constantZone = bcscPrivacyZones()[0];
+    (getRequestAll as jest.Mock).mockImplementationOnce(() => {
+      return Promise.resolve([
+        {
+          count: 1,
+          // Returning a URI not avaiable on the mocked privacy-zones result
+          rows: [{ ...bcscRequest, bcscPrivacyZone: constantZone.privacy_zone_uri }],
+        },
+      ]);
+    });
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+    await waitFor(() => {
+      screen.getByText('testProject');
+    });
+
+    const firstRow = screen.getByText('testProject');
+    fireEvent.click(firstRow);
+    const privacyZoneElement = screen.queryByText('Privacy Zone:');
+    expect(privacyZoneElement).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(constantZone.privacy_zone_name)).toBeInTheDocument();
     });
   });
 
