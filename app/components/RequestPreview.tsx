@@ -98,7 +98,7 @@ interface Props {
   privacyZone?: string;
 }
 
-function RequestPreview({ children, request, teams = [], privacyZone }: Props) {
+function RequestPreview({ children, request, teams = [], privacyZone }: Readonly<Props>) {
   if (!request) return null;
   const idpDisplay = request.devIdps ?? [];
   const isOIDC = request.protocol !== 'saml';
