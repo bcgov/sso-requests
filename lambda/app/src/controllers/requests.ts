@@ -430,6 +430,13 @@ export const updateRequest = async (
       throw Error('unauthorized request');
     }
 
+    if (current.status === 'applied') {
+      // if integration in applied state do not allow changes to environments and team
+      rest.environments = originalData.environments;
+      rest.usesTeam = originalData.usesTeam;
+      rest.projectLead = originalData.projectLead;
+    }
+
     const allowedData = processRequest(rest, isMerged, userIsAdmin);
     assign(current, allowedData);
 
@@ -446,6 +453,33 @@ export const updateRequest = async (
 
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
     if (isApprovingBCSC && !userIsAdmin) throw Error('unauthorized request');
+
+    if (originalData.bceidApproved) {
+      // given approved, if adding/changing existing bceid idps throw error
+      const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
+      if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('bceid')))
+        throw Error('unauthorized request');
+    }
+
+    if (originalData.githubApproved) {
+      // given approved, if adding/changing existing github idps throw error
+      const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
+      if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('github')))
+        throw Error('unauthorized request');
+    }
+
+    if (originalData.digitalCredentialApproved) {
+      // given approved, if removing existing digital credential idp throw error
+      if (!current.devIdps.find((idp: string) => idp === 'digitalcredential')) throw Error('unauthorized request');
+    }
+
+    if (originalData.bcServicesCardApproved) {
+      // given approved, if removing existing bc services card idp throw error
+      if (!current.devIdps.find((idp: string) => idp === 'bcservicescard')) throw Error('unauthorized request');
+      // keep bcsc attributes and privacy zone in sync with original data
+      current.bcscAttributes = originalData.bcscAttributes!;
+      current.bcscPrivacyZone = originalData.bcscPrivacyZone!;
+    }
 
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
