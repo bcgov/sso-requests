@@ -23,6 +23,7 @@ import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
 import { getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
+import { getPrivacyZoneDisplayName } from '@app/helpers/integration';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -75,7 +76,7 @@ export const getPrivacyZoneName = async (uri?: string) => {
   try {
     if (!uri) return null;
     const zones = await getPrivacyZones();
-    return zones.find((zone) => zone.privacy_zone_uri === uri)?.privacy_zone_name;
+    return getPrivacyZoneDisplayName(zones, uri);
   } catch (e) {
     console.error(e);
     return 'Unavailable';

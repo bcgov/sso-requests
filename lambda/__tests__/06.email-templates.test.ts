@@ -14,6 +14,7 @@ import { generateInvitationToken } from '@lambda-app/helpers/token';
 import { createTeam, verifyTeamMember } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { bcscPrivacyZones } from '@app/utils/constants';
 
 const MOCK_PRIVACY_ZONE_URI = 'zone';
 
@@ -163,6 +164,23 @@ describe('Email template snapshots', () => {
         testIdps: ['bcservicescard'],
         prodIdps: ['bcservicescard'],
         bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
+      },
+      waitingBcServicesCardProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ BC Services Card with fallback privacy zone', async () => {
+    const constantZone = bcscPrivacyZones()[0];
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: {
+        ...formDataProd,
+        devIdps: ['bcservicescard'],
+        testIdps: ['bcservicescard'],
+        prodIdps: ['bcservicescard'],
+        bcscPrivacyZone: constantZone.privacy_zone_uri,
       },
       waitingBcServicesCardProdApproval: true,
     });
