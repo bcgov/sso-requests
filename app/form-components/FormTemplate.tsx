@@ -457,7 +457,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         onChange={handleChange}
         onSubmit={handleFormSubmit}
         formData={formData}
-        formContext={{ isAdmin, teams, formData, setFormData, loadTeams }}
+        formContext={{ isAdmin, teams, formData, setFormData, loadTeams, bcscPrivacyZones }}
         FieldTemplate={FieldTemplate}
         ArrayFieldTemplate={ArrayFieldTemplate}
         liveValidate={visited[formStage] || isApplied}

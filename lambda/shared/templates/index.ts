@@ -22,6 +22,8 @@ import surveyCompleted from './survey-completed-notification';
 import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
+import { getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
+import { getPrivacyZoneDisplayName } from '@app/helpers/integration';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -70,6 +72,17 @@ const getRolePrivelege = (role: string) => {
   return 'view';
 };
 
+export const getPrivacyZoneName = async (uri?: string) => {
+  try {
+    if (!uri) return null;
+    const zones = await getPrivacyZones();
+    return getPrivacyZoneDisplayName(zones, uri);
+  } catch (e) {
+    console.error(e);
+    return 'Unavailable';
+  }
+};
+
 const capitalize = (word: string) => word[0].toUpperCase() + word.slice(1).toLowerCase();
 
 Handlebars.registerPartial('footer', footer);
@@ -89,6 +102,7 @@ Handlebars.registerPartial('bceidWarning', bceidWarning);
 Handlebars.registerHelper('formatPrimaryUsers', formatPrimaryUsers);
 Handlebars.registerHelper('getRolePrivelege', getRolePrivelege);
 Handlebars.registerHelper('capitalize', capitalize);
+Handlebars.registerHelper('getPrivacyZoneName', getPrivacyZoneName);
 
 const getBuilder = (key: string) => {
   let builder = { render: (v) => v, send: noop };
