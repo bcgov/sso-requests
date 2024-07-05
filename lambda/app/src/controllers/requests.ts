@@ -50,8 +50,8 @@ import {
   samlSignedAssertions,
 } from '@app/schemas';
 import pick from 'lodash.pick';
-import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
-import { BCSCClientParameters, createBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
+import { validateIdirEmail } from '@lambda-app/ms-graph/idir';
+import { BCSCClientParameters, createBCSCClient, deleteBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
 import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
 import {
   createClientScope,
@@ -254,6 +254,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     bcscClientSecret = clientResponse.data.client_secret;
     bcscClientId = clientResponse.data.client_id;
   } else if (bcscClient.archived) {
+    // TODO: currently need to have the BCSC team manually re-enable client when restoring (as of July 2024). Once api route for enabling is available should be added here.
     await models.bcscClient.update(
       {
         archived: false,
@@ -370,7 +371,12 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
-  // Keeping the bcsc client for restoration if needed. Just setting it as archived.
+  await deleteBCSCClient({
+    clientId: request.clientId,
+    registrationToken: request.registrationAccessToken,
+    environment: request.environment,
+  });
+
   await models.bcscClient.update(
     {
       archived: true,

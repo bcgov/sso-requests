@@ -57,6 +57,10 @@ Only users with IDIR with or without MFA are allowed to login and request for an
 - The user can add team members to his team and grant them either `admin` or `member` role
 - The pathfinder team members have the super-admin permissions, where they have access to all the requested integrations and teams.
 
+#### Microsoft Graph Service
+
+For getting details on IDIR users (e.g valid user lookups, importing into keycloak) we are using Microsoft Graph. For details on implementation see [here](/lambda/app/src/ms-graph/idir.ts).
+
 ## Local Development Environment
 
 To setup a local development environment, a detailed guide may be found [here](./docs/developer-guide.md).

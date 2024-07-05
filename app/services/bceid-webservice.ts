@@ -1,31 +1,16 @@
 import { instance } from './axios';
 
 export interface IdirUser {
-  guid: string;
+  company: string;
+  phone: string;
+  department: string;
+  jobTitle: string;
   userId: string;
+  guid: string;
+  email: string;
+  firstName: string;
+  lastName: string;
   displayName: string;
-  contact: {
-    email: string;
-    telephone: string;
-  };
-  individualIdentity: {
-    name: {
-      firstname: string;
-      middleName: string;
-      otherMiddleName: string;
-      surname: string;
-      initials: string;
-    };
-  };
-  internalIdentity: {
-    company: string;
-    department: string;
-    title: string;
-    description: string;
-    employeeId: string;
-    office: string;
-    organizationCode: string;
-  };
 }
 
 export const searchIdirUsers = async ({

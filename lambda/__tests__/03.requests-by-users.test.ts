@@ -25,7 +25,7 @@ import { buildIntegration } from './helpers/modules/common';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { EVENTS } from '@lambda-shared/enums';
 import { keycloakClient } from '../app/src/keycloak/integration';
-import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
+import { validateIdirEmail } from '@lambda-app/ms-graph/idir';
 
 const integrationRoles = [
   {
@@ -72,9 +72,9 @@ const AZURE_EMAIL_RESPONSE = {
   family_name: 'Doe',
 };
 
-jest.mock('../app/src/bceid-webservice-proxy/idir', () => {
+jest.mock('../app/src/ms-graph/idir', () => {
   return {
-    fuzzySearchIdirEmail: jest.fn(() => Promise.resolve(AZURE_FUZZY_SEARCH_RESPONSE)),
+    searchIdirEmail: jest.fn(() => Promise.resolve(AZURE_FUZZY_SEARCH_RESPONSE)),
     validateIdirEmail: jest.fn(() => Promise.resolve(AZURE_EMAIL_RESPONSE)),
   };
 });
