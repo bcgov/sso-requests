@@ -436,9 +436,13 @@ export const updateRequest = async (
       throw Error('unauthorized request');
     }
 
-    if (current.status === 'applied') {
+    if (originalData.status === 'applied') {
       // if integration in applied state do not allow changes to environments and team
-      rest.environments = originalData.environments;
+      rest.environments = originalData.environments.concat(
+        rest.environments.filter((env) => {
+          if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
+        }),
+      );
       rest.usesTeam = originalData.usesTeam;
       rest.projectLead = originalData.projectLead;
     }
