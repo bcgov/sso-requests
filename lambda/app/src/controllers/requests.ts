@@ -445,6 +445,9 @@ export const updateRequest = async (
       );
       rest.usesTeam = originalData.usesTeam;
       rest.projectLead = originalData.projectLead;
+      if (originalData.devIdps.includes('bcservicescard')) {
+        rest.bcscPrivacyZone = originalData.bcscPrivacyZone;
+      }
     }
 
     const allowedData = processRequest(rest, isMerged, userIsAdmin);
@@ -485,10 +488,10 @@ export const updateRequest = async (
 
     if (originalData.bcServicesCardApproved) {
       // given approved, if removing existing bc services card idp throw error
-      if (!current.devIdps.find((idp: string) => idp === 'bcservicescard')) throw Error('unauthorized request');
+      if (!current.devIdps.find((idp: string) => idp === 'bcservicescard'))
+        throw Error('cannot remove bc services card');
       // keep bcsc attributes and privacy zone in sync with original data
       current.bcscAttributes = originalData.bcscAttributes!;
-      current.bcscPrivacyZone = originalData.bcscPrivacyZone!;
     }
 
     const allowedTeams = await getAllowedTeams(user, { raw: true });

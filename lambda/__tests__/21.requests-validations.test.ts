@@ -252,11 +252,14 @@ describe('integration validations', () => {
         {
           ...getUpdateIntegrationData({ integration: bcServicesCardIntegration }),
           bcServicesCardApproved: true,
+          bcscPrivacyZone: 'zone2',
         },
         true,
       );
       expect(approvedRes.status).toEqual(200);
       bcServicesCardIntegration = approvedRes.body;
+
+      expect(approvedRes.body.bcscPrivacyZone).toEqual('zone1'); // unchanged
 
       const filterBcscIdp = ['idir'];
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
