@@ -27,10 +27,18 @@ interface Props {
 const envs = ['dev', 'test', 'prod'];
 
 const getUISchema = ({ integration, formData, isAdmin }: Props) => {
-  const { id, status, devIdps = [], environments = [], bceidApproved = false } = integration || {};
+  const {
+    id,
+    status,
+    devIdps = [],
+    environments = [],
+    bceidApproved = false,
+    bcServicesCardApproved = false,
+  } = integration || {};
   const isNew = isNil(id);
   const isApplied = status === 'applied';
-  const disableBcscUpdate = integration?.devIdps?.includes('bcservicescard') && integration?.status !== 'draft';
+  const disableBcscUpdateApplied = integration?.devIdps?.includes('bcservicescard') && status !== 'draft';
+  const disableBcscUpdateApproved = integration?.devIdps?.includes('bcservicescard') && bcServicesCardApproved;
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
   let idpDisabled: string[] = [];
@@ -41,7 +49,8 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       devIdps.forEach((idp) => {
         if (checkBceidGroup(idp)) {
           if (bceidApproved) idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
-        } else if (checkGithubGroup(idp)) {
+        }
+        if (checkGithubGroup(idp)) {
           idpDisabled.push('githubpublic', 'githubbcgov');
         }
 
@@ -67,11 +76,11 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     bcscPrivacyZone: {
       'ui:widget': BcscPrivacyZoneWidget,
       classNames: 'short-field-string',
-      'ui:disabled': disableBcscUpdate,
+      'ui:disabled': disableBcscUpdateApplied,
     },
     bcscAttributes: {
       'ui:widget': BcscAttributesWidget,
-      'ui:disabled': disableBcscUpdate,
+      'ui:disabled': disableBcscUpdateApproved,
     },
   };
 
