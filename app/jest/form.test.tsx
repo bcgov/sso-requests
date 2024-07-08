@@ -87,9 +87,9 @@ const setUpRender = (request: Integration | object | null, currentUser = {}) => 
 
 const samplePage3Request = {
   id: 0,
-  devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-  testValidRedirectUris: ['http://test.com'],
-  prodValidRedirectUris: ['http://prod.com'],
+  devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+  testValidRedirectUris: ['https://test.com'],
+  prodValidRedirectUris: ['https://prod.com'],
   serviceType: 'gold',
 };
 
@@ -588,9 +588,9 @@ describe('BC Services Card IDP and dependencies', () => {
       devIdps: ['bcservicescard'],
       status: 'draft',
       environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
-      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
     });
     fireEvent.click(sandbox.basicInfoBox);
 
@@ -616,9 +616,9 @@ describe('BC Services Card IDP and dependencies', () => {
       devIdps: ['bcservicescard', 'bceidbasic'],
       status: 'draft',
       environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
-      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
     });
     fireEvent.click(sandbox.basicInfoBox);
 
@@ -659,9 +659,9 @@ describe('BC Services Card IDP and dependencies', () => {
       devIdps: ['bcservicescard', 'bceidbasic'],
       status: 'applied',
       environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
-      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
       bcServicesCardApproved: false,
     });
     fireEvent.click(sandbox.basicInfoBox);
@@ -686,9 +686,9 @@ describe('BC Services Card IDP and dependencies', () => {
       devIdps: ['bcservicescard', 'bceidbasic'],
       status: 'applied',
       environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
-      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
       bcServicesCardApproved: true,
     });
     fireEvent.click(sandbox.basicInfoBox);
