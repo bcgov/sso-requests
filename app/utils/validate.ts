@@ -53,9 +53,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     prodSessionMaxLifespan,
     authType,
     publicAccess,
-    devHomePageUri = '',
-    testHomePageUri = '',
-    prodHomePageUri = '',
     bcscPrivacyZone,
     bcscAttributes = [],
   } = formData;

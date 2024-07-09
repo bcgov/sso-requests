@@ -39,7 +39,7 @@ const getBCSCContacts = async (integration: IntegrationData) => {
 export const createBCSCClient = async (data: BCSCClientParameters, integration: IntegrationData, userId: number) => {
   const contacts = await getBCSCContacts(integration);
   const { bcscBaseUrl, kcBaseUrl, accessToken } = getBCSCEnvVars(data.environment);
-  const jwksUri = `${kcBaseUrl}/realms/standard/protocol/openid-connect/certs`;
+  const jwksUri = `${kcBaseUrl}/auth/realms/standard/protocol/openid-connect/certs`;
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
 
   const result = await axios.post(
