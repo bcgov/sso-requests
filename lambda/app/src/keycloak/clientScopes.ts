@@ -89,6 +89,7 @@ export const createClientScopeMapper = async (data: {
 };
 
 export const updateClientScopeMapper = async (data: {
+  id: string;
   environment: string;
   realmName: string;
   scopeName: string;
@@ -120,6 +121,7 @@ export const updateClientScopeMapper = async (data: {
     await kcAdminClient.clientScopes.updateProtocolMapper(
       { realm: realmName, id: clientScope.id, mapperId: mapperExists.id },
       {
+        id: mapperExists.id,
         name: protocolMapperName,
         protocol,
         protocolMapper,

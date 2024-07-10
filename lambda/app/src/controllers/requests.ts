@@ -369,7 +369,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
   };
 
   if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload });
-  else updateClientScopeMapper({ ...clientScopeMapperPayload });
+  else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists.id });
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
