@@ -59,6 +59,7 @@ import {
   deleteClientScope,
   getClientScope,
   getClientScopeMapper,
+  updateClientScopeMapper,
 } from '@lambda-app/keycloak/clientScopes';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 
@@ -343,31 +344,32 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     userAttributes += ',address';
   }
 
-  await getClientScopeMapper({
+  const mapperExists = await getClientScopeMapper({
     environment: env,
     scopeId: clientScope.id,
     mapperName: 'attributes',
-  }).then((mapperExists) => {
-    if (!mapperExists) {
-      createClientScopeMapper({
-        environment: env,
-        realmName: 'standard',
-        scopeName: clientScope.name,
-        protocol: 'openid-connect',
-        protocolMapper: 'oidc-idp-userinfo-mapper',
-        protocolMapperName: 'attributes',
-        protocolMapperConfig: {
-          signatureExpected: true,
-          userAttributes,
-          'claim.name': 'attributes',
-          'jsonType.label': 'String',
-          'id.token.claim': true,
-          'access.token.claim': true,
-          'userinfo.token.claim': true,
-        },
-      });
-    }
   });
+
+  const clientScopeMapperPayload = {
+    environment: env,
+    realmName: 'standard',
+    scopeName: clientScope.name,
+    protocol: 'openid-connect',
+    protocolMapper: 'oidc-idp-userinfo-mapper',
+    protocolMapperName: 'attributes',
+    protocolMapperConfig: {
+      signatureExpected: true,
+      userAttributes,
+      'claim.name': 'attributes',
+      'jsonType.label': 'String' as const,
+      'id.token.claim': true,
+      'access.token.claim': true,
+      'userinfo.token.claim': true,
+    },
+  };
+
+  if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload });
+  else updateClientScopeMapper({ ...clientScopeMapperPayload });
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
