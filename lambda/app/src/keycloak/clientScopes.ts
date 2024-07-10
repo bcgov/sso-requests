@@ -87,3 +87,48 @@ export const createClientScopeMapper = async (data: {
 
   return true;
 };
+
+export const updateClientScopeMapper = async (data: {
+  id: string;
+  environment: string;
+  realmName: string;
+  scopeName: string;
+  protocolMapper: string;
+  protocolMapperName: string;
+  protocol: string;
+  protocolMapperConfig: ProtocolMapperConfig;
+}) => {
+  const { environment, realmName, scopeName, protocol, protocolMapper, protocolMapperConfig, protocolMapperName } =
+    data;
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+
+  const clientScopes = await kcAdminClient.clientScopes.find({ realm: realmName });
+  if (!clientScopes) return false;
+
+  const clientScope = clientScopes.find((scope) => scope.name === scopeName);
+  if (!clientScope) return false;
+
+  const protocolMappers = await kcAdminClient.clientScopes.listProtocolMappers({
+    realm: realmName,
+    id: clientScope.id,
+  });
+
+  if (protocolMappers.length !== 0) {
+    const mapperExists = protocolMappers.find((mapper) => mapper.name === protocolMapperName);
+
+    if (!mapperExists) return false;
+
+    await kcAdminClient.clientScopes.updateProtocolMapper(
+      { realm: realmName, id: clientScope.id, mapperId: mapperExists.id },
+      {
+        id: mapperExists.id,
+        name: protocolMapperName,
+        protocol,
+        protocolMapper,
+        config: protocolMapperConfig,
+      },
+    );
+  } else return false;
+
+  return true;
+};
