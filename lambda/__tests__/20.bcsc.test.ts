@@ -77,6 +77,7 @@ describe('BCSC', () => {
     getClientScope: null,
     getClientScopeMapper: null,
     createClientScopeMapper: null,
+    updateClientScopeMapper: null,
     createClientScope: null,
     createIdp: null,
   };
@@ -95,6 +96,8 @@ describe('BCSC', () => {
     spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
     spies.createClientScopeMapper = jest.spyOn(ClientScopeModule, 'createClientScopeMapper');
     spies.createClientScopeMapper.mockImplementation(() => Promise.resolve(null));
+    spies.updateClientScopeMapper = jest.spyOn(ClientScopeModule, 'updateClientScopeMapper');
+    spies.updateClientScopeMapper.mockImplementation(() => Promise.resolve(null));
     spies.createClientScope = jest.spyOn(ClientScopeModule, 'createClientScope');
     spies.createClientScope.mockImplementation(() => Promise.resolve({ id: 1, name: 'name' }));
     spies.createIdp = jest.spyOn(IdpModule, 'createIdp');
@@ -158,6 +161,20 @@ describe('BCSC', () => {
     spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(bcscProdIntegration.bcscAttributes));
     await createBCSCIntegration('dev', bcscProdIntegration, 1);
     expect(spies.createClientScopeMapper).not.toHaveBeenCalled();
+  });
+
+  it('Only updates the client scope mappers if found', async () => {
+    // Return all requiredMappers
+    spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
+    expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+
+    jest.clearAllMocks();
+
+    spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(bcscProdIntegration.bcscAttributes));
+    await createBCSCIntegration('dev', bcscProdIntegration, 1);
+    expect(spies.createClientScopeMapper).not.toHaveBeenCalled();
+    expect(spies.updateClientScopeMapper).toHaveBeenCalled();
   });
 
   it('Adds in the address claim to the userinfo mapper when requesting any claim with an address scope', async () => {
