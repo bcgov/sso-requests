@@ -253,6 +253,8 @@ describe('Deleted user emails', () => {
       (email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER,
     );
     expect(deleteInactiveIntegrationEmails.length).toBe(1);
+    expect(deleteInactiveIntegrationEmails[0].body.includes('role1')).toBeTruthy();
+    expect(deleteInactiveIntegrationEmails[0].body.includes('role2')).toBeTruthy();
     expect(orphanedIntegrationEmails.length).toBe(0);
   });
 });
