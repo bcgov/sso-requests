@@ -55,15 +55,21 @@ const durationAdditionalFields = [];
   durationAdditionalFields.push(`${env}OfflineAccessEnabled`);
 });
 
-export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
+export const processRequest = (data: Integration, isMerged: boolean, isAdmin: boolean) => {
   const immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
 
   if (isMerged) {
     immutableFields.push('realm');
     if (data?.protocol === 'saml') immutableFields.push('projectName');
   }
-  // client id cannot be updated by non-admin
-  if (!isAdmin) immutableFields.push(...durationAdditionalFields, 'clientId');
+
+  if (!isAdmin) {
+    immutableFields.push(
+      ...durationAdditionalFields,
+      'clientId',
+      ...['bceid', 'github', 'digitalCredential', 'bcServicesCard'].map((idp) => `${idp}Approved`),
+    );
+  }
 
   if (isAdmin) {
     if (data?.protocol === 'oidc') {

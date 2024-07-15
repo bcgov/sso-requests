@@ -51,7 +51,7 @@ import {
 } from '@app/schemas';
 import pick from 'lodash.pick';
 import { validateIdirEmail } from '@lambda-app/ms-graph/idir';
-import { BCSCClientParameters, createBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
+import { BCSCClientParameters, createBCSCClient, deleteBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
 import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
 import {
   createClientScope,
@@ -59,6 +59,7 @@ import {
   deleteClientScope,
   getClientScope,
   getClientScopeMapper,
+  updateClientScopeMapper,
 } from '@lambda-app/keycloak/clientScopes';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 
@@ -254,6 +255,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     bcscClientSecret = clientResponse.data.client_secret;
     bcscClientId = clientResponse.data.client_id;
   } else if (bcscClient.archived) {
+    // TODO: currently need to have the BCSC team manually re-enable client when restoring (as of July 2024). Once api route for enabling is available should be added here.
     await models.bcscClient.update(
       {
         archived: false,
@@ -342,35 +344,41 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     userAttributes += ',address';
   }
 
-  await getClientScopeMapper({
+  const mapperExists = await getClientScopeMapper({
     environment: env,
     scopeId: clientScope.id,
     mapperName: 'attributes',
-  }).then((mapperExists) => {
-    if (!mapperExists) {
-      createClientScopeMapper({
-        environment: env,
-        realmName: 'standard',
-        scopeName: clientScope.name,
-        protocol: 'openid-connect',
-        protocolMapper: 'oidc-idp-userinfo-mapper',
-        protocolMapperName: 'attributes',
-        protocolMapperConfig: {
-          signatureExpected: true,
-          userAttributes,
-          'claim.name': 'attributes',
-          'jsonType.label': 'String',
-          'id.token.claim': true,
-          'access.token.claim': true,
-          'userinfo.token.claim': true,
-        },
-      });
-    }
   });
+
+  const clientScopeMapperPayload = {
+    environment: env,
+    realmName: 'standard',
+    scopeName: clientScope.name,
+    protocol: 'openid-connect',
+    protocolMapper: 'oidc-idp-userinfo-mapper',
+    protocolMapperName: 'attributes',
+    protocolMapperConfig: {
+      signatureExpected: true,
+      userAttributes,
+      'claim.name': 'attributes',
+      'jsonType.label': 'String' as const,
+      'id.token.claim': true,
+      'access.token.claim': true,
+      'userinfo.token.claim': true,
+    },
+  };
+
+  if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload });
+  else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists.id });
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
-  // Keeping the bcsc client for restoration if needed. Just setting it as archived.
+  await deleteBCSCClient({
+    clientId: request.clientId,
+    registrationToken: request.registrationAccessToken,
+    environment: request.environment,
+  });
+
   await models.bcscClient.update(
     {
       archived: true,
@@ -430,6 +438,20 @@ export const updateRequest = async (
       throw Error('unauthorized request');
     }
 
+    if (originalData.status === 'applied') {
+      // if integration in applied state do not allow changes to environments and team
+      rest.environments = originalData.environments.concat(
+        rest.environments.filter((env) => {
+          if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
+        }),
+      );
+      rest.usesTeam = originalData.usesTeam;
+      rest.projectLead = originalData.projectLead;
+      if (originalData.devIdps.includes('bcservicescard')) {
+        rest.bcscPrivacyZone = originalData.bcscPrivacyZone;
+      }
+    }
+
     const allowedData = processRequest(rest, isMerged, userIsAdmin);
     assign(current, allowedData);
 
@@ -446,6 +468,33 @@ export const updateRequest = async (
 
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
     if (isApprovingBCSC && !userIsAdmin) throw Error('unauthorized request');
+
+    if (originalData.bceidApproved) {
+      // given approved, if adding/changing existing bceid idps throw error
+      const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
+      if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('bceid')))
+        throw Error('unauthorized request');
+    }
+
+    if (originalData.githubApproved) {
+      // given approved, if adding/changing existing github idps throw error
+      const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
+      if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('github')))
+        throw Error('unauthorized request');
+    }
+
+    if (originalData.digitalCredentialApproved) {
+      // given approved, if removing existing digital credential idp throw error
+      if (!current.devIdps.find((idp: string) => idp === 'digitalcredential')) throw Error('unauthorized request');
+    }
+
+    if (originalData.bcServicesCardApproved) {
+      // given approved, if removing existing bc services card idp throw error
+      if (!current.devIdps.find((idp: string) => idp === 'bcservicescard'))
+        throw Error('cannot remove bc services card');
+      // keep bcsc attributes and privacy zone in sync with original data
+      current.bcscAttributes = originalData.bcscAttributes!;
+    }
 
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 

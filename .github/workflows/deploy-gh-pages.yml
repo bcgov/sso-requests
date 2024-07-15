@@ -36,7 +36,7 @@ jobs:
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
           INCLUDE_DIGITAL_CREDENTIAL=true
-          INCLUDE_BC_SERVICES_CARD=false
+          INCLUDE_BC_SERVICES_CARD=true
           EOF
       - name: Set env to production
         if: endsWith(github.ref, '/main') && matrix.env == 'prod'
