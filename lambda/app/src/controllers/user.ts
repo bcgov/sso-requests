@@ -175,7 +175,7 @@ export const deleteStaleUsers = async (
 ) => {
   try {
     const userHadRoles = user?.clientData && user?.clientData?.length > 0;
-    // Send formatted email with roles information to all team members if thje deleted user had roles.
+    // Send formatted email with roles information to all team members if the deleted user had roles.
     if (userHadRoles) {
       user.clientData.map(async (cl: { client: string; roles: string[] }) => {
         const integration = await models.request.findOne({
