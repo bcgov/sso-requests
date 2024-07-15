@@ -175,7 +175,7 @@ describe('Deleted user emails', () => {
 
   beforeEach(async () => {
     await models.user.create({ idirUserid: SSO_TEAM_IDIR_USER, idirEmail: SSO_TEAM_IDIR_EMAIL });
-    await createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
   });
 
   it('Sends one email notification when a deleted user owns an integration directly', async () => {
