@@ -5,6 +5,7 @@ import {
   TEAM_ADMIN_IDIR_EMAIL_01,
   TEAM_ADMIN_IDIR_USERID_01,
   TEAM_ADMIN_IDIR_USERNAME_01,
+  TEAM_MEMBER_IDIR_EMAIL_01,
   postTeam,
   postTeamMembers,
 } from './helpers/fixtures';
@@ -164,4 +165,94 @@ describe('users and teams', () => {
   } catch (err) {
     console.error('EXCEPTION : ', err);
   }
+});
+
+describe('Deleted user emails', () => {
+  afterEach(async () => {
+    jest.clearAllMocks();
+    await cleanUpDatabaseTables();
+  });
+
+  beforeEach(async () => {
+    await models.user.create({ idirUserid: SSO_TEAM_IDIR_USER, idirEmail: SSO_TEAM_IDIR_EMAIL });
+    await createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+  });
+
+  it('Sends one email notification when a deleted user owns an integration directly', async () => {
+    const emailList = createMockSendEmail();
+    const request = await buildIntegration({
+      projectName: 'Delete Inactive Users',
+      bceid: false,
+      prodEnv: false,
+      submitted: true,
+    });
+    testUser.clientData = [{ client: request.body.clientId, roles: ['role1', 'role2'] }];
+    await deleteInactiveUsers(testUser);
+    const orphanedIntegrationEmails = emailList.filter((email) => email.code === EMAILS.ORPHAN_INTEGRATION);
+    const deleteInactiveIntegrationEmails = emailList.filter(
+      (email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER,
+    );
+    expect(orphanedIntegrationEmails.length).toBe(1);
+    expect(deleteInactiveIntegrationEmails.length).toBe(0);
+  });
+
+  it('Sends one email notification when a deleted user with no roles is the admin of the owning team', async () => {
+    const emailList = createMockSendEmail();
+    const adminTeam = await createTeam({
+      name: 'test_team',
+      members: [
+        {
+          idirEmail: TEAM_MEMBER_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    });
+
+    await buildIntegration({
+      projectName: 'Delete Inactive Users',
+      bceid: false,
+      prodEnv: false,
+      submitted: true,
+      teamId: adminTeam.body.id,
+    });
+    testUser.clientData = [];
+
+    await deleteInactiveUsers(testUser);
+    const orphanedIntegrationEmails = emailList.filter((email) => email.code === EMAILS.ORPHAN_INTEGRATION);
+    const deleteInactiveIntegrationEmails = emailList.filter(
+      (email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER,
+    );
+    expect(deleteInactiveIntegrationEmails.length).toBe(1);
+    expect(orphanedIntegrationEmails.length).toBe(0);
+  });
+
+  it('Sends one email notification when a deleted user with roles is the admin of the owning team', async () => {
+    const emailList = createMockSendEmail();
+    const adminTeam = await createTeam({
+      name: 'test_team',
+      members: [
+        {
+          idirEmail: TEAM_MEMBER_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    });
+
+    const request = await buildIntegration({
+      projectName: 'Delete Inactive Users',
+      bceid: false,
+      prodEnv: false,
+      submitted: true,
+      teamId: adminTeam.body.id,
+    });
+    testUser.clientData = [{ client: request.body.clientId, roles: ['role1', 'role2'] }];
+
+    await deleteInactiveUsers(testUser);
+    const orphanedIntegrationEmails = emailList.filter((email) => email.code === EMAILS.ORPHAN_INTEGRATION);
+    const deleteInactiveIntegrationEmails = emailList.filter(
+      (email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER,
+    );
+    expect(deleteInactiveIntegrationEmails.length).toBe(1);
+    expect(orphanedIntegrationEmails.length).toBe(0);
+  });
 });

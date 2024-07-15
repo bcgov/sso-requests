@@ -12,6 +12,7 @@ import { sendTemplate } from '@lambda-shared/templates';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 import { UserSurveyInformation } from '@lambda-shared/interfaces';
 import { createEvent, processIntegrationRequest } from './requests';
+import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -169,9 +170,13 @@ export const isAllowedToManageRoles = async (session: Session, integrationId: nu
   return canCreateOrDeleteRoles(integration);
 };
 
-export const deleteStaleUsers = async (user: any) => {
+export const deleteStaleUsers = async (
+  user: UserRepresentation & { clientData: { client: string; roles: string[] }[] },
+) => {
   try {
-    if (user?.clientData && user?.clientData?.length > 0) {
+    const userHadRoles = user?.clientData && user?.clientData?.length > 0;
+    // Send formatted email with roles information to all team members if thje deleted user had roles.
+    if (userHadRoles) {
       user.clientData.map(async (cl: { client: string; roles: string[] }) => {
         const integration = await models.request.findOne({
           where: {
@@ -187,7 +192,7 @@ export const deleteStaleUsers = async (user: any) => {
               isTeamAdmin = true;
             }
           });
-          sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+          await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
             teamId: integration.teamId,
             username: user.attributes.idir_username || user.username,
             clientId: cl.client,
@@ -220,7 +225,7 @@ export const deleteStaleUsers = async (user: any) => {
       if (teams.length > 0) {
         for (let team of teams) {
           let addedSsoTeamUserAsAdmin = false;
-          // team integrations
+          // If the userId on an integration is the deleted user, reassign it to us and add us to its owning team.
           const teamRequests = await models.request.findAll({
             where: {
               apiServiceAccount: false,
@@ -245,9 +250,19 @@ export const deleteStaleUsers = async (user: any) => {
               // assign sso team user
               rqst.userId = ssoUser.id;
               await rqst.save();
+              // Notification was already sent above if roles were included.
+              if (!userHadRoles) {
+                await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+                  teamId: rqst.teamId,
+                  username: user.attributes.idir_username || user.username,
+                  clientId: rqst.id,
+                  teamAdmin: team.role === 'admin',
+                  roles: [],
+                });
+              }
             }
           }
-
+          // If the user was not the initial creator, but still the only admin, also reassign it to us.
           const teamAdmins = await models.usersTeam.findAll({
             where: {
               team_id: team.teamId,
@@ -284,7 +299,7 @@ export const deleteStaleUsers = async (user: any) => {
             await rqst.save();
 
             if (!rqst.archived) {
-              sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
+              await sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
                 integration: rqst,
               });
             }
