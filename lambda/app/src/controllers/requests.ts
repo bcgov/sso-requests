@@ -439,14 +439,12 @@ export const updateRequest = async (
     }
 
     if (originalData.status === 'applied') {
-      // if integration in applied state do not allow changes to environments and team
+      // if integration in applied state do not allow changes to bcsc privacy zone
       rest.environments = originalData.environments.concat(
         rest.environments.filter((env) => {
           if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
         }),
       );
-      rest.usesTeam = originalData.usesTeam;
-      rest.projectLead = originalData.projectLead;
       if (originalData.devIdps.includes('bcservicescard')) {
         rest.bcscPrivacyZone = originalData.bcscPrivacyZone;
       }
@@ -608,6 +606,7 @@ export const updateRequest = async (
 
     const changes = getDifferences(finalData, originalData);
     current.lastChanges = changes;
+    console.log(changes, current);
     let updated = await current.save();
 
     if (!updated) {
