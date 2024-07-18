@@ -86,7 +86,7 @@ describe('integration validations', () => {
       await cleanUpDatabaseTables();
     });
 
-    it('should not update team info after integration is applied', async () => {
+    it('should not allow removing a team after integration is applied', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const updateableIntegration = getUpdateIntegrationData({ integration });
       let updateIntRes = await updateIntegration(
@@ -96,6 +96,42 @@ describe('integration validations', () => {
       expect(updateIntRes.status).toEqual(200);
       expect(updateIntRes.body.usesTeam).toEqual(true);
       expect(updateIntRes.body.projectLead).toEqual(false);
+    });
+
+    it('should allow changing the team after the integration is applied', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const newTeam = await createTeam({
+        name: 'new team',
+        members: [
+          {
+            idirEmail: TEAM_ADMIN_IDIR_EMAIL_01,
+            role: 'admin',
+          },
+        ],
+      });
+      const updateableIntegration = getUpdateIntegrationData({ integration: integration });
+      let updateIntRes = await updateIntegration({ ...updateableIntegration, teamId: String(newTeam.body.id) }, true);
+      expect(updateIntRes.status).toEqual(200);
+      expect(updateIntRes.body.usesTeam).toEqual(true);
+      expect(updateIntRes.body.projectLead).toEqual(false);
+      expect(updateIntRes.body.teamId).toEqual(newTeam.body.id);
+    });
+
+    it('should allow adding a team to single-owner integrations after the integration is applied', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const integrationRes = await buildIntegration({ projectName: 'single-owner', submitted: true, prodEnv: true });
+      expect(integrationRes.body.usesTeam).toEqual(false);
+      expect(integrationRes.body.projectLead).toEqual(true);
+
+      const updateableIntegration = getUpdateIntegrationData({ integration: integrationRes.body });
+      let updateIntRes = await updateIntegration(
+        { ...updateableIntegration, usesTeam: true, teamId: String(teamId), projectLead: false },
+        true,
+      );
+      expect(updateIntRes.status).toEqual(200);
+      expect(updateIntRes.body.usesTeam).toEqual(true);
+      expect(updateIntRes.body.projectLead).toEqual(false);
+      expect(updateIntRes.body.teamId).toEqual(teamId);
     });
 
     it('should not allow to change bceid idp and/or approved flag', async () => {
