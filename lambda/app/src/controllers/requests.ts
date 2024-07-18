@@ -444,6 +444,10 @@ export const updateRequest = async (
     }
 
     if (originalData.status === 'applied') {
+      // Once an integration has been created for a team, cannot revert to single person ownership.
+      if (originalData.usesTeam && !rest.usesTeam) rest.usesTeam = originalData.usesTeam;
+      if (!originalData.projectLead && rest.projectLead) rest.projectLead = originalData.projectLead;
+
       // if integration in applied state do not allow changes to bcsc privacy zone
       rest.environments = originalData.environments.concat(
         rest.environments.filter((env) => {
