@@ -429,6 +429,11 @@ export const updateRequest = async (
     let existingClientId: string = '';
     const current = await getAllowedRequest(session, data.id);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
+
+    if (current.status === 'applied' && !submit) {
+      throw Error('Temporary updates not allowed for applied requests.');
+    }
+
     const originalData = getCurrentValue();
     const isAllowedStatus = ['draft', 'applied'].includes(current.status);
 
