@@ -65,7 +65,6 @@ jest.mock('@lambda-app/controllers/bc-services-card', () => {
 describe('integration validations', () => {
   try {
     let teamId: number;
-    let integration: Integration;
 
     beforeAll(async () => {
       jest.clearAllMocks();
@@ -79,7 +78,6 @@ describe('integration validations', () => {
       const projectName: string = 'Integration Validations';
       const integrationRes = await buildIntegration({ projectName, teamId, submitted: true, prodEnv: true });
       expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
     });
 
     afterAll(async () => {
