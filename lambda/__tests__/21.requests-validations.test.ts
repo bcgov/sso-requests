@@ -65,7 +65,7 @@ jest.mock('@lambda-app/controllers/bc-services-card', () => {
 describe('integration validations', () => {
   try {
     let teamId: number;
-    let teamIntegration: Integration;
+    let integration: Integration;
 
     beforeAll(async () => {
       jest.clearAllMocks();
@@ -79,7 +79,7 @@ describe('integration validations', () => {
       const projectName: string = 'Integration Validations';
       const integrationRes = await buildIntegration({ projectName, teamId, submitted: true, prodEnv: true });
       expect(integrationRes.status).toEqual(200);
-      teamIntegration = integrationRes.body;
+      integration = integrationRes.body;
     });
 
     afterAll(async () => {
@@ -88,7 +88,7 @@ describe('integration validations', () => {
 
     it('should not allow removing a team after the integration is applied', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const updateableIntegration = getUpdateIntegrationData({ integration: teamIntegration });
+      const updateableIntegration = getUpdateIntegrationData({ integration: integration });
       let updateIntRes = await updateIntegration(
         { ...updateableIntegration, usesTeam: false, projectLead: true },
         true,
@@ -109,7 +109,7 @@ describe('integration validations', () => {
           },
         ],
       });
-      const updateableIntegration = getUpdateIntegrationData({ integration: teamIntegration });
+      const updateableIntegration = getUpdateIntegrationData({ integration: integration });
       let updateIntRes = await updateIntegration({ ...updateableIntegration, teamId: String(newTeam.body.id) }, true);
       expect(updateIntRes.status).toEqual(200);
       expect(updateIntRes.body.usesTeam).toEqual(true);
