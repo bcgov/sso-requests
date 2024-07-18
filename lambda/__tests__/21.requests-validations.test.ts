@@ -86,9 +86,9 @@ describe('integration validations', () => {
       await cleanUpDatabaseTables();
     });
 
-    it('should not allow removing a team after the integration is applied', async () => {
+    it('should not allow removing a team after integration is applied', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const updateableIntegration = getUpdateIntegrationData({ integration: integration });
+      const updateableIntegration = getUpdateIntegrationData({ integration });
       let updateIntRes = await updateIntegration(
         { ...updateableIntegration, usesTeam: false, projectLead: true },
         true,
@@ -117,7 +117,7 @@ describe('integration validations', () => {
       expect(updateIntRes.body.teamId).toEqual(newTeam.body.id);
     });
 
-    it('should allow adding a team after the integration is applied', async () => {
+    it('should allow adding a team to single-owner integrations after the integration is applied', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const integrationRes = await buildIntegration({ projectName: 'single-owner', submitted: true, prodEnv: true });
       expect(integrationRes.body.usesTeam).toEqual(false);
