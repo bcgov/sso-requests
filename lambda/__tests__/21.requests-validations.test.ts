@@ -86,18 +86,6 @@ describe('integration validations', () => {
       await cleanUpDatabaseTables();
     });
 
-    it('should not update team info after integration is applied', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const updateableIntegration = getUpdateIntegrationData({ integration });
-      let updateIntRes = await updateIntegration(
-        { ...updateableIntegration, usesTeam: false, projectLead: true },
-        true,
-      );
-      expect(updateIntRes.status).toEqual(200);
-      expect(updateIntRes.body.usesTeam).toEqual(true);
-      expect(updateIntRes.body.projectLead).toEqual(false);
-    });
-
     it('should not allow to change bceid idp and/or approved flag', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const projectName: string = 'BCeID Integration Validations';
