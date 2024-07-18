@@ -11,7 +11,6 @@ import {
 import { updateIntegration } from './helpers/modules/integrations';
 import { createTeam, verifyTeamMember } from './helpers/modules/teams';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
-import { Integration } from 'app/interfaces/Request';
 import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
