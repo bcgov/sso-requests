@@ -606,7 +606,6 @@ export const updateRequest = async (
 
     const changes = getDifferences(finalData, originalData);
     current.lastChanges = changes;
-    console.log(changes, current);
     let updated = await current.save();
 
     if (!updated) {
