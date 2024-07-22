@@ -1,6 +1,7 @@
 const ssoConfigurationEndpoint = process.env.SSO_CONFIGURATION_ENDPOINT;
 const audience = process.env.SSO_CLIENT_ID;
 import * as fs from 'fs';
+import createHttpError from 'http-errors';
 import * as path from 'path';
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
@@ -65,7 +66,7 @@ const validateJWTSignature = async (token) => {
       ignoreExpiration: true,
     });
     if (!['idir', 'azureidir'].includes(identity_provider) || !idir_userid) {
-      throw new Error('IDP is not IDIR');
+      throw new createHttpError.Unauthorized('IDP is not IDIR');
     }
 
     return { idir_userid, email, client_roles: client_roles || [], family_name, given_name, bearerToken: null };

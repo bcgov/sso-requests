@@ -1,17 +1,14 @@
 export function getTemplate() {
-  const title = 'An error has occurred: E01.';
+  const title = 'The system is temporarily down';
   const content = (
     <text transform="translate(228 245)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
       <tspan x="0" y="0">
-        SSO support Team is currently working on this issue.
+        SSO Pathfinder Team is currently working on this issue.
       </tspan>
       <tspan x="0" y="26">
-        If the problem persists for 24 hours,
+        If the problem persists for 24 hours, contact the team by{' '}
       </tspan>
-      <tspan x="0" y="52">
-        contact the team by{' '}
-      </tspan>
-      <tspan y="52" fill="#006fc4">
+      <tspan x="0" y="52" fill="#006fc4">
         <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
           Rocket.Chat
         </a>

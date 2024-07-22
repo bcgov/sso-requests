@@ -11,6 +11,7 @@ import {
 } from '../keycloak/users';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
+import createHttpError from 'http-errors';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
   return await findAllowedIntegrationInfo(sessionUserId, integrationId);
@@ -21,7 +22,7 @@ export const createClientRole = async (
   role: { environment: string; integrationId: number; roleName: string },
 ) => {
   const integration = await validateIntegration(sessionUserId, role?.integrationId);
-  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to create role');
+  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to create role');
   const dbRole = await models.requestRole.create({
     name: role?.roleName,
     environment: role?.environment,
@@ -29,7 +30,7 @@ export const createClientRole = async (
     createdBy: sessionUserId,
     lastUpdatedBy: sessionUserId,
   });
-  if (!dbRole) throw Error(`Unable to save the role ${role?.roleName}`);
+  if (!dbRole) throw new createHttpError.UnprocessableEntity(`unable to save the role ${role?.roleName}`);
   return await createRole(integration, role);
 };
 
@@ -45,9 +46,9 @@ export const bulkCreateClientRoles = async (
 ) => {
   try {
     const integration = await validateIntegration(sessionUserId, integrationId);
-    if (!canCreateOrDeleteRoles(integration)) throw Error('You are not authorized to create role');
+    if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to create role');
 
-    if (roles.length > 20) throw Error('Only 20 roles can be created at a time');
+    if (roles.length > 20) throw new createHttpError.TooManyRequests('only 20 roles can be created at a time');
 
     const envResults = await bulkCreateRole(integration, roles);
 
@@ -69,7 +70,7 @@ export const bulkCreateClientRoles = async (
     return envResults;
   } catch (err) {
     console.error('bulkCreateClientRoles', err);
-    throw Error('Unable to create roles');
+    throw new createHttpError.UnprocessableEntity('unable to create roles');
   }
 };
 
@@ -85,7 +86,7 @@ export const listRoles = async (sessionUserId: number, role: any) => {
 
 export const deleteRoles = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role?.integrationId);
-  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to delete role');
+  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to delete role');
 
   await deleteRole(integration, role);
 
@@ -113,7 +114,8 @@ export const setCompositeRoles = async (
   },
 ) => {
   const integration = await validateIntegration(sessionUserId, integrationId);
-  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to create composite roles');
+  if (!canCreateOrDeleteRoles(integration))
+    throw new createHttpError.Forbidden('not allowed to create composite roles');
 
   const result = await setCompositeClientRoles(integration, {
     environment,

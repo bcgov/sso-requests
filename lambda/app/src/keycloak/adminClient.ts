@@ -1,5 +1,6 @@
 import KcAdminClient from 'keycloak-admin';
 import dns from 'dns';
+import createHttpError from 'http-errors';
 
 export const getAdminClient = async (data: { serviceType: string; environment: string }) => {
   const { environment } = data;
@@ -21,14 +22,16 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
     keycloakUsername = process.env.KEYCLOAK_V2_PROD_USERNAME;
     keycloakPassword = process.env.KEYCLOAK_V2_PROD_PASSWORD;
   } else {
-    throw Error('invalid environment');
+    throw new createHttpError.BadRequest('invalid environment');
   }
 
   if (['development', 'production'].includes(process.env.APP_ENV)) {
     const keycloakHostname = keycloakUrl.replace('https://', '');
     const ip = await dns.promises.lookup(keycloakHostname);
     if (ip.address !== process.env.GOLD_IP_ADDRESS) {
-      throw new Error(`Keycloak is not running in gold for environment ${environment}. Not updating resources.`);
+      throw new createHttpError.UnprocessableEntity(
+        `keycloak is not operational in the gold ${environment} environment, therefore resource updates will not be processed.`,
+      );
     }
   }
 

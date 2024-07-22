@@ -1,5 +1,6 @@
 const authServerUrl = process.env.KEYCLOAK_V2_PROD_URL;
 import * as fs from 'fs';
+import createHttpError from 'http-errors';
 import * as path from 'path';
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
@@ -55,7 +56,7 @@ const validateJWTSignature = async (token) => {
     const isValidKid = !!key;
 
     if (!isValidKid) {
-      throw new Error('[invalid token] kid not found in the list of public keys');
+      throw new createHttpError.Unauthorized('could not validate token - kid not found in the list of public keys');
     }
 
     // 3. Verify the signature using the public key
@@ -65,7 +66,7 @@ const validateJWTSignature = async (token) => {
     // If setting ignoreExpiration to true, you can control the maxAge on the backend
     const { team } = jwt.verify(token, pem, { issuer });
     if (!team) {
-      throw new Error('[invalid token] expected claims not found');
+      throw new createHttpError.Unauthorized('could not validate token - expected claims not found');
     }
 
     return { success: true, data: { teamId: team }, err: null };

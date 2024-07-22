@@ -95,7 +95,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const result = await integrationController.listByTeam(req.teamId);
       res.status(200).json({ data: result });
     } catch (err) {
@@ -131,7 +131,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId } = req.params;
       const result = await integrationController.getIntegration(integrationId, req.teamId);
       res.status(200).json(result);
@@ -170,7 +170,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment } = req.params;
       const result = await roleController.list(req.teamId, integrationId, environment);
       res.status(200).json({ data: result });
@@ -219,7 +219,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
       const result = await roleController.get(req.teamId, integrationId, environment, roleName);
       res.status(200).json(result);
@@ -270,7 +270,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment } = req.params;
       const result = await roleController.create(req.teamId, integrationId, req.body, environment);
       res.status(201).json(result);
@@ -335,7 +335,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
       const result = await roleController.update(req.teamId, integrationId, roleName, environment, req.body);
       res.status(200).json(result);
@@ -383,7 +383,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
       await roleController.delete(req.teamId, integrationId, roleName, environment);
       res.status(204).send();
@@ -440,7 +440,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
       const result = await roleController.getComposites(req.teamId, integrationId, roleName, environment);
       res.status(200).json({ data: result });
@@ -508,7 +508,7 @@ export const setRoutes = (app: any) => {
       }
     */
       try {
-        if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+        if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
         const { integrationId, environment, roleName, compositeRoleName } = req.params;
         const result = await roleController.getComposite(
           req.teamId,
@@ -580,7 +580,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
       const result = await roleController.createComposite(req.teamId, integrationId, roleName, environment, req.body);
       res.status(200).json(result);
@@ -644,7 +644,7 @@ export const setRoutes = (app: any) => {
       }
     */
       try {
-        if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+        if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
         const { integrationId, environment, roleName, compositeRoleName } = req.params;
         await roleController.deleteComposite(req.teamId, integrationId, roleName, environment, compositeRoleName);
         res.status(204).send();
@@ -758,7 +758,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment } = req.params;
       const result = await userRoleMappingController.manage(req.teamId, integrationId, environment, req.body);
       req.body.operation === 'add' ? res.status(201).json(result) : res.status(204).send();
@@ -1288,7 +1288,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, idp, username } = req.params;
       const result = await userRoleMappingController.listRolesByUsername(
         req.teamId,
@@ -1423,7 +1423,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, username } = req.params;
       const result = await userRoleMappingController.addRoleToUser(
         req.teamId,
@@ -1487,7 +1487,7 @@ export const setRoutes = (app: any) => {
       }
     */
     try {
-      if (!isEmpty(req.query)) throw new createHttpError[400]('invalid request');
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, username, roleName } = req.params;
       const result = await userRoleMappingController.deleteRoleFromUser(
         req.teamId,
