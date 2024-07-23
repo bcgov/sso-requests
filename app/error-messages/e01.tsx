@@ -1,9 +1,9 @@
 export function getTemplate() {
-  const title = 'The system is temporarily down';
+  const title = "We've run into an issue";
   const content = (
     <text transform="translate(228 245)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
       <tspan x="0" y="0">
-        SSO Pathfinder Team is currently working on this issue.
+        SSO Pathfinder Team is currently investigating it.
       </tspan>
       <tspan x="0" y="26">
         If the problem persists for 24 hours, contact the team by{' '}

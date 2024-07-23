@@ -34,10 +34,15 @@ instance.interceptors.response.use(
   function (error) {
     if (error.response) {
       const status = error.response.status;
-      if ([500, 501, 502, 503].includes(status)) {
+      if ([500].includes(status)) {
         Router.push({
           pathname: '/application-error',
           query: { error: 'E01' },
+        });
+      } else if ([502, 503].includes(status)) {
+        Router.push({
+          pathname: '/application-error',
+          query: { error: 'E05' },
         });
       } else if ([504, 408].includes(status)) {
         Router.push({
