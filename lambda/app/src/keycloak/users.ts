@@ -516,7 +516,7 @@ export const updateRole = async (
   if (!role) throw new createHttpError.NotFound(`role ${roleName} not found`);
 
   const newRoleExists = await getRoleByName(kcAdminClient, client.id, newRoleName);
-  if (newRoleExists) throw new createHttpError.Conflict(`role ${newRoleName} already exists`);
+  if (newRoleExists) throw new createHttpError[409](`role ${newRoleName} already exists`);
 
   const updatedRole = await kcAdminClient.clients.updateRole(
     {
