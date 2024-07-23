@@ -367,31 +367,33 @@ export const createRole = async (
     roleName: string;
   },
 ) => {
-  try {
-    const { roleName, environment } = role;
+  const { roleName, environment } = role;
 
-    if (roleName?.length < 2) return [];
+  if (roleName?.length < 2) return [];
 
-    const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-    const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-    if (clients.length === 0) throw new createHttpError.NotFound(`client ${integration.clientId} not found`);
-    const client = clients[0];
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
+  if (clients.length === 0) throw new createHttpError.NotFound(`client ${integration.clientId} not found`);
+  const client = clients[0];
 
-    const result = await kcAdminClient.clients.createRole({
-      id: client.id,
-      realm: 'standard',
-      name: roleName,
-      description: '',
-      composite: false,
-      clientRole: true,
-      containerId: client.id,
-      attributes: {},
-    });
+  const roleExists = await getRoleByName(kcAdminClient, client.id, roleName);
 
-    return result;
-  } catch (err) {
-    throw new createHttpError.UnprocessableEntity(err.response.data.errorMessage);
-  }
+  if (roleExists) throw new createHttpError.Conflict(`role ${roleName} already exists`);
+
+  const result = await kcAdminClient.clients.createRole({
+    id: client.id,
+    realm: 'standard',
+    name: roleName,
+    description: '',
+    composite: false,
+    clientRole: true,
+    containerId: client.id,
+    attributes: {},
+  });
+
+  if (!result) throw new createHttpError.UnprocessableEntity(`failed to create role ${roleName}`);
+
+  return result;
 };
 
 export interface NewRole {
@@ -516,24 +518,31 @@ export const updateRole = async (
   if (!role) throw new createHttpError.NotFound(`role ${roleName} not found`);
 
   const newRoleExists = await getRoleByName(kcAdminClient, client.id, newRoleName);
-  if (newRoleExists) throw new createHttpError[409](`role ${newRoleName} already exists`);
 
-  const updatedRole = await kcAdminClient.clients.updateRole(
-    {
-      id: client.id,
-      realm: 'standard',
-      roleName,
-    },
-    {
-      id: client.id,
-      name: newRoleName,
-      description: '',
-      composite: false,
-      clientRole: true,
-      containerId: client.id,
-      attributes: {},
-    },
-  );
+  if (newRoleExists) throw new createHttpError.Conflict(`role ${newRoleName} already exists`);
+
+  let updatedRole = null;
+
+  try {
+    updatedRole = await kcAdminClient.clients.updateRole(
+      {
+        id: client.id,
+        realm: 'standard',
+        roleName,
+      },
+      {
+        id: client.id,
+        name: newRoleName,
+        description: '',
+        composite: false,
+        clientRole: true,
+        containerId: client.id,
+        attributes: {},
+      },
+    );
+  } catch (err) {
+    throw new createHttpError.UnprocessableEntity(`failed to update role ${roleName}`);
+  }
   return updatedRole;
 };
 
