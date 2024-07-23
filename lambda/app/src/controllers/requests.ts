@@ -436,6 +436,11 @@ export const updateRequest = async (
     let existingClientId: string = '';
     const current = await getAllowedRequest(session, data.id);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
+
+    if (current.status === 'applied' && !submit) {
+      throw Error('Temporary updates not allowed for applied requests.');
+    }
+
     const originalData = getCurrentValue();
     const isAllowedStatus = ['draft', 'applied'].includes(current.status);
 
@@ -446,14 +451,16 @@ export const updateRequest = async (
     }
 
     if (originalData.status === 'applied') {
-      // if integration in applied state do not allow changes to environments and team
+      // Once an integration has been created for a team, cannot revert to single person ownership.
+      if (originalData.usesTeam && !rest.usesTeam) rest.usesTeam = originalData.usesTeam;
+      if (!originalData.projectLead && rest.projectLead) rest.projectLead = originalData.projectLead;
+
+      // if integration in applied state do not allow changes to bcsc privacy zone
       rest.environments = originalData.environments.concat(
         rest.environments.filter((env) => {
           if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
         }),
       );
-      rest.usesTeam = originalData.usesTeam;
-      rest.projectLead = originalData.projectLead;
       if (originalData.devIdps.includes('bcservicescard')) {
         rest.bcscPrivacyZone = originalData.bcscPrivacyZone;
       }
