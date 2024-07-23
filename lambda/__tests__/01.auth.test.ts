@@ -61,8 +61,8 @@ describe('authentication', () => {
     it('should reject the logged-in user with DB constraint violations when creating an integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await createIntegration({});
-      expect(result.status).toEqual(422);
-      expect(result.body.message).toContain('notNull Violation');
+      expect(result.status).toEqual(400);
+      expect(JSON.stringify(result.body.message)).toContain('notNull Violation');
     });
   } catch (err) {
     console.error('EXCEPTION : ', err);

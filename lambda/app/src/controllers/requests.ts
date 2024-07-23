@@ -62,6 +62,7 @@ import {
   updateClientScopeMapper,
 } from '@lambda-app/keycloak/clientScopes';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
+import createHttpError from 'http-errors';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -168,7 +169,7 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
 
     createEvent(eventData);
     await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session.user.displayName });
-    throw Error('reached the day limit');
+    throw new createHttpError.TooManyRequests('reached the day limit');
   }
 
   let {
@@ -192,31 +193,37 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
   } = data;
   if (!serviceType) serviceType = 'gold';
 
-  const result = await models.request.create({
-    projectName,
-    devLoginTitle: projectName,
-    testLoginTitle: projectName,
-    prodLoginTitle: projectName,
-    devSamlSignAssertions,
-    testSamlSignAssertions,
-    prodSamlSignAssertions,
-    devDisplayHeaderTitle,
-    testDisplayHeaderTitle,
-    prodDisplayHeaderTitle,
-    devSamlLogoutPostBindingUri,
-    testSamlLogoutPostBindingUri,
-    prodSamlLogoutPostBindingUri,
-    projectLead,
-    idirUserDisplayName,
-    usesTeam,
-    teamId,
-    primaryEndUsers,
-    primaryEndUsersOther,
-    userId: session.user?.id,
-    serviceType,
-    environments: ['dev'],
-    clientId,
-  });
+  let result = null;
+
+  try {
+    result = await models.request.create({
+      projectName,
+      devLoginTitle: projectName,
+      testLoginTitle: projectName,
+      prodLoginTitle: projectName,
+      devSamlSignAssertions,
+      testSamlSignAssertions,
+      prodSamlSignAssertions,
+      devDisplayHeaderTitle,
+      testDisplayHeaderTitle,
+      prodDisplayHeaderTitle,
+      devSamlLogoutPostBindingUri,
+      testSamlLogoutPostBindingUri,
+      prodSamlLogoutPostBindingUri,
+      projectLead,
+      idirUserDisplayName,
+      usesTeam,
+      teamId,
+      primaryEndUsers,
+      primaryEndUsersOther,
+      userId: session.user?.id,
+      serviceType,
+      environments: ['dev'],
+      clientId,
+    });
+  } catch (err) {
+    throw new createHttpError.BadRequest(err);
+  }
 
   return { ...result.dataValues, numOfRequestsForToday };
 };
@@ -440,7 +447,7 @@ export const updateRequest = async (
     if (current.status === 'applied' && current.clientId !== rest.clientId) existingClientId = current.clientId;
 
     if (!current || !isAllowedStatus) {
-      throw Error('unauthorized request');
+      throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
     }
 
     if (originalData.status === 'applied') {
@@ -465,40 +472,42 @@ export const updateRequest = async (
     const mergedData = getCurrentValue();
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
-    if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
+    if (isApprovingBceid && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve bceid');
 
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
-    if (isApprovingGithub && !userIsAdmin) throw Error('unauthorized request');
+    if (isApprovingGithub && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve github');
 
     const isApprovingDigitalCredential = !originalData.digitalCredentialApproved && current.digitalCredentialApproved;
-    if (isApprovingDigitalCredential && !userIsAdmin) throw Error('unauthorized request');
+    if (isApprovingDigitalCredential && !userIsAdmin)
+      throw new createHttpError.Forbidden('not allowed to approve digital credential');
 
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
-    if (isApprovingBCSC && !userIsAdmin) throw Error('unauthorized request');
+    if (isApprovingBCSC && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve bc services card');
 
     if (originalData.bceidApproved) {
       // given approved, if adding/changing existing bceid idps throw error
       const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
       if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('bceid')))
-        throw Error('unauthorized request');
+        throw new createHttpError.Forbidden('not allowed to update bceid idps');
     }
 
     if (originalData.githubApproved) {
       // given approved, if adding/changing existing github idps throw error
       const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
       if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('github')))
-        throw Error('unauthorized request');
+        throw new createHttpError.Forbidden('not allowed to update github idps');
     }
 
     if (originalData.digitalCredentialApproved) {
       // given approved, if removing existing digital credential idp throw error
-      if (!current.devIdps.find((idp: string) => idp === 'digitalcredential')) throw Error('unauthorized request');
+      if (!current.devIdps.find((idp: string) => idp === 'digitalcredential'))
+        throw new createHttpError.Forbidden('not allowed to remove digital credential idp');
     }
 
     if (originalData.bcServicesCardApproved) {
       // given approved, if removing existing bc services card idp throw error
       if (!current.devIdps.find((idp: string) => idp === 'bcservicescard'))
-        throw Error('cannot remove bc services card');
+        throw new createHttpError.Forbidden('not allowed to remove bc services card idp');
       // keep bcsc attributes and privacy zone in sync with original data
       current.bcscAttributes = originalData.bcscAttributes!;
     }
@@ -511,8 +520,11 @@ export const updateRequest = async (
     if (submit) {
       const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
       if (!isEmpty(validationErrors)) {
-        if (isString(validationErrors)) throw Error(validationErrors);
-        else throw Error(JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }));
+        if (isString(validationErrors)) throw new createHttpError.BadRequest(validationErrors);
+        else
+          throw new createHttpError.BadRequest(
+            JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }),
+          );
       }
 
       // when it is submitted for the first time.
@@ -531,7 +543,9 @@ export const updateRequest = async (
           });
           const existingIntegration = await getIntegrationByClientId(current.clientId);
           if (existingKeycloakClient || (existingIntegration !== null && current.id !== existingIntegration.id))
-            throw Error(`${current.clientId} already exists, please choose a different client id`);
+            throw new createHttpError.BadRequest(
+              `${current.clientId} already exists, please choose a different client id`,
+            );
         }
       }
 
@@ -618,7 +632,7 @@ export const updateRequest = async (
     let updated = await current.save();
 
     if (!updated) {
-      throw Error('update failed');
+      throw new createHttpError.UnprocessableEntity('update failed');
     }
 
     // team id column is referencing id of teams table so it can only be set to null using `update` method
@@ -671,7 +685,7 @@ export const updateRequest = async (
       await createEvent(eventData);
     }
 
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
@@ -685,7 +699,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
     const isAllowedStatus = ['submitted'].includes(current.status);
 
     if (!current || !isAllowedStatus) {
-      throw Error('unauthorized request');
+      throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
     }
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -696,13 +710,13 @@ export const resubmitRequest = async (session: Session, id: number) => {
 
     const updated = await current.save();
     if (!updated) {
-      throw Error('update failed');
+      throw new createHttpError.UnprocessableEntity('update failed');
     }
 
     return updated.get({ plain: true });
   } catch (err) {
     console.log(err);
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
@@ -713,10 +727,10 @@ export const resubmitRequest = async (session: Session, id: number) => {
  * @param email The email to set as the new user.
  */
 const setIntegrationOwner = async (integration: Model & IntegrationData, email?: string) => {
-  if (!email) throw Error('email is required');
+  if (!email) throw new createHttpError.BadRequest('email is required');
 
   const userInfo = await validateIdirEmail(email);
-  if (!userInfo) throw Error('invalid email address');
+  if (!userInfo) throw new createHttpError.BadRequest('invalid email address');
 
   let user = await models.user.findOne({
     where: {
@@ -749,7 +763,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
     const isAllowedStatus = ['submitted'].includes(current.status);
 
     if (!current || (!isAllowedStatus && !current.archived)) {
-      throw Error('unauthorized request');
+      throw new createHttpError.BadRequest('Request not found or in invalid state');
     }
     if (current.usesTeam) {
       const teamExists = await getTeamById(current.teamId);
@@ -769,7 +783,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
 
     const updated = await current.save();
     if (!updated) {
-      throw Error('update failed');
+      throw new createHttpError.UnprocessableEntity('update failed');
     }
 
     const int = getCurrentValue();
@@ -814,7 +828,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
     return updated.get({ plain: true });
   } catch (err) {
     console.log(err);
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
@@ -841,7 +855,7 @@ export const getRequestAll = async (
   },
 ) => {
   if (!isAdmin(session)) {
-    throw Error('not allowed');
+    throw new createHttpError.Forbidden('not allowed');
   }
 
   const { order, limit, page, ...rest } = data;
@@ -895,7 +909,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     const current = await getAllowedRequest(session, id);
 
     if (!current) {
-      throw Error('unauthorized request');
+      throw new createHttpError.NotFound(`request #${id} not found`);
     }
 
     const requester = await getRequester(session, current.id);
@@ -935,13 +949,13 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       requestId: id,
       userId: session.user.id,
     });
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
 export const updateRequestMetadata = async (session: Session, user: User, data: { id: number; status: string }) => {
   if (!session.client_roles?.includes('sso-admin')) {
-    throw Error('not allowed');
+    throw new createHttpError.Forbidden('not allowed');
   }
 
   const { id, status } = data;
@@ -955,7 +969,7 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
   );
 
   if (result.length < 2) {
-    throw Error('update failed');
+    throw new createHttpError.UnprocessableEntity('update failed');
   }
 
   return result[1].dataValues;
@@ -1056,7 +1070,7 @@ export const standardClients = async (
     );
     for (const res of responses) {
       if (!res) {
-        throw Error('Unable to create client at keycloak');
+        throw new createHttpError.UnprocessableEntity('Unable to create client at keycloak');
       }
     }
   } catch (err) {

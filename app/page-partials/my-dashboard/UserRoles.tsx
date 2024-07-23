@@ -592,8 +592,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                     multiselect: false,
                     onChange: setSelectedIdp,
                     options: idps
-                      // Don't allow role assignment to DC users
-                      .filter((idp) => idp !== 'digitalcredential')
+                      // Don't allow role assignment to DC or BCSC users
+                      .filter((idp) => !['digitalcredential', 'bcservicescard'].includes(idp))
                       .map((idp) => ({ value: idp, label: idpMap[idp] })),
                   },
                   {

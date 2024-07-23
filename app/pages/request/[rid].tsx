@@ -8,6 +8,7 @@ import { getRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import { LoggedInUser } from 'interfaces/team';
 import PageLoader from 'components/PageLoader';
+import { messages } from '@app/utils/constants';
 
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
@@ -25,7 +26,14 @@ function RequestEdit({ session, alert }: Props) {
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
-      const [data] = await getRequest(rid as string);
+      const [data, err] = await getRequest(rid as string);
+      if (err) {
+        alert.show({
+          variant: 'danger',
+          closable: true,
+          content: messages.GET_REQUEST_ERROR,
+        });
+      }
       if (isNil(data)) {
         setRequest(null);
       } else {
@@ -55,10 +63,6 @@ function RequestEdit({ session, alert }: Props) {
       setLoading(false);
     };
     getData();
-
-    return () => {
-      alert.hide();
-    };
   }, [rid]);
 
   return (

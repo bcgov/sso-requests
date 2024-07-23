@@ -52,7 +52,6 @@ function UserProfileModal({ children, alert }: Props): any {
     const [data, err] = await getProfile();
     if (err) {
       console.error(err);
-      showError(err);
     } else if (data) {
       setAddiEmail(data.additionalEmail || '');
     }

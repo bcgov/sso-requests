@@ -2,6 +2,7 @@ import RealmRepresentation from 'keycloak-admin/lib/defs/realmRepresentation';
 import ClientRepresentation from 'keycloak-admin/lib/defs/clientRepresentation';
 import KeycloakAdminClient from 'keycloak-admin/lib/client';
 import { getAdminClient, getClient } from '../adminClient';
+import createHttpError from 'http-errors';
 
 export const updateClientSecret = async (data: {
   serviceType: string;
@@ -14,7 +15,7 @@ export const updateClientSecret = async (data: {
 
   kcAdminClient.setConfig({ realmName: realmName || 'standard' });
   const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });
-  if (!client) throw Error('client not found');
+  if (!client) throw new createHttpError.NotFound('client not found');
 
   await kcAdminClient.clients.generateNewClientSecret({ id: client.id });
 };

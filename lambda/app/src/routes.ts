@@ -74,6 +74,7 @@ import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { fetchLogs, fetchMetrics } from '@lambda-app/controllers/logs';
 import { getPrivacyZones, getAttributes } from './controllers/bc-services-card';
+import createHttpError from 'http-errors';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -271,7 +272,7 @@ export const setRoutes = (app: any) => {
     try {
       const { id } = req.params || {};
       if (!id) {
-        throw Error('integration ID not found');
+        throw new createHttpError.NotFound('integration ID not found');
       }
       const result = await resubmitRequest(req.session as Session, Number(id));
       res.status(200).json(result);
@@ -289,7 +290,7 @@ export const setRoutes = (app: any) => {
         email = email.toLowerCase();
       }
       if (!id) {
-        throw Error('integration ID not found');
+        throw new createHttpError.NotFound('integration ID not found');
       }
       const result = await restoreRequest(req.session as Session, Number(id), email);
       res.status(200).json(result);

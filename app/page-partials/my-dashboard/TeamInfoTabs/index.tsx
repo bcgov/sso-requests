@@ -45,7 +45,7 @@ import ServiceAccountsList from './ServiceAccountsList';
 import { ErrorMessage, InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
 import { SurveyContext } from '@app/pages/_app';
-import { docusaurusURL } from '@app/utils/constants';
+import { docusaurusURL, messages } from '@app/utils/constants';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -322,8 +322,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         variant: 'danger',
         fadeOut: 10000,
         closable: true,
-        content: `Failed to add new members. Please ensure the emails you have entered are valid,
-        and reach out to the SSO team if the problem persists`,
+        content: messages.ADD_TEAM_MEMBERS_ERROR,
       });
     } else {
       await getData(team.id);
@@ -333,7 +332,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         variant: 'success',
         fadeOut: 10000,
         closable: true,
-        content: `Invited new members to your team!`,
+        content: messages.ADD_TEAM_MEMBERS_SUCCESS,
       });
     }
   };
@@ -346,7 +345,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         variant: 'danger',
         fadeOut: 10000,
         closable: true,
-        content: `Failed to delete team member.`,
+        content: messages.DELETE_TEAM_MEMBER_ERROR,
       });
     } else {
       setMembers(members.filter((member) => member.id !== deleteMemberId));

@@ -19,6 +19,7 @@ import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
 import { getIntegrationsByTeam } from '@lambda-app/queries/request';
 import { checkIfRequestMerged, createEvent } from './requests';
+import createHttpError from 'http-errors';
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -35,7 +36,7 @@ export const createTeam = async (user: User, data: Team) => {
 
 export const addUsersToTeam = async (teamId: number, userId: number, members: Member[]) => {
   const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new Error('Not authorized');
+  if (!authorized) throw new createHttpError.Forbidden('not allowed to add users to team');
   members = members.map((member) => ({ ...member, idirEmail: lowcase(member.idirEmail) }));
 
   const usersEmailsAlreadyOnTeam = await findAllowedTeamUsers(teamId, userId).then((result) =>
@@ -67,7 +68,7 @@ export const addUsersToTeam = async (teamId: number, userId: number, members: Me
 
 export const updateTeam = async (user: User, teamId: string, data: { name: string }) => {
   const authorized = await isTeamAdmin(user.id, Number(teamId));
-  if (!authorized) throw new Error('Not authorized');
+  if (!authorized) throw new createHttpError.Forbidden('not allowed to update team');
   const updated = await models.team.update(
     { name: data.name },
     {
@@ -80,7 +81,7 @@ export const updateTeam = async (user: User, teamId: string, data: { name: strin
   );
 
   if (updated.length < 2) {
-    throw Error('update failed');
+    throw new createHttpError.UnprocessableEntity('update failed');
   }
 
   return updated[1].dataValues;
@@ -89,7 +90,7 @@ export const updateTeam = async (user: User, teamId: string, data: { name: strin
 export const deleteTeam = async (userId: number, teamId: number) => {
   const authorized = await isTeamAdmin(userId, teamId);
   if (!authorized) {
-    throw Error('unauthorized request');
+    throw new createHttpError.Forbidden('not allowed to delete team');
   }
   // Clear fkey from teams archived requests
   await models.request.update(
@@ -150,9 +151,9 @@ const canRemoveUser = async (userId: number, teamId: number) => {
 
 export const removeUserFromTeam = async (userId: number, memberUserId: number, teamId: number) => {
   const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new Error('Not authorized');
+  if (!authorized) throw new createHttpError.Forbidden('not allowed to remove member from team');
   const canRemove = await canRemoveUser(memberUserId, teamId);
-  if (!canRemove) throw new Error('Not allowed');
+  if (!canRemove) throw new createHttpError.Forbidden('not allowed to remove user');
 
   await models.usersTeam.destroy({ where: { userId: memberUserId, teamId } });
 
@@ -172,7 +173,7 @@ export const updateMemberInTeam = async (
   data: { role: string },
 ) => {
   const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new Error('Not authorized');
+  if (!authorized) throw new createHttpError.Forbidden('not allowed to update member in team');
   await models.usersTeam.update(
     { role: data.role },
     {
@@ -191,11 +192,11 @@ export const updateMemberInTeam = async (
 export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
   const authorized = await isTeamAdmin(userId, teamId);
   if (!authorized) {
-    throw Error('unauthorized request');
+    throw new createHttpError.Forbidden('not allowed to request service account');
   }
   const existingServiceAccounts = await getServiceAccounts(userId, teamId);
   if (existingServiceAccounts.length > 0) {
-    throw Error('CSS API Account already generated for this team');
+    throw new createHttpError.Conflict('team already has api account');
   }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
   const integrations = await getIntegrationsByTeam(teamId, 'gold');
@@ -211,7 +212,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 
   if (!serviceAccount.teamId) {
     await serviceAccount.destroy();
-    throw Error(`team #${teamId} is not allowed for user #${userId}`);
+    throw new createHttpError.Forbidden(`team #${teamId} is not allowed for user #${userId}`);
   }
 
   serviceAccount.authType = 'service-account';
@@ -231,7 +232,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 export const getServiceAccounts = async (userId: number, teamId: number) => {
   const authorized = await isTeamAdmin(userId, teamId);
   if (!authorized) {
-    throw Error('unauthorized request');
+    throw new createHttpError.Forbidden(`not allowed to fetch api accounts for the team #${teamId}`);
   }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
   return await getAllTeamAPIAccounts(teamIdLiteral);
@@ -240,7 +241,7 @@ export const getServiceAccounts = async (userId: number, teamId: number) => {
 export const getServiceAccount = async (userId: number, teamId: number, saId: number) => {
   const authorized = await isTeamAdmin(userId, teamId);
   if (!authorized) {
-    throw Error('unauthorized request');
+    throw new createHttpError.Forbidden(`not allowed to fetch api account for the team #${teamId}`);
   }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
   return await models.request.findOne({
@@ -260,7 +261,7 @@ export const getServiceAccount = async (userId: number, teamId: number, saId: nu
 export const getServiceAccountCredentials = async (userId: number, teamId: number, saId: number) => {
   const authorized = await isTeamAdmin(userId, teamId);
   if (!authorized) {
-    throw Error('unauthorized request');
+    throw new createHttpError.Forbidden('not allowed to fetch api account credentials');
   }
   const integration = await getServiceAccount(userId, teamId, saId);
   const installation = await generateInstallation({
@@ -277,11 +278,11 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
   try {
     const authorized = await canManageTeam(session, userId, teamId);
     if (!authorized) {
-      throw Error('unauthorized request');
+      throw new createHttpError.Forbidden('not allowed to delete api account');
     }
     const serviceAccount = await getAllowedTeamAPIAccount(session, saId, userId, teamId);
     if (!serviceAccount) {
-      throw Error('could not find service account');
+      throw new createHttpError.NotFound('could not find api account');
     }
     const team = await getTeamById(teamId);
     const isMerged = await checkIfRequestMerged(saId);
@@ -314,14 +315,14 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
       requestId: saId,
       userId: session.user.id,
     });
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
 export const updateServiceAccountSecret = async (userId: number, teamId: number, saId: number) => {
   const authorized = await isTeamAdmin(userId, teamId);
   if (!authorized) {
-    throw Error('unauthorized request');
+    throw new createHttpError.Forbidden('not allowed to update api account credentials');
   }
   const integration = await getServiceAccount(userId, teamId, saId);
   return await updateClientSecret({
@@ -335,11 +336,11 @@ export const updateServiceAccountSecret = async (userId: number, teamId: number,
 export const restoreTeamServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
   const authorized = await canManageTeam(session, userId, teamId);
   if (!authorized) {
-    throw Error('unauthorized request');
+    throw new createHttpError.Forbidden('not allowed to restore api account');
   }
   const serviceAccount = await getAllowedTeamAPIAccount(session, saId, userId, teamId);
   if (!serviceAccount) {
-    throw Error('could not find service account');
+    throw new createHttpError.NotFound('could not find api account');
   }
   const team = await getTeamById(teamId);
   const requester = getDisplayName(session);
