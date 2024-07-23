@@ -58,8 +58,6 @@ instance.interceptors.response.use(
 
 export const handleAxiosError = (err: AxiosError): [null, AxiosError] => {
   let errorMessage = null;
-  console.log(err);
-
   if (!err.response) errorMessage = 'Unhandled Exception';
   else {
     const errResponse: AxiosResponse = err.response;
