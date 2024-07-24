@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { EventCountMetric, Integration } from 'interfaces/Request';
 import { TopAlert, withTopAlert } from 'layout/TopAlert';
@@ -12,6 +12,7 @@ import DateTimePicker from '@app/components/DateTimePicker';
 import { InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
 import { subtractDaysFromDate } from '@app/utils/helpers';
+import { SurveyContext } from '@app/pages/_app';
 
 export const DatePickerContainer = styled.div`
   height: 100%;
@@ -68,6 +69,8 @@ const MetricsPanel = ({ integration, alert }: Props) => {
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<Date>(subtractDaysFromDate(14));
   const [toDate, setToDate] = useState<Date>(new Date());
+  const surveyContext = useContext(SurveyContext);
+
   let selectedFromDate: Date = new Date();
 
   const handleTabSelect = (key: string) => {
@@ -92,6 +95,10 @@ const MetricsPanel = ({ integration, alert }: Props) => {
         });
       } else {
         setMetrics(metricsData);
+        // do not show survey if there are no metrics
+        if (metricsData.length > 0) {
+          surveyContext?.setShowSurvey(true, 'viewMetrics');
+        }
       }
     }),
     [integration?.clientId, environment, fromDate, toDate],

@@ -38,6 +38,8 @@ describe('User Profile', () => {
       createRole: true,
       createIntegration: false,
       cssApiRequest: false,
+      viewMetrics: false,
+      downloadLogs: false,
     };
 
     const updateResult = await updateProfile({
