@@ -11,6 +11,8 @@ export interface UserSurveyInformation {
   createRole: boolean;
   cssApiRequest: boolean;
   createIntegration: boolean;
+  viewMetrics: boolean;
+  downloadLogs: boolean;
 }
 
 export interface User {

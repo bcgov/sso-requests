@@ -16,12 +16,12 @@ const init = (sequelize, DataTypes) => {
         references: { model: 'users', key: 'id' },
       },
       triggerEvent: {
-        type: DataTypes.ENUM('createRole', 'addUserToRole', 'cssApiRequest', 'createIntegration'),
+        type: DataTypes.STRING,
         field: 'trigger_event',
         allow_null: false,
       },
       message: {
-        type: DataTypes.STRING(700),
+        type: DataTypes.STRING,
         field: 'message',
         allowNull: true,
       },
