@@ -224,6 +224,14 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 
   await processIntegrationRequest(saved);
 
+  const eventData = {
+    eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
+    requestId: saved?.id,
+    userId: session.user.id,
+    idirUserDisplayName: requester,
+  };
+  createEvent(eventData);
+
   await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
 
   return serviceAccount;
@@ -304,6 +312,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
       eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,
       requestId: saId,
       userId: session.user.id,
+      idirUserDisplayName: session.user?.displayName,
     });
 
     return serviceAccount;
@@ -314,6 +323,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
       eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,
       requestId: saId,
       userId: session.user.id,
+      idirUserDisplayName: session.user?.displayName,
     });
     throw new createHttpError.UnprocessableEntity(err.message || err);
   }
