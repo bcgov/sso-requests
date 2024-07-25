@@ -848,6 +848,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
       requestId: id,
       userId: session.user.id,
+      idirUserDisplayName: user?.displayName,
     });
 
     return integration;
