@@ -39,6 +39,14 @@ export const errorMessages: ErrorMessages = {
   clientIdleTimeout: `Must be ${MAX_IDLE_SECONDS / 60} minutes or fewer.`,
 };
 
+export const messages = {
+  GET_REQUEST_ERROR: 'There was an error loading the request. Please try again later.',
+  ADD_TEAM_MEMBERS_ERROR:
+    'Failed to add new members. Please ensure the emails you have entered are valid, and reach out to the SSO team if the problem persists',
+  ADD_TEAM_MEMBERS_SUCCESS: 'Invited new members to your team!',
+  DELETE_TEAM_MEMBER_ERROR: 'Failed to delete team member',
+};
+
 export const bceidBody = `Organization Details (Organization/Division/Branch/Program): \n
 Exectutive Sponsor Name, Title, & Email:\n
 Project Manager / Business Lead Name, Title, & Email:\n

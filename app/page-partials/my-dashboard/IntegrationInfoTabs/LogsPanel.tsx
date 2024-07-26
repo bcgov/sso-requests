@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Integration } from 'interfaces/Request';
 import { TopAlert, withTopAlert } from 'layout/TopAlert';
@@ -9,6 +9,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import InfoOverlay from 'components/InfoOverlay';
 import { subtractDaysFromDate } from '@app/utils/helpers';
 import CenteredModal from '@app/components/CenteredModal';
+import { SurveyContext } from '@app/pages/_app';
 
 const ModalContent = styled.div`
   display: flex;
@@ -141,6 +142,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
   const [fileProgress, setFileProgress] = useState(0);
   const [maxDate, setMaxDate] = useState(new Date());
   const [logsQueryController, setLogsQueryController] = useState<AbortController>();
+  const surveyContext = useContext(SurveyContext);
 
   useEffect(() => {
     if (!fromDate) return;
@@ -246,6 +248,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
           `${integration.clientId}-${fromDate.toLocaleString()}-${toDate.toLocaleString()}.json`,
           JSON.parse(resultJSON),
         );
+        surveyContext?.setShowSurvey(true, 'downloadLogs');
       }
     } catch (e) {
       console.error('Exception parsing file');

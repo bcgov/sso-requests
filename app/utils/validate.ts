@@ -8,7 +8,7 @@ const isValidKeycloakURI = (isProd: boolean, uri: string) => {
   try {
     if (uri === '*') return !isProd;
     // Throws error if invalid url
-    new URL(uri);
+    //new URL(uri);
     if (uri !== uri.trim()) return false;
     if (uri.match(/\s|#/)) return false;
     if (isProd) {
@@ -53,9 +53,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     prodSessionMaxLifespan,
     authType,
     publicAccess,
-    devHomePageUri = '',
-    testHomePageUri = '',
-    prodHomePageUri = '',
     bcscPrivacyZone,
     bcscAttributes = [],
   } = formData;

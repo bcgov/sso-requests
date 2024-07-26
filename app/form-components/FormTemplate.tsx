@@ -38,6 +38,10 @@ import { SurveyContext } from '@app/pages/_app';
 import { docusaurusURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
+import {
+  bcscPrivacyZones as defaultBcscPrivacyZones,
+  bcscAttributes as defaultBcscAttributes,
+} from '@app/utils/constants';
 
 const Description = styled.p`
   margin: 0;
@@ -138,8 +142,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
   const [schemas, setSchemas] = useState<any[]>([]);
-  const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>([]);
-  const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>([]);
+  const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
+  const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
 
   const surveyContext = useContext(SurveyContext);
 
@@ -284,9 +288,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     if (newStage === schemas.length - 1) {
       for (let x = 0; x < schemas.length; x++) visited[x] = true;
     }
-
     const newData = trimFormData(formData, { dropEmptyRedirectUris: true });
-
     const formErrors = validateForm(formData, schemas, visited);
     setErrors(formErrors);
     setFormStage(newStage);
@@ -455,7 +457,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         onChange={handleChange}
         onSubmit={handleFormSubmit}
         formData={formData}
-        formContext={{ isAdmin, teams, formData, setFormData, loadTeams }}
+        formContext={{ isAdmin, teams, formData, setFormData, loadTeams, bcscPrivacyZones }}
         FieldTemplate={FieldTemplate}
         ArrayFieldTemplate={ArrayFieldTemplate}
         liveValidate={visited[formStage] || isApplied}

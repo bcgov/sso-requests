@@ -42,10 +42,23 @@ export const createIdp = async (
     storeToken?: boolean;
     providerId: string;
     realm: string;
+    firstBrokerLoginFlowAlias?: string;
+    postBrokerLoginFlowAlias?: string;
+    [key: string]: any;
   },
   environment: string,
 ) => {
-  const { alias, displayName, enabled, config, storeToken, providerId, realm } = IdpConfig;
+  const {
+    alias,
+    displayName,
+    enabled,
+    config,
+    storeToken,
+    providerId,
+    realm,
+    postBrokerLoginFlowAlias,
+    firstBrokerLoginFlowAlias,
+  } = IdpConfig;
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   return kcAdminClient.identityProviders.create({
     alias,
@@ -55,6 +68,8 @@ export const createIdp = async (
     config,
     providerId,
     storeToken,
+    postBrokerLoginFlowAlias,
+    firstBrokerLoginFlowAlias,
   });
 };
 

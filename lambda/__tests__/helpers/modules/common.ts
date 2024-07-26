@@ -5,6 +5,8 @@ import { getCreateIntegrationData, getUpdateIntegrationData, putIntegrationBatch
 import { updateIntegrationPrDetails, updateIntegrationsApply } from './actions';
 import { createIntegration, getIntegration, updateIntegration } from './integrations';
 import { Integration } from 'app/interfaces/Request';
+import { bcscPrivacyZones, bcscAttributes } from '@app/utils/constants';
+import createHttpError from 'http-errors';
 
 export const getActionsApiHeartBeat = async () => {
   return await supertest(app).get(`${ACTIONS_BASE_PATH}/heartbeat`);
@@ -14,10 +16,17 @@ export const getAppApiHeartBeat = async () => {
   return await supertest(app).get(`${APP_BASE_PATH}/heartbeat`);
 };
 
-const getIdentityProviderList = (bceid: boolean = false, github: boolean = false) => {
+const getIdentityProviderList = (
+  bceid: boolean = false,
+  github: boolean = false,
+  digitalCredential: boolean = false,
+  bcServicesCard: boolean = false,
+) => {
   const idps = ['idir'];
   if (bceid) idps.push('bceidbasic');
   if (github) idps.push('githubbcgov');
+  if (digitalCredential) idps.push('digitalcredential');
+  if (bcServicesCard) idps.push('bcservicescard');
   return idps;
 };
 
@@ -42,6 +51,8 @@ export const buildIntegration = async (args: {
   projectName: string;
   bceid?: boolean;
   github?: boolean;
+  digitalCredential?: boolean;
+  bcServicesCard?: boolean;
   teamId?: number;
   protocol?: string;
   authType?: string;
@@ -53,6 +64,8 @@ export const buildIntegration = async (args: {
     projectName,
     bceid = false,
     github = false,
+    digitalCredential = false,
+    bcServicesCard = false,
     teamId,
     protocol = 'oidc',
     authType = 'browser-login',
@@ -67,22 +80,29 @@ export const buildIntegration = async (args: {
 
   if (prodEnv) envs.push('prod');
 
-  if (!projectName) throw Error('projectName is required');
+  if (!projectName) throw new createHttpError.BadRequest('projectName is required');
   const createIntRes = await createIntegration(
     getCreateIntegrationData({ projectName, teamIntegration: teamId ? true : false, teamId }),
   );
   expect(createIntRes.status).toEqual(200);
   integration = createIntRes.body;
 
-  return await updateIntegration(
-    getUpdateIntegrationData({
-      integration,
-      identityProviders: getIdentityProviderList(bceid, github),
-      envs,
-      protocol,
-      authType,
-      publicAccess,
-    }),
-    submitted,
-  );
+  const updateableIntegration = getUpdateIntegrationData({
+    integration,
+    identityProviders: getIdentityProviderList(bceid, github, digitalCredential, bcServicesCard),
+    envs,
+    protocol,
+    authType,
+    publicAccess,
+  });
+
+  if (bcServicesCard) {
+    updateableIntegration.bcscPrivacyZone = 'zone1';
+    updateableIntegration.bcscAttributes = ['age', 'postal_code'];
+    updateableIntegration.devHomePageUri = 'https://example.com';
+    updateableIntegration.testHomePageUri = 'https://example.com';
+    updateableIntegration.prodHomePageUri = 'https://example.com';
+  }
+
+  return await updateIntegration({ ...updateableIntegration }, submitted);
 };

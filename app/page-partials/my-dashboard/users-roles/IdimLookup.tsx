@@ -8,10 +8,10 @@ import { searchIdirUsers, importIdirUser, IdirUser } from 'services/bceid-webser
 const idpOptions = [{ value: 'idir', label: 'IDIR' }];
 
 const propertyOptions = [
-  { value: 'firstName', label: 'First Name', allowed: ['idir'] },
-  { value: 'lastName', label: 'Last Name', allowed: ['idir'] },
-  { value: 'email', label: 'Email', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
-  { value: 'userId', label: 'Username', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
+  { value: 'givenName', label: 'First Name', allowed: ['idir'] },
+  { value: 'surname', label: 'Last Name', allowed: ['idir'] },
+  { value: 'mail', label: 'Email', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
+  { value: 'mailNickname', label: 'Username', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
   { value: 'guid', label: 'IDP GUID', allowed: ['bceidbasic', 'bceidbusiness'] },
 ];
 
@@ -113,9 +113,9 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
         data={rows.map((row) => {
           return {
             guid: row.guid,
-            firstName: row.individualIdentity.name.firstname,
-            lastName: row.individualIdentity.name.surname,
-            email: row.contact.email,
+            firstName: row.firstName,
+            lastName: row.lastName,
+            email: row.email,
             idirUsername: row.userId,
             actions: (
               <ActionButtonContainer>
@@ -129,15 +129,13 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
                       attributes: {
                         username: row.userId,
                         displayName: row.displayName,
-                        firstName: row.individualIdentity.name.firstname,
-                        middleName: row.individualIdentity.name.middleName,
-                        lastName: row.individualIdentity.name.surname,
-                        initials: row.individualIdentity.name.initials,
-                        email: row.contact.email,
-                        telephone: row.contact.telephone,
-                        company: row.internalIdentity.company,
-                        department: row.internalIdentity.department,
-                        title: row.internalIdentity.title,
+                        firstName: row.firstName,
+                        lastName: row.lastName,
+                        email: row.email,
+                        telephone: row.phone,
+                        company: row.company,
+                        department: row.department,
+                        title: row.jobTitle,
                       },
                       _hash: parentModalRef.current.getId(),
                     });

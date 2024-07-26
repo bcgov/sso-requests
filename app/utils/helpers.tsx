@@ -11,6 +11,8 @@ import {
   checkNotGithubGroup,
   usesDigitalCredential,
   checkNotDigitalCredential,
+  usesBcServicesCard,
+  checkNotBcServicesCard,
 } from '@app/helpers/integration';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
@@ -51,11 +53,19 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {
-  const { bceidApproved, githubApproved, digitalCredentialApproved, environments = [], serviceType } = integration;
+  const {
+    bceidApproved,
+    githubApproved,
+    digitalCredentialApproved,
+    bcServicesCardApproved,
+    environments = [],
+    serviceType,
+  } = integration;
 
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
   const hasDigitalCredential = usesDigitalCredential(integration);
+  const hasBcServicesCard = usesBcServicesCard(integration);
   const options = environmentOptions.map((option) => {
     const idps = integration.devIdps;
     return { ...option, idps: idps || [] };
@@ -65,6 +75,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
     const bceidApplying = checkIfBceidProdApplying(integration);
     const githubApplying = checkIfGithubProdApplying(integration);
     const digitalCredentialApplying = checkIfDigitalCredentialProdApplying(integration);
+    const bcServicesCardApplying = checkIfBcServicesCardProdApplying(integration);
 
     let envs = options.filter((env) => environments.includes(env.name));
     if (hasBceid && (!bceidApproved || bceidApplying))
@@ -82,6 +93,12 @@ export const getRequestedEnvironments = (integration: Integration) => {
     if (hasDigitalCredential && (!digitalCredentialApproved || digitalCredentialApplying))
       envs = envs.map((env) => {
         if (env.name === 'prod') env.idps = env.idps.filter(checkNotDigitalCredential);
+        return env;
+      });
+
+    if (hasBcServicesCard && (!bcServicesCardApproved || bcServicesCardApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter(checkNotBcServicesCard);
         return env;
       });
 

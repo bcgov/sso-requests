@@ -87,9 +87,9 @@ const setUpRender = (request: Integration | object | null, currentUser = {}) => 
 
 const samplePage3Request = {
   id: 0,
-  devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-  testValidRedirectUris: ['http://test.com'],
-  prodValidRedirectUris: ['http://prod.com'],
+  devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+  testValidRedirectUris: ['https://test.com'],
+  prodValidRedirectUris: ['https://prod.com'],
   serviceType: 'gold',
 };
 
@@ -588,9 +588,9 @@ describe('BC Services Card IDP and dependencies', () => {
       devIdps: ['bcservicescard'],
       status: 'draft',
       environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
-      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
     });
     fireEvent.click(sandbox.basicInfoBox);
 
@@ -616,9 +616,9 @@ describe('BC Services Card IDP and dependencies', () => {
       devIdps: ['bcservicescard', 'bceidbasic'],
       status: 'draft',
       environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-      testValidRedirectUris: ['http://test1.com', 'http://test2.com'],
-      prodValidRedirectUris: ['http://prod1.com', 'http://prod2.com'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
     });
     fireEvent.click(sandbox.basicInfoBox);
 
@@ -650,5 +650,54 @@ describe('BC Services Card IDP and dependencies', () => {
     const devHomePageUrisSelector = '#root_devHomePageUri';
     const uriInput = document.querySelector(devHomePageUrisSelector) as HTMLElement;
     fireEvent.change(uriInput, { target: { value: 'https://valid-uri' } });
+  });
+
+  it('should keep BCSC attributes editable if not approved yet', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard', 'bceidbasic'],
+      status: 'applied',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+      bcServicesCardApproved: false,
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = getByText('BC Services Card')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(bcscCheckbox).toBeDisabled();
+    expect(bcscCheckbox).toBeChecked();
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
+
+    const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
+    const attributesInput = bcscAttributesDropDown.lastChild;
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    let attributesOption = await screen.findByText(sampleAttributes[0].name);
+    fireEvent.click(attributesOption);
+    expect(bcscAttributesDropDown?.querySelector("input[type='text']")).not.toBeDisabled();
+  });
+
+  it('should freeze BC Services Card IDP and show privacy zone and attributes if approved', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard', 'bceidbasic'],
+      status: 'applied',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+      bcServicesCardApproved: true,
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = getByText('BC Services Card')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(bcscCheckbox).toBeDisabled();
+    expect(bcscCheckbox).toBeChecked();
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
+    const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
+    expect(bcscAttributesDropDown?.querySelector("input[type='text']")).toBeDisabled();
   });
 });

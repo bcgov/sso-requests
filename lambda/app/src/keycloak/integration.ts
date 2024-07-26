@@ -9,6 +9,7 @@ import { getTeamById } from '@lambda-app/queries/team';
 import { sendTemplate } from '@lambda-shared/templates';
 import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
 import axios from 'axios';
+import createHttpError from 'http-errors';
 
 const realm = 'standard';
 
@@ -99,7 +100,7 @@ export const samlClientProfile = (
 };
 
 const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
-  const defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common-saml'];
+  let defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common'];
 
   // BCSC client scope is named after the client id on bcsc side
   if (usesBcServicesCard(integration)) {
@@ -107,9 +108,9 @@ const getDefaultClientScopes = (integration: IntegrationData, environment: strin
   }
   const otherIdpScopes = integration[`${environment}Idps`]?.filter((idp) => idp !== 'bcservicescard') || [];
   if (integration.protocol === 'oidc') {
-    defaultScopes.concat(otherIdpScopes);
+    defaultScopes = defaultScopes.concat(otherIdpScopes);
   } else {
-    defaultScopes.concat(otherIdpScopes).map((idp: string) => `${idp}-saml`);
+    defaultScopes = defaultScopes.concat(otherIdpScopes).map((idp: string) => `${idp}-saml`);
   }
   return defaultScopes;
 };
@@ -123,7 +124,9 @@ export const keycloakClient = async (
     let client;
     const offlineAccessEnabled = integration[`${environment}OfflineAccessEnabled`] || false;
     if (isPreservedClaim(integration.additionalRoleAttribute?.trim())) {
-      throw Error(`${integration.additionalRoleAttribute} is a preserved claim and cannot be overwritten`);
+      throw new createHttpError.BadRequest(
+        `${integration.additionalRoleAttribute} is a preserved claim and cannot be overwritten`,
+      );
     }
 
     const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });

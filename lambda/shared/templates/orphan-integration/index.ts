@@ -33,7 +33,6 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
     code: EMAILS.ORPHAN_INTEGRATION,
     to: [SSO_EMAIL_ADDRESS],
-    cc: [SSO_EMAIL_ADDRESS],
     ...rendered,
   });
 };

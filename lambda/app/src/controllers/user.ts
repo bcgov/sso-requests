@@ -12,12 +12,14 @@ import { sendTemplate } from '@lambda-shared/templates';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 import { UserSurveyInformation } from '@lambda-shared/interfaces';
 import { createEvent, processIntegrationRequest } from './requests';
+import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
+import createHttpError from 'http-errors';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
   email = lowcase(email);
 
-  if (!idir_userid || !email) throw Error('invalid IDIR account');
+  if (!idir_userid || !email) throw new createHttpError.Unauthorized('invalid IDIR account');
 
   const displayName = getDisplayName(session);
   const conditions = [{ idirEmail: email }, { idirUserid: idir_userid }];
@@ -63,7 +65,7 @@ export const updateProfile = async (
   const updated = await myself.save();
 
   if (!updated) {
-    throw Error('update failed');
+    throw new createHttpError.UnprocessableEntity('update failed');
   }
 
   return updated.get({ plain: true });
@@ -96,7 +98,7 @@ export const listUsersByRole = async (
   },
 ) => {
   const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
-  if (integration.authType === 'service-account') throw Error('invalid auth type');
+  if (integration.authType === 'service-account') throw new createHttpError.BadRequest('invalid auth type');
   return await listRoleUsers(integration, {
     environment,
     roleName,
@@ -169,9 +171,13 @@ export const isAllowedToManageRoles = async (session: Session, integrationId: nu
   return canCreateOrDeleteRoles(integration);
 };
 
-export const deleteStaleUsers = async (user: any) => {
+export const deleteStaleUsers = async (
+  user: UserRepresentation & { clientData: { client: string; roles: string[] }[] },
+) => {
   try {
-    if (user?.clientData && user?.clientData?.length > 0) {
+    const userHadRoles = user?.clientData && user?.clientData?.length > 0;
+    // Send formatted email with roles information to all team members if the deleted user had roles.
+    if (userHadRoles) {
       user.clientData.map(async (cl: { client: string; roles: string[] }) => {
         const integration = await models.request.findOne({
           where: {
@@ -187,7 +193,7 @@ export const deleteStaleUsers = async (user: any) => {
               isTeamAdmin = true;
             }
           });
-          sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+          await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
             teamId: integration.teamId,
             username: user.attributes.idir_username || user.username,
             clientId: cl.client,
@@ -198,7 +204,7 @@ export const deleteStaleUsers = async (user: any) => {
       });
     }
 
-    if (!user.attributes.idir_user_guid) throw Error('user guid is required');
+    if (!user.attributes.idir_user_guid) throw new createHttpError.BadRequest('user guid is required');
 
     const existingUser = await models.user.findOne({ where: { idir_userid: user.attributes.idir_user_guid } });
     const ssoUser = await models.user.findOne({
@@ -206,7 +212,7 @@ export const deleteStaleUsers = async (user: any) => {
       raw: true,
     });
 
-    if (!ssoUser) throw Error('user(bcgov.sso@gov.bc.ca) not found');
+    if (!ssoUser) throw new createHttpError.BadRequest('user(bcgov.sso@gov.bc.ca) not found');
 
     if (existingUser) {
       const teams = await models.usersTeam.findAll({
@@ -220,7 +226,7 @@ export const deleteStaleUsers = async (user: any) => {
       if (teams.length > 0) {
         for (let team of teams) {
           let addedSsoTeamUserAsAdmin = false;
-          // team integrations
+          // If the userId on an integration is the deleted user, reassign it to us and add us to its owning team.
           const teamRequests = await models.request.findAll({
             where: {
               apiServiceAccount: false,
@@ -245,9 +251,19 @@ export const deleteStaleUsers = async (user: any) => {
               // assign sso team user
               rqst.userId = ssoUser.id;
               await rqst.save();
+              // Notification was already sent above if roles were included.
+              if (!userHadRoles) {
+                await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+                  teamId: rqst.teamId,
+                  username: user.attributes.idir_username || user.username,
+                  clientId: rqst.id,
+                  teamAdmin: team.role === 'admin',
+                  roles: [],
+                });
+              }
             }
           }
-
+          // If the user was not the initial creator, but still the only admin, also reassign it to us.
           const teamAdmins = await models.usersTeam.findAll({
             where: {
               team_id: team.teamId,
@@ -284,7 +300,7 @@ export const deleteStaleUsers = async (user: any) => {
             await rqst.save();
 
             if (!rqst.archived) {
-              sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
+              await sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
                 integration: rqst,
               });
             }
@@ -307,6 +323,6 @@ export const deleteStaleUsers = async (user: any) => {
     }
   } catch (err) {
     console.error(err);
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };

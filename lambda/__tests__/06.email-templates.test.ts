@@ -14,10 +14,29 @@ import { generateInvitationToken } from '@lambda-app/helpers/token';
 import { createTeam, verifyTeamMember } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { bcscPrivacyZones } from '@app/utils/constants';
+
+const MOCK_PRIVACY_ZONE_URI = 'zone';
 
 jest.mock('@lambda-app/authenticate');
 
 jest.mock('@lambda-shared/utils/ches');
+
+jest.mock('@lambda-shared/templates/helpers', () => {
+  const original = jest.requireActual('@lambda-shared/templates/helpers');
+  return {
+    ...original,
+    getAccountableEntity: jest.fn(() => Promise.resolve('username')),
+  };
+});
+
+jest.mock('@lambda-app/controllers/bc-services-card', () => {
+  return {
+    getPrivacyZones: jest.fn(() =>
+      Promise.resolve([{ privacy_zone_uri: MOCK_PRIVACY_ZONE_URI, privacy_zone_name: 'zone' }]),
+    ),
+  };
+});
 
 describe('Email template snapshots', () => {
   let teamId: number;
@@ -144,6 +163,24 @@ describe('Email template snapshots', () => {
         devIdps: ['bcservicescard'],
         testIdps: ['bcservicescard'],
         prodIdps: ['bcservicescard'],
+        bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
+      },
+      waitingBcServicesCardProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ BC Services Card with fallback privacy zone', async () => {
+    const constantZone = bcscPrivacyZones()[0];
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: {
+        ...formDataProd,
+        devIdps: ['bcservicescard'],
+        testIdps: ['bcservicescard'],
+        prodIdps: ['bcservicescard'],
+        bcscPrivacyZone: constantZone.privacy_zone_uri,
       },
       waitingBcServicesCardProdApproval: true,
     });
@@ -154,7 +191,7 @@ describe('Email template snapshots', () => {
 
   it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ approved BC Services Card prod', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
-      integration: { ...formDataDev, devIdps: ['bcservicescard'] },
+      integration: { ...formDataDev, devIdps: ['bcservicescard'], bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI },
       waitingBcServicesCardProdApproval: false,
     });
 
@@ -164,7 +201,7 @@ describe('Email template snapshots', () => {
 
   it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BC Services Card prod', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
-      integration: { ...formDataDev, devIdps: ['bcservicescard'] },
+      integration: { ...formDataDev, devIdps: ['bcservicescard'], bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI },
       waitingBcServicesCardProdApproval: true,
     });
 
@@ -223,6 +260,7 @@ describe('Email template snapshots', () => {
         devIdps: ['bcservicescard'],
         testIdps: ['bcservicescard'],
         prodIdps: ['bcservicescard'],
+        bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
       },
       waitingBcServicesCardProdApproval: true,
     });
@@ -251,7 +289,7 @@ describe('Email template snapshots', () => {
 
   it('Should return the expected email for PROD_APPROVED w/ BC Services Card', async () => {
     const rendered = await renderTemplate(EMAILS.PROD_APPROVED, {
-      integration: { ...formDataDev, devIdps: ['bcservicescard'] },
+      integration: { ...formDataDev, devIdps: ['bcservicescard'], bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI },
       type: 'BC Services Card',
     });
     expect(rendered.subject).toMatchSnapshot();

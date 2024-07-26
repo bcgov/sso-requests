@@ -15,6 +15,7 @@ import { getTeamById, isTeamAdmin } from '../queries/team';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
 import { getAttributes, getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
 import { usesBcServicesCard } from '@app/helpers/integration';
+import createHttpError from 'http-errors';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
@@ -55,15 +56,21 @@ const durationAdditionalFields = [];
   durationAdditionalFields.push(`${env}OfflineAccessEnabled`);
 });
 
-export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
+export const processRequest = (data: Integration, isMerged: boolean, isAdmin: boolean) => {
   const immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
 
   if (isMerged) {
     immutableFields.push('realm');
     if (data?.protocol === 'saml') immutableFields.push('projectName');
   }
-  // client id cannot be updated by non-admin
-  if (!isAdmin) immutableFields.push(...durationAdditionalFields, 'clientId');
+
+  if (!isAdmin) {
+    immutableFields.push(
+      ...durationAdditionalFields,
+      'clientId',
+      ...['bceid', 'github', 'digitalCredential', 'bcServicesCard'].map((idp) => `${idp}Approved`),
+    );
+  }
 
   if (isAdmin) {
     if (data?.protocol === 'oidc') {
@@ -188,7 +195,7 @@ export async function getUsersTeams(user) {
 
 export async function inviteTeamMembers(userId: number, users: (User & { role: string })[], teamId: number) {
   const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new Error('Not authorized');
+  if (!authorized) throw new createHttpError.Forbidden(`not allowed to invite members for the team #${teamId}`);
   const team = await getTeamById(teamId);
   return Promise.all(
     users.map(async (user) => {
@@ -233,5 +240,10 @@ export const getRequiredBCSCScopes = async (claims) => {
   }
   const allClaims = cachedClaims;
   const requiredScopes = allClaims.filter((claim) => claims.includes(claim.name)).map((claim) => claim.scope);
+
+  // Profile will always be a required scope since the sub depends on it
+  if (!requiredScopes.includes('profile')) {
+    requiredScopes.push('profile');
+  }
   return ['openid', ...new Set(requiredScopes)].join(' ');
 };

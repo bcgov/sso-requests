@@ -1,3 +1,4 @@
+import createHttpError from 'http-errors';
 import KcAdminClient from 'keycloak-admin';
 
 export const getKcAdminClient = async (environment: string) => {
@@ -18,7 +19,7 @@ export const getKcAdminClient = async (environment: string) => {
     keycloakUsername = process.env.KEYCLOAK_V2_PROD_USERNAME;
     keycloakPassword = process.env.KEYCLOAK_V2_PROD_PASSWORD;
   } else {
-    throw Error('invalid environment');
+    throw new createHttpError.BadRequest('invalid environment');
   }
 
   const authServerUrl = `${keycloakUrl}/auth`;

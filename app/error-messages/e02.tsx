@@ -1,7 +1,7 @@
 import { getEndSessionUrl } from 'utils/openid';
 
 export function getTemplate() {
-  const title = 'An error has occurred: E02.';
+  const title = 'Failed to authenticate the user';
   const content = (
     <text transform="translate(228 245)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
       <tspan x="0" y="0">

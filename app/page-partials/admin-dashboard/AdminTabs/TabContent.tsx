@@ -27,12 +27,20 @@ interface Props {
   onApproved?: () => void;
 }
 
+const approvalTypeMap = {
+  bceid: 'bceidApproved',
+  github: 'githubApproved',
+  digitalCredential: 'digitalCredentialApproved',
+  BCServicesCard: 'bcServicesCardApproved',
+};
+
 function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onApproved }: Props) {
   if (!integration) return null;
 
   const displayType = startCase(type);
   const modalId = `${type}-approval-modal`;
   const openModal = () => (window.location.hash = modalId);
+  const approvalPropertyName = approvalTypeMap[type];
 
   let typeApproved = false;
   switch (type) {
@@ -81,7 +89,7 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     const [, err] = await updateRequest(
       {
         ...integration,
-        [`${type}Approved`]: true,
+        [approvalPropertyName]: true,
       },
       true,
     );
