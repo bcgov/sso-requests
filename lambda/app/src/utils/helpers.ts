@@ -15,6 +15,7 @@ import { getTeamById, isTeamAdmin } from '../queries/team';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
 import { getAttributes, getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
 import { usesBcServicesCard } from '@app/helpers/integration';
+import createHttpError from 'http-errors';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
@@ -194,7 +195,7 @@ export async function getUsersTeams(user) {
 
 export async function inviteTeamMembers(userId: number, users: (User & { role: string })[], teamId: number) {
   const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new Error('Not authorized');
+  if (!authorized) throw new createHttpError.Forbidden(`not allowed to invite members for the team #${teamId}`);
   const team = await getTeamById(teamId);
   return Promise.all(
     users.map(async (user) => {

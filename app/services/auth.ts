@@ -1,4 +1,4 @@
-import { instance } from './axios';
+import { handleAxiosError, instance } from './axios';
 import { getTokens, setTokens, removeTokens } from 'utils/store';
 import { refreshSession } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
@@ -16,9 +16,8 @@ export const getAuthHeader = async (): Promise<string> => {
 export async function wakeItUp() {
   try {
     return instance.get('heartbeat', { headers: { skipAuth: true } }).then((res) => res.data);
-  } catch (err) {
-    console.error(err);
-    return null;
+  } catch (err: any) {
+    return handleAxiosError(err);
   }
 }
 
@@ -27,9 +26,8 @@ export async function verifyTokenWithAPI(idToken: string) {
     return await instance
       .get('verify-token', { headers: { skipAuth: true, Authorization: `Bearer ${idToken}` } })
       .then((res) => res.data);
-  } catch (err) {
-    console.error(err);
-    return null;
+  } catch (err: any) {
+    return handleAxiosError(err);
   }
 }
 

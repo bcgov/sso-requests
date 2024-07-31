@@ -3,6 +3,7 @@ import { ConfidentialClientApplication, IConfidentialClientApplication } from '@
 import { CYPRESS_MOCKED_IDIR_LOOKUP, MS_GRAPH_URL } from '@lambda-app/utils/constants';
 import { MsGraphUserResponse, MsGraphUserValue } from '@lambda-shared/interfaces';
 import axios from 'axios';
+import createHttpError from 'http-errors';
 
 let msalInstance: IConfidentialClientApplication;
 
@@ -28,7 +29,7 @@ export async function getAzureAccessToken() {
     return response?.accessToken;
   } catch (error) {
     console.error(error);
-    throw new Error('Error acquiring access token');
+    throw new createHttpError.Unauthorized('could not fetch access token');
   }
 }
 

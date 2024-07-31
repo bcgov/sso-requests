@@ -44,6 +44,8 @@ const defaultUserSurveys: UserSurveyInformation = {
   createIntegration: false,
   createRole: false,
   cssApiRequest: false,
+  viewMetrics: false,
+  downloadLogs: false,
 };
 
 export const SessionContext = React.createContext<SessionContextInterface | null>(null);

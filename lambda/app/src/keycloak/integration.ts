@@ -9,6 +9,7 @@ import { getTeamById } from '@lambda-app/queries/team';
 import { sendTemplate } from '@lambda-shared/templates';
 import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
 import axios from 'axios';
+import createHttpError from 'http-errors';
 
 const realm = 'standard';
 
@@ -123,7 +124,9 @@ export const keycloakClient = async (
     let client;
     const offlineAccessEnabled = integration[`${environment}OfflineAccessEnabled`] || false;
     if (isPreservedClaim(integration.additionalRoleAttribute?.trim())) {
-      throw Error(`${integration.additionalRoleAttribute} is a preserved claim and cannot be overwritten`);
+      throw new createHttpError.BadRequest(
+        `${integration.additionalRoleAttribute} is a preserved claim and cannot be overwritten`,
+      );
     }
 
     const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
