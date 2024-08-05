@@ -19,6 +19,7 @@ interface Props {
   onSubmit: Function;
   teamId: number;
   initialTeamName: string;
+  setOpenEditTeamModal: (flag: boolean) => void;
 }
 
 export interface Errors {
@@ -26,7 +27,7 @@ export interface Errors {
   members?: string[];
 }
 
-export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: Props) {
+export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName, setOpenEditTeamModal }: Props) {
   const [teamName, setTeamName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>();
@@ -54,7 +55,7 @@ export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: 
 
   const handleCancel = () => {
     setTeamName(initialTeamName);
-    window.location.hash = '#';
+    setOpenEditTeamModal(false);
   };
 
   const handleEditName = async () => {
@@ -71,7 +72,7 @@ export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName }: 
     }
     await onSubmit();
     setLoading(false);
-    window.location.hash = '#';
+    setOpenEditTeamModal(false);
   };
 
   return (

@@ -31,9 +31,14 @@ import FieldTemplate from './FieldTemplate';
 export default function FieldProjectTeam(props: FieldTemplateProps) {
   const { formContext } = props;
   const { formData, setFormData, loadTeams } = formContext;
+  const [openModal, setOpenModal] = React.useState(false);
 
   const handleClick = () => {
-    window.location.hash = createTeamModalId;
+    setOpenModal(true);
+  };
+
+  const handleModalClose = () => {
+    setOpenModal(false);
   };
 
   const bottom = (
@@ -48,7 +53,6 @@ export default function FieldProjectTeam(props: FieldTemplateProps) {
       <CenteredModal
         title="Create a New Team"
         icon={null}
-        id={createTeamModalId}
         content={
           <CreateTeamForm
             onSubmit={async (teamId: number) => {
@@ -59,6 +63,8 @@ export default function FieldProjectTeam(props: FieldTemplateProps) {
         }
         showCancel={false}
         showConfirm={false}
+        openModal={openModal}
+        handleClose={handleModalClose}
         closable
       />
     </>

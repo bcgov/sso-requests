@@ -63,11 +63,13 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
   const [serviceAccounts, setServiceAccounts] = useState<Integration[]>([]);
   const [teamDeleteError, setTeamDeleteError] = useState(false);
+  const [openCreateTeamModal, setOpenCreateTeamModal] = useState(false);
+  const [openEditTeamModal, setOpenEditTeamModal] = useState(false);
+  const [openDeleteTeamModal, setOpenDeleteTeamModal] = useState(false);
+  const [canDeleteTeam, setCanDeleteTeam] = useState(false);
 
   const deleteServiceAccontNote =
     '*By deleting this team, you are also deleting the CSS App API Account that belongs to this team.';
-
-  const canDelete = activeTeam && Number(activeTeam.integrationCount) === 0;
 
   const updateActiveTeam = (team: Team | null) => {
     setActiveTeam(team);
@@ -102,20 +104,21 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     if (Number(activeTeam?.serviceAccountCount) > 0) {
       updateServiceAccounts();
     }
+    setCanDeleteTeam((activeTeam && Number(activeTeam.integrationCount) === 0) || false);
   }, [activeTeamId]);
 
-  const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
+  const handleNewTeamClick = async () => setOpenCreateTeamModal(true);
 
   const showDeleteModal = (team: Team) => {
     setTeamDeleteError(false);
     updateActiveTeam(team);
     if (activeTeamId !== team.id) return;
-    window.location.hash = deleteTeamModalId;
+    setOpenDeleteTeamModal(true);
   };
 
   const showEditTeamNameModal = (team: Team) => {
     updateActiveTeam(team);
-    window.location.hash = editTeamNameModalId;
+    setOpenEditTeamModal(true);
   };
 
   const activateRow = (request: any) => {
@@ -173,7 +176,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
 
   const handleDeleteTeam = async () => {
     setTeamDeleteError(false);
-    if (!canDelete) return;
+    if (!canDeleteTeam) return;
 
     if (serviceAccounts.length > 0) {
       Promise.all(
@@ -187,7 +190,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     if (error) {
       setTeamDeleteError(true);
     } else {
-      await loadTeams();
+      loadTeams();
     }
   };
 
@@ -204,46 +207,51 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
         title="Create a New Team"
         icon={null}
         onConfirm={() => console.log('confirm')}
-        id={createTeamModalId}
-        content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
+        content={
+          <TeamForm onSubmit={loadTeams} currentUser={currentUser} setOpenCreateTeamModal={setOpenCreateTeamModal} />
+        }
         showCancel={false}
         showConfirm={false}
+        openModal={openCreateTeamModal}
+        handleClose={() => setOpenCreateTeamModal(false)}
         closable
       />
       <CenteredModal
         title="Edit Team Name"
         icon={null}
         onConfirm={() => console.log('confirm')}
-        id={editTeamNameModalId}
         content={
           <EditTeamNameForm
             onSubmit={loadTeams}
             teamId={activeTeamId as number}
             initialTeamName={activeTeam?.name || ''}
+            setOpenEditTeamModal={setOpenEditTeamModal}
           />
         }
         showCancel={false}
         showConfirm={false}
+        openModal={openEditTeamModal}
+        handleClose={() => setOpenEditTeamModal(false)}
         closable
       />
       <CenteredModal
         title="Delete team"
         icon={null}
         onConfirm={handleDeleteTeam}
-        id={deleteTeamModalId}
         content={
-          <>
+          <div>
             <WarningModalContents
               title="Are you sure that you want to delete this team?"
-              content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-              note={canDelete && !isEmpty(serviceAccounts) ? deleteServiceAccontNote : ''}
+              content={canDeleteTeam ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
+              note={canDeleteTeam && !isEmpty(serviceAccounts) ? deleteServiceAccontNote : ''}
             />
             {teamDeleteError && <ErrorText>Failed to delete. Please try again</ErrorText>}
-          </>
+          </div>
         }
-        buttonStyle={canDelete ? 'danger' : 'custom'}
-        confirmText={canDelete ? 'Delete Team' : 'Okay'}
-        skipCloseOnConfirm={true}
+        buttonStyle={canDeleteTeam ? 'danger' : 'custom'}
+        confirmText={canDeleteTeam ? 'Delete Team' : 'Okay'}
+        openModal={openDeleteTeamModal}
+        handleClose={() => setOpenDeleteTeamModal(false)}
         closable
       />
     </>

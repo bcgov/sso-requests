@@ -25,10 +25,10 @@ const Content = styled.div`
   }
 `;
 
-const modalId = 'gold-notification';
 const impactAssessmentUrl = 'https://docs.google.com/forms/d/1MMPeMB0A2076xkXIZRaErAwZe9QDsSwSAWqe-uvm3ys';
 
 function GoldNotificationModal(): any {
+  const [openGoldNotificationModal, setOpenGoldNotificationModal] = useState(false);
   const context = useContext<SessionContextInterface | null>(SessionContext);
   const { user, session } = context || {};
 
@@ -40,7 +40,7 @@ function GoldNotificationModal(): any {
       !user.hasReadGoldNotification &&
       user.integrations?.find((integration: any) => integration.serviceType !== 'gold')
     ) {
-      window.location.hash = modalId;
+      setOpenGoldNotificationModal(true);
     }
   };
 
@@ -50,7 +50,7 @@ function GoldNotificationModal(): any {
 
   const handleClose = async () => {
     await updateProfile({ hasReadGoldNotification: true });
-    window.location.hash = '#';
+    setOpenGoldNotificationModal(false);
   };
 
   const modalContents = (
@@ -82,7 +82,8 @@ function GoldNotificationModal(): any {
   return (
     <>
       <CenteredModal
-        id={modalId}
+        openModal={openGoldNotificationModal}
+        handleClose={handleClose}
         content={modalContents}
         showCancel={false}
         showConfirm={false}

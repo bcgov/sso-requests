@@ -129,11 +129,11 @@ const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentP
 const RightMenuItems = () => (
   <>
     <UserProfileModal>
-      {(modalId: string, openModal: any) => {
+      {(setOpenProfileModal: (flag: boolean) => void) => {
         return (
           <HoverItem>
-            <a href={`#${modalId}`} title="My Profile">
-              <FontAwesomeIcon size="2x" icon={faUserAlt} />
+            <a>
+              <FontAwesomeIcon size="2x" icon={faUserAlt} onClick={() => setOpenProfileModal(true)} />
             </a>
           </HoverItem>
         );

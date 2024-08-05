@@ -144,6 +144,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [schemas, setSchemas] = useState<any[]>([]);
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
+  const [openSubmissionModal, setOpenSubmissionModal] = useState(false);
 
   const surveyContext = useContext(SurveyContext);
 
@@ -217,10 +218,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     if (togglingBceidApprovedToFalse) processed.bceidApproved = false;
 
     setFormData(processed);
-
-    if (showModal) {
-      window.location.hash = 'info-modal';
-    }
 
     throttleUpdate(processed);
   };
@@ -411,7 +408,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
       setErrors(formErrors);
     } else {
-      window.location.hash = 'confirmation-modal';
+      setOpenSubmissionModal(true);
     }
   };
 
@@ -478,7 +475,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         )}
       </Form>
       <CenteredModal
-        id={`confirmation-modal`}
+        openModal={openSubmissionModal}
+        handleClose={() => setOpenSubmissionModal(false)}
         content={
           <>
             <p>Are you sure you&apos;re ready to submit your request?</p>

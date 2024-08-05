@@ -1,4 +1,4 @@
-import { MouseEvent } from 'react';
+import { MouseEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -63,6 +63,11 @@ export default function Actionbuttons({
   const canDelete = canDeleteIntegration(request);
   const canEdit = canEditIntegration(request);
   const deleteModalId = `delete-modal-${request?.id}`;
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+  };
 
   const handleEdit = async (event: MouseEvent) => {
     event.stopPropagation();
@@ -72,7 +77,7 @@ export default function Actionbuttons({
 
   const handleDelete = () => {
     if (!request.id || !canDelete) return;
-    window.location.hash = deleteModalId;
+    setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
@@ -115,10 +120,11 @@ export default function Actionbuttons({
       </ActionButtonContainer>
       <DeleteModal
         projectName={request.projectName}
-        id={deleteModalId}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
         content="You are about to delete this integration request. This action cannot be undone."
+        openModal={showDeleteModal}
+        handleCloseModal={handleCloseDeleteModal}
       />
     </>
   );

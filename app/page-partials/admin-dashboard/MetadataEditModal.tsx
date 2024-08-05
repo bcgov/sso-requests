@@ -13,6 +13,7 @@ interface Props {
 }
 
 function MetadataEditModal({ request, onUpdate }: Props) {
+  const [openMetaDataEditModal, setOpenMetaDataEditModal] = useState(false);
   const [status, setStatus] = useState(request.status);
 
   const modalId = 'edit-metadata';
@@ -27,7 +28,9 @@ function MetadataEditModal({ request, onUpdate }: Props) {
     setStatus(request.status);
   }, [request.id]);
 
-  const openModal = () => (window.location.hash = modalId);
+  const openModal = () => {
+    setOpenMetaDataEditModal(true);
+  };
 
   const modalContents = (
     <div data-testid="integration-status">
@@ -49,7 +52,8 @@ function MetadataEditModal({ request, onUpdate }: Props) {
         Edit Metadata
       </Button>
       <CenteredModal
-        id={modalId}
+        openModal={openMetaDataEditModal}
+        handleClose={() => setOpenMetaDataEditModal(false)}
         content={modalContents}
         onConfirm={handleMetadataModalConfirm}
         icon={faPencilAlt}

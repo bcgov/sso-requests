@@ -44,9 +44,9 @@ function MyIntegrations({ session }: PageProps) {
         showResizable={integrationCount > 0}
       />
       <CenteredModal
+        openModal={showModal}
+        handleClose={() => setShowModal(false)}
         title={`${processedRequestId} - Integration request failed`}
-        icon={faExclamationTriangle}
-        id={integrationFailedMessageModalId}
         content={
           <div>
             <div>
@@ -77,6 +77,7 @@ function MyIntegrations({ session }: PageProps) {
         }
         showCancel={false}
         showConfirm={false}
+        skipCloseOnConfirm
         closable
       />
     </>

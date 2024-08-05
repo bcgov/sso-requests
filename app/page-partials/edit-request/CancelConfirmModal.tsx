@@ -10,13 +10,16 @@ interface Props {
 
 function CancelConfirmModal({ onConfirm }: Props) {
   const modalId = 'edit-cancel-confirmation';
+  const [openCancelModal, setOpenCancelModal] = React.useState(false);
 
   const handleConfirm = async () => {
     if (onConfirm) await onConfirm();
     window.location.hash = '#';
   };
 
-  const openModal = () => (window.location.hash = modalId);
+  const openModal = () => {
+    setOpenCancelModal(true);
+  };
 
   const modalContents = (
     <>
@@ -34,7 +37,8 @@ function CancelConfirmModal({ onConfirm }: Props) {
         Cancel
       </CancelButton>
       <CenteredModal
-        id={modalId}
+        openModal={openCancelModal}
+        handleClose={() => setOpenCancelModal(false)}
         content={modalContents}
         onConfirm={handleConfirm}
         icon={faExclamationTriangle}

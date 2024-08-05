@@ -143,6 +143,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
   const [maxDate, setMaxDate] = useState(new Date());
   const [logsQueryController, setLogsQueryController] = useState<AbortController>();
   const surveyContext = useContext(SurveyContext);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   useEffect(() => {
     if (!fromDate) return;
@@ -212,7 +213,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
     const controller = new AbortController();
     setLogsQueryController(controller);
 
-    toggleModal(true);
+    setShowInfoModal(true);
     try {
       if (!fromDate || !toDate) {
         setDateError('Please select a date range.');
@@ -255,7 +256,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
     } finally {
       setLoading(false);
       setFileProgress(0);
-      toggleModal(false);
+      setShowInfoModal(false);
     }
   };
 
@@ -337,7 +338,8 @@ const LogsPanel = ({ integration, alert }: Props) => {
             {loading && fileProgress !== 0 ? <p>{fileProgress}% downloaded.</p> : null}
           </ModalContent>
         }
-        id="logs-modal"
+        openModal={showInfoModal}
+        handleClose={() => setShowInfoModal(false)}
       />
     </>
   );

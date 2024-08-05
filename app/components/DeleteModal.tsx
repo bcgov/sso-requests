@@ -4,15 +4,24 @@ import Input from '@button-inc/bcgov-theme/Input';
 import trim from 'lodash.trim';
 
 interface Props {
-  id: string;
   onConfirm: () => Promise<void>;
   content: string;
   title: string;
   projectName?: string;
+  openModal?: boolean;
+  handleCloseModal?: () => void;
 }
 
-export default function DeleteModal({ id, onConfirm, title, content, projectName }: Readonly<Props>) {
+export default function DeleteModal({
+  onConfirm,
+  title,
+  content,
+  projectName,
+  openModal,
+  handleCloseModal,
+}: Readonly<Props>) {
   const [nameConfirmation, setNameConfirmation] = useState('');
+
   const label = projectName
     ? `Please enter ${projectName} below to confirm deletion.`
     : 'Please enter the project name below to confirm deletion.';
@@ -27,7 +36,6 @@ export default function DeleteModal({ id, onConfirm, title, content, projectName
   return (
     <div>
       <CenteredModal
-        id={id}
         data-testid="modal-delete-integration"
         content={
           <>
@@ -45,6 +53,8 @@ export default function DeleteModal({ id, onConfirm, title, content, projectName
         confirmText="Delete"
         buttonStyle="danger"
         disableConfirm={!canDelete}
+        openModal={openModal}
+        handleClose={handleCloseModal}
       />
     </div>
   );

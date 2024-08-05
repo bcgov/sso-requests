@@ -42,10 +42,11 @@ interface Props {
 const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const [activeEnv, setActiveEnv] = useState<EnvironmentOption | null>(null);
   const requestedEnvironments = getRequestedEnvironments(selectedRequest);
+  const [openChangeSecretModal, setOpenChangeSecretModal] = useState(false);
 
   const openModal = (env: EnvironmentOption) => {
     setActiveEnv(env);
-    window.location.hash = 'confirm-new-secret';
+    setOpenChangeSecretModal(true);
   };
 
   const handleSecretChange = async () => {
@@ -97,12 +98,13 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
         ))}
       </>
       <CenteredModal
-        id={`confirm-new-secret`}
         content={modalContents}
         onConfirm={handleSecretChange}
         icon={faExclamationTriangle}
         buttonStyle={'custom'}
         title="You are about to change your client secret"
+        openModal={openChangeSecretModal}
+        handleClose={() => setOpenChangeSecretModal(false)}
         closable
       />
     </>
