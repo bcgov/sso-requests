@@ -7,19 +7,14 @@ import { deleteTeam, deleteServiceAccount, getTeamMembers, getServiceAccounts } 
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
-import { createTeamModalId } from 'utils/constants';
 import { UserSession } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import WarningModalContents from 'components/WarningModalContents';
 import { Integration } from 'interfaces/Request';
 import TeamActionButtons from '@app/components/TeamActionButtons';
-import isEmpty from 'lodash.isempty';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import ErrorText from '@app/components/ErrorText';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
-
-const deleteTeamModalId = 'delete-team-modal';
-const editTeamNameModalId = 'edit-team-name-modal';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -71,15 +66,18 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
   const deleteServiceAccontNote =
     '*By deleting this team, you are also deleting the CSS App API Account that belongs to this team.';
 
-  const updateActiveTeam = (team: Team | null) => {
+  const updateActiveTeam = async (team: Team | null) => {
     setActiveTeam(team);
     setActiveTeamId(team?.id);
     setTeam(team);
+    await updateServiceAccounts(team?.id!);
+    setCanDeleteTeam((activeTeam && Number(activeTeam.integrationCount) === 0) || false);
   };
 
-  const updateServiceAccounts = async () => {
+  const updateServiceAccounts = async (id: number) => {
     if (activeTeam?.role === 'admin') {
-      const [data, error] = await getServiceAccounts(activeTeamId);
+      const [data, error] = await getServiceAccounts(id);
+
       if (error) {
         alert.show({ variant: 'danger', content: 'Failed to load service accounts for team. Please refresh.' });
         return;
@@ -99,13 +97,6 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
       updateActiveTeam(null);
     }
   }, [teams]);
-
-  useEffect(() => {
-    if (Number(activeTeam?.serviceAccountCount) > 0) {
-      updateServiceAccounts();
-    }
-    setCanDeleteTeam((activeTeam && Number(activeTeam.integrationCount) === 0) || false);
-  }, [activeTeamId]);
 
   const handleNewTeamClick = async () => setOpenCreateTeamModal(true);
 
@@ -178,6 +169,8 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     setTeamDeleteError(false);
     if (!canDeleteTeam) return;
 
+    await updateServiceAccounts(activeTeamId!);
+
     if (serviceAccounts.length > 0) {
       Promise.all(
         serviceAccounts.map((serviceAccount: Integration) => {
@@ -243,7 +236,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
             <WarningModalContents
               title="Are you sure that you want to delete this team?"
               content={canDeleteTeam ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-              note={canDeleteTeam && !isEmpty(serviceAccounts) ? deleteServiceAccontNote : ''}
+              note={canDeleteTeam && serviceAccounts.length > 0 ? deleteServiceAccontNote : ''}
             />
             {teamDeleteError && <ErrorText>Failed to delete. Please try again</ErrorText>}
           </div>
