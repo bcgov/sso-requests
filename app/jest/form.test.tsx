@@ -299,8 +299,11 @@ describe('Error messages', () => {
 });
 
 describe('Client Sessions', () => {
-  it('Sends client session idle and max as seconds when making calls to the API', () => {
-    setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
+  it('Sends client session idle and max as seconds when making calls to the API', async () => {
+    const component = setUpRender(
+      { ...sampleRequest, devIdps: ['idir'] },
+      { client_roles: ['sso-admin'], isAdmin: true },
+    );
     const { developmentBox, adminReview } = sandbox;
     fireEvent.click(developmentBox);
 
@@ -316,7 +319,8 @@ describe('Client Sessions', () => {
 
     fireEvent.click(adminReview);
     screen.getByText('Submit').click();
-    screen.getByText('Confirm').click();
+    const confirmButton = await component.findByText('Confirm', { selector: 'button' });
+    fireEvent.click(confirmButton as HTMLElement);
 
     const updateRequestCalls = (updateRequest as jest.Mock).mock.calls;
     expect(updateRequestCalls.length).toBe(1);

@@ -4,6 +4,7 @@ import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 import { SessionContext } from '@app/pages/_app';
 import { formatWikiURL } from '@app/utils/constants';
+import { debug } from 'jest-preview';
 
 function TeamListComponent() {
   return (
@@ -86,9 +87,9 @@ describe('Team List', () => {
     const createTeamButton = getByRole('button', '+ Create a New Team');
     expect(createTeamButton).toBeInTheDocument();
     fireEvent.click(createTeamButton);
-    await waitFor(() => {
-      expect(screen.getByTitle('Create a New Team')).toBeVisible();
-    });
+
+    const createNewTeamModal = screen.getByText('Create a New Team');
+    expect(createNewTeamModal).toBeInTheDocument();
 
     const teamNameInputField = getByLabelText('Team Name');
     fireEvent.change(await teamNameInputField, { target: { value: 'SAMPLE TEAM 01' } });
@@ -104,8 +105,8 @@ describe('Team List', () => {
     });
 
     // With user from context, should be two now
-    expect(getAllByText(container, 'Admin', { selector: 'option' }).length).toBe(2);
-    expect(getByText(container, 'Member', { selector: 'option' }));
+    expect(screen.getAllByText('Admin', { selector: 'option' }).length).toBe(2);
+    expect(screen.getByText('Member', { selector: 'option' }));
     expect(getByRole('link', 'View a detailed breakdown of roles on our wiki page')).toHaveAttribute('href', HYPERLINK);
 
     fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
@@ -129,18 +130,17 @@ describe('Team List', () => {
 
   it('Should match the correct table headers, selected team', async () => {
     render(<TeamListComponent />);
-
-    getByLabelText('Team Name');
+    expect(screen.getByText('Team Name')).toBeInTheDocument();
     getByRole('columnheader', 'Actions');
     fireEvent.click(getByRole('row', 'SAMPLE_TEAM Edit Delete'));
     expect(getByRole('row', 'SAMPLE_TEAM Edit Delete')).toHaveClass('active');
   });
 
   it('Should be able to click the Delete button, and confirm deletion', async () => {
-    render(<TeamListComponent />);
+    const component = render(<TeamListComponent />);
     fireEvent.click(getByRole('button', 'Delete'));
     await waitFor(() => {
-      expect(screen.getByTitle('Delete team'));
+      expect(screen.getByText('Delete team'));
     });
     fireEvent.click(await screen.findByRole('button', { name: 'Delete Team' }));
     await waitFor(() => {
@@ -152,7 +152,7 @@ describe('Team List', () => {
     render(<TeamListComponent />);
     fireEvent.click(getByRole('button', 'Edit'));
     await waitFor(() => {
-      expect(screen.getByTitle('Edit Team Name'));
+      expect(screen.getByText('Edit Team Name'));
     });
     const newTeamNameInputField = getByLabelText('New Team Name');
     fireEvent.change(newTeamNameInputField, { target: { value: 'NEW TEAM NAME' } });

@@ -11,11 +11,17 @@ const StyledModal = styled(Modal)`
   & .pg-modal-main {
     max-width: 700px;
     box-shadow: 5px 5px 10px black;
-    border-radius: 10px;
+
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) !important;
+  }
+  & .modal-content {
+    border-radius: 0;
+  }
+  & .modal-header {
+    border-radius: 0;
   }
 `;
 
