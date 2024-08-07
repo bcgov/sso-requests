@@ -137,12 +137,13 @@ describe('Team List', () => {
   });
 
   it('Should be able to click the Delete button, and confirm deletion', async () => {
-    const component = render(<TeamListComponent />);
+    render(<TeamListComponent />);
     fireEvent.click(getByRole('button', 'Delete'));
     await waitFor(() => {
       expect(screen.getByText('Delete team'));
     });
     fireEvent.click(await screen.findByRole('button', { name: 'Delete Team' }));
+
     await waitFor(() => {
       expect(deleteTeam).toHaveBeenCalledTimes(1);
     });

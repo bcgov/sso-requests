@@ -656,7 +656,7 @@ export const setRoutes = (app: any) => {
   app.delete(`/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
-      const result = await deleteTeam(req.user.id, id);
+      const result = await deleteTeam(req.session as Session, id);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

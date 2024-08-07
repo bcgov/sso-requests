@@ -133,7 +133,6 @@ const RestoreModalContent = ({
     }
     await loadData();
     handleClose();
-    window.location.hash = '#';
   };
 
   const handleClose = () => {
@@ -183,7 +182,6 @@ const RestoreModalContent = ({
       onClose={handleClose}
       openModal={showModal}
       handleClose={handleCloseModal}
-      skipCloseOnConfirm
     />
   );
 };
@@ -313,10 +311,8 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         variant: 'danger',
         content: 'Failed to delete the integration, please try again.',
       });
-    } else {
-      await getData();
     }
-    window.location.hash = '#';
+    await loadData();
   };
 
   const activateRow = (request: any) => {

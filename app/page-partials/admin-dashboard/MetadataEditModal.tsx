@@ -16,8 +16,6 @@ function MetadataEditModal({ request, onUpdate }: Props) {
   const [openMetaDataEditModal, setOpenMetaDataEditModal] = useState(false);
   const [status, setStatus] = useState(request.status);
 
-  const modalId = 'edit-metadata';
-
   const handleMetadataModalConfirm = async () => {
     await updateRequestMetadata({ id: request.id, status });
     if (onUpdate) await onUpdate();
@@ -48,7 +46,7 @@ function MetadataEditModal({ request, onUpdate }: Props) {
 
   return (
     <>
-      <Button variant="bcPrimary" size="small" onClick={openModal}>
+      <Button variant="bcPrimary" size="small" onClick={openModal} data-testid={'edit-metadata-button'}>
         Edit Metadata
       </Button>
       <CenteredModal

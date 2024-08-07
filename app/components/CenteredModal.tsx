@@ -26,7 +26,6 @@ const StyledModal = styled(Modal)`
 `;
 
 const Header = styled(Modal.Header)`
-  display: flex;
   font-size: 1.5em;
   padding: 0.75em;
   background: #38598a;
@@ -128,8 +127,10 @@ const CenteredModal = ({
   return (
     <StyledModal show={openModal} onHide={() => handleClose()} dialogClassName="pg-modal-main">
       <Header>
-        {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
-        <Modal.Title>{title}</Modal.Title>
+        <Modal.Title>
+          {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
+          {title}
+        </Modal.Title>
         {closable && <FontAwesomeIcon icon={faTimes} size="lg" onClick={handleClose}></FontAwesomeIcon>}
       </Header>
       <Modal.Body>

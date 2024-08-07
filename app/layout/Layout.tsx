@@ -132,7 +132,7 @@ const RightMenuItems = () => (
       {(setOpenProfileModal: (flag: boolean) => void) => {
         return (
           <HoverItem>
-            <a>
+            <a title="My Profile" data-testid="my-profile-link">
               <FontAwesomeIcon size="2x" icon={faUserAlt} onClick={() => setOpenProfileModal(true)} />
             </a>
           </HoverItem>

@@ -211,7 +211,7 @@ function ServiceAccountsList({
           />
         }
         buttonStyle={'danger'}
-        confirmText={'Delete CSS API Account'}
+        confirmText={'Delete'}
         closable
       />
     </>

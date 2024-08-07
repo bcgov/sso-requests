@@ -70,8 +70,10 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     setActiveTeam(team);
     setActiveTeamId(team?.id);
     setTeam(team);
-    await updateServiceAccounts(team?.id!);
-    setCanDeleteTeam((activeTeam && Number(activeTeam.integrationCount) === 0) || false);
+    if (team) {
+      await updateServiceAccounts(team?.id!);
+      setCanDeleteTeam((activeTeam && Number(activeTeam.integrationCount) === 0) || false);
+    }
   };
 
   const updateServiceAccounts = async (id: number) => {
@@ -168,16 +170,6 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
   const handleDeleteTeam = async () => {
     setTeamDeleteError(false);
     if (!canDeleteTeam) return;
-
-    await updateServiceAccounts(activeTeamId!);
-
-    if (serviceAccounts.length > 0) {
-      Promise.all(
-        serviceAccounts.map((serviceAccount: Integration) => {
-          deleteServiceAccount(activeTeamId, serviceAccount.id);
-        }),
-      );
-    }
 
     const [_result, error] = await deleteTeam(activeTeamId);
     if (error) {
