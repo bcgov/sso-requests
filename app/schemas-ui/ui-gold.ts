@@ -8,7 +8,7 @@ import TooltipCheckboxesWidget from '@app/form-components/widgets/TooltipCheckbo
 import FieldTermsAndConditions from '@app/form-components/FieldTermsAndConditions';
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
-import FieldAccessTokenLifespan from '@app/form-components/FieldAccessTokenLifespan';
+import FieldInlineGrid from '@app/form-components/FieldInlineGrid';
 import { checkBceidGroup, checkGithubGroup } from '@app/helpers/integration';
 import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
@@ -100,17 +100,16 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       const minuteOnlyFields = ['SessionIdleTimeout', 'SessionMaxLifespan'];
       let def: any = {
         'ui:widget': minuteOnlyFields.includes(durationAdditionalFields[y]) ? MinutesToSeconds : ClientTokenWidget,
-        'ui:label': false,
         'ui:readonly': !isAdmin,
+        'ui:FieldTemplate': FieldInlineGrid,
       };
 
-      if (y === 0) def['ui:FieldTemplate'] = FieldAccessTokenLifespan;
       tokenFields[`${envs[x]}${durationAdditionalFields[y]}`] = def;
     }
 
     tokenFields[`${envs[x]}OfflineAccessEnabled`] = {
       'ui:widget': SwitchWidget,
-      'ui:label': false,
+      'ui:FieldTemplate': FieldInlineGrid,
       'ui:readonly': !isAdmin,
     };
 
@@ -151,22 +150,22 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       classNames: 'short-field-string',
     },
     devDisplayHeaderTitle: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     testDisplayHeaderTitle: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     prodDisplayHeaderTitle: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     devSamlSignAssertions: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     testSamlSignAssertions: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     prodSamlSignAssertions: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     usesTeam: {
       'ui:widget': 'radio',
@@ -178,7 +177,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:readonly': isApplied,
     },
     newToSso: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     primaryEndUsers: {
       'ui:widget': 'checkboxes',

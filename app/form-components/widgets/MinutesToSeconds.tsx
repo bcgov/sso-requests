@@ -4,27 +4,18 @@ import { WidgetProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import noop from 'lodash.noop';
 import Input from '@button-inc/bcgov-theme/Input';
-import InfoOverlay from 'components/InfoOverlay';
-
-const Label = styled.span`
-  display: inline-block;
-  width: 200px;
-
-  & label {
-    font-weight: 700;
-    font-size: 0.8rem;
-  }
-`;
 
 const LeftInput = styled.span`
-  display: inline-block;
-  margin-right: 0.3rem;
-  margin-bottom: 0.5rem;
-
   & input {
     height: 1.94rem;
     max-width: 3.125rem;
   }
+`;
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: row;
+  column-gap: 0.5em;
 `;
 
 const MIN_1 = 60;
@@ -63,12 +54,7 @@ const MinutesToSeconds = ({ id, value = 0, label, readonly, onChange, schema }: 
   };
 
   return (
-    <div>
-      <Label>
-        <label htmlFor={id}>{label}</label>&nbsp;
-        <InfoOverlay content={tooltipContent} />
-      </Label>
-
+    <Container>
       <LeftInput>
         <Input
           type="text"
@@ -84,7 +70,7 @@ const MinutesToSeconds = ({ id, value = 0, label, readonly, onChange, schema }: 
         />
       </LeftInput>
       <span>Minutes</span>
-    </div>
+    </Container>
   );
 };
 
