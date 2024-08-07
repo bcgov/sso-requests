@@ -43,6 +43,7 @@ function MyIntegrations({ session }: PageProps) {
         showResizable={integrationCount > 0}
       />
       <CenteredModal
+        id={integrationFailedMessageModalId}
         openModal={showModal}
         handleClose={() => setShowModal(false)}
         title={`${processedRequestId} - Integration request failed`}
