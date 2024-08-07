@@ -474,6 +474,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         )}
       </Form>
       <CenteredModal
+        id={`confirmation-modal`}
         openModal={openSubmissionModal}
         handleClose={() => setOpenSubmissionModal(false)}
         content={

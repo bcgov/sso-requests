@@ -37,10 +37,6 @@ export default function FieldProjectTeam(props: FieldTemplateProps) {
     setOpenModal(true);
   };
 
-  const handleModalClose = () => {
-    setOpenModal(false);
-  };
-
   const bottom = (
     <>
       <Container onClick={handleClick}>
@@ -60,12 +56,13 @@ export default function FieldProjectTeam(props: FieldTemplateProps) {
               await loadTeams();
               setFormData({ ...formData, usesTeam: true, teamId: String(teamId) });
             }}
+            setOpenCreateTeamModal={setOpenModal}
           />
         }
         showCancel={false}
         showConfirm={false}
         openModal={openModal}
-        handleClose={handleModalClose}
+        handleClose={() => setOpenModal(false)}
         closable
       />
     </>
