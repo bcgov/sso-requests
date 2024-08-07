@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import { sampleRequest } from '../../samples/integrations';
 import { formatWikiURL } from '@app/utils/constants';
+import { debug } from 'jest-preview';
 
 const setIntegration = jest.fn();
 const setIntegrationCount = jest.fn();
@@ -55,9 +56,9 @@ describe('Integration list', () => {
     render(<IntegrationListComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
     await waitFor(() => {
-      expect(screen.getByTitle('Confirm Deletion'));
+      expect(screen.getByText('Confirm Deletion'));
     });
-
+    debug();
     const confirmationInput = await screen.findByTestId('delete-confirmation-input');
     const confirmDeleteButton = await screen.findByTestId('confirm-delete-confirm-deletion');
 

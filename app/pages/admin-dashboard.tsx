@@ -73,10 +73,14 @@ const RestoreModalContent = ({
   selectedIntegration,
   loadData,
   alert,
+  showModal,
+  handleCloseModal,
 }: {
   selectedIntegration?: Integration;
   loadData: () => Promise<void>;
   alert: TopAlert;
+  showModal: boolean;
+  handleCloseModal: () => void;
 }) => {
   const [teamExists, setTeamExists] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -129,7 +133,6 @@ const RestoreModalContent = ({
     }
     await loadData();
     handleClose();
-    window.location.hash = '#';
   };
 
   const handleClose = () => {
@@ -176,9 +179,10 @@ const RestoreModalContent = ({
       onConfirm={confirmRestore}
       confirmText="Restore"
       title="Confirm Restoration"
-      skipCloseOnConfirm
       showConfirm={!(selectedIntegration.apiServiceAccount && !teamExists)}
       onClose={handleClose}
+      openModal={showModal}
+      handleClose={handleCloseModal}
     />
   );
 };
@@ -198,6 +202,8 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
   const [archiveStatus, setArchiveStatus] = useState<Option[]>([]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
+  const [showRestoreModal, setShowRestoreModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
   const getData = async () => {
@@ -284,15 +290,15 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const handleDelete = async (request: Integration) => {
     if (!request.id || !canDelete(request)) return;
     setSelectedId(request.id);
-    window.location.hash = 'delete-modal';
+    setShowDeleteModal(true);
   };
 
   const handleRestore = async (request: Integration) => {
     if (!request.id || !canRestore(request)) return;
     setSelectedId(request.id);
-    window.location.hash = '';
+    setShowRestoreModal(false);
     process.nextTick(() => {
-      window.location.hash = 'restore-modal';
+      setShowRestoreModal(true);
     });
   };
 
@@ -306,10 +312,8 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         variant: 'danger',
         content: 'Failed to delete the integration, please try again.',
       });
-    } else {
-      await getData();
     }
-    window.location.hash = '#';
+    await loadData();
   };
 
   const activateRow = (request: any) => {
@@ -469,13 +473,21 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         }
       />
       <DeleteModal
-        projectName={selectedRequest?.projectName}
         id="delete-modal"
+        projectName={selectedRequest?.projectName}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
         content="You are about to delete this integration request. This action cannot be undone."
+        openModal={showDeleteModal}
+        handleCloseModal={() => setShowDeleteModal(false)}
       />
-      <RestoreModalContent selectedIntegration={selectedRequest} loadData={loadData} alert={alert} />
+      <RestoreModalContent
+        selectedIntegration={selectedRequest}
+        loadData={loadData}
+        alert={alert}
+        showModal={showRestoreModal}
+        handleCloseModal={() => setShowRestoreModal(false)}
+      />
     </>
   );
 }

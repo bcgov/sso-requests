@@ -13,6 +13,7 @@ import {
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
+import { useState } from 'react';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -35,11 +36,14 @@ const approvalTypeMap = {
 };
 
 function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onApproved }: Props) {
+  const [openApprovalModal, setOpenApprovalModal] = useState(false);
+
   if (!integration) return null;
 
   const displayType = startCase(type);
-  const modalId = `${type}-approval-modal`;
-  const openModal = () => (window.location.hash = modalId);
+  const openModal = () => {
+    setOpenApprovalModal(true);
+  };
   const approvalPropertyName = approvalTypeMap[type];
 
   let typeApproved = false;
@@ -106,7 +110,9 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
         {content}
       </TabWrapper>
       <CenteredModal
-        id={modalId}
+        id={`${type}-approval-modal`}
+        openModal={openApprovalModal}
+        handleClose={() => setOpenApprovalModal(false)}
         content={`Are you sure you want to approve this integration for ${displayType} production?`}
         onConfirm={onConfirm}
         icon={faExclamationTriangle}

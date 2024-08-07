@@ -28,6 +28,16 @@ function MockRequestAllResult() {
       devIdps: ['bceidbasic', 'githubpublic', 'bcservicescard'],
     });
   }
+  requestAllResult.push({
+    ...sampleRequest,
+    id: 7,
+    projectName: `project_name_7`,
+    status: 'applied',
+    archived: true,
+    serviceType: 'gold',
+    environments: ['dev', 'prod'],
+    devIdps: ['bceidbasic', 'githubpublic', 'bcservicescard'],
+  });
   return requestAllResult;
 }
 
@@ -180,31 +190,40 @@ describe('SSO Dashboard', () => {
     //click on delete icon
     const deleteButton = screen.getAllByRole('button', { name: 'Delete from Keycloak' });
     fireEvent.click(deleteButton[0]);
+
     await waitFor(() => {
-      expect(screen.getByTitle('Confirm Deletion')).toBeInTheDocument();
+      expect(screen.getByText('Confirm Deletion')).toBeInTheDocument();
     });
     const confirmDeleteButton = screen.getByTestId('confirm-delete-confirm-deletion');
 
-    const confirmationInput = await screen.getByTestId('delete-confirmation-input');
-    fireEvent.change(confirmationInput, { target: { value: 'project_name_1' } });
+    await waitFor(() => {
+      const confirmationInput = screen.getByTestId('delete-confirmation-input');
+      fireEvent.change(confirmationInput, { target: { value: 'project_name_1' } });
+    });
 
     fireEvent.click(confirmDeleteButton);
     await waitFor(() => {
       expect(deleteRequest).toHaveBeenCalled();
+      expect(screen.queryByText('Confirm Deletion')).toBeNull();
     });
 
-    //click on restore icon
-    const restoreButton = screen.getAllByRole('button', { name: 'Restore at Keycloak' });
+    const restoreButtons = screen.getAllByRole('button', { name: 'Restore at Keycloak' });
+    fireEvent.click(restoreButtons[6]);
+
+    let restorationModal: HTMLElement | null;
+
+    await waitFor(() => {
+      restorationModal = screen.getByText('Confirm Restoration');
+      expect(restorationModal).toBeInTheDocument();
+    });
+
     const userSearch = document.querySelector('#restoration-email-select input') as Element;
     fireEvent.change(userSearch, { target: { value: MOCK_EMAIL } });
+
     await waitFor(() => {
-      expect(screen.getByDisplayValue(MOCK_EMAIL)).toBeInTheDocument();
-      screen.getByText(MOCK_EMAIL).click();
+      fireEvent.click(screen.getByRole('option', { name: MOCK_EMAIL }));
     });
-    fireEvent.click(restoreButton[0]);
-    await waitFor(() => {
-      expect(screen.getByTitle('Confirm Restoration')).toBeInTheDocument();
-    });
+
     const confirmRestoreButton = screen.getAllByTestId('confirm-delete-confirm-restoration');
     fireEvent.click(confirmRestoreButton[0]);
     await waitFor(() => {
@@ -260,11 +279,8 @@ describe('SSO Dashboard', () => {
     });
 
     //open the modal
-    const editMetadataButton = screen.getByRole('button', { name: 'Edit Metadata' });
+    const editMetadataButton = screen.getByTestId('edit-metadata-button');
     fireEvent.click(editMetadataButton);
-    await waitFor(() => {
-      expect(screen.getByTitle('Edit Metadata'));
-    });
 
     //change selection value
     const statusSelection = screen.getByTestId('integration-status');
@@ -393,10 +409,12 @@ describe('SSO Dashboard', () => {
     const BCeIDProdTabPanel = screen.getByRole('tab', { name: 'BCeID Prod' });
     fireEvent.click(BCeIDProdTabPanel);
 
-    //open the modal
-    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
-    fireEvent.click(approveProdButton);
-    expect(screen.getByTitle('Bceid Approve'));
+    await waitFor(() => {
+      //open the modal
+      const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+      fireEvent.click(approveProdButton);
+      expect(screen.getByText('Bceid Approve'));
+    });
 
     //test on confirm button
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
@@ -418,10 +436,12 @@ describe('SSO Dashboard', () => {
     const GitHubProdTabPanel = screen.getByRole('tab', { name: 'GitHub Prod' });
     fireEvent.click(GitHubProdTabPanel);
 
-    //open the modal
-    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
-    fireEvent.click(approveProdButton);
-    expect(screen.getByTitle('Github Approve'));
+    await waitFor(() => {
+      //open the modal
+      const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+      fireEvent.click(approveProdButton);
+      expect(screen.getByText('Github Approve'));
+    });
 
     //test on confirm button
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
@@ -443,10 +463,12 @@ describe('SSO Dashboard', () => {
     const BCSCProdTabPanel = screen.getByRole('tab', { name: 'BC Services Card Prod' });
     fireEvent.click(BCSCProdTabPanel);
 
-    //open the modal
-    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
-    fireEvent.click(approveProdButton);
-    expect(screen.getByTitle('BC Services Card Approve'));
+    await waitFor(() => {
+      //open the modal
+      const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+      fireEvent.click(approveProdButton);
+      expect(screen.getByText('BC Services Card Approve'));
+    });
 
     //test on confirm button
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
