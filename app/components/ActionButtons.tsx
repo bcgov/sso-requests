@@ -117,6 +117,7 @@ export default function Actionbuttons({
         />
       </ActionButtonContainer>
       <DeleteModal
+        id={`delete-modal-${request?.id}`}
         projectName={request.projectName}
         onConfirm={confirmDelete}
         title="Confirm Deletion"

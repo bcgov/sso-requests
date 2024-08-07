@@ -50,6 +50,7 @@ function MetadataEditModal({ request, onUpdate }: Props) {
         Edit Metadata
       </Button>
       <CenteredModal
+        id="edit-metadata"
         openModal={openMetaDataEditModal}
         handleClose={() => setOpenMetaDataEditModal(false)}
         content={modalContents}

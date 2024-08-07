@@ -36,6 +36,7 @@ function CancelConfirmModal({ onConfirm }: Props) {
         Cancel
       </CancelButton>
       <CenteredModal
+        id="edit-cancel-confirmation"
         openModal={openCancelModal}
         handleClose={() => setOpenCancelModal(false)}
         content={modalContents}

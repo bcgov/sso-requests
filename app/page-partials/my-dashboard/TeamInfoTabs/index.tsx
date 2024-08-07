@@ -150,6 +150,7 @@ const ConfirmDeleteModal = ({
   }
   return (
     <CenteredModal
+      id={deleteMemberModalId}
       title="Delete Team Member"
       icon={null}
       content={<ModalContents content={content} title={title} />}
@@ -703,6 +704,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         )}
       </Tabs>
       <CenteredModal
+        id={addMemberModalId}
         openModal={openAddTeamMemberModal}
         handleClose={() => {
           setErrors(null);

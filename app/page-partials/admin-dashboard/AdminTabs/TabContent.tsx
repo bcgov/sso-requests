@@ -110,6 +110,7 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
         {content}
       </TabWrapper>
       <CenteredModal
+        id={`${type}-approval-modal`}
         openModal={openApprovalModal}
         handleClose={() => setOpenApprovalModal(false)}
         content={`Are you sure you want to approve this integration for ${displayType} production?`}

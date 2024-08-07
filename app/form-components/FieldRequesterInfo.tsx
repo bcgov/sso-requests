@@ -22,6 +22,7 @@ export default function FieldRequesterInfo(props: FieldTemplateProps) {
   const bottom = (
     <>
       <CenteredModal
+        id={'info-modal'}
         openModal={openrequestorInfoModal}
         handleClose={handleModalClose}
         content={

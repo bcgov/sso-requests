@@ -318,6 +318,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
         </div>
       </Form>
       <CenteredModal
+        id="logs-modal"
         showConfirm={false}
         title="Downloading Logs"
         onClose={cancelLogsDownload}

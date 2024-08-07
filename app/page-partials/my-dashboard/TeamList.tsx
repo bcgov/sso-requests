@@ -15,6 +15,7 @@ import TeamActionButtons from '@app/components/TeamActionButtons';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import ErrorText from '@app/components/ErrorText';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
+import { createTeamModalId, deleteTeamModalId, editTeamNameModalId } from '@app/utils/constants';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -189,6 +190,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
       <br />
       {content}
       <CenteredModal
+        id={createTeamModalId}
         title="Create a New Team"
         icon={null}
         onConfirm={() => console.log('confirm')}
@@ -202,6 +204,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
         closable
       />
       <CenteredModal
+        id={editTeamNameModalId}
         title="Edit Team Name"
         icon={null}
         onConfirm={() => console.log('confirm')}
@@ -220,6 +223,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
         closable
       />
       <CenteredModal
+        id={deleteTeamModalId}
         title="Delete team"
         icon={null}
         onConfirm={handleDeleteTeam}

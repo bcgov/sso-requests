@@ -4,6 +4,7 @@ import Input from '@button-inc/bcgov-theme/Input';
 import trim from 'lodash.trim';
 
 interface Props {
+  id?: string;
   onConfirm: () => Promise<void>;
   content: string;
   title: string;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function DeleteModal({
+  id,
   onConfirm,
   title,
   content,
@@ -55,6 +57,7 @@ export default function DeleteModal({
         disableConfirm={!canDelete}
         openModal={openModal}
         handleClose={handleCloseModal}
+        id={id}
       />
     </div>
   );

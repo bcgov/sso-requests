@@ -118,6 +118,7 @@ function UserProfileModal({ children, alert }: Props): any {
     <>
       {children(setOpenProfileModal)}
       <CenteredModal
+        id="user-profile"
         openModal={openProfileModal}
         handleClose={() => setOpenProfileModal(false)}
         content={modalContents}

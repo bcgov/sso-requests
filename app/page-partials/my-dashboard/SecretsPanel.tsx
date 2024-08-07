@@ -98,6 +98,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
         ))}
       </>
       <CenteredModal
+        id={`confirm-new-secret`}
         content={modalContents}
         onConfirm={handleSecretChange}
         icon={faExclamationTriangle}

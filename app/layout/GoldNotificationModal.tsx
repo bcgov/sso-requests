@@ -82,6 +82,7 @@ function GoldNotificationModal(): any {
   return (
     <>
       <CenteredModal
+        id={`gold-notification`}
         openModal={openGoldNotificationModal}
         handleClose={handleClose}
         content={modalContents}

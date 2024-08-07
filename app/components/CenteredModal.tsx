@@ -63,6 +63,7 @@ const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
 export type ButtonStyle = 'bcgov' | 'custom' | 'danger';
 
 interface Props {
+  id?: string;
   onConfirm?: () => void;
   onClose?: () => void;
   openModal?: boolean;
@@ -81,6 +82,7 @@ interface Props {
 }
 
 const CenteredModal = ({
+  id,
   openModal = false,
   handleClose = () => {},
   title,
@@ -125,7 +127,7 @@ const CenteredModal = ({
   }
 
   return (
-    <StyledModal show={openModal} onHide={() => handleClose()} dialogClassName="pg-modal-main">
+    <StyledModal show={openModal} onHide={() => handleClose()} dialogClassName="pg-modal-main" id={id}>
       <Header>
         <Modal.Title>
           {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}

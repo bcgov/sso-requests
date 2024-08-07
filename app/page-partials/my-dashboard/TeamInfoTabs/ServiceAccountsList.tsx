@@ -174,6 +174,7 @@ function ServiceAccountsList({
       )}
 
       <CenteredModal
+        id={'update-service-account-secret-modal'}
         title="Request a new secret for CSS API Account"
         onConfirm={handleConfirmUpdate}
         openModal={openUpdateSecretModal}
@@ -198,6 +199,7 @@ function ServiceAccountsList({
         closable
       />
       <CenteredModal
+        id={'delete-service-account-modal'}
         title="Delete CSS API Account"
         icon={null}
         onConfirm={handleConfirmDelete}

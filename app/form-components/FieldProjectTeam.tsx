@@ -26,6 +26,7 @@ const Description = styled.p`
 `;
 
 import FieldTemplate from './FieldTemplate';
+import { createTeamModalId } from '@app/utils/constants';
 
 export default function FieldProjectTeam(props: FieldTemplateProps) {
   const { formContext } = props;
@@ -50,6 +51,7 @@ export default function FieldProjectTeam(props: FieldTemplateProps) {
         </Description>
       </Container>
       <CenteredModal
+        id={createTeamModalId}
         title="Create a New Team"
         icon={null}
         content={

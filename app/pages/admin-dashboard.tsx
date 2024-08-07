@@ -173,6 +173,7 @@ const RestoreModalContent = ({
 
   return (
     <CenteredModal
+      id="restore-modal"
       data-testid="modal-restore-integration"
       content={content}
       onConfirm={confirmRestore}
@@ -472,6 +473,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         }
       />
       <DeleteModal
+        id="delete-modal"
         projectName={selectedRequest?.projectName}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
