@@ -4,5 +4,6 @@ import '@bcgov/bc-sans/css/BCSans.css';
 
 export default function BCSans() {
   typography.options.baseFontSize = '16px';
+  typography.options.bodyColor = '#292929';
   return <TypographyStyle typography={typography} />;
 }

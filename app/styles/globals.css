@@ -8,10 +8,11 @@ body {
   margin: 0;
   font-family: 'BCSans', Verdana, Arial, sans-serif;
   font-size: 16px !important;
+  color: #292929;
 }
 
 a {
-  color: inherit;
+  color: #1a5a96;
 }
 
 * {
