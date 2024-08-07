@@ -223,3 +223,7 @@ ul.error-detail {
 .hidden-title {
   display: none;
 }
+
+.modal-open {
+  padding-right: 0 !important;
+}
