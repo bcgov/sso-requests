@@ -9,7 +9,6 @@ interface Props {
 }
 
 function CancelConfirmModal({ onConfirm }: Props) {
-  const modalId = 'edit-cancel-confirmation';
   const [openCancelModal, setOpenCancelModal] = React.useState(false);
 
   const handleConfirm = async () => {

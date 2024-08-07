@@ -77,10 +77,6 @@ function UserProfileModal({ children, alert }: Props): any {
     window.location.hash = '#';
   };
 
-  const openModal = () => {
-    setOpenProfileModal(true);
-  };
-
   const handleAddiEmail = (event: ChangeEvent<HTMLInputElement>) => {
     if (validator.isEmail(event.target.value)) {
       setEmailError('');

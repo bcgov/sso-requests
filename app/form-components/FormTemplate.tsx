@@ -187,7 +187,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       formData.protocol,
     );
 
-    const showModal = newData.projectLead === false && newData.usesTeam === false;
     const togglingTeamToTrue = !formData.usesTeam && newData.usesTeam === true;
     const togglingBceidApprovedToFalse = newData.bceidApproved === true && checkHasNoBceidIdp(newData.devIdps);
 

@@ -12,7 +12,6 @@ import { copyTextToClipboard, downloadText, prettyJSON } from '@app/utils/text';
 import Table from 'components/TableNew';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import { useState } from 'react';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -57,7 +56,7 @@ function ServiceAccountsList({
   getTeamServiceAccounts,
   alert,
 }: Readonly<Props>) {
-  const [openUpdateSecretModal, setUpdateSecretModal] = useState(false);
+  const [openUpdateSecretModal, setOpenUpdateSecretModal] = useState(false);
   const [openDeleteApiAccountModal, setOpenDeleteApiAccountModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -84,7 +83,7 @@ function ServiceAccountsList({
 
   const handleUpdate = () => {
     if (checkDisabled(selectedServiceAccount)) return;
-    setUpdateSecretModal(true);
+    setOpenUpdateSecretModal(true);
   };
 
   const handleConfirmUpdate = async () => {
@@ -178,7 +177,7 @@ function ServiceAccountsList({
         title="Request a new secret for CSS API Account"
         onConfirm={handleConfirmUpdate}
         openModal={openUpdateSecretModal}
-        handleClose={() => setUpdateSecretModal(false)}
+        handleClose={() => setOpenUpdateSecretModal(false)}
         content={
           <>
             <StyledP>

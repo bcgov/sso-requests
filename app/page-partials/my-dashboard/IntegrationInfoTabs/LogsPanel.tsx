@@ -195,10 +195,6 @@ const LogsPanel = ({ integration, alert }: Props) => {
     resetForm();
   }, [integration.clientId]);
 
-  const toggleModal = (open: boolean) => {
-    window.location.hash = open ? 'logs-modal' : '';
-  };
-
   const cancelLogsDownload = () => {
     logsQueryController?.abort();
     setLoading(false);

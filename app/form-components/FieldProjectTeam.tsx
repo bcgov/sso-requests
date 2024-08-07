@@ -4,7 +4,6 @@ import { FieldTemplateProps } from 'react-jsonschema-form';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import CenteredModal from 'components/CenteredModal';
 import CreateTeamForm from 'form-components/team-form/CreateTeamForm';
-import { createTeamModalId } from 'utils/constants';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 

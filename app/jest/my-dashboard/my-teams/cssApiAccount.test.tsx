@@ -7,7 +7,6 @@ import {
 } from '@app/services/team';
 import { MyTeamsComponent } from './helpers';
 import { docusaurusURL } from '@app/utils/constants';
-import { debug } from 'jest-preview';
 
 const HYPERLINK = `${docusaurusURL}/integrating-your-application/css-app-api`;
 

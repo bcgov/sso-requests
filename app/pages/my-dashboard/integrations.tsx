@@ -6,9 +6,8 @@ import { Integration } from 'interfaces/Request';
 import { PageProps } from 'interfaces/props';
 import CenteredModal from '@app/components/CenteredModal';
 import { useRouter } from 'next/router';
-import { faCommentDots, faEnvelope, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faCommentDots, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
-import { Link } from '@button-inc/bcgov-theme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const Column = styled.div`

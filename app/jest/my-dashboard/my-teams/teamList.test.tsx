@@ -1,10 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within, getByText, getAllByText } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 import { SessionContext } from '@app/pages/_app';
 import { formatWikiURL } from '@app/utils/constants';
-import { debug } from 'jest-preview';
 
 function TeamListComponent() {
   return (
@@ -76,7 +75,7 @@ jest.mock('services/team', () => ({
 
 describe('Team List', () => {
   it('Should match the expected button name, and testing on all text-input-box, drop-down-box, hyperlink, and button functionality in the modal', async () => {
-    const { container } = render(
+    render(
       <SessionContext.Provider
         value={{ session: { email: 'test@email.com' }, user: { idirEmail: 'test@email.com', role: '' } }}
       >

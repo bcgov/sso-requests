@@ -3,7 +3,7 @@ import Table from 'components/TableNew';
 import styled from 'styled-components';
 import { Button } from '@bcgov-sso/common-react-components';
 import { Team } from 'interfaces/team';
-import { deleteTeam, deleteServiceAccount, getTeamMembers, getServiceAccounts } from 'services/team';
+import { deleteTeam, getServiceAccounts } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
@@ -71,7 +71,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     setActiveTeamId(team?.id);
     setTeam(team);
     if (team) {
-      await updateServiceAccounts(team?.id!);
+      await updateServiceAccounts(team.id!);
       setCanDeleteTeam((activeTeam && Number(activeTeam.integrationCount) === 0) || false);
     }
   };

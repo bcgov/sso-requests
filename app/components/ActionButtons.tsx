@@ -59,10 +59,8 @@ export default function Actionbuttons({
   delIconStyle = {},
 }: Props) {
   const router = useRouter();
-  const { archived } = request || {};
   const canDelete = canDeleteIntegration(request);
   const canEdit = canEditIntegration(request);
-  const deleteModalId = `delete-modal-${request?.id}`;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleCloseDeleteModal = () => {

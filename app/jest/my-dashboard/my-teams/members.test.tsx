@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor, within, act } from '@testing-librar
 import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/team';
 import { MyTeamsComponent } from './helpers';
 import { formatWikiURL } from '@app/utils/constants';
-import { debug } from 'jest-preview';
 
 const HYPERLINK = formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what');
 
