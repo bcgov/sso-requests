@@ -1,6 +1,5 @@
 import { WidgetProps } from 'react-jsonschema-form';
 import Switch from 'react-switch';
-import { JSONSchema6 } from 'json-schema';
 import { useState } from 'react';
 
 function SwitchWidget(props: WidgetProps) {

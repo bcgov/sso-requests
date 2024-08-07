@@ -34,22 +34,20 @@ export default function FieldTemplate(
     <>
       {top}
       <div className={classes}>
-        <>
-          <Container>
-            {displayLabel && label && (
-              <Label>
-                <label htmlFor={props.id}>{label}&nbsp;</label>
-                {tooltip && (
-                  <InfoOverlay {...tooltip} trigger={tooltip?.trigger ? tooltip?.trigger : ['hover', 'focus']} />
-                )}
-              </Label>
-            )}
-            <div data-testid={`${id}_description`}>{descriptionToUse}</div>
-            {children as ReactNode}
-          </Container>
-          {errors}
-          {help}
-        </>
+        <Container>
+          {displayLabel && label && (
+            <Label>
+              <label htmlFor={props.id}>{label}&nbsp;</label>
+              {tooltip && (
+                <InfoOverlay {...tooltip} trigger={tooltip?.trigger ? tooltip?.trigger : ['hover', 'focus']} />
+              )}
+            </Label>
+          )}
+          <div data-testid={`${id}_description`}>{descriptionToUse}</div>
+          {children as ReactNode}
+        </Container>
+        {errors as ReactNode}
+        {help as ReactNode}
       </div>
       {bottom}
     </>
