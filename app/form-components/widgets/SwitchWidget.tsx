@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 function SwitchWidget(props: WidgetProps) {
   const { id, disabled, value, readonly, onChange } = props;
-  const [checked, setChecked] = useState(value);
+  const [checked, setChecked] = useState(value === undefined ? props.schema.default : value);
   return (
     <div style={{ display: 'flex' }}>
       <Switch
