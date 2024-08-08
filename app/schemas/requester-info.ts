@@ -11,6 +11,7 @@ const projectLead = {
       If you are not the one accountable, please refer this request to a team member who will be accountable for this project.
     </p>`,
   },
+  default: true,
 };
 
 const primaryEndUsers = {
@@ -53,6 +54,7 @@ export default function getSchema(teams: any[] = [], formData: Integration) {
         type: 'boolean',
         title: 'Project Team',
         description: 'Would you like to allow multiple members to manage this integration?',
+        default: false,
       },
     },
     required: ['projectName'],
