@@ -13,15 +13,18 @@ export default function FieldRequesterInfo(props: FieldTemplateProps) {
   const { formContext } = props;
   const { formData } = formContext;
   const showAccountableError = formData.projectLead === false && formData.usesTeam === false;
+  const [openrequestorInfoModal, setOpenrequestorInfoModal] = React.useState(false);
 
   const handleModalClose = () => {
-    window.location.hash = '#';
+    setOpenrequestorInfoModal(false);
   };
 
   const bottom = (
     <>
       <CenteredModal
-        id="info-modal"
+        id={'info-modal'}
+        openModal={openrequestorInfoModal}
+        handleClose={handleModalClose}
         content={
           <>
             <p>If you are not accountable for this project, please refer this request to someone who is.</p>

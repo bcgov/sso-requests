@@ -5,6 +5,10 @@ import { BcscPrivacyZone } from '@app/interfaces/types';
 
 export const createTeamModalId = `create-team-modal`;
 
+export const deleteTeamModalId = 'delete-team-modal';
+
+export const editTeamNameModalId = 'edit-team-name-modal';
+
 export const docusaurusURL = 'https://bcgov.github.io/sso-docs';
 
 export const environmentOptions: EnvironmentOption[] = [

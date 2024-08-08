@@ -30,7 +30,6 @@ function LayoutComponent() {
   );
 }
 
-const MY_PROFILE_HYPERLINK = '#user-profile';
 const ROCKET_CHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
 const PATHFINDER_SSO_HYPERLINK = 'mailto:bcgov.sso@gov.bc.ca';
 const DOCUMENTATION_HYPERLINK = formatWikiURL();
@@ -70,7 +69,7 @@ jest.mock('services/user', () => ({
 jest.mock('layout/BCSans', () => jest.fn(() => {}));
 
 describe('Layout page', () => {
-  it('should match all external links in the layout page', () => {
+  it.only('should match all external links in the layout page', async () => {
     render(<LayoutComponent />);
 
     expect(screen.getByRole('heading', { name: 'Common Hosted Single Sign-on (CSS)' })).toBeInTheDocument();
@@ -83,7 +82,10 @@ describe('Layout page', () => {
     expect(screen.getByRole('link', { name: 'SSO Reports' })).toHaveAttribute('href', '/admin-reports');
     expect(screen.getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
 
-    expect(screen.getByRole('link', { name: 'My Profile' })).toHaveAttribute('href', MY_PROFILE_HYPERLINK);
+    await waitFor(() => {
+      expect(screen.getByTestId('my-profile-link')).toBeInTheDocument();
+    });
+
     expect(screen.getByRole('link', { name: 'Rocket Chat' })).toHaveAttribute('href', ROCKET_CHAT_HYPERLINK);
     expect(screen.getByRole('link', { name: 'Pathfinder SSO' })).toHaveAttribute('href', PATHFINDER_SSO_HYPERLINK);
     expect(screen.getByRole('link', { name: 'Documentation' })).toHaveAttribute('href', DOCUMENTATION_HYPERLINK);
@@ -93,17 +95,14 @@ describe('Layout page', () => {
     expect(screen.getByRole('link', { name: 'Copyright' })).toHaveAttribute('href', COPYRIGHT_HYPERLINK);
   });
 
-  it('testing on the My Profile module', async () => {
+  it.only('testing on the My Profile module', async () => {
     render(<LayoutComponent />);
-
-    const myProfileModule = screen.getByRole('link', { name: 'My Profile' });
-    fireEvent.click(myProfileModule);
+    fireEvent.click(screen.getByTitle('My Profile').lastChild as HTMLElement);
     await waitFor(() => {
-      expect(screen.getAllByTitle('My Profile')).toHaveLength(2);
+      expect(screen.getByText('Default Email')).toBeInTheDocument();
+      expect(screen.getByText('Additional Email')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Default Email')).toBeInTheDocument();
-    expect(screen.getByText('Additional Email')).toBeInTheDocument();
     const additionEmailInput = screen.getByTestId('addi-email');
     fireEvent.change(additionEmailInput, { target: { value: 'addition_email@gov.bc.ca' } });
     await waitFor(() => {

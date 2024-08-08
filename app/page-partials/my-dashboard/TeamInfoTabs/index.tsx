@@ -112,10 +112,28 @@ interface Props {
   loadTeams: () => void;
 }
 
-const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: () => void; type: string }) => {
-  let props: { confirmText: string; buttonStyle: ButtonStyle; onConfirm?: () => void } = {
+const ConfirmDeleteModal = ({
+  onConfirmDelete,
+  type,
+  openModal,
+  handleClose = () => {},
+}: {
+  onConfirmDelete: () => void;
+  type: string;
+  openModal: boolean;
+  handleClose?: () => void;
+}) => {
+  let props: {
+    confirmText: string;
+    buttonStyle: ButtonStyle;
+    onConfirm?: () => void;
+    openModal?: boolean;
+    handleClose?: () => void;
+  } = {
     confirmText: 'Delete',
     buttonStyle: 'danger',
+    openModal,
+    handleClose,
   };
   let content = '';
   let title = '';
@@ -132,9 +150,9 @@ const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: () => 
   }
   return (
     <CenteredModal
+      id={deleteMemberModalId}
       title="Delete Team Member"
       icon={null}
-      id={deleteMemberModalId}
       content={<ModalContents content={content} title={title} />}
       closable
       {...props}
@@ -225,7 +243,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
   const surveyContext = useContext(SurveyContext);
-  const openModal = () => (window.location.hash = addMemberModalId);
+
+  const [openAddTeamMemberModal, setOpenAddTeamMemberModal] = useState(false);
+  const [openDeleteTeamMemberModal, setOpenDeleteTeamMemberModal] = useState(false);
 
   const getData = async (teamId: number) => {
     setLoading(true);
@@ -306,7 +326,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       setModalType('allow');
     }
     setDeleteMemberId(memberId);
-    window.location.hash = deleteMemberModalId;
+    setOpenDeleteTeamMemberModal(true);
   };
 
   const onConfirmAdd = async () => {
@@ -419,7 +439,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           <TabWrapper>
             {isAdmin ? (
               <PaddedButton>
-                <RequestButton onClick={openModal} data-testid="add-new-team-member">
+                <RequestButton onClick={() => setOpenAddTeamMemberModal(true)} data-testid="add-new-team-member">
                   + Add New Team Members
                 </RequestButton>
               </PaddedButton>
@@ -684,9 +704,15 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         )}
       </Tabs>
       <CenteredModal
+        id={addMemberModalId}
+        openModal={openAddTeamMemberModal}
+        handleClose={() => {
+          setErrors(null);
+          setTempMembers([emptyMember]);
+          setOpenAddTeamMemberModal(false);
+        }}
         title="Add a New Team Member"
         icon={null}
-        id={addMemberModalId}
         content={
           <TeamMembersForm
             members={tempMembers}
@@ -697,16 +723,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           />
         }
         onConfirm={onConfirmAdd}
-        onClose={() => {
-          setTempMembers([emptyMember]);
-          setMembers([]);
-          setErrors(null);
-        }}
-        skipCloseOnConfirm={true}
         buttonStyle="custom"
+        skipCloseOnConfirm={true}
         closable
       />
-      <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
+      <ConfirmDeleteModal
+        onConfirmDelete={onConfirmDelete}
+        type={modalType}
+        openModal={openDeleteTeamMemberModal}
+        handleClose={() => setOpenDeleteTeamMemberModal(false)}
+      />
     </>
   );
 }

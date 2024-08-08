@@ -22,6 +22,7 @@ const ButtonsContainer = styled.div`
 interface Props {
   onSubmit: (teamId: number) => void;
   alert: TopAlert;
+  setOpenCreateTeamModal: (flag: boolean) => void;
 }
 
 const emptyUser: User = {
@@ -30,7 +31,7 @@ const emptyUser: User = {
   id: new Date().getTime(),
 };
 
-function CreateTeamForm({ onSubmit, alert }: Props) {
+function CreateTeamForm({ onSubmit, alert, setOpenCreateTeamModal }: Props) {
   const context = useContext<SessionContextInterface | null>(SessionContext);
   const { session } = context || {};
 
@@ -48,7 +49,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
     setTeamName('');
     setLoading(false);
     setErrors(null);
-    window.location.hash = '#';
+    setOpenCreateTeamModal(false);
   };
 
   const handleCreate = async () => {
@@ -79,7 +80,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
     setTeamName('');
     setLoading(false);
     setErrors(null);
-    window.location.hash = '#';
+    setOpenCreateTeamModal(false);
   };
 
   return (

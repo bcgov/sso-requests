@@ -148,10 +148,8 @@ describe('CSS API Account tab', () => {
 
     const updateSecretButton = screen.getByRole('button', { name: 'Update secret' });
     fireEvent.click(updateSecretButton);
-    expect(screen.getByTitle('Request a new secret for CSS API Account'));
-    await waitFor(async () => {
-      fireEvent.click(await screen.findByRole('button', { name: 'Confirm' }));
-    });
+    expect(screen.getByText('Request a new secret for CSS API Account'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm' }));
     expect(updateServiceAccountCredentials).toHaveBeenCalledTimes(1);
   });
 
@@ -161,10 +159,9 @@ describe('CSS API Account tab', () => {
 
     const deleteButton = screen.getAllByRole('button', { name: 'Delete' });
     fireEvent.click(deleteButton[1]);
-    await screen.findByTitle('Delete CSS API Account');
-    await waitFor(async () => {
-      fireEvent.click(await screen.findByRole('button', { name: 'Delete CSS API Account' }));
-    });
+
+    await screen.findByText('Delete CSS API Account');
+    fireEvent.click(await screen.getByTestId('confirm-delete-delete-css-api-account'));
     expect(deleteServiceAccount).toHaveBeenCalledTimes(1);
   });
 });
