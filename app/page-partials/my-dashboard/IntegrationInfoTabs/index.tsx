@@ -90,7 +90,7 @@ const joinEnvs = (integration: Integration) => {
 const IntegrationWrapper = ({ integration, children }: { integration: Integration; children: React.ReactNode }) => {
   return (
     <>
-      <h2>INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}</h2>
+      <h2>Integration Details - {padStart(String(integration.id), 8, '0')}</h2>
       <Border>{children}</Border>
     </>
   );

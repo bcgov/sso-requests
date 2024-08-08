@@ -7,7 +7,6 @@ import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
 import startCase from 'lodash.startcase';
 import isFunction from 'lodash.isfunction';
-import BCSans from './BCSans';
 import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';
 import { Alert } from '@bcgov-sso/common-react-components';
@@ -74,6 +73,9 @@ const SubRightMenu = styled.ul`
 const FooterMenu = styled.div`
   padding-left: 2rem;
   padding-right: 2rem;
+  ul.text-small a {
+    font-size: 0.875rem;
+  }
 `;
 
 const HoverItem = styled.li`
@@ -214,7 +216,6 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
 
   return (
     <TopAlertProvider>
-      <BCSans />
       <Navigation
         title={() => <HeaderTitle>Common Hosted Single Sign-on (CSS)</HeaderTitle>}
         rightSide={rightSide}
@@ -235,7 +236,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
       </MainContent>
       <Footer>
         <FooterMenu>
-          <ul>
+          <ul className="text-small">
             <li>
               <Link href="/">Home</Link>
             </li>

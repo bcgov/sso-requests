@@ -29,8 +29,9 @@ const BannerLogo = styled.div`
   max-width: 180px;
 `;
 
-const Title = styled.h1`
-  font-weight: normal;
+const Title = styled.p`
+  margin: 0;
+  font-size: 1.75rem;
 `;
 
 const DEFAULT_MOBILE_BREAK_POINT = '900';

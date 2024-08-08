@@ -1,5 +1,4 @@
 import { Table as StyledTable, SearchBar } from '@bcgov-sso/common-react-components';
-import Button from '@button-inc/bcgov-theme/Button';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { useTable, usePagination, useFilters, useGlobalFilter, Column, useSortBy, Row, Cell } from 'react-table';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -306,11 +305,27 @@ function Table({
             />
           </Grid.Col>
           <Grid.Col span={4}>
-            <InfoOverlay content={searchTooltip}>
-              <Button type="button" size="small" onClick={handleSearchSubmit}>
+            {searchTooltip ? (
+              <InfoOverlay content={searchTooltip || 'some text'}>
+                <button
+                  className="primary"
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  style={{ padding: '.44rem 1.5rem' }}
+                >
+                  Search
+                </button>
+              </InfoOverlay>
+            ) : (
+              <button
+                className="primary"
+                type="button"
+                onClick={handleSearchSubmit}
+                style={{ padding: '.44rem 1.5rem' }}
+              >
                 Search
-              </Button>
-            </InfoOverlay>
+              </button>
+            )}
           </Grid.Col>
         </Grid.Row>
       </Grid>

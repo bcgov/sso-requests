@@ -45,9 +45,9 @@ function MetadataEditModal({ request, onUpdate }: Props) {
 
   return (
     <>
-      <Button variant="bcPrimary" size="small" onClick={openModal}>
+      <button className="primary" onClick={openModal}>
         Edit Metadata
-      </Button>
+      </button>
       <CenteredModal
         id={modalId}
         content={modalContents}

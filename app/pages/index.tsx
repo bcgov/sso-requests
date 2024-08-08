@@ -37,20 +37,6 @@ const Panel = styled.div<PanelProps>`
   }
 `;
 
-const JumbotronH1 = styled.h1`
-  font-size: 3rem;
-`;
-
-const JumbotronP = styled.p`
-  font-size: 1.5rem;
-`;
-
-const Paragraph = styled.p`
-  font-size: 1.2rem;
-  padding-left: 3.5rem;
-  margin: 0;
-`;
-
 const ButtonContainer = styled.div`
   display: flex;
   flex-direction: row;
@@ -58,10 +44,6 @@ const ButtonContainer = styled.div`
 
 const HorizontalRule = styled.hr`
   margin: 30px 0;
-`;
-
-const Header = styled.h2`
-  font-size: ${LANDING_HEADER_FONT};
 `;
 
 const Button = styled(DefaultButton)`
@@ -82,11 +64,9 @@ const StandardRealmsSplashContainer = styled.div`
   }
 
   .splash-text {
-    font-size: 0.9em;
     line-height: 1.1em;
     p {
       font-weight: bold;
-      font-size: 1.2em;
       margin: 0.2em 0 0.2em 0;
     }
 
@@ -97,32 +77,19 @@ const StandardRealmsSplashContainer = styled.div`
         margin: 0;
       }
     }
-
-    @media only screen and (max-width: 991px) {
-      font-size: 0.7em;
-    }
-    @media only screen and (max-width: 800px) {
-      font-size: 0.9em;
-    }
   }
 `;
 
 const WhatsNew = styled.div`
   background: #38598a;
   color: #ffffff;
-  font-size: 18px;
   margin-bottom: 55px;
   margin-top: 55px;
   padding-bottom: 55px;
   padding-top: 55px;
   weight: 400px;
-  h2 {
-    font-size: 20px;
-    weight: 700;
-  }
   a {
     color: #ffffff;
-    weight: 700;
   }
 `;
 
@@ -161,14 +128,14 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
           <Grid.Row collapse="800">
             <Grid.Col>
               <Panel marginRight>
-                <JumbotronH1>Common Hosted Single Sign-On (CSS) Vision</JumbotronH1>
-                <JumbotronP>
+                <h1>Common Hosted Single Sign-On (CSS) Vision</h1>
+                <p className="text-large">
                   Use our self-service app to integrate
                   <br />
                   with BC government approved login
                   <br />
                   services. Start by requesting an integration.
-                </JumbotronP>
+                </p>
                 <ButtonContainer>
                   <Button size="medium" data-testid="request-integration" onClick={onLoginClick}>
                     Request SSO Integration
@@ -183,7 +150,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                     <StandardRealmsSVG />
                   </div>
                   <div className="splash-text">
-                    <p>Included:</p>
+                    <p className="text-large">Included:</p>
                     <ul>
                       <li>Pre-configured realms</li>
                       <li>Access to dev and test</li>
@@ -192,7 +159,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                       <li>Service Accounts</li>
                       <li>Roles</li>
                     </ul>
-                    <p>Not Included:</p>
+                    <p className="text-large">Not Included:</p>
                     <ul>
                       <li>Authentication flows</li>
                       <li>Offline sessions</li>
@@ -200,12 +167,12 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                     </ul>
                   </div>
                 </StandardRealmsSplashContainer>
-                <Paragraph style={{ paddingLeft: '0px' }}>
+                <p style={{ paddingLeft: '0px' }}>
                   To learn more about Pathfinder SSO visit the{' '}
-                  <Link size="large" href={formatWikiURL()} external>
+                  <Link href={formatWikiURL()} external>
                     SSO Pathfinder Knowledge Base
                   </Link>
-                </Paragraph>
+                </p>
               </Panel>
             </Grid.Col>
           </Grid.Row>
@@ -249,7 +216,9 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
               <div className="icon-circle">
                 <FontAwesomeIcon icon={faQuoteLeft} size="4x" />
               </div>
-              <div className="quote">The service and support has been consistently solid and extremely good.</div>
+              <div className="quote text-large">
+                The service and support has been consistently solid and extremely good.
+              </div>
             </TopQuoteContainer>
           </Grid.Row>
           <Grid.Row collapse="800">
@@ -267,7 +236,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
           <Grid.Row>
             <Grid.Col span="2">
               <HorizontalRule />
-              <Header>About</Header>
+              <h2>About</h2>
               <Accordion>
                 <Accordion.Panel key={'sso'} title="What is Pathfinder's Common Hosted Single Sign-On (CSS) App?">
                   <ul>

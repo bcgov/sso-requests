@@ -4,11 +4,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 
-const Title = styled.h2`
-  text-transform: uppercase;
-  margin-bottom: 0;
-  font-size: ${SUBTITLE_FONT_SIZE};
-`;
+const Title = styled.h2``;
 
 const StyledList = styled.ul`
   & li {
@@ -54,7 +50,7 @@ export default function FaqItems() {
           </Link>
         </li>
         <li>
-          Please follow the
+          Please follow the{' '}
           <Link external href="https://digital.gov.bc.ca/resources/digital-principles" target="_blank" rel="noreferrer">
             BC Government digital standards
           </Link>

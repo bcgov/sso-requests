@@ -184,7 +184,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
 
     return (
       <>
-        <Header size="lg">INTEGRATIONS</Header>
+        <h2>Integrations</h2>
         <Table
           headers={[
             {
