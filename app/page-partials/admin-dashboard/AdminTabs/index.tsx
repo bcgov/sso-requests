@@ -9,6 +9,9 @@ import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
 import DigitalCredentialTabContent from './DigitalCredentialTabContent';
 import BcServicesCardTabContent from './BcServicesCardTabContent';
+import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
+import { useState } from 'react';
+import startCase from 'lodash.startcase';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -34,8 +37,11 @@ function AdminTabs({
   setRows,
   activeKey = defaultTabKey,
 }: Props) {
+  const [environment, setEnvironment] = useState('dev');
+  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount;
   if (!integration) return null;
   const { environments = [] } = integration;
+
   const hasProd = environments.includes('prod');
 
   const hasBceid = usesBceid(integration);
@@ -89,6 +95,20 @@ function AdminTabs({
             <AdminEventPanel requestId={integration.id} />
           </TabWrapper>
         </Tab>
+        {showRolesTabIf && (
+          <Tab key="roles" tab="Roles">
+            <TabWrapper>
+              <Tabs onChange={setEnvironment} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
+                <br />
+                {environments.map((env) => (
+                  <Tab key={env} tab={startCase(env)}>
+                    <RoleEnvironment environment={env} integration={integration} viewOnly={true} />
+                  </Tab>
+                ))}
+              </Tabs>
+            </TabWrapper>
+          </Tab>
+        )}
       </Tabs>
     </>
   );
