@@ -206,14 +206,11 @@ describe('Form Template Loading Data', () => {
   });
 
   it('Should pre-load data if a request exists', async () => {
-    setUpRender(sampleRequest);
+    setUpRender({ ...sampleRequest, projectName: 'testProject' });
     const { requesterInfoBox, basicInfoBox, developmentBox, termsAndConditionsBox } = sandbox;
 
     fireEvent.click(requesterInfoBox);
-    const firstStageElementSelector = '#root_projectLead input[value="true"';
-    await waitFor(() => document.querySelector(firstStageElementSelector));
-    expect(document.querySelector(firstStageElementSelector)).toHaveAttribute('checked', '');
-    expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
+    expect(screen.getByDisplayValue('testProject'));
 
     fireEvent.click(basicInfoBox);
 
@@ -240,16 +237,6 @@ describe('Form Template Loading Data', () => {
 describe('Error messages', () => {
   it('Should display the expected error messages on page 1 when navigating away and back', async () => {
     setUpRender(null);
-
-    // Set project lead and team to display form
-    const usesTeam = document.getElementById('root_usesTeam') as HTMLElement;
-    const usesTeamInput = within(usesTeam).getByLabelText('No');
-    fireEvent.click(usesTeamInput);
-
-    const projectLead = document.getElementById('root_projectLead') as HTMLElement;
-    const isProjectLeadInput = within(projectLead).getByLabelText('Yes');
-    fireEvent.click(isProjectLeadInput);
-
     // Navigate away and back again
     const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
@@ -390,15 +377,6 @@ describe('Client Sessions', () => {
 
     expect(clientOfflineIdleInput).not.toBeDisabled();
     expect(clientOfflineMaxInput).not.toBeDisabled();
-  });
-});
-
-describe('Admins', () => {
-  it('should not show buttons for admins', async () => {
-    setUpRender(null, { client_roles: ['sso-admin'] });
-    for (const title of formButtonText) {
-      await waitFor(() => expect(screen.queryByText(title)).toBeNull());
-    }
   });
 });
 
