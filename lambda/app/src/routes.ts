@@ -392,7 +392,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`/keycloak/roles`, async (req, res) => {
     try {
-      const result = await listRoles((req.session as Session).user.id, req.body);
+      const result = await listRoles(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

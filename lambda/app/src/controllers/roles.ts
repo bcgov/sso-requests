@@ -1,4 +1,4 @@
-import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
+import { findAllowedIntegrationInfo, getIntegrationById } from '@lambda-app/queries/request';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import {
   listClientRoles,
@@ -12,6 +12,8 @@ import {
 import { models } from '@lambda-shared/sequelize/models/models';
 import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
 import createHttpError from 'http-errors';
+import { isAdmin } from '@lambda-app/utils/helpers';
+import { Session } from '@lambda-shared/interfaces';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
   return await findAllowedIntegrationInfo(sessionUserId, integrationId);
@@ -79,8 +81,9 @@ export const getClientRole = async (sessionUserId: number, role: any) => {
   return await findClientRole(integration, role);
 };
 
-export const listRoles = async (sessionUserId: number, role: any) => {
-  const integration = await validateIntegration(sessionUserId, role?.integrationId);
+export const listRoles = async (session: Session, role: any) => {
+  if (isAdmin(session)) return await listClientRoles(await getIntegrationById(role?.integrationId), role);
+  const integration = await validateIntegration(session.user.id, role?.integrationId);
   return await listClientRoles(integration, role);
 };
 

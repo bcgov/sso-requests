@@ -4,6 +4,8 @@ import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
 import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, getRequestAll } from 'services/request';
 import { bcscPrivacyZones } from '@app/utils/constants';
+import { debug } from 'jest-preview';
+import { getCompositeClientRoles } from '@app/services/keycloak';
 
 const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
 const MOCK_PRIVACY_ZONE_NAME = 'uniqueZoneName';
@@ -47,6 +49,18 @@ const spyUseRouter = jest.spyOn(require('next/router'), 'useRouter').mockImpleme
   push: jest.fn(() => Promise.resolve(true)),
 }));
 
+const mockResult = () => {
+  return {
+    ...sampleRequest,
+    id: 1,
+    projectName: `project_name_1`,
+    status: 'applied',
+    serviceType: 'gold',
+    environments: ['dev', 'prod'],
+    devIdps: ['bceidbasic', 'githubpublic', 'bcservicescard'],
+  };
+};
+
 jest.mock('services/request', () => {
   return {
     getRequestAll: jest.fn(() => Promise.resolve([{ count: 6, rows: MockRequestAllResult() }, null])),
@@ -54,6 +68,7 @@ jest.mock('services/request', () => {
     updateRequestMetadata: jest.fn(() => Promise.resolve([[], null])),
     updateRequest: jest.fn(() => Promise.resolve([[], null])),
     restoreRequest: jest.fn(() => Promise.resolve([[''], null])),
+    getRequest: jest.fn(() => Promise.resolve([mockResult(), null])),
   };
 });
 
@@ -77,6 +92,56 @@ jest.mock('services/bc-services-card', () => {
     ),
   };
 });
+
+jest.mock('services/keycloak', () => ({
+  listClientRoles: jest.fn(() => Promise.resolve([[{ name: 'role-1' }, { name: 'role-2' }], null])),
+  listComposites: jest.fn(() => Promise.resolve([[false, false], null])),
+  listRoleUsers: jest.fn(() =>
+    Promise.resolve([
+      [
+        {
+          id: '01',
+          username: 'user01@idir',
+          enabled: true,
+          totp: false,
+          emailVerified: false,
+          firstName: 'fn',
+          lastName: 'ln',
+          email: 'role1@gov.bc.ca',
+          attributes: { idir_userid: ['01'] },
+          disableableCredentialTypes: [],
+          requiredActions: [],
+          notBefore: 0,
+        },
+        {
+          id: '02',
+          username: 'service-account-user02',
+          enabled: true,
+          totp: false,
+          emailVerified: false,
+          firstName: '',
+          lastName: '',
+          email: '',
+          attributes: {},
+          disableableCredentialTypes: [],
+          requiredActions: [],
+          notBefore: 0,
+        },
+      ],
+      null,
+    ]),
+  ),
+  getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
+  deleteRole: jest.fn(() => Promise.resolve([[''], null])),
+  manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
+  bulkCreateRole: jest.fn(() => Promise.resolve([{}, null])),
+}));
+
+const getFirstRow = () => {
+  return screen.getByRole('row', {
+    name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
+  });
+};
 
 describe('SSO Dashboard', () => {
   it('should match all table headers, dropdown headings; testing on input field, search button', async () => {
@@ -105,12 +170,10 @@ describe('SSO Dashboard', () => {
       screen.getByText('project_name_1');
     });
 
-    const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
-    });
-    fireEvent.click(firstRow);
+    fireEvent.click(getFirstRow());
+
     await waitFor(() => {
-      expect(firstRow).toHaveClass('active');
+      expect(getFirstRow()).toHaveClass('active');
     });
   });
 
@@ -266,10 +329,8 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
-    });
-    fireEvent.click(firstRow);
+
+    fireEvent.click(getFirstRow());
 
     //open the tabpanel
     const detailsTabPanel = screen.getByRole('tabpanel', { name: 'Details' });
@@ -375,10 +436,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
-    });
-    fireEvent.click(firstRow);
+    fireEvent.click(getFirstRow());
 
     //open the tabpanel
     const eventsTabPanel = screen.getByRole('tab', { name: 'Events' });
@@ -400,10 +458,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
-    });
-    fireEvent.click(firstRow);
+    fireEvent.click(getFirstRow());
 
     //open the tabpanel
     const BCeIDProdTabPanel = screen.getByRole('tab', { name: 'BCeID Prod' });
@@ -454,10 +509,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('project_name_1');
     });
-    const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
-    });
-    fireEvent.click(firstRow);
+    fireEvent.click(getFirstRow());
 
     //open the tabpanel
     const BCSCProdTabPanel = screen.getByRole('tab', { name: 'BC Services Card Prod' });
@@ -473,5 +525,52 @@ describe('SSO Dashboard', () => {
     //test on confirm button
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(updateRequest).toHaveBeenCalled();
+  });
+
+  it('testing on roles tab', async () => {
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
+    fireEvent.click(getFirstRow());
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Roles' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Role Name')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' }));
+    });
+
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    });
+
+    //double click to make it active only for tests
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    });
+
+    // delete icon is not available for sso admins
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' }).nextSibling?.lastChild).toBeNull();
+    });
+
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
+    });
+
+    expect(screen.queryByText('Remove User')).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Composite Roles' }));
+    });
+
+    expect(getCompositeClientRoles).toHaveBeenCalled();
+    expect(screen.getByText('compositeRole1')).toBeTruthy();
+    expect(screen.getByText('compositeRole2')).toBeTruthy();
   });
 });
