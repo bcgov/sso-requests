@@ -71,7 +71,11 @@ function GoldNotificationModal(): any {
         </div>
       </Content>
       <div className="text-center">
-        <button className="primary" type="button" onClick={() => window.open(impactAssessmentUrl, '_blank')}>
+        <button
+          className="primary"
+          type="button"
+          onClick={() => window.open(impactAssessmentUrl, '_blank', 'noopener')}
+        >
           Complete Change Impact Assessment
         </button>
       </div>

@@ -58,7 +58,7 @@ label {
 button {
   border-radius: 0.222em;
   border-width: 0;
-  font-family: 'BC Sans';
+  font-family: 'BC Sans', Verdana, Arial, sans-serif;
   padding: 0.66em 1.77em;
   text-align: center;
   text-decoration: none;
