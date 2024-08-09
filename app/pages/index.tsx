@@ -3,13 +3,11 @@ import Head from 'next/head';
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
-import DefaultButton from '@button-inc/bcgov-theme/Button';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import StandardRealmsSVG from 'svg/StandardRealms';
 import WhatsNewSVG from '@app/svg/WhatsNewSVG';
 import { Accordion } from '@bcgov-sso/common-react-components';
-import { LANDING_HEADER_FONT, LARGE_BUTTON_FONT_SIZE } from 'styles/theme';
 import { docusaurusURL, testimonials, formatWikiURL } from '@app/utils/constants';
 import Testimonial from 'components/Testimonial';
 import Carousel from 'components/Carousel';
@@ -44,10 +42,6 @@ const ButtonContainer = styled.div`
 
 const HorizontalRule = styled.hr`
   margin: 30px 0;
-`;
-
-const Button = styled(DefaultButton)`
-  font-size: ${LARGE_BUTTON_FONT_SIZE};
 `;
 
 const StandardRealmsSplashContainer = styled.div`
@@ -137,9 +131,9 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                   services. Start by requesting an integration.
                 </p>
                 <ButtonContainer>
-                  <Button size="medium" data-testid="request-integration" onClick={onLoginClick}>
+                  <button className="primary" data-testid="request-integration" onClick={onLoginClick}>
                     Request SSO Integration
-                  </Button>
+                  </button>
                 </ButtonContainer>
               </Panel>
             </Grid.Col>

@@ -1,7 +1,6 @@
 import React, { useState, useContext } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
-import { Button } from '@bcgov-sso/common-react-components';
 import { createTeam } from 'services/team';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { User, LoggedInUser } from 'interfaces/team';
@@ -96,12 +95,12 @@ function CreateTeamForm({ onSubmit, alert, setOpenCreateTeamModal }: Props) {
         currentUser={session as LoggedInUser}
       />
       <ButtonsContainer>
-        <Button variant="secondary" onClick={handleCancel}>
+        <button className="secondary" onClick={handleCancel}>
           Cancel
-        </Button>
-        <Button type="button" onClick={handleCreate} data-testid="send-invitation">
+        </button>
+        <button className="primary" type="button" onClick={handleCreate} data-testid="send-invitation">
           {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
-        </Button>
+        </button>
       </ButtonsContainer>
     </div>
   );

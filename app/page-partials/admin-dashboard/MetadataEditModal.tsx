@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Button from '@button-inc/bcgov-theme/Button';
 import Select from 'react-select';
 import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';

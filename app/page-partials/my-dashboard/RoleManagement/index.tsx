@@ -38,17 +38,16 @@ const RoleManagement = ({ integration }: Props) => {
   return (
     <>
       <TopMargin />
-      <Button
+      <button
         disabled={!canCreateOrDeleteRole}
-        size="medium"
-        variant="primary"
+        className="primary"
         onClick={() => {
           modalRef.current.open();
         }}
         data-testid="create-role-button"
       >
         + Create a New Role
-      </Button>
+      </button>
       <TopMargin />
       <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
         <br />

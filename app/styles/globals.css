@@ -69,7 +69,6 @@ button {
 
   &.primary {
     background-color: #013366;
-    box-shadow: 0px 0px 0px 2px #013366 inset !important;
     color: #fff;
 
     &:hover {
@@ -151,6 +150,21 @@ button {
     }
   }
 
+  &.danger {
+    background: #ce3e39;
+    color: #fff;
+
+    &:hover {
+      text-decoration: underline;
+      background-color: #a2312d;
+    }
+
+    &:focus {
+      outline-offset: 1px;
+      outline: 4px solid #3b99fc;
+    }
+  }
+
   &:disabled {
     background-color: #edebe9;
     box-shadow: 0px 0px 0px 2px #fff inset !important;
@@ -160,6 +174,23 @@ button {
       text-decoration: none;
       background-color: #edebe9;
     }
+  }
+
+  &.callout {
+    background-color: #fcba19;
+    &:hover {
+      text-decoration: none;
+      background-color: #f9c462;
+    }
+  }
+
+  &.wide {
+    min-width: 190px;
+  }
+
+  &.short {
+    padding-top: 0.39rem;
+    padding-bottom: 0.39rem;
   }
 }
 
@@ -173,6 +204,11 @@ a {
 
 fieldset {
   border: none !important;
+}
+
+legend {
+  font-size: 1.125rem;
+  font-weight: 700;
 }
 
 .pg-menu-item,

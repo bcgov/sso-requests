@@ -2,9 +2,8 @@ import React, { useState, useEffect, useContext, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
-import { Button } from '@bcgov-sso/common-react-components';
 import CenteredModal from 'components/CenteredModal';
-import { getProfile, updateProfile } from 'services/user';
+import { updateProfile } from 'services/user';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 
 const Content = styled.div`
@@ -72,9 +71,9 @@ function GoldNotificationModal(): any {
         </div>
       </Content>
       <div className="text-center">
-        <Button variant="primary" type="button" onClick={() => window.open(impactAssessmentUrl, '_blank')}>
+        <button className="primary" type="button" onClick={() => window.open(impactAssessmentUrl, '_blank')}>
           Complete Change Impact Assessment
-        </Button>
+        </button>
       </div>
     </>
   );

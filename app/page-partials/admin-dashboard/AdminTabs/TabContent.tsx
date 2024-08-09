@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import Button from '@button-inc/bcgov-theme/Button';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import startCase from 'lodash.startcase';
 import CenteredModal from 'components/CenteredModal';
@@ -67,9 +66,9 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     content = (
       <>
         <p>{`To begin the ${displayType} integration in production, Click Below.`}</p>
-        <Button onClick={openModal} disabled={awaitingTFComplete}>
+        <button className="primary" onClick={openModal} disabled={awaitingTFComplete}>
           Approve Prod
-        </Button>
+        </button>
       </>
     );
   } else if (awaitingTFComplete && typeApproved) {

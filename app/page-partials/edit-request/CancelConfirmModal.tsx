@@ -1,8 +1,6 @@
 import React from 'react';
-import Button from '@button-inc/bcgov-theme/Button';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';
-import CancelButton from 'components/CancelButton';
 
 interface Props {
   onConfirm?: Function;
@@ -32,9 +30,9 @@ function CancelConfirmModal({ onConfirm }: Props) {
 
   return (
     <>
-      <CancelButton variant="secondary" size="medium" type="button" onClick={openModal}>
+      <button className="secondary wide" type="button" onClick={openModal}>
         Cancel
-      </CancelButton>
+      </button>
       <CenteredModal
         id="edit-cancel-confirmation"
         openModal={openCancelModal}
