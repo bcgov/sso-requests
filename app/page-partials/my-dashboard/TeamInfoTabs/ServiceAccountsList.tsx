@@ -194,7 +194,7 @@ function ServiceAccountsList({
             </p>
           </>
         }
-        buttonStyle={'custom'}
+        buttonStyle={'primary'}
         confirmText={'Confirm'}
         closable
       />

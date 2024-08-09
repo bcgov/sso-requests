@@ -64,7 +64,6 @@ export type ButtonStyle = 'primary' | 'primary-inverse' | 'secondary' | 'seconda
 interface Props {
   id?: string;
   onConfirm?: () => void;
-  onClose?: () => void;
   openModal?: boolean;
   handleClose?: () => void;
   title: string;

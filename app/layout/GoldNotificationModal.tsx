@@ -87,7 +87,6 @@ function GoldNotificationModal(): any {
         content={modalContents}
         showCancel={false}
         showConfirm={false}
-        onClose={handleClose}
         icon={faExclamationCircle}
         title="Please upgrade from Silver to Gold"
         closable

@@ -180,7 +180,6 @@ const RestoreModalContent = ({
       confirmText="Restore"
       title="Confirm Restoration"
       showConfirm={!(selectedIntegration.apiServiceAccount && !teamExists)}
-      onClose={handleClose}
       openModal={showModal}
       handleClose={handleCloseModal}
     />
