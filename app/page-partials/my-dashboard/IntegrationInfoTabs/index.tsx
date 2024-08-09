@@ -19,7 +19,7 @@ import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
 import padStart from 'lodash.padstart';
-import { SubTitle, ApprovalContext } from './shared';
+import { ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
@@ -35,13 +35,6 @@ const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
   padding-right: 1rem;
   ${(props) => (props.short ? 'max-width: 800px;' : '')}
-`;
-
-const Requester = styled.div`
-  font-size: 18px;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 1rem;
 `;
 
 const AlignCenter = styled.div`
@@ -64,27 +57,6 @@ const TAB_SECRET = 'secret';
 const TAB_HISTORY = 'history';
 const TAB_METRICS = 'metrics';
 const TAB_LOGS = 'Logs';
-
-const joinEnvs = (integration: Integration) => {
-  if (!integration?.environments) return '';
-
-  const envs = [];
-  if (integration.environments.includes('dev')) envs.push('Dev');
-  if (integration.environments.includes('test')) envs.push('Test');
-  if (integration.environments.includes('prod')) envs.push('Prod');
-
-  let result = '';
-  envs.forEach((env, index) => {
-    result += env;
-    if (envs.length - index === 2) {
-      result += ' and ';
-    } else if (envs.length - index >= 2) {
-      result += ', ';
-    }
-  });
-
-  return `${result} environment${envs.length > 1 ? 's' : ''}`;
-};
 
 const IntegrationWrapper = ({ integration, children }: { integration: Integration; children: React.ReactNode }) => {
   return (

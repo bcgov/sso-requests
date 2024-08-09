@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import IntegrationInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import { getInstallation } from 'services/keycloak';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';

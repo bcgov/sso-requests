@@ -6,7 +6,7 @@ interface Props {
   approvalContext: ApprovalContext;
 }
 
-function GithubStatusPanel({ approvalContext }: Props) {
+function GithubStatusPanel({ approvalContext }: Readonly<Props>) {
   const { hasProd, hasGithub, awaitingGithubProd, githubApproved } = approvalContext;
   if (!hasProd || !hasGithub) return null;
 

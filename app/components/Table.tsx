@@ -343,21 +343,19 @@ function Table({
                 />
               </>
             ) : (
-              <>
-                <div data-testid="select-col-filter">
-                  {filter.label}
-                  <Select
-                    className="basic-single"
-                    classNamePrefix="select"
-                    //@ts-ignore
-                    options={filter.options}
-                    onChange={(val: any) => filter.onChange && filter.onChange(val.value)}
-                    isSearchable={true}
-                    defaultValue={filter.options[0]}
-                    value={filter.options.find((op) => op.value === filter.value)}
-                  />
-                </div>
-              </>
+              <div data-testid="select-col-filter">
+                {filter.label}
+                <Select
+                  className="basic-single"
+                  classNamePrefix="select"
+                  //@ts-ignore
+                  options={filter.options}
+                  onChange={(val: any) => filter.onChange && filter.onChange(val.value)}
+                  isSearchable={true}
+                  defaultValue={filter.options[0]}
+                  value={filter.options.find((op) => op.value === filter.value)}
+                />
+              </div>
             )}
           </Label>
         ))}

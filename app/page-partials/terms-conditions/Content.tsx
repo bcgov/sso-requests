@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import Link from '@button-inc/bcgov-theme/Link';
-import { FORM_TOP_SPACING, SUBTITLE_FONT_SIZE } from 'styles/theme';
+import { FORM_TOP_SPACING } from 'styles/theme';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 
 const Title = styled.h2``;

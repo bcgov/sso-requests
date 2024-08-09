@@ -2,7 +2,7 @@ import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } 
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
-import Select, { MultiValue, ActionMeta } from 'react-select';
+import Select from 'react-select';
 import throttle from 'lodash.throttle';
 import get from 'lodash.get';
 import reduce from 'lodash.reduce';
@@ -12,7 +12,7 @@ import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import { Button, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import Table from 'components/Table';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
