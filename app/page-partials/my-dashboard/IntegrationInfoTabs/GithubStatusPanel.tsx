@@ -1,25 +1,21 @@
 import React from 'react';
 import GithubStatus from './GithubStatus';
-import { Integration } from 'interfaces/Request';
-import { SubTitle, ApprovalContext, ApprovedAndWait, ApprovedAndAvailable } from './shared';
+import { SubTitle, ApprovalContext, ApprovedAndAvailable } from './shared';
 
 interface Props {
-  integration: Integration;
   approvalContext: ApprovalContext;
 }
 
-function GithubStatusPanel({ integration, approvalContext }: Props) {
-  const { hasProd, hasGithub, awaitingGithubProd, githubProdApplying, githubApproved } = approvalContext;
+function GithubStatusPanel({ approvalContext }: Props) {
+  const { hasProd, hasGithub, awaitingGithubProd, githubApproved } = approvalContext;
   if (!hasProd || !hasGithub) return null;
 
   let content = null;
 
-  if (githubProdApplying) {
-    content = <ApprovedAndWait integration={integration} />;
-  } else if (githubApproved) {
+  if (githubApproved) {
     content = <ApprovedAndAvailable />;
   } else if (awaitingGithubProd) {
-    content = <GithubStatus integration={integration} />;
+    content = <GithubStatus />;
   }
 
   return (
