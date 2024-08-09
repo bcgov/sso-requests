@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import startCase from 'lodash.startcase';
 import { Integration } from 'interfaces/Request';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
-import { Button, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import CreateRoleContent from './CreateRoleContent';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import RoleEnvironment from './RoleEnvironment';
