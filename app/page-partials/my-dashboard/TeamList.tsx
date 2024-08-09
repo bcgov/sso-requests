@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import Table from 'components/TableNew';
+import React, { useState, useEffect, MouseEventHandler } from 'react';
+import Table from 'components/Table';
 import styled from 'styled-components';
-import { Button } from '@bcgov-sso/common-react-components';
 import { Team } from 'interfaces/team';
 import { deleteTeam, getServiceAccounts } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
@@ -26,17 +25,11 @@ function TeamListActionsHeader() {
   return <span style={{ float: 'right', paddingRight: '1em' }}>Actions</span>;
 }
 
-const UnpaddedButton = styled(Button)`
-  &&& {
-    margin: 0;
-  }
-`;
-
-const NewEntityButton = ({ handleNewTeamClick }: { handleNewTeamClick: Function }) => {
+const NewEntityButton = ({ handleNewTeamClick }: { handleNewTeamClick: MouseEventHandler<HTMLButtonElement> }) => {
   return (
-    <UnpaddedButton size="large" onClick={handleNewTeamClick} variant="callout">
+    <button onClick={handleNewTeamClick} className="callout">
       + Create a New Team
-    </UnpaddedButton>
+    </button>
   );
 };
 
@@ -237,7 +230,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
             {teamDeleteError && <ErrorText>Failed to delete. Please try again</ErrorText>}
           </div>
         }
-        buttonStyle={canDeleteTeam ? 'danger' : 'custom'}
+        buttonStyle={'danger'}
         confirmText={canDeleteTeam ? 'Delete Team' : 'Okay'}
         openModal={openDeleteTeamModal}
         handleClose={() => setOpenDeleteTeamModal(false)}

@@ -9,7 +9,7 @@ import {
   updateServiceAccountCredentials,
 } from '@app/services/team';
 import { copyTextToClipboard, downloadText, prettyJSON } from '@app/utils/text';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';

@@ -13,7 +13,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
 import { Button, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
@@ -581,9 +581,9 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                 onChange={handleSearchKeyChange}
                 onKeyUp={handleSearchKeyUp}
               />
-              <Button type="button" size="small" variant="bcPrimary" onClick={fetchRoles}>
+              <button type="button" className="primary short" onClick={fetchRoles} style={{ marginLeft: '1em' }}>
                 Search
-              </Button>
+              </button>
             </div>
           </Grid.Col>
           <Grid.Col span={6}>
