@@ -8,12 +8,14 @@ import {
   NewRole,
   bulkCreateRole,
   setCompositeClientRoles,
+  getCompositeClientRoles,
 } from '../keycloak/users';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
 import createHttpError from 'http-errors';
 import { isAdmin } from '@lambda-app/utils/helpers';
 import { Session } from '@lambda-shared/interfaces';
+import { Integration } from 'app/interfaces/Request';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
   return await findAllowedIntegrationInfo(sessionUserId, integrationId);
@@ -82,8 +84,9 @@ export const getClientRole = async (sessionUserId: number, role: any) => {
 };
 
 export const listRoles = async (session: Session, role: any) => {
-  if (isAdmin(session)) return await listClientRoles(await getIntegrationById(role?.integrationId), role);
-  const integration = await validateIntegration(session.user.id, role?.integrationId);
+  let integration: Integration;
+  if (isAdmin(session)) integration = await getIntegrationById(role?.integrationId);
+  else integration = await validateIntegration(session.user.id, role?.integrationId);
   return await listClientRoles(integration, role);
 };
 
@@ -129,4 +132,14 @@ export const setCompositeRoles = async (
   await updateCompositeRoles(result?.name, result?.composites, integration?.id, environment);
 
   return result;
+};
+
+export const listCompositeRoles = async (session: Session, role: any) => {
+  let integration: Integration;
+  if (isAdmin(session)) integration = await getIntegrationById(role?.integrationId);
+  else integration = await validateIntegration(session.user.id, role?.integrationId);
+  return await getCompositeClientRoles(integration, {
+    environment: role?.environment,
+    roleName: role?.roleName,
+  });
 };

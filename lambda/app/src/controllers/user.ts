@@ -3,8 +3,8 @@ import isNil from 'lodash/isNil';
 import { models } from '../../../shared/sequelize/models/models';
 import { Session } from '../../../shared/interfaces';
 import { lowcase } from '@lambda-app/helpers/string';
-import { getDisplayName } from '../utils/helpers';
-import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
+import { getDisplayName, isAdmin } from '../utils/helpers';
+import { findAllowedIntegrationInfo, getIntegrationById } from '@lambda-app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@lambda-app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { EMAILS, EVENTS } from '@lambda-shared/enums';
@@ -82,7 +82,7 @@ export const createSurvey = (session: Session, data: { message?: string; rating:
 };
 
 export const listUsersByRole = async (
-  sessionUserId: number,
+  session: Session,
   {
     environment,
     integrationId,
@@ -97,7 +97,9 @@ export const listUsersByRole = async (
     max: number;
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = isAdmin(session)
+    ? await getIntegrationById(integrationId)
+    : await findAllowedIntegrationInfo(session.user.id, integrationId);
   if (integration.authType === 'service-account') throw new createHttpError.BadRequest('invalid auth type');
   return await listRoleUsers(integration, {
     environment,
