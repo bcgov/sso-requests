@@ -24,6 +24,7 @@ import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
 import { getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
 import { getPrivacyZoneDisplayName } from '@app/helpers/integration';
+import { isNonProdDigitalCredentialRequest } from './helpers';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -43,6 +44,7 @@ const dashboardLogin = readTemplate('dashboard-login');
 const processingTime = readTemplate('processing-time');
 const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
 const bceidWarning = readTemplate('bceid-warning');
+const digitalCredentialInfoContact = readTemplate('digital-credential-info-contact');
 
 const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string | undefined => {
   if (!primaryUsers?.length) {
@@ -99,10 +101,12 @@ Handlebars.registerPartial('dashboardLogin', dashboardLogin);
 Handlebars.registerPartial('processingTime', processingTime);
 Handlebars.registerPartial('ssoUpdatesMailingListMessage', ssoUpdatesMailingListMessage);
 Handlebars.registerPartial('bceidWarning', bceidWarning);
+Handlebars.registerPartial('digitalCredentialInfoContact', digitalCredentialInfoContact);
 Handlebars.registerHelper('formatPrimaryUsers', formatPrimaryUsers);
 Handlebars.registerHelper('getRolePrivelege', getRolePrivelege);
 Handlebars.registerHelper('capitalize', capitalize);
 Handlebars.registerHelper('getPrivacyZoneName', getPrivacyZoneName);
+Handlebars.registerHelper('isNonProdDigitalCredentialRequest', isNonProdDigitalCredentialRequest);
 
 const getBuilder = (key: string) => {
   let builder = { render: (v) => v, send: noop };
