@@ -277,7 +277,18 @@ export const getServiceAccount = async (userId: number, teamId: number, saId: nu
       archived: false,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived', 'requester', 'serviceType'],
+    attributes: [
+      'id',
+      'clientId',
+      'teamId',
+      'status',
+      'updatedAt',
+      'prNumber',
+      'archived',
+      'requester',
+      'serviceType',
+      'authType',
+    ],
     raw: true,
   });
 };
@@ -293,6 +304,7 @@ export const getServiceAccountCredentials = async (userId: number, teamId: numbe
     environment: 'prod',
     realmName: 'standard',
     clientId: integration.clientId,
+    authType: integration.authType,
   });
 
   return installation;
