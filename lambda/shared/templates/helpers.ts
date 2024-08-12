@@ -129,3 +129,7 @@ export const processIntegrationList = (integrations: IntegrationData[]) => {
     }),
   );
 };
+
+export const isNonProdDigitalCredentialRequest = (integration: IntegrationData) => {
+  return integration.devIdps.includes('digitalcredential') && !integration.environments.includes('prod');
+};

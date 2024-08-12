@@ -4,7 +4,6 @@ import { FieldTemplateProps } from 'react-jsonschema-form';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import CenteredModal from 'components/CenteredModal';
 import CreateTeamForm from 'form-components/team-form/CreateTeamForm';
-import { createTeamModalId } from 'utils/constants';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 
@@ -27,13 +26,15 @@ const Description = styled.p`
 `;
 
 import FieldTemplate from './FieldTemplate';
+import { createTeamModalId } from '@app/utils/constants';
 
 export default function FieldProjectTeam(props: FieldTemplateProps) {
   const { formContext } = props;
   const { formData, setFormData, loadTeams } = formContext;
+  const [openModal, setOpenModal] = React.useState(false);
 
   const handleClick = () => {
-    window.location.hash = createTeamModalId;
+    setOpenModal(true);
   };
 
   const bottom = (
@@ -46,19 +47,22 @@ export default function FieldProjectTeam(props: FieldTemplateProps) {
         </Description>
       </Container>
       <CenteredModal
+        id={createTeamModalId}
         title="Create a New Team"
         icon={null}
-        id={createTeamModalId}
         content={
           <CreateTeamForm
             onSubmit={async (teamId: number) => {
               await loadTeams();
               setFormData({ ...formData, usesTeam: true, teamId: String(teamId) });
             }}
+            setOpenCreateTeamModal={setOpenModal}
           />
         }
         showCancel={false}
         showConfirm={false}
+        openModal={openModal}
+        handleClose={() => setOpenModal(false)}
         closable
       />
     </>

@@ -1,6 +1,6 @@
 import React, { useState, forwardRef, useEffect } from 'react';
 import { faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import { ModalRef } from 'components/GenericModal';
 import { searchIdirUsers, importIdirUser, IdirUser } from 'services/bceid-webservice';

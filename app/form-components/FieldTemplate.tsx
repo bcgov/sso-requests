@@ -41,7 +41,7 @@ export default function FieldTemplate(
         <>
           {displayLabel && label && (
             <Title data-testid={`${id}_title`}>
-              {label}&nbsp;
+              <label htmlFor={props.id}>{label}&nbsp;</label>
               {tooltip && (
                 <InfoOverlay {...tooltip} trigger={tooltip?.trigger ? tooltip?.trigger : ['hover', 'focus']} />
               )}

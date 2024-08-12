@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, MouseEventHandler } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Integration } from 'interfaces/Request';
 import padStart from 'lodash.padstart';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import { Button, NumberedContents, Header } from '@bcgov-sso/common-react-components';
-import Table from 'components/TableNew';
+import { NumberedContents } from '@bcgov-sso/common-react-components';
+import Table from 'components/Table';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
@@ -39,7 +39,7 @@ const NewEntityButton = ({
   handleNewIntegrationClick,
   integrations,
 }: {
-  handleNewIntegrationClick: Function;
+  handleNewIntegrationClick: MouseEventHandler<HTMLButtonElement>;
   integrations?: Integration[];
 }) => {
   if (!integrations || integrations?.length == 0) {
@@ -84,17 +84,17 @@ const NewEntityButton = ({
               *You’ll be able to save and return your integration request, anytime throughout the request form.
             </p>
           </Grid>
-          <Button size="medium" data-testid="request-integration" onClick={handleNewIntegrationClick} variant="callout">
+          <button data-testid="request-integration" onClick={handleNewIntegrationClick} className="callout">
             + Request SSO Integration
-          </Button>
+          </button>
         </div>
       </>
     );
   } else {
     return (
-      <Button size="medium" data-testid="request-integration" onClick={handleNewIntegrationClick} variant="callout">
+      <button data-testid="request-integration" onClick={handleNewIntegrationClick} className="callout">
         + Request SSO Integration
-      </Button>
+      </button>
     );
   }
 };
@@ -184,7 +184,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
 
     return (
       <>
-        <Header size="lg">INTEGRATIONS</Header>
+        <h2>Integrations</h2>
         <Table
           headers={[
             {

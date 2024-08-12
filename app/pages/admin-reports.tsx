@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
-import { Button } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -134,32 +133,22 @@ export default function AdminReports({ session }: PageProps) {
           <SpinnerGrid color="#000" height={25} width={25} wrapperClass="d-block" visible={loading} />
         ) : (
           <>
-            <Button variant="primary" type="button" className="text-center" onClick={handleAllStandardReportClick}>
+            <button className="primary" type="button" onClick={handleAllStandardReportClick}>
               <span>All Standard Integrations&nbsp;</span>
               <FontAwesomeIcon icon={faDownload} />
-            </Button>
+            </button>
             <br />
             <br />
-            <Button
-              variant="primary"
-              type="button"
-              className="text-center"
-              onClick={handleAllBceidApprovedRequestsAndEventsReportClick}
-            >
+            <button className="primary" type="button" onClick={handleAllBceidApprovedRequestsAndEventsReportClick}>
               <span>All BCeID Approved Requests And Events&nbsp;</span>
               <FontAwesomeIcon icon={faDownload} />
-            </Button>
+            </button>
             <br />
             <br />
-            <Button
-              variant="primary"
-              type="button"
-              className="text-center"
-              onClick={handleIntegrationDataIntegrityReportClick}
-            >
+            <button className="primary" type="button" onClick={handleIntegrationDataIntegrityReportClick}>
               <span>Data Integrity&nbsp;</span>
               <FontAwesomeIcon icon={faDownload} />
-            </Button>
+            </button>
           </>
         )}
       </BorderLine>

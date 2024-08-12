@@ -16,8 +16,8 @@ export const getIntegrations = async () => {
   return await supertest(app).get(`${APP_BASE_PATH}/requests`);
 };
 
-export const getListOfIntegrations = async () => {
-  return await supertest(app).post(`${APP_BASE_PATH}/requests-all`);
+export const getListOfIntegrations = async (data?: { searchField: string[]; searchKey: string }) => {
+  return await supertest(app).post(`${APP_BASE_PATH}/requests-all`).send(data);
 };
 
 export const updateIntegration = async (data: IntegrationData, submit: boolean = false) => {

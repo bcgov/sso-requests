@@ -5,14 +5,13 @@ import get from 'lodash.get';
 import startCase from 'lodash.startcase';
 import throttle from 'lodash.throttle';
 import reduce from 'lodash.reduce';
-import Button from '@button-inc/bcgov-theme/Button';
 import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
@@ -442,9 +441,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             that is found.
           </InfoText>
         )}
-        <Button
+        <button
           type="button"
-          size="small"
+          className="primary"
+          style={{ marginTop: '0.5rem' }}
           data-testid="idim-search-button"
           onClick={() =>
             idimSearchModalRef.current.open({
@@ -456,7 +456,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           }
         >
           Search in IDIM Web Service Lookup
-        </Button>
+        </button>
       </>
     );
   }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import startCase from 'lodash.startcase';
 import { faTrash, faEdit, faEye, faTrashRestoreAlt } from '@fortawesome/free-solid-svg-icons';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import { getRequestAll, deleteRequest, restoreRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Integration, Option } from 'interfaces/Request';
@@ -73,10 +73,14 @@ const RestoreModalContent = ({
   selectedIntegration,
   loadData,
   alert,
+  showModal,
+  handleCloseModal,
 }: {
   selectedIntegration?: Integration;
   loadData: () => Promise<void>;
   alert: TopAlert;
+  showModal: boolean;
+  handleCloseModal: () => void;
 }) => {
   const [teamExists, setTeamExists] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -129,7 +133,6 @@ const RestoreModalContent = ({
     }
     await loadData();
     handleClose();
-    window.location.hash = '#';
   };
 
   const handleClose = () => {
@@ -176,9 +179,9 @@ const RestoreModalContent = ({
       onConfirm={confirmRestore}
       confirmText="Restore"
       title="Confirm Restoration"
-      skipCloseOnConfirm
       showConfirm={!(selectedIntegration.apiServiceAccount && !teamExists)}
-      onClose={handleClose}
+      openModal={showModal}
+      handleClose={handleCloseModal}
     />
   );
 };
@@ -198,12 +201,14 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
   const [archiveStatus, setArchiveStatus] = useState<Option[]>([]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
+  const [showRestoreModal, setShowRestoreModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const selectedRequest = rows.find((v) => v.id === selectedId);
 
   const getData = async () => {
     const [devIdps, realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
     return getRequestAll({
-      searchField: ['id', 'projectName'],
+      searchField: ['id', 'projectName', 'clientId'],
       searchKey,
       order: [
         ['updatedAt', 'desc'],
@@ -238,26 +243,6 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     loadData();
   }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
 
-  useEffect(() => {
-    let interval: any;
-    if (hasAnyPendingStatus(rows)) {
-      interval = setTimeout(async () => {
-        const [data, err] = await getData();
-
-        if (err) {
-          clearInterval(interval);
-        } else if (data) {
-          setRows(data.rows);
-          setCount(data.count);
-        }
-      }, 1000 * 5);
-    }
-
-    return () => {
-      interval && clearInterval(interval);
-    };
-  }, [rows]);
-
   if (hasError) {
     return <SystemUnavailableMessage />;
   }
@@ -284,15 +269,15 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const handleDelete = async (request: Integration) => {
     if (!request.id || !canDelete(request)) return;
     setSelectedId(request.id);
-    window.location.hash = 'delete-modal';
+    setShowDeleteModal(true);
   };
 
   const handleRestore = async (request: Integration) => {
     if (!request.id || !canRestore(request)) return;
     setSelectedId(request.id);
-    window.location.hash = '';
+    setShowRestoreModal(false);
     process.nextTick(() => {
-      window.location.hash = 'restore-modal';
+      setShowRestoreModal(true);
     });
   };
 
@@ -306,10 +291,8 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         variant: 'danger',
         content: 'Failed to delete the integration, please try again.',
       });
-    } else {
-      await getData();
     }
-    window.location.hash = '#';
+    await loadData();
   };
 
   const activateRow = (request: any) => {
@@ -322,11 +305,15 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       <VerticalLayout
         leftPanel={() => (
           <Table
-            searchPlaceholder="Project ID or Name"
+            searchPlaceholder="Project ID, Project Name or Client ID"
             headers={[
               {
                 accessor: 'id',
                 Header: 'Request ID',
+              },
+              {
+                accessor: 'clientId',
+                Header: 'Client ID',
               },
               {
                 accessor: 'projectName',
@@ -353,6 +340,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                 status: startCase(row.status),
                 archived: row.archived ? 'Deleted' : 'Active',
                 environments: row.environments,
+                clientId: row.clientId,
                 actions: (
                   <ActionButtonContainer>
                     <ActionButton
@@ -469,13 +457,21 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         }
       />
       <DeleteModal
-        projectName={selectedRequest?.projectName}
         id="delete-modal"
+        projectName={selectedRequest?.projectName}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
         content="You are about to delete this integration request. This action cannot be undone."
+        openModal={showDeleteModal}
+        handleCloseModal={() => setShowDeleteModal(false)}
       />
-      <RestoreModalContent selectedIntegration={selectedRequest} loadData={loadData} alert={alert} />
+      <RestoreModalContent
+        selectedIntegration={selectedRequest}
+        loadData={loadData}
+        alert={alert}
+        showModal={showRestoreModal}
+        handleCloseModal={() => setShowRestoreModal(false)}
+      />
     </>
   );
 }

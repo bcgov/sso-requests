@@ -168,12 +168,12 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:widget': SwitchWidget,
     },
     usesTeam: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
       'ui:readonly': isApplied && integration?.usesTeam,
     },
     projectLead: {
       'ui:FieldTemplate': FieldRequesterInfo,
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
       'ui:readonly': isApplied,
     },
     newToSso: {

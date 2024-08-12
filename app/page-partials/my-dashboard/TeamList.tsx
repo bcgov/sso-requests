@@ -1,25 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import Table from 'components/TableNew';
+import React, { useState, useEffect, MouseEventHandler } from 'react';
+import Table from 'components/Table';
 import styled from 'styled-components';
-import { Button } from '@bcgov-sso/common-react-components';
 import { Team } from 'interfaces/team';
-import { deleteTeam, deleteServiceAccount, getTeamMembers, getServiceAccounts } from 'services/team';
+import { deleteTeam, getServiceAccounts } from 'services/team';
 import TeamForm from 'form-components/team-form/CreateTeamForm';
 import EditTeamNameForm from 'form-components/team-form/EditTeamNameForm';
 import CenteredModal from 'components/CenteredModal';
-import { createTeamModalId } from 'utils/constants';
 import { UserSession } from 'interfaces/props';
 import PageLoader from 'components/PageLoader';
 import WarningModalContents from 'components/WarningModalContents';
 import { Integration } from 'interfaces/Request';
 import TeamActionButtons from '@app/components/TeamActionButtons';
-import isEmpty from 'lodash.isempty';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import ErrorText from '@app/components/ErrorText';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
-
-const deleteTeamModalId = 'delete-team-modal';
-const editTeamNameModalId = 'edit-team-name-modal';
+import { createTeamModalId, deleteTeamModalId, editTeamNameModalId } from '@app/utils/constants';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -30,17 +25,11 @@ function TeamListActionsHeader() {
   return <span style={{ float: 'right', paddingRight: '1em' }}>Actions</span>;
 }
 
-const UnpaddedButton = styled(Button)`
-  &&& {
-    margin: 0;
-  }
-`;
-
-const NewEntityButton = ({ handleNewTeamClick }: { handleNewTeamClick: Function }) => {
+const NewEntityButton = ({ handleNewTeamClick }: { handleNewTeamClick: MouseEventHandler<HTMLButtonElement> }) => {
   return (
-    <UnpaddedButton size="large" onClick={handleNewTeamClick} variant="callout">
+    <button onClick={handleNewTeamClick} className="callout">
       + Create a New Team
-    </UnpaddedButton>
+    </button>
   );
 };
 
@@ -63,21 +52,28 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
   const [activeTeamId, setActiveTeamId] = useState<number | undefined>(undefined);
   const [serviceAccounts, setServiceAccounts] = useState<Integration[]>([]);
   const [teamDeleteError, setTeamDeleteError] = useState(false);
+  const [openCreateTeamModal, setOpenCreateTeamModal] = useState(false);
+  const [openEditTeamModal, setOpenEditTeamModal] = useState(false);
+  const [openDeleteTeamModal, setOpenDeleteTeamModal] = useState(false);
+  const [canDeleteTeam, setCanDeleteTeam] = useState(false);
 
   const deleteServiceAccontNote =
     '*By deleting this team, you are also deleting the CSS App API Account that belongs to this team.';
 
-  const canDelete = activeTeam && Number(activeTeam.integrationCount) === 0;
-
-  const updateActiveTeam = (team: Team | null) => {
+  const updateActiveTeam = async (team: Team | null) => {
     setActiveTeam(team);
     setActiveTeamId(team?.id);
     setTeam(team);
+    if (team) {
+      await updateServiceAccounts(team.id!);
+      setCanDeleteTeam((activeTeam && Number(activeTeam.integrationCount) === 0) || false);
+    }
   };
 
-  const updateServiceAccounts = async () => {
+  const updateServiceAccounts = async (id: number) => {
     if (activeTeam?.role === 'admin') {
-      const [data, error] = await getServiceAccounts(activeTeamId);
+      const [data, error] = await getServiceAccounts(id);
+
       if (error) {
         alert.show({ variant: 'danger', content: 'Failed to load service accounts for team. Please refresh.' });
         return;
@@ -98,24 +94,18 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     }
   }, [teams]);
 
-  useEffect(() => {
-    if (Number(activeTeam?.serviceAccountCount) > 0) {
-      updateServiceAccounts();
-    }
-  }, [activeTeamId]);
-
-  const handleNewTeamClick = async () => (window.location.hash = createTeamModalId);
+  const handleNewTeamClick = async () => setOpenCreateTeamModal(true);
 
   const showDeleteModal = (team: Team) => {
     setTeamDeleteError(false);
     updateActiveTeam(team);
     if (activeTeamId !== team.id) return;
-    window.location.hash = deleteTeamModalId;
+    setOpenDeleteTeamModal(true);
   };
 
   const showEditTeamNameModal = (team: Team) => {
     updateActiveTeam(team);
-    window.location.hash = editTeamNameModalId;
+    setOpenEditTeamModal(true);
   };
 
   const activateRow = (request: any) => {
@@ -173,21 +163,13 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
 
   const handleDeleteTeam = async () => {
     setTeamDeleteError(false);
-    if (!canDelete) return;
-
-    if (serviceAccounts.length > 0) {
-      Promise.all(
-        serviceAccounts.map((serviceAccount: Integration) => {
-          deleteServiceAccount(activeTeamId, serviceAccount.id);
-        }),
-      );
-    }
+    if (!canDeleteTeam) return;
 
     const [_result, error] = await deleteTeam(activeTeamId);
     if (error) {
       setTeamDeleteError(true);
     } else {
-      await loadTeams();
+      loadTeams();
     }
   };
 
@@ -201,49 +183,57 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
       <br />
       {content}
       <CenteredModal
+        id={createTeamModalId}
         title="Create a New Team"
         icon={null}
         onConfirm={() => console.log('confirm')}
-        id={createTeamModalId}
-        content={<TeamForm onSubmit={loadTeams} currentUser={currentUser} />}
+        content={
+          <TeamForm onSubmit={loadTeams} currentUser={currentUser} setOpenCreateTeamModal={setOpenCreateTeamModal} />
+        }
         showCancel={false}
         showConfirm={false}
+        openModal={openCreateTeamModal}
+        handleClose={() => setOpenCreateTeamModal(false)}
         closable
       />
       <CenteredModal
+        id={editTeamNameModalId}
         title="Edit Team Name"
         icon={null}
         onConfirm={() => console.log('confirm')}
-        id={editTeamNameModalId}
         content={
           <EditTeamNameForm
             onSubmit={loadTeams}
             teamId={activeTeamId as number}
             initialTeamName={activeTeam?.name || ''}
+            setOpenEditTeamModal={setOpenEditTeamModal}
           />
         }
         showCancel={false}
         showConfirm={false}
+        openModal={openEditTeamModal}
+        handleClose={() => setOpenEditTeamModal(false)}
         closable
       />
       <CenteredModal
+        id={deleteTeamModalId}
         title="Delete team"
         icon={null}
         onConfirm={handleDeleteTeam}
-        id={deleteTeamModalId}
         content={
-          <>
+          <div>
             <WarningModalContents
               title="Are you sure that you want to delete this team?"
-              content={canDelete ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
-              note={canDelete && !isEmpty(serviceAccounts) ? deleteServiceAccontNote : ''}
+              content={canDeleteTeam ? teamHasNoIntegrationsMessage : teamHasIntegrationsMessage}
+              note={canDeleteTeam && serviceAccounts.length > 0 ? deleteServiceAccontNote : ''}
             />
             {teamDeleteError && <ErrorText>Failed to delete. Please try again</ErrorText>}
-          </>
+          </div>
         }
-        buttonStyle={canDelete ? 'danger' : 'custom'}
-        confirmText={canDelete ? 'Delete Team' : 'Okay'}
-        skipCloseOnConfirm={true}
+        buttonStyle={'danger'}
+        confirmText={canDeleteTeam ? 'Delete Team' : 'Okay'}
+        openModal={openDeleteTeamModal}
+        handleClose={() => setOpenDeleteTeamModal(false)}
         closable
       />
     </>
