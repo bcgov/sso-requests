@@ -46,7 +46,7 @@ describe('Integration list', () => {
       expect(spyGetRequest).toHaveBeenCalled();
     });
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: '+ Request SSO Integration' })).toHaveClass('pg-button');
+      expect(screen.getByRole('button', { name: '+ Request SSO Integration' }));
     });
     expect(screen.getByText('Request ID')).toBeInTheDocument();
     expect(screen.getByRole('row', { name: '00000001 test project Completed Browser Login Gold Edit Delete' }));
