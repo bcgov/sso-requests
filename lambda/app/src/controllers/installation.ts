@@ -10,6 +10,7 @@ export const getInstallation = async (session: Session, data: { requestId: numbe
     environment: data.environment,
     realmName: request.realm,
     clientId: request.clientId,
+    authType: request.authType,
   });
 
   return installation;
