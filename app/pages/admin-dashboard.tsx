@@ -209,7 +209,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const getData = async () => {
     const [devIdps, realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
     return getRequestAll({
-      searchField: ['id', 'projectName'],
+      searchField: ['id', 'projectName', 'clientId'],
       searchKey,
       order: [
         ['updatedAt', 'desc'],
@@ -326,11 +326,15 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       <VerticalLayout
         leftPanel={() => (
           <Table
-            searchPlaceholder="Project ID or Name"
+            searchPlaceholder="Project ID, Project Name or Client ID"
             headers={[
               {
                 accessor: 'id',
                 Header: 'Request ID',
+              },
+              {
+                accessor: 'clientId',
+                Header: 'Client ID',
               },
               {
                 accessor: 'projectName',
@@ -357,6 +361,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                 status: startCase(row.status),
                 archived: row.archived ? 'Deleted' : 'Active',
                 environments: row.environments,
+                clientId: row.clientId,
                 actions: (
                   <ActionButtonContainer>
                     <ActionButton
