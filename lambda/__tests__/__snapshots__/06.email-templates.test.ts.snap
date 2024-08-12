@@ -1303,7 +1303,8 @@ exports[`Email template snapshots Should return the expected email for TEAM_INVI
 </p>
 <p>
   Please follow this <a href="http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link">link</a> to view your invitation in the
-  dashboard. The link will expire in <strong>2 business days.</strong>
+  dashboard. The link will expire in <strong>2 business days.</strong> If the link has expired, 
+  <a href="https://stackoverflow.developer.gov.bc.ca/questions/1231">please see this helpful tip</a>.
 </p>
 <p>
   If you think you have received this invite by accident, or have any other questions, please contact the Pathfinder SSO
@@ -1329,7 +1330,8 @@ exports[`Email template snapshots Should return the expected email for TEAM_INVI
 </p>
 <p>
   Please follow this <a href="http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link">link</a> to view your invitation in the
-  dashboard. The link will expire in <strong>2 business days.</strong>
+  dashboard. The link will expire in <strong>2 business days.</strong> If the link has expired, 
+  <a href="https://stackoverflow.developer.gov.bc.ca/questions/1231">please see this helpful tip</a>.
 </p>
 <p>
   If you think you have received this invite by accident, or have any other questions, please contact the Pathfinder SSO
