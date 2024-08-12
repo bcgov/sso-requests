@@ -243,26 +243,6 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     loadData();
   }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
 
-  useEffect(() => {
-    let interval: any;
-    if (hasAnyPendingStatus(rows)) {
-      interval = setTimeout(async () => {
-        const [data, err] = await getData();
-
-        if (err) {
-          clearInterval(interval);
-        } else if (data) {
-          setRows(data.rows);
-          setCount(data.count);
-        }
-      }, 1000 * 5);
-    }
-
-    return () => {
-      interval && clearInterval(interval);
-    };
-  }, [rows]);
-
   if (hasError) {
     return <SystemUnavailableMessage />;
   }

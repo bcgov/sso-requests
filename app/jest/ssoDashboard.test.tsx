@@ -4,7 +4,6 @@ import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
 import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, getRequestAll } from 'services/request';
 import { bcscPrivacyZones } from '@app/utils/constants';
-import { debug } from 'jest-preview';
 import { getCompositeClientRoles } from '@app/services/keycloak';
 
 const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
@@ -28,6 +27,7 @@ function MockRequestAllResult() {
       serviceType: 'gold',
       environments: ['dev', 'prod'],
       devIdps: ['bceidbasic', 'githubpublic', 'bcservicescard'],
+      authType: 'both',
     });
   }
   requestAllResult.push({
@@ -572,5 +572,11 @@ describe('SSO Dashboard', () => {
     expect(getCompositeClientRoles).toHaveBeenCalled();
     expect(screen.getByText('compositeRole1')).toBeTruthy();
     expect(screen.getByText('compositeRole2')).toBeTruthy();
+
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Service Accounts' }));
+    });
+
+    expect(screen.queryByText('Remove Service Account')).not.toBeInTheDocument();
   });
 });
