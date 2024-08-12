@@ -4,8 +4,6 @@ import Link from '@button-inc/bcgov-theme/Link';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 
-const Title = styled.h2``;
-
 const StyledList = styled.ul`
   & li {
     margin: 0;
@@ -26,7 +24,7 @@ export default function FaqItems() {
   const wikiUrl = formatWikiURL();
   return (
     <Container>
-      <Title>Requirements</Title>
+      <h2>Requirements</h2>
       <StyledList>
         <li>Keep your email address active, and if you are not using your integration, clean it up</li>
         <li>
@@ -41,7 +39,7 @@ export default function FaqItems() {
           application.
         </li>
       </StyledList>
-      <Title>We&apos;re a Community</Title>
+      <h2>We&apos;re a Community</h2>
       <StyledList>
         <li>
           As part of a community, we can solve things together and quickly. Please join the{' '}
@@ -74,14 +72,14 @@ export default function FaqItems() {
         </li>
       </StyledList>
 
-      <Title>What&apos;s included in the service</Title>
+      <h2>What&apos;s included in the service</h2>
       <StyledList>
         <li>
           The Standard realm is configured to meet the general needs of the community. Currently, custom configurations,
           such as scopes or flows, are not available
         </li>
       </StyledList>
-      <Title>Understanding the service level</Title>
+      <h2>Understanding the service level</h2>
       <StyledList>
         <li>
           Our service is available 24/7, except during planned outages within the Kamloops and Calgary data centres.
@@ -109,7 +107,7 @@ export default function FaqItems() {
           to receive important updates on the service and any outages.
         </li>
       </StyledList>
-      <Title>Contact Us</Title>
+      <h2>Contact Us</h2>
       <StyledList>
         <li>
           If you have any questions, please reach out to us on{' '}
