@@ -38,7 +38,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: 'bcgov/sso-requests-e2e'
-          ref: 'ssoteam-1423'
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
