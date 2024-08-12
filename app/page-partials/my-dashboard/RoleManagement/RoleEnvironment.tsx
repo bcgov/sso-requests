@@ -473,7 +473,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                   return {
                     projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration
                       ?.projectName,
-                    actions: (
+                    actions: viewOnly ? null : (
                       <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
                         <RightFloatServiceAccountsActionsButtons>
                           <FontAwesomeIcon
