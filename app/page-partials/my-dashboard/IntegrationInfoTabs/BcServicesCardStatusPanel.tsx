@@ -1,26 +1,21 @@
 import React from 'react';
 import BcServicesCardStatus from './BcServicesCardStatus';
-import { Integration } from 'interfaces/Request';
-import { SubTitle, ApprovalContext, ApprovedAndWait, ApprovedAndAvailable } from './shared';
+import { SubTitle, ApprovalContext, ApprovedAndAvailable } from './shared';
 
 interface Props {
-  integration: Integration;
   approvalContext: ApprovalContext;
 }
 
-function BcServicesCardStatusPanel({ integration, approvalContext }: Props) {
-  const { hasProd, hasBcServicesCard, awaitingBcServicesCardProd, bcServicesCardProdApplying, bcServicesCardApproved } =
-    approvalContext;
+function BcServicesCardStatusPanel({ approvalContext }: Readonly<Props>) {
+  const { hasProd, hasBcServicesCard, awaitingBcServicesCardProd, bcServicesCardApproved } = approvalContext;
   if (!hasProd || !hasBcServicesCard) return null;
 
   let content = null;
 
-  if (bcServicesCardProdApplying) {
-    content = <ApprovedAndWait integration={integration} />;
-  } else if (bcServicesCardApproved) {
+  if (bcServicesCardApproved) {
     content = <ApprovedAndAvailable />;
   } else if (awaitingBcServicesCardProd) {
-    content = <BcServicesCardStatus integration={integration} />;
+    content = <BcServicesCardStatus />;
   }
 
   return (

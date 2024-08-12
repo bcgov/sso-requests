@@ -4,7 +4,6 @@ import { getRequestedEnvironments } from 'utils/helpers';
 import { Integration } from 'interfaces/Request';
 import { EnvironmentOption } from 'interfaces/form';
 import { withTopAlert } from 'layout/TopAlert';
-import Button from '@button-inc/bcgov-theme/Button';
 import CenteredModal from 'components/CenteredModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
@@ -87,9 +86,9 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
             {!selectedRequest.publicAccess && (
               <>
                 <br />
-                <Button type="button" onClick={() => openModal(env)}>
+                <button className="primary" type="button" onClick={() => openModal(env)}>
                   {`Change your client secret`}
-                </Button>
+                </button>
               </>
             )}
             <br />
@@ -102,7 +101,7 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
         content={modalContents}
         onConfirm={handleSecretChange}
         icon={faExclamationTriangle}
-        buttonStyle={'custom'}
+        buttonStyle={'primary'}
         title="You are about to change your client secret"
         openModal={openChangeSecretModal}
         handleClose={() => setOpenChangeSecretModal(false)}

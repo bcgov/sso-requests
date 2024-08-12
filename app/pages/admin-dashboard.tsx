@@ -2,7 +2,7 @@ import React, { useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import startCase from 'lodash.startcase';
 import { faTrash, faEdit, faEye, faTrashRestoreAlt } from '@fortawesome/free-solid-svg-icons';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import { getRequestAll, deleteRequest, restoreRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Integration, Option } from 'interfaces/Request';
@@ -180,7 +180,6 @@ const RestoreModalContent = ({
       confirmText="Restore"
       title="Confirm Restoration"
       showConfirm={!(selectedIntegration.apiServiceAccount && !teamExists)}
-      onClose={handleClose}
       openModal={showModal}
       handleClose={handleCloseModal}
     />

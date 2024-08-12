@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
-import { Button } from '@bcgov-sso/common-react-components';
 import { editTeamName } from 'services/team';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import ErrorText from 'components/ErrorText';
@@ -82,17 +81,17 @@ export default function EditTeamNameForm({ onSubmit, teamId, initialTeamName, se
       {updateTeamNameError && <ErrorText>Failed to update team name</ErrorText>}
       <br />
       <ButtonsContainer>
-        <Button
-          variant="secondary"
+        <button
+          className="secondary"
           onClick={handleCancel}
           style={{ marginRight: '20px' }}
           data-testid="cancel-edit-name"
         >
           Cancel
-        </Button>
-        <Button type="button" onClick={handleEditName} data-testid="save-edit-name">
+        </button>
+        <button className="primary" type="button" onClick={handleEditName} data-testid="save-edit-name">
           {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Save'}
-        </Button>
+        </button>
       </ButtonsContainer>
     </div>
   );

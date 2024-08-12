@@ -2,16 +2,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCommentDots, faEnvelope, faFileAlt, faUserAlt } from '@fortawesome/free-solid-svg-icons';
-import Button from '@button-inc/bcgov-theme/Button';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
 import startCase from 'lodash.startcase';
 import isFunction from 'lodash.isfunction';
-import BCSans from './BCSans';
 import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';
-import { Alert } from '@bcgov-sso/common-react-components';
-import TopAlertWrapper from 'components/TopAlertWrapper';
 import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
 import { formatWikiURL } from '@app/utils/constants';
@@ -19,10 +15,9 @@ import { formatWikiURL } from '@app/utils/constants';
 const headerPlusFooterHeight = '152px';
 
 const LoggedUser = styled.span`
-  font-weight: 600;
-  font-size: 1.3em;
   display: flex;
   align-items: end;
+  font-weight: 700;
 `;
 
 const MainContent = styled.div`
@@ -74,6 +69,9 @@ const SubRightMenu = styled.ul`
 const FooterMenu = styled.div`
   padding-left: 2rem;
   padding-right: 2rem;
+  ul.text-small a {
+    font-size: 0.875rem;
+  }
 `;
 
 const HoverItem = styled.li`
@@ -164,20 +162,19 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
 
   const rightSide = session ? (
     <LoggedUser>
-      <div className="welcome">
+      <div>
         Welcome {`${session.given_name} ${session.family_name}`}&nbsp;
         {session?.client_roles && <span className="small">({startCase(session?.client_roles[0])})</span>}
       </div>
       &nbsp;&nbsp;
-      {/* <FontAwesomeIcon style={{ paddingLeft: '5px', height: '25px' }} icon={faUserCircle} /> */}
-      <Button variant="secondary-inverse" size="medium" onClick={onLogoutClick}>
+      <button className="secondary-inverse" onClick={onLogoutClick}>
         Log out
-      </Button>
+      </button>
     </LoggedUser>
   ) : (
-    <Button variant="secondary-inverse" size="medium" onClick={onLoginClick}>
+    <button className="secondary-inverse" onClick={onLoginClick}>
       Log in
-    </Button>
+    </button>
   );
 
   const MobileMenu = () => (
@@ -200,13 +197,13 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
       </li>
       <li>
         {session ? (
-          <Button variant="secondary-inverse" size="small" onClick={onLogoutClick}>
+          <button className="secondary-inverse" onClick={onLogoutClick}>
             Logout
-          </Button>
+          </button>
         ) : (
-          <Button variant="secondary-inverse" size="small" onClick={onLoginClick}>
+          <button className="secondary-inverse" onClick={onLoginClick}>
             Login with IDIR
-          </Button>
+          </button>
         )}
       </li>
     </MobileSubMenu>
@@ -214,7 +211,6 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
 
   return (
     <TopAlertProvider>
-      <BCSans />
       <Navigation
         title={() => <HeaderTitle>Common Hosted Single Sign-on (CSS)</HeaderTitle>}
         rightSide={rightSide}
@@ -235,7 +231,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
       </MainContent>
       <Footer>
         <FooterMenu>
-          <ul>
+          <ul className="text-small">
             <li>
               <Link href="/">Home</Link>
             </li>

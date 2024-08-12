@@ -5,10 +5,10 @@ import clsx from 'clsx';
 import InfoOverlay from 'components/InfoOverlay';
 
 const Label = styled.span`
-  width: 200px;
+  width: 16rem;
   & label {
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 1rem;
   }
 `;
 

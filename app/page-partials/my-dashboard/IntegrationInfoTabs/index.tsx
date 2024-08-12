@@ -6,7 +6,6 @@ import SecretsPanel from 'page-partials/my-dashboard/SecretsPanel';
 import ClientRoles from 'page-partials/my-dashboard/RoleManagement';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
-import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import UserEventPanel from 'components/UserEventPanel';
 import {
   checkIfBceidProdApplying,
@@ -20,7 +19,7 @@ import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
 import padStart from 'lodash.padstart';
-import { SubTitle, ApprovalContext } from './shared';
+import { ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
@@ -36,13 +35,6 @@ const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
   padding-right: 1rem;
   ${(props) => (props.short ? 'max-width: 800px;' : '')}
-`;
-
-const Requester = styled.div`
-  font-size: 18px;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 1rem;
 `;
 
 const AlignCenter = styled.div`
@@ -66,31 +58,10 @@ const TAB_HISTORY = 'history';
 const TAB_METRICS = 'metrics';
 const TAB_LOGS = 'Logs';
 
-const joinEnvs = (integration: Integration) => {
-  if (!integration?.environments) return '';
-
-  const envs = [];
-  if (integration.environments.includes('dev')) envs.push('Dev');
-  if (integration.environments.includes('test')) envs.push('Test');
-  if (integration.environments.includes('prod')) envs.push('Prod');
-
-  let result = '';
-  envs.forEach((env, index) => {
-    result += env;
-    if (envs.length - index === 2) {
-      result += ' and ';
-    } else if (envs.length - index >= 2) {
-      result += ', ';
-    }
-  });
-
-  return `${result} environment${envs.length > 1 ? 's' : ''}`;
-};
-
 const IntegrationWrapper = ({ integration, children }: { integration: Integration; children: React.ReactNode }) => {
   return (
     <>
-      <h2>INTEGRATION DETAILS - {padStart(String(integration.id), 8, '0')}</h2>
+      <h2>Integration Details - {padStart(String(integration.id), 8, '0')}</h2>
       <Border>{children}</Border>
     </>
   );
@@ -132,10 +103,10 @@ const getInstallationTab = ({
             </Grid.Col>
             <Grid.Col span={1}></Grid.Col>
             <Grid.Col span={7}>
-              <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
-              <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
-              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
-              <BcServicesCardPanel integration={integration} approvalContext={approvalContext} />
+              <BceidStatusPanel approvalContext={approvalContext} />
+              <GithubStatusPanel approvalContext={approvalContext} />
+              <DigitalCredentialPanel approvalContext={approvalContext} />
+              <BcServicesCardPanel approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -155,67 +126,6 @@ const getLoadingSpinner = () => {
             <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
             <BottomMargin />
           </AlignCenter>
-        </Grid>
-      </TabWrapper>
-    </Tab>
-  );
-};
-
-const getProgressTab = ({
-  integration,
-  approvalContext,
-}: {
-  integration: Integration;
-  approvalContext: ApprovalContext;
-}) => {
-  return (
-    <Tab key={TAB_DETAILS} tab="Technical Details">
-      <TabWrapper short={false}>
-        <Grid cols={15}>
-          <br />
-          <Grid.Row gutter={[]}>
-            <Grid.Col span={7} align={'center'}>
-              {integration.requester && <Requester>Submitted by: {integration.requester}</Requester>}
-              <SubTitle>Access to environment(s) will be provided in approx 20 min</SubTitle>
-              <SubmittedStatusIndicator integration={integration} />
-            </Grid.Col>
-            <Grid.Col span={1}></Grid.Col>
-            <Grid.Col span={7} align={'center'}>
-              <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
-              <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
-              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
-              <BcServicesCardPanel integration={integration} approvalContext={approvalContext} />
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
-      </TabWrapper>
-    </Tab>
-  );
-};
-
-const getApprovalProgressTab = ({
-  integration,
-  approvalContext,
-}: {
-  integration: Integration;
-  approvalContext: ApprovalContext;
-}) => {
-  return (
-    <Tab key={TAB_DETAILS} tab="Technical Details">
-      <TabWrapper short={false}>
-        <Grid cols={15}>
-          <Grid.Row gutter={[]}>
-            <Grid.Col span={7}>
-              <InstallationPanel integration={integration} />
-            </Grid.Col>
-            <Grid.Col span={1}></Grid.Col>
-            <Grid.Col span={7} align={'center'}>
-              <BceidStatusPanel integration={integration} approvalContext={approvalContext} />
-              <GithubStatusPanel integration={integration} approvalContext={approvalContext} />
-              <DigitalCredentialPanel integration={integration} approvalContext={approvalContext} />
-              <BcServicesCardPanel integration={integration} approvalContext={approvalContext} />
-            </Grid.Col>
-          </Grid.Row>
         </Grid>
       </TabWrapper>
     </Tab>

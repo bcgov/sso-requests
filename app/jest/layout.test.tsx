@@ -66,14 +66,11 @@ jest.mock('services/user', () => ({
   updateProfile: jest.fn(() => Promise.resolve([{}, null])),
 }));
 
-jest.mock('layout/BCSans', () => jest.fn(() => {}));
-
 describe('Layout page', () => {
   it.only('should match all external links in the layout page', async () => {
     render(<LayoutComponent />);
 
-    expect(screen.getByRole('heading', { name: 'Common Hosted Single Sign-on (CSS)' })).toBeInTheDocument();
-
+    expect(screen.getByText('Common Hosted Single Sign-on (CSS)')).toBeInTheDocument();
     const homeLink = screen.getAllByRole('link', { name: 'Home' });
     expect(homeLink[0]).toHaveAttribute('href', '/');
     expect(homeLink[1]).toHaveAttribute('href', '/');

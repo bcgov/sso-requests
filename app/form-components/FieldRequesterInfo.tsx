@@ -36,7 +36,7 @@ export default function FieldRequesterInfo(props: FieldTemplateProps) {
         confirmText="Close"
         showCancel={false}
         title="Project Accountability"
-        buttonStyle="custom"
+        buttonStyle="primary"
         buttonAlign="center"
         closable
       />

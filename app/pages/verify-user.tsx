@@ -3,7 +3,6 @@ import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContaine
 import { useRouter } from 'next/router';
 import { LoggedInUser } from 'interfaces/team';
 import { getAuthorizationUrl } from 'utils/openid';
-import { Button } from '@bcgov-sso/common-react-components';
 import ErrorImage from 'svg/ErrorImage';
 import Link from 'next/link';
 
@@ -85,9 +84,9 @@ export default function VerifyUser({ currentUser }: Props) {
         {validated ? (
           <>
             <p>You have successfully joined team # {teamId}. Please click below to login and view your dashboard.</p>
-            <Button onClick={handleLogin} variant="bcPrimary">
+            <button onClick={handleLogin} className="primary">
               Login
-            </Button>
+            </button>
           </>
         ) : (
           <ErrorImage title={errorTitle}>{content(errorContents)}</ErrorImage>

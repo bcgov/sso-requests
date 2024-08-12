@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Button from '@button-inc/bcgov-theme/Button';
 import Select from 'react-select';
 import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';
@@ -46,9 +45,9 @@ function MetadataEditModal({ request, onUpdate }: Props) {
 
   return (
     <>
-      <Button variant="bcPrimary" size="small" onClick={openModal} data-testid={'edit-metadata-button'}>
+      <button className="primary" onClick={openModal} data-testid={'edit-metadata-button'}>
         Edit Metadata
-      </Button>
+      </button>
       <CenteredModal
         id="edit-metadata"
         openModal={openMetaDataEditModal}

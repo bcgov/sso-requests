@@ -5,6 +5,7 @@ import TermsAndConditions from 'page-partials/terms-conditions/Content';
 export default function TermsConditionsPage() {
   return (
     <ResponsiveContainer rules={defaultRules}>
+      <h1>Terms and Conditions</h1>
       <TermsAndConditions />
     </ResponsiveContainer>
   );

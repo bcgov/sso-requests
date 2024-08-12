@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { Button } from '@bcgov-sso/common-react-components';
 import kebabCase from 'lodash.kebabcase';
 import Modal from 'react-bootstrap/Modal';
 
@@ -60,12 +59,11 @@ const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
   }
 `;
 
-export type ButtonStyle = 'bcgov' | 'custom' | 'danger';
+export type ButtonStyle = 'primary' | 'primary-inverse' | 'secondary' | 'secondary-inverse' | 'danger';
 
 interface Props {
   id?: string;
   onConfirm?: () => void;
-  onClose?: () => void;
   openModal?: boolean;
   handleClose?: () => void;
   title: string;
@@ -79,6 +77,7 @@ interface Props {
   icon?: any;
   closable?: boolean;
   skipCloseOnConfirm?: boolean;
+  closeOnBackgroundClick?: boolean;
 }
 
 const CenteredModal = ({
@@ -91,18 +90,16 @@ const CenteredModal = ({
   showConfirm = true,
   buttonAlign = 'default',
   onConfirm,
-  onClose,
   disableConfirm = false,
   confirmText = 'Confirm',
-  buttonStyle = 'bcgov',
+  buttonStyle = 'primary',
   icon = faExclamationTriangle,
   skipCloseOnConfirm = false,
   closable,
+  closeOnBackgroundClick = true,
 }: Props) => {
   const [loading, setLoading] = useState(false);
   const showButtons = showCancel || showConfirm;
-  let cancelButtonVariant = 'bcSecondary';
-  let confirmButtonVariant = 'bcPrimary';
   let dataTestId = 'confirm-delete-' + kebabCase(title);
   let dataTestIdCancel = 'cancel-' + kebabCase(title);
 
@@ -113,21 +110,16 @@ const CenteredModal = ({
     if (!skipCloseOnConfirm) handleClose();
   };
 
-  switch (buttonStyle) {
-    case 'bcgov':
-      break;
-    case 'custom':
-      cancelButtonVariant = 'secondary';
-      confirmButtonVariant = 'primary';
-      break;
-    case 'danger':
-      cancelButtonVariant = 'secondary';
-      confirmButtonVariant = 'danger';
-      break;
-  }
-
   return (
-    <StyledModal show={openModal} onHide={() => handleClose()} dialogClassName="pg-modal-main" id={id}>
+    <StyledModal
+      show={openModal}
+      onHide={() => {
+        handleClose();
+      }}
+      dialogClassName="pg-modal-main"
+      id={id}
+      backdrop={closeOnBackgroundClick ? true : 'static'}
+    >
       <Header>
         <Modal.Title>
           {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
@@ -140,17 +132,16 @@ const CenteredModal = ({
         {showButtons && (
           <ButtonContainer buttonAlign={buttonAlign}>
             {showCancel && (
-              <Button variant={cancelButtonVariant} onClick={handleClose} type="button" data-testid={dataTestIdCancel}>
+              <button className="secondary" onClick={handleClose} type="button" data-testid={dataTestIdCancel}>
                 Cancel
-              </Button>
+              </button>
             )}
             {showConfirm && (
-              <Button
+              <button
                 data-testid={dataTestId}
                 onClick={handleConfirm}
-                variant={confirmButtonVariant}
+                className={buttonStyle}
                 type="button"
-                className="text-center"
                 disabled={disableConfirm}
               >
                 {loading ? (
@@ -158,7 +149,7 @@ const CenteredModal = ({
                 ) : (
                   confirmText
                 )}
-              </Button>
+              </button>
             )}
           </ButtonContainer>
         )}
