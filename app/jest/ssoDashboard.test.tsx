@@ -144,6 +144,7 @@ const getFirstRow = () => {
 };
 
 describe('SSO Dashboard', () => {
+  const SEARCH_PLACEHOLDER = 'Project ID, Project Name or Client ID';
   it('should match all table headers, dropdown headings; testing on input field, search button', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
@@ -152,7 +153,7 @@ describe('SSO Dashboard', () => {
     expect(screen.getByText('Workflow Status')).toBeInTheDocument();
     expect(screen.getByText('Archive Status')).toBeInTheDocument();
 
-    const searchInputField = screen.getByPlaceholderText('Project ID or Name');
+    const searchInputField = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
     expect(searchInputField).toBeInTheDocument();
     fireEvent.change(searchInputField, { target: { value: 'project_name' } });
     expect(searchInputField).toHaveDisplayValue('project_name');
@@ -216,7 +217,7 @@ describe('SSO Dashboard', () => {
   it('testing Action buttons', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
-    const searchInputField = screen.getByPlaceholderText('Project ID or Name');
+    const searchInputField = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
     expect(searchInputField).toBeInTheDocument();
     fireEvent.change(searchInputField, { target: { value: 'project_name' } });
     expect(searchInputField).toHaveDisplayValue('project_name');
