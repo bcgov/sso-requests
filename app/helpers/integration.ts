@@ -1,7 +1,10 @@
 import { Integration } from '@app/interfaces/Request';
+import { BcscPrivacyZone } from '@app/interfaces/types';
+import { bcscPrivacyZones } from '@app/utils/constants';
 
 export const checkBceidBoth = (idp: string) => idp === 'bceidboth';
 export const checkDigitalCredential = (idp: string) => idp === 'digitalcredential';
+export const checkBcServicesCard = (idp: string) => idp === 'bcservicescard';
 export const checkIdirGroup = (idp: string) => ['idir', 'azureidir'].includes(idp);
 export const checkBceidGroup = (idp: string) => idp.startsWith('bceid');
 export const checkNotBceidGroup = (idp: string) => !checkBceidGroup(idp);
@@ -12,6 +15,7 @@ export const checkIdirGroupAndNotBceidRegularGroup = (idp: string) =>
 export const checkGithubGroup = (idp: string) => ['githubpublic', 'githubbcgov'].includes(idp);
 export const checkNotGithubGroup = (idp: string) => !checkGithubGroup(idp);
 export const checkNotDigitalCredential = (idp: string) => !checkDigitalCredential(idp);
+export const checkNotBcServicesCard = (idp: string) => !checkBcServicesCard(idp);
 
 export const usesBceid = (integration: Integration) => {
   if (!integration) return false;
@@ -37,6 +41,14 @@ export const usesDigitalCredential = (integration: Integration) => {
   return devIdps.some(checkDigitalCredential);
 };
 
+export const usesBcServicesCard = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { devIdps = [] } = integration;
+
+  return devIdps.some(checkBcServicesCard);
+};
+
 export const usesBceidProd = (integration: Integration) => {
   if (!integration) return false;
 
@@ -51,4 +63,30 @@ export const usesGithubProd = (integration: Integration) => {
   const { environments = [] } = integration;
 
   return usesGithub(integration) && environments.includes('prod');
+};
+
+export const usesBcServicesCardProd = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { environments = [] } = integration;
+
+  return usesBcServicesCard(integration) && environments.includes('prod');
+};
+
+export const usesDigitalCredentialProd = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { environments = [] } = integration;
+
+  return usesDigitalCredential(integration) && environments.includes('prod');
+};
+
+/** Given an array of zones and a URI, finds the display name on the provided array or in the fallback constant array if not found. */
+export const getPrivacyZoneDisplayName = (zones: BcscPrivacyZone[], privacyZoneUri?: string) => {
+  const zoneMatch = (zone: BcscPrivacyZone) => zone?.privacy_zone_uri === privacyZoneUri;
+  let privacyZone = zones?.find(zoneMatch);
+  if (!privacyZone) {
+    privacyZone = bcscPrivacyZones().find(zoneMatch);
+  }
+  return privacyZone?.privacy_zone_name || 'Unavailable';
 };

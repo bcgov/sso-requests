@@ -23,6 +23,7 @@ import {
   checkGithubGroup,
   checkNotGithubGroup,
   usesDigitalCredential,
+  usesBcServicesCard,
 } from '@app/helpers/integration';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
@@ -35,6 +36,12 @@ import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/pages/_app';
 import { docusaurusURL } from '@app/utils/constants';
+import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
+import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
+import {
+  bcscPrivacyZones as defaultBcscPrivacyZones,
+  bcscAttributes as defaultBcscAttributes,
+} from '@app/utils/constants';
 
 const Description = styled.p`
   margin: 0;
@@ -135,7 +142,12 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
   const [teams, setTeams] = useState<Team[]>([]);
   const [schemas, setSchemas] = useState<any[]>([]);
+  const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
+  const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
+  const [openSubmissionModal, setOpenSubmissionModal] = useState(false);
+
   const surveyContext = useContext(SurveyContext);
+
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
   const isAdmin = currentUser.isAdmin || false;
@@ -175,7 +187,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       formData.protocol,
     );
 
-    const showModal = newData.projectLead === false && newData.usesTeam === false;
     const togglingTeamToTrue = !formData.usesTeam && newData.usesTeam === true;
     const togglingBceidApprovedToFalse = newData.bceidApproved === true && checkHasNoBceidIdp(newData.devIdps);
 
@@ -191,7 +202,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       processed.prodSamlLogoutPostBindingUri = '';
     }
 
-    if (newData.protocol === 'saml' && usesDigitalCredential(newData)) {
+    if (newData.protocol === 'saml' && (usesDigitalCredential(newData) || usesBcServicesCard(newData))) {
       processed.devIdps = [];
     }
 
@@ -206,10 +217,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     if (togglingBceidApprovedToFalse) processed.bceidApproved = false;
 
     setFormData(processed);
-
-    if (showModal) {
-      window.location.hash = 'info-modal';
-    }
 
     throttleUpdate(processed);
   };
@@ -227,12 +234,26 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     }
   };
 
+  const loadBcscPrivacyZones = async () => {
+    let [data] = await fetchPrivacyZones();
+    if (data && data?.length > 0) data = data?.sort((a, b) => a.privacy_zone_name.localeCompare(b.privacy_zone_name))!;
+    setBcscPrivacyZones(data || []);
+  };
+
+  const loadBcscAttributes = async () => {
+    let [data] = await fetchAttributes();
+    if (data && data?.length > 0) data = data?.sort((a, b) => a.name.localeCompare(b.name))!;
+    setBcscAttributes(data || []);
+  };
+
   const updateInfo = () => {
     const schemas = getSchemas({
       integration: request,
       formData,
       teams,
       isAdmin,
+      bcscPrivacyZones,
+      bcscAttributes,
     });
 
     setSchemas(schemas);
@@ -240,6 +261,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   useEffect(() => {
     loadTeams();
+    loadBcscPrivacyZones();
+    loadBcscAttributes();
   }, []);
 
   // Clear other details when other is unselected
@@ -261,9 +284,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     if (newStage === schemas.length - 1) {
       for (let x = 0; x < schemas.length; x++) visited[x] = true;
     }
-
     const newData = trimFormData(formData, { dropEmptyRedirectUris: true });
-
     const formErrors = validateForm(formData, schemas, visited);
     setErrors(formErrors);
     setFormStage(newStage);
@@ -386,7 +407,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
       setErrors(formErrors);
     } else {
-      window.location.hash = 'confirmation-modal';
+      setOpenSubmissionModal(true);
     }
   };
 
@@ -432,7 +453,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         onChange={handleChange}
         onSubmit={handleFormSubmit}
         formData={formData}
-        formContext={{ isAdmin, teams, formData, setFormData, loadTeams }}
+        formContext={{ isAdmin, teams, formData, setFormData, loadTeams, bcscPrivacyZones }}
         FieldTemplate={FieldTemplate}
         ArrayFieldTemplate={ArrayFieldTemplate}
         liveValidate={visited[formStage] || isApplied}
@@ -454,6 +475,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       </Form>
       <CenteredModal
         id={`confirmation-modal`}
+        openModal={openSubmissionModal}
+        handleClose={() => setOpenSubmissionModal(false)}
         content={
           <>
             <p>Are you sure you&apos;re ready to submit your request?</p>

@@ -5,14 +5,13 @@ import get from 'lodash.get';
 import startCase from 'lodash.startcase';
 import throttle from 'lodash.throttle';
 import reduce from 'lodash.reduce';
-import Button from '@button-inc/bcgov-theme/Button';
 import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
@@ -442,9 +441,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             that is found.
           </InfoText>
         )}
-        <Button
+        <button
           type="button"
-          size="small"
+          className="primary"
+          style={{ marginTop: '0.5rem' }}
           data-testid="idim-search-button"
           onClick={() =>
             idimSearchModalRef.current.open({
@@ -456,7 +456,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           }
         >
           Search in IDIM Web Service Lookup
-        </Button>
+        </button>
       </>
     );
   }
@@ -464,7 +464,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const environments = selectedRequest?.environments || [];
   const idps = (selectedRequest?.devIdps || []) as IDPS[];
   const searchTooltip =
-    selectedProperty === 'guid' || selectedIdp.startsWith('bceid')
+    selectedProperty === 'guid' || selectedIdp?.startsWith('bceid')
       ? 'Exact text match results will be displayed'
       : 'Partial text match results will be displayed';
 
@@ -517,115 +517,116 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 hide={200}
               />
             </Header>
+            <div data-testid="role-search-table">
+              <Table
+                searchPlaceholder="Enter search criteria"
+                variant="mini"
+                rowSelectorKey={'username'}
+                headers={[
+                  {
+                    accessor: 'firstName',
+                    Header: getTableHeaderLabel('firstName') || '',
+                  },
+                  {
+                    accessor: 'lastName',
+                    Header: getTableHeaderLabel('lastName') || '',
+                  },
+                  {
+                    accessor: 'email',
+                    Header: 'Email',
+                  },
+                  {
+                    accessor: 'actions',
+                    Header: '',
+                    disableSortBy: true,
+                  },
+                ]}
+                data={rows.map((row) => {
+                  return {
+                    username: get(row, 'username'),
+                    firstName: get(row, 'firstName'),
+                    lastName: get(row, 'lastName'),
+                    email: get(row, 'email'),
+                    actions: (
+                      <ActionButtonContainer>
+                        <ActionButton
+                          icon={faEye}
+                          role="button"
+                          aria-label="view"
+                          onClick={(event: any) => {
+                            event.stopPropagation();
 
-            <Table
-              searchPlaceholder="Enter search criteria"
-              variant="mini"
-              rowSelectorKey={'username'}
-              headers={[
-                {
-                  accessor: 'firstName',
-                  Header: getTableHeaderLabel('firstName') || '',
-                },
-                {
-                  accessor: 'lastName',
-                  Header: getTableHeaderLabel('lastName') || '',
-                },
-                {
-                  accessor: 'email',
-                  Header: 'Email',
-                },
-                {
-                  accessor: 'actions',
-                  Header: '',
-                  disableSortBy: true,
-                },
-              ]}
-              data={rows.map((row) => {
-                return {
-                  username: get(row, 'username'),
-                  firstName: get(row, 'firstName'),
-                  lastName: get(row, 'lastName'),
-                  email: get(row, 'email'),
-                  actions: (
-                    <ActionButtonContainer>
-                      <ActionButton
-                        icon={faEye}
-                        role="button"
-                        aria-label="view"
-                        onClick={(event: any) => {
-                          event.stopPropagation();
-
-                          infoModalRef.current.open({
-                            guid: row.username.split('@')[0],
-                            attributes: {
-                              ...reduce(
-                                headers,
-                                (ret: { [key: string]: string }, header) => {
-                                  ret[header.label] = get(row, header.value);
-                                  return ret;
-                                },
-                                {},
-                              ),
-                              ...row.attributes,
-                            },
-                          });
-                        }}
-                        title="View"
-                        size="lg"
-                      />
-                    </ActionButtonContainer>
-                  ),
-                };
-              })}
-              colfilters={[
-                {
-                  key: 'user-role-filter-env',
-                  value: selectedEnvironment,
-                  multiselect: false,
-                  onChange: setSelectedEnvironment,
-                  options: environments.map((env) => ({ value: env, label: startCase(env) })),
-                },
-                {
-                  key: 'user-role-filter-idp',
-                  value: selectedIdp,
-                  multiselect: false,
-                  onChange: setSelectedIdp,
-                  options: idps
-                    // Don't allow role assignment to DC users
-                    .filter((idp) => idp !== 'digitalcredential')
-                    .map((idp) => ({ value: idp, label: idpMap[idp] })),
-                },
-                {
-                  key: 'user-role-filter-prop',
-                  value: selectedProperty,
-                  multiselect: false,
-                  onChange: setSelectedProperty,
-                  options: propertyOptions.filter((option) => option.search),
-                },
-              ]}
-              showFilters={true}
-              loading={loading}
-              totalColSpan={20}
-              searchColSpan={10}
-              headerAlign={'bottom'}
-              headerGutter={[5, 0]}
-              searchKey={searchKey}
-              searchLocation={'right'}
-              onSearch={handleSearch}
-              onEnter={handleSearch}
-              noDataFoundElement={getTableStatusText()}
-              pagination={true}
-              pageLimits={[PAGE_LIMIT]}
-              onPage={setPage}
-              rowCount={count}
-              limit={limit}
-              onLimit={(val) => {
-                setLimit(val);
-              }}
-              activateRow={activateRow}
-              searchTooltip={searchTooltip}
-            ></Table>
+                            infoModalRef.current.open({
+                              guid: row.username.split('@')[0],
+                              attributes: {
+                                ...reduce(
+                                  headers,
+                                  (ret: { [key: string]: string }, header) => {
+                                    ret[header.label] = get(row, header.value);
+                                    return ret;
+                                  },
+                                  {},
+                                ),
+                                ...row.attributes,
+                              },
+                            });
+                          }}
+                          title="View"
+                          size="lg"
+                        />
+                      </ActionButtonContainer>
+                    ),
+                  };
+                })}
+                colfilters={[
+                  {
+                    key: 'user-role-filter-env',
+                    value: selectedEnvironment,
+                    multiselect: false,
+                    onChange: setSelectedEnvironment,
+                    options: environments.map((env) => ({ value: env, label: startCase(env) })),
+                  },
+                  {
+                    key: 'user-role-filter-idp',
+                    value: selectedIdp,
+                    multiselect: false,
+                    onChange: setSelectedIdp,
+                    options: idps
+                      // Don't allow role assignment to DC or BCSC users
+                      .filter((idp) => !['digitalcredential', 'bcservicescard'].includes(idp))
+                      .map((idp) => ({ value: idp, label: idpMap[idp] })),
+                  },
+                  {
+                    key: 'user-role-filter-prop',
+                    value: selectedProperty,
+                    multiselect: false,
+                    onChange: setSelectedProperty,
+                    options: propertyOptions.filter((option) => option.search),
+                  },
+                ]}
+                showFilters={true}
+                loading={loading}
+                totalColSpan={20}
+                searchColSpan={10}
+                headerAlign={'bottom'}
+                headerGutter={[5, 0]}
+                searchKey={searchKey}
+                searchLocation={'right'}
+                onSearch={handleSearch}
+                onEnter={handleSearch}
+                noDataFoundElement={getTableStatusText()}
+                pagination={true}
+                pageLimits={[PAGE_LIMIT]}
+                onPage={setPage}
+                rowCount={count}
+                limit={limit}
+                onLimit={(val) => {
+                  setLimit(val);
+                }}
+                activateRow={activateRow}
+                searchTooltip={searchTooltip}
+              ></Table>
+            </div>
             {idirLookup}
           </Grid.Col>
           <Grid.Col span={4}>{rightPanel}</Grid.Col>

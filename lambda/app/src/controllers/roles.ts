@@ -1,4 +1,4 @@
-import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
+import { findAllowedIntegrationInfo, getIntegrationById } from '@lambda-app/queries/request';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import {
   listClientRoles,
@@ -8,9 +8,14 @@ import {
   NewRole,
   bulkCreateRole,
   setCompositeClientRoles,
+  getCompositeClientRoles,
 } from '../keycloak/users';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
+import createHttpError from 'http-errors';
+import { isAdmin } from '@lambda-app/utils/helpers';
+import { Session } from '@lambda-shared/interfaces';
+import { Integration } from 'app/interfaces/Request';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
   return await findAllowedIntegrationInfo(sessionUserId, integrationId);
@@ -21,7 +26,7 @@ export const createClientRole = async (
   role: { environment: string; integrationId: number; roleName: string },
 ) => {
   const integration = await validateIntegration(sessionUserId, role?.integrationId);
-  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to create role');
+  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to create role');
   const dbRole = await models.requestRole.create({
     name: role?.roleName,
     environment: role?.environment,
@@ -29,7 +34,7 @@ export const createClientRole = async (
     createdBy: sessionUserId,
     lastUpdatedBy: sessionUserId,
   });
-  if (!dbRole) throw Error(`Unable to save the role ${role?.roleName}`);
+  if (!dbRole) throw new createHttpError.UnprocessableEntity(`unable to save the role ${role?.roleName}`);
   return await createRole(integration, role);
 };
 
@@ -45,9 +50,9 @@ export const bulkCreateClientRoles = async (
 ) => {
   try {
     const integration = await validateIntegration(sessionUserId, integrationId);
-    if (!canCreateOrDeleteRoles(integration)) throw Error('You are not authorized to create role');
+    if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to create role');
 
-    if (roles.length > 20) throw Error('Only 20 roles can be created at a time');
+    if (roles.length > 20) throw new createHttpError.TooManyRequests('only 20 roles can be created at a time');
 
     const envResults = await bulkCreateRole(integration, roles);
 
@@ -69,7 +74,7 @@ export const bulkCreateClientRoles = async (
     return envResults;
   } catch (err) {
     console.error('bulkCreateClientRoles', err);
-    throw Error('Unable to create roles');
+    throw new createHttpError.UnprocessableEntity('unable to create roles');
   }
 };
 
@@ -78,14 +83,16 @@ export const getClientRole = async (sessionUserId: number, role: any) => {
   return await findClientRole(integration, role);
 };
 
-export const listRoles = async (sessionUserId: number, role: any) => {
-  const integration = await validateIntegration(sessionUserId, role?.integrationId);
+export const listRoles = async (session: Session, role: any) => {
+  let integration: Integration;
+  if (isAdmin(session)) integration = await getIntegrationById(role?.integrationId);
+  else integration = await validateIntegration(session.user.id, role?.integrationId);
   return await listClientRoles(integration, role);
 };
 
 export const deleteRoles = async (sessionUserId: number, role: any) => {
   const integration = await validateIntegration(sessionUserId, role?.integrationId);
-  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to delete role');
+  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to delete role');
 
   await deleteRole(integration, role);
 
@@ -113,7 +120,8 @@ export const setCompositeRoles = async (
   },
 ) => {
   const integration = await validateIntegration(sessionUserId, integrationId);
-  if (!canCreateOrDeleteRoles(integration)) throw Error('you are not authorized to create composite roles');
+  if (!canCreateOrDeleteRoles(integration))
+    throw new createHttpError.Forbidden('not allowed to create composite roles');
 
   const result = await setCompositeClientRoles(integration, {
     environment,
@@ -124,4 +132,14 @@ export const setCompositeRoles = async (
   await updateCompositeRoles(result?.name, result?.composites, integration?.id, environment);
 
   return result;
+};
+
+export const listCompositeRoles = async (session: Session, role: any) => {
+  let integration: Integration;
+  if (isAdmin(session)) integration = await getIntegrationById(role?.integrationId);
+  else integration = await validateIntegration(session.user.id, role?.integrationId);
+  return await getCompositeClientRoles(integration, {
+    environment: role?.environment,
+    roleName: role?.roleName,
+  });
 };

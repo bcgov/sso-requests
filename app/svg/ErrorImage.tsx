@@ -1131,7 +1131,7 @@ const ErrorImage = ({ title, children }: Props) => {
                 data-name="An error has occurred. "
                 transform="translate(228 212)"
                 fill="#3e3e3e"
-                fontSize="20"
+                fontSize="30"
                 fontFamily="OpenSans-Semibold, Open Sans"
                 fontWeight="600"
               >

@@ -23,14 +23,26 @@ const ErrorMessage = styled.div`
 `;
 
 function UserProfileModal({ children, alert }: Props): any {
+  const [openProfileModal, setOpenProfileModal] = useState(false);
+  const [addiEmail, setAddiEmail] = useState<string>('');
   const [emailError, setEmailError] = useState('');
   const context = useContext<SessionContextInterface | null>(SessionContext);
   const session = context?.session;
+
+  const getData = async () => {
+    const [data, err] = await getProfile();
+    if (err) {
+      console.error(err);
+    } else if (data) {
+      setAddiEmail(data.additionalEmail || '');
+    }
+  };
+
+  useEffect(() => {
+    if (session) getData();
+  }, [session]);
+
   if (!session) return null;
-
-  const [addiEmail, setAddiEmail] = useState<string>('');
-
-  const modalId = 'user-profile';
 
   const showError = (err: any) =>
     alert.show({
@@ -48,20 +60,6 @@ function UserProfileModal({ children, alert }: Props): any {
       content: `Your additional email has successfully been updated`,
     });
 
-  const getData = async () => {
-    const [data, err] = await getProfile();
-    if (err) {
-      console.error(err);
-      showError(err);
-    } else if (data) {
-      setAddiEmail(data.additionalEmail || '');
-    }
-  };
-
-  useEffect(() => {
-    getData();
-  }, []);
-
   const handleConfirm = async () => {
     if (addiEmail.length > 0 && !validator.isEmail(addiEmail)) {
       setEmailError('Please provide a valid email address');
@@ -78,8 +76,6 @@ function UserProfileModal({ children, alert }: Props): any {
 
     window.location.hash = '#';
   };
-
-  const openModal = () => (window.location.hash = modalId);
 
   const handleAddiEmail = (event: ChangeEvent<HTMLInputElement>) => {
     if (validator.isEmail(event.target.value)) {
@@ -120,9 +116,11 @@ function UserProfileModal({ children, alert }: Props): any {
 
   return (
     <>
-      {children(modalId, openModal)}
+      {children(setOpenProfileModal)}
       <CenteredModal
-        id={modalId}
+        id="user-profile"
+        openModal={openProfileModal}
+        handleClose={() => setOpenProfileModal(false)}
         content={modalContents}
         onConfirm={handleConfirm}
         icon={faUserCircle}

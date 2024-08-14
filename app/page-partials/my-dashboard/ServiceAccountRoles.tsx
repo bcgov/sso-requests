@@ -4,7 +4,7 @@ import Select, { MultiValue, ActionMeta } from 'react-select';
 import startCase from 'lodash.startcase';
 import throttle from 'lodash.throttle';
 import { Tabs, Tab, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';

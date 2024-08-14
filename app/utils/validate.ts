@@ -53,6 +53,8 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     prodSessionMaxLifespan,
     authType,
     publicAccess,
+    bcscPrivacyZone,
+    bcscAttributes = [],
   } = formData;
   const sessionIdleTimeout = (value: number, key: string) => {
     return () => {
@@ -158,7 +160,26 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
         errors['projectLead'].addError('');
       }
     },
+    bcscPrivacyZone: () => {
+      if (devIdps.includes('bcservicescard') && !bcscPrivacyZone) {
+        errors['bcscPrivacyZone']?.addError('Privacy zone is required for BC Services Card');
+      }
+    },
+    bcscAttributes: () => {
+      if (devIdps.includes('bcservicescard') && bcscAttributes?.length === 0) {
+        errors['bcscAttributes']?.addError('Please select at least one attribute');
+      }
+    },
   };
+
+  ['dev', 'test', 'prod'].map((env) => {
+    fieldMap[`${env}HomePageUri`] = () => {
+      if (devIdps.includes('bcservicescard') && !isValidKeycloakURIProd(formData[`${env}HomePageUri`])) {
+        errors[`${env}HomePageUri`]?.addError(validationMessage);
+      }
+    };
+  });
+
   if (!fields) fields = Object.keys(fieldMap);
   for (let x = 0; x < fields.length; x++) {
     const fn = fieldMap[fields[x]];

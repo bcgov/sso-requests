@@ -7,13 +7,14 @@ export const generateInstallation = async (data: {
   environment: string;
   realmName: string;
   clientId: string;
+  authType: string;
 }) => {
-  const { serviceType, environment, realmName, clientId } = data;
+  const { serviceType, environment, realmName, clientId, authType } = data;
   const { kcAdminClient, authServerUrl } = await getAdminClient({ serviceType, environment });
   const { realm, client } = await getClient(kcAdminClient, { serviceType, realmName, clientId });
 
   if (client.protocol === 'openid-connect') {
-    return oidcGenerateInstallation({ kcAdminClient, realm, client, authServerUrl });
+    return oidcGenerateInstallation({ kcAdminClient, realm, client, authServerUrl, authType });
   } else {
     return samlGenerateInstallation({ kcAdminClient, realm, client, authServerUrl });
   }

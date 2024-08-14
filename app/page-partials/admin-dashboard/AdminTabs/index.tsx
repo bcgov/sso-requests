@@ -1,13 +1,17 @@
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
-import { usesBceid, usesGithub, usesDigitalCredential } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
 import AdminEventPanel from 'page-partials/admin-dashboard/AdminEventPanel';
 import { LoggedInUser } from 'interfaces/team';
 import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
 import DigitalCredentialTabContent from './DigitalCredentialTabContent';
+import BcServicesCardTabContent from './BcServicesCardTabContent';
+import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
+import { useState } from 'react';
+import startCase from 'lodash.startcase';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -33,8 +37,11 @@ function AdminTabs({
   setRows,
   activeKey = defaultTabKey,
 }: Props) {
+  const [environment, setEnvironment] = useState('dev');
+  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount;
   if (!integration) return null;
   const { environments = [] } = integration;
+
   const hasProd = environments.includes('prod');
 
   const hasBceid = usesBceid(integration);
@@ -46,9 +53,13 @@ function AdminTabs({
   const hasDigitalCredential = usesDigitalCredential(integration);
   const hasDigitalCredentialProd = hasDigitalCredential && hasProd;
 
+  const hasBcServicesCard = usesBcServicesCard(integration);
+  const hasBcServicesCardProd = hasBcServicesCard && hasProd;
+
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
   const handleDigitCredentialApproved = () => setRows();
+  const handleBcServicesCardApproved = () => setRows();
 
   return (
     <>
@@ -73,12 +84,31 @@ function AdminTabs({
             <DigitalCredentialTabContent integration={integration} onApproved={handleDigitCredentialApproved} />
           </Tab>
         )}
+        {hasBcServicesCardProd && (
+          <Tab key="bcsc-prod" tab="BC Services Card Prod">
+            <BcServicesCardTabContent integration={integration} onApproved={handleBcServicesCardApproved} />
+          </Tab>
+        )}
 
         <Tab key="events" tab="Events">
           <TabWrapper>
             <AdminEventPanel requestId={integration.id} />
           </TabWrapper>
         </Tab>
+        {showRolesTabIf && (
+          <Tab key="roles" tab="Roles">
+            <TabWrapper>
+              <Tabs onChange={setEnvironment} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
+                <br />
+                {environments.map((env) => (
+                  <Tab key={env} tab={startCase(env)}>
+                    <RoleEnvironment environment={env} integration={integration} viewOnly={true} />
+                  </Tab>
+                ))}
+              </Tabs>
+            </TabWrapper>
+          </Tab>
+        )}
       </Tabs>
     </>
   );

@@ -1,5 +1,10 @@
 import { Integration } from '../interfaces/Request';
 import { devValidRedirectUris } from './providers';
+import FieldAccessTokenTop from '@app/form-components/FieldAccessTokenTop';
+import getConfig from 'next/config';
+
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { include_bc_services_card } = publicRuntimeConfig;
 
 export const roles = {
   type: 'array',
@@ -24,6 +29,7 @@ export default function getSchemas(formData: Integration) {
     const roleField = `${env}Roles`;
     const samlLogoutPostBindingUriField = `${env}SamlLogoutPostBindingUri`;
     const samlSignAssertionsField = `${env}SamlSignAssertions`;
+    const homePageUriField = `${env}HomePageUri`;
 
     let tokenSchemas: any = {};
 
@@ -51,42 +57,54 @@ export default function getSchemas(formData: Integration) {
         [accessTokenLifespanField]: {
           title: 'Access Token Lifespan',
           type: 'number',
-          tooltipContent:
-            'Max time before an access token is expired. This value is recommended to be short relative to the SSO timeout.',
+          tooltip: {
+            content:
+              'Max time before an access token is expired. This value is recommended to be short relative to the SSO timeout.',
+          },
           additionalClassNames: 'mt-1',
+          top: FieldAccessTokenTop,
         },
         [sessionIdleTimeoutField]: {
           title: 'Client Session Idle',
           type: 'number',
-          tooltipContent:
-            'Time a client session is allowed to be idle before it expires. Tokens are invalidated when a client session is expired. If not set it uses the standard SSO Session Idle value.',
+          tooltip: {
+            content:
+              'Time a client session is allowed to be idle before it expires. Tokens are invalidated when a client session is expired. If not set it uses the standard SSO Session Idle value.',
+          },
           additionalClassNames: 'mt-1',
         },
         [sessionMaxLifespanField]: {
           title: 'Client Session Max',
           type: 'number',
-          tooltipContent:
-            'Max time before a client session is expired. Tokens are invalidated when a client session is expired. If not set, it uses the standard SSO Session Max value.',
+          tooltip: {
+            content:
+              'Max time before a client session is expired. Tokens are invalidated when a client session is expired. If not set, it uses the standard SSO Session Max value.',
+          },
           additionalClassNames: 'mt-1',
         },
         [offlineAccessEnabledField]: {
           type: 'boolean',
           title: 'Allow offline access',
-          tooltipContent: 'Allow offline access for this client.',
+          tooltip: { content: 'Allow offline access for this client.' },
           default: false,
+          additionalClassNames: 'mt-1',
         },
         [offlineSessionIdleTimeoutField]: {
           title: 'Client Offline Session Idle',
           type: 'number',
-          tooltipContent:
-            'Time a client offline session is allowed to be idle before it expires. Offline tokens are invalidated when a client offline session is expired. If not set it uses the Offline Session Idle value.',
+          tooltip: {
+            content:
+              'Time a client offline session is allowed to be idle before it expires. Offline tokens are invalidated when a client offline session is expired. If not set it uses the Offline Session Idle value.',
+          },
           additionalClassNames: 'mt-1',
         },
         [offlineSessionMaxLifespanField]: {
           title: 'Client Offline Session Max',
           type: 'number',
-          tooltipContent:
-            'Max time before a client offline session is expired. Offline tokens are invalidated when a client offline session is expired. If not set, it uses the Offline Session Max value.',
+          tooltip: {
+            content:
+              'Max time before a client offline session is expired. Offline tokens are invalidated when a client offline session is expired. If not set, it uses the Offline Session Max value.',
+          },
           additionalClassNames: 'mt-1',
         },
       };
@@ -130,13 +148,13 @@ export default function getSchemas(formData: Integration) {
 
     const sharedCustomFields = [`${env}SessionIdleTimeout`, `${env}SessionMaxLifespan`];
     const customValidation = hasLoginFlow
-      ? [...sharedCustomFields, redirectUriField, samlLogoutPostBindingUriField]
+      ? [...sharedCustomFields, redirectUriField, samlLogoutPostBindingUriField, homePageUriField]
       : sharedCustomFields;
 
-    let fineGrainEndpointConfig: any = {};
+    let additionalConfig: any = {};
 
     if (formData?.protocol === 'saml') {
-      fineGrainEndpointConfig = {
+      additionalConfig = {
         [samlLogoutPostBindingUriField]: {
           type: 'string',
           title: 'Logout Service URL',
@@ -157,6 +175,23 @@ export default function getSchemas(formData: Integration) {
           default: false,
         },
       };
+    } else {
+      if (
+        (include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true') &&
+        formData?.devIdps?.includes('bcservicescard')
+      ) {
+        additionalConfig = {
+          [homePageUriField]: {
+            type: 'string',
+            title: 'Home Page URL',
+            tooltip: {
+              content: `URL of the home page of your application. The value of this field MUST point to a valid Web page, and will be presented to end users in BCSC Service Listing, and possibly during authentication.`,
+            },
+            placeholder: 'e.g. https://example.com',
+            default: '',
+          },
+        };
+      }
     }
 
     return {
@@ -167,7 +202,7 @@ export default function getSchemas(formData: Integration) {
       required: [],
       properties: {
         ...loginFlowSchemas,
-        ...fineGrainEndpointConfig,
+        ...additionalConfig,
         ...tokenSchemas,
       },
     } as any;

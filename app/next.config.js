@@ -19,6 +19,7 @@ module.exports = {
     maintenance_mode: process.env.MAINTENANCE_MODE_ACTIVE || false,
     kc_idp_hint: process.env.KC_IDP_HINT || '',
     include_digital_credential: process.env.INCLUDE_DIGITAL_CREDENTIAL || false,
+    include_bc_services_card: process.env.INCLUDE_BC_SERVICES_CARD || false,
   },
   env: {},
   assetPrefix: APP_URL,

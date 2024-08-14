@@ -11,6 +11,8 @@ import {
   checkNotGithubGroup,
   usesDigitalCredential,
   checkNotDigitalCredential,
+  usesBcServicesCard,
+  checkNotBcServicesCard,
 } from '@app/helpers/integration';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
@@ -51,11 +53,19 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {
-  const { bceidApproved, githubApproved, digitalCredentialApproved, environments = [], serviceType } = integration;
+  const {
+    bceidApproved,
+    githubApproved,
+    digitalCredentialApproved,
+    bcServicesCardApproved,
+    environments = [],
+    serviceType,
+  } = integration;
 
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
   const hasDigitalCredential = usesDigitalCredential(integration);
+  const hasBcServicesCard = usesBcServicesCard(integration);
   const options = environmentOptions.map((option) => {
     const idps = integration.devIdps;
     return { ...option, idps: idps || [] };
@@ -65,6 +75,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
     const bceidApplying = checkIfBceidProdApplying(integration);
     const githubApplying = checkIfGithubProdApplying(integration);
     const digitalCredentialApplying = checkIfDigitalCredentialProdApplying(integration);
+    const bcServicesCardApplying = checkIfBcServicesCardProdApplying(integration);
 
     let envs = options.filter((env) => environments.includes(env.name));
     if (hasBceid && (!bceidApproved || bceidApplying))
@@ -82,6 +93,12 @@ export const getRequestedEnvironments = (integration: Integration) => {
     if (hasDigitalCredential && (!digitalCredentialApproved || digitalCredentialApplying))
       envs = envs.map((env) => {
         if (env.name === 'prod') env.idps = env.idps.filter(checkNotDigitalCredential);
+        return env;
+      });
+
+    if (hasBcServicesCard && (!bcServicesCardApproved || bcServicesCardApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter(checkNotBcServicesCard);
         return env;
       });
 
@@ -191,8 +208,13 @@ export const transformErrors = (errors: any) => {
     if (propertiesToTransform.includes(error.property)) {
       const errorMessageKey = error.property.slice(1);
       error.message = errorMessages[errorMessageKey] || error.message;
-    } else if (error.property.includes('ValidRedirectUris') || error.property.includes('SamlLogoutPostBindingUri')) {
+    } else if (
+      error.property.includes('ValidRedirectUris') ||
+      error.property.includes('SamlLogoutPostBindingUri') ||
+      error.property.includes('bcscAttributes')
+    ) {
       if (error.message === 'should be string') error.message = '';
+      else if (error.message === 'should NOT have fewer than 1 items') error.message = '';
       else error.message = errorMessages.redirectUris;
     }
 
@@ -319,6 +341,11 @@ export const checkIfGithubProdApplying = (integration: Integration) => {
 
 export const checkIfDigitalCredentialProdApplying = (integration: Integration) => {
   const prodApplying = checkIfProdApplying(integration, 'digitalCredentialApproved');
+  return prodApplying;
+};
+
+export const checkIfBcServicesCardProdApplying = (integration: Integration) => {
+  const prodApplying = checkIfProdApplying(integration, 'bcServicesCardApproved');
   return prodApplying;
 };
 

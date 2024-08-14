@@ -1,28 +1,18 @@
 import React from 'react';
 import DigitalCredentialStatus from './DigitalCredentialStatus';
-import { Integration } from 'interfaces/Request';
-import { SubTitle, ApprovalContext, ApprovedAndWait, ApprovedAndAvailable } from './shared';
+import { SubTitle, ApprovalContext, ApprovedAndAvailable } from './shared';
 
 interface Props {
-  integration: Integration;
   approvalContext: ApprovalContext;
 }
 
-function DigitalCredentialPanel({ integration, approvalContext }: Readonly<Props>) {
-  const {
-    hasProd,
-    hasDigitalCredential,
-    awaitingDigitalCredentialProd,
-    digitalCredentialProdApplying,
-    digitalCredentialApproved,
-  } = approvalContext;
+function DigitalCredentialPanel({ approvalContext }: Readonly<Props>) {
+  const { hasProd, hasDigitalCredential, awaitingDigitalCredentialProd, digitalCredentialApproved } = approvalContext;
   if (!hasProd || !hasDigitalCredential) return null;
 
   let content = null;
 
-  if (digitalCredentialProdApplying) {
-    content = <ApprovedAndWait integration={integration} />;
-  } else if (digitalCredentialApproved) {
+  if (digitalCredentialApproved) {
     content = <ApprovedAndAvailable />;
   } else if (awaitingDigitalCredentialProd) {
     content = <DigitalCredentialStatus />;

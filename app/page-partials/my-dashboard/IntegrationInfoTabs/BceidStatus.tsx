@@ -1,16 +1,11 @@
 import React from 'react';
-import { Integration } from 'interfaces/Request';
 import Link from '@button-inc/bcgov-theme/Link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import StatusList from 'components/StatusList';
 import { Circle, StyledLi } from './shared';
 
-interface Props {
-  integration: Integration;
-}
-
-export default function Bceidstatus({ integration }: Props) {
+export default function Bceidstatus() {
   return (
     <>
       <StatusList>

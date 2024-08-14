@@ -30,6 +30,44 @@ jest.mock('services/team', () => {
   };
 });
 
+const samplePrivacyZones = [
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:health:mocksit',
+    privacy_zone_name: 'Health (Citizen)',
+  },
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:fin:ctz:pz:sit',
+    privacy_zone_name: 'Finance (Citizen)',
+  },
+  {
+    privacy_zone_uri: 'urn:ca:bc:gov:educ:sit',
+    privacy_zone_name: 'Education (Citizen)',
+  },
+];
+
+const sampleAttributes = [
+  {
+    name: 'postal_code',
+  },
+  {
+    name: 'user_type',
+  },
+  {
+    name: 'birthdate',
+  },
+];
+
+jest.mock('services/bc-services-card', () => {
+  return {
+    fetchPrivacyZones: jest.fn(() => {
+      return Promise.resolve([samplePrivacyZones, null]);
+    }),
+    fetchAttributes: jest.fn(() => {
+      return Promise.resolve([sampleAttributes, null]);
+    }),
+  };
+});
+
 const STEPPER_ERROR = 'Some additional fields require your attention.';
 
 // Container to expose variables from beforeeach to test functions
@@ -49,9 +87,9 @@ const setUpRender = (request: Integration | object | null, currentUser = {}) => 
 
 const samplePage3Request = {
   id: 0,
-  devValidRedirectUris: ['http://dev1.com', 'http://dev2.com'],
-  testValidRedirectUris: ['http://test.com'],
-  prodValidRedirectUris: ['http://prod.com'],
+  devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+  testValidRedirectUris: ['https://test.com'],
+  prodValidRedirectUris: ['https://prod.com'],
   serviceType: 'gold',
 };
 
@@ -168,14 +206,11 @@ describe('Form Template Loading Data', () => {
   });
 
   it('Should pre-load data if a request exists', async () => {
-    setUpRender(sampleRequest);
+    setUpRender({ ...sampleRequest, projectName: 'testProject' });
     const { requesterInfoBox, basicInfoBox, developmentBox, termsAndConditionsBox } = sandbox;
 
     fireEvent.click(requesterInfoBox);
-    const firstStageElementSelector = '#root_projectLead input[value="true"';
-    await waitFor(() => document.querySelector(firstStageElementSelector));
-    expect(document.querySelector(firstStageElementSelector)).toHaveAttribute('checked', '');
-    expect(screen.getByDisplayValue(sampleRequest.projectName || ''));
+    expect(screen.getByDisplayValue('testProject'));
 
     fireEvent.click(basicInfoBox);
 
@@ -202,16 +237,6 @@ describe('Form Template Loading Data', () => {
 describe('Error messages', () => {
   it('Should display the expected error messages on page 1 when navigating away and back', async () => {
     setUpRender(null);
-
-    // Set project lead and team to display form
-    const usesTeam = document.getElementById('root_usesTeam') as HTMLElement;
-    const usesTeamInput = within(usesTeam).getByLabelText('No');
-    fireEvent.click(usesTeamInput);
-
-    const projectLead = document.getElementById('root_projectLead') as HTMLElement;
-    const isProjectLeadInput = within(projectLead).getByLabelText('Yes');
-    fireEvent.click(isProjectLeadInput);
-
     // Navigate away and back again
     const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
@@ -261,8 +286,11 @@ describe('Error messages', () => {
 });
 
 describe('Client Sessions', () => {
-  it('Sends client session idle and max as seconds when making calls to the API', () => {
-    setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
+  it('Sends client session idle and max as seconds when making calls to the API', async () => {
+    const component = setUpRender(
+      { ...sampleRequest, devIdps: ['idir'] },
+      { client_roles: ['sso-admin'], isAdmin: true },
+    );
     const { developmentBox, adminReview } = sandbox;
     fireEvent.click(developmentBox);
 
@@ -278,7 +306,8 @@ describe('Client Sessions', () => {
 
     fireEvent.click(adminReview);
     screen.getByText('Submit').click();
-    screen.getByText('Confirm').click();
+    const confirmButton = await component.findByText('Confirm', { selector: 'button' });
+    fireEvent.click(confirmButton as HTMLElement);
 
     const updateRequestCalls = (updateRequest as jest.Mock).mock.calls;
     expect(updateRequestCalls.length).toBe(1);
@@ -348,15 +377,6 @@ describe('Client Sessions', () => {
 
     expect(clientOfflineIdleInput).not.toBeDisabled();
     expect(clientOfflineMaxInput).not.toBeDisabled();
-  });
-});
-
-describe('Admins', () => {
-  it('should not show buttons for admins', async () => {
-    setUpRender(null, { client_roles: ['sso-admin'] });
-    for (const title of formButtonText) {
-      await waitFor(() => expect(screen.queryByText(title)).toBeNull());
-    }
   });
 });
 
@@ -523,5 +543,143 @@ describe('Basic Info - Identity Providers', () => {
     samlRadio.click();
 
     expect(digitalCredentialCheckbox?.checked).toBeFalsy();
+  });
+});
+
+describe('BC Services Card IDP and dependencies', () => {
+  it('should show the BC Services Card IDP but hide privacy zone, attributes, and home page uri if not selected', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['idir', 'bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).toBeNull();
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).toBeNull();
+  });
+
+  it('should show the BC Services Card IDP and show error upon leaving dependencies blank', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).not.toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).not.toBeNull();
+
+    // Navigate away and back again
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(screen.getByText('Privacy zone is required for BC Services Card')).toBeInTheDocument();
+    expect(screen.getByText('Please select at least one attribute')).toBeInTheDocument();
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+    expect(screen.getByText('Please enter a valid URI')).toBeInTheDocument();
+  });
+
+  it('should show the BC Services Card IDP and show privacy zone and attributes if selected', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard', 'bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('BC Services Card')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).not.toBeNull();
+    expect(screen.queryByTestId('root_bcscAttributes_title')).not.toBeNull();
+
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    const privacyZoneinput = bcscPrivacyZoneDropDown.lastChild;
+    fireEvent.keyDown(privacyZoneinput as HTMLElement, { keyCode: 40 });
+    const privacyZoneOption = await screen.findByText(samplePrivacyZones[0].privacy_zone_name);
+    fireEvent.click(privacyZoneOption);
+
+    const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
+    const attributesInput = bcscAttributesDropDown.lastChild;
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    let attributesOption = await screen.findByText(sampleAttributes[0].name);
+    fireEvent.click(attributesOption);
+
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    attributesOption = await screen.findByText(sampleAttributes[1].name);
+    fireEvent.click(attributesOption);
+
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    attributesOption = await screen.findByText(sampleAttributes[2].name);
+    fireEvent.click(attributesOption);
+
+    fireEvent.click(sandbox.developmentBox);
+    const devHomePageUrisSelector = '#root_devHomePageUri';
+    const uriInput = document.querySelector(devHomePageUrisSelector) as HTMLElement;
+    fireEvent.change(uriInput, { target: { value: 'https://valid-uri' } });
+  });
+
+  it('should keep BCSC attributes editable if not approved yet', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard', 'bceidbasic'],
+      status: 'applied',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+      bcServicesCardApproved: false,
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = getByText('BC Services Card')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(bcscCheckbox).toBeDisabled();
+    expect(bcscCheckbox).toBeChecked();
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
+
+    const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
+    const attributesInput = bcscAttributesDropDown.lastChild;
+    fireEvent.keyDown(attributesInput as HTMLElement, { keyCode: 40 });
+    let attributesOption = await screen.findByText(sampleAttributes[0].name);
+    fireEvent.click(attributesOption);
+    expect(bcscAttributesDropDown?.querySelector("input[type='text']")).not.toBeDisabled();
+  });
+
+  it('should freeze BC Services Card IDP and show privacy zone and attributes if approved', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['bcservicescard', 'bceidbasic'],
+      status: 'applied',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+      bcServicesCardApproved: true,
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = getByText('BC Services Card')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(bcscCheckbox).toBeDisabled();
+    expect(bcscCheckbox).toBeChecked();
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
+    const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
+    expect(bcscAttributesDropDown?.querySelector("input[type='text']")).toBeDisabled();
   });
 });

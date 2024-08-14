@@ -1,21 +1,26 @@
-import React, { CSSProperties, useState } from 'react';
-import Modal from '@button-inc/bcgov-theme/Modal';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { Button } from '@bcgov-sso/common-react-components';
 import kebabCase from 'lodash.kebabcase';
+import Modal from 'react-bootstrap/Modal';
 
 const StyledModal = styled(Modal)`
-  display: flex;
-  align-items: center;
-  text-align: left !important;
-
   & .pg-modal-main {
     max-width: 700px;
-    margin: auto;
     box-shadow: 5px 5px 10px black;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+  }
+  & .modal-content {
+    border-radius: 0;
+  }
+  & .modal-header {
+    border-radius: 0;
   }
 `;
 
@@ -54,102 +59,89 @@ const ButtonContainer = styled.div<{ buttonAlign: 'default' | 'center' }>`
   }
 `;
 
-export type ButtonStyle = 'bcgov' | 'custom' | 'danger';
+export type ButtonStyle = 'primary' | 'primary-inverse' | 'secondary' | 'secondary-inverse' | 'danger';
 
 interface Props {
+  id?: string;
   onConfirm?: () => void;
-  onClose?: () => void;
+  openModal?: boolean;
+  handleClose?: () => void;
+  title: string;
   content: any;
-  icon?: any;
-  id: string;
-  title?: string;
-  closable?: boolean;
   showCancel?: boolean;
   showConfirm?: boolean;
   confirmText?: string;
-  buttonStyle?: ButtonStyle;
   buttonAlign?: 'center' | 'default';
-  skipCloseOnConfirm?: boolean;
-  style?: CSSProperties;
   disableConfirm?: boolean;
+  buttonStyle?: ButtonStyle;
+  icon?: any;
+  closable?: boolean;
+  skipCloseOnConfirm?: boolean;
+  closeOnBackgroundClick?: boolean;
 }
 
 const CenteredModal = ({
-  onConfirm,
-  onClose,
-  content,
   id,
+  openModal = false,
+  handleClose = () => {},
   title,
-  closable,
-  icon = faExclamationTriangle,
-  confirmText = 'Confirm',
+  content,
   showCancel = true,
   showConfirm = true,
-  buttonStyle = 'bcgov',
   buttonAlign = 'default',
-  skipCloseOnConfirm = false,
-  style = {},
+  onConfirm,
   disableConfirm = false,
+  confirmText = 'Confirm',
+  buttonStyle = 'primary',
+  icon = faExclamationTriangle,
+  skipCloseOnConfirm = false,
+  closable,
+  closeOnBackgroundClick = true,
 }: Props) => {
   const [loading, setLoading] = useState(false);
   const showButtons = showCancel || showConfirm;
-  let cancelButtonVariant = 'bcSecondary';
-  let confirmButtonVariant = 'bcPrimary';
   let dataTestId = 'confirm-delete-' + kebabCase(title);
   let dataTestIdCancel = 'cancel-' + kebabCase(title);
-
-  switch (buttonStyle) {
-    case 'bcgov':
-      break;
-    case 'custom':
-      cancelButtonVariant = 'secondary';
-      confirmButtonVariant = 'primary';
-      break;
-    case 'danger':
-      cancelButtonVariant = 'secondary';
-      confirmButtonVariant = 'danger';
-      break;
-  }
 
   const handleConfirm = async () => {
     setLoading(true);
     if (onConfirm) await onConfirm();
     setLoading(false);
-    if (!skipCloseOnConfirm) window.location.hash = '#';
-  };
-
-  const handleCancel = async () => {
-    if (onClose) onClose();
-    window.location.hash = '#';
+    if (!skipCloseOnConfirm) handleClose();
   };
 
   return (
-    <StyledModal id={id}>
-      <Header title={title} as="div">
-        {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
-        {title}
-        {closable && (
-          <Modal.Close onClick={handleCancel} title="exit">
-            <FontAwesomeIcon icon={faTimes} size="lg"></FontAwesomeIcon>
-          </Modal.Close>
-        )}
+    <StyledModal
+      show={openModal}
+      onHide={() => {
+        handleClose();
+      }}
+      dialogClassName="pg-modal-main"
+      id={id}
+      backdrop={closeOnBackgroundClick ? true : 'static'}
+    >
+      <Header>
+        <Modal.Title>
+          {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
+          {title}
+        </Modal.Title>
+        {closable && <FontAwesomeIcon icon={faTimes} size="lg" onClick={handleClose}></FontAwesomeIcon>}
       </Header>
-      <Modal.Content style={style}>
+      <Modal.Body>
         <ContentContainer>{content}</ContentContainer>
         {showButtons && (
           <ButtonContainer buttonAlign={buttonAlign}>
             {showCancel && (
-              <Button variant={cancelButtonVariant} onClick={handleCancel} type="button" data-testid={dataTestIdCancel}>
+              <button className="secondary" onClick={handleClose} type="button" data-testid={dataTestIdCancel}>
                 Cancel
-              </Button>
+              </button>
             )}
             {showConfirm && (
-              <Button
+              <button
                 data-testid={dataTestId}
                 onClick={handleConfirm}
-                variant={confirmButtonVariant}
+                className={buttonStyle}
                 type="button"
-                className="text-center"
                 disabled={disableConfirm}
               >
                 {loading ? (
@@ -157,11 +149,11 @@ const CenteredModal = ({
                 ) : (
                   confirmText
                 )}
-              </Button>
+              </button>
             )}
           </ButtonContainer>
         )}
-      </Modal.Content>
+      </Modal.Body>
     </StyledModal>
   );
 };

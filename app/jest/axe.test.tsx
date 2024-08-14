@@ -35,6 +35,17 @@ jest.mock('services/request', () => {
   };
 });
 
+jest.mock('services/bc-services-card', () => {
+  return {
+    fetchPrivacyZones: jest.fn(() => {
+      return Promise.resolve([[], null]);
+    }),
+    fetchAttributes: jest.fn(() => {
+      return Promise.resolve([[], null]);
+    }),
+  };
+});
+
 describe('Pages', () => {
   it('Should have no accessibility violations (Landing Page)', async () => {
     const { container } = render(

@@ -7,7 +7,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SECONDARY_BLUE } from 'styles/theme';
-import Button from '@button-inc/bcgov-theme/Button';
 import Textarea from '@button-inc/bcgov-theme/Textarea';
 import { submitSurvey } from '@app/services/user';
 import { UserSurveyInformation } from '@app/interfaces/team';
@@ -219,10 +218,12 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display, triggerEven
           />
           {surveyError && <p className="error-message">{surveyError}</p>}
           <div className="button-container">
-            <Button variant="secondary" onClick={hideSurvey}>
+            <button className="secondary" onClick={hideSurvey}>
               Close
-            </Button>
-            <Button onClick={saveSurvey}>Rate now</Button>
+            </button>
+            <button className="primary" onClick={saveSurvey}>
+              Rate now
+            </button>
           </div>
         </div>
       </SBox>

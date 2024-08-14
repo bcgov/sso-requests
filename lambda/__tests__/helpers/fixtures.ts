@@ -1,5 +1,6 @@
 import { Integration } from 'app/interfaces/Request';
 import { IntegrationData } from '../../shared/interfaces';
+import createHttpError from 'http-errors';
 
 export const SSO_ADMIN_USERID_01 = 'SSO_ADMIN_USER_01';
 export const SSO_ADMIN_EMAIL_01 = 'sso.admin.user-01@gov.bc.ca';
@@ -42,6 +43,7 @@ export const formDataDev: IntegrationData = {
   idirUserDisplayName: 'test user',
   usesTeam: false,
   requester: 'SSO Admin',
+  userId: 1,
   user: {
     id: 0,
     idirUserid: 'QWERASDF',
@@ -105,7 +107,8 @@ export const getCreateIntegrationData = (args: {
   teamIntegration?: boolean;
   teamId?: number;
 }) => {
-  if (args.teamIntegration && !args.teamId) throw Error('require teamid for creating a team integration');
+  if (args.teamIntegration && !args.teamId)
+    throw new createHttpError.BadRequest('require teamid for creating a team integration');
   return {
     projectName: args.projectName || 'Test Integration',
     projectLead: true,

@@ -1,7 +1,6 @@
 import React, { useState, useContext } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
-import { Button } from '@bcgov-sso/common-react-components';
 import { createTeam } from 'services/team';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { User, LoggedInUser } from 'interfaces/team';
@@ -22,6 +21,7 @@ const ButtonsContainer = styled.div`
 interface Props {
   onSubmit: (teamId: number) => void;
   alert: TopAlert;
+  setOpenCreateTeamModal: (flag: boolean) => void;
 }
 
 const emptyUser: User = {
@@ -30,7 +30,7 @@ const emptyUser: User = {
   id: new Date().getTime(),
 };
 
-function CreateTeamForm({ onSubmit, alert }: Props) {
+function CreateTeamForm({ onSubmit, alert, setOpenCreateTeamModal }: Props) {
   const context = useContext<SessionContextInterface | null>(SessionContext);
   const { session } = context || {};
 
@@ -48,7 +48,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
     setTeamName('');
     setLoading(false);
     setErrors(null);
-    window.location.hash = '#';
+    setOpenCreateTeamModal(false);
   };
 
   const handleCreate = async () => {
@@ -79,7 +79,7 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
     setTeamName('');
     setLoading(false);
     setErrors(null);
-    window.location.hash = '#';
+    setOpenCreateTeamModal(false);
   };
 
   return (
@@ -95,12 +95,12 @@ function CreateTeamForm({ onSubmit, alert }: Props) {
         currentUser={session as LoggedInUser}
       />
       <ButtonsContainer>
-        <Button variant="secondary" onClick={handleCancel}>
+        <button className="secondary" onClick={handleCancel}>
           Cancel
-        </Button>
-        <Button type="button" onClick={handleCreate} data-testid="send-invitation">
+        </button>
+        <button className="primary" type="button" onClick={handleCreate} data-testid="send-invitation">
           {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
-        </Button>
+        </button>
       </ButtonsContainer>
     </div>
   );

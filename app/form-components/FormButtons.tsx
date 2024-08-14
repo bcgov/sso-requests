@@ -1,10 +1,9 @@
-import Button from '@button-inc/bcgov-theme/Button';
 import styled from 'styled-components';
 import noop from 'lodash.noop';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
-import CancelButton from 'components/CancelButton';
-import { FORM_BUTTON_MIN_WIDTH, FORM_BUTTON_TOP_SPACING } from 'styles/theme';
+import { FORM_BUTTON_TOP_SPACING } from 'styles/theme';
 import { LastSavedMessage } from '@bcgov-sso/common-react-components';
+import { MouseEventHandler } from 'react';
 
 interface Props {
   loading?: boolean;
@@ -13,8 +12,8 @@ interface Props {
     continue: string;
     back: string;
   };
-  handleSubmit?: Function;
-  handleBackClick?: Function;
+  handleSubmit?: MouseEventHandler<HTMLButtonElement>;
+  handleBackClick?: MouseEventHandler<HTMLButtonElement>;
   formSubmission?: boolean;
   savingStatus: {
     saving: boolean;
@@ -23,13 +22,10 @@ interface Props {
   };
 }
 
-const PaddedButton = styled(Button)`
-  margin-left: 10px;
-  min-width: ${FORM_BUTTON_MIN_WIDTH};
-`;
-
 const Container = styled.div`
   margin-top: ${FORM_BUTTON_TOP_SPACING};
+  display: flex;
+  column-gap: 0.625rem;
 `;
 
 export default function FormButtons({
@@ -47,13 +43,12 @@ export default function FormButtons({
         {backButton ? (
           backButton
         ) : (
-          <CancelButton variant="secondary" size="medium" type="button" onClick={handleBackClick}>
+          <button className="secondary wide" type="button" onClick={handleBackClick}>
             {text.back}
-          </CancelButton>
+          </button>
         )}
-        <PaddedButton
-          variant="primary"
-          size="medium"
+        <button
+          className="primary wide"
           onClick={loading ? noop : handleSubmit}
           type={formSubmission ? 'submit' : 'button'}
         >
@@ -62,7 +57,7 @@ export default function FormButtons({
           ) : (
             <>{text.continue}</>
           )}
-        </PaddedButton>
+        </button>
       </Container>
       <LastSavedMessage {...savingStatus} />
     </>

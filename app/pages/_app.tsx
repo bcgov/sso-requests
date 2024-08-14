@@ -17,7 +17,7 @@ import 'styles/globals.css';
 import { useIdleTimer } from 'react-idle-timer';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import noop from 'lodash.noop';
+import '@bcgov/bc-sans/css/BCSans.css';
 import { parseJWTPayload } from '@app/utils/helpers';
 import SurveyBox from '@app/components/SurveyBox';
 
@@ -44,6 +44,8 @@ const defaultUserSurveys: UserSurveyInformation = {
   createIntegration: false,
   createRole: false,
   cssApiRequest: false,
+  viewMetrics: false,
+  downloadLogs: false,
 };
 
 export const SessionContext = React.createContext<SessionContextInterface | null>(null);

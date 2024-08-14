@@ -245,7 +245,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
               };
 
               return (
-                <tr>
+                <tr key={index}>
                   <td className="role">
                     <Input
                       size="small"

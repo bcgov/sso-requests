@@ -1,10 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import IntegrationInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
-import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import { getInstallation } from 'services/keycloak';
-import { sampleRequest } from '../../samples/integrations';
-import type { Status } from 'interfaces/types';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 
 type Text = string | RegExp;
@@ -26,12 +23,21 @@ const BCEID_PROD_LABEL = /Access to BCeID Prod/;
 const BCEID_PROD_REQUESTED_MESSAGE = /Please reach out to IDIM/;
 const BCEID_PROD_APPROVED = /Your integration has been approved/;
 const BCEID_PROD_AVAILABLE = /Your integration is approved and available/;
+const DC_PROD_LABEL = /Access to Digital Credential Prod/;
+const DC_PROD_REQUESTED_MESSAGE = /Please reach out to DIT/;
+const DC_PROD_APPROVED = /Your integration has been approved/;
+const DC_PROD_AVAILABLE = /Your integration is approved and available/;
+const BCSC_PROD_LABEL = /Access to BC Services Card Prod/;
+const BCSC_PROD_REQUESTED_MESSAGE = /Please reach out to IDIM/;
+const BCSC_PROD_APPROVED = /Your integration has been approved/;
+const BCSC_PROD_AVAILABLE = /Your integration is approved and available/;
 const GITHUB_PROD_LABEL = /Access to GitHub Prod/;
 const GITHUB_PROD_REQUESTED_MESSAGE = /Requirements email sent to GCIO/;
 const GITHUB_PROD_APPROVED = /Your integration has been approved/;
 const GITHUB_PROD_AVAILABLE = /Your integration is approved and available/;
-const DEV_IDIR_BCEID_ENV_HEADER = /Development \(IDIR, Basic BCeID, GitHub\)/;
-const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR, Basic BCeID, GitHub\)/;
+
+const DEV_IDIR_BCEID_ENV_HEADER = /Development \(IDIR, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
+const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
 
 jest.mock('services/keycloak', () => ({
   getInstallation: jest.fn(() => Promise.resolve([['installation_data'], null])),
@@ -257,6 +263,67 @@ describe('Applied Status', () => {
       GITHUB_PROD_REQUESTED_MESSAGE,
     ]);
   });
+
+  it('should display BCSC-prod-DC-prod-integration screen', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['idir', 'bcservicescard', 'digitalcredential'],
+          lastChanges: null,
+          digitalCredentialApproved: false,
+          bcServicesCardApproved: false,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectAllTexts([
+      INSTALLATION_LABEL,
+      BCSC_PROD_LABEL,
+      BCSC_PROD_REQUESTED_MESSAGE,
+      DC_PROD_LABEL,
+      DC_PROD_REQUESTED_MESSAGE,
+    ]);
+    notExpectAllTexts([
+      DRAFT_MESSAGE,
+      PROGRESS_MESSAGE,
+      BCSC_PROD_APPROVED,
+      BCSC_PROD_AVAILABLE,
+      DC_PROD_APPROVED,
+      DC_PROD_AVAILABLE,
+    ]);
+  });
+
+  it('should display BCSC-prod-DC-prod-approved integration screen', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['idir', 'bcservicescard', 'digitalcredential'],
+          lastChanges: null,
+          digitalCredentialApproved: true,
+          bcServicesCardApproved: true,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectAllTexts([INSTALLATION_LABEL, BCSC_PROD_LABEL, DC_PROD_LABEL]);
+    expect(screen.getAllByText(BCSC_PROD_AVAILABLE)).toBeTruthy();
+    notExpectAllTexts([
+      DRAFT_MESSAGE,
+      PROGRESS_MESSAGE,
+      BCSC_PROD_APPROVED,
+      BCSC_PROD_REQUESTED_MESSAGE,
+      DC_PROD_APPROVED,
+      DC_PROD_REQUESTED_MESSAGE,
+    ]);
+  });
 });
 
 describe('Applied Status header, button and link test', () => {
@@ -267,7 +334,7 @@ describe('Applied Status header, button and link test', () => {
           status: 'applied',
           authType: 'browser-login',
           environments: ['dev', 'test'],
-          devIdps: ['idir', 'bceidbasic', 'githubpublic'],
+          devIdps: ['idir', 'bceidbasic', 'githubpublic', 'digitalcredential', 'bcservicescard'],
           lastChanges: null,
           bceidApproved: false,
           githubApproved: false,
@@ -329,41 +396,5 @@ describe('Applied Status header, button and link test', () => {
     await waitFor(() => {
       expect(getInstallation).toHaveBeenCalled();
     });
-  });
-});
-
-describe('Submission Status Indicator', () => {
-  it('Should show the planned message', () => {
-    render(<SubmittedStatusIndicator integration={{ ...sampleRequest, status: 'planned' as Status }} />);
-    expect(screen.getByText('Terraform plan succeeded...'));
-  });
-  it('Should show the submitted message', () => {
-    render(<SubmittedStatusIndicator integration={{ ...sampleRequest, status: 'submitted' as Status }} />);
-    expect(screen.getByText('Process request submitted...'));
-  });
-  it('Should show the created message', () => {
-    render(<SubmittedStatusIndicator integration={{ ...sampleRequest, status: 'pr' as Status }} />);
-    expect(screen.getByText('Pull request created...'));
-  });
-  it('Should show the error message', () => {
-    render(<SubmittedStatusIndicator integration={{ ...sampleRequest, status: 'prFailed' as Status }} />);
-    expect(screen.getByText('An error has occurred'));
-    cleanup();
-
-    render(<SubmittedStatusIndicator integration={{ ...sampleRequest, status: 'planFailed' as Status }} />);
-    expect(screen.getByText('An error has occurred'));
-    cleanup();
-
-    render(<SubmittedStatusIndicator integration={{ ...sampleRequest, status: 'applyFailed' as Status }} />);
-    expect(screen.getByText('An error has occurred'));
-    cleanup();
-  });
-  it('Should show the last updated date', () => {
-    render(
-      <SubmittedStatusIndicator
-        integration={{ ...sampleRequest, status: 'pr' as Status, updatedAt: '2021-08-20T18:50:04.115Z' }}
-      />,
-    );
-    expect(screen.getByText(`Last updated at ${new Date('2021-08-20T18:50:04.115Z').toLocaleString()}`));
   });
 });

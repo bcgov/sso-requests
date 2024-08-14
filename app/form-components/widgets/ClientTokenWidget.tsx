@@ -5,27 +5,18 @@ import styled from 'styled-components';
 import noop from 'lodash.noop';
 import Input from '@button-inc/bcgov-theme/Input';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
-import InfoOverlay from 'components/InfoOverlay';
-
-const Label = styled.span`
-  display: inline-block;
-  width: 200px;
-
-  & label {
-    font-weight: 700;
-    font-size: 0.8rem;
-  }
-`;
 
 const LeftInput = styled.span`
-  display: inline-block;
-  margin-right: 0.3rem;
-  margin-bottom: 0.5rem;
-
   & input {
     height: 1.94rem;
     max-width: 3.125rem;
   }
+`;
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: row;
+  column-gap: 0.5em;
 `;
 
 const RightDropdown = styled.span`
@@ -120,12 +111,7 @@ const ClientTokenWidget = ({ id, value = 0, label, readonly, onChange, onBlur, s
   };
 
   return (
-    <div>
-      <Label>
-        <label htmlFor={id}>{label}</label>&nbsp;
-        <InfoOverlay content={tooltipContent} />
-      </Label>
-
+    <Container>
       <LeftInput>
         <Input
           type="text"
@@ -144,7 +130,7 @@ const ClientTokenWidget = ({ id, value = 0, label, readonly, onChange, onBlur, s
           <option>Days</option>
         </Dropdown>
       </RightDropdown>
-    </div>
+    </Container>
   );
 };
 

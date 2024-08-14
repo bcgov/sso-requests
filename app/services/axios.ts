@@ -33,21 +33,22 @@ instance.interceptors.response.use(
   },
   function (error) {
     if (error.response) {
-      switch (error.response.status) {
-        case 504:
-          Router.push({
-            pathname: '/application-error',
-            query: { error: 'E04' },
-          });
-          break;
-        case 408:
-          Router.push({
-            pathname: '/application-error',
-            query: { error: 'E04' },
-          });
-          break;
-        default:
-          break;
+      const status = error.response.status;
+      if ([500].includes(status)) {
+        Router.push({
+          pathname: '/application-error',
+          query: { error: 'E01' },
+        });
+      } else if ([502, 503].includes(status)) {
+        Router.push({
+          pathname: '/application-error',
+          query: { error: 'E05' },
+        });
+      } else if ([504, 408].includes(status)) {
+        Router.push({
+          pathname: '/application-error',
+          query: { error: 'E04' },
+        });
       }
     }
 

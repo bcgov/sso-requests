@@ -54,6 +54,9 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2023.12.28T00.00.00.create-request-queues-table'),
       await import('./migrations/2024.01.10T00.00.00.update-request-roles-table'),
       await import('./migrations/2024.04.23T00.00.00.add-flag-offline-access-enabled'),
+      await import('./migrations/2024.06.06T11.01.11.add-bcsc-table'),
+      await import('./migrations/2024.06.21T11.35.24.add-bcsc-prod-approved'),
+      await import('./migrations/2024.07.24T00.00.00.update-survey-trigger-event'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

@@ -1,6 +1,7 @@
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Op, Sequelize } from 'sequelize';
+import createHttpError from 'http-errors';
 
 export const getRolesWithEnvironments = async (integrationId: number) => {
   const [results] = await sequelize.query(
@@ -27,7 +28,7 @@ export const updateCompositeRoles = async (
     },
   });
   if (!dbRole) {
-    throw Error(`Role ${roleName} not found`);
+    throw new createHttpError.NotFound(`role ${roleName} not found`);
   }
   const dbCompositeRoles = await models.requestRole.findAll({
     where: {

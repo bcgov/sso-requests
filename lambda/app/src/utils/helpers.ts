@@ -13,9 +13,14 @@ import { EMAILS } from '@lambda-shared/enums';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { getTeamById, isTeamAdmin } from '../queries/team';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
+import { getAttributes, getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
+import { usesBcServicesCard } from '@app/helpers/integration';
+import createHttpError from 'http-errors';
 
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
+
+let cachedClaims = [];
 
 export const omitNonFormFields = (data: Integration) =>
   omit(data, [
@@ -51,15 +56,21 @@ const durationAdditionalFields = [];
   durationAdditionalFields.push(`${env}OfflineAccessEnabled`);
 });
 
-export const processRequest = (data: any, isMerged: boolean, isAdmin: boolean) => {
+export const processRequest = (data: Integration, isMerged: boolean, isAdmin: boolean) => {
   const immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
 
   if (isMerged) {
     immutableFields.push('realm');
     if (data?.protocol === 'saml') immutableFields.push('projectName');
   }
-  // client id cannot be updated by non-admin
-  if (!isAdmin) immutableFields.push(...durationAdditionalFields, 'clientId');
+
+  if (!isAdmin) {
+    immutableFields.push(
+      ...durationAdditionalFields,
+      'clientId',
+      ...['bceid', 'github', 'digitalCredential', 'bcServicesCard'].map((idp) => `${idp}Approved`),
+    );
+  }
 
   if (isAdmin) {
     if (data?.protocol === 'oidc') {
@@ -92,13 +103,15 @@ export const getDifferences = (newData: any, originalData: Integration) => {
   return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };
 
-export const validateRequest = (formData: any, original: Integration, isUpdate = false, teams: any[]) => {
-  // if (isUpdate) {
-  //   const differences = getDifferences(formData, original);
-  //   if (!differences) return errorMessage;
-  // }
+export const validateRequest = async (formData: any, original: Integration, teams: any[], isUpdate = false) => {
+  const validationArgs: any = { formData, teams };
 
-  const schemas = getSchemas({ formData, teams });
+  if (usesBcServicesCard(formData)) {
+    const [validPrivacyZones, validAttributes] = await Promise.all([getPrivacyZones(), getAttributes()]);
+    validationArgs.bcscPrivacyZones = validPrivacyZones;
+    validationArgs.bcscAttributes = validAttributes;
+  }
+  const schemas = getSchemas(validationArgs);
   return validateForm(formData, schemas);
 };
 
@@ -182,7 +195,7 @@ export async function getUsersTeams(user) {
 
 export async function inviteTeamMembers(userId: number, users: (User & { role: string })[], teamId: number) {
   const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new Error('Not authorized');
+  if (!authorized) throw new createHttpError.Forbidden(`not allowed to invite members for the team #${teamId}`);
   const team = await getTeamById(teamId);
   return Promise.all(
     users.map(async (user) => {
@@ -193,3 +206,44 @@ export async function inviteTeamMembers(userId: number, users: (User & { role: s
     }),
   );
 }
+
+export const getBCSCEnvVars = (env: string) => {
+  let bcscBaseUrl: string;
+  let accessToken: string;
+  let kcBaseUrl: string;
+
+  if (env === 'dev') {
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_DEV;
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_DEV;
+    kcBaseUrl = process.env.KEYCLOAK_V2_DEV_URL;
+  }
+  if (env === 'test') {
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_TEST;
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_TEST;
+    kcBaseUrl = process.env.KEYCLOAK_V2_TEST_URL;
+  }
+  if (env === 'prod') {
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_PROD;
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_PROD;
+    kcBaseUrl = process.env.KEYCLOAK_V2_PROD_URL;
+  }
+  return {
+    bcscBaseUrl,
+    accessToken,
+    kcBaseUrl,
+  };
+};
+
+export const getRequiredBCSCScopes = async (claims) => {
+  if (cachedClaims.length === 0) {
+    cachedClaims = await getAttributes();
+  }
+  const allClaims = cachedClaims;
+  const requiredScopes = allClaims.filter((claim) => claims.includes(claim.name)).map((claim) => claim.scope);
+
+  // Profile will always be a required scope since the sub depends on it
+  if (!requiredScopes.includes('profile')) {
+    requiredScopes.push('profile');
+  }
+  return ['openid', ...new Set(requiredScopes)].join(' ');
+};

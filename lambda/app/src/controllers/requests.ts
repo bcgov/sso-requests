@@ -10,6 +10,8 @@ import {
   isAdmin,
   getDisplayName,
   getWhereClauseForAllRequests,
+  getBCSCEnvVars,
+  getRequiredBCSCScopes,
 } from '../utils/helpers';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
@@ -34,6 +36,8 @@ import {
   checkDigitalCredential,
   checkNotBceidGroup,
   checkNotGithubGroup,
+  usesBcServicesCard,
+  checkBcServicesCard,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
 import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
@@ -46,7 +50,19 @@ import {
   samlSignedAssertions,
 } from '@app/schemas';
 import pick from 'lodash.pick';
-import { validateIdirEmail } from '@lambda-app/bceid-webservice-proxy/idir';
+import { validateIdirEmail } from '@lambda-app/ms-graph/idir';
+import { BCSCClientParameters, createBCSCClient, deleteBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
+import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
+import {
+  createClientScope,
+  createClientScopeMapper,
+  deleteClientScope,
+  getClientScope,
+  getClientScopeMapper,
+  updateClientScopeMapper,
+} from '@lambda-app/keycloak/clientScopes';
+import { bcscIdpMappers } from '@lambda-app/utils/constants';
+import createHttpError from 'http-errors';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -87,6 +103,12 @@ const allowedFieldsForGithub = [
   'teamId',
   'apiServiceAccount',
   'requester',
+  'bcscAttributes',
+  'devHomePageUri',
+  'testHomePageUri',
+  'prodHomePageUri',
+  'bcscPrivacyZone',
+  'usesTeam',
   ...envFieldsAll,
 ];
 
@@ -147,7 +169,7 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
 
     createEvent(eventData);
     await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session.user.displayName });
-    throw Error('reached the day limit');
+    throw new createHttpError.TooManyRequests('reached the day limit');
   }
 
   let {
@@ -171,33 +193,229 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
   } = data;
   if (!serviceType) serviceType = 'gold';
 
-  const result = await models.request.create({
-    projectName,
-    devLoginTitle: projectName,
-    testLoginTitle: projectName,
-    prodLoginTitle: projectName,
-    devSamlSignAssertions,
-    testSamlSignAssertions,
-    prodSamlSignAssertions,
-    devDisplayHeaderTitle,
-    testDisplayHeaderTitle,
-    prodDisplayHeaderTitle,
-    devSamlLogoutPostBindingUri,
-    testSamlLogoutPostBindingUri,
-    prodSamlLogoutPostBindingUri,
-    projectLead,
-    idirUserDisplayName,
-    usesTeam,
-    teamId,
-    primaryEndUsers,
-    primaryEndUsersOther,
-    userId: session.user?.id,
-    serviceType,
-    environments: ['dev'],
-    clientId,
-  });
+  let result = null;
+
+  try {
+    result = await models.request.create({
+      projectName,
+      devLoginTitle: projectName,
+      testLoginTitle: projectName,
+      prodLoginTitle: projectName,
+      devSamlSignAssertions,
+      testSamlSignAssertions,
+      prodSamlSignAssertions,
+      devDisplayHeaderTitle,
+      testDisplayHeaderTitle,
+      prodDisplayHeaderTitle,
+      devSamlLogoutPostBindingUri,
+      testSamlLogoutPostBindingUri,
+      prodSamlLogoutPostBindingUri,
+      projectLead,
+      idirUserDisplayName,
+      usesTeam,
+      teamId,
+      primaryEndUsers,
+      primaryEndUsersOther,
+      userId: session.user?.id,
+      serviceType,
+      environments: ['dev'],
+      clientId,
+    });
+  } catch (err) {
+    throw new createHttpError.BadRequest(err);
+  }
 
   return { ...result.dataValues, numOfRequestsForToday };
+};
+
+export const createBCSCIntegration = async (env: string, integration: IntegrationData, userId: number) => {
+  const { bcscBaseUrl } = getBCSCEnvVars(env);
+
+  const bcscClient = await models.bcscClient.findOne({
+    where: {
+      requestId: integration.id,
+      environment: env,
+    },
+  });
+
+  let bcscClientSecret = bcscClient?.clientSecret;
+  let bcscClientId = bcscClient?.clientId;
+  if (!bcscClient) {
+    const bcscClientName = `${integration.projectName}-${integration.id}`;
+    const clientResponse: any = await createBCSCClient(
+      {
+        clientName: bcscClientName,
+        environment: env,
+      },
+      integration,
+      userId,
+    );
+    await models.bcscClient.create({
+      clientName: bcscClientName,
+      requestId: integration.id,
+      environment: env,
+      clientSecret: clientResponse.data.client_secret,
+      registrationAccessToken: clientResponse.data.registration_access_token,
+      created: true,
+      clientId: clientResponse.data.client_id,
+    });
+    bcscClientSecret = clientResponse.data.client_secret;
+    bcscClientId = clientResponse.data.client_id;
+  } else if (bcscClient.archived) {
+    // TODO: currently need to have the BCSC team manually re-enable client when restoring (as of July 2024). Once api route for enabling is available should be added here.
+    await models.bcscClient.update(
+      {
+        archived: false,
+      },
+      {
+        where: {
+          requestId: integration.id,
+          environment: env,
+        },
+      },
+    );
+  } else {
+    await updateBCSCClient(bcscClient, integration);
+  }
+  const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
+  const idpCreated = await getIdp(env, integration.clientId);
+  if (!idpCreated) {
+    await createIdp(
+      {
+        alias: integration.clientId,
+        displayName: `BC Services Card`,
+        enabled: true,
+        storeToken: true,
+        providerId: 'oidc',
+        realm: 'standard',
+        firstBrokerLoginFlowAlias: 'first broker login',
+        postBrokerLoginFlowAlias: 'idp post login',
+        config: {
+          clientId: bcscClientId,
+          clientSecret: bcscClientSecret,
+          authorizationUrl: `${bcscBaseUrl}/login/oidc/authorize`,
+          tokenUrl: `${bcscBaseUrl}/oauth2/token`,
+          userInfoUrl: `${bcscBaseUrl}/oauth2/userinfo`,
+          jwksUrl: `${bcscBaseUrl}/oauth2/jwk`,
+          syncMode: 'IMPORT',
+          disableUserInfo: true,
+          clientAuthMethod: 'client_secret_post',
+          validateSignature: true,
+          useJwksUrl: true,
+          defaultScope: requiredScopes,
+        },
+      },
+      env,
+    );
+  }
+
+  const idpMappers = await getIdpMappers({
+    environment: env,
+    idpAlias: integration.clientId,
+  });
+
+  const createIdpMapperPromises = bcscIdpMappers.map((mapper) => {
+    const alreadyExists = idpMappers.some((existingMapper) => existingMapper.name === mapper.name);
+    if (!alreadyExists) {
+      return createIdpMapper({
+        environment: env,
+        name: mapper.name,
+        idpAlias: integration.clientId,
+        idpMapper: mapper.type,
+        idpMapperConfig: {
+          claim: mapper.name,
+          attribute: mapper.name,
+          syncMode: 'FORCE',
+          template: mapper.template,
+        },
+      });
+    }
+  });
+
+  await Promise.all(createIdpMapperPromises);
+
+  const clientScopeData = {
+    environment: env,
+    realmName: 'standard',
+    scopeName: integration.clientId,
+  };
+
+  let clientScope = await getClientScope(clientScopeData);
+  if (!clientScope) {
+    clientScope = await createClientScope(clientScopeData);
+  }
+
+  let userAttributes = integration.bcscAttributes.join(',');
+  // When requesting any claim under the address scope, the address claim must also be included for it to be on the token.
+  if (requiredScopes.includes('address') && !integration.bcscAttributes.includes('address')) {
+    userAttributes += ',address';
+  }
+
+  const mapperExists = await getClientScopeMapper({
+    environment: env,
+    scopeId: clientScope.id,
+    mapperName: 'attributes',
+  });
+
+  const clientScopeMapperPayload = {
+    environment: env,
+    realmName: 'standard',
+    scopeName: clientScope.name,
+    protocol: 'openid-connect',
+    protocolMapper: 'oidc-idp-userinfo-mapper',
+    protocolMapperName: 'attributes',
+    protocolMapperConfig: {
+      signatureExpected: true,
+      userAttributes,
+      'claim.name': 'attributes',
+      'jsonType.label': 'String' as const,
+      'id.token.claim': true,
+      'access.token.claim': true,
+      'userinfo.token.claim': true,
+    },
+  };
+
+  if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload });
+  else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists.id });
+};
+
+export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
+  await deleteBCSCClient({
+    clientId: request.clientId,
+    registrationToken: request.registrationAccessToken,
+    environment: request.environment,
+  });
+
+  await models.bcscClient.update(
+    {
+      archived: true,
+    },
+    {
+      where: {
+        id: request.id,
+      },
+    },
+  );
+  const idpExists = await getIdp(request.environment, keycoakClientId);
+  if (idpExists) {
+    await deleteIdp({
+      environment: request.environment,
+      realmName: 'standard',
+      idpAlias: keycoakClientId,
+    });
+  }
+  const clientScope = await getClientScope({
+    environment: request.environment,
+    realmName: 'standard',
+    scopeName: keycoakClientId,
+  });
+  if (clientScope) {
+    await deleteClientScope({
+      realmName: 'standard',
+      environment: request.environment,
+      scopeName: keycoakClientId,
+    });
+  }
 };
 
 export const updateRequest = async (
@@ -218,13 +436,34 @@ export const updateRequest = async (
     let existingClientId: string = '';
     const current = await getAllowedRequest(session, data.id);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
+
+    if (current.status === 'applied' && !submit) {
+      throw Error('Temporary updates not allowed for applied requests.');
+    }
+
     const originalData = getCurrentValue();
     const isAllowedStatus = ['draft', 'applied'].includes(current.status);
 
     if (current.status === 'applied' && current.clientId !== rest.clientId) existingClientId = current.clientId;
 
     if (!current || !isAllowedStatus) {
-      throw Error('unauthorized request');
+      throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
+    }
+
+    if (originalData.status === 'applied') {
+      // Once an integration has been created for a team, cannot revert to single person ownership.
+      if (originalData.usesTeam && !rest.usesTeam) rest.usesTeam = originalData.usesTeam;
+      if (!originalData.projectLead && rest.projectLead) rest.projectLead = originalData.projectLead;
+
+      // if integration in applied state do not allow changes to bcsc privacy zone
+      rest.environments = originalData.environments.concat(
+        rest.environments.filter((env) => {
+          if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
+        }),
+      );
+      if (originalData.devIdps.includes('bcservicescard')) {
+        rest.bcscPrivacyZone = originalData.bcscPrivacyZone;
+      }
     }
 
     const allowedData = processRequest(rest, isMerged, userIsAdmin);
@@ -233,13 +472,45 @@ export const updateRequest = async (
     const mergedData = getCurrentValue();
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
-    if (isApprovingBceid && !userIsAdmin) throw Error('unauthorized request');
+    if (isApprovingBceid && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve bceid');
 
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
-    if (isApprovingGithub && !userIsAdmin) throw Error('unauthorized request');
+    if (isApprovingGithub && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve github');
 
     const isApprovingDigitalCredential = !originalData.digitalCredentialApproved && current.digitalCredentialApproved;
-    if (isApprovingDigitalCredential && !userIsAdmin) throw Error('unauthorized request');
+    if (isApprovingDigitalCredential && !userIsAdmin)
+      throw new createHttpError.Forbidden('not allowed to approve digital credential');
+
+    const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
+    if (isApprovingBCSC && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve bc services card');
+
+    if (originalData.bceidApproved) {
+      // given approved, if adding/changing existing bceid idps throw error
+      const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
+      if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('bceid')))
+        throw new createHttpError.Forbidden('not allowed to update bceid idps');
+    }
+
+    if (originalData.githubApproved) {
+      // given approved, if adding/changing existing github idps throw error
+      const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
+      if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('github')))
+        throw new createHttpError.Forbidden('not allowed to update github idps');
+    }
+
+    if (originalData.digitalCredentialApproved) {
+      // given approved, if removing existing digital credential idp throw error
+      if (!current.devIdps.find((idp: string) => idp === 'digitalcredential'))
+        throw new createHttpError.Forbidden('not allowed to remove digital credential idp');
+    }
+
+    if (originalData.bcServicesCardApproved) {
+      // given approved, if removing existing bc services card idp throw error
+      if (!current.devIdps.find((idp: string) => idp === 'bcservicescard'))
+        throw new createHttpError.Forbidden('not allowed to remove bc services card idp');
+      // keep bcsc attributes and privacy zone in sync with original data
+      current.bcscAttributes = originalData.bcscAttributes!;
+    }
 
     const allowedTeams = await getAllowedTeams(user, { raw: true });
 
@@ -247,10 +518,13 @@ export const updateRequest = async (
     let finalData = getCurrentValue();
 
     if (submit) {
-      const validationErrors = validateRequest(mergedData, originalData, isMerged, allowedTeams);
+      const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
       if (!isEmpty(validationErrors)) {
-        if (isString(validationErrors)) throw Error(validationErrors);
-        else throw Error(JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }));
+        if (isString(validationErrors)) throw new createHttpError.BadRequest(validationErrors);
+        else
+          throw new createHttpError.BadRequest(
+            JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }),
+          );
       }
 
       // when it is submitted for the first time.
@@ -269,7 +543,9 @@ export const updateRequest = async (
           });
           const existingIntegration = await getIntegrationByClientId(current.clientId);
           if (existingKeycloakClient || (existingIntegration !== null && current.id !== existingIntegration.id))
-            throw Error(`${current.clientId} already exists, please choose a different client id`);
+            throw new createHttpError.BadRequest(
+              `${current.clientId} already exists, please choose a different client id`,
+            );
         }
       }
 
@@ -288,9 +564,14 @@ export const updateRequest = async (
       const hasDigitalCredential = usesDigitalCredential(current);
       const hasDigitalCredentialProd = hasDigitalCredential && hasProd;
 
+      const hasBcServicesCard = usesBcServicesCard(current);
+      const hasBcServicesCardProd = hasBcServicesCard && hasProd;
+
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
       const waitingDigitalCredentialProdApproval = hasDigitalCredentialProd && !current.digitalCredentialApproved;
+      const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
+
       current.requester = await getRequester(session, current.id);
 
       finalData = getCurrentValue();
@@ -313,6 +594,11 @@ export const updateRequest = async (
             code: EMAILS.PROD_APPROVED,
             data: { integration: finalData, type: 'Digital Credential' },
           });
+        } else if (isApprovingBCSC) {
+          emails.push({
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'BC Services Card' },
+          });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
@@ -321,6 +607,7 @@ export const updateRequest = async (
               waitingBceidProdApproval,
               waitingGithubProdApproval,
               waitingDigitalCredentialProdApproval,
+              waitingBcServicesCardProdApproval,
               addingProd,
             },
           });
@@ -333,6 +620,7 @@ export const updateRequest = async (
             waitingBceidProdApproval,
             waitingGithubProdApproval,
             waitingDigitalCredentialProdApproval,
+            waitingBcServicesCardProdApproval,
           },
         });
       }
@@ -344,7 +632,7 @@ export const updateRequest = async (
     let updated = await current.save();
 
     if (!updated) {
-      throw Error('update failed');
+      throw new createHttpError.UnprocessableEntity('update failed');
     }
 
     // team id column is referencing id of teams table so it can only be set to null using `update` method
@@ -378,7 +666,6 @@ export const updateRequest = async (
       }
 
       await createEvent(eventData);
-
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
       updated = await getAllowedRequest(session, data.id);
@@ -398,7 +685,7 @@ export const updateRequest = async (
       await createEvent(eventData);
     }
 
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
@@ -412,7 +699,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
     const isAllowedStatus = ['submitted'].includes(current.status);
 
     if (!current || !isAllowedStatus) {
-      throw Error('unauthorized request');
+      throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
     }
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -423,13 +710,13 @@ export const resubmitRequest = async (session: Session, id: number) => {
 
     const updated = await current.save();
     if (!updated) {
-      throw Error('update failed');
+      throw new createHttpError.UnprocessableEntity('update failed');
     }
 
     return updated.get({ plain: true });
   } catch (err) {
     console.log(err);
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
@@ -440,10 +727,10 @@ export const resubmitRequest = async (session: Session, id: number) => {
  * @param email The email to set as the new user.
  */
 const setIntegrationOwner = async (integration: Model & IntegrationData, email?: string) => {
-  if (!email) throw Error('email is required');
+  if (!email) throw new createHttpError.BadRequest('email is required');
 
   const userInfo = await validateIdirEmail(email);
-  if (!userInfo) throw Error('invalid email address');
+  if (!userInfo) throw new createHttpError.BadRequest('invalid email address');
 
   let user = await models.user.findOne({
     where: {
@@ -476,7 +763,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
     const isAllowedStatus = ['submitted'].includes(current.status);
 
     if (!current || (!isAllowedStatus && !current.archived)) {
-      throw Error('unauthorized request');
+      throw new createHttpError.BadRequest('Request not found or in invalid state');
     }
     if (current.usesTeam) {
       const teamExists = await getTeamById(current.teamId);
@@ -496,7 +783,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
 
     const updated = await current.save();
     if (!updated) {
-      throw Error('update failed');
+      throw new createHttpError.UnprocessableEntity('update failed');
     }
 
     const int = getCurrentValue();
@@ -541,7 +828,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
     return updated.get({ plain: true });
   } catch (err) {
     console.log(err);
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
@@ -568,7 +855,7 @@ export const getRequestAll = async (
   },
 ) => {
   if (!isAdmin(session)) {
-    throw Error('not allowed');
+    throw new createHttpError.Forbidden('not allowed');
   }
 
   const { order, limit, page, ...rest } = data;
@@ -622,7 +909,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     const current = await getAllowedRequest(session, id);
 
     if (!current) {
-      throw Error('unauthorized request');
+      throw new createHttpError.NotFound(`request #${id} not found`);
     }
 
     const requester = await getRequester(session, current.id);
@@ -651,6 +938,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
       requestId: id,
       userId: session.user.id,
+      idirUserDisplayName: user?.displayName,
     });
 
     return integration;
@@ -662,13 +950,13 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       requestId: id,
       userId: session.user.id,
     });
-    throw Error(err.message || err);
+    throw new createHttpError.UnprocessableEntity(err.message || err);
   }
 };
 
 export const updateRequestMetadata = async (session: Session, user: User, data: { id: number; status: string }) => {
   if (!session.client_roles?.includes('sso-admin')) {
-    throw Error('not allowed');
+    throw new createHttpError.Forbidden('not allowed');
   }
 
   const { id, status } = data;
@@ -682,7 +970,7 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
   );
 
   if (result.length < 2) {
-    throw Error('update failed');
+    throw new createHttpError.UnprocessableEntity('update failed');
   }
 
   return result[1].dataValues;
@@ -698,6 +986,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
   const hasDigitalCredential = usesDigitalCredential(baseData);
+  const hasBCSC = usesBcServicesCard(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -711,6 +1000,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   // prevent the TF from creating VC integration in prod environment if not approved
   if (!baseData.digitalCredentialApproved && hasDigitalCredential) {
     baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkDigitalCredential(idp));
+  }
+
+  if (!baseData.bcServicesCardApproved && hasBCSC) {
+    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkBcServicesCard(idp));
   }
 
   // prevent the TF from creating GitHub integration in prod environment if not approved
@@ -778,7 +1071,7 @@ export const standardClients = async (
     );
     for (const res of responses) {
       if (!res) {
-        throw Error('Unable to create client at keycloak');
+        throw new createHttpError.UnprocessableEntity('Unable to create client at keycloak');
       }
     }
   } catch (err) {
@@ -838,10 +1131,12 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const hasBceid = usesBceid(integration);
     const hasGithub = usesGithub(integration);
     const hasDigitalCredential = usesDigitalCredential(integration);
+    const hasBcServicesCard = usesBcServicesCard(integration);
     const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
     const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
     const waitingDigitalCredentialProdApproval =
       hasDigitalCredential && hasProd && !integration.digitalCredentialApproved;
+    const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
 
     const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
     await sendTemplate(emailCode, {
@@ -850,6 +1145,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
       hasBceid,
       waitingGithubProdApproval,
       waitingDigitalCredentialProdApproval,
+      waitingBcServicesCardProdApproval,
       addingProd,
     });
   }

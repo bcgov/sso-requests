@@ -2,7 +2,7 @@ import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } 
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
-import Select, { MultiValue, ActionMeta } from 'react-select';
+import Select from 'react-select';
 import throttle from 'lodash.throttle';
 import get from 'lodash.get';
 import reduce from 'lodash.reduce';
@@ -12,8 +12,8 @@ import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import { Button, LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
-import Table from 'components/TableNew';
+import { LastSavedMessage, SearchBar, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import Table from 'components/Table';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
@@ -108,6 +108,7 @@ interface Props {
   environment: string;
   integration: Integration;
   alert: TopAlert;
+  viewOnly?: boolean;
 }
 
 const LoaderContainer = () => (
@@ -122,7 +123,7 @@ type SvcAcctUserIntegrationMapType = {
   integration: Integration;
 };
 
-const RoleEnvironment = ({ environment, integration, alert }: Props) => {
+const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: Props) => {
   const infoModalRef = useRef<ModalRef>(emptyRef);
   const confirmModalRef = useRef<ModalRef>(emptyRef);
   const removeUserModalRef = useRef<ModalRef>(emptyRef);
@@ -424,15 +425,18 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                         >
                           <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
                         </span>
-                        &nbsp;&nbsp;
-                        <span onClick={() => removeUserModalRef.current.open(user)}>
-                          <FontAwesomeIcon
-                            style={{ color: '#FF0303' }}
-                            icon={faMinusCircle}
-                            size="lg"
-                            title="Remove User"
-                          />
-                        </span>
+
+                        {viewOnly ? null : (
+                          <span onClick={() => removeUserModalRef.current.open(user)}>
+                            &nbsp;&nbsp;
+                            <FontAwesomeIcon
+                              style={{ color: '#FF0303' }}
+                              icon={faMinusCircle}
+                              size="lg"
+                              title="Remove User"
+                            />
+                          </span>
+                        )}
                       </RightFloatUsersActionsButtons>
                     ),
                   };
@@ -469,7 +473,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                   return {
                     projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration
                       ?.projectName,
-                    actions: (
+                    actions: viewOnly ? null : (
                       <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
                         <RightFloatServiceAccountsActionsButtons>
                           <FontAwesomeIcon
@@ -511,7 +515,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                 (updateSucceeded) => updateSucceeded && setCompositeRoles(newValues as Option[]),
               );
             }}
-            isDisabled={!canCreateOrDeleteRole}
+            isDisabled={!canCreateOrDeleteRole || viewOnly}
           />
           <LastSavedMessage
             saving={saving}
@@ -542,7 +546,7 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
       data={roles.map((role: string, index: number) => {
         return {
           role: updateRoleName(role, index),
-          actions: (
+          actions: viewOnly ? null : (
             <AlignRight>
               <ActionButton
                 disabled={!canCreateOrDeleteRole}
@@ -581,9 +585,9 @@ const RoleEnvironment = ({ environment, integration, alert }: Props) => {
                 onChange={handleSearchKeyChange}
                 onKeyUp={handleSearchKeyUp}
               />
-              <Button type="button" size="small" variant="bcPrimary" onClick={fetchRoles}>
+              <button type="button" className="primary short" onClick={fetchRoles} style={{ marginLeft: '1em' }}>
                 Search
-              </Button>
+              </button>
             </div>
           </Grid.Col>
           <Grid.Col span={6}>

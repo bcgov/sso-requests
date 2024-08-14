@@ -9,11 +9,12 @@ import {
   updateServiceAccountCredentials,
 } from '@app/services/team';
 import { copyTextToClipboard, downloadText, prettyJSON } from '@app/utils/text';
-import Table from 'components/TableNew';
+import Table from 'components/Table';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
+import { useState } from 'react';
+import { Grid as SpinnerGrid } from 'react-loader-spinner';
 
 const RightFloatButtons = styled.td`
   float: right;
@@ -55,8 +56,9 @@ function ServiceAccountsList({
   getTeamServiceAccounts,
   alert,
 }: Readonly<Props>) {
-  const deleteServiceAccountModalId = 'delete-service-account-modal';
-  const updateServiceAccountSecretModalId = 'update-service-account-secret-modal';
+  const [openUpdateSecretModal, setOpenUpdateSecretModal] = useState(false);
+  const [openDeleteApiAccountModal, setOpenDeleteApiAccountModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const checkDisabled = (serviceAccount: Integration | null) => {
     return serviceAccount && serviceAccount?.status !== 'applied' && !serviceAccount?.archived;
@@ -64,7 +66,7 @@ function ServiceAccountsList({
 
   const handleDelete = () => {
     if (checkDisabled(selectedServiceAccount)) return;
-    window.location.hash = deleteServiceAccountModalId;
+    setOpenDeleteApiAccountModal(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -81,7 +83,7 @@ function ServiceAccountsList({
 
   const handleUpdate = () => {
     if (checkDisabled(selectedServiceAccount)) return;
-    window.location.hash = updateServiceAccountSecretModalId;
+    setOpenUpdateSecretModal(true);
   };
 
   const handleConfirmUpdate = async () => {
@@ -96,7 +98,9 @@ function ServiceAccountsList({
 
   const copyOrDownloadServiceAccount = async (download: boolean) => {
     if (checkDisabled(selectedServiceAccount)) return;
+    setLoading(true);
     let [data, error] = await getServiceAccountCredentials(team.id, selectedServiceAccount?.id);
+    setLoading(false);
     if (error) {
       alert.show({
         variant: 'danger',
@@ -116,6 +120,11 @@ function ServiceAccountsList({
       downloadText(prettyJSON(text), `${selectedServiceAccount?.clientId}.json`);
     } else {
       copyTextToClipboard(prettyJSON(text));
+      alert.show({
+        variant: 'success',
+        content: 'Copied to clipboard',
+        fadeOut: 3000,
+      });
     }
   };
 
@@ -128,43 +137,48 @@ function ServiceAccountsList({
 
   return (
     <>
-      <Table
-        headers={[
-          {
-            accessor: 'id',
-            Header: 'API Account ID',
-          },
-          {
-            accessor: 'actions',
-            Header: <ActionsHeader />,
-            disableSortBy: true,
-          },
-        ]}
-        data={teamServiceAccounts.map((serviceAccount: Integration) => {
-          return {
-            id: serviceAccount.id,
-            actions: (
-              <RightFloatButtons>
-                <ServiceAccountActionbuttons
-                  copyOrDownloadAction={copyOrDownloadServiceAccount}
-                  showUpdateModal={handleUpdate}
-                  showDeleteModal={handleDelete}
-                  actionsDisabled={Boolean(checkDisabled(serviceAccount))}
-                />
-              </RightFloatButtons>
-            ),
-          };
-        })}
-        colfilters={[]}
-        activateRow={activateRow}
-        rowSelectorKey={'id'}
-      />
+      {loading ? (
+        <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+      ) : (
+        <Table
+          headers={[
+            {
+              accessor: 'id',
+              Header: 'API Account ID',
+            },
+            {
+              accessor: 'actions',
+              Header: <ActionsHeader />,
+              disableSortBy: true,
+            },
+          ]}
+          data={teamServiceAccounts.map((serviceAccount: Integration) => {
+            return {
+              id: serviceAccount.id,
+              actions: (
+                <RightFloatButtons>
+                  <ServiceAccountActionbuttons
+                    copyOrDownloadAction={copyOrDownloadServiceAccount}
+                    showUpdateModal={handleUpdate}
+                    showDeleteModal={handleDelete}
+                    actionsDisabled={Boolean(checkDisabled(serviceAccount))}
+                  />
+                </RightFloatButtons>
+              ),
+            };
+          })}
+          colfilters={[]}
+          activateRow={activateRow}
+          rowSelectorKey={'id'}
+        />
+      )}
 
       <CenteredModal
+        id={'update-service-account-secret-modal'}
         title="Request a new secret for CSS API Account"
-        icon={faExclamationTriangle}
         onConfirm={handleConfirmUpdate}
-        id={updateServiceAccountSecretModalId}
+        openModal={openUpdateSecretModal}
+        handleClose={() => setOpenUpdateSecretModal(false)}
         content={
           <>
             <StyledP>
@@ -180,15 +194,17 @@ function ServiceAccountsList({
             </p>
           </>
         }
-        buttonStyle={'custom'}
+        buttonStyle={'primary'}
         confirmText={'Confirm'}
         closable
       />
       <CenteredModal
+        id={'delete-service-account-modal'}
         title="Delete CSS API Account"
         icon={null}
         onConfirm={handleConfirmDelete}
-        id={deleteServiceAccountModalId}
+        openModal={openDeleteApiAccountModal}
+        handleClose={() => setOpenDeleteApiAccountModal(false)}
         content={
           <ModalContents
             title="Are you sure that you want to delete this CSS API Account?"
@@ -196,7 +212,7 @@ function ServiceAccountsList({
           />
         }
         buttonStyle={'danger'}
-        confirmText={'Delete CSS API Account'}
+        confirmText={'Delete'}
         closable
       />
     </>

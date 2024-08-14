@@ -45,8 +45,7 @@ import {
 import { getInstallation, changeSecret } from './controllers/installation';
 import { searchKeycloakUsers } from './controllers/keycloak';
 import { wakeUpAll } from './controllers/heartbeat';
-import { bulkCreateRole, getCompositeClientRoles, setCompositeClientRoles } from './keycloak/users';
-import { searchIdirUsers, importIdirUser, fuzzySearchIdirEmail } from './bceid-webservice-proxy/idir';
+import { searchIdirUsers, importIdirUser, searchIdirEmail } from './ms-graph/idir';
 import { findAllowedTeamUsers } from './queries/team';
 import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
@@ -61,6 +60,7 @@ import {
   getClientRole,
   bulkCreateClientRoles,
   setCompositeRoles,
+  listCompositeRoles,
 } from './controllers/roles';
 import {
   getAllStandardIntegrations,
@@ -73,6 +73,8 @@ import { fetchDiscussions } from './graphql';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { fetchLogs, fetchMetrics } from '@lambda-app/controllers/logs';
+import { getPrivacyZones, getAttributes } from './controllers/bc-services-card';
+import createHttpError from 'http-errors';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -270,7 +272,7 @@ export const setRoutes = (app: any) => {
     try {
       const { id } = req.params || {};
       if (!id) {
-        throw Error('integration ID not found');
+        throw new createHttpError.NotFound('integration ID not found');
       }
       const result = await resubmitRequest(req.session as Session, Number(id));
       res.status(200).json(result);
@@ -288,7 +290,7 @@ export const setRoutes = (app: any) => {
         email = email.toLowerCase();
       }
       if (!id) {
-        throw Error('integration ID not found');
+        throw new createHttpError.NotFound('integration ID not found');
       }
       const result = await restoreRequest(req.session as Session, Number(id), email);
       res.status(200).json(result);
@@ -390,7 +392,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`/keycloak/roles`, async (req, res) => {
     try {
-      const result = await listRoles((req.session as Session).user.id, req.body);
+      const result = await listRoles(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -426,7 +428,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`/keycloak/role-users`, async (req, res) => {
     try {
-      const result = await listUsersByRole((req.session as Session).user.id, req.body);
+      const result = await listUsersByRole(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -449,7 +451,7 @@ export const setRoutes = (app: any) => {
 
   app.post(`/keycloak/get-composite-roles`, async (req, res) => {
     try {
-      const result = await getCompositeClientRoles((req.session as Session).user.id, req.body);
+      const result = await listCompositeRoles(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -504,8 +506,9 @@ export const setRoutes = (app: any) => {
 
   app.post(`/bceid-webservice/idir/search`, async (req, res) => {
     try {
-      const result = await searchIdirUsers((req.session as Session).bearerToken, req.body);
-      res.status(200).json(result);
+      const result = await searchIdirUsers(req.body);
+      if (!result) res.status(404).send();
+      else res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
     }
@@ -513,7 +516,8 @@ export const setRoutes = (app: any) => {
 
   app.post(`/bceid-webservice/idir/import`, async (req, res) => {
     try {
-      const result = await importIdirUser((req.session as Session).bearerToken, req.body);
+      const result = await importIdirUser(req.body);
+      if (!result) res.status(404).send();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -527,7 +531,7 @@ export const setRoutes = (app: any) => {
         res.status(400).send('Must include email query parameter');
         return;
       }
-      const result = await fuzzySearchIdirEmail(email);
+      const result = await searchIdirEmail(email);
       res.status(200).send(result);
     } catch (err) {
       handleError(res, err);
@@ -652,7 +656,7 @@ export const setRoutes = (app: any) => {
   app.delete(`/teams/:id`, async (req, res) => {
     try {
       const { id } = req.params;
-      const result = await deleteTeam(req.user.id, id);
+      const result = await deleteTeam(req.session as Session, id);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -764,6 +768,24 @@ export const setRoutes = (app: any) => {
     try {
       assertSessionRole(req.session, 'sso-admin');
       const result = await getDataIntegrityReport();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get('/bc-services-card/privacy-zones', async (req, res) => {
+    try {
+      const result = await getPrivacyZones();
+      res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get('/bc-services-card/claim-types', async (req, res) => {
+    try {
+      const result = await getAttributes();
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);

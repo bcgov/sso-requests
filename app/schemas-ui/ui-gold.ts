@@ -8,13 +8,15 @@ import TooltipCheckboxesWidget from '@app/form-components/widgets/TooltipCheckbo
 import FieldTermsAndConditions from '@app/form-components/FieldTermsAndConditions';
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
-import FieldAccessTokenLifespan from '@app/form-components/FieldAccessTokenLifespan';
+import FieldInlineGrid from '@app/form-components/FieldInlineGrid';
 import { checkBceidGroup, checkGithubGroup } from '@app/helpers/integration';
 import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
 import SwitchWidget from '@app/form-components/widgets/SwitchWidget';
 import get from 'lodash.get';
+import BcscAttributesWidget from '@app/form-components/widgets/BcscAttributesWidget';
+import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneWidget';
 
 interface Props {
   integration: Integration;
@@ -25,9 +27,18 @@ interface Props {
 const envs = ['dev', 'test', 'prod'];
 
 const getUISchema = ({ integration, formData, isAdmin }: Props) => {
-  const { id, status, devIdps = [], environments = [], bceidApproved = false } = integration || {};
+  const {
+    id,
+    status,
+    devIdps = [],
+    environments = [],
+    bceidApproved = false,
+    bcServicesCardApproved = false,
+  } = integration || {};
   const isNew = isNil(id);
   const isApplied = status === 'applied';
+  const disableBcscUpdateApplied = integration?.devIdps?.includes('bcservicescard') && status !== 'draft';
+  const disableBcscUpdateApproved = integration?.devIdps?.includes('bcservicescard') && bcServicesCardApproved;
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
   let idpDisabled: string[] = [];
@@ -38,9 +49,12 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       devIdps.forEach((idp) => {
         if (checkBceidGroup(idp)) {
           if (bceidApproved) idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
-        } else if (checkGithubGroup(idp)) {
+        }
+        if (checkGithubGroup(idp)) {
           idpDisabled.push('githubpublic', 'githubbcgov');
         }
+
+        if (idp === 'bcservicescard') idpDisabled.push('bcservicescard');
       });
     }
 
@@ -51,12 +65,31 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
 
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
-    idpDisabled.push('digitalcredential');
+    idpDisabled.push('digitalcredential', 'bcservicescard');
   }
 
   const includeComment = isApplied && isAdmin;
 
   const tokenFields: any = {};
+
+  const bcServicesCardFields: any = {
+    bcscPrivacyZone: {
+      'ui:widget': BcscPrivacyZoneWidget,
+      classNames: 'short-field-string',
+      'ui:disabled': disableBcscUpdateApplied,
+    },
+    bcscAttributes: {
+      'ui:widget': BcscAttributesWidget,
+      'ui:disabled': disableBcscUpdateApproved,
+    },
+  };
+
+  if (!formData?.devIdps?.includes('bcservicescard')) {
+    bcServicesCardFields['bcscPrivacyZone']['ui:widget'] = 'hidden';
+    bcServicesCardFields['bcscPrivacyZone']['ui:label'] = false;
+    bcServicesCardFields['bcscAttributes']['ui:widget'] = 'hidden';
+    bcServicesCardFields['bcscAttributes']['ui:field'] = 'hidden';
+  }
 
   const durationAdditionalFields =
     formData?.protocol === 'saml' ? samlDurationAdditionalFields : oidcDurationAdditionalFields;
@@ -67,17 +100,16 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       const minuteOnlyFields = ['SessionIdleTimeout', 'SessionMaxLifespan'];
       let def: any = {
         'ui:widget': minuteOnlyFields.includes(durationAdditionalFields[y]) ? MinutesToSeconds : ClientTokenWidget,
-        'ui:label': false,
         'ui:readonly': !isAdmin,
+        'ui:FieldTemplate': FieldInlineGrid,
       };
 
-      if (y === 0) def['ui:FieldTemplate'] = FieldAccessTokenLifespan;
       tokenFields[`${envs[x]}${durationAdditionalFields[y]}`] = def;
     }
 
     tokenFields[`${envs[x]}OfflineAccessEnabled`] = {
       'ui:widget': SwitchWidget,
-      'ui:label': false,
+      'ui:FieldTemplate': FieldInlineGrid,
       'ui:readonly': !isAdmin,
     };
 
@@ -118,34 +150,34 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       classNames: 'short-field-string',
     },
     devDisplayHeaderTitle: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     testDisplayHeaderTitle: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     prodDisplayHeaderTitle: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     devSamlSignAssertions: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     testSamlSignAssertions: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     prodSamlSignAssertions: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     usesTeam: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
       'ui:readonly': isApplied && integration?.usesTeam,
     },
     projectLead: {
       'ui:FieldTemplate': FieldRequesterInfo,
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
       'ui:readonly': isApplied,
     },
     newToSso: {
-      'ui:widget': 'radio',
+      'ui:widget': SwitchWidget,
     },
     primaryEndUsers: {
       'ui:widget': 'checkboxes',
@@ -160,7 +192,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:widget': ClientTypeWidget,
     },
     protocol: {
-      'ui:widget': 'radio',
+      'ui:widget': TooltipRadioWidget,
       'ui:default': 'oidc',
       'ui:readonly': isApplied,
     },
@@ -201,6 +233,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:widget': includeComment ? 'textarea' : 'hidden',
       'ui:label': includeComment,
     },
+    ...bcServicesCardFields,
     ...tokenFields,
   };
 };

@@ -16,8 +16,8 @@ export const getIntegrations = async () => {
   return await supertest(app).get(`${APP_BASE_PATH}/requests`);
 };
 
-export const getListOfIntegrations = async () => {
-  return await supertest(app).post(`${APP_BASE_PATH}/requests-all`);
+export const getListOfIntegrations = async (data?: { searchField: string[]; searchKey: string }) => {
+  return await supertest(app).post(`${APP_BASE_PATH}/requests-all`).send(data);
 };
 
 export const updateIntegration = async (data: IntegrationData, submit: boolean = false) => {
@@ -68,14 +68,55 @@ interface RequestData extends IntegrationData {
   existingClientId?: string;
 }
 
-export const createRequestQueueItem = async (requestId: number, requestData: RequestData, action: QUEUE_ACTION) => {
-  return models.requestQueue.create({ type: 'request', action, requestId, request: requestData });
+export const createRequestQueueItem = async (
+  requestId: number,
+  requestData: RequestData,
+  action: QUEUE_ACTION,
+  ageSeconds?: number,
+) => {
+  const queueItem: any = { type: 'request', action, requestId, request: requestData };
+  if (ageSeconds) {
+    const currentTime = new Date();
+    const secondsAgoTime = currentTime.getTime() - ageSeconds * 1000;
+    queueItem.createdAt = new Date(secondsAgoTime);
+  }
+  return models.requestQueue.create(queueItem);
 };
 
 export const getQueueItems = async () => models.requestQueue.findAll();
 
 export const getRequest = async (id: number) => models.request.findOne({ where: { id } });
 
-export const generateRequest = async (data: IntegrationData) => models.request.create(data);
+export const generateRequest = async (data: IntegrationData) => {
+  if (data.userId) {
+    await models.user.findOrCreate({
+      where: { id: data.userId },
+      defaults: {
+        idirEmail: 'mail',
+      },
+    });
+  }
+  return models.request.create(data);
+};
 
 export const getEventsByRequestId = async (id: number) => models.event.findAll({ where: { requestId: id } });
+
+export const submitNewIntegration = async (integration: IntegrationData) => {
+  const { projectName, projectLead, serviceType, usesTeam } = integration;
+  const {
+    body: { id },
+  } = await supertest(app)
+    .post(`${APP_BASE_PATH}/requests`)
+    .send({
+      projectName,
+      projectLead,
+      serviceType,
+      usesTeam,
+    })
+    .set('Accept', 'application/json');
+
+  return supertest(app)
+    .put(`${APP_BASE_PATH}/requests?submit=true`)
+    .send({ ...integration, id })
+    .set('Accept', 'application/json');
+};
