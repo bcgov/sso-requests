@@ -56,7 +56,6 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     bcscPrivacyZone,
     bcscAttributes = [],
   } = formData;
-
   const sessionIdleTimeout = (value: number, key: string) => {
     return () => {
       if (value > MAX_IDLE_SECONDS) {
