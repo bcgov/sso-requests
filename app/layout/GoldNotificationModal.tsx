@@ -2,9 +2,8 @@ import React, { useState, useEffect, useContext, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
-import { Button } from '@bcgov-sso/common-react-components';
 import CenteredModal from 'components/CenteredModal';
-import { getProfile, updateProfile } from 'services/user';
+import { updateProfile } from 'services/user';
 import { SessionContext, SessionContextInterface } from 'pages/_app';
 
 const Content = styled.div`
@@ -25,10 +24,10 @@ const Content = styled.div`
   }
 `;
 
-const modalId = 'gold-notification';
 const impactAssessmentUrl = 'https://docs.google.com/forms/d/1MMPeMB0A2076xkXIZRaErAwZe9QDsSwSAWqe-uvm3ys';
 
 function GoldNotificationModal(): any {
+  const [openGoldNotificationModal, setOpenGoldNotificationModal] = useState(false);
   const context = useContext<SessionContextInterface | null>(SessionContext);
   const { user, session } = context || {};
 
@@ -40,7 +39,7 @@ function GoldNotificationModal(): any {
       !user.hasReadGoldNotification &&
       user.integrations?.find((integration: any) => integration.serviceType !== 'gold')
     ) {
-      window.location.hash = modalId;
+      setOpenGoldNotificationModal(true);
     }
   };
 
@@ -50,7 +49,7 @@ function GoldNotificationModal(): any {
 
   const handleClose = async () => {
     await updateProfile({ hasReadGoldNotification: true });
-    window.location.hash = '#';
+    setOpenGoldNotificationModal(false);
   };
 
   const modalContents = (
@@ -72,9 +71,13 @@ function GoldNotificationModal(): any {
         </div>
       </Content>
       <div className="text-center">
-        <Button variant="primary" type="button" onClick={() => window.open(impactAssessmentUrl, '_blank')}>
+        <button
+          className="primary"
+          type="button"
+          onClick={() => window.open(impactAssessmentUrl, '_blank', 'noopener')}
+        >
           Complete Change Impact Assessment
-        </Button>
+        </button>
       </div>
     </>
   );
@@ -82,11 +85,12 @@ function GoldNotificationModal(): any {
   return (
     <>
       <CenteredModal
-        id={modalId}
+        id={`gold-notification`}
+        openModal={openGoldNotificationModal}
+        handleClose={handleClose}
         content={modalContents}
         showCancel={false}
         showConfirm={false}
-        onClose={handleClose}
         icon={faExclamationCircle}
         title="Please upgrade from Silver to Gold"
         closable

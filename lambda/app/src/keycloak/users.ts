@@ -93,18 +93,15 @@ export const listClientRoles = async (
 };
 
 export const getCompositeClientRoles = async (
-  sessionUserId: number,
+  integration: Integration,
   {
     environment,
-    integrationId,
     roleName,
   }: {
     environment: string;
-    integrationId: number;
     roleName: string;
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
   if (integration.authType === 'service-account')
     throw new createHttpError.BadRequest(`invalid auth type ${integration.authType}`);
 

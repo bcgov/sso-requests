@@ -5,7 +5,6 @@ import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { getInstallation } from 'services/keycloak';
-import Button from 'html-components/Button';
 import { prettyJSON, copyTextToClipboard, downloadText } from 'utils/text';
 import { Integration } from 'interfaces/Request';
 import type { Environment } from 'interfaces/types';
@@ -109,13 +108,13 @@ const InstallationPanel = ({ integration, alert }: Props) => {
               </Grid.Row>
               <Grid.Row collapse="992" gutter={[]} align="center">
                 <Grid.Col span={3}>
-                  <Button size="medium" variant="grey" onClick={() => handleCopyClick(env.name)}>
+                  <button className="primary" onClick={() => handleCopyClick(env.name)}>
                     Copy
-                  </Button>
+                  </button>
                   &nbsp;
-                  <Button size="medium" variant="grey" onClick={() => handleDownloadClick(env.name)}>
+                  <button className="primary" onClick={() => handleDownloadClick(env.name)}>
                     Download
-                  </Button>
+                  </button>
                   &nbsp;&nbsp;
                   <FontAwesomeIcon color="green" icon={faCheckCircle} title="Ready" />
                   &nbsp;

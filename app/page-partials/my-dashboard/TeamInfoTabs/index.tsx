@@ -1,9 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { Button as RequestButton, Tabs, Tab } from '@bcgov-sso/common-react-components';
-import Table from 'components/TableNew';
-import Button from 'html-components/Button';
+import { Tabs, Tab } from '@bcgov-sso/common-react-components';
+import Table from 'components/Table';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm, { Errors, validateTeam } from 'form-components/team-form/TeamMembersForm';
@@ -63,11 +62,6 @@ const RightFloat = styled.td`
   float: right;
 `;
 
-const PaddedButton = styled(Button)`
-  padding: 0 !important;
-  margin: 10px 0 !important;
-`;
-
 const CenteredTD = styled.td`
   text-align: left !important;
 `;
@@ -112,10 +106,28 @@ interface Props {
   loadTeams: () => void;
 }
 
-const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: () => void; type: string }) => {
-  let props: { confirmText: string; buttonStyle: ButtonStyle; onConfirm?: () => void } = {
+const ConfirmDeleteModal = ({
+  onConfirmDelete,
+  type,
+  openModal,
+  handleClose = () => {},
+}: {
+  onConfirmDelete: () => void;
+  type: string;
+  openModal: boolean;
+  handleClose?: () => void;
+}) => {
+  let props: {
+    confirmText: string;
+    buttonStyle: ButtonStyle;
+    onConfirm?: () => void;
+    openModal?: boolean;
+    handleClose?: () => void;
+  } = {
     confirmText: 'Delete',
     buttonStyle: 'danger',
+    openModal,
+    handleClose,
   };
   let content = '';
   let title = '';
@@ -128,13 +140,13 @@ const ConfirmDeleteModal = ({ onConfirmDelete, type }: { onConfirmDelete: () => 
     case 'notAllowed':
       content = 'Before you delete the last team admin, you must assign a new admin.';
       props.confirmText = 'Okay';
-      props.buttonStyle = 'custom';
+      props.buttonStyle = 'primary';
   }
   return (
     <CenteredModal
+      id={deleteMemberModalId}
       title="Delete Team Member"
       icon={null}
-      id={deleteMemberModalId}
       content={<ModalContents content={content} title={title} />}
       closable
       {...props}
@@ -225,7 +237,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
   const surveyContext = useContext(SurveyContext);
-  const openModal = () => (window.location.hash = addMemberModalId);
+
+  const [openAddTeamMemberModal, setOpenAddTeamMemberModal] = useState(false);
+  const [openDeleteTeamMemberModal, setOpenDeleteTeamMemberModal] = useState(false);
 
   const getData = async (teamId: number) => {
     setLoading(true);
@@ -306,7 +320,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       setModalType('allow');
     }
     setDeleteMemberId(memberId);
-    window.location.hash = deleteMemberModalId;
+    setOpenDeleteTeamMemberModal(true);
   };
 
   const onConfirmAdd = async () => {
@@ -418,11 +432,14 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         <Tab key="members" tab="Members">
           <TabWrapper>
             {isAdmin ? (
-              <PaddedButton>
-                <RequestButton onClick={openModal} data-testid="add-new-team-member">
-                  + Add New Team Members
-                </RequestButton>
-              </PaddedButton>
+              <button
+                className="primary"
+                style={{ margin: '1rem 0' }}
+                onClick={() => setOpenAddTeamMemberModal(true)}
+                data-testid="add-new-team-member"
+              >
+                + Add New Team Members
+              </button>
             ) : (
               <br />
             )}
@@ -621,7 +638,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                           getTeamServiceAccounts={fetchTeamServiceAccounts}
                         />
                       ) : (
-                        <RequestButton
+                        <button
                           style={{ marginBottom: 10 }}
                           onClick={async () => {
                             setLoading(true);
@@ -639,9 +656,10 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               fetchTeamServiceAccounts(team.id);
                             }
                           }}
+                          className="primary"
                         >
                           + Request CSS API Account
-                        </RequestButton>
+                        </button>
                       )}
                     </Grid.Col>
                     <Grid.Col span={6}>
@@ -684,9 +702,15 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
         )}
       </Tabs>
       <CenteredModal
+        id={addMemberModalId}
+        openModal={openAddTeamMemberModal}
+        handleClose={() => {
+          setErrors(null);
+          setTempMembers([emptyMember]);
+          setOpenAddTeamMemberModal(false);
+        }}
         title="Add a New Team Member"
         icon={null}
-        id={addMemberModalId}
         content={
           <TeamMembersForm
             members={tempMembers}
@@ -697,16 +721,16 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           />
         }
         onConfirm={onConfirmAdd}
-        onClose={() => {
-          setTempMembers([emptyMember]);
-          setMembers([]);
-          setErrors(null);
-        }}
+        buttonStyle="primary"
         skipCloseOnConfirm={true}
-        buttonStyle="custom"
         closable
       />
-      <ConfirmDeleteModal onConfirmDelete={onConfirmDelete} type={modalType} />
+      <ConfirmDeleteModal
+        onConfirmDelete={onConfirmDelete}
+        type={modalType}
+        openModal={openDeleteTeamMemberModal}
+        handleClose={() => setOpenDeleteTeamMemberModal(false)}
+      />
     </>
   );
 }

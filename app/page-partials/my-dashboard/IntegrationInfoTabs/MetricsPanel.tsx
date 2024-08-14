@@ -182,7 +182,7 @@ const MetricsPanel = ({ integration, alert }: Props) => {
           href="https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.4/html/server_administration_guide/auditing_and_events#event_types"
           external
         >
-          here
+          Redhat's definition
         </Link>{' '}
         for event type details.
       </InfoMessage>

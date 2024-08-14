@@ -25,14 +25,20 @@ export const generateInstallation = async (data: {
   realm: RealmRepresentation;
   client: ClientRepresentation;
   authServerUrl: string;
+  authType: string;
 }) => {
-  const { kcAdminClient, realm, client, authServerUrl } = data;
+  const { kcAdminClient, realm, client, authServerUrl, authType } = data;
 
   // see https://github.com/keycloak/keycloak/blob/dce163d3e204115933df794772e4d49a4abf701f/services/src/main/java/org/keycloak/protocol/oidc/installation/KeycloakOIDCClientInstallation.java#L54
   const rep = { 'confidential-port': 0 };
 
-  // see https://github.com/keycloak/keycloak/blob/dce163d3e204115933df794772e4d49a4abf701f/services/src/main/java/org/keycloak/protocol/oidc/installation/KeycloakOIDCClientInstallation.java#L55
-  rep['auth-server-url'] = authServerUrl;
+  if (['service-account', 'both'].includes(authType)) {
+    rep['token-url'] = `${authServerUrl}/realms/${realm.realm}/protocol/openid-connect/token`;
+  }
+
+  if (['browser-login', 'both'].includes(authType))
+    // see https://github.com/keycloak/keycloak/blob/dce163d3e204115933df794772e4d49a4abf701f/services/src/main/java/org/keycloak/protocol/oidc/installation/KeycloakOIDCClientInstallation.java#L55
+    rep['auth-server-url'] = authServerUrl;
 
   // see https://github.com/keycloak/keycloak/blob/dce163d3e204115933df794772e4d49a4abf701f/services/src/main/java/org/keycloak/protocol/oidc/installation/KeycloakOIDCClientInstallation.java#L56
   rep['realm'] = realm.realm;

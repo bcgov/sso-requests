@@ -87,11 +87,27 @@ export const updateTeam = async (user: User, teamId: string, data: { name: strin
   return updated[1].dataValues;
 };
 
-export const deleteTeam = async (userId: number, teamId: number) => {
-  const authorized = await isTeamAdmin(userId, teamId);
+export const deleteTeam = async (session: Session, teamId: number) => {
+  const authorized = await isTeamAdmin(session.user.id, teamId);
   if (!authorized) {
     throw new createHttpError.Forbidden('not allowed to delete team');
   }
+
+  const svcAccts = await models.request.findAll({
+    where: {
+      teamId,
+      apiServiceAccount: true,
+      archived: false,
+    },
+    raw: true,
+  });
+
+  if (svcAccts.length > 0) {
+    for (const svcAcct of svcAccts) {
+      await deleteServiceAccount(session, session.user.id, teamId, svcAcct.id);
+    }
+  }
+
   // Clear fkey from teams archived requests
   await models.request.update(
     { teamId: null },
@@ -261,7 +277,18 @@ export const getServiceAccount = async (userId: number, teamId: number, saId: nu
       archived: false,
       teamId: { [Op.in]: sequelize.literal(`(${teamIdLiteral})`) },
     },
-    attributes: ['id', 'clientId', 'teamId', 'status', 'updatedAt', 'prNumber', 'archived', 'requester', 'serviceType'],
+    attributes: [
+      'id',
+      'clientId',
+      'teamId',
+      'status',
+      'updatedAt',
+      'prNumber',
+      'archived',
+      'requester',
+      'serviceType',
+      'authType',
+    ],
     raw: true,
   });
 };
@@ -277,6 +304,7 @@ export const getServiceAccountCredentials = async (userId: number, teamId: numbe
     environment: 'prod',
     realmName: 'standard',
     clientId: integration.clientId,
+    authType: integration.authType,
   });
 
   return installation;

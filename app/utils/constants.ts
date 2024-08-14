@@ -5,6 +5,10 @@ import { BcscPrivacyZone } from '@app/interfaces/types';
 
 export const createTeamModalId = `create-team-modal`;
 
+export const deleteTeamModalId = 'delete-team-modal';
+
+export const editTeamNameModalId = 'edit-team-name-modal';
+
 export const docusaurusURL = 'https://bcgov.github.io/sso-docs';
 
 export const environmentOptions: EnvironmentOption[] = [
@@ -125,6 +129,36 @@ export const testimonials: ITestimonial[] = [
     },
     body: 'Our team has had a really positive experience working with the single-sign on keycloak service. We were able to work with the team to get us set up in a custom realm which suited the needs at BC Parks. Since then we have been able to integrate BCeID and BC Services Card and are managing roles for up to 5 different products through the tool and enabled easy log ins for our users so they can see what is relevant to them.',
     rating: 4.5,
+  },
+  {
+    id: 5,
+    title: 'Increased submission speed',
+    author: {
+      name: 'T.C.',
+      title: 'Full Stack Developer',
+    },
+    body: 'That DevOps change that reduced the time taken to provision the changes.. from 20 minutes to 20 seconds is really great!',
+    rating: 5,
+  },
+  {
+    id: 6,
+    title: 'Instructions were clear',
+    author: {
+      name: 'B.Z.',
+      title: 'Full Stack Developer',
+    },
+    body: 'Instructions were clear and the form is well organized. Any issues with submissions are on my end!',
+    rating: 5,
+  },
+  {
+    id: 7,
+    title: 'Everything just works',
+    author: {
+      name: 'G.S.',
+      title: '',
+    },
+    body: "The UI could probably be styled slightly better but everything just works and that's all I can really ask for in an application like this :)",
+    rating: 4,
   },
 ];
 

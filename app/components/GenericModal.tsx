@@ -5,7 +5,6 @@ import noop from 'lodash.noop';
 import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { Button } from '@bcgov-sso/common-react-components';
 import kebabCase from 'lodash.kebabcase';
 
 const StyledModal = styled(Modal)`
@@ -90,8 +89,8 @@ const GenericModal = (
     icon = faExclamationTriangle,
     confirmButtonText = 'Confirm',
     cancelButtonText = 'Cancel',
-    confirmButtonVariant = 'bcPrimary',
-    cancelButtonVariant = 'bcSecondary',
+    confirmButtonVariant = 'primary',
+    cancelButtonVariant = 'secondary',
     showConfirmButton = true,
     showCancelButton = true,
     buttonAlign = 'none',
@@ -179,21 +178,20 @@ const GenericModal = (
         {_children}
         <ButtonContainer buttonAlign={config.buttonAlign}>
           {config.showCancelButton && (
-            <Button
-              variant={config.cancelButtonVariant}
+            <button
+              className={config.cancelButtonVariant}
               onClick={handleCancel}
               type="button"
               data-testid={`modal-cancel-btn-${kebabCase(title)}`}
             >
               {config.cancelButtonText}
-            </Button>
+            </button>
           )}
           {config.showConfirmButton && (
-            <Button
+            <button
               onClick={handleConfirm}
-              variant={config.confirmButtonVariant}
+              className={config.confirmButtonVariant}
               type="button"
-              className="text-center"
               data-testid={`modal-confirm-btn-${kebabCase(title)}`}
             >
               {loading ? (
@@ -201,7 +199,7 @@ const GenericModal = (
               ) : (
                 config.confirmButtonText
               )}
-            </Button>
+            </button>
           )}
         </ButtonContainer>
       </Modal.Content>

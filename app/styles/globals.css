@@ -8,10 +8,194 @@ body {
   margin: 0;
   font-family: 'BCSans', Verdana, Arial, sans-serif;
   font-size: 16px !important;
+  color: #292929;
+}
+
+/* See https://www2.gov.bc.ca/gov/content/digital/design-system/foundations/typography#styles */
+h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+h5 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+h6 {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+label {
+  /*This diverges from the design guide, but 12px is barely readable.*/
+  font-size: 1rem;
+}
+
+.text-large {
+  font-size: 1.125rem;
+}
+
+.text-small {
+  font-size: 0.875rem;
+}
+
+button {
+  border-radius: 0.222em;
+  border-width: 0;
+  font-family: 'BC Sans', Verdana, Arial, sans-serif;
+  padding: 0.66em 1.77em;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-block;
+  cursor: pointer;
+  box-shadow: 0px 0px 0px 2px transparent inset, 0px 0em 0px 0px rgba(34, 36, 38, 0.15) inset;
+
+  &.primary {
+    background-color: #013366;
+    color: #fff;
+
+    &:hover {
+      text-decoration: underline;
+      background-color: #1e5189;
+    }
+
+    &:focus {
+      outline: 4px solid #2e5dd7;
+      outline-offset: 1px;
+    }
+
+    &:active {
+      opacity: 1;
+    }
+  }
+
+  &.primary-inverse {
+    background-color: #fff;
+    box-shadow: 0px 0px 0px 2px #313132 inset !important;
+    color: #313132;
+
+    &:hover {
+      text-decoration: underline;
+      background-color: #f2f2f2;
+    }
+
+    &:focus {
+      outline: 4px solid #3b99fc;
+      outline-offset: 1px;
+    }
+
+    &:active {
+      background-color: #fff;
+    }
+  }
+
+  &.secondary {
+    background: none;
+    box-shadow: 0px 0px 0px 2px #003366 inset !important;
+    color: #003366;
+
+    &:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+      background-color: #003366;
+      color: #ffffff;
+    }
+
+    &:focus {
+      outline-offset: 1px;
+      outline: 4px solid #3b99fc;
+    }
+
+    &:active {
+      opacity: 1;
+    }
+  }
+
+  &.secondary-inverse {
+    background: none;
+    box-shadow: 0px 0px 0px 2px #fff inset !important;
+    color: #fff;
+
+    &:hover {
+      text-decoration: underline;
+      background-color: #fff;
+      color: #313132;
+    }
+
+    &:focus {
+      outline-offset: 1px;
+      outline: 4px solid #3b99fc;
+    }
+
+    &:active {
+      background-color: #f2f2f2;
+      color: #313132;
+    }
+  }
+
+  &.danger {
+    background: #ce3e39;
+    color: #fff;
+
+    &:hover {
+      text-decoration: underline;
+      background-color: #a2312d;
+    }
+
+    &:focus {
+      outline-offset: 1px;
+      outline: 4px solid #3b99fc;
+    }
+  }
+
+  &:disabled {
+    background-color: #edebe9;
+    box-shadow: 0px 0px 0px 2px #fff inset !important;
+    color: #9f9d9c;
+    cursor: not-allowed;
+    &:hover {
+      text-decoration: none;
+      background-color: #edebe9;
+    }
+  }
+
+  &.callout {
+    background-color: #fcba19;
+    &:hover {
+      text-decoration: none;
+      background-color: #f9c462;
+    }
+  }
+
+  &.wide {
+    min-width: 190px;
+  }
+
+  &.short {
+    padding-top: 0.39rem;
+    padding-bottom: 0.39rem;
+  }
 }
 
 a {
-  color: inherit;
+  color: #1a5a96;
 }
 
 * {
@@ -20,6 +204,11 @@ a {
 
 fieldset {
   border: none !important;
+}
+
+legend {
+  font-size: 1.125rem;
+  font-weight: 700;
 }
 
 .pg-menu-item,
@@ -47,13 +236,16 @@ fieldset {
 :root {
   --textarea-spacer: 5em;
 }
+
 /* Blank out description to prevent blocking */
 .other-details > div:first-child {
   width: 0;
 }
+
 .other-details textarea {
   width: calc(100% - var(--textarea-spacer));
 }
+
 .other-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -63,6 +255,7 @@ fieldset {
   height: 0;
   margin-bottom: 3em;
 }
+
 .other-details::after {
   content: '100 characters max.';
   grid-column: 2;
@@ -222,4 +415,8 @@ ul.error-detail {
 
 .hidden-title {
   display: none;
+}
+
+.modal-open {
+  padding-right: 0 !important;
 }

@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import { sampleRequest } from '../../samples/integrations';
 import { formatWikiURL } from '@app/utils/constants';
+import { debug } from 'jest-preview';
 
 const setIntegration = jest.fn();
 const setIntegrationCount = jest.fn();
@@ -45,7 +46,7 @@ describe('Integration list', () => {
       expect(spyGetRequest).toHaveBeenCalled();
     });
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: '+ Request SSO Integration' })).toHaveClass('pg-button');
+      expect(screen.getByRole('button', { name: '+ Request SSO Integration' }));
     });
     expect(screen.getByText('Request ID')).toBeInTheDocument();
     expect(screen.getByRole('row', { name: '00000001 test project Completed Browser Login Gold Edit Delete' }));
@@ -55,9 +56,9 @@ describe('Integration list', () => {
     render(<IntegrationListComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
     await waitFor(() => {
-      expect(screen.getByTitle('Confirm Deletion'));
+      expect(screen.getByText('Confirm Deletion'));
     });
-
+    debug();
     const confirmationInput = await screen.findByTestId('delete-confirmation-input');
     const confirmDeleteButton = await screen.findByTestId('confirm-delete-confirm-deletion');
 

@@ -104,18 +104,23 @@ describe('Members tab', () => {
 
     const addNewMemberButton = screen.findByText('+ Add New Team Members');
     fireEvent.click(await addNewMemberButton);
-    expect(screen.getByTitle('Add a New Team Member')).toBeVisible();
+    expect(screen.getByText('Add a New Team Member')).toBeVisible();
     expect(screen.getByRole('link', { name: 'View a detailed breakdown of roles on our wiki page' })).toHaveAttribute(
       'href',
       HYPERLINK,
     );
     expect(screen.findByRole('option', { name: 'Member' }));
 
-    fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
-    expect(screen.queryAllByText('Enter email address')).toHaveLength(3);
-    const removeMember = screen.getAllByRole('img', { name: 'Delete' });
-    fireEvent.click(removeMember[1]);
-    expect(screen.queryAllByText('Enter email address')).toHaveLength(2);
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
+      expect(screen.queryAllByText('Enter email address')).toHaveLength(3);
+    });
+
+    await waitFor(() => {
+      const removeMember = screen.getAllByRole('img', { name: 'Delete' });
+      fireEvent.click(removeMember[1]);
+      expect(screen.queryAllByText('Enter email address')).toHaveLength(2);
+    });
 
     const confirmButton = await screen.findByRole('button', { name: 'Confirm' });
     fireEvent.click(confirmButton);
@@ -155,7 +160,7 @@ describe('Members tab', () => {
     const deleteButton = screen.getByRole('img', { name: 'Delete User' });
     fireEvent.click(deleteButton);
     await waitFor(() => {
-      expect(screen.getByTitle('Delete Team Member'));
+      expect(screen.getByText('Delete Team Member'));
     });
     const confirmDeleteButton = await screen.findAllByTestId('confirm-delete-delete-team-member');
     fireEvent.click(confirmDeleteButton[0]);

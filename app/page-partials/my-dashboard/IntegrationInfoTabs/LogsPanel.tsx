@@ -4,7 +4,6 @@ import { Integration } from 'interfaces/Request';
 import { TopAlert, withTopAlert } from 'layout/TopAlert';
 import { getLogs } from '@app/services/grafana';
 import DateTimePicker from '@app/components/DateTimePicker';
-import BaseButton from '@button-inc/bcgov-theme/Button';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import InfoOverlay from 'components/InfoOverlay';
 import { subtractDaysFromDate } from '@app/utils/helpers';
@@ -19,11 +18,6 @@ const ModalContent = styled.div`
   min-width: 20em;
   margin: 0;
   padding: 0;
-`;
-
-const Button = styled(BaseButton)`
-  width: 150px;
-  text-align: center;
 `;
 
 const Form = styled.form`
@@ -143,6 +137,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
   const [maxDate, setMaxDate] = useState(new Date());
   const [logsQueryController, setLogsQueryController] = useState<AbortController>();
   const surveyContext = useContext(SurveyContext);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   useEffect(() => {
     if (!fromDate) return;
@@ -194,10 +189,6 @@ const LogsPanel = ({ integration, alert }: Props) => {
     resetForm();
   }, [integration.clientId]);
 
-  const toggleModal = (open: boolean) => {
-    window.location.hash = open ? 'logs-modal' : '';
-  };
-
   const cancelLogsDownload = () => {
     logsQueryController?.abort();
     setLoading(false);
@@ -212,7 +203,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
     const controller = new AbortController();
     setLogsQueryController(controller);
 
-    toggleModal(true);
+    setShowInfoModal(true);
     try {
       if (!fromDate || !toDate) {
         setDateError('Please select a date range.');
@@ -255,7 +246,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
     } finally {
       setLoading(false);
       setFileProgress(0);
-      toggleModal(false);
+      setShowInfoModal(false);
     }
   };
 
@@ -315,15 +306,16 @@ const LogsPanel = ({ integration, alert }: Props) => {
           <p className="error-text">{dateError}</p>
         </div>
         <div className="button-container">
-          <Button type="submit" disabled={dateError || loading}>
+          <button className="primary" type="submit" disabled={!!dateError || !!loading}>
             Download
-          </Button>
+          </button>
         </div>
       </Form>
       <CenteredModal
+        id="logs-modal"
         showConfirm={false}
         title="Downloading Logs"
-        onClose={cancelLogsDownload}
+        handleClose={cancelLogsDownload}
         content={
           <ModalContent>
             <SpinnerGrid
@@ -337,7 +329,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
             {loading && fileProgress !== 0 ? <p>{fileProgress}% downloaded.</p> : null}
           </ModalContent>
         }
-        id="logs-modal"
+        openModal={showInfoModal}
       />
     </>
   );

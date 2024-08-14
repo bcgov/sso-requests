@@ -283,4 +283,13 @@ describe('IDP notifications', () => {
     const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
     expect(emailSentWithFooter).toBeFalsy();
   });
+
+  it('Includes dittrust email contact in email when requesting dev and test only integration', async () => {
+    const emailList = createMockSendEmail();
+    const expectedText = 'For all Digital Credential questions please contact';
+    await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
+    console.log(emailList);
+    const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedText));
+    expect(emailSentWithFooter).toBeTruthy();
+  });
 });

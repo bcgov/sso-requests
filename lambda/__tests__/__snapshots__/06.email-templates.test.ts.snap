@@ -23,7 +23,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
- <p>
+  <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -72,7 +72,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
- <p>
+  <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -145,7 +145,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
- <p>
+  <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -216,7 +216,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
- <p>
+  <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -286,7 +286,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
- <p>
+  <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -334,7 +334,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
- <p>
+  <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -381,7 +381,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
- <p>
+  <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -478,7 +478,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   </li>
 </ol>
 <div style="display: none">&nbsp;</div>
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -523,7 +523,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-   <p>
+    <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -607,7 +607,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
     <div style="display: none">&nbsp;</div>
   </li>
 </ol>
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -691,7 +691,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
     <div style="display: none">&nbsp;</div>
   </li>
 </ol>
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -811,7 +811,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   </li>
 </ol>
 <div style="display: none">&nbsp;</div>
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -894,7 +894,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   </li>
 </ol>
 
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -982,7 +982,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   </li>
 </ol>
 <div style="display: none">&nbsp;</div>
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1303,7 +1303,8 @@ exports[`Email template snapshots Should return the expected email for TEAM_INVI
 </p>
 <p>
   Please follow this <a href="http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link">link</a> to view your invitation in the
-  dashboard. The link will expire in <strong>2 business days.</strong>
+  dashboard. The link will expire in <strong>2 business days.</strong> If the link has expired,
+  <a href="https://stackoverflow.developer.gov.bc.ca/questions/1231">please see this helpful tip</a>.
 </p>
 <p>
   If you think you have received this invite by accident, or have any other questions, please contact the Pathfinder SSO
@@ -1329,7 +1330,8 @@ exports[`Email template snapshots Should return the expected email for TEAM_INVI
 </p>
 <p>
   Please follow this <a href="http://localhost:8080/app/teams/verify?token=https://mysite.com/invitation-link">link</a> to view your invitation in the
-  dashboard. The link will expire in <strong>2 business days.</strong>
+  dashboard. The link will expire in <strong>2 business days.</strong> If the link has expired,
+  <a href="https://stackoverflow.developer.gov.bc.ca/questions/1231">please see this helpful tip</a>.
 </p>
 <p>
   If you think you have received this invite by accident, or have any other questions, please contact the Pathfinder SSO
@@ -1418,7 +1420,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
- <p>
+  <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1463,7 +1465,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-   <p>
+    <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1583,7 +1585,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   </li>
 </ol>
 <div style="display: none">&nbsp;</div>
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1666,7 +1668,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   </li>
 </ol>
 
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1754,7 +1756,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   </li>
 </ol>
 <div style="display: none">&nbsp;</div>
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1838,7 +1840,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     <div style="display: none">&nbsp;</div>
   </li>
 </ol>
-  <p>
+   <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
