@@ -273,6 +273,7 @@ describe('integration validations', () => {
     });
 
     it('should not allow to change bc services card idp and/or approved flag', async () => {
+      process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const projectName: string = 'BCSC Integration Validations';
       const integrationRes = await buildIntegration({
