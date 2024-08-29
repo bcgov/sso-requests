@@ -683,49 +683,53 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(bcscAttributesDropDown?.querySelector("input[type='text']")).toBeDisabled();
   });
 
-  it('should not show BCSC IDP if production is selected and feature flag is off', async () => {
+  it('should only show the BCSC IDP when not using production if the ALLOW_BC_SERVICES_CARD_PROD feature flag is off', async () => {
     process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
     const { queryByText } = setUpRender({
       id: 0,
-      devIdps: ['bcservicescard', 'bceidbasic'],
-      environments: ['dev', 'test', 'prod'],
+      environments: ['dev'],
     });
     fireEvent.click(sandbox.basicInfoBox);
     const bcscCheckbox = queryByText('BC Services Card');
+    const productionCheckbox = queryByText('Production', { selector: '.checkbox span' }) as HTMLElement;
+    expect(bcscCheckbox).toBeInTheDocument();
+
+    fireEvent.click(productionCheckbox);
     expect(bcscCheckbox).not.toBeInTheDocument();
   });
 
-  it('should show BCSC IDP if production is selected and feature flag is on', async () => {
-    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
-    const { queryByText } = setUpRender({
-      id: 0,
-      devIdps: ['bcservicescard', 'bceidbasic'],
-      environments: ['dev', 'test', 'prod'],
-    });
-    fireEvent.click(sandbox.basicInfoBox);
-    const bcscCheckbox = queryByText('BC Services Card');
-    expect(bcscCheckbox).toBeInTheDocument();
-  });
-
-  it('should not show the production environment checkbox if BCSC IDP is selected and feature flag is off', async () => {
+  it('should only show the production environment when BCSC IDP is unselected if the ALLOW_BC_SERVICES_CARD_PROD feature flag is off', async () => {
     process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
     const { queryByText } = setUpRender({
       id: 0,
-      devIdps: ['bcservicescard', 'bceidbasic'],
+      environments: ['dev'],
     });
     fireEvent.click(sandbox.basicInfoBox);
-    const productionCheckbox = queryByText('Production');
+    let productionCheckbox = queryByText('Production', { selector: '.checkbox span' }) as HTMLElement;
+    expect(productionCheckbox).toBeInTheDocument();
+
+    const bcscCheckbox = queryByText('BC Services Card') as HTMLElement;
+    fireEvent.click(bcscCheckbox);
     expect(productionCheckbox).not.toBeInTheDocument();
   });
 
-  it('should show the production environment checkbox if BCSC IDP is selected and feature flag is off', async () => {
+  it('should always show production and bcsc idp when the ALLOW_BC_SERVICES_CARD_PROD flag is on', async () => {
     process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
     const { queryByText } = setUpRender({
       id: 0,
-      devIdps: ['bcservicescard', 'bceidbasic'],
+      environments: ['dev'],
     });
     fireEvent.click(sandbox.basicInfoBox);
-    const productionCheckbox = queryByText('Production');
+    const productionCheckbox = queryByText('Production', { selector: '.checkbox span' }) as HTMLElement;
+    const bcscCheckbox = queryByText('BC Services Card') as HTMLElement;
+
+    expect(productionCheckbox).toBeInTheDocument();
+    expect(bcscCheckbox).toBeInTheDocument();
+
+    fireEvent.click(productionCheckbox);
+    expect(bcscCheckbox).toBeInTheDocument();
+
+    fireEvent.click(bcscCheckbox);
     expect(productionCheckbox).toBeInTheDocument();
   });
 });
