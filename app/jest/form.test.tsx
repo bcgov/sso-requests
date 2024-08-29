@@ -102,7 +102,7 @@ describe('Form Template Saving and Navigation', () => {
     jest.clearAllMocks();
   });
 
-  it.skip('Should save data and triggers spinner on blur events', async () => {
+  it('Should save data and triggers spinner on blur events', async () => {
     setUpRender({
       id: 0,
       projectName: 'test project',
@@ -124,7 +124,7 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => document.querySelector("svg[icon='check']"));
   });
 
-  it.skip('Should call the update function with the most recent data', async () => {
+  it('Should call the update function with the most recent data', async () => {
     setUpRender({ id: 1, status: 'draft', protocol: 'oidc', authType: 'browser-login' });
     fireEvent.click(sandbox.basicInfoBox);
     jest.clearAllMocks();
@@ -149,7 +149,7 @@ describe('Form Template Saving and Navigation', () => {
     expect((updateRequest as jest.Mock).mock.calls[0][0].publicAccess).toBe(false);
   });
 
-  it.skip('Should advance the form when clicking next', async () => {
+  it('Should advance the form when clicking next', async () => {
     setUpRender({
       id: 0,
     });
@@ -159,7 +159,7 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => screen.getByText("We're a Community"));
   });
 
-  it.skip('Should redirect to my-dashboard on cancel', async () => {
+  it('Should redirect to my-dashboard on cancel', async () => {
     setUpRender({
       id: 0,
     });
@@ -171,7 +171,7 @@ describe('Form Template Saving and Navigation', () => {
     await waitFor(() => expect(sandbox.push).toHaveBeenCalledWith({ pathname: '/my-dashboard' }));
   });
 
-  it.skip('Should show failed state in stepper after submission and clear only after filling correct data', async () => {
+  it('Should show failed state in stepper after submission and clear only after filling correct data', async () => {
     const component = setUpRender({
       id: 0,
     });
@@ -205,7 +205,7 @@ describe('Form Template Loading Data', () => {
     jest.clearAllMocks();
   });
 
-  it.skip('Should pre-load data if a request exists', async () => {
+  it('Should pre-load data if a request exists', async () => {
     setUpRender({ ...sampleRequest, projectName: 'testProject' });
     const { requesterInfoBox, basicInfoBox, developmentBox, termsAndConditionsBox } = sandbox;
 
@@ -235,7 +235,7 @@ describe('Form Template Loading Data', () => {
 });
 
 describe('Error messages', () => {
-  it.skip('Should display the expected error messages on page 1 when navigating away and back', async () => {
+  it('Should display the expected error messages on page 1 when navigating away and back', async () => {
     setUpRender(null);
     // Navigate away and back again
     const nextButton = screen.getByText('Next') as HTMLElement;
@@ -245,7 +245,7 @@ describe('Error messages', () => {
     await waitFor(() => screen.getByText(errorMessages.projectName));
   });
 
-  it.skip('Should display the expected page 2 errors', async () => {
+  it('Should display the expected page 2 errors', async () => {
     setUpRender(
       { id: 0, environments: ['dev'], devValidRedirectUris: [''], serviceType: 'gold' },
       { client_roles: ['sso-admin'], isAdmin: true },
@@ -273,7 +273,7 @@ describe('Error messages', () => {
     screen.getByText(errorMessages.clientIdleTimeout);
   });
 
-  it.skip('Should display the expected page 3 errors after navigating away from the page', async () => {
+  it('Should display the expected page 3 errors after navigating away from the page', async () => {
     setUpRender(samplePage3Request);
 
     // Navigate away and back to page
@@ -286,7 +286,7 @@ describe('Error messages', () => {
 });
 
 describe('Client Sessions', () => {
-  it.skip('Sends client session idle and max as seconds when making calls to the API', async () => {
+  it('Sends client session idle and max as seconds when making calls to the API', async () => {
     const component = setUpRender(
       { ...sampleRequest, devIdps: ['idir'] },
       { client_roles: ['sso-admin'], isAdmin: true },
@@ -316,7 +316,7 @@ describe('Client Sessions', () => {
     expect(updateRequest).toHaveBeenCalled();
   });
 
-  it.skip('Prevents non-admins from updating client session settings', () => {
+  it('Prevents non-admins from updating client session settings', () => {
     setUpRender(sampleRequest, { client_roles: [], isAdmin: false });
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
@@ -328,7 +328,7 @@ describe('Client Sessions', () => {
     expect(clientMaxInput).toBeDisabled();
   });
 
-  it.skip('Handles non-numeric and negative input appropriately', () => {
+  it('Handles non-numeric and negative input appropriately', () => {
     setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
@@ -360,7 +360,7 @@ describe('Client Sessions', () => {
     expect(clientIdleInput.value).toBe('0');
   });
 
-  it.skip('Handles offline access switch and dependent fields (offline session idle and max)', () => {
+  it('Handles offline access switch and dependent fields (offline session idle and max)', () => {
     setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
@@ -381,7 +381,7 @@ describe('Client Sessions', () => {
 });
 
 describe('Basic Info - Identity Providers', () => {
-  it.skip('should be able to change/unselect BCeID type in draft', async () => {
+  it('should be able to change/unselect BCeID type in draft', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -423,7 +423,7 @@ describe('Basic Info - Identity Providers', () => {
     await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked());
   });
 
-  it.skip('should be able to change BCeID type until approved', async () => {
+  it('should be able to change BCeID type until approved', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -465,7 +465,7 @@ describe('Basic Info - Identity Providers', () => {
     await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked());
   });
 
-  it.skip('should be freezed after BCeID approved', async () => {
+  it('should be freezed after BCeID approved', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -501,7 +501,7 @@ describe('Basic Info - Identity Providers', () => {
     await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked());
   });
 
-  it.skip("Should only disable digital credential if it's a SAML integration", async () => {
+  it("Should only disable digital credential if it's a SAML integration", async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -523,7 +523,7 @@ describe('Basic Info - Identity Providers', () => {
     expect(digitalCredentialCheckbox).toBeEnabled();
   });
 
-  it.skip("Removes digital credential from the list of IDPs if it's a SAML integration", async () => {
+  it("Removes digital credential from the list of IDPs if it's a SAML integration", async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -547,7 +547,7 @@ describe('Basic Info - Identity Providers', () => {
 });
 
 describe('BC Services Card IDP and dependencies', () => {
-  it.skip('should show the BC Services Card IDP but hide privacy zone, attributes, and home page uri if not selected', async () => {
+  it('should show the BC Services Card IDP but hide privacy zone, attributes, and home page uri if not selected', async () => {
     setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -563,7 +563,7 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(screen.queryByTestId('root_devHomePageUri_title')).toBeNull();
   });
 
-  it.skip('should show the BC Services Card IDP and show error upon leaving dependencies blank', async () => {
+  it('should show the BC Services Card IDP and show error upon leaving dependencies blank', async () => {
     setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -591,7 +591,7 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(screen.getByText('Please enter a valid URI')).toBeInTheDocument();
   });
 
-  it.skip('should show the BC Services Card IDP and show privacy zone and attributes if selected', async () => {
+  it('should show the BC Services Card IDP and show privacy zone and attributes if selected', async () => {
     setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -634,7 +634,7 @@ describe('BC Services Card IDP and dependencies', () => {
     fireEvent.change(uriInput, { target: { value: 'https://valid-uri' } });
   });
 
-  it.skip('should keep BCSC attributes editable if not approved yet', async () => {
+  it('should keep BCSC attributes editable if not approved yet', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -661,7 +661,7 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(bcscAttributesDropDown?.querySelector("input[type='text']")).not.toBeDisabled();
   });
 
-  it.skip('should freeze BC Services Card IDP and show privacy zone and attributes if approved', async () => {
+  it('should freeze BC Services Card IDP and show privacy zone and attributes if approved', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -683,7 +683,7 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(bcscAttributesDropDown?.querySelector("input[type='text']")).toBeDisabled();
   });
 
-  it.skip('should not show BCSC IDP if production is selected and feature flag is off', async () => {
+  it('should not show BCSC IDP if production is selected and feature flag is off', async () => {
     process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
     const { queryByText } = setUpRender({
       id: 0,
@@ -695,7 +695,7 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(bcscCheckbox).not.toBeInTheDocument();
   });
 
-  it.skip('should show BCSC IDP if production is selected and feature flag is on', async () => {
+  it('should show BCSC IDP if production is selected and feature flag is on', async () => {
     process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
     const { queryByText } = setUpRender({
       id: 0,
