@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within, queryByText } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
@@ -7,9 +7,6 @@ import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
-import { debug } from 'jest-preview';
-
-const formButtonText = ['Next', 'Save and Close'];
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
