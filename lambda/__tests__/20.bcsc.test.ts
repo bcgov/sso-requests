@@ -246,9 +246,16 @@ describe('Feature flag', () => {
     expect(result.status).toBe(200);
   });
 
-  it('Does not allow BCSC to be added to production unless feature flag is true', async () => {
+  it('Does not allow BCSC to be added to production if feature flag is false', async () => {
     process.env.INCLUDE_BC_SERVICES_CARD = 'true';
     process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
+    const result = await submitNewIntegration(bcscProdIntegration);
+    expect(result.status).toBe(422);
+  });
+
+  it('Does not allow BCSC to be added to production if the feature flag is missing', async () => {
+    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.ALLOW_BC_SERVICES_CARD_PROD = undefined;
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(422);
   });
@@ -258,13 +265,6 @@ describe('Feature flag', () => {
     process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(200);
-  });
-
-  it('Does allow BCSC to be added to production if the feature flag is missing', async () => {
-    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
-    process.env.ALLOW_BC_SERVICES_CARD_PROD = undefined;
-    const result = await submitNewIntegration(bcscProdIntegration);
-    expect(result.status).toBe(422);
   });
 });
 
