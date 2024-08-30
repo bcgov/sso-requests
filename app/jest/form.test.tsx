@@ -7,9 +7,6 @@ import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
-import { debug } from 'jest-preview';
-
-const formButtonText = ['Next', 'Save and Close'];
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -681,5 +678,55 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
     const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
     expect(bcscAttributesDropDown?.querySelector("input[type='text']")).toBeDisabled();
+  });
+
+  it('should only show the BCSC IDP when not using production if the ALLOW_BC_SERVICES_CARD_PROD feature flag is off', async () => {
+    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
+    const { queryByText } = setUpRender({
+      id: 0,
+      environments: ['dev'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = queryByText('BC Services Card');
+    const productionCheckbox = queryByText('Production', { selector: '.checkbox span' }) as HTMLElement;
+    expect(bcscCheckbox).toBeInTheDocument();
+
+    fireEvent.click(productionCheckbox);
+    expect(bcscCheckbox).not.toBeInTheDocument();
+  });
+
+  it('should only show the production environment when BCSC IDP is unselected if the ALLOW_BC_SERVICES_CARD_PROD feature flag is off', async () => {
+    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
+    const { queryByText } = setUpRender({
+      id: 0,
+      environments: ['dev'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    let productionCheckbox = queryByText('Production', { selector: '.checkbox span' }) as HTMLElement;
+    expect(productionCheckbox).toBeInTheDocument();
+
+    const bcscCheckbox = queryByText('BC Services Card') as HTMLElement;
+    fireEvent.click(bcscCheckbox);
+    expect(productionCheckbox).not.toBeInTheDocument();
+  });
+
+  it('should always show production and bcsc idp when the ALLOW_BC_SERVICES_CARD_PROD flag is on', async () => {
+    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
+    const { queryByText } = setUpRender({
+      id: 0,
+      environments: ['dev'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const productionCheckbox = queryByText('Production', { selector: '.checkbox span' }) as HTMLElement;
+    const bcscCheckbox = queryByText('BC Services Card') as HTMLElement;
+
+    expect(productionCheckbox).toBeInTheDocument();
+    expect(bcscCheckbox).toBeInTheDocument();
+
+    fireEvent.click(productionCheckbox);
+    expect(bcscCheckbox).toBeInTheDocument();
+
+    fireEvent.click(bcscCheckbox);
+    expect(productionCheckbox).toBeInTheDocument();
   });
 });

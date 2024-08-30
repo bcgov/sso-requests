@@ -142,7 +142,7 @@ const CenteredModal = ({
                 onClick={handleConfirm}
                 className={buttonStyle}
                 type="button"
-                disabled={disableConfirm}
+                disabled={disableConfirm || loading}
               >
                 {loading ? (
                   <SpinnerGrid color="#FFF" height={18} width={50} wrapperClass="d-block" visible={loading} />
