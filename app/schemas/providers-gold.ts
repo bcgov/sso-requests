@@ -7,7 +7,7 @@ import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard } from '@app/helpers/integration';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { include_digital_credential, include_bc_services_card } = publicRuntimeConfig;
+const { include_digital_credential, include_bc_services_card, allow_bc_services_card_prod } = publicRuntimeConfig;
 
 export default function getSchema(
   integration: Integration,
@@ -17,7 +17,14 @@ export default function getSchema(
 ) {
   const { protocol, authType, status } = integration;
   const applied = status === 'applied';
-  const include_bcsc = include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true';
+
+  const allow_bcsc_prod = allow_bc_services_card_prod === 'true' || process.env.ALLOW_BC_SERVICES_CARD_PROD === 'true';
+  let include_bcsc = include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true';
+
+  if (integration.environments?.includes('prod') && !allow_bcsc_prod) {
+    include_bcsc = false;
+  }
+
   const bcscSelected = usesBcServicesCard(integration);
 
   const protocolSchema = {
@@ -188,6 +195,15 @@ export default function getSchema(
       content: `We will provide a separate client for each environment you can select. Select the environments required for your project.`,
     },
   };
+
+  // Don't show BCSC option if feature flag is off and prod is selected
+  if (!allow_bcsc_prod && bcscSelected) {
+    properties.environments.items = {
+      type: 'string',
+      enum: ['dev', 'test'],
+      enumNames: ['Development', 'Test'],
+    };
+  }
 
   if (protocol !== 'saml') {
     properties.additionalRoleAttribute = {
