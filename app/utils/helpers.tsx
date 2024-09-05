@@ -26,6 +26,7 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
     bceid: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
     github: ['githubbcgov', 'githubpublic'],
     digitalCredential: 'digitalcredential',
+    bcservicescard: 'bcservicescard',
   };
 
   let realms: string[] | null = [];
@@ -42,6 +43,8 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
       realms = realms?.concat(silver_realms['bceid']) || null;
     } else if (idp.value === 'digitalcredential') {
       devIdps = devIdps?.concat(gold_realms.digitalCredential) || null;
+    } else if (idp.value === 'bcservicescard') {
+      devIdps = devIdps?.concat(gold_realms.bcservicescard) || null;
     }
   });
 
