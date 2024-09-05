@@ -106,6 +106,7 @@ export interface GoldIDPOption {
   bceid: string | string[];
   github: string | string[];
   digitalCredential: string | string[];
+  bcservicescard: string | string[];
 }
 
 export interface ClientRole {

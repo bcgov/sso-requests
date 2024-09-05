@@ -2,7 +2,7 @@ import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import * as IdpModule from '@lambda-app/keycloak/idp';
 import * as ClientScopeModule from '@lambda-app/keycloak/clientScopes';
 import { buildGitHubRequestData, createBCSCIntegration } from '@lambda-app/controllers/requests';
-import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, formDataProd } from './helpers/fixtures';
+import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, formDataDev, formDataProd } from './helpers/fixtures';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 import { submitNewIntegration } from './helpers/modules/integrations';
 import { IntegrationData } from '@lambda-shared/interfaces';
@@ -213,6 +213,16 @@ const bcscProdIntegration: IntegrationData = {
   prodHomePageUri: 'https://example.com',
 };
 
+const bcscDevIntegration: IntegrationData = {
+  ...formDataDev,
+  devIdps: ['bcservicescard', 'idir'],
+  bcscPrivacyZone: 'zone',
+  bcscAttributes: ['age'],
+  primaryEndUsers: [],
+  devHomePageUri: 'https://example.com',
+  testHomePageUri: 'https://example.com',
+};
+
 describe('Feature flag', () => {
   beforeAll(async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
@@ -220,18 +230,39 @@ describe('Feature flag', () => {
 
   it('Does not allow bc services card as an IDP if feature flag is not included in env vars', async () => {
     process.env.INCLUDE_BC_SERVICES_CARD = undefined;
-    const result = await submitNewIntegration(bcscProdIntegration);
+    const result = await submitNewIntegration(bcscDevIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Does not allow bc services card as an IDP if feature flag is set but not true', async () => {
     process.env.INCLUDE_BC_SERVICES_CARD = 'false';
-    const result = await submitNewIntegration(bcscProdIntegration);
+    const result = await submitNewIntegration(bcscDevIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Allows bc services card as an IDP if feature flag is set to true', async () => {
     process.env.INCLUDE_BC_SERVICES_CARD = 'true';
+    const result = await submitNewIntegration(bcscDevIntegration);
+    expect(result.status).toBe(200);
+  });
+
+  it('Does not allow BCSC to be added to production if feature flag is false', async () => {
+    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
+    const result = await submitNewIntegration(bcscProdIntegration);
+    expect(result.status).toBe(422);
+  });
+
+  it('Does not allow BCSC to be added to production if the feature flag is missing', async () => {
+    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.ALLOW_BC_SERVICES_CARD_PROD = undefined;
+    const result = await submitNewIntegration(bcscProdIntegration);
+    expect(result.status).toBe(422);
+  });
+
+  it('Does allow BCSC to be added to production if the feature flag is true', async () => {
+    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(200);
   });

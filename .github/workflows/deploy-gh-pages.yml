@@ -37,6 +37,8 @@ jobs:
           MAINTENANCE_MODE_ACTIVE=false
           INCLUDE_DIGITAL_CREDENTIAL=true
           INCLUDE_BC_SERVICES_CARD=true
+          ALLOW_BC_SERVICES_CARD_PROD=true
+
           EOF
       - name: Set env to production
         if: endsWith(github.ref, '/main') && matrix.env == 'prod'
@@ -51,7 +53,8 @@ jobs:
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
           INCLUDE_DIGITAL_CREDENTIAL=true
-          INCLUDE_BC_SERVICES_CARD=false
+          INCLUDE_BC_SERVICES_CARD=true
+          ALLOW_BC_SERVICES_CARD_PROD=false
           EOF
 
       - name: Set env to preview
@@ -68,6 +71,7 @@ jobs:
           MAINTENANCE_MODE_ACTIVE=false
           INCLUDE_DIGITAL_CREDENTIAL=true
           INCLUDE_BC_SERVICES_CARD=true
+          ALLOW_BC_SERVICES_CARD_PROD=false
           EOF
 
       - name: Checkout 🛎️
