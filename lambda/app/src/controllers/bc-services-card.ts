@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const getPrivacyZones = async (env: 'dev' | 'test' | 'prod' = 'prod') => {
+export const getPrivacyZones = async (env: string = 'prod') => {
   let bcscBaseUrl;
   if (env === 'dev') bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_DEV;
   if (env === 'test') bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_TEST;
