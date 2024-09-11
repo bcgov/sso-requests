@@ -48,7 +48,7 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
   const { bcscBaseUrl, kcBaseUrl, accessToken } = getBCSCEnvVars(data.environment);
   const jwksUri = `${kcBaseUrl}/auth/realms/standard/protocol/openid-connect/certs`;
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
-  let bcscPrivacyZoneDisplayName = await getPrivacyZoneURI(data.environment, integration.bcscPrivacyZone);
+  let bcscPrivacyZoneURI = await getPrivacyZoneURI(data.environment, integration.bcscPrivacyZone);
 
   const result = await axios.post(
     `${bcscBaseUrl}/oauth2/register`,
@@ -63,7 +63,7 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
       userinfo_signed_response_alg: 'RS256',
       // Sub must be requested. Otherwise id token will have a randomized identifier.
       claims: [...integration.bcscAttributes, 'sub'],
-      privacy_zone_uri: bcscPrivacyZoneDisplayName,
+      privacy_zone_uri: bcscPrivacyZoneURI,
       jwks_uri: jwksUri,
     },
     {
