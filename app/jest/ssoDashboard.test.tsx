@@ -3,7 +3,6 @@ import AdminDashboard from 'pages/admin-dashboard';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
 import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, getRequestAll } from 'services/request';
-import { bcscPrivacyZones } from '@app/utils/constants';
 import { getCompositeClientRoles } from '@app/services/keycloak';
 
 const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
