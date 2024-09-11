@@ -81,6 +81,7 @@ afterAll(() => {
       updateClientScopeMapper: null,
       createClientScope: null,
       createIdp: null,
+      updateIdp: null,
     };
 
     beforeEach(() => {
@@ -103,6 +104,8 @@ afterAll(() => {
       spies.createClientScope.mockImplementation(() => Promise.resolve({ id: 1, name: 'name' }));
       spies.createIdp = jest.spyOn(IdpModule, 'createIdp');
       spies.createIdp.mockImplementation(() => Promise.resolve(null));
+      spies.updateIdp = jest.spyOn(IdpModule, 'updateIdp');
+      spies.updateIdp.mockImplementation(() => Promise.resolve(null));
     });
 
     afterAll(async () => {
@@ -120,9 +123,10 @@ afterAll(() => {
 
       jest.clearAllMocks();
 
-      spies.getIdp.mockImplementation(() => Promise.resolve({}));
+      spies.getIdp.mockImplementation(() => Promise.resolve({ config: { defaultScope: 'openid profile address' } }));
       await createBCSCIntegration('dev', { ...bcscProdIntegration, protocol }, 1);
       expect(spies.createIdp).not.toHaveBeenCalled();
+      expect(spies.updateIdp).toHaveBeenCalled();
     });
 
     it('Only creates the idp mappers if not found', async () => {
