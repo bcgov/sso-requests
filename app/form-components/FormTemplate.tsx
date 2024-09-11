@@ -202,7 +202,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       processed.prodSamlLogoutPostBindingUri = '';
     }
 
-    if (newData.protocol === 'saml' && (usesDigitalCredential(newData) || usesBcServicesCard(newData))) {
+    if (newData.protocol === 'saml' && usesDigitalCredential(newData)) {
       processed.devIdps = [];
     }
 

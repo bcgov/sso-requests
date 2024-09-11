@@ -335,6 +335,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
   await Promise.all(createIdpMapperPromises);
 
   const clientScopeData = {
+    protocol: integration.protocol,
     environment: env,
     realmName: 'standard',
     scopeName: integration.clientId,
@@ -361,19 +362,24 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     environment: env,
     realmName: 'standard',
     scopeName: clientScope.name,
-    protocol: 'openid-connect',
-    protocolMapper: 'oidc-idp-userinfo-mapper',
+    protocol: integration.protocol === 'oidc' ? 'openid-connect' : 'saml',
+    protocolMapper: integration.protocol === 'oidc' ? 'oidc-idp-userinfo-mapper' : 'saml-idp-userinfo-mapper',
     protocolMapperName: 'attributes',
     protocolMapperConfig: {
       signatureExpected: true,
       userAttributes,
       'claim.name': 'attributes',
+    },
+  };
+
+  if (integration.protocol === 'oidc') {
+    Object.assign(clientScopeMapperPayload['protocolMapperConfig'], {
       'jsonType.label': 'String' as const,
       'id.token.claim': true,
       'access.token.claim': true,
       'userinfo.token.claim': true,
-    },
-  };
+    });
+  }
 
   if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload });
   else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists.id });
