@@ -12,6 +12,7 @@ import {
   getWhereClauseForAllRequests,
   getBCSCEnvVars,
   getRequiredBCSCScopes,
+  compareTwoArrays as compareScopes,
 } from '../utils/helpers';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
@@ -52,7 +53,7 @@ import {
 import pick from 'lodash.pick';
 import { validateIdirEmail } from '@lambda-app/ms-graph/idir';
 import { BCSCClientParameters, createBCSCClient, deleteBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
-import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers } from '@lambda-app/keycloak/idp';
+import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers, updateIdp } from '@lambda-app/keycloak/idp';
 import {
   createClientScope,
   createClientScopeMapper,
@@ -302,11 +303,14 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
           clientAuthMethod: 'client_secret_post',
           validateSignature: true,
           useJwksUrl: true,
-          defaultScope: requiredScopes,
+          defaultScope: requiredScopes.join(' '),
         },
       },
       env,
     );
+  } else if (idpCreated && !compareScopes(idpCreated.config.defaultScope.split(' '), requiredScopes)) {
+    // if scopes don't match, update default scope
+    await updateIdp({ ...idpCreated, config: { ...idpCreated.config, defaultScope: requiredScopes.join(' ') } }, env);
   }
 
   const idpMappers = await getIdpMappers({

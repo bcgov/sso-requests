@@ -14,7 +14,7 @@ jest.mock('@lambda-app/utils/helpers', () => {
     getBCSCEnvVars: jest.fn(() => {
       return {};
     }),
-    getRequiredBCSCScopes: jest.fn(),
+    getRequiredBCSCScopes: jest.fn(() => Promise.resolve([])),
   };
 });
 

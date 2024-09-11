@@ -234,7 +234,7 @@ export const getBCSCEnvVars = (env: string) => {
   };
 };
 
-export const getRequiredBCSCScopes = async (claims) => {
+export const getRequiredBCSCScopes = async (claims: string[]) => {
   if (cachedClaims.length === 0) {
     cachedClaims = await getAttributes();
   }
@@ -245,5 +245,20 @@ export const getRequiredBCSCScopes = async (claims) => {
   if (!requiredScopes.includes('profile')) {
     requiredScopes.push('profile');
   }
-  return ['openid', ...new Set(requiredScopes)].join(' ');
+  return ['openid', ...new Set(requiredScopes)];
+};
+
+export const compareTwoArrays = (arr1: string[], arr2: string[]) => {
+  if (arr1.length !== arr2.length) {
+    return false;
+  } else {
+    for (let i = 0; i < arr1.length; i++) {
+      if (arr1[i] !== arr2[i]) {
+        return false;
+      } else {
+        continue;
+      }
+    }
+  }
+  return true;
 };
