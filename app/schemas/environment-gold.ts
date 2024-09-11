@@ -153,45 +153,41 @@ export default function getSchemas(formData: Integration) {
 
     let additionalConfig: any = {};
 
-    if (formData?.protocol === 'saml') {
-      additionalConfig = {
-        [samlLogoutPostBindingUriField]: {
-          type: 'string',
-          title: 'Logout Service URL',
-          tooltip: {
-            content: `SAML POST Binding URL for the client's single logout service. You can leave this blank if you are using a different binding`,
-          },
-          maxLength: 250,
-          description: 'You may want to have your logout service enabled from your application',
-          placeholder: 'e.g. https://example.com/logout/callback',
-          default: '',
+    if (
+      (include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true') &&
+      formData?.devIdps?.includes('bcservicescard')
+    ) {
+      additionalConfig[homePageUriField] = {
+        type: 'string',
+        title: 'Home Page URL',
+        tooltip: {
+          content: `URL of the home page of your application. The value of this field MUST point to a valid Web page, and will be presented to end users in BCSC Service Listing, and possibly during authentication.`,
         },
-        [samlSignAssertionsField]: {
-          type: 'boolean',
-          title: 'Sign Assertions',
-          tooltip: {
-            content: `Should assertions inside the SAML document be signed?. This setting is not needed if the document is already being signed.`,
-          },
-          default: false,
-        },
+        placeholder: 'e.g. https://example.com',
+        default: '',
       };
-    } else {
-      if (
-        (include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true') &&
-        formData?.devIdps?.includes('bcservicescard')
-      ) {
-        additionalConfig = {
-          [homePageUriField]: {
-            type: 'string',
-            title: 'Home Page URL',
-            tooltip: {
-              content: `URL of the home page of your application. The value of this field MUST point to a valid Web page, and will be presented to end users in BCSC Service Listing, and possibly during authentication.`,
-            },
-            placeholder: 'e.g. https://example.com',
-            default: '',
-          },
-        };
-      }
+    }
+
+    if (formData?.protocol === 'saml') {
+      additionalConfig[samlLogoutPostBindingUriField] = {
+        type: 'string',
+        title: 'Logout Service URL',
+        tooltip: {
+          content: `SAML POST Binding URL for the client's single logout service. You can leave this blank if you are using a different binding`,
+        },
+        maxLength: 250,
+        description: 'You may want to have your logout service enabled from your application',
+        placeholder: 'e.g. https://example.com/logout/callback',
+        default: '',
+      };
+      additionalConfig[samlSignAssertionsField] = {
+        type: 'boolean',
+        title: 'Sign Assertions',
+        tooltip: {
+          content: `Should assertions inside the SAML document be signed?. This setting is not needed if the document is already being signed.`,
+        },
+        default: false,
+      };
     }
 
     return {

@@ -3,11 +3,8 @@ import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import AuthenticationFlowRepresentation from 'keycloak-admin/lib/defs/authenticationFlowRepresentation';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { createBCSCIntegration, createEvent, deleteBCSCIntegration } from '@lambda-app/controllers/requests';
-import { ACTION_TYPES, EMAILS, EVENTS, REQUEST_TYPES } from '@lambda-shared/enums';
-import { getTeamById } from '@lambda-app/queries/team';
-import { sendTemplate } from '@lambda-shared/templates';
-import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
+import { createBCSCIntegration, deleteBCSCIntegration } from '@lambda-app/controllers/requests';
+import { usesBcServicesCard } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
 
@@ -102,15 +99,15 @@ export const samlClientProfile = (
 const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
   let defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common'];
 
-  // BCSC client scope is named after the client id on bcsc side
-  if (usesBcServicesCard(integration)) {
-    defaultScopes.push(integration.clientId);
-  }
   const otherIdpScopes = integration[`${environment}Idps`]?.filter((idp) => idp !== 'bcservicescard') || [];
   if (integration.protocol === 'oidc') {
     defaultScopes = defaultScopes.concat(otherIdpScopes);
   } else {
     defaultScopes = defaultScopes.concat(otherIdpScopes).map((idp: string) => `${idp}-saml`);
+  }
+  // BCSC client scope is named after the client id on bcsc side
+  if (usesBcServicesCard(integration)) {
+    defaultScopes.push(integration.clientId);
   }
   return defaultScopes;
 };
