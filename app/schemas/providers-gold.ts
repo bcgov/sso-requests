@@ -47,7 +47,7 @@ export default function getSchema(
   const privacyZonesSchema = {
     type: 'string',
     title: 'Please select privacy zone',
-    enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_uri || []),
+    enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
     enumNames: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
   };
 

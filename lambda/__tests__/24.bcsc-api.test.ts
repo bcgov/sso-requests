@@ -1,6 +1,13 @@
 import { formDataDev } from './helpers/fixtures';
 import { createBCSCClient, updateBCSCClient } from '@lambda-app/bcsc/client';
+import { getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
 import axios from 'axios';
+
+jest.mock('@lambda-app/controllers/bc-services-card', () => {
+  return {
+    getPrivacyZones: jest.fn(() => Promise.resolve([{ privacy_zone_uri: 'zone', privacy_zone_name: 'zone' }])),
+  };
+});
 
 jest.mock('@lambda-app/utils/helpers', () => {
   return {
@@ -52,5 +59,21 @@ describe('BCSC API Callouts', () => {
 
     expect(bcscJSONKeys.includes('claims')).toBeTruthy();
     expect(bcscJSONKeys.includes('privacy_zone_uri')).toBeFalsy();
+  });
+
+  it('Fetches the privacy zone uri for the provided environment', async () => {
+    await createBCSCClient({ ...bcscClient, environment: 'dev' }, bcscData, 1);
+    expect(getPrivacyZones).toHaveBeenCalledTimes(1);
+    expect(getPrivacyZones).toHaveBeenCalledWith('dev');
+
+    jest.clearAllMocks();
+    await createBCSCClient({ ...bcscClient, environment: 'test' }, bcscData, 1);
+    expect(getPrivacyZones).toHaveBeenCalledTimes(1);
+    expect(getPrivacyZones).toHaveBeenCalledWith('test');
+
+    jest.clearAllMocks();
+    await createBCSCClient({ ...bcscClient, environment: 'prod' }, bcscData, 1);
+    expect(getPrivacyZones).toHaveBeenCalledTimes(1);
+    expect(getPrivacyZones).toHaveBeenCalledWith('prod');
   });
 });
