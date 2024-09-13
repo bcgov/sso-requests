@@ -14,6 +14,11 @@ const AlphaTag = styled.span`
   color: white;
 `;
 
+const WarningText = styled.p`
+  font-style: italic;
+  margin-top: 0.2em;
+`;
+
 // https://github.com/rjsf-team/react-jsonschema-form/blob/master/packages/core/src/components/widgets/CheckboxesWidget.js
 function selectValue(value: string, selected: string[], all: string[]) {
   const at = all.indexOf(value);
@@ -30,7 +35,7 @@ function deselectValue(value: string, selected: string[]) {
 function TooltipCheckboxesWidget(props: WidgetProps) {
   const { id, disabled, options, value, autofocus = false, readonly, onChange, schema } = props;
   const { enumOptions, enumDisabled, enumHidden, inline = false } = options;
-  const { tooltips } = schema as JSONSchema6 & { tooltips: any[] };
+  const { tooltips, warningMessage } = schema as JSONSchema6 & { tooltips: any[]; warningMessage: string };
 
   const eOptions = Array.isArray(enumOptions) ? enumOptions : [];
   const eDisabled = Array.isArray(enumDisabled) ? enumDisabled : [];
@@ -88,6 +93,7 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
           );
         }
       })}
+      {warningMessage && <WarningText>Note: {warningMessage}</WarningText>}
     </div>
   );
 }
