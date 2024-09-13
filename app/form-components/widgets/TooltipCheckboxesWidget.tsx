@@ -93,7 +93,7 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
           );
         }
       })}
-      {warningMessage && <WarningText>Note: {warningMessage}</WarningText>}
+      {warningMessage && <WarningText>*Note: {warningMessage}</WarningText>}
     </div>
   );
 }
