@@ -122,6 +122,8 @@ export default function getSchema(
         enum: idpEnum,
         enumNames: idpEnumNames,
       },
+      warningMessage:
+        'Role assignment is not available for the BC Services Card and Digital Credential Identity Providers.',
       tooltips: idpEnum.map((idp) => {
         if (idp === 'azureidir') {
           return {
