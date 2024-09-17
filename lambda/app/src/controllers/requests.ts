@@ -487,10 +487,6 @@ export const updateRequest = async (
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
     if (isApprovingGithub && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve github');
 
-    const isApprovingDigitalCredential = !originalData.digitalCredentialApproved && current.digitalCredentialApproved;
-    if (isApprovingDigitalCredential && !userIsAdmin)
-      throw new createHttpError.Forbidden('not allowed to approve digital credential');
-
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
     if (isApprovingBCSC && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve bc services card');
 
@@ -506,12 +502,6 @@ export const updateRequest = async (
       const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
       if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('github')))
         throw new createHttpError.Forbidden('not allowed to update github idps');
-    }
-
-    if (originalData.digitalCredentialApproved) {
-      // given approved, if removing existing digital credential idp throw error
-      if (!current.devIdps.find((idp: string) => idp === 'digitalcredential'))
-        throw new createHttpError.Forbidden('not allowed to remove digital credential idp');
     }
 
     if (originalData.bcServicesCardApproved) {
@@ -579,7 +569,6 @@ export const updateRequest = async (
 
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
-      const waitingDigitalCredentialProdApproval = hasDigitalCredentialProd && !current.digitalCredentialApproved;
       const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
 
       current.requester = await getRequester(session, current.id);
@@ -599,11 +588,6 @@ export const updateRequest = async (
             code: EMAILS.PROD_APPROVED,
             data: { integration: finalData, type: 'GitHub' },
           });
-        } else if (isApprovingDigitalCredential) {
-          emails.push({
-            code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'Digital Credential' },
-          });
         } else if (isApprovingBCSC) {
           emails.push({
             code: EMAILS.PROD_APPROVED,
@@ -616,7 +600,6 @@ export const updateRequest = async (
               integration: finalData,
               waitingBceidProdApproval,
               waitingGithubProdApproval,
-              waitingDigitalCredentialProdApproval,
               waitingBcServicesCardProdApproval,
               addingProd,
             },
@@ -629,7 +612,6 @@ export const updateRequest = async (
             integration: finalData,
             waitingBceidProdApproval,
             waitingGithubProdApproval,
-            waitingDigitalCredentialProdApproval,
             waitingBcServicesCardProdApproval,
           },
         });
@@ -995,7 +977,6 @@ export const isAllowedToDeleteIntegration = async (session: Session, integration
 export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
-  const hasDigitalCredential = usesDigitalCredential(baseData);
   const hasBCSC = usesBcServicesCard(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
@@ -1005,11 +986,6 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   // prevent the TF from creating BCeID integration in prod environment if not approved
   if (!baseData.bceidApproved && hasBceid) {
     baseData.prodIdps = baseData.prodIdps.filter(checkNotBceidGroup);
-  }
-
-  // prevent the TF from creating VC integration in prod environment if not approved
-  if (!baseData.digitalCredentialApproved && hasDigitalCredential) {
-    baseData.prodIdps = baseData.prodIdps.filter((idp) => !checkDigitalCredential(idp));
   }
 
   if (!baseData.bcServicesCardApproved && hasBCSC) {
@@ -1140,12 +1116,9 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const hasProd = integration.environments.includes('prod');
     const hasBceid = usesBceid(integration);
     const hasGithub = usesGithub(integration);
-    const hasDigitalCredential = usesDigitalCredential(integration);
     const hasBcServicesCard = usesBcServicesCard(integration);
     const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
     const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
-    const waitingDigitalCredentialProdApproval =
-      hasDigitalCredential && hasProd && !integration.digitalCredentialApproved;
     const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
 
     const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
@@ -1154,7 +1127,6 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
       waitingBceidProdApproval,
       hasBceid,
       waitingGithubProdApproval,
-      waitingDigitalCredentialProdApproval,
       waitingBcServicesCardProdApproval,
       addingProd,
     });

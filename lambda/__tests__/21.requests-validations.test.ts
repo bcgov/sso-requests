@@ -218,60 +218,6 @@ describe('integration validations', () => {
       expect(unapproveIdpRes.body.prodIdps).toEqual(addNewIdp);
     });
 
-    it('should not allow to change dc idp and/or approved flag', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const projectName: string = 'DC Integration Validations';
-      const integrationRes = await buildIntegration({
-        projectName,
-        submitted: true,
-        prodEnv: true,
-        digitalCredential: true,
-      });
-      let digitalCredentialIntegration = integrationRes.body;
-
-      console.log(digitalCredentialIntegration);
-
-      console.log(digitalCredentialIntegration.devIdps);
-
-      createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
-      const approvedRes = await updateIntegration(
-        { ...getUpdateIntegrationData({ integration: digitalCredentialIntegration }), digitalCredentialApproved: true },
-        true,
-      );
-      expect(approvedRes.status).toEqual(200);
-      digitalCredentialIntegration = approvedRes.body;
-      console.log(digitalCredentialIntegration);
-
-      const filterDcIdp = ['idir'];
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const changeIdpRes = await updateIntegration(
-        {
-          ...getUpdateIntegrationData({ integration: digitalCredentialIntegration }),
-          devIdps: filterDcIdp,
-          testIdps: filterDcIdp,
-          prodIdps: filterDcIdp,
-        },
-        true,
-      );
-      expect(changeIdpRes.status).toEqual(422);
-      const addNewIdp = ['idir', 'digitalcredential', 'githubbcgov', 'bceidbasic'];
-      const unapproveIdpRes = await updateIntegration(
-        {
-          ...getUpdateIntegrationData({ integration: digitalCredentialIntegration }),
-          digitalCredentialApproved: false,
-          devIdps: addNewIdp,
-          testIdps: addNewIdp,
-          prodIdps: addNewIdp,
-        },
-        true,
-      );
-      expect(unapproveIdpRes.status).toEqual(200);
-      expect(unapproveIdpRes.body.digitalCredentialApproved).toEqual(true);
-      expect(unapproveIdpRes.body.devIdps).toEqual(addNewIdp);
-      expect(unapproveIdpRes.body.testIdps).toEqual(addNewIdp);
-      expect(unapproveIdpRes.body.prodIdps).toEqual(addNewIdp);
-    });
-
     it('should not allow to change bc services card idp and/or approved flag', async () => {
       process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);

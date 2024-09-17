@@ -1,13 +1,12 @@
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
-import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesBcServicesCard } from '@app/helpers/integration';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
 import AdminEventPanel from 'page-partials/admin-dashboard/AdminEventPanel';
 import { LoggedInUser } from 'interfaces/team';
 import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
-import DigitalCredentialTabContent from './DigitalCredentialTabContent';
 import BcServicesCardTabContent from './BcServicesCardTabContent';
 import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 import { useState } from 'react';
@@ -50,9 +49,6 @@ function AdminTabs({
   const hasGithub = usesGithub(integration);
   const hasGithubProd = hasGithub && hasProd;
 
-  const hasDigitalCredential = usesDigitalCredential(integration);
-  const hasDigitalCredentialProd = hasDigitalCredential && hasProd;
-
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasBcServicesCardProd = hasBcServicesCard && hasProd;
 
@@ -77,11 +73,6 @@ function AdminTabs({
         {hasGithubProd && (
           <Tab key="github-prod" tab="GitHub Prod">
             <GithubTabContent integration={integration} onApproved={handleGithubApproved} />
-          </Tab>
-        )}
-        {hasDigitalCredentialProd && (
-          <Tab key="vc-prod" tab="Digital Credential Prod">
-            <DigitalCredentialTabContent integration={integration} onApproved={handleDigitCredentialApproved} />
           </Tab>
         )}
         {hasBcServicesCardProd && (
