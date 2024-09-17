@@ -32,6 +32,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -80,6 +81,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -130,8 +132,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
     <div style="display: none">&nbsp;</div>
   </li>
 </ol>
-
- <p>
+  <p>
   Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
@@ -152,6 +153,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -222,6 +224,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -291,6 +294,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -338,6 +342,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -384,6 +389,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -480,6 +486,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -524,6 +531,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -607,6 +615,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -690,6 +699,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -809,6 +819,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -891,6 +902,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -978,6 +990,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -1415,6 +1428,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -1459,6 +1473,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -1578,6 +1593,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -1660,6 +1676,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -1747,6 +1764,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
@@ -1830,5 +1848,6 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
