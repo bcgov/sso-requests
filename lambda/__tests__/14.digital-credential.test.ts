@@ -4,7 +4,7 @@ import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './he
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { IntegrationData } from '@lambda-shared/interfaces';
-import { DIT_EMAIL_ADDRESS } from '@lambda-shared/local';
+import { DIT_ADDITIONAL_EMAIL_ADDRESS, DIT_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { submitNewIntegration, updateIntegration } from './helpers/modules/integrations';
 import { EMAILS } from '@lambda-shared/enums';
 
@@ -128,7 +128,6 @@ describe('Digital Credential Validations', () => {
     expect(samlResult.status).toBe(422);
 
     const oidcResult = await submitNewIntegration({ ...mockIntegration, protocol: 'oidc' });
-    console.log(oidcResult.body);
     expect(oidcResult.status).toBe(200);
   });
 });
@@ -179,7 +178,7 @@ describe('IDP notifications', () => {
     expect(request.testIdps.includes('digitalcredential'));
   });
 
-  it('CCs DIT when requesting prod integration with Digital Credential as an IDP', async () => {
+  it('CCs DIT and DIT additional email when requesting prod integration with Digital Credential as an IDP', async () => {
     const emailList = createMockSendEmail();
     await submitNewIntegration(mockIntegration);
 
@@ -189,10 +188,12 @@ describe('IDP notifications', () => {
     expect(submissionEmails.length).toBe(1);
     const submissionCCList = emailList[0].cc;
     expect(submissionCCList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
+    expect(submissionCCList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
 
     expect(appliedEmails.length).toBe(1);
     const appliedCCList = emailList[0].cc;
     expect(appliedCCList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
+    expect(submissionCCList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
   });
 
   it('Does not CC DIT when prod is unselected', async () => {
@@ -212,7 +213,7 @@ describe('IDP notifications', () => {
     expect(appliedCCList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
   });
 
-  it('CCs DIT only when updates add prod to a DC client', async () => {
+  it('CCs DIT only when adding prod to a DC client and updates made to prod integration', async () => {
     const emailList = createMockSendEmail();
     const result = await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
     await updateIntegration({ ...mockIntegration, id: result.body.id, environments: ['dev', 'test', 'prod'] }, true);
@@ -225,11 +226,14 @@ describe('IDP notifications', () => {
 
     let ccList = updateEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
+    expect(ccList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
 
     ccList = appliedEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
+    expect(ccList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
 
-    // Clear emails and update again. Should not CC DIT since already in production
+    // Clear emails and update again. Should not CC DIT since already in production.
+    // CCs DIT additional email when prod integration is updated
     emailList.length = 0;
     await updateIntegration({ ...mockIntegration, id: result.body.id, publicAccess: false }, true);
 
@@ -241,16 +245,17 @@ describe('IDP notifications', () => {
 
     ccList = updateEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
+    expect(ccList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
 
     ccList = appliedEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
+    expect(ccList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
   });
 
   it('Includes dittrust email contact in email when requesting dev and test only integration', async () => {
     const emailList = createMockSendEmail();
     const expectedText = 'For all Digital Credential questions please contact';
     await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
-    console.log(emailList);
     const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedText));
     expect(emailSentWithFooter).toBeTruthy();
   });
