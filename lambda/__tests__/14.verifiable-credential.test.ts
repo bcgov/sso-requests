@@ -91,7 +91,6 @@ const mockIntegration: IntegrationData = {
   status: 'submitted' as Status,
   bceidApproved: false,
   githubApproved: false,
-  digitalCredentialApproved: false,
   archived: false,
   provisioned: false,
   provisionedAt: '2023-10-10',
@@ -116,26 +115,6 @@ beforeEach(() => {
 
 afterAll(() => {
   process.env = OLD_ENV;
-});
-
-describe('Build Github Dispatch', () => {
-  it('Removes digital credential from production IDP list if not approved yet, but keeps it in dev and test', () => {
-    const processedIntegration = buildGitHubRequestData(mockIntegration);
-    expect(processedIntegration.prodIdps.includes('digitalcredential')).toBe(false);
-
-    // Leaves other idp alone
-    expect(processedIntegration.prodIdps.includes('idir')).toBe(true);
-
-    // Keeps VC in dev and test
-    expect(processedIntegration.testIdps.includes('digitalcredential')).toBe(true);
-    expect(processedIntegration.devIdps.includes('digitalcredential')).toBe(true);
-  });
-
-  it('Keeps digital credential in production IDP list if approved', () => {
-    const approvedIntegration = { ...mockIntegration, digitalCredentialApproved: true };
-    const processedIntegration = buildGitHubRequestData(approvedIntegration);
-    expect(processedIntegration.prodIdps.includes('digitalcredential')).toBe(true);
-  });
 });
 
 describe('Digital Credential Validations', () => {
@@ -198,7 +177,6 @@ describe('IDP notifications', () => {
     expect(request.prodIdps.includes('digitalcredential'));
     expect(request.devIdps.includes('digitalcredential'));
     expect(request.testIdps.includes('digitalcredential'));
-    expect(request.digitalCredentialApproved).toBe(false);
   });
 
   it('CCs DIT when requesting prod integration with Digital Credential as an IDP', async () => {
@@ -266,22 +244,6 @@ describe('IDP notifications', () => {
 
     ccList = appliedEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
-  });
-
-  it('Includes VC footer in email when requesting prod integration', async () => {
-    const emailList = createMockSendEmail();
-    const expectedFooterText = 'Next Steps for your integration with Digital Credential:';
-    await submitNewIntegration(mockIntegration);
-    const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
-    expect(emailSentWithFooter).toBeTruthy();
-  });
-
-  it('Excludes VC footer if not requesting prod integration', async () => {
-    const emailList = createMockSendEmail();
-    const expectedFooterText = 'Next Steps for your integration with Digital Credential:';
-    await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
-    const emailSentWithFooter = emailList.some((email) => email.body.includes(expectedFooterText));
-    expect(emailSentWithFooter).toBeFalsy();
   });
 
   it('Includes dittrust email contact in email when requesting dev and test only integration', async () => {

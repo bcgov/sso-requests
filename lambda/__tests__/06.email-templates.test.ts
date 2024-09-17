@@ -60,6 +60,8 @@ describe('Email template snapshots', () => {
       waitingGithubProdApproval: false,
     });
 
+    console.log('🚀 ~ it.only ~ rendered:', rendered);
+
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
   });

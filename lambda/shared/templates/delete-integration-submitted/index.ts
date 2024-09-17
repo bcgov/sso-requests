@@ -3,10 +3,22 @@ import Handlebars = require('handlebars');
 import { processRequest } from '../helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
-import { SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS, OCIO_EMAIL_ADDRESS } from '@lambda-shared/local';
+import {
+  SSO_EMAIL_ADDRESS,
+  IDIM_EMAIL_ADDRESS,
+  OCIO_EMAIL_ADDRESS,
+  DIT_ADDITIONAL_EMAIL_ADDRESS,
+  DIT_EMAIL_ADDRESS,
+} from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
-import { usesBceidProd, usesGithub, usesBcServicesCardProd } from '@app/helpers/integration';
+import {
+  usesBceidProd,
+  usesGithub,
+  usesBcServicesCardProd,
+  usesDigitalCredentialProd,
+  usesDigitalCredential,
+} from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO integration ID {{integration.id}} deleted`;
@@ -36,6 +48,8 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const cc = [SSO_EMAIL_ADDRESS];
   if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
+  if (usesDigitalCredential(integration)) cc.push(DIT_EMAIL_ADDRESS);
+  if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);
 
   return sendEmail({
     code: EMAILS.DELETE_INTEGRATION_SUBMITTED,

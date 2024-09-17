@@ -340,11 +340,6 @@ const init = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: false,
       },
-      digitalCredentialApproved: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
       primaryEndUsers: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,

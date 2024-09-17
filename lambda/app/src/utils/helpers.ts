@@ -68,7 +68,7 @@ export const processRequest = (data: Integration, isMerged: boolean, isAdmin: bo
     immutableFields.push(
       ...durationAdditionalFields,
       'clientId',
-      ...['bceid', 'github', 'digitalCredential', 'bcServicesCard'].map((idp) => `${idp}Approved`),
+      ...['bceid', 'github', 'bcServicesCard'].map((idp) => `${idp}Approved`),
     );
   }
 
