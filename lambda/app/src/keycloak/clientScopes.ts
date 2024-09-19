@@ -23,7 +23,12 @@ export const getClientScope = async (data: { environment: string; scopeName: str
   });
 };
 
-export const createClientScope = async (data: { environment: string; realmName: string; scopeName: string }) => {
+export const createClientScope = async (data: {
+  protocol: string;
+  environment: string;
+  realmName: string;
+  scopeName: string;
+}) => {
   const { environment, realmName, scopeName } = data;
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
@@ -31,7 +36,7 @@ export const createClientScope = async (data: { environment: string; realmName: 
   await kcAdminClient.clientScopes.create({
     realm: realmName,
     name: scopeName,
-    protocol: 'openid-connect',
+    protocol: data.protocol === 'oidc' ? 'openid-connect' : 'saml',
   });
 
   return kcAdminClient.clientScopes.findOneByName({

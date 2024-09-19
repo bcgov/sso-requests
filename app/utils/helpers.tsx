@@ -56,14 +56,7 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
 };
 
 export const getRequestedEnvironments = (integration: Integration) => {
-  const {
-    bceidApproved,
-    githubApproved,
-    digitalCredentialApproved,
-    bcServicesCardApproved,
-    environments = [],
-    serviceType,
-  } = integration;
+  const { bceidApproved, githubApproved, bcServicesCardApproved, environments = [], serviceType } = integration;
 
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
@@ -90,12 +83,6 @@ export const getRequestedEnvironments = (integration: Integration) => {
     if (hasGithub && (!githubApproved || githubApplying))
       envs = envs.map((env) => {
         if (env.name === 'prod') env.idps = env.idps.filter(checkNotGithubGroup);
-        return env;
-      });
-
-    if (hasDigitalCredential && (!digitalCredentialApproved || digitalCredentialApplying))
-      envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter(checkNotDigitalCredential);
         return env;
       });
 

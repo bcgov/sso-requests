@@ -65,7 +65,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
 
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
-    idpDisabled.push('digitalcredential', 'bcservicescard');
+    idpDisabled.push('digitalcredential');
   }
 
   const includeComment = isApplied && isAdmin;

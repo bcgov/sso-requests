@@ -3,6 +3,7 @@ import axios from 'axios';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { getBCSCEnvVars, getRequiredBCSCScopes } from '@lambda-app/utils/helpers';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
+import { getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
 
 export interface BCSCClientParameters {
   id?: number;
@@ -36,11 +37,18 @@ const getBCSCContacts = async (integration: IntegrationData) => {
   return contacts;
 };
 
+const getPrivacyZoneURI = async (env: string, privacyZoneDisplayName: string) => {
+  const uriData = await getPrivacyZones(env);
+  const privacyZone = uriData.find((zone) => zone.privacy_zone_name === privacyZoneDisplayName);
+  return privacyZone?.privacy_zone_uri;
+};
+
 export const createBCSCClient = async (data: BCSCClientParameters, integration: IntegrationData, userId: number) => {
   const contacts = await getBCSCContacts(integration);
   const { bcscBaseUrl, kcBaseUrl, accessToken } = getBCSCEnvVars(data.environment);
   const jwksUri = `${kcBaseUrl}/auth/realms/standard/protocol/openid-connect/certs`;
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
+  let bcscPrivacyZoneURI = await getPrivacyZoneURI(data.environment, integration.bcscPrivacyZone);
 
   const result = await axios.post(
     `${bcscBaseUrl}/oauth2/register`,
@@ -48,14 +56,14 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
       client_name: `${data.clientName}-${data.environment}`,
       client_uri: integration[`${data.environment}HomePageUri`],
       redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
-      scope: requiredScopes,
+      scope: requiredScopes.join(' '),
       contacts: contacts,
       token_endpoint_auth_method: 'client_secret_post',
       id_token_signed_response_alg: 'RS256',
       userinfo_signed_response_alg: 'RS256',
       // Sub must be requested. Otherwise id token will have a randomized identifier.
       claims: [...integration.bcscAttributes, 'sub'],
-      privacy_zone_uri: integration.bcscPrivacyZone,
+      privacy_zone_uri: bcscPrivacyZoneURI,
       jwks_uri: jwksUri,
     },
     {
@@ -80,7 +88,7 @@ export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integra
       client_name: `${bcscClient.clientName}-${bcscClient.environment}`,
       client_uri: integration[`${bcscClient.environment}HomePageUri`],
       redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
-      scope: requiredScopes,
+      scope: requiredScopes.join(' '),
       contacts,
       token_endpoint_auth_method: 'client_secret_post',
       id_token_signed_response_alg: 'RS256',

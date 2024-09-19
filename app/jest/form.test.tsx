@@ -544,6 +544,23 @@ describe('Basic Info - Identity Providers', () => {
 });
 
 describe('BC Services Card IDP and dependencies', () => {
+  it("Shows BC Services Card IDP from the list of IDPs if it's a SAML integration", async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      protocol: 'saml',
+      devIdps: ['bcservicescard'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = getByText('BC Services Card')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(bcscCheckbox?.checked).toBeTruthy();
+  });
+
   it('should show the BC Services Card IDP but hide privacy zone, attributes, and home page uri if not selected', async () => {
     setUpRender({
       id: 0,

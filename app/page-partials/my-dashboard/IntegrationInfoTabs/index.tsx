@@ -7,12 +7,7 @@ import ClientRoles from 'page-partials/my-dashboard/RoleManagement';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import UserEventPanel from 'components/UserEventPanel';
-import {
-  checkIfBceidProdApplying,
-  checkIfGithubProdApplying,
-  checkIfDigitalCredentialProdApplying,
-  checkIfBcServicesCardProdApplying,
-} from 'utils/helpers';
+import { checkIfBceidProdApplying, checkIfGithubProdApplying, checkIfBcServicesCardProdApplying } from 'utils/helpers';
 import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
 import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
@@ -23,7 +18,6 @@ import { ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
-import DigitalCredentialPanel from './DigitalCredentialPanel';
 import BcServicesCardPanel from './BcServicesCardStatusPanel';
 import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
@@ -105,7 +99,6 @@ const getInstallationTab = ({
             <Grid.Col span={7}>
               <BceidStatusPanel approvalContext={approvalContext} />
               <GithubStatusPanel approvalContext={approvalContext} />
-              <DigitalCredentialPanel approvalContext={approvalContext} />
               <BcServicesCardPanel approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
@@ -234,11 +227,9 @@ function IntegrationInfoTabs({ integration }: Props) {
   const hasBcServicesCard = usesBcServicesCard(integration);
   const awaitingBceidProd = hasBceid && hasProd && !bceidApproved;
   const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
-  const awaitingDigitalCredentialProd = hasDigitalCredential && hasProd && !digitalCredentialApproved;
   const awaitingBcServicesCardProd = hasBcServicesCard && hasProd && !bcServicesCardApproved;
   const bceidProdApplying = checkIfBceidProdApplying(integration);
   const githubProdApplying = checkIfGithubProdApplying(integration);
-  const digitalCredentialProdApplying = checkIfDigitalCredentialProdApplying(integration);
   const bcServicesCardProdApplying = checkIfBcServicesCardProdApplying(integration);
 
   const approvalContext: ApprovalContext = {
@@ -249,15 +240,12 @@ function IntegrationInfoTabs({ integration }: Props) {
     hasBcServicesCard,
     bceidApproved,
     githubApproved,
-    digitalCredentialApproved,
     bcServicesCardApproved,
     awaitingBceidProd,
     awaitingGithubProd,
-    awaitingDigitalCredentialProd,
     awaitingBcServicesCardProd,
     bceidProdApplying,
     githubProdApplying,
-    digitalCredentialProdApplying,
     bcServicesCardProdApplying,
   };
 
