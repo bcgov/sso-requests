@@ -56,8 +56,8 @@ const durationAdditionalFields = [];
   durationAdditionalFields.push(`${env}OfflineAccessEnabled`);
 });
 
-export const processRequest = (data: Integration, isMerged: boolean, isAdmin: boolean) => {
-  const immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
+export const processRequest = (data: Integration, isMerged: boolean, isAdmin: boolean, idpAdmin: string[]) => {
+  let immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
 
   if (isMerged) {
     immutableFields.push('realm');
@@ -70,6 +70,23 @@ export const processRequest = (data: Integration, isMerged: boolean, isAdmin: bo
       'clientId',
       ...['bceid', 'github', 'bcServicesCard'].map((idp) => `${idp}Approved`),
     );
+  }
+
+  if (idpAdmin.length > 0) {
+    idpAdmin.forEach((idp) => {
+      if (idp.startsWith('bceid')) {
+        if (immutableFields.indexOf(`bceidApproved`))
+          immutableFields.splice(immutableFields.indexOf(`bceidApproved`), 1);
+      }
+      if (idp.startsWith('github')) {
+        if (immutableFields.indexOf(`githubApproved`))
+          immutableFields.splice(immutableFields.indexOf(`githubApproved`), 1);
+      }
+      if (idp.startsWith('bcservicescard')) {
+        if (immutableFields.indexOf(`bcServicesCardApproved`))
+          immutableFields.splice(immutableFields.indexOf(`bcServicesCardApproved`), 1);
+      }
+    });
   }
 
   if (isAdmin) {
@@ -116,6 +133,16 @@ export const validateRequest = async (formData: any, original: Integration, team
 };
 
 export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
+export const getAllowedIdpsForApprover = (session: Session) => {
+  const idps = [];
+  if (session.client_roles.length === 0) return idps;
+  session.client_roles.forEach((role) => {
+    if (role === 'bceid-admin') idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+    if (role === 'bc-services-card-admin') idps.push('bcservicescard');
+    if (role === 'github-admin') idps.push('githubbcgov', 'githubpublic');
+  });
+  return idps;
+};
 export const getDisplayName = (session: Session) => compact([session.given_name, session.family_name]).join(' ');
 
 export const getWhereClauseForAllRequests = (data: {

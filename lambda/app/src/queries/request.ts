@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, User } from '../../../shared/interfaces';
-import { isAdmin } from '../utils/helpers';
+import { getAllowedIdpsForApprover, isAdmin } from '../utils/helpers';
 import { getMyTeamsLiteral, getUserTeamRole } from './literals';
 
 const commonPopulation = [
@@ -89,6 +89,15 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
   if (isAdmin(session)) {
     return models.request.findOne({
       where: { id: requestId, apiServiceAccount: false },
+      include: commonPopulation,
+    });
+  } else if (getAllowedIdpsForApprover(session).length > 0) {
+    return models.request.findOne({
+      where: {
+        id: requestId,
+        apiServiceAccount: false,
+        devIdps: { [Op.contains]: getAllowedIdpsForApprover(session) },
+      },
       include: commonPopulation,
     });
   }
