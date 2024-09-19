@@ -96,7 +96,7 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
       where: {
         id: requestId,
         apiServiceAccount: false,
-        devIdps: { [Op.contains]: getAllowedIdpsForApprover(session) },
+        devIdps: { [Op.overlap]: getAllowedIdpsForApprover(session) },
       },
       include: commonPopulation,
     });

@@ -72,6 +72,7 @@ export const processRequest = (data: Integration, isMerged: boolean, isAdmin: bo
     );
   }
 
+  // allow IDP approver to change approved flags
   if (idpAdmin.length > 0) {
     idpAdmin.forEach((idp) => {
       if (idp.startsWith('bceid')) {
