@@ -264,65 +264,43 @@ describe('Applied Status', () => {
     ]);
   });
 
-  it('should display BCSC-prod-DC-prod-integration screen', async () => {
+  it('should display BCSC-prod-integration screen', async () => {
     render(
       <IntegrationInfoTabs
         integration={{
           status: 'applied',
           authType: 'browser-login',
           environments: ['dev', 'test', 'prod'],
-          devIdps: ['idir', 'bcservicescard', 'digitalcredential'],
+          devIdps: ['idir', 'bcservicescard'],
           lastChanges: null,
-          digitalCredentialApproved: false,
           bcServicesCardApproved: false,
           serviceType: 'gold',
         }}
       />,
     );
 
-    expectAllTexts([
-      INSTALLATION_LABEL,
-      BCSC_PROD_LABEL,
-      BCSC_PROD_REQUESTED_MESSAGE,
-      DC_PROD_LABEL,
-      DC_PROD_REQUESTED_MESSAGE,
-    ]);
-    notExpectAllTexts([
-      DRAFT_MESSAGE,
-      PROGRESS_MESSAGE,
-      BCSC_PROD_APPROVED,
-      BCSC_PROD_AVAILABLE,
-      DC_PROD_APPROVED,
-      DC_PROD_AVAILABLE,
-    ]);
+    expectAllTexts([INSTALLATION_LABEL, BCSC_PROD_LABEL, BCSC_PROD_REQUESTED_MESSAGE]);
+    notExpectAllTexts([DRAFT_MESSAGE, PROGRESS_MESSAGE, BCSC_PROD_APPROVED, BCSC_PROD_AVAILABLE]);
   });
 
-  it('should display BCSC-prod-DC-prod-approved integration screen', async () => {
+  it('should display BCSC-prod-approved integration screen', async () => {
     render(
       <IntegrationInfoTabs
         integration={{
           status: 'applied',
           authType: 'browser-login',
           environments: ['dev', 'test', 'prod'],
-          devIdps: ['idir', 'bcservicescard', 'digitalcredential'],
+          devIdps: ['idir', 'bcservicescard'],
           lastChanges: null,
-          digitalCredentialApproved: true,
           bcServicesCardApproved: true,
           serviceType: 'gold',
         }}
       />,
     );
 
-    expectAllTexts([INSTALLATION_LABEL, BCSC_PROD_LABEL, DC_PROD_LABEL]);
+    expectAllTexts([INSTALLATION_LABEL, BCSC_PROD_LABEL]);
     expect(screen.getAllByText(BCSC_PROD_AVAILABLE)).toBeTruthy();
-    notExpectAllTexts([
-      DRAFT_MESSAGE,
-      PROGRESS_MESSAGE,
-      BCSC_PROD_APPROVED,
-      BCSC_PROD_REQUESTED_MESSAGE,
-      DC_PROD_APPROVED,
-      DC_PROD_REQUESTED_MESSAGE,
-    ]);
+    notExpectAllTexts([DRAFT_MESSAGE, PROGRESS_MESSAGE, BCSC_PROD_APPROVED, BCSC_PROD_REQUESTED_MESSAGE]);
   });
 });
 
