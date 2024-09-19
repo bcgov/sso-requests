@@ -144,7 +144,6 @@ export default function getSchema(
               'Our-Partners-the-Identity-Providers#what-are-identity-providers',
             )}" target="_blank">additional information</a>.`,
             hide: 3000,
-            alpha: true,
           };
         }
         if (idp === 'bcservicescard') {
