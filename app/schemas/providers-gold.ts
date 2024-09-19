@@ -47,7 +47,7 @@ export default function getSchema(
   const privacyZonesSchema = {
     type: 'string',
     title: 'Please select privacy zone',
-    enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_uri || []),
+    enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
     enumNames: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
   };
 
@@ -122,6 +122,8 @@ export default function getSchema(
         enum: idpEnum,
         enumNames: idpEnumNames,
       },
+      warningMessage:
+        'Role assignment is not available for the BC Services Card and Digital Credential Identity Providers.',
       tooltips: idpEnum.map((idp) => {
         if (idp === 'azureidir') {
           return {
@@ -142,7 +144,6 @@ export default function getSchema(
               'Our-Partners-the-Identity-Providers#what-are-identity-providers',
             )}" target="_blank">additional information</a>.`,
             hide: 3000,
-            alpha: true,
           };
         }
         if (idp === 'bcservicescard') {
