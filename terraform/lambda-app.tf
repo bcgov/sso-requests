@@ -55,6 +55,7 @@ resource "aws_lambda_function" "app" {
       MS_GRAPH_API_CLIENT_SECRET = var.ms_graph_api_client_secret
 
       INCLUDE_BC_SERVICES_CARD        = var.include_bc_services_card
+      ALLOW_BC_SERVICES_CARD_PROD     = var.allow_bc_services_card_prod
       BCSC_INITIAL_ACCESS_TOKEN_DEV   = var.bcsc_initial_access_token_dev
       BCSC_INITIAL_ACCESS_TOKEN_TEST  = var.bcsc_initial_access_token_test
       BCSC_INITIAL_ACCESS_TOKEN_PROD  = var.bcsc_initial_access_token_prod

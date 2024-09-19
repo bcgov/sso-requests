@@ -187,6 +187,11 @@ variable "include_bc_services_card" {
   default = false
 }
 
+variable "allow_bc_services_card_prod" {
+  type    = string
+  default = false
+}
+
 variable "bcsc_initial_access_token_dev" {
   type      = string
   sensitive = true
