@@ -347,6 +347,7 @@ textarea#root_bceidBody {
 ul.error-detail {
   list-style: none;
   margin-left: 0;
+  padding-left: 0;
 }
 
 .pg-select > label {

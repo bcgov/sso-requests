@@ -1,3 +1,4 @@
+import IdentityProviderRepresentation from 'keycloak-admin/lib/defs/identityProviderRepresentation';
 import { getAdminClient } from './adminClient';
 
 interface IdpConfig {
@@ -71,6 +72,11 @@ export const createIdp = async (
     postBrokerLoginFlowAlias,
     firstBrokerLoginFlowAlias,
   });
+};
+
+export const updateIdp = async (idp: IdentityProviderRepresentation, environment: string) => {
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  return kcAdminClient.identityProviders.update({ alias: idp.alias, realm: 'standard' }, idp);
 };
 
 export const deleteIdp = async (data: { environment: string; realmName: string; idpAlias: string }) => {

@@ -7,7 +7,6 @@ import { Integration } from 'interfaces/Request';
 import {
   checkIfBceidProdApplying,
   checkIfGithubProdApplying,
-  checkIfDigitalCredentialProdApplying,
   checkIfBcServicesCardProdApplying,
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
@@ -21,7 +20,7 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github' | 'digitalCredential' | 'BCServicesCard';
+  type: 'bceid' | 'github' | 'BCServicesCard';
   canApproveProd: boolean;
   awaitingTFComplete: boolean;
   onApproved?: () => void;
@@ -30,7 +29,6 @@ interface Props {
 const approvalTypeMap = {
   bceid: 'bceidApproved',
   github: 'githubApproved',
-  digitalCredential: 'digitalCredentialApproved',
   BCServicesCard: 'bcServicesCardApproved',
 };
 
@@ -52,9 +50,6 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
       break;
     case 'github':
       typeApproved = checkIfGithubProdApplying(integration);
-      break;
-    case 'digitalCredential':
-      typeApproved = checkIfDigitalCredentialProdApplying(integration);
       break;
     case 'BCServicesCard':
       typeApproved = checkIfBcServicesCardProdApplying(integration);

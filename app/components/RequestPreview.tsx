@@ -95,10 +95,9 @@ interface Props {
   request: Integration;
   teams?: Team[];
   children?: React.ReactNode;
-  privacyZone?: string;
 }
 
-function RequestPreview({ children, request, teams = [], privacyZone }: Readonly<Props>) {
+function RequestPreview({ children, request, teams = [] }: Readonly<Props>) {
   if (!request) return null;
   const idpDisplay = request.devIdps ?? [];
   const isOIDC = request.protocol !== 'saml';
@@ -178,7 +177,7 @@ function RequestPreview({ children, request, teams = [], privacyZone }: Readonly
             <tr>
               <td>Privacy Zone:</td>
               <td>
-                <SemiBold>{privacyZone}</SemiBold>
+                <SemiBold>{request.bcscPrivacyZone}</SemiBold>
               </td>
             </tr>
           )}
