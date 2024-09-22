@@ -174,3 +174,15 @@ export const getIntegrationByClientId = (clientId: string, options = { raw: true
     ...options,
   });
 };
+
+export const canUpdateRequestByUserId = async (userId: number, requestId: number) => {
+  const where = getBaseWhereForMyOrTeamIntegrations(userId, ['admin', 'member']);
+  where.id = requestId;
+  const editableRequest = await models.request.findOne({
+    where,
+    archived: false,
+    apiServiceAccount: false,
+  });
+  if (!editableRequest) return false;
+  return true;
+};

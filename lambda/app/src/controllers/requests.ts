@@ -14,6 +14,9 @@ import {
   getRequiredBCSCScopes,
   compareTwoArrays as compareScopes,
   getAllowedIdpsForApprover,
+  isBceidApprover,
+  isGithubApprover,
+  isBCServicesCardApprover,
 } from '../utils/helpers';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
@@ -27,6 +30,7 @@ import {
   getBaseWhereForMyOrTeamIntegrations,
   getIntegrationsByUserTeam,
   getIntegrationByClientId,
+  canUpdateRequestByUserId,
 } from '@lambda-app/queries/request';
 import { fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
@@ -439,10 +443,10 @@ export const updateRequest = async (
   // await checkIfHasFailedRequests();
   let addingProd = false;
   const userIsAdmin = isAdmin(session);
-  const allowedIdpsForApprover = getAllowedIdpsForApprover(session);
-  const bceidApprover = allowedIdpsForApprover.find((idp) => idp.startsWith('bceid'));
-  const githubApprover = allowedIdpsForApprover.find((idp) => idp.startsWith('github'));
-  const bcscApprover = allowedIdpsForApprover.find((idp) => idp === 'bcservicescard');
+  const bceidApprover = isBceidApprover(session);
+  const githubApprover = isGithubApprover(session);
+  const bcscApprover = isBCServicesCardApprover(session);
+  const allowedToUpdate = canUpdateRequestByUserId(session.user.id, data.id);
   const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id);
@@ -481,7 +485,7 @@ export const updateRequest = async (
       }
     }
 
-    const allowedData = processRequest(rest, isMerged, userIsAdmin, allowedIdpsForApprover);
+    const allowedData = processRequest(session, rest, isMerged);
     assign(current, allowedData);
 
     const mergedData = getCurrentValue();
@@ -518,6 +522,20 @@ export const updateRequest = async (
         throw new createHttpError.Forbidden('not allowed to remove bc services card idp');
       // keep bcsc attributes and privacy zone in sync with original data
       current.bcscAttributes = originalData.bcscAttributes!;
+    }
+
+    // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
+    if (
+      !userIsAdmin &&
+      (bceidApprover || githubApprover || bcscApprover) &&
+      !(await canUpdateRequestByUserId(session.user.id, data.id))
+    ) {
+      Object.assign(current, {
+        ...originalData,
+        bceidApproved: bceidApprover ? data.bceidApproved : originalData.bceidApproved,
+        githubApproved: githubApprover ? data.githubApproved : originalData.githubApproved,
+        bcServicesCardApproved: bcscApprover ? data.bcServicesCardApproved : originalData.bcServicesCardApproved,
+      });
     }
 
     const allowedTeams = await getAllowedTeams(user, { raw: true });
@@ -875,8 +893,6 @@ export const getRequestAll = async (
       },
     ],
   });
-  console.log('🚀 ~ result:', result);
-
   return result;
 };
 
@@ -981,7 +997,7 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
 
 export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
   if (isAdmin(session)) return true;
-  const integration = await getAllowedRequest(session, integrationId);
+  const integration = await getMyOrTeamRequest(session.user.id, integrationId);
   return canDeleteIntegration(integration);
 };
 
