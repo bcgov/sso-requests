@@ -3,10 +3,11 @@ services:
     image: postgres:13
     container_name: sso-db
     ports:
-      - 5432:5432
+      - 5433:5433
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    command: -p 5433
     volumes:
       - ./local/database-init.sql:/docker-entrypoint-initdb.d/database-init.sql
       - ./.bin/db-setup.sh:/docker-entrypoint-initdb.d/init-user-db.sh
@@ -60,7 +61,7 @@ services:
       NODE_ENV: development
       ALLOW_SILVER: 'false'
       ALLOW_GOLD: 'true'
-      DATABASE_URL: postgresql://postgres:postgres@sso-db:5432/ssorequests
+      DATABASE_URL: postgresql://postgres:postgres@sso-db:5433/ssorequests
       SSO_CLIENT_ID: css-app-in-gold-4128
       SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
       KEYCLOAK_V2_DEV_USERNAME: admin
@@ -87,72 +88,124 @@ services:
       GOLD_IP_ADDRESS: '142.34.229.4'
       CYPRESS_RUNNER: 'true'
       INCLUDE_DIGITAL_CREDENTIAL: 'true'
+      BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
+      BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
+      BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
     networks:
       css-net:
         aliases: [sso-requests-api]
 
   dev-keycloak:
     container_name: dev-keycloak
-    image: ghcr.io/bcgov/sso:7.6.39-build.2
+    image: ghcr.io/bcgov/sso:24.0.6-build.2
+
     depends_on:
       - sso-db
     ports:
       - 9080:9080
+    command: start-dev --http-port=9080
     environment:
-      DB_POSTGRESQL_SERVICE_HOST: sso-db
-      DB_POSTGRESQL_SERVICE_PORT: 5432
-      DB_USERNAME: keycloak
-      DB_PASSWORD: keycloak
-      DB_DATABASE: keycloak
-      SSO_ADMIN_USERNAME: admin
-      SSO_ADMIN_PASSWORD: admin
+      DB_POSTGRESQL_SERVICE_HOST: postgres
+      DB_POSTGRESQL_SERVICE_PORT: 5433
+      KC_DB: postgres
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_URL: 'jdbc:postgresql://sso-db:5433/keycloak'
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      DB_MIN_POOL_SIZE: 1
+      DB_MAX_POOL_SIZE: 5
+      JGROUPS_CLUSTER_PASSWORD: password
+      JAVA_OPTS_APPEND: '-Dkeycloak.profile.feature.impersonation=disabled -Djboss.persistent.log.dir=/var/log/eap -Djgroups.dns.query=disable'
+      KC_HTTP_RELATIVE_PATH: /auth
+
+      DB_JNDI: java:jboss/datasources/KeycloakDS
+      DB_SERVICE_PREFIX_MAPPING: db-postgresql=DB
+      TX_DATABASE_PREFIX_MAPPING: db-postgresql=DB
+      # JGROUPS_PING_PROTOCOL: dns.DNS_PING
       TZ: America/Vancouver
-      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1000 -Djboss.persistent.log.dir=/opt/eap'
-      KC_HEALTH_ENABLED: 'true'
+    volumes:
+      - logs_data:/var/log/eap
     networks:
       css-net:
         aliases: ['dev-keycloak.localtest.me']
 
   test-keycloak:
     container_name: test-keycloak
-    image: ghcr.io/bcgov/sso:7.6.39-build.2
+    image: ghcr.io/bcgov/sso:24.0.6-build.2
+
     depends_on:
       - sso-db
+      # Optionally spin up one at a time if this crushes your cpu
+      - dev-keycloak
     ports:
       - 9081:9081
+    command: start-dev --http-port=9081
     environment:
-      DB_POSTGRESQL_SERVICE_HOST: sso-db
-      DB_POSTGRESQL_SERVICE_PORT: 5432
-      DB_USERNAME: keycloak
-      DB_PASSWORD: keycloak
-      DB_DATABASE: keycloak-test
-      SSO_ADMIN_USERNAME: admin
-      SSO_ADMIN_PASSWORD: admin
+      DB_POSTGRESQL_SERVICE_HOST: postgres
+      DB_POSTGRESQL_SERVICE_PORT: 5433
+      KC_DB: postgres
+      KC_DB_URL_DATABASE: keycloaktest
+      KC_DB_URL: 'jdbc:postgresql://sso-db:5433/keycloaktest'
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      DB_MIN_POOL_SIZE: 1
+      DB_MAX_POOL_SIZE: 5
+      JGROUPS_CLUSTER_PASSWORD: password
+      JAVA_OPTS_APPEND: '-Dkeycloak.profile.feature.impersonation=disabled -Djboss.persistent.log.dir=/var/log/eap -Djgroups.dns.query=disable'
+      KC_HTTP_RELATIVE_PATH: /auth
+
+      DB_JNDI: java:jboss/datasources/KeycloakDS
+      DB_SERVICE_PREFIX_MAPPING: db-postgresql=DB
+      TX_DATABASE_PREFIX_MAPPING: db-postgresql=DB
+      # JGROUPS_PING_PROTOCOL: dns.DNS_PING
       TZ: America/Vancouver
-      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1001 -Djboss.persistent.log.dir=/opt/eap'
-      KC_HEALTH_ENABLED: 'true'
+    volumes:
+      - logs_data:/var/log/eap
     networks:
       css-net:
         aliases: ['test-keycloak.localtest.me']
 
   prod-keycloak:
     container_name: prod-keycloak
-    image: ghcr.io/bcgov/sso:7.6.39-build.2
+    image: ghcr.io/bcgov/sso:24.0.6-build.2
+
     depends_on:
       - sso-db
+      # Optionally spin up one at a time if this crushes your cpu
+      - test-keycloak
     ports:
       - 9082:9082
+    command: start-dev --http-port=9082
     environment:
-      DB_POSTGRESQL_SERVICE_HOST: sso-db
-      DB_POSTGRESQL_SERVICE_PORT: 5432
-      DB_USERNAME: keycloak
-      DB_PASSWORD: keycloak
-      DB_DATABASE: keycloak-prod
-      SSO_ADMIN_USERNAME: admin
-      SSO_ADMIN_PASSWORD: admin
+      DB_POSTGRESQL_SERVICE_HOST: postgres
+      DB_POSTGRESQL_SERVICE_PORT: 5433
+      KC_DB: postgres
+      KC_DB_URL_DATABASE: keycloakprod
+      KC_DB_URL: 'jdbc:postgresql://sso-db:5433/keycloakprod'
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      DB_MIN_POOL_SIZE: 1
+      DB_MAX_POOL_SIZE: 5
+      JGROUPS_CLUSTER_PASSWORD: password
+      JAVA_OPTS_APPEND: '-Dkeycloak.profile.feature.impersonation=disabled -Djboss.persistent.log.dir=/var/log/eap -Djgroups.dns.query=disable'
+      KC_HTTP_RELATIVE_PATH: /auth
+
+      DB_JNDI: java:jboss/datasources/KeycloakDS
+      DB_SERVICE_PREFIX_MAPPING: db-postgresql=DB
+      TX_DATABASE_PREFIX_MAPPING: db-postgresql=DB
+      # JGROUPS_PING_PROTOCOL: dns.DNS_PING
       TZ: America/Vancouver
-      JAVA_OPTS_APPEND: '-Djboss.socket.binding.port-offset=1002 -Djboss.persistent.log.dir=/opt/eap'
-      KC_HEALTH_ENABLED: 'true'
+    volumes:
+      - logs_data:/var/log/eap
     networks:
       css-net:
         aliases: ['prod-keycloak.localtest.me']
@@ -222,6 +275,8 @@ volumes:
   sso-kc-terraform-test:
     driver: local
   sso-kc-terraform-prod:
+    driver: local
+  logs_data:
     driver: local
 networks:
   css-net: {}

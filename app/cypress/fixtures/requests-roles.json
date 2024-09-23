@@ -1,0 +1,1011 @@
+[
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0007",
+      "projectname": "Role0007",
+      "team": false,
+      "teamname": "Role0007",
+      "projectlead": true,
+      "protocol": "oidc",
+      "authtype": "browser-login",
+      "publicaccess": "true",
+      "identityprovider": ["IDIR - MFA"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev", "test"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: OIDC-Browser-Login-Public-IDIR - MFA"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {
+      "add": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "prodroles": {},
+    "delete": true,
+    "smoketest": true,
+    "localtest": false
+  },
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0009",
+      "projectname": "Role0009",
+      "team": false,
+      "projectlead": true,
+      "protocol": "oidc",
+      "authtype": "browser-login",
+      "publicaccess": "true",
+      "identityprovider": ["GitHub BC Gov"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: OIDC-Browser-Login-Public-GitHub BC Gov"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {},
+    "prodroles": {},
+    "delete": true,
+    "smoketest": false,
+    "localtest": false
+  },
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0011",
+      "projectname": "Role0011",
+      "team": false,
+      "projectlead": true,
+      "protocol": "oidc",
+      "authtype": "browser-login",
+      "publicaccess": "true",
+      "identityprovider": ["IDIR"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev", "test"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: OIDC-Browser-Login-Public-IDIR"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {
+      "add": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "prodroles": {},
+    "delete": true,
+    "smoketest": false,
+    "localtest": false
+  },
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0013",
+      "projectname": "Role0013",
+      "team": false,
+      "projectlead": true,
+      "protocol": "oidc",
+      "authtype": "service-account",
+      "publicaccess": null,
+      "identityprovider": ["IDIR - MFA"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev", "test"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: OIDC-Service-Account--IDIR - MFA"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {
+      "add": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "prodroles": {},
+    "delete": true,
+    "smoketest": false,
+    "localtest": false
+  },
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0014",
+      "projectname": "Role0014",
+      "team": false,
+      "projectlead": true,
+      "protocol": "oidc",
+      "authtype": "service-account",
+      "publicaccess": null,
+      "identityprovider": ["GitHub BC Gov"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: OIDC-Service-Account--GitHub BC Gov"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {},
+    "prodroles": {},
+    "delete": true,
+    "smoketest": false,
+    "localtest": false
+  },
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0015",
+      "projectname": "Role0015",
+      "team": false,
+      "projectlead": true,
+      "protocol": "oidc",
+      "authtype": "service-account",
+      "publicaccess": null,
+      "identityprovider": ["IDIR"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev", "test"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: OIDC-Service-Account--IDIR"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {
+      "add": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "prodroles": {},
+    "delete": true,
+    "smoketest": false,
+    "localtest": false
+  },
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0022",
+      "projectname": "Role0022",
+      "team": false,
+      "projectlead": true,
+      "protocol": "saml",
+      "authtype": "browser-login",
+      "publicaccess": "true",
+      "identityprovider": ["IDIR - MFA"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev", "test"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: SAML-Browser-Login-Public-IDIR - MFA"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {
+      "add": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "prodroles": {},
+    "delete": true,
+    "smoketest": false,
+    "localtest": false
+  },
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0024",
+      "projectname": "Role0024",
+      "team": false,
+      "projectlead": true,
+      "protocol": "saml",
+      "authtype": "browser-login",
+      "publicaccess": "true",
+      "identityprovider": ["GitHub BC Gov"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: SAML-Browser-Login-Public-GitHub BC Gov"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Nithin",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Nithin",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {},
+    "prodroles": {},
+    "delete": true,
+    "smoketest": false,
+    "localtest": false
+  },
+  {
+    "id": "",
+    "create": {
+      "test_id": "Role0026",
+      "projectname": "Role0026",
+      "team": false,
+      "projectlead": true,
+      "protocol": "saml",
+      "authtype": "browser-login",
+      "publicaccess": "true",
+      "identityprovider": ["IDIR"],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev", "test"],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": "",
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [""],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Role Test: SAML-Browser-Login-Public-IDIR"
+    },
+    "devroles": {
+      "add": [
+        {
+          "test_id": "Roles-0002 Add Role",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "composite": [
+        {
+          "test_id": "Roles-0000",
+          "role_main": "Role 3",
+          "role_second": "Role 2",
+          "description": "Add Role 2 to Role 2"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0002 Remove Role",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "testroles": {
+      "add": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Add Role1 OIDC 1 Team"
+        },
+        {
+          "test_id": "Add Role2  to OIDC 1 Team",
+          "role": "Role 3",
+          "description": "Add Role2 OIDC 1 Team"
+        }
+      ],
+      "remove": [
+        {
+          "test_id": "Roles-0000",
+          "role": "Role 2",
+          "description": "Remove Role 3 from OIDC 1 Team"
+        }
+      ],
+      "addusertorole": [
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        },
+        {
+          "test_id": "Add User 1 to Role 2",
+          "role": "Role 3",
+          "user": "Roland",
+          "description": "Add User 1 to Role 3"
+        }
+      ],
+      "removeuserfromrole": [
+        {
+          "test_id": "Remove User 1 from Role 2",
+          "role": "Role 2",
+          "user": "Roland",
+          "description": "Remove User 1 from Role 2"
+        }
+      ]
+    },
+    "prodroles": {},
+    "delete": true,
+    "smoketest": false,
+    "localtest": false
+  }
+]

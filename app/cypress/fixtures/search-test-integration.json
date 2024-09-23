@@ -1,0 +1,33 @@
+{
+  "id": "",
+  "create": {
+    "test_id": "Dummy Request",
+    "projectname": "Test Automation",
+    "team": true,
+    "teamname": "Roland and Training Account",
+    "newteam": false,
+    "projectlead": false,
+    "protocol": "oidc",
+    "authtype": "browser-login",
+    "publicaccess": true,
+    "identityprovider": ["IDIR", "IDIR - MFA", "Basic BCeID", "Business BCeID", "GitHub BC Gov"],
+    "additionalroleattribute": "tbd",
+    "environments": ["dev", "test", "prod"],
+    "displayheader": true,
+    "displayheadertest": true,
+    "displayheaderprod": true,
+    "ssoheaderdev": "TEST AUTOMATION",
+    "ssoheadertest": "TEST AUTOMATION",
+    "ssoheaderprod": "TEST AUTOMATION",
+    "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*", "https://localhost:3000/"],
+    "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps"],
+    "redirecturiprod": ["https://bcgov.github.io/keycloak-example-apps"],
+    "agreeWithTermstrue": true,
+    "submit": true,
+    "confirm": true,
+    "description": "This is a placeholder for the test automation script."
+  },
+  "delete": true,
+  "smoketest": true,
+  "localtest": false
+}

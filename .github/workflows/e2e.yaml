@@ -1,17 +1,17 @@
 name: Run E2E tests
 
 on:
+  push:
+    branches: ssoteam-1915
   pull_request:
     types:
       - opened
-      - edited
       - synchronize
     paths:
       - app/**
       - lambda/**
       - docker-compose.yml
       - github/workflows/e2e.yaml
-      - local/terraform/*
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
@@ -35,9 +35,6 @@ jobs:
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
-      - uses: actions/checkout@v4
-        with:
-          repository: 'bcgov/sso-requests-e2e'
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
@@ -50,7 +47,7 @@ jobs:
           install-command: npm ci
           working-directory: testing
           spec: |
-            cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
-            cypress/e2e/ci/*.cy.ts
+            app/cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
+            app/cypress/e2e/ci/*.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
