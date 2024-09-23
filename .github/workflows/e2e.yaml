@@ -43,7 +43,7 @@ jobs:
           summary-title: 'E2E tests'
           record: true
           wait-on: 'http://localhost:3000'
-          wait-on-timeout: 180
+          wait-on-timeout: 360
           install-command: yarn
           working-directory: app
           spec: |
