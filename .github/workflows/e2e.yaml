@@ -45,9 +45,9 @@ jobs:
           wait-on: 'http://localhost:3000'
           wait-on-timeout: 180
           install-command: npm ci
-          working-directory: testing
+          working-directory: app
           spec: |
-            app/cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
-            app/cypress/e2e/ci/*.cy.ts
+            cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
+            cypress/e2e/ci/*.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
