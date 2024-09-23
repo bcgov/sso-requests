@@ -13,6 +13,10 @@ import {
   getBCSCEnvVars,
   getRequiredBCSCScopes,
   compareTwoArrays as compareScopes,
+  getAllowedIdpsForApprover,
+  isBceidApprover,
+  isGithubApprover,
+  isBCServicesCardApprover,
 } from '../utils/helpers';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@lambda-shared/interfaces';
@@ -26,6 +30,7 @@ import {
   getBaseWhereForMyOrTeamIntegrations,
   getIntegrationsByUserTeam,
   getIntegrationByClientId,
+  canUpdateRequestByUserId,
 } from '@lambda-app/queries/request';
 import { fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
@@ -438,6 +443,10 @@ export const updateRequest = async (
   // await checkIfHasFailedRequests();
   let addingProd = false;
   const userIsAdmin = isAdmin(session);
+  const bceidApprover = isBceidApprover(session);
+  const githubApprover = isGithubApprover(session);
+  const bcscApprover = isBCServicesCardApprover(session);
+  const allowedToUpdate = canUpdateRequestByUserId(session.user.id, data.id);
   const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id);
@@ -445,6 +454,7 @@ export const updateRequest = async (
   try {
     let existingClientId: string = '';
     const current = await getAllowedRequest(session, data.id);
+    if (!current) throw new Error('Request not found');
     const getCurrentValue = () => current.get({ plain: true, clone: true });
 
     if (current.status === 'applied' && !submit) {
@@ -476,19 +486,22 @@ export const updateRequest = async (
       }
     }
 
-    const allowedData = processRequest(rest, isMerged, userIsAdmin);
+    const allowedData = processRequest(session, rest, isMerged);
     assign(current, allowedData);
 
     const mergedData = getCurrentValue();
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
-    if (isApprovingBceid && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve bceid');
+    if (isApprovingBceid && !userIsAdmin && !bceidApprover)
+      throw new createHttpError.Forbidden('not allowed to approve bceid');
 
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
-    if (isApprovingGithub && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve github');
+    if (isApprovingGithub && !userIsAdmin && !githubApprover)
+      throw new createHttpError.Forbidden('not allowed to approve github');
 
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
-    if (isApprovingBCSC && !userIsAdmin) throw new createHttpError.Forbidden('not allowed to approve bc services card');
+    if (isApprovingBCSC && !userIsAdmin && !bcscApprover)
+      throw new createHttpError.Forbidden('not allowed to approve bc services card');
 
     if (originalData.bceidApproved) {
       // given approved, if adding/changing existing bceid idps throw error
@@ -510,6 +523,20 @@ export const updateRequest = async (
         throw new createHttpError.Forbidden('not allowed to remove bc services card idp');
       // keep bcsc attributes and privacy zone in sync with original data
       current.bcscAttributes = originalData.bcscAttributes!;
+    }
+
+    // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
+    if (
+      !userIsAdmin &&
+      (bceidApprover || githubApprover || bcscApprover) &&
+      !(await canUpdateRequestByUserId(session.user.id, data.id))
+    ) {
+      Object.assign(current, {
+        ...originalData,
+        bceidApproved: bceidApprover ? data.bceidApproved : originalData.bceidApproved,
+        githubApproved: githubApprover ? data.githubApproved : originalData.githubApproved,
+        bcServicesCardApproved: bcscApprover ? data.bcServicesCardApproved : originalData.bcServicesCardApproved,
+      });
     }
 
     const allowedTeams = await getAllowedTeams(user, { raw: true });
@@ -560,9 +587,6 @@ export const updateRequest = async (
 
       const hasGithub = usesGithub(current);
       const hasGithubProd = hasGithub && hasProd;
-
-      const hasDigitalCredential = usesDigitalCredential(current);
-      const hasDigitalCredentialProd = hasDigitalCredential && hasProd;
 
       const hasBcServicesCard = usesBcServicesCard(current);
       const hasBcServicesCardProd = hasBcServicesCard && hasProd;
@@ -846,12 +870,17 @@ export const getRequestAll = async (
     devIdps: string[];
   },
 ) => {
-  if (!isAdmin(session)) {
+  let where = null;
+  const { order, limit, page, ...rest } = data;
+  const allowedIdpsForApprover = getAllowedIdpsForApprover(session);
+
+  if (isAdmin(session)) {
+    where = getWhereClauseForAllRequests({ ...rest });
+  } else if (allowedIdpsForApprover.length > 0) {
+    where = getWhereClauseForAllRequests({ ...rest, devIdps: allowedIdpsForApprover });
+  } else {
     throw new createHttpError.Forbidden('not allowed');
   }
-
-  const { order, limit, page, ...rest } = data;
-  const where = getWhereClauseForAllRequests(rest);
 
   const result: Promise<{ count: number; rows: any[] }> = await models.request.findAndCountAll({
     where,
@@ -865,7 +894,6 @@ export const getRequestAll = async (
       },
     ],
   });
-
   return result;
 };
 
@@ -970,7 +998,7 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
 
 export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
   if (isAdmin(session)) return true;
-  const integration = await getAllowedRequest(session, integrationId);
+  const integration = await getMyOrTeamRequest(session.user.id, integrationId);
   return canDeleteIntegration(integration);
 };
 

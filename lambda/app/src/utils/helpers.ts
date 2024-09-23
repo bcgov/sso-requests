@@ -7,7 +7,6 @@ import { Integration } from '@app/interfaces/Request';
 import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import { validateForm } from '@app/utils/validate';
 import { Session, User } from '@lambda-shared/interfaces';
-import { User as TeamUser } from '@app/interfaces/team';
 import { sendTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
 import { sequelize, models } from '@lambda-shared/sequelize/models/models';
@@ -56,23 +55,33 @@ const durationAdditionalFields = [];
   durationAdditionalFields.push(`${env}OfflineAccessEnabled`);
 });
 
-export const processRequest = (data: Integration, isMerged: boolean, isAdmin: boolean) => {
-  const immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
+export const processRequest = (session: Session, data: Integration, isMerged: boolean) => {
+  const isAdminUser = isAdmin(session);
+
+  let immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
 
   if (isMerged) {
     immutableFields.push('realm');
     if (data?.protocol === 'saml') immutableFields.push('projectName');
   }
 
-  if (!isAdmin) {
-    immutableFields.push(
-      ...durationAdditionalFields,
-      'clientId',
-      ...['bceid', 'github', 'bcServicesCard'].map((idp) => `${idp}Approved`),
-    );
+  if (!isAdminUser) {
+    immutableFields.push(...durationAdditionalFields, 'clientId');
+
+    if (!isBceidApprover(session)) {
+      immutableFields.push('bceidApproved');
+    }
+
+    if (!isGithubApprover(session)) {
+      immutableFields.push('githubApproved');
+    }
+
+    if (!isBCServicesCardApprover(session)) {
+      immutableFields.push('bcServicesCardApproved');
+    }
   }
 
-  if (isAdmin) {
+  if (isAdminUser) {
     if (data?.protocol === 'oidc') {
       ['dev', 'test', 'prod'].forEach((env) => {
         if (!data[`${env}OfflineAccessEnabled`])
@@ -116,6 +125,23 @@ export const validateRequest = async (formData: any, original: Integration, team
 };
 
 export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
+
+export const isBceidApprover = (session: Session) => session.client_roles?.includes('bceid-admin');
+
+export const isGithubApprover = (session: Session) => session.client_roles?.includes('github-admin');
+
+export const isBCServicesCardApprover = (session: Session) => session.client_roles?.includes('bc-services-card-admin');
+
+export const getAllowedIdpsForApprover = (session: Session) => {
+  const idps = [];
+  if (session.client_roles.length === 0) return idps;
+  session.client_roles.forEach((role) => {
+    if (role === 'bceid-admin') idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+    if (role === 'bc-services-card-admin') idps.push('bcservicescard');
+    if (role === 'github-admin') idps.push('githubbcgov', 'githubpublic');
+  });
+  return idps;
+};
 export const getDisplayName = (session: Session) => compact([session.given_name, session.family_name]).join(' ');
 
 export const getWhereClauseForAllRequests = (data: {
