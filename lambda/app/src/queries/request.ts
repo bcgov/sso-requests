@@ -92,11 +92,30 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
       include: commonPopulation,
     });
   } else if (getAllowedIdpsForApprover(session).length > 0) {
-    return models.request.findOne({
+    const teamIdsLiteral = getMyTeamsLiteral(session.user.id);
+    return await models.request.findOne({
       where: {
         id: requestId,
         apiServiceAccount: false,
-        devIdps: { [Op.overlap]: getAllowedIdpsForApprover(session) },
+        [Op.or]: [
+          {
+            [Op.or]: [
+              {
+                usesTeam: true,
+                teamId: {
+                  [Op.in]: sequelize.literal(`(${teamIdsLiteral})`),
+                },
+              },
+              {
+                usesTeam: false,
+                userId: session.user.id,
+              },
+            ],
+          },
+          {
+            devIdps: { [Op.overlap]: getAllowedIdpsForApprover(session) },
+          },
+        ],
       },
       include: commonPopulation,
     });

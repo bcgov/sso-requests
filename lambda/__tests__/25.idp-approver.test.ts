@@ -107,7 +107,7 @@ describe('IDP Approver', () => {
     jest.clearAllMocks();
   });
 
-  it('BCeID approver can view any bceid integration', async () => {
+  it('BCeID approver can view and approve any bceid integration but cannot edit/delete/restore', async () => {
     createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-admin']);
     const requests = await getRequestsForAdmins();
 
@@ -135,7 +135,36 @@ describe('IDP Approver', () => {
     expect(restoreRes.status).toEqual(403);
   });
 
-  it('GitHub approver can view any github integration', async () => {
+  it('bceid approver can edit/approve/delete owned integrations', async () => {
+    createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-admin']);
+    const bceidApproverIntegration = await buildIntegration({
+      projectName: 'bceid-approver',
+      submitted: true,
+      bceid: true,
+      prodEnv: true,
+    });
+
+    expect(bceidApproverIntegration.status).toEqual(200);
+
+    const requests = await getRequestsForAdmins();
+    const createdReq = requests.body.rows.find((row) => row.projectName === 'bceid-approver');
+    expect(requests.status).toEqual(200);
+    expect(createdReq).toBeTruthy();
+
+    const approveRes = await updateIntegration(
+      { ...createdReq, bceidApproved: true, devValidRedirectUris: ['https://other-application-route'] },
+      true,
+    );
+
+    expect(approveRes.status).toEqual(200);
+    expect(approveRes.body.bceidApproved).toEqual(true);
+    expect(approveRes.body.devValidRedirectUris).toEqual(['https://other-application-route']);
+
+    const deleteRes = await deleteIntegration(createdReq.id);
+    expect(deleteRes.status).toEqual(200);
+  });
+
+  it('GitHub approver can view and approve any github integration but cannot edit/delete/restore', async () => {
     createMockAuth(GITHUB_ADMIN_IDIR_USERID_01, GITHUB_ADMIN_IDIR_EMAIL_01, ['github-admin']);
     const requests = await getRequestsForAdmins();
     expect(requests.status).toEqual(200);
@@ -162,7 +191,7 @@ describe('IDP Approver', () => {
     expect(restoreRes.status).toEqual(403);
   });
 
-  it('BC Services Card approver can view any BCSC integration', async () => {
+  it('BC Services Card approver can view and approve any bcsc integration but cannot edit/delete/restore', async () => {
     createMockAuth(BCSC_ADMIN_IDIR_USERID_01, BCSC_ADMIN_IDIR_EMAIL_01, ['bc-services-card-admin']);
     const requests = await getRequestsForAdmins();
     expect(requests.status).toEqual(200);

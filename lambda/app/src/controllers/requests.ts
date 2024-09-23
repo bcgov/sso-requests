@@ -454,6 +454,7 @@ export const updateRequest = async (
   try {
     let existingClientId: string = '';
     const current = await getAllowedRequest(session, data.id);
+    if (!current) throw new Error('Request not found');
     const getCurrentValue = () => current.get({ plain: true, clone: true });
 
     if (current.status === 'applied' && !submit) {
