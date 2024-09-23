@@ -44,7 +44,7 @@ jobs:
           record: true
           wait-on: 'http://localhost:3000'
           wait-on-timeout: 180
-          install-command: npm ci
+          install-command: yarn
           working-directory: app
           spec: |
             cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
