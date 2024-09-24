@@ -472,7 +472,7 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": true,
+    "smoketest": false,
     "localtest": true
   },
   {

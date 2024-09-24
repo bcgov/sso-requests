@@ -43,7 +43,7 @@ describe('Run IDP Stopper Test', () => {
         playground.fillInPlayground(
           null,
           null,
-          kebabCase(data.create.projectname) + '-' + util.getDate() + '-' + Number(req.id),
+          kebabCase(data.create.projectname) + '-' + req.uid + '-' + Number(req.id),
           null,
         );
 

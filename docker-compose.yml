@@ -138,8 +138,6 @@ services:
 
     depends_on:
       - sso-db
-      # Optionally spin up one at a time if this crushes your cpu
-      - dev-keycloak
     ports:
       - 9081:9081
     command: start-dev --http-port=9081
@@ -177,8 +175,6 @@ services:
 
     depends_on:
       - sso-db
-      # Optionally spin up one at a time if this crushes your cpu
-      - test-keycloak
     ports:
       - 9082:9082
     command: start-dev --http-port=9082

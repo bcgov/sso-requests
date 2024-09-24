@@ -41,7 +41,7 @@ describe('Create Integration Requests For login page capitalization', () => {
       playground.fillInPlayground(
         null,
         null,
-        kebabCase(request.projectname) + '-' + util.getDate() + '-' + Number(req.id),
+        kebabCase(request.projectname) + '-' + req.uid + '-' + Number(req.id),
         null,
       );
       playground.clickLogin();
