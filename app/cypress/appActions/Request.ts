@@ -713,8 +713,7 @@ class Request {
 
     cy.get(this.reqPage.tabTechDetails).click();
     cy.get(this.reqPage.tabRoleManagement).click();
-    cy.wait(5000);
-    cy.get('#rc-tabs-2-tab-' + env).click();
+    cy.get('#rc-tabs-2-tab-' + env, { timeout: 10000 }).click();
     cy.contains('td', role_main)
       .parent()
       .within(($el) => {
