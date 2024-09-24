@@ -33,11 +33,11 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'Pre-reqs'
-          wait-on: ${{ secrets.CYPRESS_HOST }}
+          wait-on: https://bcgov.github.io/sso-requests-sandbox/
           wait-on-timeout: 120
           record: true
-          install-command: npm ci
-          working-directory: testing
+          install-command: yarn
+          working-directory: app
           spec: |
             cypress/e2e/**/integration-990-deleteAllIntegrations.cy.ts
             cypress/e2e/**/team-900-*.cy.ts
