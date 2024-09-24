@@ -60,7 +60,7 @@
     "prodroles": {},
     "delete": true,
     "smoketest": true,
-    "localtest": false
+    "localtest": true
   },
   {
     "id": "",
@@ -118,8 +118,8 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": false,
-    "localtest": false
+    "smoketest": true,
+    "localtest": true
   },
   {
     "id": "",
@@ -177,8 +177,8 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": false,
-    "localtest": false
+    "smoketest": true,
+    "localtest": true
   },
   {
     "id": "",
@@ -236,8 +236,8 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": false,
-    "localtest": false
+    "smoketest": true,
+    "localtest": true
   },
   {
     "id": "",
@@ -295,8 +295,8 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": false,
-    "localtest": false
+    "smoketest": true,
+    "localtest": true
   },
   {
     "id": "",
@@ -354,8 +354,8 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": false,
-    "localtest": false
+    "smoketest": true,
+    "localtest": true
   },
   {
     "id": "",
@@ -413,8 +413,8 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": false,
-    "localtest": false
+    "smoketest": true,
+    "localtest": true
   },
   {
     "id": "",
@@ -472,8 +472,8 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": false,
-    "localtest": false
+    "smoketest": true,
+    "localtest": true
   },
   {
     "id": "",

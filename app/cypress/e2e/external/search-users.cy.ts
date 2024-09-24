@@ -1,11 +1,11 @@
 // Creation of pre-reqs for test
 
-import searchIntegration from '../fixtures/search-test-integration.json';
-import rolesData from '../fixtures/rolesusers.json';
-import idimData from '../fixtures/idim-search.json';
-import Request from '../appActions/Request';
-import Playground from '../pageObjects/playgroundPage';
-import Utilities from '../appActions/Utilities';
+import searchIntegration from '../../fixtures/search-test-integration.json';
+import rolesData from '../../fixtures/rolesusers.json';
+import idimData from '../../fixtures/idim-search.json';
+import Request from '../../appActions/Request';
+import Playground from '../../pageObjects/playgroundPage';
+import Utilities from '../../appActions/Utilities';
 var kebabCase = require('lodash.kebabcase');
 
 let util = new Utilities();

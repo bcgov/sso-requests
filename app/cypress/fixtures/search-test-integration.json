@@ -28,6 +28,6 @@
     "description": "This is a placeholder for the test automation script."
   },
   "delete": true,
-  "smoketest": true,
+  "smoketest": false,
   "localtest": false
 }

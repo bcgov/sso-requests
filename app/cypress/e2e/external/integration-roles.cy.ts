@@ -1,8 +1,8 @@
 // Creation of Integration request variants
 
-import data from '../fixtures/requests-roles.json'; // The data file will drive the tests
-import Request from '../appActions/Request';
-import Utilities from '../appActions/Utilities';
+import data from '../../fixtures/requests-roles.json'; // The data file will drive the tests
+import Request from '../../appActions/Request';
+import Utilities from '../../appActions/Utilities';
 let util = new Utilities();
 let testData = data;
 

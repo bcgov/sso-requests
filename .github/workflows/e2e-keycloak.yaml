@@ -13,8 +13,8 @@ env:
   CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_host: 'https://bcgov.github.io/sso-requests-sandbox/'
-  CYPRESS_smoketest: true
-  CYPRESS_localtest: true
+  CYPRESS_smoketest: false
+  CYPRESS_localtest: false
   CYPRESS_BASE_URL: 'https://bcgov.github.io/sso-requests-sandbox/'
 
 jobs:
