@@ -712,23 +712,20 @@ class Request {
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
     cy.get(this.reqPage.tabTechDetails).click();
-    cy.get(this.reqPage.tabRoleManagement)
-      .click()
-      .then(() => {
-        cy.wait(10000);
-        cy.get('#rc-tabs-2-tab-' + env).click();
-        cy.contains('td', role_main)
-          .parent()
-          .within(($el) => {
-            cy.wrap($el).click();
-          });
-        cy.findByRole('tab', { name: 'Composite Roles' }).click();
-        cy.wait(2000);
-        cy.get('input[id^="react-select-"][role ="combobox"]')
-          .eq(0)
-          .type(role_second + '{enter}');
-        cy.wait(2000);
+    cy.get(this.reqPage.tabRoleManagement).click();
+    cy.wait(5000);
+    cy.get('#rc-tabs-2-tab-' + env).click();
+    cy.contains('td', role_main)
+      .parent()
+      .within(($el) => {
+        cy.wrap($el).click();
       });
+    cy.findByRole('tab', { name: 'Composite Roles' }).click();
+    cy.wait(2000);
+    cy.get('input[id^="react-select-"][role ="combobox"]')
+      .eq(0)
+      .type(role_second + '{enter}');
+    cy.wait(2000);
 
     return true;
   }
