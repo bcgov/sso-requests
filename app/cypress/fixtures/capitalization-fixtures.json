@@ -1,0 +1,36 @@
+[
+  {
+    "id": "",
+    "create": {
+      "test_id": "Capitalization Tester",
+      "projectname": "Create displayheader",
+      "team": false,
+      "teamname": null,
+      "newteam": false,
+      "projectlead": true,
+      "protocol": "oidc",
+      "authtype": "browser-login",
+      "publicaccess": true,
+      "identityprovider": ["IDIR", "IDIR - MFA", "", ""],
+      "additionalroleattribute": "tbd",
+      "environments": ["dev", "test", ""],
+      "displayheader": true,
+      "displayheadertest": false,
+      "displayheaderprod": null,
+      "ssoheaderdev": "Testing CaPiTaLiZaTiOn",
+      "ssoheadertest": "SSO Header Test",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturiprod": [],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "Variant 1",
+      "devLoginTitle": "Testing bottom"
+    },
+    "smoketest": false,
+    "localtest": false,
+    "delete": true
+  }
+]

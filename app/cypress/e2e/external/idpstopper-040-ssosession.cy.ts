@@ -6,8 +6,8 @@ with same client without displaying the login page
 with a client and if the same user when authenticates with different client and a different IDP through KC_IDP_HINT,
 the previous session should be removed and allowed to login */
 
-import Playground from '../pageObjects/playgroundPage';
-import Utilities from '../appActions/Utilities';
+import Playground from '../../pageObjects/playgroundPage';
+import Utilities from '../../appActions/Utilities';
 let util = new Utilities();
 
 describe('KC Single Sign on session', () => {
@@ -16,7 +16,7 @@ describe('KC Single Sign on session', () => {
     cy.cleanGC();
     //Establish the session with CSS Sandbox: IDIR
     cy.setid(null).then(() => {
-      cy.login(null, null, null, null);
+      cy.login();
     });
   });
 

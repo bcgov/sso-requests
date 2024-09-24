@@ -1,7 +1,7 @@
-import data from '../fixtures/capitalization-fixtures.json'; // The data file will drive the tests
-import Request from '../appActions/Request';
-import Utilities from '../appActions/Utilities';
-import Playground from '../pageObjects/playgroundPage';
+import data from '../../fixtures/capitalization-fixtures.json'; // The data file will drive the tests
+import Request from '../../appActions/Request';
+import Utilities from '../../appActions/Utilities';
+import Playground from '../../pageObjects/playgroundPage';
 
 let util = new Utilities();
 let req = new Request();
@@ -23,12 +23,12 @@ describe('Create Integration Requests For login page capitalization', () => {
     // Create an integration with 2 or more IDPs and an ssoheaderdev with capitalization
     it(`Create ${request.projectname} (Test ID: ${request.test_id}) - ${request.description}`, () => {
       cy.setid(null).then(() => {
-        cy.login(null, null, null, null);
+        cy.login();
       });
       req.showCreateContent(data[0]);
       req.populateCreateContent(data[0]);
       req.createRequest();
-      cy.logout(null);
+      cy.logout();
     });
 
     // Using the OIDC Playground to test the IDP Stopper
@@ -53,10 +53,10 @@ describe('Create Integration Requests For login page capitalization', () => {
 
     it('Delete the request', () => {
       cy.setid(null).then(() => {
-        cy.login(null, null, null, null);
+        cy.login();
       });
       req.deleteRequest(req.id);
-      cy.logout(null);
+      cy.logout();
     });
   }
 });
