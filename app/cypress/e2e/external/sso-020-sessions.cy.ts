@@ -1,7 +1,7 @@
-import data from '../fixtures/sso-test.json'; // The data file will drive the tests
-import Playground from '../pageObjects/playgroundPage';
-import Request from '../appActions/Request';
-import Utilities from '../appActions/Utilities';
+import data from '../../fixtures/sso-test.json'; // The data file will drive the tests
+import Playground from '../../pageObjects/playgroundPage';
+import Request from '../../appActions/Request';
+import Utilities from '../../appActions/Utilities';
 
 const cookiesToClear: string[] = [
   'KEYCLOAK_SESSION_LEGACY',
@@ -42,7 +42,7 @@ describe('SSO Tests', () => {
   testData.forEach((data, index) => {
     it('Find Integration IDs', function () {
       cy.setid(null).then(() => {
-        cy.login(null, null, null, null);
+        cy.login();
       });
 
       req.getID(data.integration_1).then(() => {
@@ -54,7 +54,7 @@ describe('SSO Tests', () => {
         cy.log('Integration 2 ID: ' + Cypress.env('integration_2_id'));
       });
 
-      cy.logout(null);
+      cy.logout();
     });
 
     it(`Test: "${data.id}": ${data.idp_hint_1}/ ${data.idp_hint_2}`, function () {

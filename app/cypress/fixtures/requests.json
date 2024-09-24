@@ -118,7 +118,7 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": true,
+    "smoketest": false,
     "localtest": true
   },
   {
@@ -177,7 +177,7 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": true,
+    "smoketest": false,
     "localtest": true
   },
   {
@@ -236,7 +236,7 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": true,
+    "smoketest": false,
     "localtest": true
   },
   {
@@ -295,7 +295,7 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": true,
+    "smoketest": false,
     "localtest": true
   },
   {
@@ -354,7 +354,7 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": true,
+    "smoketest": false,
     "localtest": true
   },
   {
@@ -538,7 +538,7 @@
     "testroles": {},
     "prodroles": {},
     "delete": true,
-    "smoketest": true,
+    "smoketest": false,
     "localtest": false,
     "disable": true,
     "approvals": {

@@ -47,7 +47,7 @@ jobs:
 
   idp-stopper:
     runs-on: ubuntu-latest
-    needs: [pre-reqs]
+    needs: [pre-reqs, search-users, roles-tests]
     strategy:
       fail-fast: false
     steps:
@@ -73,7 +73,7 @@ jobs:
 
   sso-tests:
     runs-on: ubuntu-latest
-    needs: [pre-reqs]
+    needs: [pre-reqs, search-users, roles-tests, idp-stopper]
     strategy:
       fail-fast: false
     steps:
@@ -146,5 +146,31 @@ jobs:
           working-directory: app
           spec: |
             cypress/e2e/external/integration-roles.cy.ts
+          browser: electron
+          ci-build-id: ${{ github.event.number }}
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: [pre-reqs]
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: isbang/compose-action@v1.5.1
+        with:
+          compose-file: './docker-compose.yml'
+      - name: E2E Tests
+        uses: cypress-io/github-action@v6
+        id: smoke
+        continue-on-error: false
+        with:
+          summary-title: 'E2E tests'
+          record: true
+          wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
+          wait-on-timeout: 360
+          install-command: yarn
+          working-directory: app
+          spec: |
+            cypress/e2e/ci/integrations-crud.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}

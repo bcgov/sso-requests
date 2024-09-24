@@ -1,8 +1,8 @@
 // Creation of Integration request variants
 
-import data from '../fixtures/sso-requests.json'; // The data file will drive the tests
-import Request from '../appActions/Request';
-import Utilities from '../appActions/Utilities';
+import data from '../../fixtures/sso-requests.json'; // The data file will drive the tests
+import Request from '../../appActions/Request';
+import Utilities from '../../appActions/Utilities';
 let testData = data;
 let util = new Utilities();
 
@@ -15,12 +15,12 @@ describe('Create SSO Integration Requests', () => {
   });
   beforeEach(() => {
     cy.setid(null).then(() => {
-      cy.login(null, null, null, null);
+      cy.login();
     });
   });
 
   afterEach(() => {
-    cy.logout(null);
+    cy.logout();
   });
 
   // Iterate through the JSON file and create a team for each entry
