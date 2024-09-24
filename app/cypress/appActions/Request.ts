@@ -720,7 +720,7 @@ class Request {
       .within(($el) => {
         cy.wrap($el).click();
       });
-    cy.findByRole('tab', { name: 'Composite Roles' }).click();
+    cy.get('.rc-tabs-tab').contains('Composite Roles').click();
     cy.wait(2000);
     cy.get('input[id^="react-select-"][role ="combobox"]')
       .eq(0)

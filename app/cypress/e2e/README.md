@@ -2,10 +2,13 @@
 
 This directory contains Cypress test specs.
 
-To run the tests, run: `npx cypress run --browser "chrome"` from the root of the project (/testing). Or, you can run `npm run test`. This will run all of the tests in the `cypress/e2e` directory.
-To only run the smoke tests use: `npx cypress run --spec 'cypress/e2e/**/smoke-*-*.cy.ts' --browser chrome`. Or, you can run `npm run smoke`. This will run all of the smoke tests in the `cypress/e2e` directory.
+To run the tests, run: `npx cypress open` from the root of the project (/app). This will open the cypress portal where you can select specs to run.
 
-It is important to specify the correct browser when running your tests. If you do not specify a browser, Cypress will try to run in Electron, which is not supported by the application.
+## Organization
+
+The tests are split into the `ci` and `external` folder. External tests require the actual environment, e.g sandbox.loginproxy.gov.bc.ca, since they actually login with an external IDP as part of the flow. The ones in CI can be run against the docker compose instance.
+
+Each test has a localtest and smoketest flag, if smoketest is true it will run on each pull request to dev. Otherwise it will be part of the full test suite run only. If localtest is true it should be runnable against the compose instance, e.g. not require an actual idp login.
 
 ## User Accounts
 
