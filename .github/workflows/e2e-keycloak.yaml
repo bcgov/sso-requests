@@ -45,35 +45,35 @@ jobs:
           # project: ./e2e
           ci-build-id: ${{ github.event.number }}
 
-  # idp-stopper:
-  #   runs-on: ubuntu-latest
-  #   needs: [pre-reqs] # , search-users, roles-tests]
-  #   strategy:
-  #     fail-fast: false
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: isbang/compose-action@v1.5.1
-  #       with:
-  #         compose-file: './docker-compose.yml'
-  #     - name: E2E Tests
-  #       uses: cypress-io/github-action@v6
-  #       id: smoke
-  #       continue-on-error: false
-  #       with:
-  #         summary-title: 'E2E tests'
-  #         record: true
-  #         wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
-  #         wait-on-timeout: 360
-  #         install-command: yarn
-  #         working-directory: app
-  #         spec: |
-  #           cypress/e2e/external/idpstopper-*.cy.ts
-  #         browser: electron
-  #         ci-build-id: ${{ github.event.number }}
-
-  sso-tests:
+  idp-stopper:
     runs-on: ubuntu-latest
-    needs: [pre-reqs] # , search-users, roles-tests, idp-stopper]
+    needs: [pre-reqs, search-users, roles-tests]
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: isbang/compose-action@v1.5.1
+        with:
+          compose-file: './docker-compose.yml'
+      - name: E2E Tests
+        uses: cypress-io/github-action@v6
+        id: smoke
+        continue-on-error: false
+        with:
+          summary-title: 'E2E tests'
+          record: true
+          wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
+          wait-on-timeout: 360
+          install-command: yarn
+          working-directory: app
+          spec: |
+            cypress/e2e/external/idpstopper-*.cy.ts
+          browser: electron
+          ci-build-id: ${{ github.event.number }}
+
+  search-users:
+    runs-on: ubuntu-latest
+    needs: [pre-reqs]
     strategy:
       fail-fast: false
     steps:
@@ -90,75 +90,52 @@ jobs:
           install-command: yarn
           working-directory: app
           spec: |
-            cypress/e2e/external/sso-*.cy.ts
+            cypress/e2e/external/search-users.cy.ts
           browser: electron
           ci-build-id: ${{ github.event.number }}
 
-  # search-users:
-  #   runs-on: ubuntu-latest
-  #   needs: [pre-reqs]
-  #   strategy:
-  #     fail-fast: false
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: E2E Tests
-  #       uses: cypress-io/github-action@v6
-  #       id: smoke
-  #       continue-on-error: false
-  #       with:
-  #         summary-title: 'E2E tests'
-  #         record: true
-  #         wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
-  #         wait-on-timeout: 360
-  #         install-command: yarn
-  #         working-directory: app
-  #         spec: |
-  #           cypress/e2e/external/search-users.cy.ts
-  #         browser: electron
-  #         ci-build-id: ${{ github.event.number }}
+  roles-tests:
+    runs-on: ubuntu-latest
+    needs: [pre-reqs]
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: E2E Tests
+        uses: cypress-io/github-action@v6
+        id: smoke
+        continue-on-error: false
+        with:
+          summary-title: 'E2E tests'
+          record: true
+          wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
+          wait-on-timeout: 360
+          install-command: yarn
+          working-directory: app
+          spec: |
+            cypress/e2e/external/integration-roles.cy.ts
+          browser: electron
+          ci-build-id: ${{ github.event.number }}
 
-  # roles-tests:
-  #   runs-on: ubuntu-latest
-  #   needs: [pre-reqs]
-  #   strategy:
-  #     fail-fast: false
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: E2E Tests
-  #       uses: cypress-io/github-action@v6
-  #       id: smoke
-  #       continue-on-error: false
-  #       with:
-  #         summary-title: 'E2E tests'
-  #         record: true
-  #         wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
-  #         wait-on-timeout: 360
-  #         install-command: yarn
-  #         working-directory: app
-  #         spec: |
-  #           cypress/e2e/external/integration-roles.cy.ts
-  #         browser: electron
-  #         ci-build-id: ${{ github.event.number }}
-
-  # integration-tests:
-  #   runs-on: ubuntu-latest
-  #   needs: [pre-reqs]
-  #   strategy:
-  #     fail-fast: false
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: E2E Tests
-  #       uses: cypress-io/github-action@v6
-  #       id: smoke
-  #       continue-on-error: false
-  #       with:
-  #         summary-title: 'E2E tests'
-  #         record: true
-  #         wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
-  #         wait-on-timeout: 360
-  #         install-command: yarn
-  #         working-directory: app
-  #         spec: |
-  #           cypress/e2e/ci/integrations-crud.cy.ts
-  #         browser: electron
-  #         ci-build-id: ${{ github.event.number }}
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: [pre-reqs]
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: E2E Tests
+        uses: cypress-io/github-action@v6
+        id: smoke
+        continue-on-error: false
+        with:
+          summary-title: 'E2E tests'
+          record: true
+          wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
+          wait-on-timeout: 360
+          install-command: yarn
+          working-directory: app
+          spec: |
+            cypress/e2e/ci/integrations-crud.cy.ts
+          browser: electron
+          ci-build-id: ${{ github.event.number }}

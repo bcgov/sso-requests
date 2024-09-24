@@ -1,6 +1,5 @@
 import 'cypress-plugin-api';
 import 'cypress-real-events';
-import '@testing-library/cypress/add-commands';
 import HomePage from '../pageObjects/homePage';
 
 Cypress.Commands.add('login', (username, password, host, siteminder) => {
