@@ -10,7 +10,7 @@ class PlaygroundPage {
   idpHint: string = 'input[name="idpHint"]';
   commonButton: string = 'button';
 
-  fillInPlayground = (url: string | null, realm: string | null, client: string, idpHint: string) => {
+  fillInPlayground = (url: string | null, realm: string | null, client: string, idpHint: string | null) => {
     this.selectConfig();
     this.setAuthServerUrl(url);
     this.setRealm(realm);
