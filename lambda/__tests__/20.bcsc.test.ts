@@ -6,6 +6,7 @@ import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, formDataDev, formD
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 import { submitNewIntegration } from './helpers/modules/integrations';
 import { IntegrationData } from '@lambda-shared/interfaces';
+import { getDefaultClientScopes } from '@lambda-app/keycloak/integration';
 
 jest.mock('@lambda-app/controllers/bc-services-card', () => {
   return {
@@ -282,14 +283,42 @@ describe('Build Github Dispatch', () => {
     // Leaves other idp alone
     expect(processedIntegration.prodIdps.includes('idir')).toBe(true);
 
-    // Keeps VC in dev and test
+    // Keeps BCSC in dev and test
     expect(processedIntegration.testIdps.includes('bcservicescard')).toBe(true);
     expect(processedIntegration.devIdps.includes('bcservicescard')).toBe(true);
+  });
+
+  it('Does not add the idp scope if not in the production idp list', () => {
+    const result = getDefaultClientScopes(
+      {
+        ...bcscProdIntegration,
+        clientId: 'myClient',
+        devIdps: ['bcservicescard', 'idir'],
+        testIdps: ['bcservicescard', 'idir'],
+        prodIdps: ['idir'],
+      },
+      'prod',
+    );
+    expect(result.includes('myClient')).toBeFalsy();
   });
 
   it('Keeps bc services card in production IDP list if approved', () => {
     const approvedIntegration = { ...bcscProdIntegration, bcServicesCardApproved: true };
     const processedIntegration = buildGitHubRequestData(approvedIntegration);
     expect(processedIntegration.prodIdps.includes('bcservicescard')).toBe(true);
+  });
+
+  it('Does add the idp scope if included in the production idp list', () => {
+    const result = getDefaultClientScopes(
+      {
+        ...bcscProdIntegration,
+        clientId: 'myClient',
+        devIdps: ['bcservicescard', 'idir'],
+        testIdps: ['bcservicescard', 'idir'],
+        prodIdps: ['idir', 'bcservicescard'],
+      },
+      'prod',
+    );
+    expect(result.includes('myClient')).toBeTruthy();
   });
 });
