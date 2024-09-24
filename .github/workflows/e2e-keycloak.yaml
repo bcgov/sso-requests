@@ -78,9 +78,6 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      - uses: isbang/compose-action@v1.5.1
-        with:
-          compose-file: './docker-compose.yml'
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
@@ -104,9 +101,6 @@ jobs:
   #     fail-fast: false
   #   steps:
   #     - uses: actions/checkout@v4
-  #     - uses: isbang/compose-action@v1.5.1
-  #       with:
-  #         compose-file: './docker-compose.yml'
   #     - name: E2E Tests
   #       uses: cypress-io/github-action@v6
   #       id: smoke
@@ -130,9 +124,6 @@ jobs:
   #     fail-fast: false
   #   steps:
   #     - uses: actions/checkout@v4
-  #     - uses: isbang/compose-action@v1.5.1
-  #       with:
-  #         compose-file: './docker-compose.yml'
   #     - name: E2E Tests
   #       uses: cypress-io/github-action@v6
   #       id: smoke
@@ -156,9 +147,6 @@ jobs:
   #     fail-fast: false
   #   steps:
   #     - uses: actions/checkout@v4
-  #     - uses: isbang/compose-action@v1.5.1
-  #       with:
-  #         compose-file: './docker-compose.yml'
   #     - name: E2E Tests
   #       uses: cypress-io/github-action@v6
   #       id: smoke
