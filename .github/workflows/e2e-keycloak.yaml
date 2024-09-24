@@ -1,8 +1,6 @@
 name: Run Keycloak App E2E tests
 
 on:
-  push:
-    branches: ssoteam-1915
   workflow_dispatch:
 
 env:
