@@ -714,7 +714,7 @@ class Request {
     cy.get(this.reqPage.tabRoleManagement)
       .click()
       .then(() => {
-        cy.wait(2000);
+        cy.wait(10000);
         cy.get('#rc-tabs-2-tab-' + env).click();
         cy.contains('td', role_main)
           .parent()
