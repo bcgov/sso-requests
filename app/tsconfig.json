@@ -20,6 +20,6 @@
     "incremental": true,
     "types": ["cypress", "node", "cypress-real-events"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/**/*", "src/**/*", "cypress.config.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/**/*", "src/**/*"],
   "exclude": ["node_modules"]
 }

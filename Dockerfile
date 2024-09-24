@@ -1,4 +1,4 @@
-FROM node:18.14.2-slim
+FROM node:16.14.2-slim
 
 RUN apt-get update && apt-get install curl make -y \
                    && apt-get install libsqlite3-dev bzip2 icu-devtools uuid-dev -y
