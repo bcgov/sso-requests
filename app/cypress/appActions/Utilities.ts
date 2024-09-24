@@ -37,7 +37,7 @@ class Utilities {
   getDate(): string {
     let today = new Date();
     let dd = padStart(String(today.getDate()), 2, '0');
-    let mm = padStart(String(today.getMonth()) + 1, 2, '0'); //January is 0!
+    let mm = padStart(String(today.getMonth() + 1), 2, '0'); //January is 0!
     let yyyy = padStart(String(today.getFullYear()), 4, '0');
     let hh = padStart(String(today.getHours()), 2, '0');
     let min = padStart(String(today.getMinutes()), 2, '0');
