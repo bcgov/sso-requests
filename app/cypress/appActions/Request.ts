@@ -586,8 +586,9 @@ class Request {
       if (regex.test(t)) {
         cy.get(this.reqPage.integrationsTable).eq(index).scrollIntoView();
         cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
-        cy.wait(3000);
+        cy.wait(1000);
         this.reqPage.confirmDeleteIntegration(id, projectName);
+        cy.wait(1000);
         cy.log('Delete Request: ' + id.toString());
       }
     });
