@@ -5,6 +5,15 @@ import createHttpError from 'http-errors';
 export const SSO_ADMIN_USERID_01 = 'SSO_ADMIN_USER_01';
 export const SSO_ADMIN_EMAIL_01 = 'sso.admin.user-01@gov.bc.ca';
 
+export const BCEID_ADMIN_IDIR_USERID_01 = 'BCEID_ADMIN_USER_01';
+export const BCEID_ADMIN_IDIR_EMAIL_01 = 'bceid.admin.user-01@gov.bc.ca';
+
+export const GITHUB_ADMIN_IDIR_USERID_01 = 'GITHUB_ADMIN_USER_01';
+export const GITHUB_ADMIN_IDIR_EMAIL_01 = 'github.admin.user-01@gov.bc.ca';
+
+export const BCSC_ADMIN_IDIR_USERID_01 = 'BCSC_ADMIN_USER_01';
+export const BCSC_ADMIN_IDIR_EMAIL_01 = 'bcsc.admin.user-01@gov.bc.ca';
+
 export const TEAM_ADMIN_IDIR_USERNAME_01 = 'TEAMADMINIDIRUSER01';
 export const TEAM_ADMIN_IDIR_USERID_01 = 'TEAM_ADMIN_IDIR_USER_01';
 export const TEAM_ADMIN_IDIR_EMAIL_01 = 'team.admin.idir.user-01@gov.bc.ca';

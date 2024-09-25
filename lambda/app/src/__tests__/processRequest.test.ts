@@ -1,3 +1,4 @@
+import { Session } from '@lambda-shared/interfaces';
 import { processRequest } from '../utils/helpers';
 
 const data: any = {
@@ -20,13 +21,13 @@ const data: any = {
 };
 
 it('should order the URIs', () => {
-  const processedData = processRequest(data, false, false);
+  const processedData = processRequest({ client_roles: [] } as Session, data, false);
   expect(processedData.devValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
   expect(processedData.testValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
   expect(processedData.prodValidRedirectUris).toEqual(['https://a', 'https://b', 'https://c']);
 });
 
 it('should omit the realm for merged requests', () => {
-  const processedData = processRequest(data, true, false);
+  const processedData = processRequest({ client_roles: [] } as Session, data, true);
   expect(processedData.realm).toBeUndefined();
 });
