@@ -28,3 +28,7 @@ LICENSE
 **/.env
 **/.next
 **/.terraform
+**/__tests__
+**/cypress
+**/jest
+**/dist
