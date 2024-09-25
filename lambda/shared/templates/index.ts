@@ -22,8 +22,6 @@ import surveyCompleted from './survey-completed-notification';
 import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
-import { getPrivacyZones } from '@lambda-app/controllers/bc-services-card';
-import { getPrivacyZoneDisplayName } from '@app/helpers/integration';
 import { isNonProdDigitalCredentialRequest } from './helpers';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
