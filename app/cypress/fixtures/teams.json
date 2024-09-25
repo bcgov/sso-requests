@@ -1,0 +1,49 @@
+[
+  {
+    "create": {
+      "test_id": "Dummy Team",
+      "teamname": "Do not delete Team",
+      "useremail": [],
+      "userrole": [],
+      "description": ""
+    },
+    "update": {
+      "test_id": "Update Dummy Team",
+      "teamname": "Do not delete Team",
+      "adduser": [],
+      "deleteuser": [],
+      "description": ""
+    },
+    "delete": true,
+    "smoketest": true,
+    "localtest": false
+  },
+  {
+    "create": {
+      "test_id": "Create Team 1",
+      "teamname": "Team 1",
+      "useremail": ["pathfinder.ssotraining2@gov.bc.ca"],
+      "userrole": ["admin"],
+      "description": ""
+    },
+    "update": {
+      "test_id": "Update Team 1",
+      "teamname": "Team 1 Updated",
+      "adduser": [
+        {
+          "useremail": "pathfinder.ssotraining2@gov.bc.ca",
+          "userrole": "Member"
+        }
+      ],
+      "deleteuser": [
+        {
+          "useremail": "pathfinder.ssotraining2@gov.bc.ca"
+        }
+      ],
+      "description": "Update Team 1"
+    },
+    "delete": true,
+    "smoketest": true,
+    "localtest": false
+  }
+]

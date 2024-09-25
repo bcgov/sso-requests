@@ -1,0 +1,39 @@
+[
+  {
+    "id": "",
+    "create": {
+      "test_id": "SAML 1",
+      "projectname": "SAML",
+      "team": true,
+      "teamname": "Training Accounts V2 Main Admin",
+      "newteam": false,
+      "projectlead": false,
+      "protocol": "saml",
+      "authtype": "browser-login",
+      "publicaccess": true,
+      "identityprovider": ["IDIR"],
+      "additionalroleattribute": "",
+      "environments": ["dev", "", ""],
+      "displayheader": false,
+      "displayheadertest": false,
+      "displayheaderprod": null,
+      "ssoheaderdev": "SSO Header Dev",
+      "ssoheadertest": "",
+      "ssoheaderprod": "",
+      "redirecturi": ["https://bcgov.github.io/keycloak-example-apps/*"],
+      "redirecturitest": [],
+      "redirecturiprod": [],
+      "agreeWithTermstrue": true,
+      "submit": true,
+      "confirm": true,
+      "description": "SAML Test"
+    },
+    "update": {},
+    "devroles": {},
+    "testroles": {},
+    "prodroles": {},
+    "delete": true,
+    "smoketest": true,
+    "localtest": false
+  }
+]
