@@ -4,14 +4,12 @@ on:
   pull_request:
     types:
       - opened
-      - edited
       - synchronize
     paths:
       - app/**
       - lambda/**
       - docker-compose.yml
       - github/workflows/e2e.yaml
-      - local/terraform/*
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
@@ -35,9 +33,6 @@ jobs:
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
-      - uses: actions/checkout@v4
-        with:
-          repository: 'bcgov/sso-requests-e2e'
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
@@ -46,9 +41,10 @@ jobs:
           summary-title: 'E2E tests'
           record: true
           wait-on: 'http://localhost:3000'
-          wait-on-timeout: 180
-          install-command: npm ci
-          working-directory: testing
+          parallel: true
+          wait-on-timeout: 360
+          install-command: yarn
+          working-directory: app
           spec: |
             cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
             cypress/e2e/ci/*.cy.ts
