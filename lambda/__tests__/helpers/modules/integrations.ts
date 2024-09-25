@@ -120,3 +120,35 @@ export const submitNewIntegration = async (integration: IntegrationData) => {
     .send({ ...integration, id })
     .set('Accept', 'application/json');
 };
+
+export const getRequestsForAdmins = async () => {
+  return await supertest(app)
+    .post(`${APP_BASE_PATH}/requests-all`)
+    .send({
+      searchField: ['id', 'projectName', 'clientId'],
+      searchKey: '',
+      order: [
+        ['updatedAt', 'desc'],
+        ['status', 'desc'],
+      ],
+      limit: 5,
+      page: 1,
+      status: [],
+      archiveStatus: [],
+      realms: null,
+      environments: null,
+      types: ['gold'],
+      devIdps: null,
+    })
+    .set('Accept', 'application/json');
+};
+
+export const getEvents = async (requestId: number, eventCode: string = 'all') => {
+  return await supertest(app)
+    .post(`${APP_BASE_PATH}/events`)
+    .send({
+      requestId,
+      eventCode,
+    })
+    .set('Accept', 'application/json');
+};

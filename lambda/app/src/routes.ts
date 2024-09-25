@@ -538,17 +538,9 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  // app.post(`/client`, async (req, res) => {
-  //   try {
-  //     const result = await getClient(req.session as Session, req.body);
-  //     res.status(200).json(result);
-  //   } catch (err) {
-  //     handleError(res, err);
-  //   }
-  // });
-
   app.post(`/events`, async (req, res) => {
     try {
+      assertSessionRole(req.session, 'sso-admin');
       const result = await getEvents(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {

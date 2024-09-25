@@ -96,7 +96,7 @@ export const samlClientProfile = (
   return samlClient;
 };
 
-const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
+export const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
   let defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common'];
 
   const otherIdpScopes = integration[`${environment}Idps`]?.filter((idp) => idp !== 'bcservicescard') || [];
@@ -106,7 +106,7 @@ const getDefaultClientScopes = (integration: IntegrationData, environment: strin
     defaultScopes = defaultScopes.concat(otherIdpScopes).map((idp: string) => `${idp}-saml`);
   }
   // BCSC client scope is named after the client id on bcsc side
-  if (usesBcServicesCard(integration)) {
+  if (usesBcServicesCard(integration) && integration[`${environment}Idps`].includes('bcservicescard')) {
     defaultScopes.push(integration.clientId);
   }
   return defaultScopes;

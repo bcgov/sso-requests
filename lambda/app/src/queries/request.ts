@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '../../../shared/sequelize/models/models';
 import { Session, User } from '../../../shared/interfaces';
-import { isAdmin } from '../utils/helpers';
+import { getAllowedIdpsForApprover, isAdmin } from '../utils/helpers';
 import { getMyTeamsLiteral, getUserTeamRole } from './literals';
 
 const commonPopulation = [
@@ -91,6 +91,34 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
       where: { id: requestId, apiServiceAccount: false },
       include: commonPopulation,
     });
+  } else if (getAllowedIdpsForApprover(session).length > 0) {
+    const teamIdsLiteral = getMyTeamsLiteral(session.user.id);
+    return await models.request.findOne({
+      where: {
+        id: requestId,
+        apiServiceAccount: false,
+        [Op.or]: [
+          {
+            [Op.or]: [
+              {
+                usesTeam: true,
+                teamId: {
+                  [Op.in]: sequelize.literal(`(${teamIdsLiteral})`),
+                },
+              },
+              {
+                usesTeam: false,
+                userId: session.user.id,
+              },
+            ],
+          },
+          {
+            devIdps: { [Op.overlap]: getAllowedIdpsForApprover(session) },
+          },
+        ],
+      },
+      include: commonPopulation,
+    });
   }
 
   return getMyOrTeamRequest(session.user.id, requestId, roles);
@@ -164,4 +192,16 @@ export const getIntegrationByClientId = (clientId: string, options = { raw: true
     where: { clientId, apiServiceAccount: false, archived: false },
     ...options,
   });
+};
+
+export const canUpdateRequestByUserId = async (userId: number, requestId: number) => {
+  const where = getBaseWhereForMyOrTeamIntegrations(userId, ['admin', 'member']);
+  where.id = requestId;
+  const editableRequest = await models.request.findOne({
+    where,
+    archived: false,
+    apiServiceAccount: false,
+  });
+  if (!editableRequest) return false;
+  return true;
 };
