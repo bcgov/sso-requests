@@ -14,7 +14,6 @@ import { generateInvitationToken } from '@lambda-app/helpers/token';
 import { createTeam, verifyTeamMember } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
-import { bcscPrivacyZones } from '@app/utils/constants';
 
 const MOCK_PRIVACY_ZONE_URI = 'zone';
 

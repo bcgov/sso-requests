@@ -1,6 +1,4 @@
 import { Integration } from '@app/interfaces/Request';
-import { BcscPrivacyZone } from '@app/interfaces/types';
-import { bcscPrivacyZones } from '@app/utils/constants';
 
 export const checkBceidBoth = (idp: string) => idp === 'bceidboth';
 export const checkDigitalCredential = (idp: string) => idp === 'digitalcredential';
