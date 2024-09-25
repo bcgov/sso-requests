@@ -74,17 +74,6 @@ const getRolePrivelege = (role: string) => {
   return 'view';
 };
 
-export const getPrivacyZoneName = async (uri?: string) => {
-  try {
-    if (!uri) return null;
-    const zones = await getPrivacyZones();
-    return getPrivacyZoneDisplayName(zones, uri);
-  } catch (e) {
-    console.error(e);
-    return 'Unavailable';
-  }
-};
-
 const capitalize = (word: string) => word[0].toUpperCase() + word.slice(1).toLowerCase();
 
 Handlebars.registerPartial('footer', footer);
@@ -105,7 +94,6 @@ Handlebars.registerPartial('digitalCredentialInfoContact', digitalCredentialInfo
 Handlebars.registerHelper('formatPrimaryUsers', formatPrimaryUsers);
 Handlebars.registerHelper('getRolePrivelege', getRolePrivelege);
 Handlebars.registerHelper('capitalize', capitalize);
-Handlebars.registerHelper('getPrivacyZoneName', getPrivacyZoneName);
 Handlebars.registerHelper('isNonProdDigitalCredentialRequest', isNonProdDigitalCredentialRequest);
 
 const getBuilder = (key: string) => {
