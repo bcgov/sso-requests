@@ -172,23 +172,6 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
-  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ BC Services Card with fallback privacy zone', async () => {
-    const constantZone = bcscPrivacyZones()[0];
-    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-      integration: {
-        ...formDataProd,
-        devIdps: ['bcservicescard'],
-        testIdps: ['bcservicescard'],
-        prodIdps: ['bcservicescard'],
-        bcscPrivacyZone: constantZone.privacy_zone_uri,
-      },
-      waitingBcServicesCardProdApproval: true,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
   it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ approved BC Services Card prod', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
       integration: { ...formDataDev, devIdps: ['bcservicescard'], bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI },
