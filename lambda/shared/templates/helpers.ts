@@ -9,8 +9,6 @@ import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
 import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
-import { usesBcServicesCard } from '@app/helpers/integration';
-import { getPrivacyZoneName } from '.';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -29,7 +27,7 @@ export const processUser = async (user: any) => {
 };
 
 export const processRequest = async (integrationOrModel: any) => {
-  let integration!: Integration & { bcscPrivacyZoneName?: string };
+  let integration!: Integration;
   if (integrationOrModel instanceof models.request) {
     integration = integrationOrModel.get({ plain: true });
   } else {
@@ -54,10 +52,6 @@ export const processRequest = async (integrationOrModel: any) => {
     uris: integration[`${env}ValidRedirectUris`] || [],
   }));
   const browserLoginEnabled = authType !== 'service-account';
-  if (usesBcServicesCard(integration)) {
-    const bcscPrivacyZoneName = await getPrivacyZoneName(integration.bcscPrivacyZone);
-    integration.bcscPrivacyZoneName = bcscPrivacyZoneName;
-  }
 
   return {
     ...integration,
