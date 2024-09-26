@@ -46,10 +46,10 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
       eventCode: 'all',
     });
 
-    if (data && data.rows.length > 0) {
+    if (data && data?.rows?.length > 0) {
       const idpApprovalEvents: Event[] = [];
       data.rows.forEach((event) => {
-        if (event.details.changes.find((c: any) => c.path.includes(approvalTypeMap[type]))) {
+        if (event?.details?.changes?.find((c: any) => c?.path.includes(approvalTypeMap[type]))) {
           idpApprovalEvents.push(event);
         }
       });

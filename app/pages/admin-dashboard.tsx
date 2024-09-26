@@ -205,7 +205,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const [showRestoreModal, setShowRestoreModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const selectedRequest = rows.find((v) => v.id === selectedId);
-  const columnFilters = [
+  const [columnFilters, setColumnFilters] = useState<any>([
     {
       value: selectedEnvironments,
       multiselect: true,
@@ -227,7 +227,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       options: archiveStatusOptions,
       label: 'Archive Status',
     },
-  ];
+  ]);
 
   const getData = async () => {
     const [devIdps, realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
@@ -267,14 +267,17 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     if (!session.isAdmin && !isIdpApprover(session)) {
       router.push('/my-dashboard');
     } else {
-      if (session.isAdmin) {
-        columnFilters.push({
-          value: selectedIdp,
-          multiselect: true,
-          onChange: setSelectedIdp,
-          options: idpOptions,
-          label: 'IDPs',
-        });
+      if (session.isAdmin && !columnFilters.find((v: any) => v.label === 'IDPs')) {
+        setColumnFilters([
+          ...columnFilters,
+          {
+            value: selectedIdp,
+            multiselect: true,
+            onChange: setSelectedIdp,
+            options: idpOptions,
+            label: 'IDPs',
+          },
+        ]);
       }
       setSelectedId(undefined);
       loadData();

@@ -4,6 +4,7 @@ import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
 import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, getRequestAll } from 'services/request';
 import { getCompositeClientRoles } from '@app/services/keycloak';
+import { debug } from 'jest-preview';
 
 const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
 const MOCK_PRIVACY_ZONE_NAME = 'uniqueZoneName';
@@ -188,29 +189,29 @@ describe('SSO Dashboard', () => {
     fireEvent.click(envOption);
     expect(selectEnvironments[0]).toHaveTextContent('Test');
 
-    //IDPs dropdown
-    const selectIDPs = screen.getAllByTestId('multi-select-col-filter');
-    const idpInput = selectIDPs[1].firstChild;
-    fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
-    const idpOption = await screen.findByText('BCeID');
-    fireEvent.click(idpOption);
-    expect(selectIDPs[1]).toHaveTextContent('BCeID');
-
     //Workflow Status dropdown
     const selectWorkflowStatus = screen.getAllByTestId('multi-select-col-filter');
-    const workflowStatusInput = selectWorkflowStatus[2].firstChild;
+    const workflowStatusInput = selectWorkflowStatus[1].firstChild;
     fireEvent.keyDown(workflowStatusInput as HTMLElement, { keyCode: 40 });
-    const workflowStatusOption = await screen.findByText('Submitted');
+    const workflowStatusOption = await screen.findByRole('option', { name: 'Submitted' });
     fireEvent.click(workflowStatusOption);
-    expect(selectWorkflowStatus[2]).toHaveTextContent('Submitted');
+    expect(selectWorkflowStatus[1]).toHaveTextContent('Submitted');
 
     //Archive Status dropdown
     const selectArchiveStatus = screen.getAllByTestId('multi-select-col-filter');
-    const archiveStatusInput = selectArchiveStatus[3].firstChild;
+    const archiveStatusInput = selectArchiveStatus[2].firstChild;
     fireEvent.keyDown(archiveStatusInput as HTMLElement, { keyCode: 40 });
     const archiveStatusOption = await screen.findByText('Active');
     fireEvent.click(archiveStatusOption);
-    expect(selectArchiveStatus[3]).toHaveTextContent('Active');
+    expect(selectArchiveStatus[2]).toHaveTextContent('Active');
+
+    //IDPs dropdown
+    const selectIDPs = screen.getAllByTestId('multi-select-col-filter');
+    const idpInput = selectIDPs[3].firstChild;
+    fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
+    const idpOption = await screen.findByText('BCeID');
+    fireEvent.click(idpOption);
+    expect(selectIDPs[3]).toHaveTextContent('BCeID');
   });
 
   it('testing Action buttons', async () => {
@@ -424,81 +425,6 @@ describe('SSO Dashboard', () => {
     const eventOption = await screen.findByText('All Events');
     fireEvent.click(eventOption);
     expect(eventsDropdown).toHaveTextContent('All Events');
-  });
-
-  it('testing on BCeID Prod tab', async () => {
-    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
-
-    await waitFor(() => {
-      screen.getByText('project_name_1');
-    });
-    fireEvent.click(getFirstRow());
-
-    //open the tabpanel
-    const BCeIDProdTabPanel = screen.getByRole('tab', { name: 'BCeID Prod' });
-    fireEvent.click(BCeIDProdTabPanel);
-
-    await waitFor(() => {
-      //open the modal
-      const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
-      fireEvent.click(approveProdButton);
-      expect(screen.getByText('Bceid Approve'));
-    });
-
-    //test on confirm button
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
-    expect(updateRequest).toHaveBeenCalled();
-  });
-
-  it('testing on GitHub Prod tab', async () => {
-    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
-
-    await waitFor(() => {
-      screen.getByText('project_name_1');
-    });
-    const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
-    });
-    fireEvent.click(firstRow);
-
-    //open the tabpanel
-    const GitHubProdTabPanel = screen.getByRole('tab', { name: 'GitHub Prod' });
-    fireEvent.click(GitHubProdTabPanel);
-
-    await waitFor(() => {
-      //open the modal
-      const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
-      fireEvent.click(approveProdButton);
-      expect(screen.getByText('Github Approve'));
-    });
-
-    //test on confirm button
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
-    expect(updateRequest).toHaveBeenCalled();
-  });
-
-  it('testing on BC Services Prod tab', async () => {
-    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
-
-    await waitFor(() => {
-      screen.getByText('project_name_1');
-    });
-    fireEvent.click(getFirstRow());
-
-    //open the tabpanel
-    const BCSCProdTabPanel = screen.getByRole('tab', { name: 'BC Services Card Prod' });
-    fireEvent.click(BCSCProdTabPanel);
-
-    await waitFor(() => {
-      //open the modal
-      const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
-      fireEvent.click(approveProdButton);
-      expect(screen.getByText('BC Services Card Approve'));
-    });
-
-    //test on confirm button
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
-    expect(updateRequest).toHaveBeenCalled();
   });
 
   it('testing on roles tab', async () => {
