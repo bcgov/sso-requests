@@ -403,11 +403,13 @@ function Table({
                     headerGroup.headers.map((column) => (
                       // Apply the header cell props
                       <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
-                        {
-                          // Render the header
-                          column.render('Header')
-                        }
-                        &nbsp;
+                        <>
+                          {
+                            // Render the header
+                            column.render('Header')
+                          }
+                          &nbsp;
+                        </>
                         <span>{getColumnSortedIcon(column.isSorted, column.isSortedDesc)}</span>
                       </th>
                     ))
@@ -433,7 +435,7 @@ function Table({
                       {row.cells.map((cell: Cell) => {
                         return (
                           <td {...cell.getCellProps()} key={cell.getCellProps().key}>
-                            {cell.render('Cell')}
+                            <>{cell.render('Cell')}</>
                           </td>
                         );
                       })}
