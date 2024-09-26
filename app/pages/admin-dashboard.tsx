@@ -9,7 +9,7 @@ import { Integration, Option } from 'interfaces/Request';
 import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
-import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
+import { formatFilters, isIdpApprover } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
@@ -21,6 +21,7 @@ import { SystemUnavailableMessage } from '@app/page-partials/my-dashboard/Messag
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import { throttledIdirSearch } from '@app/utils/users';
 import DeleteModal from '@app/components/DeleteModal';
+import noop from 'lodash.noop';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -204,9 +205,33 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const [showRestoreModal, setShowRestoreModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const selectedRequest = rows.find((v) => v.id === selectedId);
+  const columnFilters = [
+    {
+      value: selectedEnvironments,
+      multiselect: true,
+      onChange: setSelectedEnvironments,
+      options: environmentOptions,
+      label: 'Environments',
+    },
+    {
+      value: workflowStatus,
+      multiselect: true,
+      onChange: setWorkflowStatus,
+      options: workflowStatusOptions,
+      label: 'Workflow Status',
+    },
+    {
+      value: archiveStatus,
+      multiselect: true,
+      onChange: setArchiveStatus,
+      options: archiveStatusOptions,
+      label: 'Archive Status',
+    },
+  ];
 
   const getData = async () => {
     const [devIdps, realms, environments] = formatFilters(selectedIdp, selectedEnvironments);
+
     return getRequestAll({
       searchField: ['id', 'projectName', 'clientId'],
       searchKey,
@@ -239,8 +264,21 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   };
 
   useEffect(() => {
-    setSelectedId(undefined);
-    loadData();
+    if (!session.isAdmin && !isIdpApprover(session)) {
+      router.push('/my-dashboard');
+    } else {
+      if (session.isAdmin) {
+        columnFilters.push({
+          value: selectedIdp,
+          multiselect: true,
+          onChange: setSelectedIdp,
+          options: idpOptions,
+          label: 'IDPs',
+        });
+      }
+      setSelectedId(undefined);
+      loadData();
+    }
   }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
 
   if (hasError) {
@@ -341,7 +379,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                 archived: row.archived ? 'Deleted' : 'Active',
                 environments: row.environments,
                 clientId: row.clientId,
-                actions: (
+                actions: session.isAdmin ? (
                   <ActionButtonContainer>
                     <ActionButton
                       icon={faEye}
@@ -384,40 +422,13 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                       title="Restore at Keycloak"
                     />
                   </ActionButtonContainer>
+                ) : (
+                  noop
                 ),
               };
             })}
             activateRow={activateRow}
-            colfilters={[
-              {
-                value: selectedEnvironments,
-                multiselect: true,
-                onChange: setSelectedEnvironments,
-                options: environmentOptions,
-                label: 'Environments',
-              },
-              {
-                value: selectedIdp,
-                multiselect: true,
-                onChange: setSelectedIdp,
-                options: idpOptions,
-                label: 'IDPs',
-              },
-              {
-                value: workflowStatus,
-                multiselect: true,
-                onChange: setWorkflowStatus,
-                options: workflowStatusOptions,
-                label: 'Workflow Status',
-              },
-              {
-                value: archiveStatus,
-                multiselect: true,
-                onChange: setArchiveStatus,
-                options: archiveStatusOptions,
-                label: 'Archive Status',
-              },
-            ]}
+            colfilters={columnFilters}
             showFilters={true}
             loading={loading}
             totalColSpan={15}
