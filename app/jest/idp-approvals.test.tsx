@@ -201,9 +201,11 @@ describe('IDP Approvals', () => {
       expect(screen.queryByText('Bceid Approve')).not.toBeInTheDocument();
     });
 
-    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(
-      'Approved by BCeID Approver on 9/24/2024, 2:18:21 PM',
-    );
+    const approvedString = `Approved by ${sampleEvents()[0].idirUserDisplayName} on ${new Date(
+      sampleEvents()[0].createdAt,
+    ).toLocaleString()}`;
+
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
   });
 
   it('GitHub Approver', async () => {
@@ -240,9 +242,11 @@ describe('IDP Approvals', () => {
     await waitFor(() => {
       expect(screen.queryByText('Github Approve')).not.toBeInTheDocument();
     });
-    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(
-      'Approved by GitHub Approver on 9/24/2024, 2:18:21 PM',
-    );
+    const approvedString = `Approved by ${sampleEvents()[1].idirUserDisplayName} on ${new Date(
+      sampleEvents()[1].createdAt,
+    ).toLocaleString()}`;
+
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
   });
 
   it('BC Services Card Approver', async () => {
@@ -279,8 +283,10 @@ describe('IDP Approvals', () => {
     await waitFor(() => {
       expect(screen.queryByText('BC Services Card Approve')).not.toBeInTheDocument();
     });
-    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(
-      'Approved by BC Services Card Approver on 9/24/2024, 2:18:21 PM',
-    );
+    const approvedString = `Approved by ${sampleEvents()[2].idirUserDisplayName} on ${new Date(
+      sampleEvents()[2].createdAt,
+    ).toLocaleString()}`;
+
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
   });
 });
