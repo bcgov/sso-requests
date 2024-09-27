@@ -2,6 +2,8 @@ name: Run Keycloak App E2E tests
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 3'
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
