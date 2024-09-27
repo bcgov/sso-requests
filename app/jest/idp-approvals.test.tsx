@@ -80,9 +80,9 @@ const sampleRequests = (): Integration[] => {
       status: 'applied',
       serviceType: 'gold',
       environments: ['dev', 'test', 'prod'],
-      devIdps: ['bceidbasic'],
-      testIdps: ['bceidbasic'],
-      prodIdps: ['bceidbasic'],
+      devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+      testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+      prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
       authType: 'both',
       bceidApproved: false,
     },
@@ -93,9 +93,9 @@ const sampleRequests = (): Integration[] => {
       status: 'applied',
       serviceType: 'gold',
       environments: ['dev', 'test', 'prod'],
-      devIdps: ['githubbcgov'],
-      testIdps: ['githubbcgov'],
-      prodIdps: ['githubbcgov'],
+      devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+      testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+      prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
       authType: 'both',
       githubApproved: false,
     },
@@ -106,9 +106,9 @@ const sampleRequests = (): Integration[] => {
       status: 'applied',
       serviceType: 'gold',
       environments: ['dev', 'test', 'prod'],
-      devIdps: ['bcservicescard'],
-      testIdps: ['bcservicescard'],
-      prodIdps: ['bcservicescard'],
+      devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+      testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+      prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
       authType: 'both',
       bcServicesCardApproved: false,
       bcscPrivacyZone: 'uniqueZoneUri',
@@ -188,6 +188,11 @@ describe('IDP Approvals', () => {
     actionButtonsValidations();
 
     fireEvent.click(screen.getByText('BCeID Approver'));
+
+    // should not see other IDPs
+    expect(screen.queryByText('GitHub Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
+
     fireEvent.click(screen.getByText('BCeID Prod'));
     const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
     fireEvent.click(approveProdButton);
@@ -236,6 +241,11 @@ describe('IDP Approvals', () => {
     actionButtonsValidations();
 
     fireEvent.click(screen.getByText('GitHub Approver'));
+
+    // should not see other IDPs
+    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
+
     fireEvent.click(screen.getByText('GitHub Prod'));
     const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
     fireEvent.click(approveProdButton);
@@ -283,6 +293,11 @@ describe('IDP Approvals', () => {
     actionButtonsValidations();
 
     fireEvent.click(screen.getByText('BC Services Card Approver'));
+
+    // should not see other IDPs
+    expect(screen.queryByText('GitHub Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+
     fireEvent.click(screen.getByText('BC Services Card Prod'));
     const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
     fireEvent.click(approveProdButton);
