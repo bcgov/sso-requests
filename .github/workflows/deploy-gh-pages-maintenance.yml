@@ -55,7 +55,7 @@ jobs:
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
           INCLUDE_BC_SERVICES_CARD=true
-          ALLOW_BC_SERVICES_CARD_PROD=false
+          ALLOW_BC_SERVICES_CARD_PROD=true
           EOF
 
       - name: Checkout 🛎️
