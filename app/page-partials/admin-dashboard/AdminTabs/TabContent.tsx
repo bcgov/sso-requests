@@ -113,7 +113,7 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
       <>
         {events.length > 0 ? (
           events.map((event) => (
-            <p key={event.id} style={{ marginBottom: '5px' }}>
+            <p key={event.id} style={{ marginBottom: '5px' }} data-testid="idp-approved-note">
               Approved by <b>{event?.idirUserDisplayName}</b> on{' '}
               <b>{new Date(event?.createdAt as string).toLocaleString()}</b>
             </p>

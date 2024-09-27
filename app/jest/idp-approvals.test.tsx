@@ -174,9 +174,7 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(eventModule, 'getEvents')
       .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
-    const { container } = render(
-      <AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
-    );
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
       expect(screen.getByText('BCeID Approver')).toBeInTheDocument();
@@ -203,7 +201,9 @@ describe('IDP Approvals', () => {
       expect(screen.queryByText('Bceid Approve')).not.toBeInTheDocument();
     });
 
-    expect(container).toHaveTextContent('Approved by BCeID Approver on 9/24/2024, 2:18:21 PM');
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(
+      'Approved by BCeID Approver on 9/24/2024, 2:18:21 PM',
+    );
   });
 
   it('GitHub Approver', async () => {
@@ -214,9 +214,7 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(eventModule, 'getEvents')
       .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
-    const { container } = render(
-      <AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
-    );
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
       expect(screen.getByText('GitHub Approver')).toBeInTheDocument();
@@ -242,7 +240,9 @@ describe('IDP Approvals', () => {
     await waitFor(() => {
       expect(screen.queryByText('Github Approve')).not.toBeInTheDocument();
     });
-    expect(container).toHaveTextContent('Approved by GitHub Approver on 9/24/2024, 2:18:21 PM');
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(
+      'Approved by GitHub Approver on 9/24/2024, 2:18:21 PM',
+    );
   });
 
   it('BC Services Card Approver', async () => {
@@ -253,9 +253,7 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(eventModule, 'getEvents')
       .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
-    const { container } = render(
-      <AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />,
-    );
+    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
       expect(screen.getByText('BC Services Card Approver')).toBeInTheDocument();
@@ -281,6 +279,8 @@ describe('IDP Approvals', () => {
     await waitFor(() => {
       expect(screen.queryByText('BC Services Card Approve')).not.toBeInTheDocument();
     });
-    expect(container).toHaveTextContent('Approved by BC Services Card Approver on 9/24/2024, 2:18:21 PM');
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(
+      'Approved by BC Services Card Approver on 9/24/2024, 2:18:21 PM',
+    );
   });
 });
