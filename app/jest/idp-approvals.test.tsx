@@ -120,12 +120,11 @@ const sampleRequests = (): Integration[] => {
 const sampleSession = {
   email: '',
   isAdmin: false,
-  client_roles: ['bceid-approver'],
 };
 
 const MOCK_EMAIL = 'some@email.com';
 
-const spyUseRouter = jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => ({
+jest.spyOn(require('next/router'), 'useRouter').mockImplementation(() => ({
   pathname: '',
   query: '',
   push: jest.fn(() => Promise.resolve(true)),
@@ -174,7 +173,13 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(eventModule, 'getEvents')
       .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
-    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+    render(
+      <AdminDashboard
+        session={{ ...sampleSession, client_roles: ['bceid-approver'] }}
+        onLoginClick={jest.fn}
+        onLogoutClick={jest.fn}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('BCeID Approver')).toBeInTheDocument();
@@ -216,7 +221,13 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(eventModule, 'getEvents')
       .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
-    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+    render(
+      <AdminDashboard
+        session={{ ...sampleSession, client_roles: ['github-approver'] }}
+        onLoginClick={jest.fn}
+        onLogoutClick={jest.fn}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('GitHub Approver')).toBeInTheDocument();
@@ -257,7 +268,13 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(eventModule, 'getEvents')
       .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
-    render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+    render(
+      <AdminDashboard
+        session={{ ...sampleSession, client_roles: ['bc-services-card-approver'] }}
+        onLoginClick={jest.fn}
+        onLogoutClick={jest.fn}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText('BC Services Card Approver')).toBeInTheDocument();
