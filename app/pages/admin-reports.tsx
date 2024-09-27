@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import ResponsiveContainer, { MediaRule } from 'components/ResponsiveContainer';
@@ -15,6 +15,8 @@ import Select from 'react-select';
 import { ActionButton } from 'components/ActionButtons';
 import { AxiosError } from 'axios';
 import { FailureMessage } from '@app/page-partials/my-dashboard/Messages';
+import { isIdpApprover } from '@app/utils/helpers';
+import { useRouter } from 'next/router';
 
 const BorderLine = styled.div`
   border-bottom: 1px solid #707070;
@@ -77,9 +79,16 @@ function DownloadIcon(props: { type: string; handleClick: any }) {
 }
 
 export default function AdminReports({ session }: PageProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [reportType, setreportType] = useState<any>('');
   const [downloadError, setDownloadError] = useState(false);
+
+  useEffect(() => {
+    if (!session.isAdmin && !isIdpApprover(session)) {
+      router.push('/my-dashboard');
+    }
+  }, []);
 
   const ReportTypeOptions = () => {
     return (

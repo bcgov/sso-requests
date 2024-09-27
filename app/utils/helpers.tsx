@@ -1,6 +1,6 @@
 import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from 'utils/constants';
-import { Team, User } from 'interfaces/team';
+import { LoggedInUser, Team, User } from 'interfaces/team';
 import { Integration, Option, SilverIDPOption, GoldIDPOption } from 'interfaces/Request';
 import { Change } from 'interfaces/Event';
 import { getStatusDisplayName } from 'utils/status';
@@ -343,4 +343,21 @@ export const subtractDaysFromDate = (days: number) => {
   const d = new Date();
   d.setDate(d.getDate() - days);
   return d;
+};
+
+export const isBceidApprover = (session: LoggedInUser) => {
+  return session.client_roles?.includes('bceid-approver');
+};
+
+export const isGithubApprover = (session: LoggedInUser) => {
+  return session.client_roles?.includes('github-approver');
+};
+
+export const isBcServicesCardApprover = (session: LoggedInUser) => {
+  return session.client_roles?.includes('bc-services-card-approver');
+};
+
+export const isIdpApprover = (session: LoggedInUser) => {
+  if (isBceidApprover(session) || isGithubApprover(session) || isBcServicesCardApprover(session)) return true;
+  return false;
 };

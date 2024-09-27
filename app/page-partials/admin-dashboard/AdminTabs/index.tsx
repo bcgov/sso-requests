@@ -37,7 +37,8 @@ function AdminTabs({
   activeKey = defaultTabKey,
 }: Props) {
   const [environment, setEnvironment] = useState('dev');
-  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount;
+  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount && currentUser.isAdmin;
+  const showEventsTabIf = currentUser.isAdmin;
   if (!integration) return null;
   const { environments = [] } = integration;
 
@@ -81,11 +82,14 @@ function AdminTabs({
           </Tab>
         )}
 
-        <Tab key="events" tab="Events">
-          <TabWrapper>
-            <AdminEventPanel requestId={integration.id} />
-          </TabWrapper>
-        </Tab>
+        {showEventsTabIf && (
+          <Tab key="events" tab="Events">
+            <TabWrapper>
+              <AdminEventPanel requestId={integration.id} />
+            </TabWrapper>
+          </Tab>
+        )}
+
         {showRolesTabIf && (
           <Tab key="roles" tab="Roles">
             <TabWrapper>

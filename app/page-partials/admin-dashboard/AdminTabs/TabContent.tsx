@@ -11,7 +11,9 @@ import {
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getEvents } from '@app/services/event';
+import { Event } from 'interfaces/Event';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -34,6 +36,33 @@ const approvalTypeMap = {
 
 function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onApproved }: Props) {
   const [openApprovalModal, setOpenApprovalModal] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  const getApprovalEvents = async () => {
+    if (!integration) return;
+
+    const [data] = await getEvents({
+      requestId: Number(integration.id),
+      eventCode: 'all',
+    });
+
+    if (data && data?.rows?.length > 0) {
+      const idpApprovalEvents: Event[] = [];
+      data.rows.forEach((event) => {
+        if (event?.details?.changes?.find((c: any) => c?.path.includes(approvalTypeMap[type]))) {
+          idpApprovalEvents.push(event);
+        }
+      });
+
+      if (idpApprovalEvents.length > 0) {
+        setEvents(idpApprovalEvents);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getApprovalEvents();
+  }, [integration?.id]);
 
   if (!integration) return null;
 
@@ -80,7 +109,20 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
       </div>
     );
   } else {
-    content = <p>This integration has already been approved.</p>;
+    content = (
+      <>
+        {events.length > 0 ? (
+          events.map((event) => (
+            <p key={event.id} style={{ marginBottom: '5px' }} data-testid="idp-approved-note">
+              Approved by <b>{event?.idirUserDisplayName}</b> on{' '}
+              <b>{new Date(event?.createdAt as string).toLocaleString()}</b>
+            </p>
+          ))
+        ) : (
+          <p>This integration has already been approved.</p>
+        )}
+      </>
+    );
   }
 
   const onConfirm = async () => {
