@@ -11,6 +11,7 @@ import BcServicesCardTabContent from './BcServicesCardTabContent';
 import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 import { useState } from 'react';
 import startCase from 'lodash.startcase';
+import { isBceidApprover, isBcServicesCardApprover, isGithubApprover } from '@app/utils/helpers';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -45,17 +46,17 @@ function AdminTabs({
   const hasProd = environments.includes('prod');
 
   const hasBceid = usesBceid(integration);
-  const hasBceidProd = hasBceid && hasProd;
+  const hasBceidProd = hasBceid && hasProd && (currentUser.isAdmin || isBceidApprover(currentUser));
 
   const hasGithub = usesGithub(integration);
-  const hasGithubProd = hasGithub && hasProd;
+  const hasGithubProd = hasGithub && hasProd && (currentUser.isAdmin || isGithubApprover(currentUser));
 
   const hasBcServicesCard = usesBcServicesCard(integration);
-  const hasBcServicesCardProd = hasBcServicesCard && hasProd;
+  const hasBcServicesCardProd =
+    hasBcServicesCard && hasProd && (currentUser.isAdmin || isBcServicesCardApprover(currentUser));
 
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
-  const handleDigitCredentialApproved = () => setRows();
   const handleBcServicesCardApproved = () => setRows();
 
   return (
