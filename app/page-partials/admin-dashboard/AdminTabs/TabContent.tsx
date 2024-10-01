@@ -62,7 +62,7 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
 
   useEffect(() => {
     getApprovalEvents();
-  }, [integration?.id]);
+  }, [integration?.id, integration?.bceidApproved, integration?.githubApproved, integration?.bcServicesCardApproved]);
 
   if (!integration) return null;
 
