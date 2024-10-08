@@ -185,7 +185,9 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
     <LoggedUser>
       <div>
         Welcome {`${session.given_name} ${session.family_name}`}&nbsp;
-        {session?.client_roles.includes('sso-admin') && <span className="small">(SSO Admin)</span>}
+        {session?.client_roles && session?.client_roles.includes('sso-admin') && (
+          <span className="small">(SSO Admin)</span>
+        )}
       </div>
       &nbsp;&nbsp;
       <button className="secondary-inverse" onClick={onLogoutClick}>
