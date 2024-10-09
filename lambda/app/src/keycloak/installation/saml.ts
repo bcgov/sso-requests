@@ -2,9 +2,9 @@ import axios from 'axios';
 import { promisify } from 'util';
 import { parseString } from 'xml2js';
 import get from 'lodash.get';
-import RealmRepresentation from 'keycloak-admin/lib/defs/realmRepresentation';
-import ClientRepresentation from 'keycloak-admin/lib/defs/clientRepresentation';
-import KeycloakAdminClient from 'keycloak-admin/lib/client';
+import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
+import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
+import KeycloakAdminClient from '@keycloak/keycloak-admin-client/lib/client';
 
 const parseStringSync = promisify(parseString);
 

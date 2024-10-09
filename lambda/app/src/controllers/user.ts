@@ -12,7 +12,7 @@ import { sendTemplate } from '@lambda-shared/templates';
 import { getAllEmailsOfTeam } from '@lambda-app/queries/team';
 import { UserSurveyInformation } from '@lambda-shared/interfaces';
 import { createEvent, processIntegrationRequest } from './requests';
-import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
+import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
 
 export const findOrCreateUser = async (session: Session) => {

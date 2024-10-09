@@ -1,5 +1,5 @@
-import KcAdminClient from 'keycloak-admin';
-import RoleRepresentation from 'keycloak-admin/lib/defs/roleRepresentation';
+import KcAdminClient from '@keycloak/keycloak-admin-client';
+import RoleRepresentation from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
 import { findAllowedIntegrationInfo } from '@lambda-app/queries/request';
 import forEach from 'lodash.foreach';
 import map from 'lodash.map';
@@ -7,7 +7,7 @@ import get from 'lodash.get';
 import difference from 'lodash.difference';
 import { getAdminClient } from './adminClient';
 import { Integration } from '@app/interfaces/Request';
-import { UserQuery } from 'keycloak-admin/lib/resources/users';
+import { UserQuery } from '@keycloak/keycloak-admin-client/lib/resources/users';
 import { asyncFilter } from '../helpers/array';
 import createHttpError from 'http-errors';
 import { checkIfUserIsServiceAccount } from '@app/helpers/users';
@@ -667,7 +667,7 @@ export const searchUsersByIdp = async ({
 
   if (userProperties.guid && userProperties.guid !== '') {
     query.username = `${userProperties.guid}@${idp}`;
-    query.exact = 'true';
+    query.exact = true;
   } else {
     query.username = `@${idp}`;
   }
@@ -721,7 +721,7 @@ export const searchBCeIDusersByIntegration = async ({
 
   if (prop === 'guid') {
     query.username = `${propValue}@${idp}`;
-    query.exact = 'true';
+    query.exact = true;
   } else {
     query.username = `@${idp}`;
     query[prop] = propValue;
