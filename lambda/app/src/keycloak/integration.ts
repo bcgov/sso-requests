@@ -1,7 +1,7 @@
-import ClientRepresentation from 'keycloak-admin/lib/defs/clientRepresentation';
+import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@lambda-shared/interfaces';
-import AuthenticationFlowRepresentation from 'keycloak-admin/lib/defs/authenticationFlowRepresentation';
+import AuthenticationFlowRepresentation from '@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { createBCSCIntegration, deleteBCSCIntegration } from '@lambda-app/controllers/requests';
 import { usesBcServicesCard } from '@app/helpers/integration';
