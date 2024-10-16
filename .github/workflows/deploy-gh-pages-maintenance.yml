@@ -81,7 +81,7 @@ jobs:
 
       - name: Deploy 🚀
         if: env.APP_ENV != ''
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@v4.6.4
         with:
           token: ${{ secrets.GH_ACCESS_TOKEN }}
           repository-name: ${{ env.DEPLOY_REPO_NAME }}

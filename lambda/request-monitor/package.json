@@ -17,6 +17,6 @@
     "tsconfig-paths": "^4.2.0"
   },
   "dependencies": {
-    "keycloak-admin": "^1.14.22"
+    "@keycloak/keycloak-admin-client": "18.0.1"
   }
 }

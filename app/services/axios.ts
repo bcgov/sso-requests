@@ -20,7 +20,10 @@ instance.interceptors.request.use(
       return config;
     }
     const authHeader = await getAuthHeader();
-    return { ...config, headers: { ...headers, Authorization: authHeader } };
+    if (authHeader) {
+      config.headers.set('Authorization', authHeader);
+    }
+    return config;
   },
   function (error) {
     return Promise.reject(error);

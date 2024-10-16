@@ -126,22 +126,24 @@ export const validateRequest = async (formData: any, original: Integration, team
 
 export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
 
-export const isBceidApprover = (session: Session) => session.client_roles?.includes('bceid-admin');
+export const isBceidApprover = (session: Session) => session.client_roles?.includes('bceid-approver');
 
-export const isGithubApprover = (session: Session) => session.client_roles?.includes('github-admin');
+export const isGithubApprover = (session: Session) => session.client_roles?.includes('github-approver');
 
-export const isBCServicesCardApprover = (session: Session) => session.client_roles?.includes('bc-services-card-admin');
+export const isBCServicesCardApprover = (session: Session) =>
+  session.client_roles?.includes('bc-services-card-approver');
 
 export const getAllowedIdpsForApprover = (session: Session) => {
   const idps = [];
   if (session.client_roles.length === 0) return idps;
   session.client_roles.forEach((role) => {
-    if (role === 'bceid-admin') idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
-    if (role === 'bc-services-card-admin') idps.push('bcservicescard');
-    if (role === 'github-admin') idps.push('githubbcgov', 'githubpublic');
+    if (role === 'bceid-approver') idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+    if (role === 'bc-services-card-approver') idps.push('bcservicescard');
+    if (role === 'github-approver') idps.push('githubbcgov', 'githubpublic');
   });
   return idps;
 };
+
 export const getDisplayName = (session: Session) => compact([session.given_name, session.family_name]).join(' ');
 
 export const getWhereClauseForAllRequests = (data: {

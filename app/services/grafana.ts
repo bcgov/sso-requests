@@ -1,3 +1,4 @@
+import { AxiosProgressEvent } from 'axios';
 import { instance } from './axios';
 
 export const getMetrics = async (id: number, env: string, fromDate?: string, toDate?: string) => {
@@ -18,13 +19,12 @@ export const getLogs = async (
   env: string,
   fromDate: Date,
   toDate: Date,
-  onProgress: (progressEvent: ProgressEvent) => void,
+  onProgress: (progressEvent: AxiosProgressEvent) => void,
   controller?: AbortController,
 ) => {
   try {
     const result = await instance({
       url: `requests/${id}/logs?env=${env}&start=${fromDate}&end=${toDate}`,
-      method: 'GET',
       responseType: 'blob',
       onDownloadProgress: onProgress,
       signal: controller?.signal,

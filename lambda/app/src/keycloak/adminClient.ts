@@ -1,4 +1,4 @@
-import KcAdminClient from 'keycloak-admin';
+import KcAdminClient from '@keycloak/keycloak-admin-client';
 import dns from 'dns';
 import createHttpError from 'http-errors';
 
