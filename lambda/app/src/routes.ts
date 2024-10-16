@@ -540,7 +540,6 @@ export const setRoutes = (app: any) => {
 
   app.post(`/events`, async (req, res) => {
     try {
-      assertSessionRole(req.session, 'sso-admin');
       const result = await getEvents(req.session as Session, req.body);
       res.status(200).json(result);
     } catch (err) {

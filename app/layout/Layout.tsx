@@ -92,13 +92,34 @@ interface Route {
 }
 
 const routes: Route[] = [
-  { path: '/', label: 'Home', roles: ['guest', 'user', 'sso-admin'] },
+  {
+    path: '/',
+    label: 'Home',
+    roles: ['guest', 'user', 'sso-admin', 'bceid-approver', 'github-approver', 'bc-services-card-approver'],
+  },
   { path: '/terms-conditions', label: 'Terms and Conditions', roles: ['guest'] },
-  { path: '/my-dashboard', label: 'My Dashboard', roles: ['user', 'sso-admin'] },
-  { path: '/admin-dashboard', label: 'SSO Dashboard', roles: ['sso-admin'] },
+  {
+    path: '/my-dashboard',
+    label: 'My Dashboard',
+    roles: ['user', 'sso-admin', 'bceid-approver', 'github-approver', 'bc-services-card-approver'],
+  },
+  {
+    path: '/admin-dashboard',
+    label: 'SSO Dashboard',
+    roles: ['sso-admin', 'bceid-approver', 'github-approver', 'bc-services-card-approver'],
+  },
   { path: '/admin-reports', label: 'SSO Reports', roles: ['sso-admin'] },
-  { path: '/request', label: 'Request Details', roles: ['user', 'sso-admin'], hide: true },
-  { path: '/faq', label: 'FAQ', roles: ['guest', 'user', 'sso-admin'] },
+  {
+    path: '/request',
+    label: 'Request Details',
+    roles: ['user', 'sso-admin', 'bceid-approver', 'github-approver', 'bc-services-card-approver'],
+    hide: true,
+  },
+  {
+    path: '/faq',
+    label: 'FAQ',
+    roles: ['guest', 'user', 'sso-admin', 'bceid-approver', 'github-approver', 'bc-services-card-approver'],
+  },
 ];
 
 const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentPath: string; query: any }) => {
@@ -164,7 +185,9 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
     <LoggedUser>
       <div>
         Welcome {`${session.given_name} ${session.family_name}`}&nbsp;
-        {session?.client_roles && <span className="small">({startCase(session?.client_roles[0])})</span>}
+        {session?.client_roles && session?.client_roles.includes('sso-admin') && (
+          <span className="small">(SSO Admin)</span>
+        )}
       </div>
       &nbsp;&nbsp;
       <button className="secondary-inverse" onClick={onLogoutClick}>

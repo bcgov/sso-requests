@@ -186,7 +186,7 @@ We now have a cypress test suite built out. These can be run against a local ver
 
 #### Step 0) Requirements
 
-- nodejs version 18
+- nodejs version 20
 - docker-compose 2.24.6
 
 #### Step 1) Run app locally

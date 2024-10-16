@@ -1,5 +1,5 @@
 import createHttpError from 'http-errors';
-import KcAdminClient from 'keycloak-admin';
+import KcAdminClient from '@keycloak/keycloak-admin-client';
 
 export const getKcAdminClient = async (environment: string) => {
   let keycloakUrl: string;

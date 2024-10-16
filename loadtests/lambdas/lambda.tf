@@ -10,7 +10,7 @@ resource "aws_lambda_function" "app_test" {
   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
   source_code_hash = filebase64sha256("lambda-app.zip")
 
-  runtime = "nodejs16.x"
+  runtime = "nodejs20.x"
 
   vpc_config {
     subnet_ids         = [data.aws_subnet.a_test.id, data.aws_subnet.b_test.id]
@@ -75,7 +75,7 @@ resource "aws_lambda_function" "css_api_test" {
   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
   source_code_hash = filebase64sha256("lambda-css-api.zip")
 
-  runtime = "nodejs16.x"
+  runtime = "nodejs20.x"
 
   vpc_config {
     subnet_ids         = [data.aws_subnet.a_test.id, data.aws_subnet.b_test.id]

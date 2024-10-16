@@ -9,6 +9,7 @@ import InfoOverlay from 'components/InfoOverlay';
 import { subtractDaysFromDate } from '@app/utils/helpers';
 import CenteredModal from '@app/components/CenteredModal';
 import { SurveyContext } from '@app/pages/_app';
+import { Axios, AxiosProgressEvent } from 'axios';
 
 const ModalContent = styled.div`
   display: flex;
@@ -172,8 +173,8 @@ const LogsPanel = ({ integration, alert }: Props) => {
     setToDate(val);
   };
 
-  const handleFileProgress = (progressEvent: ProgressEvent) => {
-    const percentComplete = Math.floor((progressEvent.loaded / progressEvent.total) * 100);
+  const handleFileProgress = (progressEvent: AxiosProgressEvent) => {
+    const percentComplete = Math.floor((progressEvent.loaded / Number(progressEvent.total)) * 100);
     if (percentComplete !== fileProgress) {
       setFileProgress(percentComplete);
     }

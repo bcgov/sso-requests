@@ -1,6 +1,6 @@
-import RealmRepresentation from 'keycloak-admin/lib/defs/realmRepresentation';
-import ClientRepresentation from 'keycloak-admin/lib/defs/clientRepresentation';
-import KeycloakAdminClient from 'keycloak-admin/lib/client';
+import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
+import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
+import KeycloakAdminClient from '@keycloak/keycloak-admin-client/lib/client';
 import { getAdminClient, getClient } from '../adminClient';
 import createHttpError from 'http-errors';
 

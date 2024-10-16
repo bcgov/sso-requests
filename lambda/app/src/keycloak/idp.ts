@@ -1,4 +1,4 @@
-import IdentityProviderRepresentation from 'keycloak-admin/lib/defs/identityProviderRepresentation';
+import IdentityProviderRepresentation from '@keycloak/keycloak-admin-client/lib/defs/identityProviderRepresentation';
 import { getAdminClient } from './adminClient';
 
 interface IdpConfig {
