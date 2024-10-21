@@ -38,12 +38,13 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
   }
   container_definitions = jsonencode([
     {
-      essential   = true
-      name        = var.sso_grafana_container_name
-      image       = "${var.aws_ecr_uri}/${var.sso_grafana_container_image}"
-      cpu         = var.sso_grafana_fargate_cpu
-      memory      = var.sso_grafana_fargate_memory
-      networkMode = "awsvpc"
+      essential              = true
+      name                   = var.sso_grafana_container_name
+      image                  = "${var.aws_ecr_uri}/${var.sso_grafana_container_image}"
+      cpu                    = var.sso_grafana_fargate_cpu
+      memory                 = var.sso_grafana_fargate_memory
+      readonlyRootFilesystem = true
+      networkMode            = "awsvpc"
       portMappings = [
         {
           protocol      = "tcp"
