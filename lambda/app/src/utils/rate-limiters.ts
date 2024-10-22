@@ -21,6 +21,7 @@ export const logsRateLimiter = rateLimit({
       host: process.env.DB_HOSTNAME,
       database: process.env.DB_NAME,
       port: 5432,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     },
     'rate_limit_logs',
   ),
