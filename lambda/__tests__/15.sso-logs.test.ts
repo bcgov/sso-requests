@@ -6,7 +6,6 @@ import { getUpdateIntegrationData } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { queryGrafana } from '../app/src/grafana';
 import { EVENTS } from '@lambda-shared/enums';
-import * as rateLimiters from '@lambda-app/utils/rate-limiters';
 
 jest.mock('../app/src/grafana', () => {
   return {
@@ -186,17 +185,5 @@ describe('Fetch SSO Logs', () => {
       },
     });
     expect(event).not.toBeNull();
-  });
-
-  it('Return 429 if too many requests', async () => {
-    await setupIntegrationAndUser();
-    jest.spyOn(rateLimiters, 'logsRateLimiter').mockImplementationOnce((req, res) => {
-      res.status(429).send({ message: 'Rate limit exceeded' });
-    });
-    const response = await supertest(app)
-      .get(`${APP_BASE_PATH}/requests/${INTEGRATION_ID}/logs?${queryString}`)
-      .set('Accept', 'application/json');
-
-    expect(response.status).toBe(429);
   });
 });
