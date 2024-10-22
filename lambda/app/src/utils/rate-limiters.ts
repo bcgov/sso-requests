@@ -16,7 +16,11 @@ export const logsRateLimiter = rateLimit({
   keyGenerator: (req) => getClientIp(req),
   store: new PostgresStore(
     {
-      connectionString: process.env.DATABASE_URL,
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      host: process.env.DB_HOSTNAME,
+      database: process.env.DB_NAME,
+      port: 5432,
     },
     'rate_limit_logs',
   ),
