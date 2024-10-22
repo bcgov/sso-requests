@@ -226,7 +226,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
           variant: 'danger',
           fadeOut: 10000,
           closable: true,
-          content: err?.response?.data?.message ?? 'Error fetching logs.',
+          content: (await err.response.data.text()) ?? err?.response?.data?.message ?? 'Error fetching logs.',
         });
       } else {
         alert.show({
