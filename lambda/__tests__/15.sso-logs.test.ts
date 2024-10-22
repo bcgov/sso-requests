@@ -8,14 +8,6 @@ import { queryGrafana } from '../app/src/grafana';
 import { EVENTS } from '@lambda-shared/enums';
 import * as rateLimiters from '@lambda-app/utils/rate-limiters';
 
-jest.mock('../app/src/authenticate');
-jest.mock('../app/src/utils/rate-limiters', () => {
-  return {
-    logsRateLimiter: jest.fn((req, res, next) => {
-      next();
-    }),
-  };
-});
 jest.mock('../app/src/grafana', () => {
   return {
     queryGrafana: jest.fn(() => Promise.resolve(['{"log": "log"}', '{"log": "log"}'])),

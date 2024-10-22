@@ -8,14 +8,6 @@ import { DIT_ADDITIONAL_EMAIL_ADDRESS, DIT_EMAIL_ADDRESS } from '@lambda-shared/
 import { submitNewIntegration, updateIntegration } from './helpers/modules/integrations';
 import { EMAILS } from '@lambda-shared/enums';
 
-jest.mock('../app/src/authenticate');
-
-jest.mock('../shared/utils/ches', () => {
-  return {
-    sendEmail: jest.fn(),
-  };
-});
-
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {

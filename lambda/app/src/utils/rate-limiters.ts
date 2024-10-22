@@ -4,14 +4,13 @@ import rateLimit from 'express-rate-limit';
 const getClientIp = (req) => {
   const { id } = req.params || {};
   const { env } = req.query || {};
-  const xForwardedFor = req.headers['x-forwarded-for'];
-  const clientIp = xForwardedFor ? xForwardedFor.split(',')[0] : req.connection.remoteAddress;
+  const clientIp = req.headers['X-Forwarded-For'] ?? req.connection.remoteAddress;
   return `${id}-${env}-${clientIp}`;
 };
 
 export const logsRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  limit: 1,
+  limit: 10,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   keyGenerator: (req) => getClientIp(req),

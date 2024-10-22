@@ -10,8 +10,6 @@ jest.mock('../app/src/grafana', () => {
   };
 });
 
-jest.mock('@lambda-app/authenticate');
-
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {
@@ -19,8 +17,6 @@ jest.mock('../app/src/keycloak/integration', () => {
     keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
-
-jest.mock('@lambda-shared/utils/ches');
 
 describe('create/manage integration by authenticated user', () => {
   let integration: Integration;

@@ -26,14 +26,6 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { buildIntegration } from './helpers/modules/common';
 import { Integration } from 'app/interfaces/Request';
 
-jest.mock('../app/src/authenticate');
-
-jest.mock('../shared/utils/ches', () => {
-  return {
-    sendEmail: jest.fn(),
-  };
-});
-
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {
