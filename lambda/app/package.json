@@ -17,11 +17,13 @@
     "@types/jws": "^3.2.3"
   },
   "dependencies": {
+    "@acpr/rate-limit-postgresql": "^1.4.1",
     "@azure/msal-node": "^2.6.4",
     "@keycloak/keycloak-admin-client": "18.0.1",
     "cors": "^2.8.5",
     "deep-diff": "^1.0.2",
     "express": "^4.21.0",
+    "express-rate-limit": "^7.4.1",
     "http-errors": "^2.0.0",
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.2",

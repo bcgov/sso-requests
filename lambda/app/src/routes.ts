@@ -75,6 +75,7 @@ import { EMAILS } from '@lambda-shared/enums';
 import { fetchLogs, fetchMetrics } from '@lambda-app/controllers/logs';
 import { getPrivacyZones, getAttributes } from './controllers/bc-services-card';
 import createHttpError from 'http-errors';
+import { logsRateLimiter } from './utils/rate-limiters';
 
 const APP_URL = process.env.APP_URL || '';
 
@@ -299,7 +300,7 @@ export const setRoutes = (app: any) => {
     }
   });
 
-  app.get(`/requests/:id/logs`, async (req, res) => {
+  app.get(`/requests/:id/logs`, logsRateLimiter, async (req, res) => {
     try {
       const { id } = req.params || {};
       const { start, end, env } = req.query || {};
