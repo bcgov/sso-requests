@@ -111,7 +111,7 @@ function ServiceAccountsList({
     data = data || {};
 
     const text = {
-      tokenUrl: `${data['auth-server-url']}/realms/${data.realm}/protocol/openid-connect/token`,
+      tokenUrl: `${data['token-url']}`,
       clientId: `${data.resource}`,
       clientSecret: `${data.credentials?.secret}`,
     };
