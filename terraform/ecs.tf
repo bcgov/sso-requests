@@ -1,8 +1,8 @@
 locals {
-  grafana_cpu    = (var.app_env == "production" ? 256 : 128)
-  grafana_memory = (var.app_env == "production" ? 512 : 256)
-  redis_cpu      = (var.app_env == "production" ? 256 : 128)
-  redis_memory   = (var.app_env == "production" ? 512 : 256)
+  grafana_cpu    = (var.app_env == "production" ? 256 : 256)
+  grafana_memory = (var.app_env == "production" ? 512 : 512)
+  redis_cpu      = (var.app_env == "production" ? 256 : 256)
+  redis_memory   = (var.app_env == "production" ? 512 : 512)
   grafana_port   = 3000
   redis_port     = 6379
 }
