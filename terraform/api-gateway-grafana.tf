@@ -36,5 +36,5 @@ resource "aws_apigatewayv2_stage" "grafana" {
 }
 
 output "grafana_url" {
-  value = "https://${aws_apigatewayv2_api.my_api.id}.execute-api.ca-central-1.amazonaws.com"
+  value = "https://${aws_apigatewayv2_api.grafana[count.index].id}.execute-api.ca-central-1.amazonaws.com"
 }
