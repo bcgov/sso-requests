@@ -31,9 +31,3 @@ variable "aws_ecr_uri" {
   type        = string
   default     = ""
 }
-
-variable "redis_host" {
-  type        = string
-  description = "Redis Hostname"
-  default     = ""
-}
