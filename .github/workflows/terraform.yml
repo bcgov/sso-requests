@@ -64,7 +64,8 @@ jobs:
           UPTIME_STATUS_DOMAIN_NAME=status.sandbox.loginproxy.gov.bc.ca
           AWS_ECR_URI=${{secrets.DEV_AWS_ECR_URI}}
           INCLUDE_DIGITAL_CREDENTIAL=true
-          INSTALL_SSO_CSS_GRAFANA=true
+          INSTALL_GRAFANA=true
+          INSTALL_REDIS=true
 
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=true
@@ -116,7 +117,8 @@ jobs:
           UPTIME_STATUS_DOMAIN_NAME=status.sandbox.loginproxy.gov.bc.ca
           AWS_ECR_URI=${{secrets.DEV_AWS_ECR_URI}}
           INCLUDE_DIGITAL_CREDENTIAL=true
-          INSTALL_SSO_CSS_GRAFANA=false
+          INSTALL_GRAFANA=false
+          INSTALL_REDIS=true
 
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=false
@@ -167,7 +169,8 @@ jobs:
           CUSTOM_DOMAIN_NAME=api.loginproxy.gov.bc.ca
           UPTIME_STATUS_DOMAIN_NAME=status.loginproxy.gov.bc.ca
           AWS_ECR_URI=${{secrets.PROD_AWS_ECR_URI}}
-          INSTALL_SSO_CSS_GRAFANA=true
+          INSTALL_GRAFANA=true
+          INSTALL_REDIS=true
           INCLUDE_DIGITAL_CREDENTIAL=true
 
           INCLUDE_BC_SERVICES_CARD=true
@@ -309,7 +312,8 @@ jobs:
           ms_graph_api_authority="${{secrets.MS_GRAPH_API_AUTHORITY}}"
           ms_graph_api_client_id="${{secrets.MS_GRAPH_API_CLIENT_ID}}"
           ms_graph_api_client_secret="${{secrets.MS_GRAPH_API_CLIENT_SECRET}}"
-          install_sso_css_grafana="${{ env.INSTALL_SSO_CSS_GRAFANA == 'true' && 1 || 0 }}"
+          install_grafana="${{ env.INSTALL_GRAFANA == 'true' && 1 || 0 }}"
+          install_redis="${{ env.INSTALL_REDIS == 'true' && 1 || 0 }}"
 
           allow_bc_services_card_prod="${{env.ALLOW_BC_SERVICES_CARD_PROD}}"
           include_bc_services_card="${{env.INCLUDE_BC_SERVICES_CARD}}"

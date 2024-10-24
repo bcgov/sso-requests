@@ -1,3 +1,12 @@
+locals {
+  grafana_cpu    = (var.app_env == "production" ? 256 : 128)
+  grafana_memory = (var.app_env == "production" ? 512 : 256)
+  redis_cpu      = (var.app_env == "production" ? 256 : 128)
+  redis_memory   = (var.app_env == "production" ? 512 : 256)
+  grafana_port   = 3000
+  redis_port     = 6379
+}
+
 resource "aws_ecs_cluster" "sso_ecs_cluster" {
   name = "sso-ecs-cluster"
 }
@@ -19,8 +28,8 @@ resource "aws_ecs_task_definition" "grafana" {
   task_role_arn            = aws_iam_role.grafana_container_role[count.index].arn
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 1024
-  memory                   = 2048
+  cpu                      = local.grafana_cpu
+  memory                   = local.grafana_memory
   tags                     = var.grafana_tags
   volume {
     name = "sso-grafana-data"
@@ -38,15 +47,15 @@ resource "aws_ecs_task_definition" "grafana" {
       essential              = true
       name                   = "grafana"
       image                  = "${var.aws_ecr_uri}/bcgov-sso/grafana:10.2.2"
-      cpu                    = 1024
-      memory                 = 2048
+      cpu                    = local.grafana_cpu
+      memory                 = local.grafana_memory
       readonlyRootFilesystem = true
       networkMode            = "awsvpc"
       portMappings = [
         {
           protocol      = "tcp"
-          containerPort = 3000
-          hostPort      = 3000
+          containerPort = local.grafana_port
+          hostPort      = local.grafana_port
         }
       ]
       environment = [
@@ -186,7 +195,7 @@ resource "aws_ecs_service" "grafana" {
   load_balancer {
     target_group_arn = aws_alb_target_group.grafana[count.index].id
     container_name   = "grafana"
-    container_port   = 3000
+    container_port   = local.grafana_port
   }
 
   depends_on = [aws_iam_role_policy_attachment.grafana]
@@ -207,23 +216,23 @@ resource "aws_ecs_task_definition" "redis" {
   task_role_arn            = aws_iam_role.redis_container_role[count.index].arn
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 1024
-  memory                   = 2048
+  cpu                      = local.redis_cpu
+  memory                   = local.redis_memory
   tags                     = var.redis_tags
   container_definitions = jsonencode([
     {
       essential              = true
       name                   = "redis"
       image                  = "public.ecr.aws/docker/library/redis:latest"
-      cpu                    = 1024
-      memory                 = 2048
+      cpu                    = local.redis_cpu
+      memory                 = local.redis_memory
       readonlyRootFilesystem = true
       networkMode            = "awsvpc"
       portMappings = [
         {
           protocol      = "tcp"
-          containerPort = 6379
-          hostPort      = 6379
+          containerPort = local.redis_port
+          hostPort      = local.redis_port
         }
       ]
       environment = [
@@ -272,7 +281,7 @@ resource "aws_ecs_service" "redis" {
   load_balancer {
     target_group_arn = aws_lb_target_group.redis[count.index].id
     container_name   = "redis"
-    container_port   = 6379
+    container_port   = local.redis_port
   }
 
   depends_on = [aws_lb.redis_nlb]
