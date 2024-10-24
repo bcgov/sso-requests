@@ -284,7 +284,5 @@ resource "aws_ecs_service" "redis" {
     container_port   = local.redis_port
   }
 
-  depends_on = [aws_lb.redis_nlb]
-
   tags = var.redis_tags
 }
