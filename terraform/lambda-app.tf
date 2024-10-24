@@ -62,6 +62,7 @@ resource "aws_lambda_function" "app" {
       BCSC_REGISTRATION_BASE_URL_DEV  = var.bcsc_registration_base_url_dev
       BCSC_REGISTRATION_BASE_URL_TEST = var.bcsc_registration_base_url_test
       BCSC_REGISTRATION_BASE_URL_PROD = var.bcsc_registration_base_url_prod
+      REDIS_HOST                      = var.redis_host
     }
   }
 

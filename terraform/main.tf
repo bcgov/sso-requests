@@ -65,7 +65,7 @@ data "aws_security_group" "web" {
   name = "Web_sg"
 }
 
-# resource "aws_security_group" "ecs_sso_grafana_sg" {
+# resource "aws_security_group" "grafana" {
 #   name        = "ecs-sso-grafana-sg"
 #   description = "Allow inbound access from the ALB only"
 #   vpc_id      = module.network.aws_vpc.id
@@ -73,8 +73,8 @@ data "aws_security_group" "web" {
 #   ingress {
 #     description     = "Only from alb"
 #     protocol        = "tcp"
-#     from_port       = var.sso_grafana_container_port
-#     to_port         = var.sso_grafana_container_port
+#     from_port       = 3000
+#     to_port         = 3000
 #     security_groups = [data.aws_security_group.app.id]
 #   }
 
@@ -86,5 +86,5 @@ data "aws_security_group" "web" {
 #     cidr_blocks = ["0.0.0.0/0"]
 #   }
 
-#   tags = var.sso_grafana_tags
+#   tags = var.grafana_tags
 # }

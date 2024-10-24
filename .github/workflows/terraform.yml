@@ -76,6 +76,8 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
 
+          REDIS_HOST=${{ secrets.DEV_REDIS_HOST }}
+
           EOF
 
       - name: Set env to test
@@ -128,6 +130,8 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
 
+          REDIS_HOST=${{ secrets.TEST_REDIS_HOST }}
+
           EOF
 
       - name: Set env to production
@@ -179,6 +183,8 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_DEV=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_PROD}}
+
+          REDIS_HOST=${{ secrets.PROD_REDIS_HOST }}
 
           EOF
 
@@ -319,7 +325,7 @@ jobs:
           bcsc_registration_base_url_dev="${{env.BCSC_REGISTRATION_BASE_URL_DEV}}"
           bcsc_registration_base_url_test="${{env.BCSC_REGISTRATION_BASE_URL_TEST}}"
           bcsc_registration_base_url_prod="${{env.BCSC_REGISTRATION_BASE_URL_PROD}}"
-
+          redis_host="${{env.REDIS_HOST}}"
           EOF
 
         working-directory: ./terraform
