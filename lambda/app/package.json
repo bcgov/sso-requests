@@ -17,7 +17,6 @@
     "@types/jws": "^3.2.3"
   },
   "dependencies": {
-    "@acpr/rate-limit-postgresql": "^1.4.1",
     "@azure/msal-node": "^2.6.4",
     "@keycloak/keycloak-admin-client": "18.0.1",
     "cors": "^2.8.5",
@@ -25,11 +24,13 @@
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.1",
     "http-errors": "^2.0.0",
+    "ioredis": "^5.4.1",
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.2",
     "jwk-to-pem": "^2.0.5",
     "jws": "^4.0.0",
     "lambda-api-router": "^1.0.6",
+    "rate-limit-redis": "^4.2.0",
     "react": "^18.1.0",
     "react-jsonschema-form": "^1.8.1",
     "serverless-http": "^3.0.3",
