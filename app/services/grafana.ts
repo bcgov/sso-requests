@@ -32,7 +32,6 @@ export const getLogs = async (
 
     return [result, null];
   } catch (err) {
-    console.error(err);
     return [null, err];
   }
 };

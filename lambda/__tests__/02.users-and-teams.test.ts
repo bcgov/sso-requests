@@ -29,14 +29,6 @@ import { sendEmail } from '@lambda-shared/utils/ches';
 import { models } from '@lambda-shared/sequelize/models/models';
 import { findOrCreateUser } from '@lambda-app/controllers/user';
 
-jest.mock('../app/src/authenticate');
-
-jest.mock('../shared/utils/ches', () => {
-  return {
-    sendEmail: jest.fn(),
-  };
-});
-
 jest.mock('@lambda-app/controllers/requests', () => {
   const original = jest.requireActual('@lambda-app/controllers/requests');
   return {

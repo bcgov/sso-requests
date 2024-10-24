@@ -8,14 +8,6 @@ import { buildIntegration } from './helpers/modules/common';
 import { listClientCompositeRoles, listClientRoles, listClientRoleUsers } from './helpers/modules/roles';
 import { createMockAuth, cleanUpDatabaseTables } from './helpers/utils';
 
-jest.mock('../app/src/authenticate');
-
-jest.mock('../shared/utils/ches', () => {
-  return {
-    sendEmail: jest.fn(),
-  };
-});
-
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {

@@ -3,14 +3,6 @@ import { getAppApiHeartBeat } from './helpers/modules/common';
 import { createIntegration, getIntegrations, getListOfIntegrations } from './helpers/modules/integrations';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 
-jest.mock('../app/src/authenticate');
-
-jest.mock('../shared/utils/ches', () => {
-  return {
-    sendEmail: jest.fn(),
-  };
-});
-
 jest.mock('@lambda-app/controllers/requests', () => {
   const original = jest.requireActual('@lambda-app/controllers/requests');
   return {

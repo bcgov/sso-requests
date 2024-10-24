@@ -26,15 +26,12 @@ jest.mock('@lambda-app/controllers/bc-services-card', () => {
   };
 });
 
-jest.mock('../app/src/authenticate');
-
 jest.mock('@lambda-app/keycloak/adminClient', () => {
   return {
     getAdminClient: jest.fn(() => Promise.resolve({})),
   };
 });
 
-jest.mock('@lambda-shared/utils/ches');
 jest.mock('@lambda-app/bcsc/client', () => {
   const original = jest.requireActual('@lambda-app/bcsc/client');
   return {

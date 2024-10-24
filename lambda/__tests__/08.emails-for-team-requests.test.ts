@@ -19,8 +19,6 @@ import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
 
-jest.mock('../app/src/authenticate');
-
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {
@@ -28,8 +26,6 @@ jest.mock('../app/src/keycloak/integration', () => {
     keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
-
-jest.mock('@lambda-shared/utils/ches');
 
 jest.mock('../app/src/keycloak/client', () => {
   return {

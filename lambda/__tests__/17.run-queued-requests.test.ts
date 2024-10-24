@@ -15,7 +15,6 @@ import { handler } from '../request-queue/src/main';
 import { createEvent, standardClients } from '@lambda-app/controllers/requests';
 
 jest.mock('@lambda-app/keycloak/adminClient');
-jest.mock('@lambda-shared/utils/ches');
 
 describe('Request Queue', () => {
   beforeEach(async () => {

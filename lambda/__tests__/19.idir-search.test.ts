@@ -3,8 +3,6 @@ import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/f
 import { searchIdirUsers } from './helpers/modules/users';
 import { searchIdirEmail } from '@lambda-app/ms-graph/idir';
 
-jest.mock('../app/src/authenticate');
-
 const AZURE_RESPONSE = ['some.user@email.com'];
 
 jest.mock('../app/src/ms-graph/idir', () => {

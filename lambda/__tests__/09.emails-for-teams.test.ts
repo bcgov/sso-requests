@@ -12,8 +12,6 @@ import { createTeam, deleteMembersOfTeam, deleteTeam, getMembersOfTeam } from '.
 
 const TEST_TOKEN = 'testtoken';
 
-jest.mock('@lambda-app/authenticate');
-
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {
@@ -29,7 +27,6 @@ jest.mock('@lambda-app/helpers/token', () => {
     generateInvitationToken: jest.fn(() => TEST_TOKEN),
   };
 });
-jest.mock('@lambda-shared/utils/ches');
 
 describe('emails for teams', () => {
   afterAll(async () => {

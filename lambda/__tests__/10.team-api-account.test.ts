@@ -70,8 +70,6 @@ const deleteUserRoleMapping = {
 
 const mockedFindClientRole = findClientRole as jest.Mock<any>;
 
-jest.mock('@lambda-app/authenticate');
-
 jest.mock('@lambda-app/keycloak/users', () => {
   return {
     listClientRoles: jest.fn(() => {
@@ -110,7 +108,6 @@ jest.mock('@lambda-app/helpers/token', () => {
     generateInvitationToken: jest.fn(() => TEST_TOKEN),
   };
 });
-jest.mock('@lambda-shared/utils/ches');
 
 jest.mock('@lambda-app/authenticate');
 
