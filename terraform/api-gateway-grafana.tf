@@ -34,3 +34,7 @@ resource "aws_apigatewayv2_stage" "grafana" {
   name        = "$default"
   auto_deploy = true
 }
+
+output "grafana_url" {
+  value = "https://${aws_apigatewayv2_api.my_api.id}.execute-api.ca-central-1.amazonaws.com"
+}
