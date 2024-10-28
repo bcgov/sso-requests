@@ -86,6 +86,11 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
   }
 
   let content;
+
+  if (integration?.archived) {
+    canApproveProd = false;
+  }
+
   if (canApproveProd) {
     content = (
       <>
