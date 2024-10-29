@@ -50,6 +50,12 @@ jobs:
             cypress/e2e/ci/smoke-10-brokenlinks.cy.ts
           browser: electron
 
+      - name: check files
+        run: |
+          ls
+          cd app/cypress
+          ls
+
       - uses: actions/upload-artifact@v4
         # add the line below to store screenshots only on failures
         # if: failure()
