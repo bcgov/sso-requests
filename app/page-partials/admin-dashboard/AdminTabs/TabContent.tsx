@@ -86,7 +86,14 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
   }
 
   let content;
-  if (canApproveProd) {
+
+  if (integration?.archived) {
+    content = (
+      <>
+        <p>Cannot approve deleted/archived integrations.</p>
+      </>
+    );
+  } else if (canApproveProd) {
     content = (
       <>
         <p>{`To begin the ${displayType} integration in production, Click Below.`}</p>
