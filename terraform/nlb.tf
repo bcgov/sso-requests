@@ -1,4 +1,5 @@
 resource "aws_lb" "redis_nlb" {
+  count              = var.install_redis
   name               = "redis-nlb"
   internal           = true
   load_balancer_type = "network"
@@ -26,7 +27,7 @@ resource "aws_lb_target_group" "redis" {
 
 resource "aws_lb_listener" "redis" {
   count             = var.install_redis
-  load_balancer_arn = aws_lb.redis_nlb.arn
+  load_balancer_arn = aws_lb.redis_nlb[count.index].arn
   port              = 6379
   protocol          = "TCP"
 
