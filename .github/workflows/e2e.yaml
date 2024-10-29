@@ -64,7 +64,8 @@ jobs:
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
+        if: failure()
         with:
           name: cypress-videos
-          path: app/cypress/videos
+          path: app/cypress/videos/**/*
           if-no-files-found: ignore
