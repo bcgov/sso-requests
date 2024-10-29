@@ -43,10 +43,11 @@ jobs:
         with:
           summary-title: 'E2E tests'
           wait-on: 'http://localhost:3000'
+          wait-on-timeout: 360
           install-command: yarn
           working-directory: app
           spec: |
-            cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
+            cypress/e2e/ci/smoke-10-brokenlinks.cy.ts
           browser: electron
 
       - uses: actions/upload-artifact@v4
