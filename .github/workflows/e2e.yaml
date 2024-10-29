@@ -1,6 +1,9 @@
 name: Run E2E tests
 
 on:
+  push:
+    branches:
+      - ssoteam-2036
   pull_request:
     types:
       - opened
