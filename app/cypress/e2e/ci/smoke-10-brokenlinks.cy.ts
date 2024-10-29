@@ -9,7 +9,6 @@ describe('Check for Broken Static Link', () => {
     // Iterate through all the links on the page
     // If the link has an url specified, then check if the link is operational
     cy.get('a').each((link) => {
-      expect(true).to.equal(false);
       if (link.prop('href') && link.prop('href').startsWith('mailto', 0) == false) {
         cy.request({
           url: link.prop('href'),
