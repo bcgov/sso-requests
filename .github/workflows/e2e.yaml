@@ -43,14 +43,11 @@ jobs:
         with:
           summary-title: 'E2E tests'
           wait-on: 'http://localhost:3000'
-          parallel: true
-          wait-on-timeout: 360
           install-command: yarn
           working-directory: app
           spec: |
             cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
           browser: electron
-          ci-build-id: ${{ github.event.number }}
 
       - uses: actions/upload-artifact@v4
         # add the line below to store screenshots only on failures
