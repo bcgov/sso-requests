@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "author": "SSO Team",
   "scripts": {
-    "dev": "nodemon --trace-warnings",
+    "dev": "bun --hot server.ts",
     "migrate-db": "nodemon --config nodemon-db.json"
   },
   "devDependencies": {

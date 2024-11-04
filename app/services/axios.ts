@@ -21,7 +21,8 @@ instance.interceptors.request.use(
     }
     const authHeader = await getAuthHeader();
     if (authHeader) {
-      config.headers.set('Authorization', authHeader);
+      if (config.headers) config.headers.Authorization = authHeader;
+      else config.headers = { Authorization: authHeader };
     }
     return config;
   },

@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@azure/msal-node": "^2.6.4",
-    "@keycloak/keycloak-admin-client": "18.0.1",
+    "@keycloak/keycloak-admin-client": "^24.0.5",
     "cors": "^2.8.5",
     "deep-diff": "^1.0.2",
     "express": "^4.21.0",
