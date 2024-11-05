@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "author": "SSO Team",
   "scripts": {
-    "dev": "nodemon --trace-warnings",
+    "dev": "bun --hot server.ts",
     "migrate-db": "nodemon --config nodemon-db.json"
   },
   "devDependencies": {
@@ -25,14 +25,6 @@
   },
   "resolutions": {
     "minimist": ">=1.2.6"
-  },
-  "nodemonConfig": {
-    "watch": [
-      "./",
-      "../lambda"
-    ],
-    "ext": "ts,json",
-    "exec": "ts-node -r tsconfig-paths/register -r dotenv/config ./server.ts"
   },
   "dependencies": {
     "axios": "^1.7.7",
