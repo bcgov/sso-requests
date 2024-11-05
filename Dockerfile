@@ -1,6 +1,6 @@
 FROM node:20.17.0-slim
 
-RUN npm install --ignore-scripts -g bun
+RUN curl -fsSL https://bun.sh/install | bash
 RUN apt-get update && apt-get install curl make -y \
                    && apt-get install libsqlite3-dev bzip2 icu-devtools uuid-dev -y
 
