@@ -5,7 +5,7 @@ module.exports = {
   transform: {
     // IMPORTANT: js is here intentionally to transform js files with ES Module syntax. The overriding config file allows js.
     '^.+\\.(ts|tsx|js)$': [
-      'ts-jest', // Transformer
+      'ts-jest',
       {
         tsconfig: 'tsconfig.jest.json',
       },
@@ -14,8 +14,6 @@ module.exports = {
   setupFilesAfterEnv: ['./__tests__/jest.setup.js'],
   testSequencer: './testSequencer.js',
   testPathIgnorePatterns: ['/node_modules/', '/build/'],
-  // This should not work, but it does. We dont even use pnpm but tests wont run without it.
-  // transformIgnorePatterns: ['/node_modules/.pnpm/(?!@keycloak)'],
   transformIgnorePatterns: ['/node_modules/(?!(@keycloak|url-join|url-template|camelize-ts)/)'],
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/../app/$1',
