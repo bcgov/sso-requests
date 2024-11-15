@@ -3,8 +3,8 @@ import RedisStore from 'rate-limit-redis';
 import RedisClient from 'ioredis';
 
 const getClientIp = (req) => {
-  const { id } = req.params || {};
-  const { env } = req.query || {};
+  const id = req.params?.id ?? req.params?.integrationId;
+  const env = req.query?.env ?? req.params?.environment;
   const clientIp = req.headers['X-Forwarded-For'] ?? req.connection.remoteAddress;
   return `${id}-${env}-${clientIp}`;
 };
