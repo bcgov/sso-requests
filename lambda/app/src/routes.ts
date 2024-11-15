@@ -51,7 +51,7 @@ import { Session, User } from '../../shared/interfaces';
 import { inviteTeamMembers } from '../src/utils/helpers';
 import { getAllowedTeam, getAllowedTeams } from '@lambda-app/queries/team';
 import { parseInvitationToken } from '@lambda-app/helpers/token';
-import { findMyOrTeamIntegrationsByService } from '@lambda-app/queries/request';
+import { findMyOrTeamIntegrationsByService, getAllowedRequest } from '@lambda-app/queries/request';
 import { isAdmin } from './utils/helpers';
 import {
   createClientRole,
@@ -305,7 +305,18 @@ export const setRoutes = (app: any) => {
       try {
         const { id } = req.params || {};
         const { start, end, env } = req.query || {};
-        const { status, message, data } = await fetchLogs(req.session, env, id, start, end);
+        const userRequest = await getAllowedRequest(req.session, id);
+        if (!userRequest) {
+          return res.status(403).send('forbidden');
+        }
+        const { status, message, data } = await fetchLogs(
+          env,
+          userRequest.clientId,
+          userRequest.id,
+          start,
+          end,
+          req.session.idir_userid,
+        );
         if (status === 200) {
           res.setHeader('Content-Length', JSON.stringify(data).length);
           res.setHeader('Content-Type', 'application/json');

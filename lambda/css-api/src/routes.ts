@@ -10,6 +10,9 @@ import { TokenController } from './controllers/token-controller';
 import { isEmpty } from 'lodash';
 import createHttpError from 'http-errors';
 import { UserController } from './controllers/user-controller';
+import { getIntegrationByIdAndTeam } from '@lambda-app/queries/request';
+import { fetchLogs } from '@lambda-app/controllers/logs';
+import { logsRateLimiter } from '@lambda-app/utils/rate-limiters';
 
 const tryJSON = (str: string) => {
   try {
@@ -138,6 +141,66 @@ export const setRoutes = (app: any) => {
     } catch (err) {
       handleError(res, err);
     }
+  });
+
+  app.get(`/integrations/:integrationId/:environment/logs`, logsRateLimiter, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Logs']
+      #swagger.path = '/integrations/{integrationId}/{environment}/logs'
+      #swagger.method = 'get'
+      #swagger.description = 'Get logs for the integration of the target environment'
+      #swagger.summary = 'Get logs for the integration and environment'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true,
+        type: 'number',
+        example: 1234
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['start'] = {
+        in: 'query',
+        required: true,
+        description: 'Start Datetime in ISO 8601 format, RFC 2822 format, or milliseconds since epoch.',
+        example: '2024-11-14T10:00:00Z'
+      }
+      #swagger.parameters['end'] = {
+        in: 'query',
+        required: true,
+        description: 'End Datetime in ISO 8601 format, RFC 2822 format, or milliseconds since epoch.',
+        example: '2024-11-14T11:00:00Z'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { $ref: '#/components/schemas/logsResponse' }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[403] = {
+        description: 'Forbidden',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[500] = {
+        description: 'Server Error',
+        schema: { message: 'string' }
+      }
+    */
+    const { integrationId, environment } = req.params;
+    const { start, end } = req.query || {};
+    const int = await getIntegrationByIdAndTeam(integrationId, req.teamId);
+    if (!int) {
+      return res.status(403).json({ message: 'forbidden' });
+    }
+    const { status, message, data } = await fetchLogs(environment, int.clientId, int.id, start, end);
+    if (status === 200) res.status(status).send({ data });
+    else res.status(status).send({ message });
   });
 
   app.get(`/integrations/:integrationId/:environment/roles`, async (req, res) => {

@@ -1,10 +1,10 @@
 import app from './helpers/server';
 import supertest from 'supertest';
-import { APP_BASE_PATH } from './helpers/constants';
+import { API_BASE_PATH, APP_BASE_PATH } from './helpers/constants';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { getUpdateIntegrationData } from './helpers/fixtures';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { queryGrafana } from '../app/src/grafana';
+import { queryGrafana } from '@lambda-app/grafana';
 import { EVENTS } from '@lambda-shared/enums';
 import * as rateLimiters from '@lambda-app/utils/rate-limiters';
 
@@ -21,30 +21,43 @@ jest.mock('../app/src/keycloak/integration', () => {
     keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
-describe('Fetch SSO Logs', () => {
-  const integration = getUpdateIntegrationData({ integration: { projectName: 'test_project' } });
 
+const AUTHENTICATED_TEAM_ID = 1;
+const UNAUTHENTICATED_TEAM_ID = 2;
+const teamAuthResponse = {
+  success: true,
+  data: {
+    teamId: AUTHENTICATED_TEAM_ID,
+  },
+};
+
+jest.mock('@lambda-css-api/authenticate', () => ({
+  authenticate: jest.fn(() => Promise.resolve(teamAuthResponse)),
+}));
+
+const MOCK_USER_ID = -1;
+const MOCK_USER_EMAIL = 'test@user.com';
+const INTEGRATION_ID = -1;
+const integration = getUpdateIntegrationData({ integration: { projectName: 'test_project' } });
+
+// Create integration owned by mock user to test against
+const setupIntegrationAndUser = async () => {
+  await models.user.create({
+    id: MOCK_USER_ID,
+    idirEmail: MOCK_USER_EMAIL,
+  });
+  await models.request.create({
+    ...integration,
+    id: INTEGRATION_ID,
+    usesTeam: false,
+    userId: MOCK_USER_ID,
+  });
+};
+
+describe('Fetch SSO Logs', () => {
   afterEach(async () => {
     await cleanUpDatabaseTables();
   });
-
-  const MOCK_USER_ID = -1;
-  const MOCK_USER_EMAIL = 'test@user.com';
-  const INTEGRATION_ID = -1;
-
-  // Create integration owned by mock user to test against
-  const setupIntegrationAndUser = async () => {
-    await models.user.create({
-      id: MOCK_USER_ID,
-      idirEmail: MOCK_USER_EMAIL,
-    });
-    await models.request.create({
-      ...integration,
-      id: INTEGRATION_ID,
-      usesTeam: false,
-      userId: MOCK_USER_ID,
-    });
-  };
 
   // A valid query string to use
   const queryString = `env=dev&start=2020-10-10&end=2020-10-12`;
@@ -57,7 +70,7 @@ describe('Fetch SSO Logs', () => {
       .get(`${APP_BASE_PATH}/requests/${INTEGRATION_ID}/logs?${queryString}`)
       .set('Accept', 'application/json');
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
 
     // Create session with actual user, expect 200
     createMockAuth('2', MOCK_USER_EMAIL);
@@ -108,7 +121,7 @@ describe('Fetch SSO Logs', () => {
       .get(`${APP_BASE_PATH}/requests/${INTEGRATION_ID}/logs?${queryString}`)
       .set('Accept', 'application/json');
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
   });
 
   it('Responds with 400 if supplied query parameters are wrong', async () => {
@@ -190,6 +203,62 @@ describe('Fetch SSO Logs', () => {
 
   it('Return 429 if too many requests', async () => {
     await setupIntegrationAndUser();
+    jest.spyOn(rateLimiters, 'logsRateLimiter').mockImplementationOnce((req, res) => {
+      res.status(429).send({ message: 'Rate limit exceeded' });
+    });
+    const response = await supertest(app)
+      .get(`${APP_BASE_PATH}/requests/${INTEGRATION_ID}/logs?${queryString}`)
+      .set('Accept', 'application/json');
+
+    expect(response.status).toBe(429);
+  });
+});
+
+describe('CSS API - Fetch Logs', () => {
+  const integration = getUpdateIntegrationData({ integration: { projectName: 'test_project' } });
+
+  afterEach(async () => {
+    await cleanUpDatabaseTables();
+  });
+
+  const createTeamOwnedIntegration = async (teamId: number) => {
+    await models.team.create({
+      id: teamId,
+      name: 'test_team',
+    });
+    const createdIntegration = await models.request.create({
+      ...integration,
+      usesTeam: true,
+      teamId,
+    });
+    return createdIntegration.id;
+  };
+
+  it("Allows team service account to fetch its own integration's logs", async () => {
+    const integrationId = await createTeamOwnedIntegration(AUTHENTICATED_TEAM_ID);
+
+    const queryString = `start=2020-10-10&end=2020-10-12`;
+    const response = await supertest(app)
+      .get(`${API_BASE_PATH}/integrations/${integrationId}/dev/logs?${queryString}`)
+      .set('Accept', 'application/json');
+
+    expect(response.status).toBe(200);
+  });
+
+  it('Rejects request if account is not associated with the owning team', async () => {
+    // Create integration owned by another team
+    const unauthorizedIntegrationId = await createTeamOwnedIntegration(UNAUTHENTICATED_TEAM_ID);
+    const queryString = `start=2020-10-10&end=2020-10-12`;
+    const response = await supertest(app)
+      .get(`${API_BASE_PATH}/integrations/${unauthorizedIntegrationId}/dev/logs?${queryString}`)
+      .set('Accept', 'application/json');
+
+    expect(response.status).toBe(403);
+  });
+
+  it('Return 429 if too many requests', async () => {
+    await setupIntegrationAndUser();
+    const queryString = `start=2020-10-10&end=2020-10-12`;
     jest.spyOn(rateLimiters, 'logsRateLimiter').mockImplementationOnce((req, res) => {
       res.status(429).send({ message: 'Rate limit exceeded' });
     });
