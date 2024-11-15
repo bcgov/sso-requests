@@ -37,6 +37,8 @@ services:
       SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests
       APP_URL: http://localhost:3000
       INCLUDE_DIGITAL_CREDENTIAL: 'true'
+      INCLUDE_BC_SERVICES_CARD: 'true'
+      ALLOW_BC_SERVICES_CARD_PROD: 'true'
     depends_on:
       - sso-requests
     networks:
@@ -91,6 +93,8 @@ services:
       BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
+      INCLUDE_BC_SERVICES_CARD: 'true'
+      ALLOW_BC_SERVICES_CARD_PROD: 'true'
     networks:
       css-net:
         aliases: [sso-requests-api]
