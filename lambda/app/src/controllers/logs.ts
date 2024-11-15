@@ -39,6 +39,10 @@ export const fetchLogs = async (
     };
   }
 
+  if (unixStartTime > unixEndTime) {
+    return { status: 400, message: `End date must be later than start date.` };
+  }
+
   if (unixEndTime - unixStartTime > MAX_DAYS * 60 * 60 * 24 * 1000) {
     return { status: 400, message: `Date range must be less ${MAX_DAYS} days.` };
   }
