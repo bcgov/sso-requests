@@ -46,6 +46,7 @@ resource "aws_lambda_function" "css_api" {
       CHES_PASSWORD              = var.ches_password
       CHES_USERNAME              = var.ches_username
       GOLD_IP_ADDRESS            = var.gold_ip_address
+      REDIS_HOST                 = var.install_redis == 1 ? aws_lb.redis_nlb[0].dns_name : ""
     }
   }
 
