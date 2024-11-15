@@ -192,15 +192,19 @@ export const setRoutes = (app: any) => {
         schema: { message: 'string' }
       }
     */
-    const { integrationId, environment } = req.params;
-    const { start, end } = req.query || {};
-    const int = await getIntegrationByIdAndTeam(integrationId, req.teamId);
-    if (!int) {
-      return res.status(403).json({ message: 'forbidden' });
+    try {
+      const { integrationId, environment } = req.params;
+      const { start, end } = req.query || {};
+      const int = await getIntegrationByIdAndTeam(integrationId, req.teamId);
+      if (!int) {
+        return res.status(403).json({ message: 'forbidden' });
+      }
+      const { status, message, data } = await fetchLogs(environment, int.clientId, int.id, start, end);
+      if (status === 200) res.status(status).send({ data });
+      else res.status(status).send({ message });
+    } catch (err) {
+      handleError(res, err);
     }
-    const { status, message, data } = await fetchLogs(environment, int.clientId, int.id, start, end);
-    if (status === 200) res.status(status).send({ data });
-    else res.status(status).send({ message });
   });
 
   app.get(`/integrations/:integrationId/:environment/roles`, async (req, res) => {
