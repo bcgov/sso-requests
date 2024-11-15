@@ -23,6 +23,7 @@ jest.mock('../app/src/keycloak/integration', () => {
 });
 
 const AUTHENTICATED_TEAM_ID = 1;
+const UNAUTHENTICATED_TEAM_ID = 2;
 const teamAuthResponse = {
   success: true,
   data: {
@@ -246,18 +247,7 @@ describe('CSS API - Fetch Logs', () => {
 
   it('Rejects request if account is not associated with the owning team', async () => {
     // Create integration owned by another team
-    const unauthorizedIntegrationId = await createTeamOwnedIntegration(2);
-    const queryString = `start=2020-10-10&end=2020-10-12`;
-    const response = await supertest(app)
-      .get(`${API_BASE_PATH}/integrations/${unauthorizedIntegrationId}/dev/logs?${queryString}`)
-      .set('Accept', 'application/json');
-
-    expect(response.status).toBe(403);
-  });
-
-  it('Rejects request if account is not associated with the owning team', async () => {
-    // Create integration owned by another team
-    const unauthorizedIntegrationId = await createTeamOwnedIntegration(2);
+    const unauthorizedIntegrationId = await createTeamOwnedIntegration(UNAUTHENTICATED_TEAM_ID);
     const queryString = `start=2020-10-10&end=2020-10-12`;
     const response = await supertest(app)
       .get(`${API_BASE_PATH}/integrations/${unauthorizedIntegrationId}/dev/logs?${queryString}`)
