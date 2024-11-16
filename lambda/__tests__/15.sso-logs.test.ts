@@ -139,14 +139,16 @@ describe('Fetch SSO Logs', () => {
       'env=dev&start=2022-10-10&end=anotherDate',
       // Range too large
       'env=dev&start=2022-10-10&end=2022-12-12',
+      // Start date later than end date
+      'env=dev&start=2022-10-02&end=2022-10-01',
     ];
 
     const validParams = [
-      'env=dev&start=2022-10-10&end=2022-10-10',
-      'env=test&start=2022-10-10&end=2022-10-10',
-      'env=prod&start=2022-10-10&end=2022-10-10',
+      'env=dev&start=2022-10-10&end=2022-10-11',
+      'env=test&start=2022-10-10&end=2022-10-11',
+      'env=prod&start=2022-10-10&end=2022-10-11',
       'env=dev&start=2022-10-10&end=2022-10-10T12:10:10',
-      'env=dev&start=2022-12-10T10:10:10&end=2022-10-10T10:10:10',
+      'env=dev&start=2022-10-10T10:10:10&end=2022-10-10T10:10:11',
     ];
 
     createMockAuth('2', MOCK_USER_EMAIL);
