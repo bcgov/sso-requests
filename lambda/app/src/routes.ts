@@ -318,6 +318,7 @@ export const setRoutes = (app: any) => {
           req.session.idir_userid,
         );
         if (status === 200) {
+          res.setHeader('X-Message', message);
           res.setHeader('Content-Length', JSON.stringify(data).length);
           res.setHeader('Content-Type', 'application/json');
           res.setHeader('Content-Disposition', `attachment`);
