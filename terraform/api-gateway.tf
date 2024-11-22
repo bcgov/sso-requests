@@ -5,6 +5,8 @@
 resource "aws_api_gateway_rest_api" "sso_backend" {
   name        = "SSOApi"
   description = "Terraform Serverless Application Example"
+  # Compress for 25Kb and larger responses
+  minimum_compression_size = 25000
 
   endpoint_configuration {
     types = ["REGIONAL"]
