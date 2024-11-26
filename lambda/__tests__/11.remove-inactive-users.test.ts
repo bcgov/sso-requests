@@ -44,7 +44,7 @@ jest.mock('../app/src/keycloak/client', () => {
   };
 });
 
-describe.skip('users and teams', () => {
+describe('users and teams', () => {
   try {
     beforeAll(async () => {
       jest.clearAllMocks();
@@ -168,11 +168,10 @@ describe('Deleted user emails', () => {
 
   beforeEach(async () => {
     await models.user.create({ idirUserid: SSO_TEAM_IDIR_USER, idirEmail: SSO_TEAM_IDIR_EMAIL });
-    // await models.user.create({ idirUserid: TEAM_ADMIN_IDIR_USERID_01, idirEmail: TEAM_ADMIN_IDIR_EMAIL_01 });
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
   });
 
-  it.skip('Sends one email notification when a deleted user owns an integration directly', async () => {
+  it('Sends one email notification when a deleted user owns an integration directly', async () => {
     const emailList = createMockSendEmail();
     const request = await buildIntegration({
       projectName: 'Delete Inactive Users',
@@ -190,7 +189,7 @@ describe('Deleted user emails', () => {
     expect(deleteInactiveIntegrationEmails.length).toBe(0);
   });
 
-  it.skip('Sends one email notification when a deleted user with no roles is the admin of the owning team', async () => {
+  it('Sends one email notification when a deleted user with no roles is the admin of the owning team', async () => {
     const emailList = createMockSendEmail();
     const adminTeam = await createTeam({
       name: 'test_team',
@@ -220,7 +219,7 @@ describe('Deleted user emails', () => {
     expect(orphanedIntegrationEmails.length).toBe(0);
   });
 
-  it.skip('Sends one email notification when a deleted user with roles is the admin of the owning team', async () => {
+  it('Sends one email notification when a deleted user with roles is the admin of the owning team', async () => {
     const emailList = createMockSendEmail();
     const adminTeam = await createTeam({
       name: 'test_team',
