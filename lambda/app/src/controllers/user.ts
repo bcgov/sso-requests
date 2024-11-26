@@ -187,7 +187,7 @@ export const deleteStaleUsers = async (
           },
           raw: true,
         });
-        if (integration?.teamId) {
+        if (integration?.teamId && !integration.archived) {
           const userEmails = await getAllEmailsOfTeam(integration.teamId);
           let isTeamAdmin = false;
           userEmails.map((u: any) => {
@@ -254,7 +254,7 @@ export const deleteStaleUsers = async (
               rqst.userId = ssoUser.id;
               await rqst.save();
               // Notification was already sent above if roles were included.
-              if (!userHadRoles) {
+              if (!userHadRoles && !rqst.archived) {
                 await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
                   teamId: rqst.teamId,
                   username: user.attributes.idir_username || user.username,
