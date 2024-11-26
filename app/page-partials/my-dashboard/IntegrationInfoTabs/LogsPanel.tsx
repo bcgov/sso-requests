@@ -173,6 +173,8 @@ const LogsPanel = ({ integration, alert }: Props) => {
   };
 
   const handleFileProgress = (progressEvent: AxiosProgressEvent) => {
+    // Ignore progress indicator if unsupported in browser. Some browsers ignore content-length for zipped responses.
+    if (progressEvent.total === undefined || progressEvent.loaded === undefined) return;
     const percentComplete = Math.floor((progressEvent.loaded / Number(progressEvent.total)) * 100);
     if (percentComplete !== fileProgress) {
       setFileProgress(percentComplete);
