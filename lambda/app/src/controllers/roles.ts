@@ -11,7 +11,7 @@ import {
   getCompositeClientRoles,
 } from '../keycloak/users';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
+import { destroyRequestRole, createCompositeRolesDB } from '@lambda-app/queries/roles';
 import createHttpError from 'http-errors';
 import { isAdmin } from '@lambda-app/utils/helpers';
 import { Session } from '@lambda-shared/interfaces';
@@ -129,8 +129,7 @@ export const setCompositeRoles = async (
     compositeRoleNames,
   });
 
-  await updateCompositeRoles(result?.name, result?.composites, integration?.id, environment);
-
+  await createCompositeRolesDB(result?.name, result?.composites, integration?.id, environment);
   return result;
 };
 

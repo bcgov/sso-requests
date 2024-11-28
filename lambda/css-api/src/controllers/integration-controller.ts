@@ -1,11 +1,11 @@
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import { IntegrationService } from '../services/integration-service';
 
 @injectable()
 export class IntegrationController {
   private attributes = ['id', 'projectName', 'authType', 'environments', 'status', 'createdAt', 'updatedAt'];
 
-  constructor(private integrationService: IntegrationService) {}
+  constructor(@inject('IntegrationService') private integrationService: IntegrationService) {}
 
   public async getIntegration(id: number, teamId: number) {
     const int = await this.integrationService.getById(id, teamId);
