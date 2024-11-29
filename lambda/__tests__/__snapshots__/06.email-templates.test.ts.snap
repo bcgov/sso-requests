@@ -974,7 +974,7 @@ exports[`Email template snapshots Should return the expected email for DELETE_IN
 "<h3>Dear Pathfinder SSO friend,</h3>
 <p>
   The IDIR user with the idir username test-user has an inactive guid in our system. They have been removed from
-  client test-client and associated roles test-role
+  client test-client in the dev environment and associated roles test-role
 </p>
 <p>
   This user was also a Team Admin for your integration, to help ensure a transition to the appropriate admin, please
