@@ -10,6 +10,8 @@ on:
       - lambda/**
       - docker-compose.yml
       - github/workflows/e2e.yaml
+    push:
+      - fix/user-delete-emails
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
@@ -32,6 +34,7 @@ jobs:
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
+          up-flags: --build
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
