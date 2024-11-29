@@ -20,7 +20,7 @@ env:
   CYPRESS_host: 'http://localhost:3000'
   CYPRESS_smoketest: true
   CYPRESS_localtest: true
-  CYPRESS_BASE_URL: 'http://localhost:3000'
+  CYPRESS_baseUrl: 'http://localhost:3000'
 
 jobs:
   smoke-test:

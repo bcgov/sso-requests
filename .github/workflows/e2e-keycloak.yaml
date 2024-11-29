@@ -15,7 +15,7 @@ env:
   CYPRESS_host: 'https://bcgov.github.io/sso-requests-sandbox/'
   CYPRESS_smoketest: false
   CYPRESS_localtest: false
-  CYPRESS_BASE_URL: 'https://bcgov.github.io/sso-requests-sandbox/'
+  CYPRESS_baseUrl: 'https://bcgov.github.io/sso-requests-sandbox/'
 
 jobs:
   pre-reqs:
