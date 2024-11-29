@@ -43,6 +43,12 @@ services:
       - sso-requests
     networks:
       - css-net
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 4G   # Maximum memory the container can use
+    #     reservations:
+    #       memory: 512M
 
   sso-requests:
     container_name: sso-requests
@@ -135,6 +141,12 @@ services:
     networks:
       css-net:
         aliases: ['dev-keycloak.localtest.me']
+    deploy:
+      resources:
+        limits:
+          memory: 512M # Maximum memory the container can use
+        reservations:
+          memory: 256M
 
   test-keycloak:
     container_name: test-keycloak
@@ -172,6 +184,12 @@ services:
     networks:
       css-net:
         aliases: ['test-keycloak.localtest.me']
+    deploy:
+      resources:
+        limits:
+          memory: 512M # Maximum memory the container can use
+        reservations:
+          memory: 256M
 
   prod-keycloak:
     container_name: prod-keycloak
@@ -209,6 +227,12 @@ services:
     networks:
       css-net:
         aliases: ['prod-keycloak.localtest.me']
+    deploy:
+      resources:
+        limits:
+          memory: 512M # Maximum memory the container can use
+        reservations:
+          memory: 256M
 
   dev-kc-migration:
     container_name: dev-kc-migration
