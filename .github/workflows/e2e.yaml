@@ -10,8 +10,8 @@ on:
       - lambda/**
       - docker-compose.yml
       - github/workflows/e2e.yaml
-    push:
-      - fix/user-delete-emails
+  push:
+    - fix/user-delete-emails
 
 env:
   CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
