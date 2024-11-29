@@ -271,6 +271,7 @@ export const deleteStaleUsers = async (
                   clientId: rqst.id,
                   teamAdmin: team.role === 'admin',
                   roles: [],
+                  env: user.env,
                 });
               }
             }
