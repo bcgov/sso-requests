@@ -32,7 +32,6 @@ jobs:
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
-      - run: docker compose up -d
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
