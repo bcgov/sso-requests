@@ -33,9 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: isbang/compose-action@v1.5.1
-        with:
-          compose-file: './docker-compose.yml'
-          up-flags: --verbose
+        run: docker-compose up
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
