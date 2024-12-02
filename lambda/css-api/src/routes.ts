@@ -13,6 +13,11 @@ import { UserController } from './controllers/user-controller';
 import { getIntegrationByIdAndTeam } from '@lambda-app/queries/request';
 import { fetchLogs } from '@lambda-app/controllers/logs';
 import { logsRateLimiter } from '@lambda-app/utils/rate-limiters';
+import { KeycloakService, KeycloakServiceFactory } from './services/keycloak-service';
+import { RoleService } from './services/role-service';
+import { IntegrationService } from './services/integration-service';
+import { UserRoleMappingService } from './services/user-role-mapping-service';
+import { UserService } from './services/user-service';
 
 const tryJSON = (str: string) => {
   try {
@@ -30,6 +35,14 @@ const handleError = (res, err) => {
   res.status(err.status || 422).json({ message });
 };
 
+container.registerSingleton('KeycloakServiceFactory', KeycloakServiceFactory);
+container.registerSingleton('DevKeycloakService', KeycloakService);
+container.registerSingleton('TestKeycloakService', KeycloakService);
+container.registerSingleton('ProdKeycloakService', KeycloakService);
+container.registerSingleton('RoleService', RoleService);
+container.registerSingleton('IntegrationService', IntegrationService);
+container.registerSingleton('UserRoleMappingService', UserRoleMappingService);
+container.registerSingleton('UserService', UserService);
 const integrationController = container.resolve(IntegrationController);
 const roleController = container.resolve(RoleController);
 const userRoleMappingController = container.resolve(UserRoleMappingController);

@@ -5,6 +5,7 @@ export type UserRoleMappingPayload = {
 };
 
 export type RolePayload = {
+  id?: string;
   name: string;
 };
 
