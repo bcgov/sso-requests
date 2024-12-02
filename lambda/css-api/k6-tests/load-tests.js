@@ -19,7 +19,7 @@ let integrationId;
 http.setResponseCallback(http.expectedStatuses({ min: 200, max: 204 }));
 
 export const options = {
-  stages: [{ duration: '6m', target: 100 }],
+  stages: [{ duration: '5m', target: 100 }],
 };
 
 export function setup() {
