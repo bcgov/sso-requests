@@ -28,6 +28,7 @@ router.use(
     origin: process.env.LOCAL_DEV === 'true' ? '*' : 'https://bcgov.github.io',
     methods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['X-Message'],
     credentials: true,
   }),
 );

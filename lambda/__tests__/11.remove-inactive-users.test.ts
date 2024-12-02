@@ -17,6 +17,7 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { EMAILS } from '@lambda-shared/enums';
 import { renderTemplate } from '@lambda-shared/templates';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
+import { deleteIntegration } from './helpers/modules/integrations';
 
 const testUser = {
   username: TEAM_ADMIN_IDIR_USERNAME_01,
@@ -248,5 +249,49 @@ describe('Deleted user emails', () => {
     expect(deleteInactiveIntegrationEmails[0].body.includes('role1')).toBeTruthy();
     expect(deleteInactiveIntegrationEmails[0].body.includes('role2')).toBeTruthy();
     expect(orphanedIntegrationEmails.length).toBe(0);
+  });
+
+  it('Skips the notification if the integration has been archived', async () => {
+    const emailList = createMockSendEmail();
+
+    // Create a team and integration
+    const adminTeam = await createTeam({
+      name: 'test_team',
+      members: [
+        {
+          idirEmail: TEAM_MEMBER_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    });
+    const request = await buildIntegration({
+      projectName: 'Delete Inactive Users',
+      bceid: false,
+      prodEnv: false,
+      submitted: true,
+      teamId: adminTeam.body.id,
+    });
+    // Archive the integration
+    await deleteIntegration(request.body.id);
+
+    // Call the endpoint with no roles, should be no email since deleted
+    await deleteInactiveUsers(testUser);
+    let deleteInactiveIntegrationEmails = emailList.filter((email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER);
+    let orphanedIntegrationEmails = emailList.filter((email) => email.code === EMAILS.ORPHAN_INTEGRATION);
+
+    expect(orphanedIntegrationEmails.length).toBe(0);
+    expect(deleteInactiveIntegrationEmails.length).toBe(0);
+
+    jest.clearAllMocks();
+
+    // Call the user deletion endpoint with client roles, expect no email since deleted
+    testUser.clientData = [{ client: request.body.clientId, roles: ['role1', 'role2'] }];
+    await deleteInactiveUsers(testUser);
+
+    deleteInactiveIntegrationEmails = emailList.filter((email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER);
+    orphanedIntegrationEmails = emailList.filter((email) => email.code === EMAILS.ORPHAN_INTEGRATION);
+
+    expect(orphanedIntegrationEmails.length).toBe(0);
+    expect(deleteInactiveIntegrationEmails.length).toBe(0);
   });
 });

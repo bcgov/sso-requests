@@ -200,7 +200,11 @@ export const setRoutes = (app: any) => {
         description: 'Forbidden',
         schema: { message: 'string' }
       }
-      #swagger.responses[500] = {
+      #swagger.responses[429] = {
+        description: 'Too Many Requests. Will be rate limited after 10 requests for the same integration and environment per hour.',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[500,504] = {
         description: 'Server Error',
         schema: { message: 'string' }
       }
@@ -213,7 +217,7 @@ export const setRoutes = (app: any) => {
         return res.status(403).json({ message: 'forbidden' });
       }
       const { status, message, data } = await fetchLogs(environment, int.clientId, int.id, start, end);
-      if (status === 200) res.status(status).send({ data });
+      if (status === 200) res.status(status).send({ data, message });
       else res.status(status).send({ message });
     } catch (err) {
       handleError(res, err);
