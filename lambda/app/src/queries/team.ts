@@ -166,7 +166,7 @@ export const findAllowedTeamUsers = async (teamId: number, userId: number, optio
   });
 };
 
-export const getAllEmailsOfTeam = async (teamId: number) => {
+export const getAllEmailsOfTeam = async (teamId: number): Promise<{ idir_email: string; role: string }[]> => {
   const [userEmails] = await sequelize.query(
     'SELECT a.idir_email, b.role FROM users a join users_teams b ON a.id = b.user_id AND b.team_id = :teamId',
     {

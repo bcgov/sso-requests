@@ -339,6 +339,7 @@ describe('Email template snapshots', () => {
       clientId: 'test-client',
       roles: 'test-role',
       teamAdmin: true,
+      env: 'dev',
     });
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();

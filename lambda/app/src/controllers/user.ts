@@ -174,37 +174,47 @@ export const isAllowedToManageRoles = async (session: Session, integrationId: nu
 };
 
 export const deleteStaleUsers = async (
-  user: UserRepresentation & { clientData: { client: string; roles: string[] }[] },
+  user: UserRepresentation & { clientData: { client: string; roles: string[] }[]; env: string },
 ) => {
   try {
+    const deletedFromProduction = user.env === 'prod';
     const userHadRoles = user?.clientData && user?.clientData?.length > 0;
     // Send formatted email with roles information to all team members if the deleted user had roles.
     if (userHadRoles) {
-      user.clientData.map(async (cl: { client: string; roles: string[] }) => {
-        const integration = await models.request.findOne({
-          where: {
-            clientId: cl.client,
-          },
-          raw: true,
-        });
-        if (integration?.teamId && !integration.archived) {
-          const userEmails = await getAllEmailsOfTeam(integration.teamId);
-          let isTeamAdmin = false;
-          userEmails.map((u: any) => {
-            if (u.idir_email === user.email && u.role === 'admin') {
-              isTeamAdmin = true;
+      await Promise.all(
+        user.clientData.map(async (cl: { client: string; roles: string[] }) => {
+          const integration = await models.request.findOne({
+            where: {
+              clientId: cl.client,
+            },
+            raw: true,
+          });
+          if (integration?.teamId && !integration.archived) {
+            const userEmails = await getAllEmailsOfTeam(integration.teamId);
+            let isTeamAdmin = false;
+            // Only production users affect team management
+            if (deletedFromProduction) {
+              userEmails.map((u) => {
+                if (u.idir_email === user.email && u.role === 'admin') {
+                  isTeamAdmin = true;
+                }
+              });
             }
-          });
-          await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
-            teamId: integration.teamId,
-            username: user.attributes.idir_username || user.username,
-            clientId: cl.client,
-            roles: cl.roles,
-            teamAdmin: isTeamAdmin,
-          });
-        }
-      });
+            await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+              teamId: integration.teamId,
+              username: user.attributes.idir_username || user.username,
+              clientId: cl.client,
+              roles: cl.roles,
+              env: user.env,
+              teamAdmin: isTeamAdmin,
+            });
+          }
+        }),
+      );
     }
+
+    // User management handling only applies to production user deletions.
+    if (!deletedFromProduction) return true;
 
     if (!user.attributes.idir_user_guid) throw new createHttpError.BadRequest('user guid is required');
 
@@ -261,6 +271,7 @@ export const deleteStaleUsers = async (
                   clientId: rqst.id,
                   teamAdmin: team.role === 'admin',
                   roles: [],
+                  env: user.env,
                 });
               }
             }
