@@ -157,7 +157,7 @@ describe('Request Queue', () => {
 
     expect(axios.post).toHaveBeenCalledTimes(1);
     const [_axiosUrl, axiosBody] = (axios.post as jest.Mock).mock.calls[0];
-    expect(axiosBody.text).toBe(
+    expect(axiosBody.message).toBe(
       `Request ${formDataProd.clientId} has reached maximum retries and requires manual intervention.`,
     );
     kcClientSpy.mockRestore();
