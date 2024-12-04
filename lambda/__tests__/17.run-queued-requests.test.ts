@@ -130,6 +130,7 @@ describe('Request Queue', () => {
 
   it('Ignores queue item if at max attempts', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    (axios.post as jest.Mock).mockImplementation(() => Promise.resolve({ data: [] }));
     await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION, 61, MAX_ATTEMPTS);
 
     await handler();
@@ -138,6 +139,8 @@ describe('Request Queue', () => {
     expect(queueItems.length).toBe(1);
     expect(queueItems[0].attempts).toBe(MAX_ATTEMPTS);
     expect(kcClientSpy).not.toHaveBeenCalled();
+    // No rocket chat calls
+    expect(axios.post).not.toHaveBeenCalled();
     kcClientSpy.mockRestore();
   });
 
@@ -156,6 +159,7 @@ describe('Request Queue', () => {
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
 
     expect(axios.post).toHaveBeenCalledTimes(1);
+    // Check rocket chat message
     const [_axiosUrl, axiosBody] = (axios.post as jest.Mock).mock.calls[0];
     expect(axiosBody.message).toBe(
       `Request ${formDataProd.clientId} has reached maximum retries and requires manual intervention.`,

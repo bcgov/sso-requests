@@ -96,7 +96,7 @@ export const handler = async () => {
               ),
               createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: request.id }),
             ];
-            if (queuedRequest.attempts === MAX_ATTEMPTS - 1) {
+            if (queuedRequest.attempts >= MAX_ATTEMPTS - 1) {
               promises.push(
                 sendRcNotification(
                   `Request ${queuedRequest.request.clientId} has reached maximum retries and requires manual intervention.`,
