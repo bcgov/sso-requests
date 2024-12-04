@@ -11,7 +11,7 @@ import {
 } from './helpers/modules/integrations';
 import { ACTION_TYPES, EMAILS, EVENTS } from '@lambda-shared/enums';
 import { QUEUE_ACTION } from '@lambda-shared/interfaces';
-import { handler } from '../request-queue/src/main';
+import { handler, MAX_ATTEMPTS } from '../request-queue/src/main';
 import { createEvent, standardClients } from '@lambda-app/controllers/requests';
 
 jest.mock('@lambda-app/keycloak/adminClient');
@@ -104,22 +104,66 @@ describe('Request Queue', () => {
     expect(email.to.includes(formDataProd.user.idirEmail)).toBeTruthy();
   });
 
-  it('Keeps item in the queue if any environments fail and updates request status to failed', async () => {
+  it('Keeps item in the queue if any environments fail, updates request status to failed and increments attempt counter', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
 
     await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION, 61);
     const request = await generateRequest(formDataProd);
+
+    let queueItems = await getQueueItems();
+    expect(queueItems.length).toBe(1);
+    expect(queueItems[0].attempts).toBe(0);
 
     // Have one environment fail
     kcClientSpy.mockResolvedValueOnce(true).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
     await handler();
 
-    const queueItems = await getQueueItems();
+    queueItems = await getQueueItems();
     expect(queueItems.length).toBe(1);
+    expect(queueItems[0].attempts).toBe(1);
 
     const updatedRequest = await getRequest(request.id);
     expect(updatedRequest.status).toBe('applyFailed');
+    kcClientSpy.mockRestore();
+  });
+
+  it('Ignores queue item if at max attempts', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    (axios.post as jest.Mock).mockImplementation(() => Promise.resolve({ data: [] }));
+    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION, 61, MAX_ATTEMPTS);
+
+    await handler();
+
+    const queueItems = await getQueueItems();
+    expect(queueItems.length).toBe(1);
+    expect(queueItems[0].attempts).toBe(MAX_ATTEMPTS);
+    expect(kcClientSpy).not.toHaveBeenCalled();
+    // No rocket chat calls
+    expect(axios.post).not.toHaveBeenCalled();
+    kcClientSpy.mockRestore();
+  });
+
+  it('Sends a notification to rocket chat if max attempts is reached', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    // Reject all
+    kcClientSpy.mockImplementation(() => Promise.resolve(false));
+    (axios.post as jest.Mock).mockImplementation(() => Promise.resolve({ data: [] }));
+
+    await createRequestQueueItem(1, formDataProd, ACTION_TYPES.CREATE as QUEUE_ACTION, 61, MAX_ATTEMPTS - 1);
+    await handler();
+
+    const queueItems = await getQueueItems();
+    expect(queueItems.length).toBe(1);
+    expect(queueItems[0].attempts).toBe(MAX_ATTEMPTS);
+    expect(kcClientSpy).toHaveBeenCalledTimes(3);
+
+    expect(axios.post).toHaveBeenCalledTimes(1);
+    // Check rocket chat message
+    const [_axiosUrl, axiosBody] = (axios.post as jest.Mock).mock.calls[0];
+    expect(axiosBody.message).toBe(
+      `Request ${formDataProd.clientId} has reached maximum retries and requires manual intervention.`,
+    );
     kcClientSpy.mockRestore();
   });
 });

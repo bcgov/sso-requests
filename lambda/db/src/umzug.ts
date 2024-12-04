@@ -58,6 +58,7 @@ export const createMigrator = async (logger?: any) => {
       await import('./migrations/2024.06.21T11.35.24.add-bcsc-prod-approved'),
       await import('./migrations/2024.07.24T00.00.00.update-survey-trigger-event'),
       await import('./migrations/2024.09.16T00.00.00.remove-vc-approved'),
+      await import('./migrations/2024.12.03T10.55.55.request-queue-attempts-column'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

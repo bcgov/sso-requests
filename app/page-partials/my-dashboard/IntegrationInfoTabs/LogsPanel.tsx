@@ -223,11 +223,13 @@ const LogsPanel = ({ integration, alert }: Props) => {
       if (err) {
         // Ignore error if request cancelled
         if (err.code === 'ERR_CANCELED') return;
+        let content = 'Error fetching logs.';
+        if (err?.status === 429) content = 'Too many requests';
         alert.show({
           variant: 'danger',
           fadeOut: 10000,
           closable: true,
-          content: 'Error fetching logs.',
+          content,
         });
       } else {
         alert.show({
