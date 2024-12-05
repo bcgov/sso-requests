@@ -29,32 +29,27 @@ export const models: any = {};
 export const modelNames: string[] = [];
 
 export const loadSequelize = async () => {
-  let sequelize = null;
+  let sequelizeInstance = null;
   // Use the shared sequelize env for local development and testing. Use custom configuration in lambda runtimes.
-  if (env === 'development') {
-    ({ sequelize } = await import('@lambda-shared/sequelize/models/models'));
-  } else if (config.databaseUrl) {
-    sequelize = new Sequelize(config.databaseUrl, config);
-  } else if (config.use_env_variable && process.env[config.use_env_variable]) {
-    sequelize = new Sequelize(process.env[config.use_env_variable], config);
-  } else {
-    sequelize = new Sequelize(config.database, config.username, config.password, config);
+  if (env === 'development')
+    ({ sequelize: sequelizeInstance } = await import('@lambda-shared/sequelize/models/models'));
+  else if (config.databaseUrl) sequelizeInstance = new Sequelize(config.databaseUrl, config);
+  else if (config.use_env_variable && process.env[config.use_env_variable])
+    sequelizeInstance = new Sequelize(process.env[config.use_env_variable], config);
+  else sequelizeInstance = new Sequelize(config.database, config.username, config.password, config);
+
+  [Event, Request, Team, User, UserTeam, Survey, RequestQueue, BcscClient, RequestRole].forEach((init) => {
+    const initializedModel = init(sequelizeInstance, DataTypes);
+    models[initializedModel.name] = initializedModel;
+    modelNames.push(initializedModel.name);
+  });
+
+  for (const name of Object.keys(models)) {
+    if (models[name]?.options.associate) {
+      models[name].options.associate(models);
+    }
   }
 
-  console.log('sequelize initialized', !!sequelize);
-
-  [Event, Request, Team, User, UserTeam, Survey, RequestQueue, RequestRole, BcscClient].forEach((init) => {
-    const model = init(sequelize, DataTypes);
-    models[model.name] = model;
-    modelNames.push(model.name);
-  });
-
-  Object.keys(models).forEach((modelName) => {
-    if (models[modelName]?.options.associate) {
-      models[modelName].options.associate(models);
-    }
-  });
-
-  await sequelize.authenticate();
-  return sequelize;
+  await sequelizeInstance.authenticate();
+  return sequelizeInstance;
 };
