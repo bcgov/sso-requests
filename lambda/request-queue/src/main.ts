@@ -1,7 +1,7 @@
 if (process.env.NODE_ENVIRONMENT === 'local') {
   require('dotenv').config();
 }
-import { models } from '../../shared/sequelize/models/models';
+import { models, loadSequelize } from './db';
 import { keycloakClient } from '@lambda-app/keycloak/integration';
 import { updatePlannedIntegration, createEvent } from '@lambda-app/controllers/requests';
 import { ACTION_TYPES, EVENTS } from '@lambda-shared/enums';
@@ -19,8 +19,18 @@ export const sendRcNotification = async (message) => {
   }
 };
 
+let sequelize = null;
+
 export const handler = async () => {
   try {
+    if (!sequelize) {
+      sequelize = await loadSequelize();
+    } else {
+      sequelize.connectionManager.initPools();
+      if (sequelize.connectionManager.hasOwnProperty('getConnection')) {
+        delete sequelize.connectionManager.getConnection;
+      }
+    }
     const allPromises: Promise<any>[] = [];
     const requestQueue = await models.requestQueue.findAll();
     if (requestQueue.length === 0) {
@@ -28,7 +38,10 @@ export const handler = async () => {
     }
 
     requestQueue.forEach((queuedRequest) => {
-      if (queuedRequest.attempts >= MAX_ATTEMPTS) return;
+      if (queuedRequest.attempts >= MAX_ATTEMPTS) {
+        console.info(`request ${queuedRequest.request.clientId} at maximum attempts. Skipping.`);
+        return;
+      }
 
       const requestQueueSecondsAgo = (new Date().getTime() - new Date(queuedRequest.createdAt).getTime()) / 1000;
       // Only act on queued items more than a minute old to prevent potential duplication.
@@ -111,6 +124,9 @@ export const handler = async () => {
     await Promise.all(allPromises);
   } catch (err) {
     console.error(err);
+  } finally {
+    // Only close connection pool in lambda runtimes, not local development and testing.
+    if (process.env.NODE_ENV !== 'development') await sequelize.connectionManager.close();
   }
 };
 
