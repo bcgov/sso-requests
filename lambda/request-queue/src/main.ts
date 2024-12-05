@@ -27,6 +27,9 @@ export const handler = async () => {
       sequelize = await loadSequelize();
     } else {
       sequelize.connectionManager.initPools();
+      if (sequelize.connectionManager.hasOwnProperty('getConnection')) {
+        delete sequelize.connectionManager.getConnection;
+      }
     }
     const allPromises: Promise<any>[] = [];
     const requestQueue = await models.requestQueue.findAll();
