@@ -22,7 +22,7 @@ export const sendRcNotification = async (message) => {
 export const handler = async () => {
   try {
     if (!sequelize) {
-      await loadSequelize();
+      loadSequelize();
     } else {
       sequelize.connectionManager.initPools();
     }
