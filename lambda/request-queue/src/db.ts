@@ -27,9 +27,9 @@ const config = {
 
 export const models: any = {};
 export const modelNames: string[] = [];
-export let sequelize = null;
 
 export const loadSequelize = async () => {
+  let sequelize = null;
   // Use the shared sequelize env for local development and testing. Use custom configuration in lambda runtimes.
   if (env === 'development') {
     ({ sequelize } = await import('@lambda-shared/sequelize/models/models'));
