@@ -1,7 +1,7 @@
 if (process.env.NODE_ENVIRONMENT === 'local') {
   require('dotenv').config();
 }
-import { models, sequelize } from '../../shared/sequelize/models/models';
+import { models, sequelize, loadSequelize } from '../../shared/sequelize/models/models';
 import { keycloakClient } from '@lambda-app/keycloak/integration';
 import { updatePlannedIntegration, createEvent } from '@lambda-app/controllers/requests';
 import { ACTION_TYPES, EVENTS } from '@lambda-shared/enums';
@@ -21,7 +21,11 @@ export const sendRcNotification = async (message) => {
 
 export const handler = async () => {
   try {
-    sequelize.connectionManager.initPools();
+    if (!sequelize) {
+      await loadSequelize();
+    } else {
+      sequelize.connectionManager.initPools();
+    }
     const allPromises: Promise<any>[] = [];
     const requestQueue = await models.requestQueue.findAll();
     if (requestQueue.length === 0) {
@@ -116,7 +120,8 @@ export const handler = async () => {
   } catch (err) {
     console.error(err);
   } finally {
-    await sequelize.connectionManager.close();
+    // Close connection pool in lambda runtime
+    if (process.env.NODE_ENV !== 'development') await sequelize.connectionManager.close();
   }
 };
 
