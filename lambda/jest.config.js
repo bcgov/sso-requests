@@ -20,6 +20,7 @@ module.exports = {
     '^@lambda-app/(.*)$': '<rootDir>/app/src/$1',
     '^@lambda-shared/(.*)$': '<rootDir>/shared/$1',
     '^@lambda-css-api/(.*)$': '<rootDir>/css-api/src/$1',
+    '^@request-queue/(.*)$': '<rootDir>/request-queue/src/$1',
   },
   verbose: true,
   coverageReporters: ['json', 'html'],
