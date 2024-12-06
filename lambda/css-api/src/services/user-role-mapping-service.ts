@@ -96,7 +96,7 @@ export class UserRoleMappingService {
 
   public async getAllRolesByUser(teamId: number, integrationId: number, environment: string, username: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    const parsedUsername = this.parseUsername(int.client_id, username);
+    const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     return await keycloakService.listClientUserRoleMappings(int.clientId, parsedUsername);
   }
@@ -142,7 +142,7 @@ export class UserRoleMappingService {
   public async listRolesByUsername(teamId: number, integrationId: number, environment: string, username: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    const parsedUsername = this.parseUsername(int.client_id, username);
+    const parsedUsername = this.parseUsername(int.clientId, username);
     return { data: updateRoleProps(await keycloakService.listClientUserRoleMappings(int.clientId, parsedUsername)) };
   }
 
@@ -177,7 +177,7 @@ export class UserRoleMappingService {
     const valid = listOfrolesValidator(roles);
     if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
     const int = await this.integrationService.getById(integrationId, teamId);
-    const parsedUsername = this.parseUsername(int.client_id, username);
+    const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     for (let role of roles) {
       this.roleService.validateRole(role);
@@ -197,7 +197,7 @@ export class UserRoleMappingService {
   ) {
     this.roleService.validateRole({ name: roleName });
     const int = await this.integrationService.getById(integrationId, teamId);
-    const parsedUsername = this.parseUsername(int.client_id, username);
+    const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     await keycloakService.deleteClientUserRoleMapping(int.clientId, parsedUsername, roleName);
   }
