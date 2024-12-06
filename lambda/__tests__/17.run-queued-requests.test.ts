@@ -162,7 +162,7 @@ describe('Request Queue', () => {
     // Check rocket chat message
     const [_axiosUrl, axiosBody] = (axios.post as jest.Mock).mock.calls[0];
     expect(axiosBody.message).toBe(
-      `Request ${formDataProd.clientId} has reached maximum retries and requires manual intervention.`,
+      `SANDBOX: Request ${formDataProd.clientId} has reached maximum retries and requires manual intervention.`,
     );
     kcClientSpy.mockRestore();
   });
