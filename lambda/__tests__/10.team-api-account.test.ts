@@ -506,7 +506,7 @@ describe('emails for teams', () => {
     const listClientUserRoleMappingsMock = jest
       .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
       .mockImplementation(() => Promise.resolve(integrationUserRoles));
-    const result = await supertest(app)
+    await supertest(app)
       .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${integration.clientId}/roles`)
       .expect(200);
 
