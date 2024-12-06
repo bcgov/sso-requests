@@ -60,9 +60,11 @@ export const handler = async () => {
         await createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: request.id });
       }
       if (queuedRequest.attempts >= MAX_ATTEMPTS - 1) {
-        await sendRcNotification(
-          `Request ${queuedRequest.request.clientId} has reached maximum retries and requires manual intervention.`,
-        );
+        let message = `Request ${queuedRequest.request.clientId} has reached maximum retries and requires manual intervention.`;
+        if (process.env.NODE_ENV === 'development') {
+          message = 'SANDBOX: ' + message;
+        }
+        await sendRcNotification(message);
       }
     }
   } catch (err) {
