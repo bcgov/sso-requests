@@ -29,12 +29,12 @@ export const handler = async () => {
     for (const queuedRequest of requestQueue) {
       if (queuedRequest.attempts >= MAX_ATTEMPTS) {
         console.info(`request ${queuedRequest.request.clientId} at maximum attempts. Skipping.`);
-        return;
+        continue;
       }
 
       // Only act on queued items more than a minute old to prevent potential duplication.
       const requestQueueSecondsAgo = (new Date().getTime() - new Date(queuedRequest.createdAt).getTime()) / 1000;
-      if (requestQueueSecondsAgo < REQUEST_QUEUE_INTERVAL_SECONDS) return;
+      if (requestQueueSecondsAgo < REQUEST_QUEUE_INTERVAL_SECONDS) continue;
 
       console.info(`processing queued request ${queuedRequest.request.id}`);
       const { existingClientId, ...request } = queuedRequest.request;
