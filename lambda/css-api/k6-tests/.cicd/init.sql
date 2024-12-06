@@ -179,7 +179,7 @@ VALUES
     'CSS App K6 CICD Project',
     FALSE,
     FALSE,
-    'browser-login',
+    'both',
     NULL,
     'oidc',
     0,

@@ -3,6 +3,7 @@ import http from 'k6/http';
 
 const SLEEP_DURATION = 0.1;
 let integrationId;
+let clientId;
 
 export function testUserRoleMapping(options) {
   group('GET integration Id', () => {
@@ -17,8 +18,9 @@ export function testUserRoleMapping(options) {
         'return count of integrations greater than zero': (r) => r.json().data.length > 0,
       });
 
-      integrationId = response.json().data[0].id;
-
+      const integrationData = response.json().data[0];
+      integrationId = integrationData.id;
+      clientId = `${integrationData.projectName}-${integrationId}`;
       sleep(SLEEP_DURATION);
     }
   });
@@ -360,6 +362,22 @@ export function testUserRoleMapping(options) {
 
       sleep(SLEEP_DURATION);
     }
+    // Allows client ID as username for service accounts
+    {
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/users/${clientId}/roles`;
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const body = [{ name: 'role-mapping' }];
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should allow client ID as a username': (r) => r.status === 201,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
 
     {
       const url =
@@ -488,7 +506,7 @@ export function testUserRoleMapping(options) {
 
     {
       const url =
-        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role-mapping/users?page=1&max=1`;
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/roles/role-mapping/users?page=1&max=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -496,7 +514,11 @@ export function testUserRoleMapping(options) {
       check(response, {
         'should return 200 when success': (r) => r.status === 200,
         'should return page': (r) => r.json().page === 1,
-        'return username': (r) => r.json().data.find((user) => user.username === __ENV.username),
+        'return regular user and service account': (r) =>
+          r
+            .json()
+            .data.map((user) => user.username)
+            .includes(__ENV.username, `service-account-${clientId}`),
       });
 
       sleep(SLEEP_DURATION);
@@ -525,6 +547,22 @@ export function testUserRoleMapping(options) {
 
       check(response, {
         'should return 404 when valid idp passed but user not found': (r) => r.status === 404,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+    // Allows client ID as username for service accounts
+    {
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/users/${clientId}/roles`;
+      const requestOptions = Object.assign({}, options);
+      requestOptions.headers.Accept = 'application/json';
+      const body = [{ name: 'role-mapping' }];
+      const response = http.post(url, JSON.stringify(body), requestOptions);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should allow client ID as a username': (r) => r.status === 201,
       });
 
       sleep(SLEEP_DURATION);
@@ -615,6 +653,18 @@ export function testUserRoleMapping(options) {
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
+      check(response, {
+        'should return 204 when success': (r) => r.status === 204,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+    // Allow clientId as username
+    {
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/users/${clientId}/roles/role-mapping`;
+
+      const response = http.del(url, null, options);
       check(response, {
         'should return 204 when success': (r) => r.status === 204,
       });
