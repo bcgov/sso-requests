@@ -502,6 +502,20 @@ describe('emails for teams', () => {
     expect(result.body.data[0].composite).toBe(integrationUserRoles[0].composite);
   });
 
+  it('gets roles associated with a service account for an environment when the client id is supplied as username', async () => {
+    const listClientUserRoleMappingsMock = jest
+      .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
+      .mockImplementation(() => Promise.resolve(integrationUserRoles));
+    await supertest(app)
+      .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${integration.clientId}/roles`)
+      .expect(200);
+
+    expect(listClientUserRoleMappingsMock).toHaveBeenCalledWith(
+      integration.clientId,
+      `service-account-${integration.clientId}`,
+    );
+  });
+
   it('gets users associated to a role per page for an environment when roleName is supplied', async () => {
     const listUsersByClientRoleMock = jest
       .spyOn(KeycloakService.prototype, 'listUsersByClientRole')
@@ -536,6 +550,23 @@ describe('emails for teams', () => {
     expect(result.body.data[0].composite).toBe(integrationUserRoles[0].composite);
   });
 
+  it('Remaps client id to service account username on role assignment', async () => {
+    const addClientUserRoleMappingMock = jest
+      .spyOn(KeycloakService.prototype, 'addClientUserRoleMapping')
+      .mockImplementation(() => Promise.resolve([{ name: 'role1', composite: false }]));
+    await supertest(app)
+      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${integration.clientId}/roles`)
+      .send([{ name: 'role1' }])
+      .set('Accept', 'application/json')
+      .expect(201);
+
+    expect(addClientUserRoleMappingMock).toHaveBeenCalledWith(
+      integration.clientId,
+      `service-account-${integration.clientId}`,
+      [{ name: 'role1' }],
+    );
+  });
+
   it('unassign a role to an user for an environment', async () => {
     const deleteClientUserRoleMappingMock = jest
       .spyOn(KeycloakService.prototype, 'deleteClientUserRoleMapping')
@@ -545,5 +576,21 @@ describe('emails for teams', () => {
       .expect(204);
     expect(deleteClientUserRoleMappingMock).toHaveBeenCalled();
     expect(result.body).toBeNull;
+  });
+
+  it('Remaps the client ID to the service account name on deletes', async () => {
+    const deleteClientUserRoleMappingMock = jest
+      .spyOn(KeycloakService.prototype, 'deleteClientUserRoleMapping')
+      .mockImplementation(() => Promise.resolve(null));
+
+    await supertest(app)
+      .delete(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${integration.clientId}/roles/role1`)
+      .expect(204);
+
+    expect(deleteClientUserRoleMappingMock).toHaveBeenCalledWith(
+      integration.clientId,
+      `service-account-${integration.clientId}`,
+      'role1',
+    );
   });
 });

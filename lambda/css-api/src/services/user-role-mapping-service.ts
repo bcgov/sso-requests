@@ -27,6 +27,18 @@ export class UserRoleMappingService {
     @inject('RoleService') private roleService: RoleService,
   ) {}
 
+  /**
+   * Check if the username is the client ID and return that client's service account username if it matches.
+   * Internally keycloak creates a service account user with a name in the format service-account-<clientID>
+   */
+  private parseUsername(clientId, username) {
+    let parsedUsername = username;
+    if (clientId === username) {
+      parsedUsername = `service-account-${clientId}`;
+    }
+    return parsedUsername;
+  }
+
   public async getAllByQuery(
     teamId: number,
     integrationId: number,
@@ -84,8 +96,9 @@ export class UserRoleMappingService {
 
   public async getAllRolesByUser(teamId: number, integrationId: number, environment: string, username: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
+    const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    return await keycloakService.listClientUserRoleMappings(int.clientId, username);
+    return await keycloakService.listClientUserRoleMappings(int.clientId, parsedUsername);
   }
 
   public async manageRoleMapping(
@@ -129,7 +142,8 @@ export class UserRoleMappingService {
   public async listRolesByUsername(teamId: number, integrationId: number, environment: string, username: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    return { data: updateRoleProps(await keycloakService.listClientUserRoleMappings(int.clientId, username)) };
+    const parsedUsername = this.parseUsername(int.clientId, username);
+    return { data: updateRoleProps(await keycloakService.listClientUserRoleMappings(int.clientId, parsedUsername)) };
   }
 
   public async listUsersByRolename(
@@ -163,12 +177,15 @@ export class UserRoleMappingService {
     const valid = listOfrolesValidator(roles);
     if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
     const int = await this.integrationService.getById(integrationId, teamId);
+    const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     for (let role of roles) {
       this.roleService.validateRole(role);
     }
 
-    return { data: updateRoleProps(await keycloakService.addClientUserRoleMapping(int.clientId, username, roles)) };
+    return {
+      data: updateRoleProps(await keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles)),
+    };
   }
 
   public async deleteRoleFromUser(
@@ -180,7 +197,8 @@ export class UserRoleMappingService {
   ) {
     this.roleService.validateRole({ name: roleName });
     const int = await this.integrationService.getById(integrationId, teamId);
+    const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    await keycloakService.deleteClientUserRoleMapping(int.clientId, username, roleName);
+    await keycloakService.deleteClientUserRoleMapping(int.clientId, parsedUsername, roleName);
   }
 }

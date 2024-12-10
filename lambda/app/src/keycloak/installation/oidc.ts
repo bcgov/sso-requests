@@ -34,10 +34,6 @@ export const generateInstallation = async (data: {
 
   if (['service-account', 'both'].includes(authType)) {
     rep['token-url'] = `${authServerUrl}/realms/${realm.realm}/protocol/openid-connect/token`;
-    rep['service-account'] = {
-      username: `service-account-${client.clientId}`,
-      description: "The service account's username for managing its roles through the CSS API.",
-    };
   }
 
   if (['browser-login', 'both'].includes(authType))
