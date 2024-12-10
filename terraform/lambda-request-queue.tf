@@ -19,7 +19,7 @@ resource "aws_lambda_function" "request_queue" {
 
   environment {
     variables = {
-      NODE_ENV                  = "production"
+      NODE_ENV                  = var.app_env
       DB_HOSTNAME               = module.db.this_rds_cluster_endpoint
       DB_USERNAME               = var.db_username
       DB_PASSWORD               = random_password.db_password.result
