@@ -10,6 +10,14 @@ import { TokenController } from './controllers/token-controller';
 import { isEmpty } from 'lodash';
 import createHttpError from 'http-errors';
 import { UserController } from './controllers/user-controller';
+import { getIntegrationByIdAndTeam } from '@lambda-app/queries/request';
+import { fetchLogs } from '@lambda-app/controllers/logs';
+import { logsRateLimiter } from '@lambda-app/utils/rate-limiters';
+import { KeycloakService, KeycloakServiceFactory } from './services/keycloak-service';
+import { RoleService } from './services/role-service';
+import { IntegrationService } from './services/integration-service';
+import { UserRoleMappingService } from './services/user-role-mapping-service';
+import { UserService } from './services/user-service';
 
 const tryJSON = (str: string) => {
   try {
@@ -27,6 +35,14 @@ const handleError = (res, err) => {
   res.status(err.status || 422).json({ message });
 };
 
+container.registerSingleton('KeycloakServiceFactory', KeycloakServiceFactory);
+container.registerSingleton('DevKeycloakService', KeycloakService);
+container.registerSingleton('TestKeycloakService', KeycloakService);
+container.registerSingleton('ProdKeycloakService', KeycloakService);
+container.registerSingleton('RoleService', RoleService);
+container.registerSingleton('IntegrationService', IntegrationService);
+container.registerSingleton('UserRoleMappingService', UserRoleMappingService);
+container.registerSingleton('UserService', UserService);
 const integrationController = container.resolve(IntegrationController);
 const roleController = container.resolve(RoleController);
 const userRoleMappingController = container.resolve(UserRoleMappingController);
@@ -135,6 +151,74 @@ export const setRoutes = (app: any) => {
       const { integrationId } = req.params;
       const result = await integrationController.getIntegration(integrationId, req.teamId);
       res.status(200).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/integrations/:integrationId/:environment/logs`, logsRateLimiter, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Logs']
+      #swagger.path = '/integrations/{integrationId}/{environment}/logs'
+      #swagger.method = 'get'
+      #swagger.description = 'Get logs for the integration of the target environment'
+      #swagger.summary = 'Get logs for the integration and environment'
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true,
+        type: 'number',
+        example: 1234
+      }
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+      #swagger.parameters['start'] = {
+        in: 'query',
+        required: true,
+        description: 'Start Datetime in ISO 8601 format, RFC 2822 format, or milliseconds since epoch.',
+        example: '2024-11-14T10:00:00Z'
+      }
+      #swagger.parameters['end'] = {
+        in: 'query',
+        required: true,
+        description: 'End Datetime in ISO 8601 format, RFC 2822 format, or milliseconds since epoch.',
+        example: '2024-11-14T11:00:00Z'
+      }
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: { $ref: '#/components/schemas/logsResponse' }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[403] = {
+        description: 'Forbidden',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[429] = {
+        description: 'Too Many Requests. Will be rate limited after 10 requests for the same integration and environment per hour.',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[500,504] = {
+        description: 'Server Error',
+        schema: { message: 'string' }
+      }
+    */
+    try {
+      const { integrationId, environment } = req.params;
+      const { start, end } = req.query || {};
+      const int = await getIntegrationByIdAndTeam(integrationId, req.teamId);
+      if (!int) {
+        return res.status(403).json({ message: 'forbidden' });
+      }
+      const { status, message, data } = await fetchLogs(environment, int.clientId, int.id, start, end);
+      if (status === 200) res.status(status).send({ data, message });
+      else res.status(status).send({ message });
     } catch (err) {
       handleError(res, err);
     }
@@ -1249,7 +1333,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles'
       #swagger.method = 'get'
-      #swagger.description = 'Get roles associated with user for the integration of the target environment'
+      #swagger.description = 'Get roles associated with user for the integration of the target environment. For a service account, use the client ID as the username.'
       #swagger.summary = 'Get roles associated with user'
       #swagger.parameters['integrationId'] = {
         in: 'path',
@@ -1375,7 +1459,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles'
       #swagger.method = 'post'
-      #swagger.description = 'Assign roles to a user for the integration of the target environment'
+      #swagger.description = 'Assign roles to a user for the integration of the target environment. For a service account, use the client ID as the username.'
       #swagger.summary = 'Assign roles to a user'
       #swagger.parameters['integrationId'] = {
         in: 'path',
@@ -1443,7 +1527,7 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Role-Mapping']
       #swagger.path = '/integrations/{integrationId}/{environment}/users/{username}/roles/{roleName}'
       #swagger.method = 'delete'
-      #swagger.description = 'Unassign role from a user for the integration of the target environment'
+      #swagger.description = 'Unassign role from a user for the integration of the target environment. For a service account, use your client ID as the username.'
       #swagger.summary = 'Unassign role from a user'
       #swagger.parameters['integrationId'] = {
         in: 'path',

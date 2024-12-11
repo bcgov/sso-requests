@@ -17,6 +17,7 @@ import { models } from '@lambda-shared/sequelize/models/models';
 import { EMAILS } from '@lambda-shared/enums';
 import { renderTemplate } from '@lambda-shared/templates';
 import { SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
+import { deleteIntegration } from './helpers/modules/integrations';
 
 const testUser = {
   username: TEAM_ADMIN_IDIR_USERNAME_01,
@@ -26,15 +27,8 @@ const testUser = {
     idir_username: TEAM_ADMIN_IDIR_USERNAME_01,
   },
   clientData: {},
+  env: 'prod',
 };
-
-jest.mock('../app/src/authenticate');
-
-jest.mock('../shared/utils/ches', () => {
-  return {
-    sendEmail: jest.fn(),
-  };
-});
 
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
@@ -121,6 +115,7 @@ describe('users and teams', () => {
         clientId: testUser.clientData[0].client,
         roles: testUser.clientData[0].roles[0],
         teamAdmin: true,
+        env: 'prod',
       });
       expect(deleteResponse.status).toEqual(200);
       const user = await models.user.findOne({ where: { idir_userid: TEAM_ADMIN_IDIR_USERID_01 }, raw: true });
@@ -256,5 +251,133 @@ describe('Deleted user emails', () => {
     expect(deleteInactiveIntegrationEmails[0].body.includes('role1')).toBeTruthy();
     expect(deleteInactiveIntegrationEmails[0].body.includes('role2')).toBeTruthy();
     expect(orphanedIntegrationEmails.length).toBe(0);
+  });
+
+  it('Skips the notification if the integration has been archived', async () => {
+    const emailList = createMockSendEmail();
+
+    // Create a team and integration
+    const adminTeam = await createTeam({
+      name: 'test_team',
+      members: [
+        {
+          idirEmail: TEAM_MEMBER_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    });
+    const request = await buildIntegration({
+      projectName: 'Delete Inactive Users',
+      bceid: false,
+      prodEnv: false,
+      submitted: true,
+      teamId: adminTeam.body.id,
+    });
+    // Archive the integration
+    await deleteIntegration(request.body.id);
+
+    // Call the endpoint with no roles, should be no email since deleted
+    await deleteInactiveUsers(testUser);
+    let deleteInactiveIntegrationEmails = emailList.filter((email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER);
+    let orphanedIntegrationEmails = emailList.filter((email) => email.code === EMAILS.ORPHAN_INTEGRATION);
+
+    expect(orphanedIntegrationEmails.length).toBe(0);
+    expect(deleteInactiveIntegrationEmails.length).toBe(0);
+
+    jest.clearAllMocks();
+
+    // Call the user deletion endpoint with client roles, expect no email since deleted
+    testUser.clientData = [{ client: request.body.clientId, roles: ['role1', 'role2'] }];
+    await deleteInactiveUsers(testUser);
+
+    deleteInactiveIntegrationEmails = emailList.filter((email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER);
+    orphanedIntegrationEmails = emailList.filter((email) => email.code === EMAILS.ORPHAN_INTEGRATION);
+
+    expect(orphanedIntegrationEmails.length).toBe(0);
+    expect(deleteInactiveIntegrationEmails.length).toBe(0);
+  });
+});
+
+describe('Environment Check', () => {
+  beforeAll(async () => {
+    await cleanUpDatabaseTables();
+  });
+
+  afterEach(async () => {
+    jest.clearAllMocks();
+    await cleanUpDatabaseTables();
+  });
+
+  beforeEach(async () => {
+    await models.user.create({ idirUserid: SSO_TEAM_IDIR_USER, idirEmail: SSO_TEAM_IDIR_EMAIL });
+    await models.user.create({ idirUserid: TEAM_ADMIN_IDIR_USERID_01, idirEmail: TEAM_ADMIN_IDIR_EMAIL_01 });
+    createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
+  });
+
+  it('Only removes users in CSS when they are deleted from the production environment', async () => {
+    testUser.env = 'dev';
+    await deleteInactiveUsers(testUser);
+    let user = await models.user.findOne({ where: { idir_email: testUser.email }, raw: true });
+    expect(user).not.toBeNull();
+
+    testUser.env = 'test';
+    await deleteInactiveUsers(testUser);
+    user = await models.user.findOne({ where: { idir_email: testUser.email }, raw: true });
+    expect(user).not.toBeNull();
+
+    testUser.env = 'prod';
+    await deleteInactiveUsers(testUser);
+    user = await models.user.findOne({ where: { idir_email: testUser.email }, raw: true });
+    expect(user).toBeNull();
+  });
+
+  it('Sends role information for all environments, and team admin information only for production', async () => {
+    let emailList = createMockSendEmail();
+    const adminTeam = await createTeam({
+      name: 'test_team',
+      members: [
+        {
+          idirEmail: TEAM_ADMIN_IDIR_EMAIL_01,
+          role: 'admin',
+        },
+      ],
+    });
+    const request = await buildIntegration({
+      projectName: 'Delete Inactive Users',
+      bceid: false,
+      prodEnv: false,
+      submitted: true,
+      teamId: adminTeam.body.id,
+    });
+
+    for (const env of ['dev', 'test', 'prod']) {
+      // Reset mocks between env tests
+      if (emailList.length) {
+        jest.clearAllMocks();
+        createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
+        emailList = createMockSendEmail();
+      }
+
+      testUser.env = env;
+      testUser.clientData = [{ client: request.body.clientId, roles: ['role1', 'role2'] }];
+      await deleteInactiveUsers(testUser);
+
+      const deleteInactiveIntegrationEmails = emailList.filter(
+        (email) => email.code === EMAILS.DELETE_INACTIVE_IDIR_USER,
+      );
+      expect(deleteInactiveIntegrationEmails.length).toBe(1);
+
+      // Only does team admin notification for prod users
+      if (env === 'prod') {
+        expect(deleteInactiveIntegrationEmails[0].body.includes('Team Admin')).toBeTruthy();
+      } else {
+        expect(deleteInactiveIntegrationEmails[0].body.includes('Team Admin')).not.toBeTruthy();
+      }
+
+      // Always sends role information
+      expect(deleteInactiveIntegrationEmails[0].body.includes('role1')).toBeTruthy();
+      expect(deleteInactiveIntegrationEmails[0].body.includes('role2')).toBeTruthy();
+      expect(deleteInactiveIntegrationEmails[0].body.includes(env)).toBeTruthy();
+    }
   });
 });

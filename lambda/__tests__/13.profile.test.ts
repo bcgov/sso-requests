@@ -2,13 +2,6 @@ import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { SSO_TEAM_IDIR_EMAIL, SSO_TEAM_IDIR_USER } from './helpers/fixtures';
 import { getAuthenticatedUser, updateProfile } from './helpers/modules/users';
 
-jest.mock('../app/src/authenticate');
-jest.mock('../shared/utils/ches', () => {
-  return {
-    sendEmail: jest.fn(),
-  };
-});
-
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {

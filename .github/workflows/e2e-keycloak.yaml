@@ -35,14 +35,25 @@ jobs:
           summary-title: 'Pre-reqs'
           wait-on: https://bcgov.github.io/sso-requests-sandbox/
           wait-on-timeout: 120
-          record: true
           install-command: yarn
           working-directory: app
           spec: |
             cypress/e2e/**/integration-990-deleteAllIntegrations.cy.ts
           browser: electron
-          # project: ./e2e
-          ci-build-id: ${{ github.event.number }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: app/cypress/screenshots/**/*
+          if-no-files-found: ignore
+
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
 
   idp-stopper:
     runs-on: ubuntu-latest
@@ -60,7 +71,6 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          record: true
           wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
           wait-on-timeout: 360
           install-command: yarn
@@ -68,7 +78,20 @@ jobs:
           spec: |
             cypress/e2e/external/idpstopper-*.cy.ts
           browser: electron
-          ci-build-id: ${{ github.event.number }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: app/cypress/screenshots/**/*
+          if-no-files-found: ignore
+
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
 
   search-users:
     runs-on: ubuntu-latest
@@ -83,7 +106,6 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          record: true
           wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
           wait-on-timeout: 360
           install-command: yarn
@@ -91,7 +113,20 @@ jobs:
           spec: |
             cypress/e2e/external/search-users.cy.ts
           browser: electron
-          ci-build-id: ${{ github.event.number }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: app/cypress/screenshots/**/*
+          if-no-files-found: ignore
+
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
 
   roles-tests:
     runs-on: ubuntu-latest
@@ -106,7 +141,6 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          record: true
           wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
           wait-on-timeout: 360
           install-command: yarn
@@ -114,7 +148,20 @@ jobs:
           spec: |
             cypress/e2e/external/integration-roles.cy.ts
           browser: electron
-          ci-build-id: ${{ github.event.number }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: app/cypress/screenshots/**/*
+          if-no-files-found: ignore
+
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -129,7 +176,6 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          record: true
           wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
           wait-on-timeout: 360
           install-command: yarn
@@ -137,4 +183,17 @@ jobs:
           spec: |
             cypress/e2e/ci/integrations-crud.cy.ts
           browser: electron
-          ci-build-id: ${{ github.event.number }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: app/cypress/screenshots/**/*
+          if-no-files-found: ignore
+
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore

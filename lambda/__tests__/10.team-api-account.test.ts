@@ -6,6 +6,7 @@ import app from './helpers/server';
 import { API_BASE_PATH } from './helpers/constants';
 import { buildIntegration } from './helpers/modules/common';
 import { findClientRole } from '@lambda-app/keycloak/users';
+import { KeycloakService } from '@lambda-css-api/services/keycloak-service';
 
 let team;
 let integration;
@@ -70,8 +71,6 @@ const deleteUserRoleMapping = {
 
 const mockedFindClientRole = findClientRole as jest.Mock<any>;
 
-jest.mock('@lambda-app/authenticate');
-
 jest.mock('@lambda-app/keycloak/users', () => {
   return {
     listClientRoles: jest.fn(() => {
@@ -110,7 +109,6 @@ jest.mock('@lambda-app/helpers/token', () => {
     generateInvitationToken: jest.fn(() => TEST_TOKEN),
   };
 });
-jest.mock('@lambda-shared/utils/ches');
 
 jest.mock('@lambda-app/authenticate');
 
@@ -144,13 +142,6 @@ jest.mock('@lambda-css-api/authenticate', () => {
 });
 
 const createIntegrationRoles = async (roleName: string, intId: number, env: string) => {
-  mockedFindClientRole.mockImplementationOnce(() => {
-    return Promise.resolve({
-      name: roleName,
-      composite: false,
-    });
-  });
-
   return await supertest(app)
     .post(`${API_BASE_PATH}/integrations/${intId}/dev/roles`)
     .send({ name: roleName })
@@ -161,6 +152,10 @@ describe('emails for teams', () => {
   beforeAll(async () => {
     jest.clearAllMocks();
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    jest.spyOn(KeycloakService.prototype, 'setEnvironment').mockImplementation(() => {
+      return Promise.resolve();
+    });
+
     const result = await createTeam(postTeam);
     expect(result.status).toEqual(200);
     team = result.body;
@@ -171,10 +166,15 @@ describe('emails for teams', () => {
       teamId: team.id,
     });
     integration = integrationRes.body;
-    await createIntegrationRoles('role1', integration.id, 'dev');
-    await createIntegrationRoles('role2', integration.id, 'dev');
-    await createIntegrationRoles('role3', integration.id, 'dev');
+
+    ['role1', 'role2', 'role3'].forEach(async (role) => {
+      jest.spyOn(KeycloakService.prototype, 'createClientRole').mockImplementationOnce(() => {
+        return Promise.resolve({ name: role, composite: false });
+      });
+      await createIntegrationRoles(role, integration.id, 'dev');
+    });
   });
+
   afterAll(async () => {
     await cleanUpDatabaseTables();
   });
@@ -223,34 +223,36 @@ describe('emails for teams', () => {
   });
 
   it('creates team integration role for an environment', async () => {
+    const createClientRoleMock = jest.spyOn(KeycloakService.prototype, 'createClientRole').mockImplementation(() => {
+      return Promise.resolve({ name: createIntegrationRole, composite: false });
+    });
     const result = await createIntegrationRoles(createIntegrationRole, integration.id, 'dev');
+    expect(createClientRoleMock).toHaveBeenCalled();
     expect(result.body.name).toBe(createIntegrationRole);
     expect(result.body.composite).toBe(false);
   });
 
   it('updates team integration role for an environment', async () => {
-    mockedFindClientRole.mockImplementationOnce(() => {
-      return Promise.resolve({
-        name: 'role5',
-        composite: false,
-      });
+    const updateClientRoleMock = jest.spyOn(KeycloakService.prototype, 'updateClientRole').mockImplementation(() => {
+      return Promise.resolve({ name: 'role5', composite: false });
     });
     const result = await supertest(app)
       .put(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles/${createIntegrationRole}`)
       .send({ name: updateIntegrationRole })
       .set('Accept', 'application/json')
       .expect(200);
+
+    expect(updateClientRoleMock).toHaveBeenCalled();
     expect(result.body.name).toBe(updateIntegrationRole);
     expect(result.body.composite).toBe(false);
   });
 
   it('create composite role', async () => {
-    mockedFindClientRole.mockImplementationOnce(() => {
-      return Promise.resolve({
-        name: 'role11',
-        composite: true,
+    const createCompositeRoleMock = jest
+      .spyOn(KeycloakService.prototype, 'createCompositeRole')
+      .mockImplementation(() => {
+        return Promise.resolve({ name: 'role1', composite: true });
       });
-    });
 
     const result = await supertest(app)
       .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles/role1/composite-roles`)
@@ -258,15 +260,20 @@ describe('emails for teams', () => {
       .set('Accept', 'application/json')
       .expect(200);
 
-    expect(result.body.name).toBe('role11');
+    expect(createCompositeRoleMock).toHaveBeenCalled();
+    expect(result.body.name).toBe('role1');
     expect(result.body.composite).toBe(true);
   });
 
   it('get role composites', async () => {
+    const getCompositeRolesMock = jest.spyOn(KeycloakService.prototype, 'getCompositeRoles').mockImplementation(() => {
+      return Promise.resolve([{ name: 'role2', composite: false }]);
+    });
     const result = await supertest(app)
       .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles/role1/composite-roles`)
       .expect(200);
 
+    expect(getCompositeRolesMock).toHaveBeenCalled();
     result.body.data.forEach((role) => {
       expect(role.name).toBe('role2');
       expect(role.composite).toBe(false);
@@ -274,15 +281,20 @@ describe('emails for teams', () => {
   });
 
   it('get role composite', async () => {
+    const getCompositeRoleMock = jest.spyOn(KeycloakService.prototype, 'getCompositeRoles').mockImplementation(() => {
+      return Promise.resolve({ name: 'role2', composite: false });
+    });
     const result = await supertest(app)
       .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles/role1/composite-roles/role2`)
       .expect(200);
 
+    expect(getCompositeRoleMock).toHaveBeenCalled();
     expect(result.body.name).toBe('role2');
     expect(result.body.composite).toBe(false);
   });
 
   it('remove role composite', async () => {
+    jest.spyOn(KeycloakService.prototype, 'deleteCompositeRole').mockImplementation();
     await supertest(app)
       .delete(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles/role1/composite-roles/role2`)
       .expect(204);
@@ -392,6 +404,7 @@ describe('emails for teams', () => {
   });
 
   it('deletes team integration role for an environment', async () => {
+    jest.spyOn(KeycloakService.prototype, 'deleteClientRole').mockImplementation();
     await supertest(app)
       .delete(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles/${updateIntegrationRole}`)
       .expect(204);
@@ -423,11 +436,15 @@ describe('emails for teams', () => {
   });
 
   it('gets team integration role mappings for an environment when username is supplied', async () => {
+    const listClientUserRoleMappingsMock = jest
+      .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
+      .mockImplementation(() => Promise.resolve(integrationUserRoles));
     const result = await supertest(app)
       .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/user-role-mappings`)
       .query({ username: integrationRoleUsers[0].username })
       .expect(200);
 
+    expect(listClientUserRoleMappingsMock).toHaveBeenCalled();
     expect(result.body.roles.length > 0).toBe(true);
     expect(result.body.roles[0].name).toBe(integrationUserRoles[0].name);
     expect(result.body.roles[0].composite).toBe(integrationUserRoles[0].composite);
@@ -472,20 +489,42 @@ describe('emails for teams', () => {
   });
 
   it('gets roles associated with user for an environment when username is supplied', async () => {
+    const listClientUserRoleMappingsMock = jest
+      .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
+      .mockImplementation(() => Promise.resolve(integrationUserRoles));
     const result = await supertest(app)
       .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${createUserRoleMapping.username}/roles`)
       .expect(200);
 
+    expect(listClientUserRoleMappingsMock).toHaveBeenCalled();
     expect(result.body.data.length > 0).toBe(true);
     expect(result.body.data[0].name).toBe(integrationUserRoles[0].name);
     expect(result.body.data[0].composite).toBe(integrationUserRoles[0].composite);
   });
 
+  it('gets roles associated with a service account for an environment when the client id is supplied as username', async () => {
+    const listClientUserRoleMappingsMock = jest
+      .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
+      .mockImplementation(() => Promise.resolve(integrationUserRoles));
+    await supertest(app)
+      .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${integration.clientId}/roles`)
+      .expect(200);
+
+    expect(listClientUserRoleMappingsMock).toHaveBeenCalledWith(
+      integration.clientId,
+      `service-account-${integration.clientId}`,
+    );
+  });
+
   it('gets users associated to a role per page for an environment when roleName is supplied', async () => {
+    const listUsersByClientRoleMock = jest
+      .spyOn(KeycloakService.prototype, 'listUsersByClientRole')
+      .mockImplementation(() => Promise.resolve(integrationRoleUsers));
     const result = await supertest(app)
       .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/roles/${integrationUserRoles[0].name}/users`)
       .expect(200);
 
+    expect(listUsersByClientRoleMock).toHaveBeenCalled();
     expect(result.body.data.length > 0).toBe(true);
     expect(result.body.page).toBe(1);
     expect(result.body.data[0].username).toBe(integrationRoleUsers[0].username);
@@ -496,20 +535,62 @@ describe('emails for teams', () => {
   });
 
   it('assign a role to an user for an environment', async () => {
+    const addClientUserRoleMappingMock = jest
+      .spyOn(KeycloakService.prototype, 'addClientUserRoleMapping')
+      .mockImplementation(() => Promise.resolve([{ name: 'role1', composite: false }]));
     const result = await supertest(app)
       .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${createUserRoleMapping.username}/roles`)
       .send([{ name: 'role1' }])
       .set('Accept', 'application/json')
       .expect(201);
+
+    expect(addClientUserRoleMappingMock).toHaveBeenCalled();
     expect(result.body.data.length > 0).toBe(true);
     expect(result.body.data[0].name).toBe(integrationUserRoles[0].name);
     expect(result.body.data[0].composite).toBe(integrationUserRoles[0].composite);
   });
 
+  it('Remaps client id to service account username on role assignment', async () => {
+    const addClientUserRoleMappingMock = jest
+      .spyOn(KeycloakService.prototype, 'addClientUserRoleMapping')
+      .mockImplementation(() => Promise.resolve([{ name: 'role1', composite: false }]));
+    await supertest(app)
+      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${integration.clientId}/roles`)
+      .send([{ name: 'role1' }])
+      .set('Accept', 'application/json')
+      .expect(201);
+
+    expect(addClientUserRoleMappingMock).toHaveBeenCalledWith(
+      integration.clientId,
+      `service-account-${integration.clientId}`,
+      [{ name: 'role1' }],
+    );
+  });
+
   it('unassign a role to an user for an environment', async () => {
+    const deleteClientUserRoleMappingMock = jest
+      .spyOn(KeycloakService.prototype, 'deleteClientUserRoleMapping')
+      .mockImplementation(() => Promise.resolve(null));
     const result = await supertest(app)
       .delete(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${createUserRoleMapping.username}/roles/role1`)
       .expect(204);
+    expect(deleteClientUserRoleMappingMock).toHaveBeenCalled();
     expect(result.body).toBeNull;
+  });
+
+  it('Remaps the client ID to the service account name on deletes', async () => {
+    const deleteClientUserRoleMappingMock = jest
+      .spyOn(KeycloakService.prototype, 'deleteClientUserRoleMapping')
+      .mockImplementation(() => Promise.resolve(null));
+
+    await supertest(app)
+      .delete(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${integration.clientId}/roles/role1`)
+      .expect(204);
+
+    expect(deleteClientUserRoleMappingMock).toHaveBeenCalledWith(
+      integration.clientId,
+      `service-account-${integration.clientId}`,
+      'role1',
+    );
   });
 });

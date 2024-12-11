@@ -1,14 +1,5 @@
-import {
-  createRole,
-  deleteRole,
-  listClientRoles,
-  updateRole,
-  findClientRole,
-  manageRoleComposites,
-  getRoleComposites,
-  setCompositeClientRoles,
-} from '@lambda-app/keycloak/users';
-import { injectable } from 'tsyringe';
+import { listClientRoles, findClientRole, getRoleComposites } from '@lambda-app/keycloak/users';
+import { container, inject, injectable, singleton } from 'tsyringe';
 import { IntegrationService } from './integration-service';
 import createHttpError from 'http-errors';
 import { roleValidator, listOfrolesValidator } from '../schemas/role';
@@ -17,11 +8,13 @@ import { Role, RolePayload } from '../types';
 import { Integration } from 'app/interfaces/Request';
 import { parseErrors } from '../util';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { destroyRequestRole, updateCompositeRoles } from '@lambda-app/queries/roles';
+import { destroyRequestRole, deleteCompositeRolesDB, createCompositeRolesDB } from '@lambda-app/queries/roles';
+import { KeycloakServiceFactory } from './keycloak-service';
 
-@injectable()
+@singleton()
 export class RoleService {
-  constructor(private integrationService: IntegrationService) {}
+  keycloakServiceFactory = container.resolve(KeycloakServiceFactory);
+  constructor(@inject('IntegrationService') private integrationService: IntegrationService) {}
 
   public async getAllByEnvironment(teamId: number, integrationId: number, environment: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
@@ -39,7 +32,8 @@ export class RoleService {
   public async createRole(teamId: number, integrationId: number, role: RolePayload, environment: string) {
     this.validateRole(role);
     const int = await this.integrationService.getById(integrationId, teamId);
-    const kcRole = await createRole(int, { environment, integrationId, roleName: role.name });
+    const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    const kcRole = await KeycloakService.createClientRole(int.clientId, role);
     if (kcRole) {
       await models.requestRole.create({
         name: role?.name,
@@ -47,19 +41,14 @@ export class RoleService {
         requestId: integrationId,
       });
     }
-    return getAllowedRoleProps((await findClientRole(int, { environment, roleName: role?.name })) as Role);
+    return getAllowedRoleProps(kcRole);
   }
 
   public async deleteRole(teamId: number, integrationId: number, roleName: string, environment: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    await deleteRole(int, { environment, integrationId, roleName });
-
-    const deletedRole = await findClientRole(int, { environment, roleName });
-
-    if (!deletedRole) {
-      await destroyRequestRole(int?.id, roleName, environment);
-    }
-    return;
+    const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    await KeycloakService.deleteClientRole(int.clientId, roleName);
+    await destroyRequestRole(int?.id, roleName, environment);
   }
 
   public async updateRole(
@@ -71,23 +60,30 @@ export class RoleService {
   ) {
     this.validateRole(role);
     const int = await this.integrationService.getById(integrationId, teamId);
-    const dbRole = await models.requestRole.findOne({
-      where: {
-        name: roleName,
-        environment: environment,
-        requestId: integrationId,
-      },
-    });
-    if (!dbRole) throw new createHttpError[404](`role ${roleName} not found`);
-    await updateRole(int, { environment, integrationId, roleName, newRoleName: role.name });
-    const updatedRole = await findClientRole(int, { environment, roleName: role.name });
-
+    const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    const updatedRole = await KeycloakService.updateClientRole(int.clientId, roleName, role);
     if (updatedRole) {
-      dbRole.name = role?.name;
-      dbRole.environment = environment;
-      await dbRole.save();
+      const dbRole = await models.requestRole.findOne({
+        where: {
+          name: roleName,
+          environment: environment,
+          requestId: integrationId,
+        },
+      });
+      // if role exists in db then update else create
+      if (dbRole) {
+        dbRole.name = role?.name;
+        dbRole.environment = environment;
+        await dbRole.save();
+      } else {
+        await models.requestRole.create({
+          name: role?.name,
+          environment: environment,
+          requestId: integrationId,
+        });
+      }
     }
-    return getAllowedRoleProps(updatedRole as Role);
+    return getAllowedRoleProps(updatedRole);
   }
 
   public validateRole(role: RolePayload) {
@@ -109,52 +105,36 @@ export class RoleService {
     environment: string,
     compositeRoles: RolePayload[],
   ) {
-    let rolesToAdd = [];
-    const int = await this.integrationService.getById(integrationId, teamId);
-
-    const existingRoles = await listClientRoles(int, { environment, integrationId });
-    const role = existingRoles.find((role) => role.name === roleName);
-    if (!role) throw new createHttpError[404](`role ${roleName} not found`);
     const valid = listOfrolesValidator(compositeRoles);
     if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
+
+    const int = await this.integrationService.getById(integrationId, teamId);
+
+    const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+
     for (let role of compositeRoles) {
       if (role.name.trim().length === 0) throw new createHttpError[400]('invalid role');
       if (role.name === roleName) throw new createHttpError[400](`role ${roleName} cannot be associated with itself`);
-      if (!existingRoles.find((existingRole) => existingRole.name === role.name))
-        throw new createHttpError[404](`role ${role.name} not found`);
-      rolesToAdd.push(existingRoles.find((existingRole) => role.name === existingRole.name));
     }
-    try {
-      const existingComposites = await getRoleComposites(int, environment, role.id);
-      // merge two arrays and remove duplicates
-      const compositeRolesToAdd = existingComposites
-        .map((r) => r.name)
-        .concat(rolesToAdd.map((r) => r.name))
-        .filter((r, i, a) => a.indexOf(r) === i);
+    const updatedRole = await KeycloakService.createCompositeRole(int.clientId, roleName, compositeRoles);
 
-      const result = await setCompositeClientRoles(int, {
-        environment,
+    if (updatedRole) {
+      await createCompositeRolesDB(
         roleName,
-        compositeRoleNames: compositeRolesToAdd,
-      });
-
-      await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);
-    } catch (err) {
-      console.error(err);
-      throw new createHttpError[500]('error creating composite roles');
+        compositeRoles.map((r) => r.name),
+        int?.id,
+        environment,
+      );
     }
 
-    return getAllowedRoleProps((await findClientRole(int, { environment, roleName })) as Role);
+    return getAllowedRoleProps(updatedRole);
   }
 
   public async getCompositeRoles(teamId: number, integrationId: number, roleName: string, environment: string) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    const existingRoles = await listClientRoles(int, { environment, integrationId });
-    const role = existingRoles.find((role) => role.name === roleName);
-
-    if (!role) throw new createHttpError[404](`role ${roleName} not found`);
-
-    return updateRoleProps((await getRoleComposites(int, environment, role.id)) as Role[]);
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    const compositeRole = await keycloakService.getCompositeRoles(int.clientId, roleName);
+    return updateRoleProps(compositeRole);
   }
 
   public async getCompositeRole(
@@ -165,23 +145,15 @@ export class RoleService {
     compositeRoleName: string,
   ) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    const existingRoles = await listClientRoles(int, { environment, integrationId });
-    const role = existingRoles.find((role) => role.name === roleName);
-    const compositeRole = existingRoles.find((role) => role.name === compositeRoleName);
 
     if (roleName === compositeRoleName)
       throw new createHttpError[400](`role name and composite role name cannot be same`);
 
-    if (!role) throw new createHttpError[404](`role ${roleName} not found`);
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
 
-    if (!compositeRole) throw new createHttpError[404](`role ${compositeRoleName} not found`);
+    const compositeRole = await keycloakService.getCompositeRoles(int.clientId, roleName, compositeRoleName);
 
-    const compRoles = await getRoleComposites(int, environment, role.id);
-
-    if (!compRoles.find((role) => role.name === compositeRoleName))
-      throw new createHttpError[404](`role ${compositeRoleName} is not associated with ${roleName}`);
-
-    return getAllowedRoleProps(compRoles.find((role) => role.name === compositeRoleName) as Role);
+    return getAllowedRoleProps(compositeRole);
   }
 
   public async deleteCompositeRole(
@@ -192,33 +164,12 @@ export class RoleService {
     compositeRoleName: string,
   ) {
     const int = await this.integrationService.getById(integrationId, teamId);
-    const existingRoles = await listClientRoles(int, { environment, integrationId });
-    const role = existingRoles.find((role) => role.name === roleName);
-    const compositeRole = existingRoles.find((role) => role.name === compositeRoleName);
-
-    if (!role) throw new createHttpError[404](`role ${roleName} not found`);
-
-    if (!compositeRole) throw new createHttpError[404](`role ${compositeRoleName} not found`);
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
 
     if (roleName === compositeRoleName)
       throw new createHttpError[400](`role name and composite role name cannot be same`);
 
-    const compRoles = await getRoleComposites(int, environment, role.id);
-
-    if (!compRoles.find((role) => role.name === compositeRoleName))
-      throw new createHttpError[404](`role ${compositeRoleName} is not associated with ${roleName}`);
-
-    try {
-      const result = await setCompositeClientRoles(int, {
-        environment,
-        roleName,
-        compositeRoleNames: compRoles.filter((r) => r.name !== compositeRoleName).map((r) => r.name),
-      });
-
-      await updateCompositeRoles(result?.name, result?.composites, int?.id, environment);
-    } catch (err) {
-      console.error(err);
-      throw new createHttpError[500]('error deleting composite roles');
-    }
+    await keycloakService.deleteCompositeRole(int.clientId, roleName, compositeRoleName);
+    await deleteCompositeRolesDB(roleName, compositeRoleName, int?.id, environment);
   }
 }

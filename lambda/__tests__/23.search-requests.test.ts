@@ -3,14 +3,6 @@ import { getListOfIntegrations } from './helpers/modules/integrations';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { buildIntegration } from './helpers/modules/common';
 
-jest.mock('../app/src/authenticate');
-
-jest.mock('../shared/utils/ches', () => {
-  return {
-    sendEmail: jest.fn(),
-  };
-});
-
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {

@@ -1,17 +1,13 @@
-import { findUserByRealm } from '@lambda-app/keycloak/users';
 import { getValidator, postValidator, getUsersByRolenameValidator } from '../schemas/user-role-mapping';
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 import { UserRoleMappingService } from '../services/user-role-mapping-service';
 import { parseErrors } from '../util';
-import { RoleService } from '../services/role-service';
 import createHttpError from 'http-errors';
-import { updateUserProps } from '../helpers/users';
-import { updateRoleProps } from '../helpers/roles';
 import { ListUserRoleMappingQuery, RolePayload, UserRoleMappingPayload, ListUsersByRoleName } from '../types';
 
 @injectable()
 export class UserRoleMappingController {
-  constructor(private userRoleMappingService: UserRoleMappingService, private roleService: RoleService) {}
+  constructor(@inject('UserRoleMappingService') private userRoleMappingService: UserRoleMappingService) {}
 
   public async list(teamId: number, integrationId: number, environment: string, query: ListUserRoleMappingQuery) {
     const valid = getValidator(query || {});

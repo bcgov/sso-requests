@@ -403,7 +403,7 @@ export function testUserRoleMapping(options) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 400 when user with invalid or no idp passed': (r) => r.status === 400,
+        'should return 404 when user with invalid or no idp passed': (r) => r.status === 404,
       });
 
       sleep(SLEEP_DURATION);
@@ -511,7 +511,7 @@ export function testUserRoleMapping(options) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 400 when invalid or no idp passed': (r) => r.status === 400,
+        'should return 404 when invalid or no idp passed': (r) => r.status === 404,
       });
 
       sleep(SLEEP_DURATION);
@@ -570,7 +570,7 @@ export function testUserRoleMapping(options) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 400 when non-associated role name passed': (r) => r.status === 400,
+        'should return 404 when non-associated role name passed': (r) => r.status === 404,
       });
 
       sleep(SLEEP_DURATION);
@@ -585,7 +585,7 @@ export function testUserRoleMapping(options) {
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 400 when username with invalid or no idp passed': (r) => r.status === 400,
+        'should return 404 when username with invalid or no idp passed': (r) => r.status === 404,
       });
 
       sleep(SLEEP_DURATION);
