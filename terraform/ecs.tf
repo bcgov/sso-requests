@@ -1,12 +1,18 @@
+locals {
+  grafana_cpu    = (var.app_env == "production" ? 256 : 256)
+  grafana_memory = (var.app_env == "production" ? 512 : 512)
+  redis_cpu      = (var.app_env == "production" ? 256 : 256)
+  redis_memory   = (var.app_env == "production" ? 512 : 512)
+  grafana_port   = 3000
+  redis_port     = 6379
+}
+
 resource "aws_ecs_cluster" "sso_ecs_cluster" {
-  count = var.install_sso_css_grafana
-  name  = "sso-ecs-cluster"
-  tags  = var.sso_grafana_tags
+  name = "sso-ecs-cluster"
 }
 
 resource "aws_ecs_cluster_capacity_providers" "sso_ecs_cluster_capacity_providers" {
-  count              = var.install_sso_css_grafana
-  cluster_name       = aws_ecs_cluster.sso_ecs_cluster[count.index].name
+  cluster_name       = aws_ecs_cluster.sso_ecs_cluster.name
   capacity_providers = ["FARGATE_SPOT"]
   default_capacity_provider_strategy {
     weight            = 100
@@ -14,17 +20,17 @@ resource "aws_ecs_cluster_capacity_providers" "sso_ecs_cluster_capacity_provider
   }
 }
 
-resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
-  count                    = var.install_sso_css_grafana
-  depends_on               = [aws_apigatewayv2_api.sso_grafana_api]
-  family                   = var.sso_grafana_name
-  execution_role_arn       = aws_iam_role.ecs_sso_grafana_task_execution_role[0].arn
-  task_role_arn            = aws_iam_role.sso_grafana_container_role[count.index].arn
+resource "aws_ecs_task_definition" "grafana" {
+  count                    = var.install_grafana
+  depends_on               = [aws_apigatewayv2_api.grafana]
+  family                   = "grafana"
+  execution_role_arn       = aws_iam_role.grafana_task_execution_role[0].arn
+  task_role_arn            = aws_iam_role.grafana_container_role[count.index].arn
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = var.sso_grafana_fargate_cpu
-  memory                   = var.sso_grafana_fargate_memory
-  tags                     = var.sso_grafana_tags
+  cpu                      = local.grafana_cpu
+  memory                   = local.grafana_memory
+  tags                     = var.grafana_tags
   volume {
     name = "sso-grafana-data"
     efs_volume_configuration {
@@ -38,17 +44,18 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
   }
   container_definitions = jsonencode([
     {
-      essential   = true
-      name        = var.sso_grafana_container_name
-      image       = "${var.aws_ecr_uri}/${var.sso_grafana_container_image}"
-      cpu         = var.sso_grafana_fargate_cpu
-      memory      = var.sso_grafana_fargate_memory
-      networkMode = "awsvpc"
+      essential              = true
+      name                   = "grafana"
+      image                  = "${var.aws_ecr_uri}/bcgov-sso/grafana:10.2.2"
+      cpu                    = local.grafana_cpu
+      memory                 = local.grafana_memory
+      readonlyRootFilesystem = true
+      networkMode            = "awsvpc"
       portMappings = [
         {
           protocol      = "tcp"
-          containerPort = var.sso_grafana_container_port
-          hostPort      = var.sso_grafana_container_port
+          containerPort = local.grafana_port
+          hostPort      = local.grafana_port
         }
       ]
       environment = [
@@ -61,7 +68,7 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
         logDriver = "awslogs"
         options = {
           awslogs-create-group  = "true"
-          awslogs-group         = "/ecs/${var.sso_grafana_name}"
+          awslogs-group         = "/ecs/grafana"
           awslogs-region        = "ca-central-1"
           awslogs-stream-prefix = "ecs"
         }
@@ -80,11 +87,11 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
         },
         {
           name  = "GF_SERVER_DOMAIN",
-          value = "${aws_apigatewayv2_api.sso_grafana_api[count.index].id}.execute-api.ca-central-1.amazonaws.com"
+          value = "${aws_apigatewayv2_api.grafana[count.index].id}.execute-api.ca-central-1.amazonaws.com"
         },
         {
           name  = "GF_SERVER_ROOT_URL",
-          value = "https://${aws_apigatewayv2_api.sso_grafana_api[count.index].id}.execute-api.ca-central-1.amazonaws.com"
+          value = "https://${aws_apigatewayv2_api.grafana[count.index].id}.execute-api.ca-central-1.amazonaws.com"
         },
         {
           name  = "GF_AUTH_GENERIC_OAUTH_NAME",
@@ -146,27 +153,27 @@ resource "aws_ecs_task_definition" "sso_grafana_task_definition" {
       secrets = [
         {
           name      = "GF_SECURITY_ADMIN_PASSWORD",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret[0].arn}:GF_SECURITY_ADMIN_PASSWORD::"
+          valueFrom = "${data.aws_secretsmanager_secret_version.grafana_secret[0].arn}:GF_SECURITY_ADMIN_PASSWORD::"
         },
         {
           name      = "GF_AUTH_GENERIC_OAUTH_CLIENT_ID",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret[0].arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_ID::"
+          valueFrom = "${data.aws_secretsmanager_secret_version.grafana_secret[0].arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_ID::"
         },
         {
           name      = "GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET",
-          valueFrom = "${data.aws_secretsmanager_secret_version.sso_grafana_secret[0].arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET::"
+          valueFrom = "${data.aws_secretsmanager_secret_version.grafana_secret[0].arn}:GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET::"
         },
       ]
     }
   ])
 }
 
-resource "aws_ecs_service" "sso_grafana_service" {
-  count                             = var.install_sso_css_grafana
-  name                              = var.sso_grafana_name
-  cluster                           = aws_ecs_cluster.sso_ecs_cluster[count.index].id
-  task_definition                   = aws_ecs_task_definition.sso_grafana_task_definition[count.index].arn
-  desired_count                     = var.install_sso_css_grafana
+resource "aws_ecs_service" "grafana" {
+  count                             = var.install_grafana
+  name                              = "grafana"
+  cluster                           = aws_ecs_cluster.sso_ecs_cluster.id
+  task_definition                   = aws_ecs_task_definition.grafana[count.index].arn
+  desired_count                     = 1
   enable_ecs_managed_tags           = true
   propagate_tags                    = "TASK_DEFINITION"
   health_check_grace_period_seconds = 60
@@ -186,17 +193,96 @@ resource "aws_ecs_service" "sso_grafana_service" {
   }
 
   load_balancer {
-    target_group_arn = aws_alb_target_group.alb_target_group_sso_grafana[count.index].id
-    container_name   = var.sso_grafana_container_name
-    container_port   = var.sso_grafana_container_port
+    target_group_arn = aws_alb_target_group.grafana[count.index].id
+    container_name   = "grafana"
+    container_port   = local.grafana_port
   }
 
-  depends_on = [aws_iam_role_policy_attachment.ecs_sso_grafana_task_role_policy_attachment]
+  depends_on = [aws_iam_role_policy_attachment.grafana]
 
-  tags = var.sso_grafana_tags
+  tags = var.grafana_tags
 }
 
-data "aws_secretsmanager_secret_version" "sso_grafana_secret" {
-  count     = var.install_sso_css_grafana
+data "aws_secretsmanager_secret_version" "grafana_secret" {
+  count     = var.install_grafana
   secret_id = "sso-grafana"
+}
+
+resource "aws_ecs_task_definition" "redis" {
+  count                    = var.install_redis
+  depends_on               = [aws_lambda_function.app]
+  family                   = "redis"
+  execution_role_arn       = aws_iam_role.redis_task_execution_role[0].arn
+  task_role_arn            = aws_iam_role.redis_container_role[count.index].arn
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = local.redis_cpu
+  memory                   = local.redis_memory
+  tags                     = var.redis_tags
+  container_definitions = jsonencode([
+    {
+      essential              = true
+      name                   = "redis"
+      image                  = "public.ecr.aws/docker/library/redis:latest"
+      cpu                    = local.redis_cpu
+      memory                 = local.redis_memory
+      readonlyRootFilesystem = true
+      networkMode            = "awsvpc"
+      portMappings = [
+        {
+          protocol      = "tcp"
+          containerPort = local.redis_port
+          hostPort      = local.redis_port
+        }
+      ]
+      environment = [
+        {
+          name  = "AWS_REGION",
+          value = "ca-central-1"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-create-group  = "true"
+          awslogs-group         = "/ecs/redis"
+          awslogs-region        = "ca-central-1"
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_service" "redis" {
+  count                             = var.install_redis
+  name                              = "redis"
+  cluster                           = aws_ecs_cluster.sso_ecs_cluster.id
+  task_definition                   = aws_ecs_task_definition.redis[count.index].arn
+  desired_count                     = var.install_redis
+  enable_ecs_managed_tags           = true
+  propagate_tags                    = "TASK_DEFINITION"
+  health_check_grace_period_seconds = 60
+  wait_for_steady_state             = false
+
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 100
+  }
+
+
+  network_configuration {
+    security_groups  = [data.aws_security_group.app.id]
+    subnets          = [data.aws_subnet.a.id, data.aws_subnet.b.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.redis[count.index].id
+    container_name   = "redis"
+    container_port   = local.redis_port
+  }
+
+  tags = var.redis_tags
 }

@@ -1,4 +1,3 @@
-import { ListUsersFilterQuery } from '../types';
 import { injectable } from 'tsyringe';
 import { searchUsersByIdp } from '@lambda-app/keycloak/users';
 import {

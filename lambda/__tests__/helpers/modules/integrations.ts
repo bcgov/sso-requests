@@ -73,8 +73,9 @@ export const createRequestQueueItem = async (
   requestData: RequestData,
   action: QUEUE_ACTION,
   ageSeconds?: number,
+  attempts: number = 0,
 ) => {
-  const queueItem: any = { type: 'request', action, requestId, request: requestData };
+  const queueItem: any = { type: 'request', action, requestId, request: requestData, attempts };
   if (ageSeconds) {
     const currentTime = new Date();
     const secondsAgoTime = currentTime.getTime() - ageSeconds * 1000;

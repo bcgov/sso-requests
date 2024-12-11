@@ -99,11 +99,10 @@ interface Props {
  * @param filename Name to give to the downloaded file
  * @param dataObjToWrite The data to include in the file
  */
-const saveTemplateAsFile = (filename: string, dataObjToWrite: any) => {
-  const blob = new Blob([JSON.stringify(dataObjToWrite)], { type: 'text/json' });
+const saveTemplateAsFile = (filename: string, dataObjToWrite: Blob) => {
   const link = document.createElement('a');
   link.download = filename;
-  link.href = window.URL.createObjectURL(blob);
+  link.href = window.URL.createObjectURL(dataObjToWrite);
   link.dataset.downloadurl = ['text/json', link.download, link.href].join(':');
 
   const evt = new MouseEvent('click', {
@@ -174,6 +173,8 @@ const LogsPanel = ({ integration, alert }: Props) => {
   };
 
   const handleFileProgress = (progressEvent: AxiosProgressEvent) => {
+    // Ignore progress indicator if unsupported in browser. Some browsers ignore content-length for zipped responses.
+    if (progressEvent.total === undefined || progressEvent.loaded === undefined) return;
     const percentComplete = Math.floor((progressEvent.loaded / Number(progressEvent.total)) * 100);
     if (percentComplete !== fileProgress) {
       setFileProgress(percentComplete);
@@ -222,11 +223,13 @@ const LogsPanel = ({ integration, alert }: Props) => {
       if (err) {
         // Ignore error if request cancelled
         if (err.code === 'ERR_CANCELED') return;
+        let content = 'Error fetching logs.';
+        if (err?.status === 429) content = 'Too many requests';
         alert.show({
           variant: 'danger',
           fadeOut: 10000,
           closable: true,
-          content: err?.response?.data?.message ?? 'Error fetching logs.',
+          content,
         });
       } else {
         alert.show({
@@ -235,10 +238,9 @@ const LogsPanel = ({ integration, alert }: Props) => {
           closable: true,
           content: result?.message ?? 'Downloaded logs.',
         });
-        const resultJSON = await result.text();
         saveTemplateAsFile(
           `${integration.clientId}-${fromDate.toLocaleString()}-${toDate.toLocaleString()}.json`,
-          JSON.parse(resultJSON),
+          result.data,
         );
         surveyContext?.setShowSurvey(true, 'downloadLogs');
       }

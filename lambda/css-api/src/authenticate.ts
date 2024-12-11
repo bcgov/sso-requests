@@ -71,7 +71,7 @@ const validateJWTSignature = async (token) => {
 
     return { success: true, data: { teamId: team }, err: null };
   } catch (err) {
-    console.log(err);
+    console.error(err);
 
     if (err.name === 'TokenExpiredError') failedAuth.err = 'token expired';
     else if (err.name === 'JsonWebTokenError') failedAuth.err = 'invalid token';

@@ -19,7 +19,7 @@ resource "aws_lambda_function" "request_queue" {
 
   environment {
     variables = {
-      NODE_ENV                  = "production"
+      NODE_ENV                  = var.app_env
       DB_HOSTNAME               = module.db.this_rds_cluster_endpoint
       DB_USERNAME               = var.db_username
       DB_PASSWORD               = random_password.db_password.result
@@ -46,6 +46,7 @@ resource "aws_lambda_function" "request_queue" {
       BCSC_REGISTRATION_BASE_URL_DEV  = var.bcsc_registration_base_url_dev
       BCSC_REGISTRATION_BASE_URL_TEST = var.bcsc_registration_base_url_test
       BCSC_REGISTRATION_BASE_URL_PROD = var.bcsc_registration_base_url_prod
+      RC_WEBHOOK                      = var.rc_webhook
     }
   }
 

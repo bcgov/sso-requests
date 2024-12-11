@@ -16,7 +16,6 @@ env:
   CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
   CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
   CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
-  CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_host: 'http://localhost:3000'
   CYPRESS_smoketest: true
@@ -39,14 +38,25 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          record: true
           wait-on: 'http://localhost:3000'
-          parallel: true
           wait-on-timeout: 360
           install-command: yarn
           working-directory: app
           spec: |
-            cypress/e2e/smoke/smoke-10-brokenlinks.cy.ts
+            cypress/e2e/ci/smoke-10-brokenlinks.cy.ts
             cypress/e2e/ci/*.cy.ts
           browser: electron
-          ci-build-id: ${{ github.event.number }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: app/cypress/screenshots/**/*
+          if-no-files-found: ignore
+
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore

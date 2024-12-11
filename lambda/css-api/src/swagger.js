@@ -78,6 +78,15 @@ const doc = {
         name: 'client-role',
         composite: false,
       },
+      logsResponse: {
+        data: [
+          {
+            '@timestamp': 'string',
+            message: 'string',
+          },
+        ],
+        message: 'string',
+      },
       compositeRoleRequest: {
         $name: 'composite-role',
       },

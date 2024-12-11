@@ -7,7 +7,7 @@
     "compile": "../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias",
     "build": "../node_modules/.bin/ncc build src/main.ts -o dist -m",
     "copy-templates": "../node_modules/.bin/copyfiles -u 1 ../shared/templates/**/*.html ../shared/templates/*.html ./src/**/*.json dist --flat",
-    "start": "NODE_ENVIRONMENT=local ts-node src/main.ts"
+    "start": "NODE_ENVIRONMENT=local bun src/main.ts"
   },
   "author": "",
   "license": "ISC",

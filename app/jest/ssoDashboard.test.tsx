@@ -3,6 +3,8 @@ import AdminDashboard from 'pages/admin-dashboard';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
 import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, getRequestAll } from 'services/request';
+import BcServicesCardTabContent from 'page-partials/admin-dashboard/AdminTabs/BcServicesCardTabContent';
+
 import { getCompositeClientRoles } from '@app/services/keycloak';
 import { debug } from 'jest-preview';
 
@@ -478,5 +480,32 @@ describe('SSO Dashboard', () => {
     });
 
     expect(screen.queryByText('Remove Service Account')).not.toBeInTheDocument();
+  });
+
+  it('BCSC Tab can approve submitted bcsc integrations', () => {
+    const bcServicesCardIntegration: Integration = {
+      ...sampleRequest,
+      devIdps: ['bcservicescard'],
+      status: 'applied',
+      publicAccess: false,
+    };
+
+    render(<BcServicesCardTabContent integration={bcServicesCardIntegration} />);
+    const textElement = screen.getByText('To begin the BC Services Card integration in production, Click Below.');
+    expect(textElement).toBeInTheDocument();
+  });
+
+  it('BCSC Tab cannot approve archived bcsc integrations', () => {
+    const bcServicesCardIntegrationArchived: Integration = {
+      ...sampleRequest,
+      devIdps: ['bcservicescard'],
+      status: 'applied',
+      archived: true,
+      publicAccess: false,
+    };
+
+    render(<BcServicesCardTabContent integration={bcServicesCardIntegrationArchived} />);
+    const textElement = screen.getByText('Cannot approve deleted/archived integrations.');
+    expect(textElement).toBeInTheDocument();
   });
 });

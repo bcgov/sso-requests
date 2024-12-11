@@ -17,10 +17,6 @@ import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 
 const MOCK_PRIVACY_ZONE_URI = 'zone';
 
-jest.mock('@lambda-app/authenticate');
-
-jest.mock('@lambda-shared/utils/ches');
-
 jest.mock('@lambda-shared/templates/helpers', () => {
   const original = jest.requireActual('@lambda-shared/templates/helpers');
   return {
@@ -343,6 +339,7 @@ describe('Email template snapshots', () => {
       clientId: 'test-client',
       roles: 'test-role',
       teamAdmin: true,
+      env: 'dev',
     });
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();

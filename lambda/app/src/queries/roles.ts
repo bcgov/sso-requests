@@ -14,21 +14,26 @@ export const getRolesWithEnvironments = async (integrationId: number) => {
   return results;
 };
 
-export const updateCompositeRoles = async (
+export const createCompositeRolesDB = async (
   roleName: string,
   compositeRoleNames: string[],
   integrationId: number,
   environment: string,
 ) => {
-  const dbRole = await models.requestRole.findOne({
+  let dbRole = await models.requestRole.findOne({
     where: {
       name: roleName,
       requestId: integrationId,
       environment: environment,
     },
   });
+
   if (!dbRole) {
-    throw new createHttpError.NotFound(`role ${roleName} not found`);
+    dbRole = await models.requestRole.create({
+      name: roleName,
+      environment: environment,
+      requestId: integrationId,
+    });
   }
   const dbCompositeRoles = await models.requestRole.findAll({
     where: {
@@ -40,14 +45,50 @@ export const updateCompositeRoles = async (
     },
     raw: true,
   });
-  if (dbCompositeRoles.length > 0) {
-    dbRole.composite = true;
-    dbRole.compositeRoles = dbCompositeRoles.map((cr) => cr.id);
-  } else {
-    dbRole.composite = false;
-    dbRole.compositeRoles = [];
+  for (const compRole of compositeRoleNames) {
+    const compRoleId = dbCompositeRoles.find((cr) => cr.name === compRole).id;
+    if (!dbRole.compositeRoles.includes(compRoleId)) dbRole.compositeRoles = dbRole.compositeRoles.concat(compRoleId);
+    if (!dbRole.composite) dbRole.composite = true;
   }
+
   return await dbRole.save();
+};
+
+export const deleteCompositeRolesDB = async (
+  roleName: string,
+  compositeRoleName: string,
+  integrationId: number,
+  environment: string,
+) => {
+  const dbRole = await models.requestRole.findOne({
+    where: {
+      name: roleName,
+      requestId: integrationId,
+      environment: environment,
+    },
+  });
+
+  if (dbRole) {
+    const dbCompositeRole = await models.requestRole.findOne({
+      where: {
+        name: compositeRoleName,
+        requestId: integrationId,
+        environment: environment,
+      },
+      raw: true,
+    });
+
+    if (dbCompositeRole) {
+      const updatedComposites = dbRole.compositeRoles.filter((cr) => cr !== dbCompositeRole.id);
+
+      dbRole.compositeRoles = updatedComposites;
+
+      if (updatedComposites.length === 0) {
+        dbRole.composite = false;
+      }
+      return await dbRole.save();
+    }
+  }
 };
 
 export const getCompositeParentRoles = async (roleName: string, integrationId: number, environment: string) => {

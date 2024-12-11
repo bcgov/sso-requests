@@ -1,6 +1,5 @@
 # ECS task execution role data
-data "aws_iam_policy_document" "ecs_sso_grafana_task_execution_role" {
-  count   = var.install_sso_css_grafana
+data "aws_iam_policy_document" "ecs_task_execution_role" {
   version = "2012-10-17"
   statement {
     sid     = ""
@@ -14,35 +13,37 @@ data "aws_iam_policy_document" "ecs_sso_grafana_task_execution_role" {
   }
 }
 
-data "aws_iam_policy" "iam_sso_grafana_read_secret_policy" {
-  count = var.install_sso_css_grafana
+data "aws_iam_policy" "grafana_read_secret" {
+  count = var.install_grafana
   name  = "SSOPathfinderReadGrafanaSecret"
 }
 
-# ECS task execution role
-resource "aws_iam_role" "ecs_sso_grafana_task_execution_role" {
-  count              = var.install_sso_css_grafana
-  name               = "SSODefaultECSTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_sso_grafana_task_execution_role[0].json
+# Grafana ECS task execution role
+resource "aws_iam_role" "grafana_task_execution_role" {
+  count              = var.install_grafana
+  name               = "GrafanaECSTaskExecutionRole"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role.json
 
-  tags = var.sso_grafana_tags
+  tags = var.grafana_tags
 }
 
+
+
 # Attaching task execution and read from RDS policies to task execution role
-resource "aws_iam_role_policy_attachment" "ecs_sso_grafana_task_role_policy_attachment" {
-  role = aws_iam_role.ecs_sso_grafana_task_execution_role[0].name
-  for_each = var.install_sso_css_grafana == 1 ? toset([
+resource "aws_iam_role_policy_attachment" "grafana" {
+  role = aws_iam_role.grafana_task_execution_role[0].name
+  for_each = var.install_grafana == 1 ? toset([
     "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     "arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess",
-    data.aws_iam_policy.iam_sso_grafana_read_secret_policy[0].arn # secret and policy manually created in AWS
+    data.aws_iam_policy.grafana_read_secret[0].arn # secret and policy manually created in AWS
   ]) : toset([])
   policy_arn = each.value
 }
 
-resource "aws_iam_role_policy" "ecs_sso_grafana_task_execution_cwlogs" {
-  count = var.install_sso_css_grafana
-  name  = "ecs-sso-grafana-task-exec-cwlogs"
-  role  = aws_iam_role.ecs_sso_grafana_task_execution_role[0].id
+resource "aws_iam_role_policy" "grafana_task_execution_cwlogs" {
+  count = var.install_grafana
+  name  = "grafana-task-exec-cwlogs"
+  role  = aws_iam_role.grafana_task_execution_role[0].id
 
   policy = <<-EOF
   {
@@ -62,9 +63,9 @@ resource "aws_iam_role_policy" "ecs_sso_grafana_task_execution_cwlogs" {
 EOF
 }
 
-resource "aws_iam_role" "sso_grafana_container_role" {
-  count = var.install_sso_css_grafana
-  name  = "sso-grafana-container-role"
+resource "aws_iam_role" "grafana_container_role" {
+  count = var.install_grafana
+  name  = "grafana-container-role"
 
   assume_role_policy = <<EOF
 {
@@ -82,13 +83,13 @@ resource "aws_iam_role" "sso_grafana_container_role" {
 }
 EOF
 
-  tags = var.sso_grafana_tags
+  tags = var.grafana_tags
 }
 
-resource "aws_iam_role_policy" "sso_grafana_cwlogs" {
-  count = var.install_sso_css_grafana
-  name  = "sso-grafana-cw-logs"
-  role  = aws_iam_role.sso_grafana_container_role[count.index].id
+resource "aws_iam_role_policy" "grafana_cwlogs" {
+  count = var.install_grafana
+  name  = "grafana-cw-logs"
+  role  = aws_iam_role.grafana_container_role[count.index].id
 
   policy = <<-EOF
   {
@@ -111,10 +112,10 @@ resource "aws_iam_role_policy" "sso_grafana_cwlogs" {
 EOF
 }
 
-resource "aws_iam_role_policy" "sso_grafana_container_efs_access" {
-  count  = var.install_sso_css_grafana
-  name   = "sso-grafana-container-efs-access"
-  role   = aws_iam_role.sso_grafana_container_role[count.index].id
+resource "aws_iam_role_policy" "grafana_container_efs_access" {
+  count  = var.install_grafana
+  name   = "grafana-container-efs-access"
+  role   = aws_iam_role.grafana_container_role[count.index].id
   policy = <<-EOF
   {
       "Version": "2012-10-17",
@@ -131,4 +132,88 @@ resource "aws_iam_role_policy" "sso_grafana_container_efs_access" {
       ]
   }
   EOF
+}
+
+# Redis ECS task execution role
+resource "aws_iam_role" "redis_task_execution_role" {
+  count              = var.install_redis
+  name               = "RedisECSTaskExecutionRole"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role.json
+
+  tags = var.grafana_tags
+}
+
+resource "aws_iam_role" "redis_container_role" {
+  count = var.install_redis
+  name  = "redis-container-role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+  tags = var.grafana_tags
+}
+
+resource "aws_iam_role_policy" "redis_task_execution_cwlogs" {
+  count = var.install_redis
+  name  = "redis-task-exec-cwlogs"
+  role  = aws_iam_role.redis_task_execution_role[0].id
+
+  policy = <<-EOF
+  {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Effect": "Allow",
+              "Action": [
+                  "logs:CreateLogGroup",
+                  "logs:CreateLogStream",
+                  "logs:PutLogEvents",
+                  "logs:DescribeLogStreams"
+              ],
+              "Resource": [
+                  "arn:aws:logs:*:*:*"
+              ]
+          }
+      ]
+  }
+EOF
+}
+
+resource "aws_iam_role_policy" "redis_cwlogs" {
+  count = var.install_redis
+  name  = "redis-cw-logs"
+  role  = aws_iam_role.redis_container_role[count.index].id
+
+  policy = <<-EOF
+  {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Effect": "Allow",
+              "Action": [
+                  "logs:CreateLogGroup",
+                  "logs:CreateLogStream",
+                  "logs:PutLogEvents",
+                  "logs:DescribeLogStreams"
+              ],
+              "Resource": [
+                  "arn:aws:logs:*:*:*"
+              ]
+          }
+      ]
+  }
+EOF
 }

@@ -10,20 +10,21 @@ const MAX_DAYS = 3;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
 
-export const fetchLogs = async (session: Session, env: string, id: number, start: string, end: string) => {
-  // Check user owns requested logs
-  const userRequest = await getAllowedRequest(session, id);
-  if (!userRequest) return { status: 401, message: "You are not authorized to view this integration's logs" };
+export const fetchLogs = async (
+  env: string,
+  clientId: string,
+  requestId: string,
+  start: string,
+  end: string,
+  userId?: string,
+) => {
+  const hasRequiredParams = start && end && env;
 
-  const { clientId } = userRequest;
-  // Validate user supplied inputs
-  const hasRequiredQueryParams = start && end && env;
-
-  if (!hasRequiredQueryParams) {
-    return { status: 400, message: 'Not all query params sent. Please include start, end and env.' };
+  if (!hasRequiredParams) {
+    return { status: 400, message: 'Not all parameters sent. Please include start, end and env.' };
   }
   if (!allowedEnvs.includes(env)) {
-    return { status: 400, message: `The env query param must be one of ${allowedEnvs.join(', ')}.` };
+    return { status: 400, message: `The env parameter must be one of ${allowedEnvs.join(', ')}.` };
   }
 
   const unixStartTime = new Date(start).getTime();
@@ -38,13 +39,17 @@ export const fetchLogs = async (session: Session, env: string, id: number, start
     };
   }
 
+  if (unixStartTime > unixEndTime) {
+    return { status: 400, message: `End date must be later than start date.` };
+  }
+
   if (unixEndTime - unixStartTime > MAX_DAYS * 60 * 60 * 24 * 1000) {
     return { status: 400, message: `Date range must be less ${MAX_DAYS} days.` };
   }
 
   const eventMeta = {
-    requestId: userRequest.id,
-    idirUserid: session.idir_userid,
+    requestId,
+    idirUserid: userId,
     details: {
       environment: env,
       clientId,

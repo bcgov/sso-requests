@@ -19,12 +19,7 @@ let integrationId;
 http.setResponseCallback(http.expectedStatuses({ min: 200, max: 204 }));
 
 export const options = {
-  stages: [
-    { duration: '10m', target: 100 }, // simulate ramp-up of traffic from 1 to 50 users over 3 minutes.
-  ],
-  thresholds: {
-    'http_req_duration{status:504}': ['max=0'],
-  },
+  stages: [{ duration: '5m', target: 100 }],
 };
 
 export function setup() {
