@@ -57,12 +57,13 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   }
 `;
 
-function SelectColumnFilter({ setFilter, options, setValue, gotoPage }: any) {
+function SelectColumnFilter({ setFilter, options, setValue, gotoPage, defaultValue }: any) {
   return (
     <div data-testid="multi-select-col-filter">
       <Select
         className="basic-multi-select"
         classNamePrefix="select"
+        defaultValue={defaultValue}
         onChange={(val) => {
           setFilter('status', val);
           setValue(val);
@@ -81,6 +82,7 @@ export interface TableFilter {
   multiselect?: boolean;
   onChange?: Function;
   options: Option[];
+  defaultValue?: string | Option;
   label?: string;
 }
 
@@ -337,6 +339,7 @@ function Table({
                 {filter.label}
                 <SelectColumnFilter
                   setFilter={setFilter}
+                  defaultValue={filter?.defaultValue}
                   options={filter.options}
                   setValue={filter.onChange}
                   gotoPage={gotoPage}
