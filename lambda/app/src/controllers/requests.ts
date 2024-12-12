@@ -247,7 +247,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
   let bcscClientSecret = bcscClient?.clientSecret;
   let bcscClientId = bcscClient?.clientId;
   if (!bcscClient) {
-    const bcscClientName = `${integration.projectName}-${integration.id}`;
+    const bcscClientName = `${env !== 'prod' ? integration.projectName + '-' + env : integration.projectName}`;
     const clientResponse: any = await createBCSCClient(
       {
         clientName: bcscClientName,

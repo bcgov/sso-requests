@@ -53,7 +53,7 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
   const result = await axios.post(
     `${bcscBaseUrl}/oauth2/register`,
     {
-      client_name: `${data.clientName}-${data.environment}`,
+      client_name: data.clientName,
       client_uri: integration[`${data.environment}HomePageUri`],
       redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
       scope: requiredScopes.join(' '),
@@ -79,13 +79,13 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
 export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integration: IntegrationData) => {
   const { kcBaseUrl, bcscBaseUrl } = getBCSCEnvVars(bcscClient.environment);
   const contacts = await getBCSCContacts(integration);
-  const jwksUri = `${kcBaseUrl}/realms/standard/protocol/openid-connect/certs`;
+  const jwksUri = `${kcBaseUrl}/auth/realms/standard/protocol/openid-connect/certs`;
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
 
   const result = await axios.put(
     `${bcscBaseUrl}/oauth2/register/${bcscClient.clientId}`,
     {
-      client_name: `${bcscClient.clientName}-${bcscClient.environment}`,
+      client_name: bcscClient.clientName,
       client_uri: integration[`${bcscClient.environment}HomePageUri`],
       redirect_uris: [`${kcBaseUrl}/auth/realms/standard/broker/${integration.clientId}/endpoint`],
       scope: requiredScopes.join(' '),
