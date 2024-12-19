@@ -3,10 +3,11 @@ import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import AuthenticationFlowRepresentation from '@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { createBCSCIntegration, deleteBCSCIntegration } from '@lambda-app/controllers/requests';
+import { createBCSCIntegration, deleteBCSCIntegration, usesBCSCIntegration } from '@lambda-app/controllers/requests';
 import { usesBcServicesCard } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
+import { getByRequestId } from '@lambda-app/queries/bcsc-client';
 
 const realm = 'standard';
 
@@ -143,12 +144,7 @@ export const keycloakClient = async (
     if (integration.archived) {
       if (clients.length > 0) {
         if (usesBcServicesCard(integration)) {
-          const bcscClientDetails = await models.bcscClient.findOne({
-            where: {
-              requestId: integration.id,
-              environment,
-            },
-          });
+          const bcscClientDetails = await getByRequestId(integration.id, environment);
           await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
         }
         // delete the client
@@ -165,8 +161,12 @@ export const keycloakClient = async (
 
       return true;
     }
+    const bcscClientDetails = await getByRequestId(integration.id, environment);
+
     if (usesBcServicesCard(integration)) {
       await createBCSCIntegration(environment, integration, integration.userId);
+    } else if (await usesBCSCIntegration(bcscClientDetails, integration.clientId)) {
+      await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
     }
 
     const authenticationFlows = await axios.get(`${kcAdminClient.baseUrl}/admin/realms/standard/authentication/flows`, {

@@ -97,6 +97,7 @@ export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integra
       jwks_uri: jwksUri,
       client_id: bcscClient.clientId,
       registration_access_token: bcscClient.registrationAccessToken,
+      privacy_zone_uri: integration.bcscPrivacyZone,
     },
     {
       headers: {
