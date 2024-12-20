@@ -3,7 +3,7 @@ import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import AuthenticationFlowRepresentation from '@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation';
 import { models } from '@lambda-shared/sequelize/models/models';
-import { createBCSCIntegration, deleteBCSCIntegration, usesBCSCIntegration } from '@lambda-app/controllers/requests';
+import { createBCSCIntegration, deleteBCSCIntegration } from '@lambda-app/controllers/requests';
 import { usesBcServicesCard } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
