@@ -200,7 +200,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
   const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
-  const [archiveStatus, setArchiveStatus] = useState<Option[]>([]);
+  const [archiveStatus, setArchiveStatus] = useState<Option[]>([{ value: 'active', label: 'Active' }]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
   const [showRestoreModal, setShowRestoreModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -225,6 +225,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       multiselect: true,
       onChange: setArchiveStatus,
       options: archiveStatusOptions,
+      defaultValue: archiveStatus,
       label: 'Archive Status',
     },
   ]);

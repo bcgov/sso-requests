@@ -219,6 +219,15 @@ describe('SSO Dashboard', () => {
   it('testing Action buttons', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
+    //Archive Status filter defaults to active only
+    const selectArchiveStatus = screen.getAllByTestId('multi-select-col-filter');
+    expect(selectArchiveStatus[2]).toHaveTextContent('Active');
+
+    const archiveStatusInput = selectArchiveStatus[2].firstChild;
+    fireEvent.keyDown(archiveStatusInput as HTMLElement, { keyCode: 40 });
+    const archiveStatusOption = await screen.findByText('Deleted');
+    fireEvent.click(archiveStatusOption);
+
     const searchInputField = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
     expect(searchInputField).toBeInTheDocument();
     fireEvent.change(searchInputField, { target: { value: 'project_name' } });

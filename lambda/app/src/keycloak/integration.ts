@@ -7,6 +7,7 @@ import { createBCSCIntegration, deleteBCSCIntegration } from '@lambda-app/contro
 import { usesBcServicesCard } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
+import { getByRequestId } from '@lambda-app/queries/bcsc-client';
 
 const realm = 'standard';
 
@@ -143,13 +144,8 @@ export const keycloakClient = async (
     if (integration.archived) {
       if (clients.length > 0) {
         if (usesBcServicesCard(integration)) {
-          const bcscClientDetails = await models.bcscClient.findOne({
-            where: {
-              requestId: integration.id,
-              environment,
-            },
-          });
-          await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
+          const bcscClientDetails = await getByRequestId(integration.id, environment);
+          if (bcscClientDetails) await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
         }
         // delete the client
         await kcAdminClient.clients.del({ id: clients[0].id, realm });
@@ -165,6 +161,7 @@ export const keycloakClient = async (
 
       return true;
     }
+
     if (usesBcServicesCard(integration)) {
       await createBCSCIntegration(environment, integration, integration.userId);
     }

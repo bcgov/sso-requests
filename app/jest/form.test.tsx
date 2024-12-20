@@ -648,7 +648,7 @@ describe('BC Services Card IDP and dependencies', () => {
     fireEvent.change(uriInput, { target: { value: 'https://valid-uri' } });
   });
 
-  it('should keep BCSC attributes editable if not approved yet', async () => {
+  it('should keep BCSC privacy zone and attributes editable if not approved yet', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -665,7 +665,7 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(bcscCheckbox).toBeDisabled();
     expect(bcscCheckbox).toBeChecked();
     const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
-    expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
+    expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).not.toBeDisabled();
 
     const bcscAttributesDropDown = screen.getByTestId('bcsc-attributes') as HTMLElement;
     const attributesInput = bcscAttributesDropDown.lastChild;
