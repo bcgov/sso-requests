@@ -165,7 +165,7 @@ export const keycloakClient = async (
 
     if (usesBcServicesCard(integration)) {
       await createBCSCIntegration(environment, integration, integration.userId);
-    } else if (await usesBCSCIntegration(bcscClientDetails, integration.clientId)) {
+    } else if (bcscClientDetails && (await usesBCSCIntegration(bcscClientDetails, integration.clientId))) {
       await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
     }
 
