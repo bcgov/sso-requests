@@ -246,8 +246,9 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
 
   let bcscClientSecret = bcscClient?.clientSecret;
   let bcscClientId = bcscClient?.clientId;
+  const bcscClientName = `${env !== 'prod' ? integration.projectName + '-' + env : integration.projectName}`;
+
   if (!bcscClient) {
-    const bcscClientName = `${integration.projectName}-${integration.id}`;
     const clientResponse: any = await createBCSCClient(
       {
         clientName: bcscClientName,
@@ -267,20 +268,14 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     });
     bcscClientSecret = clientResponse.data.client_secret;
     bcscClientId = clientResponse.data.client_id;
-  } else if (bcscClient.archived) {
-    // TODO: currently need to have the BCSC team manually re-enable client when restoring (as of July 2024). Once api route for enabling is available should be added here.
-    await models.bcscClient.update(
-      {
-        archived: false,
-      },
-      {
-        where: {
-          requestId: integration.id,
-          environment: env,
-        },
-      },
-    );
   } else {
+    if (bcscClient.archived) {
+      // TODO: currently need to have the BCSC team manually re-enable client when restoring (as of July 2024). Once api route for enabling is available should be added here.
+      bcscClient.archived = false;
+    }
+
+    bcscClient.clientName = bcscClientName;
+    bcscClient.save();
     await updateBCSCClient(bcscClient, integration);
   }
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
@@ -433,6 +428,19 @@ export const deleteBCSCIntegration = async (request: BCSCClientParameters, keyco
   }
 };
 
+export const usesBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
+  const idpExists = await getIdp(request.environment, keycoakClientId);
+  const clientScope = await getClientScope({
+    environment: request.environment,
+    realmName: 'standard',
+    scopeName: keycoakClientId,
+  });
+  if (idpExists && clientScope) {
+    return true;
+  }
+  return false;
+};
+
 export const updateRequest = async (
   session: Session,
   data: IntegrationData,
@@ -481,9 +489,6 @@ export const updateRequest = async (
           if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
         }),
       );
-      if (originalData.devIdps.includes('bcservicescard')) {
-        rest.bcscPrivacyZone = originalData.bcscPrivacyZone;
-      }
     }
 
     const allowedData = processRequest(session, rest, isMerged);
@@ -521,8 +526,9 @@ export const updateRequest = async (
       // given approved, if removing existing bc services card idp throw error
       if (!current.devIdps.find((idp: string) => idp === 'bcservicescard'))
         throw new createHttpError.Forbidden('not allowed to remove bc services card idp');
-      // keep bcsc attributes and privacy zone in sync with original data
-      current.bcscAttributes = originalData.bcscAttributes!;
+      // keep bcsc attributes and privacy zone in sync with original data. do not allow updates
+      current.bcscAttributes = originalData.bcscAttributes;
+      current.bcscPrivacyZone = originalData.bcscPrivacyZone;
     }
 
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them

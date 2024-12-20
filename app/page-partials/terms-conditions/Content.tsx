@@ -101,7 +101,7 @@ export default function FaqItems() {
             uptime page on our wiki
           </Link>{' '}
           and join our{' '}
-          <Link external href="https://subscribe.developer.gov.bc.ca/">
+          <Link external href="https://digital.gov.bc.ca/sso-notifications/">
             newsletter
           </Link>{' '}
           to receive important updates on the service and any outages.

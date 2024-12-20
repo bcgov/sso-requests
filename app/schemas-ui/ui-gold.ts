@@ -37,7 +37,6 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
   } = integration || {};
   const isNew = isNil(id);
   const isApplied = status === 'applied';
-  const disableBcscUpdateApplied = integration?.devIdps?.includes('bcservicescard') && status !== 'draft';
   const disableBcscUpdateApproved = integration?.devIdps?.includes('bcservicescard') && bcServicesCardApproved;
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
@@ -53,7 +52,6 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
         if (checkGithubGroup(idp)) {
           idpDisabled.push('githubpublic', 'githubbcgov');
         }
-
         if (idp === 'bcservicescard') idpDisabled.push('bcservicescard');
       });
     }
@@ -76,7 +74,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     bcscPrivacyZone: {
       'ui:widget': BcscPrivacyZoneWidget,
       classNames: 'short-field-string',
-      'ui:disabled': disableBcscUpdateApplied,
+      'ui:disabled': disableBcscUpdateApproved,
     },
     bcscAttributes: {
       'ui:widget': BcscAttributesWidget,
