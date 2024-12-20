@@ -161,12 +161,9 @@ export const keycloakClient = async (
 
       return true;
     }
-    const bcscClientDetails = await getByRequestId(integration.id, environment);
 
     if (usesBcServicesCard(integration)) {
       await createBCSCIntegration(environment, integration, integration.userId);
-    } else if (bcscClientDetails && (await usesBCSCIntegration(bcscClientDetails, integration.clientId))) {
-      await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
     }
 
     const authenticationFlows = await axios.get(`${kcAdminClient.baseUrl}/admin/realms/standard/authentication/flows`, {
