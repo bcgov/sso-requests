@@ -5,6 +5,7 @@ export const getByRequestId = async (integrationId: number, environment: string)
     where: {
       requestId: integrationId,
       environment,
+      archived: false,
     },
   });
 };

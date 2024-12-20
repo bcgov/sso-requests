@@ -145,7 +145,7 @@ export const keycloakClient = async (
       if (clients.length > 0) {
         if (usesBcServicesCard(integration)) {
           const bcscClientDetails = await getByRequestId(integration.id, environment);
-          await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
+          if (bcscClientDetails) await deleteBCSCIntegration(bcscClientDetails, integration.clientId);
         }
         // delete the client
         await kcAdminClient.clients.del({ id: clients[0].id, realm });
