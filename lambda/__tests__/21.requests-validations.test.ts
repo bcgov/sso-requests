@@ -231,7 +231,6 @@ describe('integration validations', () => {
         {
           ...getUpdateIntegrationData({ integration: bcServicesCardIntegration }),
           bcServicesCardApproved: true,
-          bcscPrivacyZone: 'zone2',
         },
         true,
       );

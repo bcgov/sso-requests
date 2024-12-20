@@ -51,14 +51,14 @@ describe('BCSC API Callouts', () => {
     expect(axiosDataArg.claims.includes('sub')).toBeTruthy();
   });
 
-  it('Excludes privacy zone when updating a BCSC client', async () => {
+  it('Includes privacy zone when updating a BCSC client', async () => {
     await updateBCSCClient(bcscClient, bcscData);
     expect(axios.put).toHaveBeenCalledTimes(1);
     const [, axiosDataArg] = (axios.put as jest.Mock).mock.calls[0];
     const bcscJSONKeys = Object.keys(axiosDataArg);
 
     expect(bcscJSONKeys.includes('claims')).toBeTruthy();
-    expect(bcscJSONKeys.includes('privacy_zone_uri')).toBeFalsy();
+    expect(bcscJSONKeys.includes('privacy_zone_uri')).toBeTruthy();
   });
 
   it('Fetches the privacy zone uri for the provided environment', async () => {
