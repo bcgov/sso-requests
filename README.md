@@ -105,6 +105,8 @@ assumes one available VPC exists with available subnets in two zones. To set the
 The lambda functions are written in typescript, and to compile and bundle them you can run `make lambda-all` from the lambda directory.
 Once they are compiled, from the [terraform](./terraform) directory you can run `terraform apply` to build the backend.
 
+The terraform infrastructure deployed through the CI/CD pipeline uses the `sso-requests-boundary` policy, which is scoped to its required resource types. If adding new resource types you will get a 403 forbidden. Expand the policy as needed.
+
 ## Tests
 
 This repository has frontend tests using jest and react testing library, and backend tests run with jest.
