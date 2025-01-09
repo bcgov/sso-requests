@@ -148,10 +148,6 @@ resource "aws_ecs_task_definition" "grafana" {
         {
           name  = "GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP",
           value = "true"
-        },
-        {
-          name  = "GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE",
-          value = "true"
         }
       ]
       secrets = [
