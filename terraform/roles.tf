@@ -1,3 +1,7 @@
+data "aws_iam_policy" "permissions_boundary_policy" {
+  name = "sso-requests-boundary"
+}
+
 # ECS task execution role data
 data "aws_iam_policy_document" "ecs_task_execution_role" {
   version = "2012-10-17"
@@ -20,9 +24,10 @@ data "aws_iam_policy" "grafana_read_secret" {
 
 # Grafana ECS task execution role
 resource "aws_iam_role" "grafana_task_execution_role" {
-  count              = var.install_grafana
-  name               = "GrafanaECSTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role.json
+  count                = var.install_grafana
+  name                 = "GrafanaECSTaskExecutionRole"
+  assume_role_policy   = data.aws_iam_policy_document.ecs_task_execution_role.json
+  permissions_boundary = data.aws_iam_policy.permissions_boundary_policy.arn
 
   tags = var.grafana_tags
 }
@@ -64,8 +69,9 @@ EOF
 }
 
 resource "aws_iam_role" "grafana_container_role" {
-  count = var.install_grafana
-  name  = "grafana-container-role"
+  count                = var.install_grafana
+  name                 = "grafana-container-role"
+  permissions_boundary = data.aws_iam_policy.permissions_boundary_policy.arn
 
   assume_role_policy = <<EOF
 {
@@ -136,9 +142,10 @@ resource "aws_iam_role_policy" "grafana_container_efs_access" {
 
 # Redis ECS task execution role
 resource "aws_iam_role" "redis_task_execution_role" {
-  count              = var.install_redis
-  name               = "RedisECSTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role.json
+  count                = var.install_redis
+  name                 = "RedisECSTaskExecutionRole"
+  assume_role_policy   = data.aws_iam_policy_document.ecs_task_execution_role.json
+  permissions_boundary = data.aws_iam_policy.permissions_boundary_policy.arn
 
   tags = var.grafana_tags
 }
