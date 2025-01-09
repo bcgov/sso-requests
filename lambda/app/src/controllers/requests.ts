@@ -276,7 +276,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
 
     //TODO: update client name after BCSC team provides a way to update client name
     //bcscClient.clientName = bcscClientName;
-    //bcscClient.save();
+    bcscClient.save();
     await updateBCSCClient(bcscClient, integration);
   }
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
