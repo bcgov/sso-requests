@@ -249,7 +249,7 @@ class Request {
     this.reqPage.pageNext();
 
     this.reqPage.submitRequest(this.subMit);
-    cy.wait(3000);
+    cy.wait(10000);
     this.reqPage.confirmDelete(this.conFirm);
     cy.wait(3000);
 
@@ -525,7 +525,7 @@ class Request {
     }
 
     cy.get(this.reqPage.stageReviewSubmit).click();
-    cy.wait(2000);
+    cy.wait(10000);
 
     this.reqPage.updateRequest(this.subMit);
     this.reqPage.confirmDelete(this.conFirm);
