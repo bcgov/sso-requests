@@ -36,8 +36,9 @@ const GITHUB_PROD_REQUESTED_MESSAGE = /Requirements email sent to GCIO/;
 const GITHUB_PROD_APPROVED = /Your integration has been approved/;
 const GITHUB_PROD_AVAILABLE = /Your integration is approved and available/;
 
-const DEV_IDIR_BCEID_ENV_HEADER = /Development \(IDIR, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
-const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
+const DEV_IDIR_BCEID_ENV_HEADER =
+  /Development \(IDIR - MFA, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
+const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR - MFA, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
 
 jest.mock('services/keycloak', () => ({
   getInstallation: jest.fn(() => Promise.resolve([['installation_data'], null])),

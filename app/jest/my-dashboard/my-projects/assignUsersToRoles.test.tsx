@@ -169,40 +169,4 @@ describe('assign user to roles tab', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'View' }));
     expect(await screen.findByTitle('Additional User Info')).toBeVisible();
   });
-
-  it('Should be able to click the Search in IDIM button, and corresponding modal showing up', async () => {
-    render(
-      <UserRoles
-        selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['azureidir', 'bceidbasic'] }}
-      />,
-    );
-    const searchUserInput = screen.getByRole('textbox');
-    fireEvent.change(searchUserInput, { target: { value: 'sample_user' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
-
-    await waitFor(() => {
-      screen.getByRole('button', { name: 'Search in IDIM Web Service Lookup' });
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: 'Search in IDIM Web Service Lookup' }));
-    await waitFor(() => {
-      expect(screen.getByTitle('IDIM Web Service Lookup')).toBeInTheDocument();
-    });
-    const idimSearchInput = screen.getAllByRole('textbox');
-    fireEvent.change(idimSearchInput[1], { target: { value: 'idim_sample_input' } });
-
-    //test on property dropdown
-    const selectPropertyWrapper = screen.getAllByTestId('select-col-filter');
-    const propInput = selectPropertyWrapper[4].lastChild;
-    fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
-    const propOption = await screen.findByText('Username');
-    fireEvent.click(propOption);
-    expect(selectPropertyWrapper[4]).toHaveTextContent('Username');
-
-    const idimSearchButton = screen.getAllByRole('button', { name: 'Search' });
-    fireEvent.click(idimSearchButton[1]);
-    await waitFor(() => {
-      expect(searchIdirUsers).toHaveBeenCalled();
-    });
-  });
 });

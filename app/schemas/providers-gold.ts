@@ -5,6 +5,7 @@ import getConfig from 'next/config';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard } from '@app/helpers/integration';
+import { getDiscontinuedIdps } from '@app/utils/helpers';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { include_digital_credential, include_bc_services_card, allow_bc_services_card_prod } = publicRuntimeConfig;
@@ -111,14 +112,12 @@ export default function getSchema(
       idpEnum.push('bcservicescard');
     }
 
-    if (
-      status &&
-      ['applied', 'applyFailed', 'planFailed'].includes(status) &&
-      devIdps?.includes('idir') &&
-      !idpEnum.includes('idir')
-    ) {
-      idpEnum.unshift('idir');
-    }
+    // grandfather existing integrations and allow them to remove discontinued IDPs
+    getDiscontinuedIdps().forEach((idp) => {
+      if (devIdps?.includes(idp) && !idpEnum.includes(idp)) {
+        idpEnum.unshift(idp);
+      }
+    });
 
     const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
 
