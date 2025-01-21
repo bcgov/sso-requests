@@ -152,7 +152,7 @@ describe('assign user to roles tab', () => {
         selectedRequest={{
           ...sampleRequest,
           environments: ['dev', 'test'],
-          devIdps: ['idir', 'bceidbasic', 'githubpublic'],
+          devIdps: ['azureidir', 'bceidbasic', 'githubpublic'],
         }}
       />,
     );
@@ -173,7 +173,7 @@ describe('assign user to roles tab', () => {
   it('Should be able to click the Search in IDIM button, and corresponding modal showing up', async () => {
     render(
       <UserRoles
-        selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['idir', 'bceidbasic'] }}
+        selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['azureidir', 'bceidbasic'] }}
       />,
     );
     const searchUserInput = screen.getByRole('textbox');

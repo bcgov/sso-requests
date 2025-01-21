@@ -22,7 +22,7 @@ const getIdentityProviderList = (
   digitalCredential: boolean = false,
   bcServicesCard: boolean = false,
 ) => {
-  const idps = ['idir'];
+  const idps = ['azureidir'];
   if (bceid) idps.push('bceidbasic');
   if (github) idps.push('githubbcgov');
   if (digitalCredential) idps.push('digitalcredential');
@@ -81,6 +81,7 @@ export const buildIntegration = async (args: {
   if (prodEnv) envs.push('prod');
 
   if (!projectName) throw new createHttpError.BadRequest('projectName is required');
+
   const createIntRes = await createIntegration(
     getCreateIntegrationData({ projectName, teamIntegration: teamId ? true : false, teamId }),
   );

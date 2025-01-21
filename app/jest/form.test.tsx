@@ -285,7 +285,7 @@ describe('Error messages', () => {
 describe('Client Sessions', () => {
   it('Sends client session idle and max as seconds when making calls to the API', async () => {
     const component = setUpRender(
-      { ...sampleRequest, devIdps: ['idir'] },
+      { ...sampleRequest, devIdps: ['azureidir'] },
       { client_roles: ['sso-admin'], isAdmin: true },
     );
     const { developmentBox, adminReview } = sandbox;
@@ -565,7 +565,7 @@ describe('BC Services Card IDP and dependencies', () => {
     setUpRender({
       id: 0,
       serviceType: 'gold',
-      devIdps: ['idir', 'bceidbasic'],
+      devIdps: ['azureidir', 'bceidbasic'],
       status: 'draft',
       environments: ['dev', 'test', 'prod'],
     });

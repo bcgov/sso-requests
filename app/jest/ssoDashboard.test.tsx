@@ -403,7 +403,7 @@ describe('SSO Dashboard', () => {
   it('Does not display the privacy zone name in the request details for other integrations', async () => {
     (getRequestAll as jest.Mock).mockImplementationOnce(() => {
       return Promise.resolve([
-        { count: 1, rows: [{ ...sampleRequest, projectName: 'testProject', devIdps: ['idir'] }] },
+        { count: 1, rows: [{ ...sampleRequest, projectName: 'testProject', devIdps: ['azureidir'] }] },
       ]);
     });
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);

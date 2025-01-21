@@ -15,7 +15,7 @@ export default function getSchema(
   bcscPrivacyZones?: BcscPrivacyZone[],
   bcscAttributes?: BcscAttribute[],
 ) {
-  const { protocol, authType, status } = integration;
+  const { protocol, authType, status, devIdps } = integration;
   const applied = status === 'applied';
 
   const allow_bcsc_prod = allow_bc_services_card_prod === 'true' || process.env.ALLOW_BC_SERVICES_CARD_PROD === 'true';
@@ -94,7 +94,7 @@ export default function getSchema(
   }
 
   if (authType !== 'service-account') {
-    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
+    const idpEnum = ['azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
 
     /*
       Schemas are shared between lambda functions and client app to keep validations in sync.
@@ -109,6 +109,15 @@ export default function getSchema(
 
     if (include_bcsc) {
       idpEnum.push('bcservicescard');
+    }
+
+    if (
+      status &&
+      ['applied', 'applyFailed', 'planFailed'].includes(status) &&
+      devIdps?.includes('idir') &&
+      !idpEnum.includes('idir')
+    ) {
+      idpEnum.unshift('idir');
     }
 
     const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);

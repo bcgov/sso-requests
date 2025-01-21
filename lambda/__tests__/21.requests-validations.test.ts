@@ -5,10 +5,11 @@ import {
   TEAM_ADMIN_IDIR_USERID_01,
   TEAM_MEMBER_IDIR_EMAIL_01,
   TEAM_MEMBER_IDIR_USERID_01,
+  getCreateIntegrationData,
   getUpdateIntegrationData,
   postTeam,
 } from './helpers/fixtures';
-import { updateIntegration } from './helpers/modules/integrations';
+import { createIntegration, updateIntegration } from './helpers/modules/integrations';
 import { createTeam, verifyTeamMember } from './helpers/modules/teams';
 import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import { Integration } from 'app/interfaces/Request';
@@ -239,7 +240,7 @@ describe('integration validations', () => {
 
       expect(approvedRes.body.bcscPrivacyZone).toEqual('zone1'); // unchanged
 
-      const filterBcscIdp = ['idir'];
+      const filterBcscIdp = ['azureidir'];
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const changeIdpRes = await updateIntegration(
         {
@@ -275,4 +276,28 @@ describe('integration validations', () => {
   } catch (err) {
     console.error('EXCEPTION: ', err);
   }
+
+  it.only('should not allow adding discontinued idp', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    let integrationRes = await createIntegration(
+      getCreateIntegrationData({
+        projectName: 'IDIR not allowed',
+      }),
+    );
+
+    expect(integrationRes.status).toEqual(200);
+    const integration = integrationRes.body;
+
+    let updateIntegrationRes = await updateIntegration(
+      getUpdateIntegrationData({
+        integration,
+        identityProviders: ['idir', 'azureidir', 'bceidbasic'],
+        envs: ['dev', 'test', 'prod'],
+      }),
+      true,
+    );
+
+    expect(updateIntegrationRes.status).toEqual(200);
+    expect(updateIntegrationRes.body.devIdps).toEqual(['azureidir', 'bceidbasic']);
+  });
 });
