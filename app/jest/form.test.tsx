@@ -746,4 +746,32 @@ describe('BC Services Card IDP and dependencies', () => {
     fireEvent.click(bcscCheckbox);
     expect(productionCheckbox).toBeInTheDocument();
   });
+
+  it('should show idir idp for existing integrations', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      environments: ['dev'],
+      devIdps: ['idir', 'azureidir'],
+      projectName: 'test project',
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const idirCheckbox = getByText('IDIR')?.parentElement?.querySelector("input[type='checkbox']");
+    const azureIdirCheckbox = getByText('IDIR - MFA')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(idirCheckbox).toBeVisible();
+    expect(idirCheckbox).toBeChecked();
+    expect(azureIdirCheckbox).toBeChecked();
+  });
+
+  it('should not show idir idp for existing integrations', async () => {
+    const { getByText, queryByText } = setUpRender({
+      id: 0,
+      environments: ['dev'],
+      devIdps: ['azureidir'],
+      projectName: 'test project',
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const azureIdirCheckbox = getByText('IDIR - MFA')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(queryByText('IDIR')).toBeNull();
+    expect(azureIdirCheckbox).toBeChecked();
+  });
 });

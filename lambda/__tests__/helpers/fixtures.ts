@@ -172,6 +172,10 @@ export const getUpdateIntegrationData = (args: {
     devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,
     testSamlLogoutPostBindingUri: samlIntegration && envs.includes('test') ? 'https://a' : undefined,
     prodSamlLogoutPostBindingUri: samlIntegration && envs.includes('prod') ? 'https://a' : undefined,
+    primaryEndUsers: [],
+    devLoginTitle: '',
+    testLoginTitle: '',
+    prodLoginTitle: '',
   };
 };
 

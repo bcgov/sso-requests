@@ -16,6 +16,7 @@ import { Integration } from 'app/interfaces/Request';
 import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
+import { models } from '@lambda-shared/sequelize/models/models';
 
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
@@ -155,7 +156,7 @@ describe('integration validations', () => {
         true,
       );
       expect(changeIdpRes.status).toEqual(422);
-      const addNewIdp = ['idir', 'bceidbasic', 'githubbcgov'];
+      const addNewIdp = ['azureidir', 'bceidbasic', 'githubbcgov'];
       const unapproveIdpRes = await updateIntegration(
         {
           ...getUpdateIntegrationData({ integration: bceidIntegration }),
@@ -197,7 +198,7 @@ describe('integration validations', () => {
         true,
       );
       expect(changeIdpRes.status).toEqual(422);
-      const addNewIdp = ['idir', 'githubbcgov', 'bceidbasic'];
+      const addNewIdp = ['azureidir', 'githubbcgov', 'bceidbasic'];
       const unapproveIdpRes = await updateIntegration(
         {
           ...getUpdateIntegrationData({ integration: githubIntegration }),
@@ -252,7 +253,7 @@ describe('integration validations', () => {
         true,
       );
       expect(changeIdpRes.status).toEqual(422);
-      const addNewIdp = ['idir', 'bcservicescard', 'githubbcgov', 'bceidbasic'];
+      const addNewIdp = ['azureidir', 'bcservicescard', 'githubbcgov', 'bceidbasic'];
       const unapproveIdpRes = await updateIntegration(
         {
           ...getUpdateIntegrationData({ integration: bcServicesCardIntegration }),
@@ -277,7 +278,7 @@ describe('integration validations', () => {
     console.error('EXCEPTION: ', err);
   }
 
-  it.only('should not allow adding discontinued idp', async () => {
+  it('should not allow adding discontinued idp', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     let integrationRes = await createIntegration(
       getCreateIntegrationData({
@@ -299,5 +300,34 @@ describe('integration validations', () => {
 
     expect(updateIntegrationRes.status).toEqual(200);
     expect(updateIntegrationRes.body.devIdps).toEqual(['azureidir', 'bceidbasic']);
+  });
+
+  it('should preserve discontinued idp for existing integrations', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const integration = getUpdateIntegrationData({
+      integration: { projectName: 'Preserve IDIR for Existing Int', projectLead: true, usesTeam: false },
+      identityProviders: ['idir', 'azureidir'],
+    });
+    await models.request.create({
+      ...integration,
+      usesTeam: false,
+      userId: 1,
+    });
+
+    const int = await models.request.findOne(
+      { where: { projectName: 'Preserve IDIR for Existing Int' } },
+      { raw: true },
+    );
+
+    let updateIntegrationRes = await updateIntegration(
+      getUpdateIntegrationData({
+        integration: { ...int.get({ plain: true }) },
+        identityProviders: ['idir', 'azureidir', 'bceidbasic'],
+      }),
+      true,
+    );
+
+    expect(updateIntegrationRes.status).toEqual(200);
+    expect(updateIntegrationRes.body.devIdps).toEqual(['idir', 'azureidir', 'bceidbasic']);
   });
 });
