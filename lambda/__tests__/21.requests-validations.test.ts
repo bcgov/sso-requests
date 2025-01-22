@@ -303,7 +303,13 @@ describe('integration validations', () => {
   });
 
   it('should preserve discontinued idp for existing integrations', async () => {
-    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const MOCK_USER_ID = -1;
+    const MOCK_USER_EMAIL = 'test@user.com';
+    createMockAuth(MOCK_USER_ID.toString(), MOCK_USER_EMAIL);
+    await models.user.create({
+      id: MOCK_USER_ID,
+      idirEmail: MOCK_USER_EMAIL,
+    });
     const integration = getUpdateIntegrationData({
       integration: { projectName: 'Preserve IDIR for Existing Int', projectLead: true, usesTeam: false },
       identityProviders: ['idir', 'azureidir'],
@@ -311,7 +317,7 @@ describe('integration validations', () => {
     await models.request.create({
       ...integration,
       usesTeam: false,
-      userId: 1,
+      userId: MOCK_USER_ID,
     });
 
     const int = await models.request.findOne(
