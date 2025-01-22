@@ -290,9 +290,9 @@ describe('Build Github Dispatch', () => {
       {
         ...bcscProdIntegration,
         clientId: 'myClient',
-        devIdps: ['bcservicescard', 'idir'],
-        testIdps: ['bcservicescard', 'idir'],
-        prodIdps: ['idir'],
+        devIdps: ['bcservicescard', 'azureidir'],
+        testIdps: ['bcservicescard', 'azureidir'],
+        prodIdps: ['azureidir'],
       },
       'prod',
     );

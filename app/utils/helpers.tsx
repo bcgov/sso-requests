@@ -1,9 +1,9 @@
 import isString from 'lodash.isstring';
-import { errorMessages, environmentOptions } from 'utils/constants';
-import { LoggedInUser, Team, User } from 'interfaces/team';
-import { Integration, Option, SilverIDPOption, GoldIDPOption } from 'interfaces/Request';
-import { Change } from 'interfaces/Event';
-import { getStatusDisplayName } from 'utils/status';
+import { errorMessages, environmentOptions } from '@app/utils/constants';
+import { LoggedInUser, Team, User } from '@app/interfaces/team';
+import { Integration, Option, SilverIDPOption, GoldIDPOption } from '@app/interfaces/Request';
+import { Change } from '@app/interfaces/Event';
+import { getStatusDisplayName } from '@app/utils/status';
 import {
   usesBceid,
   usesGithub,
@@ -16,11 +16,6 @@ import {
 } from '@app/helpers/integration';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
-  const silver_realms: SilverIDPOption = {
-    idir: ['onestopauth'],
-    bceid: ['onestopauth-basic', 'onestopauth-business', 'onestopauth-both'],
-  };
-
   const gold_realms: GoldIDPOption = {
     idir: ['idir', 'azureidir'],
     bceid: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
@@ -37,10 +32,8 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
       devIdps = devIdps?.concat(gold_realms['github']) || null;
     } else if (idp.value == 'idir') {
       devIdps = devIdps?.concat(gold_realms['idir']) || null;
-      realms = realms?.concat(silver_realms['idir']) || null;
     } else if (idp.value == 'bceid') {
       devIdps = devIdps?.concat(gold_realms['bceid']) || null;
-      realms = realms?.concat(silver_realms['bceid']) || null;
     } else if (idp.value === 'digitalcredential') {
       devIdps = devIdps?.concat(gold_realms.digitalCredential) || null;
     } else if (idp.value === 'bcservicescard') {
@@ -360,4 +353,21 @@ export const isBcServicesCardApprover = (session: LoggedInUser) => {
 export const isIdpApprover = (session: LoggedInUser) => {
   if (isBceidApprover(session) || isGithubApprover(session) || isBcServicesCardApprover(session)) return true;
   return false;
+};
+
+export const getDiscontinuedIdps = () => {
+  return ['idir'];
+};
+
+export const getAllowedIdps = () => {
+  return [
+    'azureidir',
+    'bceidbasic',
+    'bceidbusiness',
+    'bceidboth',
+    'bcservicescard',
+    'digitalcredential',
+    'githubpublic',
+    'githubbcgov',
+  ];
 };

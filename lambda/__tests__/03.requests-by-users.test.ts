@@ -250,7 +250,7 @@ describe('create/manage integration by authenticated user', () => {
         getUpdateIntegrationData({
           projectName: 'Project name before submit',
           integration,
-          identityProviders: ['idir'],
+          identityProviders: ['azureidir'],
           envs: ['dev', 'test', 'prod'],
           protocol: 'saml',
         }),

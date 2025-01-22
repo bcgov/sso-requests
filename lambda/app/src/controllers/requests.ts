@@ -69,6 +69,7 @@ import {
 } from '@lambda-app/keycloak/clientScopes';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 import createHttpError from 'http-errors';
+import { getDiscontinuedIdps } from '@app/utils/helpers';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -484,13 +485,19 @@ export const updateRequest = async (
       if (originalData.usesTeam && !rest.usesTeam) rest.usesTeam = originalData.usesTeam;
       if (!originalData.projectLead && rest.projectLead) rest.projectLead = originalData.projectLead;
 
-      // if integration in applied state do not allow changes to bcsc privacy zone
+      // preserve environments if already applied
       rest.environments = originalData.environments.concat(
         rest.environments.filter((env) => {
           if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
         }),
       );
     }
+    // filter out discontinued idps only for new integrations, i.e. only when adding new idps
+    const newIdps = rest.devIdps.filter((idp) => !originalData.devIdps.includes(idp));
+    const invalidIdps = getDiscontinuedIdps();
+    rest.devIdps = rest.devIdps.filter(
+      (idp) => !newIdps.includes(idp) || (newIdps.includes(idp) && !invalidIdps.includes(idp)),
+    );
 
     const allowedData = processRequest(session, rest, isMerged);
     assign(current, allowedData);
