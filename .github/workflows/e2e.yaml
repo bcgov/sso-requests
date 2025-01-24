@@ -2,7 +2,7 @@ name: Run E2E tests
 
 on:
   push:
-    paths:
+    branches:
       - e2e-debug
   pull_request:
     types:
