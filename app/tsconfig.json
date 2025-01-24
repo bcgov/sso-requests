@@ -18,8 +18,8 @@
       "@app/*": ["*"]
     },
     "incremental": true,
-    "types": ["cypress", "node", "cypress-real-events"]
+    "types": ["cypress", "node", "cypress-real-events", "jest"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/**/*", "src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "cypress"]
 }
