@@ -1,6 +1,9 @@
 name: Run E2E tests
 
 on:
+  push:
+    paths:
+      - e2e-debug
   pull_request:
     types:
       - opened
