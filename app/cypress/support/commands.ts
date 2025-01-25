@@ -10,21 +10,9 @@ Cypress.Commands.add('login', (username, password, host, siteminder) => {
 
   const sentArgs = { user: username, pass: password };
 
-  // Validate the host
-  if (Cypress.env('localtest')) {
-    cy.wait(5000);
-  }
   cy.contains('Common Hosted Single Sign-on (CSS)');
   // Click the login button
   home.clickLoginButton();
-
-  // Validate the login proxy only when we are not targeting a local install
-  if (Cypress.env('host') != 'http://localhost:3000') {
-    cy.origin(Cypress.env('loginproxy'), () => {
-      cy.get('#kc-header-wrapper', { timeout: 10000 }).contains('COMMON HOSTED SINGLE SIGN-ON').should('be.visible');
-      cy.get('#social-idir', { timeout: 10000 }).click();
-    });
-  }
 
   // Validate siteminder and login
   cy.origin(siteminder || Cypress.env('siteminder'), { args: sentArgs }, ({ user, pass }) => {
@@ -32,11 +20,8 @@ Cypress.Commands.add('login', (username, password, host, siteminder) => {
     cy.get('#user', { timeout: 10000 }).type(user || Cypress.env('username'));
     cy.get('#password', { timeout: 10000 }).type(pass || Cypress.env('password'), { log: false });
     cy.get('input[name=btnSubmit]', { timeout: 10000 }).click();
-    cy.wait(3000);
   });
-  if (Cypress.env('localtest')) {
-    cy.wait(5000);
-  }
+
   cy.contains('Common Hosted Single Sign-on (CSS)');
   cy.get('button', { timeout: 10000 }).contains('Log out').should('be.visible');
 

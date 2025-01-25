@@ -82,6 +82,16 @@ class RequestPage {
   idimCancelAddUserInfo: string = '[data-testid="modal-cancel-btn-additional-user-info"]';
   idimDownloadUser: string = 'svg[data-icon="download"]';
 
+  idpLabels = {
+    idirMFALabel: 'IDIR - MFA',
+    basicBceidLabel: 'Basic BCeID',
+    businessBceidLabel: 'Business BCeID',
+    basicOrBusinessBceidLabel: 'Basic or Business BCeID',
+    githubBCGovLabel: 'GitHub BC Gov',
+    digitalCredentialLabel: 'Digital Credential',
+    bcscLabel: 'BC Services Card',
+  };
+
   // In info modal, click close button
   confirmClose() {
     cy.get(this.confirmModal).find(this.confirmDeleteButton).click();
@@ -271,47 +281,14 @@ class RequestPage {
       });
   }
 
-  setIdentityProvider(identityProvider: string[]) {
-    // Clean current settings
-    cy.get('#root_devIdps_0').uncheck();
-    cy.get('#root_devIdps_1').uncheck();
-    cy.get('#root_devIdps_2').uncheck();
-    cy.get('#root_devIdps_3').uncheck();
-    cy.get('#root_devIdps_4').uncheck();
-    cy.get('#root_devIdps_6').uncheck();
-    cy.wait(2000);
-
-    if (identityProvider.includes('IDIR')) {
-      cy.get('#root_devIdps_0').check();
-    }
-    if (identityProvider.includes('IDIR - MFA')) {
-      cy.get('#root_devIdps_1').check();
-    }
-    if (identityProvider.includes('Basic BCeID')) {
-      cy.get('#root_devIdps_2').check();
-    }
-    if (identityProvider.includes('Business BCeID')) {
-      cy.get('#root_devIdps_3').check();
-    }
-    if (identityProvider.includes('Basic or Business BCeID')) {
-      cy.get('#root_devIdps_4').check();
-    }
-    // Note: GitHub public is only available for SSO admins
-    if (identityProvider.includes('GitHub')) {
-      cy.get('#root_devIdps_5').check();
-    }
-
-    if (identityProvider.includes('GitHub BC Gov')) {
-      cy.get('#root_devIdps_6').check();
-    }
-
-    if (identityProvider.includes('Digital Credential')) {
-      cy.get('#root_devIdps_7').check();
-    }
-
-    if (identityProvider.includes('BCSC')) {
-      cy.get('#root_devIdps_8').check();
-    }
+  // Clears all checkboxes and rechecks included idps
+  setIdentityProvider(identityProviders: string[]) {
+    Object.entries(this.idpLabels).forEach(([label, matcher]) => {
+      cy.contains(matcher).find('input[type="checkbox"]').uncheck();
+      if (identityProviders.some((idpLabel) => idpLabel.match(matcher))) {
+        cy.contains(matcher).find('input[type="checkbox"]').check();
+      }
+    });
   }
 
   setadditionalRoleAttribute(additionalRoleAttribute: string) {
