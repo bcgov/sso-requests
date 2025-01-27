@@ -1085,10 +1085,10 @@ class Request {
         cy.get('#react-select-2-input').focus().clear();
         cy.get('#react-select-2-input').type('pathfinder.ssotraining2', {
           force: true,
-          delay: 50,
+          delay: 20,
         });
 
-        cy.contains('pathfinder.ssotraining2@gov.bc.ca').click({ force: true });
+        cy.contains('Pathfinder.SSOTraining2').click({ force: true });
 
         cy.realPress('Tab');
         cy.realPress('Tab');
