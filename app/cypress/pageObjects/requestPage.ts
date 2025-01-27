@@ -100,7 +100,7 @@ class RequestPage {
   confirmDelete(confirm: Boolean) {
     if (confirm) {
       cy.get(this.confirmDeleteModal).find(this.confirmDeleteButton).click();
-      //data-testid="confirm-delete-submitting-request"
+      cy.contains('successfully submitted');
     }
   }
 
