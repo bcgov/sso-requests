@@ -285,7 +285,7 @@ class RequestPage {
   setIdentityProvider(identityProviders: string[]) {
     Object.entries(this.idpLabels).forEach(([label, matcher]) => {
       cy.contains(matcher).find('input[type="checkbox"]').uncheck();
-      if (identityProviders.some((idpLabel) => idpLabel.match(matcher))) {
+      if (identityProviders.some((idpLabel) => idpLabel === matcher)) {
         cy.contains(matcher).find('input[type="checkbox"]').check();
       }
     });
