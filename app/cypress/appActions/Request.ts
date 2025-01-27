@@ -553,13 +553,12 @@ class Request {
     // identify first column
     cy.get(this.reqPage.integrationsTableName).each(($elm, index) => {
       // text captured from column1
-      let t = $elm.text();
       let id = $elm.prev().text();
       const projectName = $elm.text();
       // matching criteria
-      if (regex.test(t)) {
-        cy.get(this.reqPage.integrationsTable).eq(index).scrollIntoView();
-        cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
+      if (regex.test(projectName)) {
+        cy.contains(projectName).scrollIntoView();
+        cy.contains(projectName).parent().find(this.reqPage.deleteButton).click({ force: true });
         cy.wait(1000);
         this.reqPage.confirmDeleteIntegration(id, projectName);
         cy.wait(5000);
