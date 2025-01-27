@@ -1,6 +1,6 @@
 class RequestPage {
   path: string = '/my-dashboard/integrations';
-
+  savedMessage: string = 'Last saved at';
   projectName: string = '#root_projectName';
   loginNameDev: string = '#root_devLoginTitle';
   loginNameTest: string = '#root_testLoginTitle';
@@ -270,7 +270,7 @@ class RequestPage {
     cy.get(this.assignSelect)
       .eq(4)
       .type(assign + '{enter}');
-    cy.get('p').contains('Last saved at ').wait(5000);
+    cy.get('p').contains(this.savedMessage);
   }
   setRolePickUser(user: string) {
     cy.get('[data-testid="role-search-table"] td')

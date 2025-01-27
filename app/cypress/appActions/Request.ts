@@ -186,7 +186,7 @@ class Request {
     if (this.protocol === 'oidc') {
       this.reqPage.setadditionalRoleAttribute(this.additionalRoleAttribute);
     }
-    cy.get('p').contains('Last saved at').wait(2000);
+    cy.get('p').contains(this.reqPage.savedMessage).wait(2000);
     this.reqPage.pageNext();
 
     // Tab 3: Development
@@ -200,7 +200,7 @@ class Request {
       this.setDevHomePageURL(this.devHomePageURL);
     }
 
-    cy.get('p').contains('Last saved at');
+    cy.get('p').contains(this.reqPage.savedMessage);
     this.reqPage.pageNext();
 
     // Tab 3: Test
@@ -213,7 +213,7 @@ class Request {
       if (this.identityProvider.includes(this.reqPage.idpLabels.bcscLabel)) {
         this.setTestHomePageURL(this.testHomePageURL);
       }
-      cy.get('p').contains('Last saved at').wait(2000);
+      cy.get('p').contains(this.reqPage.savedMessage);
       this.reqPage.pageNext();
     }
 
@@ -227,16 +227,16 @@ class Request {
       if (this.identityProvider.includes(this.reqPage.idpLabels.bcscLabel)) {
         this.setProdHomePageURL(this.prodHomePageURL);
       }
-      cy.get('p').contains('Last saved at').wait(2000);
+      cy.get('p').contains(this.reqPage.savedMessage);
       this.reqPage.pageNext();
     }
 
     this.reqPage.agreeWithTrms(this.agreeWithTerms);
-    cy.get('p').contains('Last saved at').wait(2000);
+    cy.get('p').contains(this.reqPage.savedMessage);
     this.reqPage.pageNext();
 
     this.reqPage.submitRequest(this.subMit);
-    cy.get('p').contains('Last saved at');
+    cy.get('p').contains(this.reqPage.savedMessage);
     this.reqPage.confirmDelete(this.conFirm);
 
     // Navigate to the page if not there already (e.g for admins)
