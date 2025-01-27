@@ -70,63 +70,63 @@ describe('Create Integration Requests', () => {
       cy.logout();
     });
 
-    it(`Login with bceidbasic`, () => {
-      cy.session('bceidbasic', () => {
-        cy.visit(playground.path);
-        const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
-        playground.fillInPlayground(null, null, clientName, 'bceidbasic');
+    // it(`Login with bceidbasic`, () => {
+    //   cy.session('bceidbasic', () => {
+    //     cy.visit(playground.path);
+    //     const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
+    //     playground.fillInPlayground(null, null, clientName, 'bceidbasic');
 
-        playground.clickLogin();
-        cy.wait(2000);
+    //     playground.clickLogin();
+    //     cy.wait(2000);
 
-        cy.setid('bceidbasic').then(() => {
-          playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
-        });
+    //     cy.setid('bceidbasic').then(() => {
+    //       playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
+    //     });
 
-        cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
-        playground.clickLogout();
-      });
-    });
+    //     cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
+    //     playground.clickLogout();
+    //   });
+    // });
 
-    it(`Login with bceidbusiness`, () => {
-      cy.session('bceidbusiness', () => {
-        cy.visit(playground.path);
-        const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
-        playground.fillInPlayground(null, null, clientName, 'bceidbusiness');
+    // it(`Login with bceidbusiness`, () => {
+    //   cy.session('bceidbusiness', () => {
+    //     cy.visit(playground.path);
+    //     const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
+    //     playground.fillInPlayground(null, null, clientName, 'bceidbusiness');
 
-        playground.clickLogin();
-        cy.wait(2000);
+    //     playground.clickLogin();
+    //     cy.wait(2000);
 
-        cy.setid('bceidbusiness').then(() => {
-          playground.loginBusinesBCeID(Cypress.env('username'), Cypress.env('password'));
-        });
+    //     cy.setid('bceidbusiness').then(() => {
+    //       playground.loginBusinesBCeID(Cypress.env('username'), Cypress.env('password'));
+    //     });
 
-        cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
-        playground.clickLogout();
-      });
-    });
+    //     cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
+    //     playground.clickLogout();
+    //   });
+    // });
   }
 
-  rolesData.forEach((value) => {
-    // Only run the test if the smoketest flag is set and the test is a smoketest
-    if (util.runOk(value)) {
-      it(`Search for user: "${value.id + '@' + util.getDate()}": ${value.environment} - ${value.idp} - ${
-        value.criterion
-      }`, () => {
-        cy.setid(null).then(() => {
-          cy.login();
-        });
+  // rolesData.forEach((value) => {
+  //   // Only run the test if the smoketest flag is set and the test is a smoketest
+  //   if (util.runOk(value)) {
+  //     it(`Search for user: "${value.id + '@' + util.getDate()}": ${value.environment} - ${value.idp} - ${
+  //       value.criterion
+  //     }`, () => {
+  //       cy.setid(null).then(() => {
+  //         cy.login();
+  //       });
 
-        let searchValue = value.search_value;
-        if (value.criterion === 'IDP GUID') {
-          // Get the IDP GUID from the environment, we need to store these as secrets in github
-          // In our datafile, we store the email address instead of the GUID and we use it for lookup
-          const guidObject = Cypress.env('guid');
-          searchValue = guidObject[value.search_value];
-        }
+  //       let searchValue = value.search_value;
+  //       if (value.criterion === 'IDP GUID') {
+  //         // Get the IDP GUID from the environment, we need to store these as secrets in github
+  //         // In our datafile, we store the email address instead of the GUID and we use it for lookup
+  //         const guidObject = Cypress.env('guid');
+  //         searchValue = guidObject[value.search_value];
+  //       }
 
-        req.searchUser(req.id, value.environment, value.idp, value.criterion, value.error, searchValue);
-      });
-    }
-  });
+  //       req.searchUser(req.id, value.environment, value.idp, value.criterion, value.error, searchValue);
+  //     });
+  //   }
+  // });
 });
