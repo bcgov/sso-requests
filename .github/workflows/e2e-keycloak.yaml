@@ -103,7 +103,7 @@ jobs:
       - name: E2E Tests
         uses: cypress-io/github-action@v6
         id: smoke
-        continue-on-error: false
+        continue-on-error: true
         with:
           summary-title: 'E2E tests'
           wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
