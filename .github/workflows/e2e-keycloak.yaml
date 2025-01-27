@@ -116,14 +116,14 @@ jobs:
           browser: electron
 
       - uses: actions/upload-artifact@v4
-        if: failure()
+        # if: failure()
         with:
           name: cypress-screenshots
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
-        if: failure()
+        # if: failure()
         with:
           name: cypress-videos
           path: app/cypress/videos/**/*
