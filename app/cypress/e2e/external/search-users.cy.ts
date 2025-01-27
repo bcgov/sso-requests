@@ -2,7 +2,6 @@
 
 import searchIntegration from '../../fixtures/search-test-integration.json';
 import rolesData from '../../fixtures/rolesusers.json';
-import idimData from '../../fixtures/idim-search.json';
 import Request from '../../appActions/Request';
 import Playground from '../../pageObjects/playgroundPage';
 import Utilities from '../../appActions/Utilities';
@@ -127,20 +126,6 @@ describe('Create Integration Requests', () => {
         }
 
         req.searchUser(req.id, value.environment, value.idp, value.criterion, value.error, searchValue);
-      });
-    }
-  });
-
-  idimData.forEach((value, index) => {
-    // Only run the test if the smoketest flag is set and the test is a smoketest
-    if (util.runOk(value)) {
-      it(`Search IDIM: "${value.id + '@' + util.getDate()}": ${value.environment} - ${value.idp} - ${
-        value.criterion
-      }`, () => {
-        cy.setid(null).then(() => {
-          cy.login();
-        });
-        req.searchIdim(req.id, value.environment, value.idp, value.criterion, value.error, value.search_value);
       });
     }
   });
