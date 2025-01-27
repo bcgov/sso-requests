@@ -1088,7 +1088,7 @@ class Request {
           delay: 50,
         });
 
-        cy.contains('pathfinder.ssotraining2@gov.bc.ca').click();
+        cy.contains('pathfinder.ssotraining2@gov.bc.ca').click({ force: true });
 
         cy.realPress('Tab');
         cy.realPress('Tab');
