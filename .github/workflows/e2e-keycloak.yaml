@@ -110,7 +110,6 @@ jobs:
           wait-on-timeout: 360
           install-command: yarn
           working-directory: app
-          auto-cancel-after-failures: 1
           spec: |
             cypress/e2e/external/search-users.cy.ts
           browser: electron
