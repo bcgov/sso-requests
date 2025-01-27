@@ -500,7 +500,6 @@ class Request {
     }
 
     cy.get(this.reqPage.stageReviewSubmit).click();
-    cy.wait(10000);
 
     this.reqPage.updateRequest(this.subMit);
     this.reqPage.confirmDelete(this.conFirm);
