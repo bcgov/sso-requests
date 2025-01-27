@@ -11,7 +11,7 @@
       "protocol": "oidc",
       "authtype": "browser-login",
       "publicaccess": true,
-      "identityprovider": ["IDIR", "IDIR - MFA", "", ""],
+      "identityprovider": ["Basic BCeID", "IDIR - MFA"],
       "additionalroleattribute": "tbd",
       "environments": ["dev", "test", ""],
       "displayheader": true,
