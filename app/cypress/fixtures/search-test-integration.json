@@ -10,7 +10,7 @@
     "protocol": "oidc",
     "authtype": "browser-login",
     "publicaccess": true,
-    "identityprovider": ["IDIR", "IDIR - MFA", "Basic BCeID", "Business BCeID", "GitHub BC Gov"],
+    "identityprovider": ["IDIR - MFA", "Basic BCeID", "Business BCeID", "GitHub BC Gov"],
     "additionalroleattribute": "tbd",
     "environments": ["dev", "test", "prod"],
     "displayheader": true,
