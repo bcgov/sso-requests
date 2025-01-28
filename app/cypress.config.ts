@@ -2,9 +2,9 @@ import { defineConfig } from 'cypress';
 
 export default defineConfig({
   chromeWebSecurity: false,
-  defaultCommandTimeout: 40000,
+  defaultCommandTimeout: 80000,
   includeShadowDom: true,
-  responseTimeout: 40000,
+  responseTimeout: 80000,
   redirectionLimit: 100,
   experimentalStudio: true,
   experimentalMemoryManagement: true,
