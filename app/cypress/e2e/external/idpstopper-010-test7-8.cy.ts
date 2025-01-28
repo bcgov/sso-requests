@@ -49,9 +49,8 @@ describe('Run IDP Stopper Test', () => {
 
         playground.clickLogin();
 
-        // Only go here when there is more than one IDP Specified
+        // For multiple IDPs, check all are displayed to user as login options
         if (data.create.identityprovider.length > 1) {
-          // On the IDP Select Page, select/test the IDP
           cy.get('#kc-social-providers').within(() => {
             let n = 0;
             while (n < data.create.identityprovider.length) {
@@ -62,7 +61,10 @@ describe('Run IDP Stopper Test', () => {
             }
           });
         } else {
-          cy.get('#login-to').should('contain', 'Log in to sfstest7.gov.bc.ca');
+          // For a single IDP, check redirects directly to the IDPs url
+          cy.url().then((url) => {
+            expect(url.startsWith(data.idpUrl)).to.be.true;
+          });
         }
       });
 
