@@ -2,12 +2,14 @@ import { defineConfig } from 'cypress';
 
 export default defineConfig({
   chromeWebSecurity: false,
-  defaultCommandTimeout: 40000,
+  defaultCommandTimeout: 80000,
   includeShadowDom: true,
-  responseTimeout: 40000,
+  responseTimeout: 80000,
   redirectionLimit: 100,
   experimentalStudio: true,
   experimentalMemoryManagement: true,
+  // See here: https://github.com/cypress-io/cypress/issues/21307. experimentalModifyObstructiveThirdPartyCode is necessary to prevent microsoft from removing test frame.
+  experimentalModifyObstructiveThirdPartyCode: true,
   numTestsKeptInMemory: 0,
   viewportHeight: 1080,
   viewportWidth: 1920,

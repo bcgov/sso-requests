@@ -1,49 +1,5 @@
 [
   {
-    "test_id": "SEARCH-001",
-    "id": "Test Automation do not delete",
-    "environment": "Dev",
-    "idp": "IDIR",
-    "criterion": "First Name",
-    "search_value": "Pathfinder",
-    "error": false,
-    "smoketest": true,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-002",
-    "id": "Test Automation do not delete",
-    "environment": "Dev",
-    "idp": "IDIR",
-    "criterion": "Last Name",
-    "search_value": "SSO Training",
-    "error": false,
-    "smoketest": true,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-003",
-    "id": "Test Automation do not delete",
-    "environment": "Dev",
-    "idp": "IDIR",
-    "criterion": "Email",
-    "search_value": "pathfinder.ssotraining@gov.bc.ca",
-    "error": false,
-    "smoketest": true,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-004",
-    "id": "Test Automation do not delete",
-    "environment": "Dev",
-    "idp": "IDIR",
-    "criterion": "IDP GUID",
-    "search_value": "pathfinder.ssotraining@gov.bc.ca",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
     "test_id": "SEARCH-005",
     "id": "Test Automation do not delete",
     "environment": "Dev",
@@ -182,50 +138,6 @@
     "idp": "GitHub BC Gov",
     "criterion": "IDP GUID",
     "search_value": "gh.bcgov.sso@gov.bc.ca",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-018",
-    "id": "Test Automation do not delete",
-    "environment": "Test",
-    "idp": "IDIR",
-    "criterion": "First Name",
-    "search_value": "Pathfinder",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-019",
-    "id": "Test Automation do not delete",
-    "environment": "Test",
-    "idp": "IDIR",
-    "criterion": "Last Name",
-    "search_value": "SSOTraining",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-020",
-    "id": "Test Automation do not delete",
-    "environment": "Test",
-    "idp": "IDIR",
-    "criterion": "Email",
-    "search_value": "pathfinder.ssotraining@gov.bc.ca",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-021",
-    "id": "Test Automation do not delete",
-    "environment": "Test",
-    "idp": "IDIR",
-    "criterion": "IDP GUID",
-    "search_value": "pathfinder.ssotraining@gov.bc.ca",
     "error": false,
     "smoketest": false,
     "localtest": false

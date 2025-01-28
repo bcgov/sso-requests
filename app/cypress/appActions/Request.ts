@@ -7,17 +7,6 @@ let util = new Utilities();
 
 const regex = new RegExp('@[0-9]{17}');
 
-// IDP Mapping
-const idpMap: any = {
-  IDIR: 'idir',
-  'IDIR - MFA': 'azureidir',
-  'Basic BCeID': 'bceidbasic',
-  'Business BCeID': 'bceidbusiness',
-  'Basic or Business BCeID': 'bceidboth',
-  'GitHub BC Gov': 'githubbcgov',
-  GitHub: 'githubpublic',
-};
-
 // Dealing with tracking file
 const filePath = 'cypress/fixtures/createdrequest.json';
 // The content to write to the file if it doesn't exist
@@ -172,10 +161,8 @@ class Request {
         return;
       }
     }
-    cy.wait(1000);
     this.reqPage.pageNext();
-    cy.wait(2000);
-
+    cy.contains('Choose providers');
     // Tab 2: Basic Info
     this.reqPage.setClientProtocol(this.protocol);
     if (this.protocol === 'oidc') {
@@ -190,7 +177,7 @@ class Request {
       this.reqPage.setIdentityProvider(this.identityProvider);
     }
 
-    if (this.identityProvider.includes('BCSC')) {
+    if (this.identityProvider.includes(this.reqPage.idpLabels.bcscLabel)) {
       this.reqPage.selectPrivacyZone(this.privacyZone);
       this.reqPage.selectBCSCAttributes(this.bcscattributes);
     }
@@ -199,7 +186,7 @@ class Request {
     if (this.protocol === 'oidc') {
       this.reqPage.setadditionalRoleAttribute(this.additionalRoleAttribute);
     }
-    cy.get('p').contains('Last saved at').wait(2000);
+    cy.get('p').contains(this.reqPage.savedMessage).wait(2000);
     this.reqPage.pageNext();
 
     // Tab 3: Development
@@ -209,11 +196,11 @@ class Request {
       this.setDevUri(this.devValidRedirectUris);
     }
 
-    if (this.identityProvider.includes('BCSC')) {
+    if (this.identityProvider.includes(this.reqPage.idpLabels.bcscLabel)) {
       this.setDevHomePageURL(this.devHomePageURL);
     }
 
-    cy.get('p').contains('Last saved at').wait(2000);
+    cy.get('p').contains(this.reqPage.savedMessage);
     this.reqPage.pageNext();
 
     // Tab 3: Test
@@ -223,10 +210,10 @@ class Request {
         this.reqPage.setHeaderTitleTest(this.testDisplayHeaderTitle);
         this.setTestUri(this.testValidRedirectUris);
       }
-      if (this.identityProvider.includes('BCSC')) {
+      if (this.identityProvider.includes(this.reqPage.idpLabels.bcscLabel)) {
         this.setTestHomePageURL(this.testHomePageURL);
       }
-      cy.get('p').contains('Last saved at').wait(2000);
+      cy.get('p').contains(this.reqPage.savedMessage);
       this.reqPage.pageNext();
     }
 
@@ -237,21 +224,20 @@ class Request {
         this.reqPage.setHeaderTitleProd(this.prodDisplayHeaderTitle);
         this.setProdUri(this.prodValidRedirectUris);
       }
-      if (this.identityProvider.includes('BCSC')) {
+      if (this.identityProvider.includes(this.reqPage.idpLabels.bcscLabel)) {
         this.setProdHomePageURL(this.prodHomePageURL);
       }
-      cy.get('p').contains('Last saved at').wait(2000);
+      cy.get('p').contains(this.reqPage.savedMessage);
       this.reqPage.pageNext();
     }
 
     this.reqPage.agreeWithTrms(this.agreeWithTerms);
-    cy.get('p').contains('Last saved at').wait(2000);
+    cy.get('p').contains(this.reqPage.savedMessage);
     this.reqPage.pageNext();
 
     this.reqPage.submitRequest(this.subMit);
-    cy.wait(3000);
+    cy.get('p').contains(this.reqPage.savedMessage);
     this.reqPage.confirmDelete(this.conFirm);
-    cy.wait(3000);
 
     // Navigate to the page if not there already (e.g for admins)
     cy.visit(this.reqPage.path);
@@ -259,25 +245,16 @@ class Request {
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 20000 });
 
-    // cy.task('checkFileExists', filePath).then((exists) => {
-    //   if (!exists) {
-    //     // File doesn't exist, so create it
-    //     cy.writeFile(filePath, fileContent);
-    //   }
-    // });
-
     cy.get(this.reqPage.integrationsTableStatus).contains('Completed');
 
     // The role management tabs should not exist for BCSC only integrations
     const nonEmptyIDPs = this.identityProvider.filter((str) => str !== '');
-    if (nonEmptyIDPs.length == 1 && nonEmptyIDPs[0] == 'BCSC') {
+    if (nonEmptyIDPs.length == 1 && nonEmptyIDPs[0] == this.reqPage.idpLabels.bcscLabel) {
       cy.get('[id$=-tab-tech-details]');
       cy.get('[id$=-tab-role-management]', { timeout: 1000 }).should('not.exist');
       cy.get('[id$=-tab-user-role-management]', { timeout: 1000 }).should('not.exist');
     }
 
-    // Get the ID of the request just created make it available to the class
-    // and write it to a file, so that it can be deleted later.
     return this.getID(this.projectName);
   }
 
@@ -440,9 +417,7 @@ class Request {
         }
       }
     }
-
     this.reqPage.pageNext();
-    cy.wait(2000);
 
     // Tab 2: Basic Info
 
@@ -525,7 +500,6 @@ class Request {
     }
 
     cy.get(this.reqPage.stageReviewSubmit).click();
-    cy.wait(2000);
 
     this.reqPage.updateRequest(this.subMit);
     this.reqPage.confirmDelete(this.conFirm);
@@ -579,13 +553,12 @@ class Request {
     // identify first column
     cy.get(this.reqPage.integrationsTableName).each(($elm, index) => {
       // text captured from column1
-      let t = $elm.text();
       let id = $elm.prev().text();
       const projectName = $elm.text();
       // matching criteria
-      if (regex.test(t)) {
-        cy.get(this.reqPage.integrationsTable).eq(index).scrollIntoView();
-        cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
+      if (regex.test(projectName)) {
+        cy.contains(projectName).scrollIntoView();
+        cy.contains(projectName).parent().find(this.reqPage.deleteButton).click({ force: true });
         cy.wait(1000);
         this.reqPage.confirmDeleteIntegration(id, projectName);
         cy.wait(5000);
@@ -1110,17 +1083,15 @@ class Request {
         this.teamFullName = this.teamName + '-' + myuuid;
 
         cy.get('#react-select-2-input').focus().clear();
-        cy.get('#react-select-2-input')
-          .type('pathfinder.ssotraining2@gov.bc.ca', {
-            force: true,
-            delay: util.getRandomInt(50, 500),
-          })
-          .trigger('select');
-        cy.wait(3000);
+        cy.get('#react-select-2-input').type('pathfinder.ssotraining2', {
+          force: true,
+          delay: 20,
+        });
+
+        cy.contains('Pathfinder.SSOTraining2').click({ force: true });
 
         cy.realPress('Tab');
         cy.realPress('Tab');
-        cy.wait(3000);
 
         cy.get(this.teamPage.userRole).eq(0).select('Admin');
         cy.get('[data-testid="send-invitation"]').scrollIntoView().click({ force: true });
