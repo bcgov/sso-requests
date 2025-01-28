@@ -8,6 +8,8 @@ export default defineConfig({
   redirectionLimit: 100,
   experimentalStudio: true,
   experimentalMemoryManagement: true,
+  // See here: https://github.com/cypress-io/cypress/issues/21307. experimentalModifyObstructiveThirdPartyCode is necessary to prevent microsoft from removing test frame.
+  experimentalModifyObstructiveThirdPartyCode: true,
   numTestsKeptInMemory: 0,
   viewportHeight: 1080,
   viewportWidth: 1920,

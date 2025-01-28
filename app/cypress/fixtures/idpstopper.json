@@ -65,6 +65,7 @@
       "confirm": true,
       "description": "Test idp-stopper-form custom extension that when only one IDP the login form shows up directly"
     },
+    "idpUrl": "https://login.microsoftonline.com",
     "update": {},
     "devroles": {},
     "testroles": {},
