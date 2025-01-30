@@ -32,6 +32,7 @@ class Request {
   reqPage = new RequestPage();
   teamPage = new TeamPage();
   dashboardPage = new DashboardPage();
+  teamFullNames: string[] = [];
 
   // Request Variables
   actionNumber!: number;
@@ -76,7 +77,6 @@ class Request {
   team!: any;
   teamId!: string;
   teamName!: string;
-  teamFullName!: string;
   testDisplayHeaderTitle!: boolean;
   testLoginTitle!: string;
   testRoles!: Roles;
@@ -186,7 +186,6 @@ class Request {
     if (this.protocol === 'oidc') {
       this.reqPage.setadditionalRoleAttribute(this.additionalRoleAttribute);
     }
-    cy.get('p').contains(this.reqPage.savedMessage).wait(2000);
     this.reqPage.pageNext();
 
     // Tab 3: Development
@@ -200,7 +199,6 @@ class Request {
       this.setDevHomePageURL(this.devHomePageURL);
     }
 
-    cy.get('p').contains(this.reqPage.savedMessage);
     this.reqPage.pageNext();
 
     // Tab 3: Test
@@ -213,7 +211,6 @@ class Request {
       if (this.identityProvider.includes(this.reqPage.idpLabels.bcscLabel)) {
         this.setTestHomePageURL(this.testHomePageURL);
       }
-      cy.get('p').contains(this.reqPage.savedMessage);
       this.reqPage.pageNext();
     }
 
@@ -227,16 +224,15 @@ class Request {
       if (this.identityProvider.includes(this.reqPage.idpLabels.bcscLabel)) {
         this.setProdHomePageURL(this.prodHomePageURL);
       }
-      cy.get('p').contains(this.reqPage.savedMessage);
       this.reqPage.pageNext();
     }
 
     this.reqPage.agreeWithTrms(this.agreeWithTerms);
-    cy.get('p').contains(this.reqPage.savedMessage);
     this.reqPage.pageNext();
 
     this.reqPage.submitRequest(this.subMit);
-    cy.get('p').contains(this.reqPage.savedMessage);
+
+    cy.get(this.reqPage.formSavingSpinnerSelector).should('not.exist');
     this.reqPage.confirmDelete(this.conFirm);
 
     // Navigate to the page if not there already (e.g for admins)
@@ -401,7 +397,6 @@ class Request {
       if (this.teamName) {
         if (this.newteam) {
           this.createTeamfromRequest();
-          cy.wait(2000);
         } else {
           this.reqPage.setTeamName(this.teamName);
         }
@@ -437,7 +432,6 @@ class Request {
         this.reqPage.setadditionalRoleAttribute(this.additionalRoleAttribute);
       }
     }
-    cy.wait(2000);
     this.reqPage.pageNext();
 
     // Tab 3: Development
@@ -457,7 +451,6 @@ class Request {
       }
     }
 
-    cy.wait(2000);
     this.reqPage.pageNext();
 
     // Tab 3: Test
@@ -477,7 +470,6 @@ class Request {
           this.setTestHomePageURL(this.testHomePageURL);
         }
 
-        cy.wait(2000);
         this.reqPage.pageNext();
       }
     }
@@ -495,7 +487,6 @@ class Request {
           this.setProdUri(this.prodValidRedirectUris);
         }
       }
-      cy.wait(2000);
       this.reqPage.pageNext();
     }
 
@@ -521,27 +512,11 @@ class Request {
         cy.get(this.reqPage.integrationsTable).eq(index).scrollIntoView();
         cy.get(this.reqPage.integrationsTableStatus)
           .eq(index)
-          .then(($status) => {
-            cy.log($status.text());
-
-            // Wait for the request to complete before deleting
-            while (!$status.text().includes('Completed')) {
-              cy.wait(10000);
-              cy.reload();
-              cy.get(this.reqPage.integrationsTableStatus)
-                .eq(index)
-                .then(($status) => {
-                  cy.log($status.text());
-                });
-            }
-            if ($status.text().includes('Completed')) {
-              cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
-              cy.wait(3000);
-              this.reqPage.confirmDeleteIntegration(id, projectName);
-              cy.log('Delete Request: ' + id.toString());
-            } else {
-              cy.log('Request is not in Completed status. Cannot delete.');
-            }
+          .then(() => {
+            cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
+            this.reqPage.confirmDeleteIntegration(id, projectName);
+            cy.get('[data-testid="grid-loading"]').should('exist');
+            cy.get('[data-testid="grid-loading"]').should('not.exist');
           });
       }
     });
@@ -559,23 +534,22 @@ class Request {
       if (regex.test(projectName)) {
         cy.contains(projectName).scrollIntoView();
         cy.contains(projectName).parent().find(this.reqPage.deleteButton).click({ force: true });
-        cy.wait(1000);
         this.reqPage.confirmDeleteIntegration(id, projectName);
-        cy.wait(5000);
+        // Ensure loader get displayed and completes before continuing
+        cy.get('[data-testid="grid-loading"]').should('exist');
+        cy.get('[data-testid="grid-loading"]').should('not.exist');
         cy.log('Delete Request: ' + id.toString());
       }
     });
   }
 
   addRoles() {
-    let env = 'dev';
     if (this.devRoles.add) {
       let env = 'dev';
       let addRole = this.devRoles.add;
       let n = 0;
       while (n < addRole.length) {
         this.addRole(this.id, addRole[n].role, env);
-        cy.wait(2000);
         n++;
       }
     }
@@ -585,7 +559,6 @@ class Request {
       let n = 0;
       while (n < addRole.length) {
         this.addRole(this.id, addRole[n].role, env);
-        cy.wait(2000);
         n++;
       }
     }
@@ -595,7 +568,6 @@ class Request {
       let n = 0;
       while (n < addRole.length) {
         this.addRole(this.id, addRole[n].role, env);
-        cy.wait(2000);
         n++;
       }
     }
@@ -606,7 +578,6 @@ class Request {
     if (roles?.addusertorole) {
       roles.addusertorole.forEach((role: any) => {
         this.addUsertoRole(this.id, role.role, environment, role.user);
-        cy.wait(2000); // Consider alternative approaches to avoid blocking operation
       });
     }
   }
@@ -652,26 +623,19 @@ class Request {
 
     if (this.authType === 'service-account') {
       cy.get('#rc-tabs-1-tab-service-account-role-management', { timeout: 10000 }).click();
-      cy.wait(2000);
       cy.get('#rc-tabs-1-tab-service-account-role-management', { timeout: 10000 }).then(() => {
         cy.get('#rc-tabs-2-tab-' + env).click();
         cy.get('input[id^="react-select-"]').type(role + '{enter}');
-        cy.wait(2000);
       });
     } else {
       cy.get(this.reqPage.tabUserRoleManagement).click();
-      cy.wait(2000);
       cy.get(this.reqPage.tabUserRoleManagement).then(() => {
         this.reqPage.setRoleEnvironment(env);
         this.reqPage.setRoleIdp(this.identityProvider[0]);
         this.reqPage.setRoleCriterion('First Name');
         this.reqPage.setRoleSearch(user);
-        cy.wait(2000);
-        //this.reqPage.setRolePaging('15');
         this.reqPage.setRolePickUser(user);
-        cy.wait(2000);
         this.reqPage.setRoleAssignSelect(role);
-        cy.wait(2000);
       });
     }
 
@@ -686,7 +650,6 @@ class Request {
 
     cy.get(this.reqPage.tabTechDetails).click();
     cy.get(this.reqPage.tabRoleManagement).click();
-    cy.wait(5000);
     cy.get('#rc-tabs-2-tab-' + env, { timeout: 10000 }).click();
     cy.contains('td', role_main)
       .parent()
@@ -694,11 +657,9 @@ class Request {
         cy.wrap($el).click();
       });
     cy.get('.rc-tabs-tab').contains('Composite Roles').click();
-    cy.wait(2000);
     cy.get('input[id^="react-select-"][role ="combobox"]')
       .eq(0)
       .type(role_second + '{enter}');
-    cy.wait(2000);
 
     return true;
   }
@@ -707,7 +668,6 @@ class Request {
     if (roles?.composite) {
       roles.composite.forEach((role: any) => {
         this.createCompositeRole(this.id, role.role_main, role.role_second, environment);
-        cy.wait(2000); // Consider alternative approaches to avoid blocking operation
       });
     }
   }
@@ -722,7 +682,6 @@ class Request {
     if (roles?.remove) {
       roles.remove.forEach((role: any) => {
         this.removeRole(this.id, role.role, environment);
-        cy.wait(2000); // Consider alternative approaches to avoid blocking operation
       });
     }
   }
@@ -743,17 +702,14 @@ class Request {
     cy.get(this.reqPage.tabRoleManagement)
       .click()
       .then(() => {
-        cy.wait(2000);
         cy.get('#rc-tabs-2-tab-' + env).click();
         cy.contains('td', role)
           .parent()
           .within(($el) => {
             cy.wrap($el).click();
-            cy.wait(2000);
             cy.get('svg').click();
           });
         cy.get(this.reqPage.confirmDeleteRole).scrollIntoView().click({ force: true });
-        cy.wait(2000);
       });
 
     return true;
@@ -765,13 +721,11 @@ class Request {
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
     cy.get(this.reqPage.tabUserRoleManagement).click();
-    cy.wait(1000);
     cy.get(this.reqPage.tabUserRoleManagement).then(() => {
       this.reqPage.setRoleEnvironment(environment);
       this.reqPage.setRoleIdp(idp);
       this.reqPage.setRoleCriterion(criterion);
       this.reqPage.setRoleSearch(search_value);
-      cy.wait(2000);
       if (error) {
         cy.contains('div', 'The user you searched for does not exist.').should('be.visible');
       } else {
@@ -788,7 +742,6 @@ class Request {
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
     cy.get(this.reqPage.tabUserRoleManagement).click();
-    cy.wait(2000);
     cy.get(this.reqPage.tabUserRoleManagement).then(() => {
       this.reqPage.setRoleEnvironment(environment);
       //this.reqPage.setRoleIdp(idp);
@@ -806,7 +759,6 @@ class Request {
           .type(criterion + '{enter}');
         cy.get('input').eq(2).clear().type(search_value);
         cy.get('button[type="button"]').contains('Search').scrollIntoView().click({ force: true });
-        cy.wait(1000);
         cy.contains('td', search_value).should('be.visible');
         cy.contains('td', search_value)
           .first()
@@ -1080,7 +1032,7 @@ class Request {
         cy.get('[data-testid="team-name"]')
           .clear()
           .type(this.teamName + '-' + myuuid);
-        this.teamFullName = this.teamName + '-' + myuuid;
+        this.teamFullNames.push(this.teamName + '-' + myuuid);
 
         cy.get('#react-select-2-input').focus().clear();
         cy.get('#react-select-2-input').type('pathfinder.ssotraining2', {
@@ -1099,13 +1051,23 @@ class Request {
   }
 
   deleteTeam() {
-    if (!this.teamFullName) return;
+    if (!this.teamFullNames?.length) return;
     cy.visit(this.teamPage.path);
-    const row = cy.contains(this.teamFullName);
 
-    row.trigger('click');
-    row.parent().find(this.teamPage.deleteTeamButton).trigger('click');
-    cy.get(this.teamPage.modalDeleteTeam).find(this.teamPage.confirmDeleteTeam).trigger('click');
+    this.teamFullNames.forEach((teamFullName) => {
+      const row = cy.contains(teamFullName);
+
+      row.trigger('click');
+      // Check team details table has loaded
+      cy.contains('Invite Status');
+      row.parent().find(this.teamPage.deleteTeamButton).trigger('click');
+      cy.contains('Once you delete this team, this action cannot be undone');
+      cy.get(this.teamPage.modalDeleteTeam).find(this.teamPage.confirmDeleteTeam).trigger('click');
+      cy.get('[data-testid="confirm-delete-delete-team"]').should('not.exist');
+
+      // Ensure test fails if anything goes wrong with cleanup
+      cy.contains(teamFullName).should('not.exist');
+    });
     return true;
   }
 
