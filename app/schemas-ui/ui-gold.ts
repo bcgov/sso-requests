@@ -127,7 +127,6 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
     projectName: {
       'ui:placeholder': 'Project Name',
       'ui:classNames': 'short-field-string',
-      'ui:readonly': !isNew && formData?.protocol === 'saml' && formData?.status !== 'draft',
     },
     teamId: {
       'ui:classNames': 'short-field-string',
