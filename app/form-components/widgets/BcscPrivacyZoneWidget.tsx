@@ -1,18 +1,16 @@
-import { WidgetProps } from 'react-jsonschema-form';
-import { JSONSchema6 } from 'json-schema';
-import Select, { MultiValue, ActionMeta, SingleValue } from 'react-select';
+import Select, { SingleValue } from 'react-select';
 import { useState } from 'react';
 import styled from 'styled-components';
 import Link from '@button-inc/bcgov-theme/Link';
+import { WidgetProps } from '@rjsf/utils/lib/types';
 
 const BcscPrivacyZoneInfo = styled.p`
   margin-top: 0.5rem;
 `;
 
 function BcscPrivacyZoneWidget(props: WidgetProps) {
-  const { id, disabled, options, value, onChange, schema } = props;
+  const { disabled, options, value, onChange } = props;
   const { enumOptions } = options;
-  const { tooltips } = schema as JSONSchema6 & { tooltips: any[] };
   const eOptions = Array.isArray(enumOptions) ? enumOptions : [];
   const [privacyZone, setPrivacyZone] = useState<string>(value);
 

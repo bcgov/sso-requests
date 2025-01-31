@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { WidgetProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import SolutionNavigator from 'page-partials/new-request/SolutionNavigator';
 import Link from '@button-inc/bcgov-theme/Link';
+import { WidgetProps } from '@rjsf/utils/lib/types';
 
 const InputGroup = styled.div`
   margin-top: 5px;
@@ -18,8 +18,9 @@ interface Schema {
   enumNames: string[];
 }
 
-const ClientTypeWidget = ({ id, value, onChange, onBlur, schema, formContext }: WidgetProps) => {
-  const { enum: enumValues, enumNames } = schema as Schema;
+const ClientTypeWidget = ({ id, value, onChange, onBlur, schema, options }: WidgetProps) => {
+  const { enumNames } = options;
+  const { enum: enumValues } = schema as Schema;
   const [openModal, setOpenModal] = useState(false);
 
   const handleChange = (result: string) => {

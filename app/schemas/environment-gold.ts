@@ -1,3 +1,4 @@
+import { RJSFSchema } from '@rjsf/utils';
 import { Integration } from '../interfaces/Request';
 import { devValidRedirectUris } from './providers';
 import FieldAccessTokenTop from '@app/form-components/FieldAccessTokenTop';
@@ -201,6 +202,6 @@ export default function getSchemas(formData: Integration) {
         ...additionalConfig,
         ...tokenSchemas,
       },
-    } as any;
+    } as RJSFSchema;
   });
 }

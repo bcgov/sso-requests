@@ -1,7 +1,7 @@
 import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
-import { Integration, Option, SilverIDPOption, GoldIDPOption } from '@app/interfaces/Request';
+import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
 import { Change } from '@app/interfaces/Event';
 import { getStatusDisplayName } from '@app/utils/status';
 import {
@@ -10,7 +10,6 @@ import {
   checkNotBceidGroup,
   checkNotGithubGroup,
   usesDigitalCredential,
-  checkNotDigitalCredential,
   usesBcServicesCard,
   checkNotBcServicesCard,
 } from '@app/helpers/integration';
@@ -187,9 +186,13 @@ export const processRequest = (request: Integration): Integration => {
 
 export const transformErrors = (errors: any) => {
   return errors.map((error: any) => {
-    const propertiesToTransform = Object.keys(errorMessages).map((key) => `.${key}`);
-    if (propertiesToTransform.includes(error.property)) {
-      const errorMessageKey = error.property.slice(1);
+    const propertiesToTransform = Object.keys(errorMessages).map((key) => `${key}`);
+
+    const errorProperty = error.property.startsWith('.') ? error.property.split('.')[1] : error.property;
+
+    if (propertiesToTransform.includes(errorProperty)) {
+      const errorMessageKey = errorProperty;
+
       error.message = errorMessages[errorMessageKey] || error.message;
     } else if (
       error.property.includes('ValidRedirectUris') ||

@@ -1,8 +1,8 @@
 import React, { ReactNode } from 'react';
-import { FieldTemplateProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import clsx from 'clsx';
 import InfoOverlay from 'components/InfoOverlay';
+import { FieldTemplateProps } from '@rjsf/utils/lib/types';
 
 const Label = styled.span`
   width: 16rem;

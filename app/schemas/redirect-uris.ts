@@ -15,6 +15,7 @@ export default function getSchema(envs: EnvironmentOption[]) {
         default: [''],
         addItemText: 'Add another URI',
         tooltip: redirectUriTooltip,
+        minItems: 1,
       },
     },
   };
