@@ -26,9 +26,6 @@ class RequestPage {
   deleteButton: string = '[data-testid="action-button-delete"]';
   confirmDeleteInt: string = 'button[data-testid="confirm-delete-confirm-deletion"]';
   confirmDeleteIntModal: string = '[id^="delete-modal-"]';
-  envDev: string = '#root_environments_0';
-  envTest: string = '#root_environments_1';
-  envProd: string = '#root_environments_2';
   tabTechDetails: string = '#rc-tabs-1-tab-tech-details';
   tabRoleManagement: string = '#rc-tabs-1-tab-role-management';
   tabUserRoleManagement: string = '#rc-tabs-1-tab-user-role-management';
@@ -157,17 +154,14 @@ class RequestPage {
 
   setEnvironment(env: string[]) {
     // Clean current settings
-    cy.get(this.envTest).uncheck();
-    cy.get(this.envProd).uncheck();
+    cy.contains('label', 'Test').find('input[type="checkbox"]').uncheck();
+    cy.contains('label', 'Production').find('input[type="checkbox"]').uncheck();
 
     if (env.includes('test')) {
-      cy.get(this.envTest).check();
+      cy.contains('label', 'Test').find('input[type="checkbox"]').check();
     }
     if (env.includes('prod')) {
-      cy.get(this.envProd).check();
-    }
-    if (env.includes('dev')) {
-      // Dev is default so no action required
+      cy.contains('label', 'Production').find('input[type="checkbox"]').check();
     }
   }
 
