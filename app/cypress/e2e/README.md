@@ -35,7 +35,7 @@ delete from request_roles where request_id in (select id from request_ids);
 with request_ids as (
     select id from requests where idir_user_display_name = 'Pathfinder SSO Training' and archived = true
 )
-select * from events where request_id in (select id from request_ids);
+delete from events where request_id in (select id from request_ids);
 -- Remove requests
 delete from requests where idir_user_display_name = 'Pathfinder SSO Training' and archived = true;
 ```
