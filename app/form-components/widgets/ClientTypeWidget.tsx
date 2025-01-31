@@ -19,7 +19,7 @@ interface Schema {
 }
 
 const ClientTypeWidget = ({ id, value, onChange, onBlur, schema, options }: WidgetProps) => {
-  const { enumNames } = options;
+  const { enumNames = [] } = options;
   const { enum: enumValues } = schema as Schema;
   const [openModal, setOpenModal] = useState(false);
 
