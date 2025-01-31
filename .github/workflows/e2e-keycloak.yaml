@@ -57,7 +57,7 @@ jobs:
 
   idp-stopper:
     runs-on: ubuntu-latest
-    needs: [pre-reqs, search-users, roles-tests]
+    needs: [pre-reqs]
     strategy:
       fail-fast: false
     steps:

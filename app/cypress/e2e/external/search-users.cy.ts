@@ -77,7 +77,6 @@ describe('Create Integration Requests', () => {
         playground.fillInPlayground(null, null, clientName, 'bceidbasic');
 
         playground.clickLogin();
-        cy.wait(2000);
 
         cy.setid('bceidbasic').then(() => {
           playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
@@ -95,7 +94,6 @@ describe('Create Integration Requests', () => {
         playground.fillInPlayground(null, null, clientName, 'bceidbusiness');
 
         playground.clickLogin();
-        cy.wait(2000);
 
         cy.setid('bceidbusiness').then(() => {
           playground.loginBusinesBCeID(Cypress.env('username'), Cypress.env('password'));

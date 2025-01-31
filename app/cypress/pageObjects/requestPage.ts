@@ -1,6 +1,7 @@
 class RequestPage {
   path: string = '/my-dashboard/integrations';
   savedMessage: string = 'Last saved at';
+  formSavingSpinnerSelector: string = '[data-testid="rotating-lines-svg"]';
   projectName: string = '#root_projectName';
   loginNameDev: string = '#root_devLoginTitle';
   loginNameTest: string = '#root_testLoginTitle';
@@ -230,6 +231,7 @@ class RequestPage {
   }
 
   pageNext() {
+    cy.get(this.formSavingSpinnerSelector).should('not.exist');
     cy.get('button').contains('Next').click();
   }
 

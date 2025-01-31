@@ -38,7 +38,6 @@ describe('Run IDP Stopper Test', () => {
       // Using the OIDC Playground to test the IDP Stopper
       it('Go to Playground', () => {
         cy.visit(playground.path);
-        cy.wait(2000);
 
         playground.fillInPlayground(
           null,

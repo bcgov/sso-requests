@@ -20,3 +20,22 @@ There are a few different user accounts used to test out different integrations 
 - internalGithubUsername/internalGithubPassword: Similar to above, but this account is part of the bcgov-sso organization.
 
 Credentials for these can be found in secrets in our tools namespace.
+
+## Request buildup
+
+Since we archive requests and keep associated role and event data for auditing, the test account data builds up over time in our sandbox environment. To clear out any archived data associated to the test account you can use the sql below in sandbox:
+
+```sql
+-- Remove associated events
+with request_ids as (
+   select id from requests where idir_user_display_name = 'Pathfinder SSO Training' and archived = true
+)
+delete from request_roles where request_id in (select id from request_ids);
+-- Remove associated roles
+with request_ids as (
+    select id from requests where idir_user_display_name = 'Pathfinder SSO Training' and archived = true
+)
+delete from events where request_id in (select id from request_ids);
+-- Remove requests
+delete from requests where idir_user_display_name = 'Pathfinder SSO Training' and archived = true;
+```
