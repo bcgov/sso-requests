@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrayFieldTemplateProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import isFunction from 'lodash.isfunction';
 import noop from 'lodash.noop';
@@ -7,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { MAX_STRING_FIELD_WIDTH } from 'styles/theme';
 import InfoOverlay from 'components/InfoOverlay';
+import { ArrayFieldTemplateProps } from '@rjsf/utils/lib/types';
 
 const FieldContainer = styled.div`
   position: relative;

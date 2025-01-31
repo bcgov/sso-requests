@@ -32,7 +32,7 @@ export default function getSchema(
     type: 'string',
     title: 'Select Client Protocol',
     enum: ['oidc', 'saml'],
-    enumNames: ['OpenID Connect', 'SAML'],
+
     tooltip: {
       content: 'The OpenID Connect (OIDC) client protocol is recommended.',
     },
@@ -49,7 +49,6 @@ export default function getSchema(
     type: 'string',
     title: 'Please select privacy zone',
     enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
-    enumNames: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
   };
 
   const properties: any = {
@@ -63,7 +62,6 @@ export default function getSchema(
       type: 'string',
       title: 'Select Usecase',
       enum: ['browser-login', 'service-account', 'both'],
-      enumNames: ['Browser Login', 'Service Account', 'Browser Login and Service Account'],
       tooltip: applied
         ? null
         : {
@@ -87,7 +85,6 @@ export default function getSchema(
         type: 'boolean',
         title: 'Select Client Type',
         enum: [true, false],
-        enumNames: ['Public', 'Confidential'],
       };
     }
 
@@ -119,8 +116,6 @@ export default function getSchema(
       }
     });
 
-    const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
-
     properties.devIdps = {
       type: 'array',
       minItems: 1,
@@ -128,7 +123,6 @@ export default function getSchema(
       items: {
         type: 'string',
         enum: idpEnum,
-        enumNames: idpEnumNames,
       },
       warningMessage:
         'Role assignment is not available for the BC Services Card and Digital Credential Identity Providers.',
@@ -181,7 +175,6 @@ export default function getSchema(
       items: {
         type: 'string',
         enum: bcscAttributes?.map((attribute) => attribute.name),
-        enumNames: bcscAttributes?.map((attribute) => attribute.name),
       },
       uniqueItems: true,
       tooltip: {
@@ -197,7 +190,6 @@ export default function getSchema(
     items: {
       type: 'string',
       enum: ['dev', 'test', 'prod'],
-      enumNames: ['Development', 'Test', 'Production'],
     },
     uniqueItems: true,
     tooltip: {
@@ -210,7 +202,6 @@ export default function getSchema(
     properties.environments.items = {
       type: 'string',
       enum: ['dev', 'test'],
-      enumNames: ['Development', 'Test'],
     };
   }
 

@@ -1,9 +1,9 @@
 import React from 'react';
-import { FieldTemplateProps } from 'react-jsonschema-form';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import RequestPreview from 'components/RequestPreview';
 import { usesBceid } from '@app/helpers/integration';
 import FieldTemplate from './FieldTemplate';
+import { FieldTemplateProps } from '@rjsf/utils/lib/types';
 
 export default function FieldReviewAndSubmit(props: FieldTemplateProps) {
   const { formContext } = props;

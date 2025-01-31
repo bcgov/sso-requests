@@ -1,9 +1,8 @@
 import React, { useState, ChangeEvent } from 'react';
-import { JSONSchema6 } from 'json-schema';
-import { WidgetProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import noop from 'lodash.noop';
 import Input from '@button-inc/bcgov-theme/Input';
+import { WidgetProps } from '@rjsf/utils/lib/types';
 
 const LeftInput = styled.span`
   & input {
@@ -23,9 +22,8 @@ const MIN_1 = 60;
 /**
  * Custom input to take in a number in minutes and save as a value in seconds.
  */
-const MinutesToSeconds = ({ id, value = 0, label, readonly, onChange, schema }: WidgetProps) => {
+const MinutesToSeconds = ({ id, value = 0, label, readonly, onChange }: WidgetProps) => {
   if (readonly) onChange = noop;
-  const { tooltipContent = '' } = schema as JSONSchema6 & { tooltipContent?: string };
   const [time, setTime] = useState<string | number>(value / MIN_1);
 
   const handleNumberChange = (event: ChangeEvent<HTMLInputElement>) => {

@@ -19,15 +19,12 @@ const primaryEndUsers = {
   items: {
     type: 'string',
     enum: ['livingInBC', 'businessInBC', 'bcGovEmployees', 'other'],
-    enumNames: ['People living in BC', 'People doing business/travel in BC', 'BC Gov Employees', 'Other'],
   },
   uniqueItems: true,
   title: 'Who are the primary end users of your project/application? (select all that apply)',
 };
 
 export default function getSchema(teams: any[] = [], formData: Integration) {
-  const teamNames = teams.map((team) => team.name);
-  teamNames.unshift('Select...');
   const teamValues = teams.map((team) => String(team.id));
   teamValues.unshift('');
   const hasTeams = teams.length > 0;
@@ -75,7 +72,6 @@ export default function getSchema(teams: any[] = [], formData: Integration) {
                   type: 'string',
                   title: 'Project Team',
                   enum: teamValues,
-                  enumNames: teamNames,
                 },
               }),
               createTeam: {

@@ -7,6 +7,7 @@ import { setUpRouter } from './utils/setup';
 import { errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
+import { debug } from 'jest-preview';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -102,7 +103,7 @@ describe('Form Template Saving and Navigation', () => {
   it('Should save data and triggers spinner on blur events', async () => {
     setUpRender({
       id: 0,
-      projectName: 'test project',
+      projectName: 'test project1',
       projectLead: true,
       usesTeam: false,
       teamId: undefined,
@@ -110,9 +111,11 @@ describe('Form Template Saving and Navigation', () => {
       protocol: 'oidc',
       authType: 'browser-login',
     });
+
     // Navigate away and back again
     const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
+
     const publicRadio = document.querySelector('#root_publicAccess-Public') as HTMLElement;
     fireEvent.change(publicRadio, { target: { checked: true } });
     expect(updateRequest).toHaveBeenCalled();
@@ -122,13 +125,25 @@ describe('Form Template Saving and Navigation', () => {
   });
 
   it('Should call the update function with the most recent data', async () => {
-    setUpRender({ id: 1, status: 'draft', protocol: 'oidc', authType: 'browser-login' });
+    setUpRender({
+      id: 1,
+      projectName: 'test project2',
+      status: 'draft',
+      protocol: 'oidc',
+      authType: 'browser-login',
+      projectLead: true,
+      usesTeam: false,
+      teamId: undefined,
+      environments: ['dev', 'test', 'prod'],
+    });
+
     fireEvent.click(sandbox.basicInfoBox);
+
     jest.clearAllMocks();
 
     const THROTTLE_TIMEOUT = 2000;
 
-    const publicAccessRadioButton = document.querySelector('#root_publicAccess-Public') as HTMLElement;
+    const publicAccessRadioButton = document.querySelector('input[name="root_publicAccess"]') as HTMLElement;
     const serviceAccountRadioButton = document.querySelector('input[value="service-account"]') as HTMLElement;
 
     // Set access public, then switch to service account. API request should have the updated value as confidential.
@@ -142,8 +157,8 @@ describe('Form Template Saving and Navigation', () => {
       }, THROTTLE_TIMEOUT);
     });
 
-    expect((updateRequest as jest.Mock).mock.calls[0].length).toBe(1);
-    expect((updateRequest as jest.Mock).mock.calls[0][0].publicAccess).toBe(false);
+    expect((updateRequest as jest.Mock).mock.calls[1].length).toBe(1);
+    expect((updateRequest as jest.Mock).mock.calls[1][0].publicAccess).toBe(false);
   });
 
   it('Should advance the form when clicking next', async () => {
@@ -752,7 +767,7 @@ describe('BC Services Card IDP and dependencies', () => {
       id: 0,
       environments: ['dev'],
       devIdps: ['idir', 'azureidir'],
-      projectName: 'test project',
+      projectName: 'test project3',
     });
     fireEvent.click(sandbox.basicInfoBox);
     const idirCheckbox = getByText('IDIR')?.parentElement?.querySelector("input[type='checkbox']");
@@ -767,7 +782,7 @@ describe('BC Services Card IDP and dependencies', () => {
       id: 0,
       environments: ['dev'],
       devIdps: ['azureidir'],
-      projectName: 'test project',
+      projectName: 'test project4',
     });
     fireEvent.click(sandbox.basicInfoBox);
     const azureIdirCheckbox = getByText('IDIR - MFA')?.parentElement?.querySelector("input[type='checkbox']");
