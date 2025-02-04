@@ -168,12 +168,12 @@ export const getIntegrationsByUserTeam = async (
   });
 };
 
-export const getIntegrationById = (
+export const getIntegrationById = async (
   integrationId: number,
-  attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps'],
+  attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps', 'lastChanges'],
   options = { raw: true },
 ) => {
-  return models.request.findOne({
+  return await models.request.findOne({
     where: { id: integrationId, apiServiceAccount: false, archived: false },
     attributes,
     ...options,

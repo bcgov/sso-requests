@@ -46,7 +46,7 @@ const getPrivacyZoneURI = async (env: string, privacyZoneDisplayName: string) =>
 export const createBCSCClient = async (data: BCSCClientParameters, integration: IntegrationData, userId: number) => {
   const contacts = await getBCSCContacts(integration);
   const { bcscBaseUrl, kcBaseUrl, accessToken } = getBCSCEnvVars(data.environment);
-  const jwksUri = `${kcBaseUrl}/auth/realms/standard/protocol/openid-connect/certs`;
+  //const jwksUri = `${kcBaseUrl}/auth/realms/standard/protocol/openid-connect/certs`;
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
   let bcscPrivacyZoneURI = await getPrivacyZoneURI(data.environment, integration.bcscPrivacyZone);
 
@@ -64,7 +64,8 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
       // Sub must be requested. Otherwise id token will have a randomized identifier.
       claims: [...integration.bcscAttributes, 'sub'],
       privacy_zone_uri: bcscPrivacyZoneURI,
-      jwks_uri: jwksUri,
+      // TODO: Keep it commented until encryption is allowed
+      //jwks_uri: jwksUri,
     },
     {
       headers: {
@@ -79,7 +80,7 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
 export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integration: IntegrationData) => {
   const { kcBaseUrl, bcscBaseUrl } = getBCSCEnvVars(bcscClient.environment);
   const contacts = await getBCSCContacts(integration);
-  const jwksUri = `${kcBaseUrl}/auth/realms/standard/protocol/openid-connect/certs`;
+  //const jwksUri = `${kcBaseUrl}/auth/realms/standard/protocol/openid-connect/certs`;
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
 
   const result = await axios.put(
@@ -94,7 +95,8 @@ export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integra
       id_token_signed_response_alg: 'RS256',
       userinfo_signed_response_alg: 'RS256',
       claims: [...integration.bcscAttributes, 'sub'],
-      jwks_uri: jwksUri,
+      // TODO: Keep it commented until encryption is allowed
+      //jwks_uri: jwksUri,
       client_id: bcscClient.clientId,
       registration_access_token: bcscClient.registrationAccessToken,
       privacy_zone_uri: await getPrivacyZoneURI(bcscClient.environment, integration.bcscPrivacyZone),
