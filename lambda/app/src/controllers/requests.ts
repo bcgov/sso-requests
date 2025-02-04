@@ -278,7 +278,7 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     bcscClient.clientName = bcscClientName;
     bcscClient.save();
 
-    const integrationLastChanges = await getIntegrationById(integration.id).then((data) => data.lastChanges);
+    const integrationLastChanges = await getIntegrationById(integration.id).then((data) => data?.lastChanges);
 
     if (
       integrationLastChanges !== null &&
