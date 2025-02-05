@@ -116,6 +116,8 @@ export default function getSchema(
       }
     });
 
+    if (context.isAdmin && !idpEnum?.includes('idir')) idpEnum?.unshift('idir');
+
     properties.devIdps = {
       type: 'array',
       minItems: 1,

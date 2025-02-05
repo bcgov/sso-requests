@@ -278,7 +278,7 @@ describe('integration validations', () => {
     console.error('EXCEPTION: ', err);
   }
 
-  it('should not allow adding discontinued idp', async () => {
+  it('should not allow regular users to add a discontinued idp', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     let integrationRes = await createIntegration(
       getCreateIntegrationData({
@@ -300,6 +300,30 @@ describe('integration validations', () => {
 
     expect(updateIntegrationRes.status).toEqual(200);
     expect(updateIntegrationRes.body.devIdps).toEqual(['azureidir', 'bceidbasic']);
+  });
+
+  it('should allow admin users to add a discontinued idp', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+    let integrationRes = await createIntegration(
+      getCreateIntegrationData({
+        projectName: 'IDIR allowed',
+      }),
+    );
+
+    expect(integrationRes.status).toEqual(200);
+    const integration = integrationRes.body;
+
+    let updateIntegrationRes = await updateIntegration(
+      getUpdateIntegrationData({
+        integration,
+        identityProviders: ['idir', 'azureidir', 'bceidbasic'],
+        envs: ['dev', 'test', 'prod'],
+      }),
+      true,
+    );
+
+    expect(updateIntegrationRes.status).toEqual(200);
+    expect(updateIntegrationRes.body.devIdps).toEqual(['idir', 'azureidir', 'bceidbasic']);
   });
 
   it('should preserve discontinued idp for existing integrations', async () => {
