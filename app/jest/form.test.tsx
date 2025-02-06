@@ -762,7 +762,7 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(productionCheckbox).toBeInTheDocument();
   });
 
-  it('should show idir idp for existing integrations', async () => {
+  it('should show idir idp for existing integrations for regular users that already use it', async () => {
     const { getByText } = setUpRender({
       id: 0,
       environments: ['dev'],
@@ -777,7 +777,7 @@ describe('BC Services Card IDP and dependencies', () => {
     expect(azureIdirCheckbox).toBeChecked();
   });
 
-  it('should not show idir idp for existing integrations', async () => {
+  it('should not show idir idp for regular users updating existing integrations without it', async () => {
     const { getByText, queryByText } = setUpRender({
       id: 0,
       environments: ['dev'],
@@ -788,5 +788,19 @@ describe('BC Services Card IDP and dependencies', () => {
     const azureIdirCheckbox = getByText('IDIR - MFA')?.parentElement?.querySelector("input[type='checkbox']");
     expect(queryByText('IDIR')).toBeNull();
     expect(azureIdirCheckbox).toBeChecked();
+  });
+
+  it('should show idir idp for existing integrations without it for admin users', async () => {
+    const { queryByText } = setUpRender(
+      {
+        id: 0,
+        environments: ['dev'],
+        devIdps: [],
+        projectName: 'test project4',
+      },
+      { client_roles: ['sso-admin'], isAdmin: true },
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(queryByText('IDIR')).not.toBeNull();
   });
 });

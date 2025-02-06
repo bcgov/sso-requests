@@ -508,12 +508,15 @@ export const updateRequest = async (
         }),
       );
     }
-    // filter out discontinued idps only for new integrations, i.e. only when adding new idps
-    const newIdps = rest.devIdps.filter((idp) => !originalData.devIdps.includes(idp));
-    const invalidIdps = getDiscontinuedIdps();
-    rest.devIdps = rest.devIdps.filter(
-      (idp) => !newIdps.includes(idp) || (newIdps.includes(idp) && !invalidIdps.includes(idp)),
-    );
+    // filter out discontinued idps only for non-admins creating new integrations, i.e. only when adding new idps
+
+    if (!userIsAdmin) {
+      const newIdps = rest.devIdps.filter((idp) => !originalData.devIdps.includes(idp));
+      const invalidIdps = getDiscontinuedIdps();
+      rest.devIdps = rest.devIdps.filter(
+        (idp) => !newIdps.includes(idp) || (newIdps.includes(idp) && !invalidIdps.includes(idp)),
+      );
+    }
 
     const allowedData = processRequest(session, rest, isMerged);
     assign(current, allowedData);
