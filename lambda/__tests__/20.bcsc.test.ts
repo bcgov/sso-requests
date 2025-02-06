@@ -57,6 +57,14 @@ jest.mock('@lambda-app/bcsc/client', () => {
   };
 });
 
+jest.mock('@lambda-app/queries/request', () => {
+  const original = jest.requireActual('@lambda-app/queries/request');
+  return {
+    ...original,
+    getIntegrationById: jest.fn(() => Promise.resolve({ lastChanges: [] })),
+  };
+});
+
 const OLD_ENV = process.env;
 beforeEach(() => {
   jest.resetModules();
@@ -290,9 +298,9 @@ describe('Build Github Dispatch', () => {
       {
         ...bcscProdIntegration,
         clientId: 'myClient',
-        devIdps: ['bcservicescard', 'idir'],
-        testIdps: ['bcservicescard', 'idir'],
-        prodIdps: ['idir'],
+        devIdps: ['bcservicescard', 'azureidir'],
+        testIdps: ['bcservicescard', 'azureidir'],
+        prodIdps: ['azureidir'],
       },
       'prod',
     );

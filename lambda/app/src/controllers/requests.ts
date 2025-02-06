@@ -31,6 +31,7 @@ import {
   getIntegrationsByUserTeam,
   getIntegrationByClientId,
   canUpdateRequestByUserId,
+  getIntegrationById,
 } from '@lambda-app/queries/request';
 import { fetchClient } from '@lambda-app/keycloak/client';
 import { getUserTeamRole } from '@lambda-app/queries/literals';
@@ -69,6 +70,7 @@ import {
 } from '@lambda-app/keycloak/clientScopes';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 import createHttpError from 'http-errors';
+import { getDiscontinuedIdps } from '@app/utils/helpers';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -270,14 +272,29 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     bcscClientId = clientResponse.data.client_id;
   } else {
     if (bcscClient.archived) {
-      // TODO: currently need to have the BCSC team manually re-enable client when restoring (as of July 2024). Once api route for enabling is available should be added here.
       bcscClient.archived = false;
     }
 
-    //TODO: update client name after BCSC team provides a way to update client name
-    //bcscClient.clientName = bcscClientName;
+    bcscClient.clientName = bcscClientName;
     bcscClient.save();
-    await updateBCSCClient(bcscClient, integration);
+
+    const integrationLastChanges = await getIntegrationById(integration.id).then((data) => data?.lastChanges);
+
+    if (
+      integrationLastChanges !== null &&
+      integrationLastChanges.find((change: any) =>
+        [
+          'projectName',
+          'bcscPrivacyZone',
+          'bcscAttributes',
+          'devHomePageUri',
+          'testHomePageUri',
+          'prodHomePageUri',
+        ].includes(change?.path[0]),
+      )
+    ) {
+      await updateBCSCClient(bcscClient, integration);
+    }
   }
   const requiredScopes = await getRequiredBCSCScopes(integration.bcscAttributes);
   const idpCreated = await getIdp(env, integration.clientId);
@@ -484,11 +501,20 @@ export const updateRequest = async (
       if (originalData.usesTeam && !rest.usesTeam) rest.usesTeam = originalData.usesTeam;
       if (!originalData.projectLead && rest.projectLead) rest.projectLead = originalData.projectLead;
 
-      // if integration in applied state do not allow changes to bcsc privacy zone
+      // preserve environments if already applied
       rest.environments = originalData.environments.concat(
         rest.environments.filter((env) => {
           if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
         }),
+      );
+    }
+    // filter out discontinued idps only for non-admins creating new integrations, i.e. only when adding new idps
+
+    if (!userIsAdmin) {
+      const newIdps = rest.devIdps.filter((idp) => !originalData.devIdps.includes(idp));
+      const invalidIdps = getDiscontinuedIdps();
+      rest.devIdps = rest.devIdps.filter(
+        (idp) => !newIdps.includes(idp) || (newIdps.includes(idp) && !invalidIdps.includes(idp)),
       );
     }
 
@@ -651,7 +677,7 @@ export const updateRequest = async (
     }
 
     const changes = getDifferences(finalData, originalData);
-    current.lastChanges = changes;
+    current.lastChanges = changes || null;
     let updated = await current.save();
 
     if (!updated) {

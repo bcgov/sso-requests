@@ -17,16 +17,20 @@ import SwitchWidget from '@app/form-components/widgets/SwitchWidget';
 import get from 'lodash.get';
 import BcscAttributesWidget from '@app/form-components/widgets/BcscAttributesWidget';
 import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneWidget';
+import { envMap, idpMap } from '@app/helpers/meta';
+import { Team } from '@app/interfaces/team';
 
 interface Props {
   integration: Integration;
   formData?: Integration;
   isAdmin: boolean;
+  teams: Team[];
+  schemas: any;
 }
 
 const envs = ['dev', 'test', 'prod'];
 
-const getUISchema = ({ integration, formData, isAdmin }: Props) => {
+const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) => {
   const {
     id,
     status,
@@ -73,7 +77,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
   const bcServicesCardFields: any = {
     bcscPrivacyZone: {
       'ui:widget': BcscPrivacyZoneWidget,
-      classNames: 'short-field-string',
+      'ui:classNames': 'short-field-string',
       'ui:disabled': disableBcscUpdateApproved,
     },
     bcscAttributes: {
@@ -122,30 +126,30 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
   return {
     projectName: {
       'ui:placeholder': 'Project Name',
-      classNames: 'short-field-string',
-      'ui:readonly': !isNew && formData?.protocol === 'saml' && formData?.status !== 'draft',
+      'ui:classNames': 'short-field-string',
     },
     teamId: {
-      classNames: 'short-field-string',
+      'ui:classNames': 'short-field-string',
+      'ui:enumNames': ['Select...'].concat(teams.map((team) => team.name) ?? []),
     },
     additionalRoleAttribute: {
-      classNames: 'short-field-string',
+      'ui:classNames': 'short-field-string',
     },
     clientId: {
       'ui:readonly': !isAdmin,
-      classNames: 'short-field-string',
+      'ui:classNames': 'short-field-string',
     },
     devLoginTitle: {
       'ui:placeholder': 'Pathfinder SSO Login Page Name',
-      classNames: 'short-field-string',
+      'ui:classNames': 'short-field-string',
     },
     testLoginTitle: {
       'ui:placeholder': 'Pathfinder SSO Login Page Name',
-      classNames: 'short-field-string',
+      'ui:classNames': 'short-field-string',
     },
     prodLoginTitle: {
       'ui:placeholder': 'Pathfinder SSO Login Page Name',
-      classNames: 'short-field-string',
+      'ui:classNames': 'short-field-string',
     },
     devDisplayHeaderTitle: {
       'ui:widget': SwitchWidget,
@@ -179,30 +183,35 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     },
     primaryEndUsers: {
       'ui:widget': 'checkboxes',
-      classNames: 'checkboxes-grid',
+      'ui:classNames': 'checkboxes-grid',
+      'ui:enumNames': ['People living in BC', 'People doing business/travel in BC', 'BC Gov Employees', 'Other'],
     },
     primaryEndUsersOther: {
       'ui:widget': 'textarea',
-      classNames: 'other-details',
+      'ui:classNames': 'other-details',
       'ui:label': false,
     },
     publicAccess: {
       'ui:widget': ClientTypeWidget,
+      'ui:enumNames': ['Public', 'Confidential'],
     },
     protocol: {
       'ui:widget': TooltipRadioWidget,
       'ui:default': 'oidc',
       'ui:readonly': isApplied,
+      'ui:enumNames': ['OpenID Connect', 'SAML'],
     },
     authType: {
       'ui:widget': TooltipRadioWidget,
       'ui:default': 'browser-login',
       'ui:readonly': isApplied,
+      'ui:enumNames': ['Browser Login', 'Service Account', 'Browser Login and Service Account'],
     },
     devIdps: {
       'ui:widget': TooltipCheckboxesWidget,
       'ui:enumDisabled': idpDisabled,
       'ui:enumHidden': idpHidden,
+      'ui:enumNames': schemas[1]?.properties?.devIdps?.items?.enum.map((idp: string) => idpMap[idp]) || [],
     },
     bceidTo: {
       'ui:label': false,
@@ -217,6 +226,7 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
     environments: {
       'ui:widget': 'checkboxes',
       'ui:enumDisabled': envDisabled,
+      'ui:enumNames': schemas[1]?.properties?.environments?.items?.enum.map((env: string) => envMap[env]) || [],
     },
     createTeam: {
       'ui:FieldTemplate': FieldProjectTeam,
@@ -230,6 +240,27 @@ const getUISchema = ({ integration, formData, isAdmin }: Props) => {
       'ui:FieldTemplate': FieldReviewAndSubmit,
       'ui:widget': includeComment ? 'textarea' : 'hidden',
       'ui:label': includeComment,
+    },
+    devValidRedirectUris: {
+      items: {
+        'ui:options': {
+          label: false,
+        },
+      },
+    },
+    testValidRedirectUris: {
+      items: {
+        'ui:options': {
+          label: false,
+        },
+      },
+    },
+    prodValidRedirectUris: {
+      items: {
+        'ui:options': {
+          label: false,
+        },
+      },
     },
     ...bcServicesCardFields,
     ...tokenFields,

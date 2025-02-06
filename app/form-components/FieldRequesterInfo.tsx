@@ -1,8 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FieldTemplateProps } from 'react-jsonschema-form';
 import CenteredModal from 'components/CenteredModal';
 import FieldTemplate from './FieldTemplate';
+import { FieldTemplateProps } from '@rjsf/utils/lib/types';
 
 const ErrorText = styled.p`
   color: #d94532;

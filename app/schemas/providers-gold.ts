@@ -5,6 +5,7 @@ import getConfig from 'next/config';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard } from '@app/helpers/integration';
+import { getDiscontinuedIdps } from '@app/utils/helpers';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { include_digital_credential, include_bc_services_card, allow_bc_services_card_prod } = publicRuntimeConfig;
@@ -15,7 +16,7 @@ export default function getSchema(
   bcscPrivacyZones?: BcscPrivacyZone[],
   bcscAttributes?: BcscAttribute[],
 ) {
-  const { protocol, authType, status } = integration;
+  const { protocol, authType, status, devIdps } = integration;
   const applied = status === 'applied';
 
   const allow_bcsc_prod = allow_bc_services_card_prod === 'true' || process.env.ALLOW_BC_SERVICES_CARD_PROD === 'true';
@@ -31,7 +32,7 @@ export default function getSchema(
     type: 'string',
     title: 'Select Client Protocol',
     enum: ['oidc', 'saml'],
-    enumNames: ['OpenID Connect', 'SAML'],
+
     tooltip: {
       content: 'The OpenID Connect (OIDC) client protocol is recommended.',
     },
@@ -48,7 +49,6 @@ export default function getSchema(
     type: 'string',
     title: 'Please select privacy zone',
     enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
-    enumNames: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
   };
 
   const properties: any = {
@@ -62,7 +62,6 @@ export default function getSchema(
       type: 'string',
       title: 'Select Usecase',
       enum: ['browser-login', 'service-account', 'both'],
-      enumNames: ['Browser Login', 'Service Account', 'Browser Login and Service Account'],
       tooltip: applied
         ? null
         : {
@@ -86,7 +85,6 @@ export default function getSchema(
         type: 'boolean',
         title: 'Select Client Type',
         enum: [true, false],
-        enumNames: ['Public', 'Confidential'],
       };
     }
 
@@ -94,7 +92,7 @@ export default function getSchema(
   }
 
   if (authType !== 'service-account') {
-    const idpEnum = ['idir', 'azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
+    const idpEnum = ['azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
 
     /*
       Schemas are shared between lambda functions and client app to keep validations in sync.
@@ -111,7 +109,14 @@ export default function getSchema(
       idpEnum.push('bcservicescard');
     }
 
-    const idpEnumNames = idpEnum.map((idp) => idpMap[idp]);
+    // grandfather existing integrations and allow them to remove discontinued IDPs
+    getDiscontinuedIdps().forEach((idp) => {
+      if (devIdps?.includes(idp) && !idpEnum.includes(idp)) {
+        idpEnum.unshift(idp);
+      }
+    });
+
+    if (context.isAdmin && !idpEnum?.includes('idir')) idpEnum?.unshift('idir');
 
     properties.devIdps = {
       type: 'array',
@@ -120,7 +125,6 @@ export default function getSchema(
       items: {
         type: 'string',
         enum: idpEnum,
-        enumNames: idpEnumNames,
       },
       warningMessage:
         'Role assignment is not available for the BC Services Card and Digital Credential Identity Providers.',
@@ -173,7 +177,6 @@ export default function getSchema(
       items: {
         type: 'string',
         enum: bcscAttributes?.map((attribute) => attribute.name),
-        enumNames: bcscAttributes?.map((attribute) => attribute.name),
       },
       uniqueItems: true,
       tooltip: {
@@ -189,7 +192,6 @@ export default function getSchema(
     items: {
       type: 'string',
       enum: ['dev', 'test', 'prod'],
-      enumNames: ['Development', 'Test', 'Production'],
     },
     uniqueItems: true,
     tooltip: {
@@ -202,7 +204,6 @@ export default function getSchema(
     properties.environments.items = {
       type: 'string',
       enum: ['dev', 'test'],
-      enumNames: ['Development', 'Test'],
     };
   }
 

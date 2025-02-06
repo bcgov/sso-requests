@@ -1,6 +1,7 @@
 class RequestPage {
   path: string = '/my-dashboard/integrations';
-
+  savedMessage: string = 'Last saved at';
+  formSavingSpinnerSelector: string = '[data-testid="rotating-lines-svg"]';
   projectName: string = '#root_projectName';
   loginNameDev: string = '#root_devLoginTitle';
   loginNameTest: string = '#root_testLoginTitle';
@@ -25,9 +26,6 @@ class RequestPage {
   deleteButton: string = '[data-testid="action-button-delete"]';
   confirmDeleteInt: string = 'button[data-testid="confirm-delete-confirm-deletion"]';
   confirmDeleteIntModal: string = '[id^="delete-modal-"]';
-  envDev: string = '#root_environments_0';
-  envTest: string = '#root_environments_1';
-  envProd: string = '#root_environments_2';
   tabTechDetails: string = '#rc-tabs-1-tab-tech-details';
   tabRoleManagement: string = '#rc-tabs-1-tab-role-management';
   tabUserRoleManagement: string = '#rc-tabs-1-tab-user-role-management';
@@ -82,6 +80,16 @@ class RequestPage {
   idimCancelAddUserInfo: string = '[data-testid="modal-cancel-btn-additional-user-info"]';
   idimDownloadUser: string = 'svg[data-icon="download"]';
 
+  idpLabels = {
+    idirMFALabel: 'IDIR - MFA',
+    basicBceidLabel: 'Basic BCeID',
+    businessBceidLabel: 'Business BCeID',
+    basicOrBusinessBceidLabel: 'Basic or Business BCeID',
+    githubBCGovLabel: 'GitHub BC Gov',
+    digitalCredentialLabel: 'Digital Credential',
+    bcscLabel: 'BC Services Card',
+  };
+
   // In info modal, click close button
   confirmClose() {
     cy.get(this.confirmModal).find(this.confirmDeleteButton).click();
@@ -90,7 +98,7 @@ class RequestPage {
   confirmDelete(confirm: Boolean) {
     if (confirm) {
       cy.get(this.confirmDeleteModal).find(this.confirmDeleteButton).click();
-      //data-testid="confirm-delete-submitting-request"
+      cy.contains('successfully submitted');
     }
   }
 
@@ -146,17 +154,14 @@ class RequestPage {
 
   setEnvironment(env: string[]) {
     // Clean current settings
-    cy.get(this.envTest).uncheck();
-    cy.get(this.envProd).uncheck();
+    cy.contains('label', 'Test').find('input[type="checkbox"]').uncheck();
+    cy.contains('label', 'Production').find('input[type="checkbox"]').uncheck();
 
     if (env.includes('test')) {
-      cy.get(this.envTest).check();
+      cy.contains('label', 'Test').find('input[type="checkbox"]').check();
     }
     if (env.includes('prod')) {
-      cy.get(this.envProd).check();
-    }
-    if (env.includes('dev')) {
-      // Dev is default so no action required
+      cy.contains('label', 'Production').find('input[type="checkbox"]').check();
     }
   }
 
@@ -220,6 +225,7 @@ class RequestPage {
   }
 
   pageNext() {
+    cy.get(this.formSavingSpinnerSelector).should('not.exist');
     cy.get('button').contains('Next').click();
   }
 
@@ -260,7 +266,7 @@ class RequestPage {
     cy.get(this.assignSelect)
       .eq(4)
       .type(assign + '{enter}');
-    cy.get('p').contains('Last saved at ').wait(5000);
+    cy.get('p').contains(this.savedMessage);
   }
   setRolePickUser(user: string) {
     cy.get('[data-testid="role-search-table"] td')
@@ -271,47 +277,14 @@ class RequestPage {
       });
   }
 
-  setIdentityProvider(identityProvider: string[]) {
-    // Clean current settings
-    cy.get('#root_devIdps_0').uncheck();
-    cy.get('#root_devIdps_1').uncheck();
-    cy.get('#root_devIdps_2').uncheck();
-    cy.get('#root_devIdps_3').uncheck();
-    cy.get('#root_devIdps_4').uncheck();
-    cy.get('#root_devIdps_6').uncheck();
-    cy.wait(2000);
-
-    if (identityProvider.includes('IDIR')) {
-      cy.get('#root_devIdps_0').check();
-    }
-    if (identityProvider.includes('IDIR - MFA')) {
-      cy.get('#root_devIdps_1').check();
-    }
-    if (identityProvider.includes('Basic BCeID')) {
-      cy.get('#root_devIdps_2').check();
-    }
-    if (identityProvider.includes('Business BCeID')) {
-      cy.get('#root_devIdps_3').check();
-    }
-    if (identityProvider.includes('Basic or Business BCeID')) {
-      cy.get('#root_devIdps_4').check();
-    }
-    // Note: GitHub public is only available for SSO admins
-    if (identityProvider.includes('GitHub')) {
-      cy.get('#root_devIdps_5').check();
-    }
-
-    if (identityProvider.includes('GitHub BC Gov')) {
-      cy.get('#root_devIdps_6').check();
-    }
-
-    if (identityProvider.includes('Digital Credential')) {
-      cy.get('#root_devIdps_7').check();
-    }
-
-    if (identityProvider.includes('BCSC')) {
-      cy.get('#root_devIdps_8').check();
-    }
+  // Clears all checkboxes and rechecks included idps
+  setIdentityProvider(identityProviders: string[]) {
+    Object.entries(this.idpLabels).forEach(([label, matcher]) => {
+      cy.contains(matcher).find('input[type="checkbox"]').uncheck();
+      if (identityProviders.some((idpLabel) => idpLabel === matcher)) {
+        cy.contains(matcher).find('input[type="checkbox"]').check();
+      }
+    });
   }
 
   setadditionalRoleAttribute(additionalRoleAttribute: string) {

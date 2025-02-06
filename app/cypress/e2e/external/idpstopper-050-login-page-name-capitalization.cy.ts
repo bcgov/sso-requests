@@ -36,7 +36,7 @@ describe('Create Integration Requests For login page capitalization', () => {
       console.log('Went to playground');
 
       cy.visit(playground.path);
-      cy.wait(2000);
+      cy.contains(playground.header);
 
       playground.fillInPlayground(
         null,
@@ -45,7 +45,6 @@ describe('Create Integration Requests For login page capitalization', () => {
         null,
       );
       playground.clickLogin();
-      cy.wait(2000); // Wait a bit because to make sure the page is loaded
 
       // On the IDP Select Page, confirm the title is correctly capitalized.
       cy.get('#kc-header-wrapper').contains(request.ssoheaderdev);

@@ -27,15 +27,10 @@ describe('Format filters', () => {
       'githubbcgov',
       'githubpublic',
     ]);
-    expect(realms).toEqual(['onestopauth', 'onestopauth-basic', 'onestopauth-business', 'onestopauth-both']);
     expect(environments).toEqual(['dev', 'test', 'prod']);
 
-    const [filteredDevIdps, filteredRealms, filteredEnvironments] = formatFilters(
-      [allIdpOptions[0]],
-      [allEnvironmentOptions[0]],
-    );
+    const [filteredDevIdps, _, filteredEnvironments] = formatFilters([allIdpOptions[0]], [allEnvironmentOptions[0]]);
 
-    expect(filteredRealms).toEqual(['onestopauth']);
     expect(filteredDevIdps).toEqual(['idir', 'azureidir']);
     expect(filteredEnvironments).toEqual(['dev']);
   });

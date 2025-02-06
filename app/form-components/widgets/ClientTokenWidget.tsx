@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { JSONSchema6 } from 'json-schema';
-import { WidgetProps } from 'react-jsonschema-form';
 import styled from 'styled-components';
 import noop from 'lodash.noop';
 import Input from '@button-inc/bcgov-theme/Input';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
+import { WidgetProps } from '@rjsf/utils/lib/types';
 
 const LeftInput = styled.span`
   & input {
@@ -35,9 +34,8 @@ const MIN_1 = 60;
 const HOUR_1 = MIN_1 * 60;
 const DAY_1 = HOUR_1 * 24;
 
-const ClientTokenWidget = ({ id, value = 0, label, readonly, onChange, onBlur, schema, formContext }: WidgetProps) => {
+const ClientTokenWidget = ({ id, value = 0, label, readonly, onChange }: WidgetProps) => {
   if (readonly) onChange = noop;
-  const { tooltipContent = '' } = schema as JSONSchema6 & { tooltipContent?: string };
 
   const [time, setTime] = useState(0);
   const [unit, setUnit] = useState('Minutes');
