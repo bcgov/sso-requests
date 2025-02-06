@@ -1,7 +1,6 @@
 import React from 'react';
-import { JSONSchema6 } from 'json-schema';
-import { WidgetProps } from 'react-jsonschema-form';
 import InfoOverlay from 'components/InfoOverlay';
+import { WidgetProps } from '@rjsf/utils/lib/types';
 
 // see https://github.com/rjsf-team/react-jsonschema-form/blob/master/packages/core/src/components/widgets/RadioWidget.js
 function TooltipRadioWidget(props: WidgetProps) {
@@ -20,7 +19,7 @@ function TooltipRadioWidget(props: WidgetProps) {
   } = props;
   const name = Math.random().toString();
   const { enumOptions, enumDisabled, inline } = options;
-  const { tooltips } = schema as JSONSchema6 & { tooltips: any[] };
+  const { tooltips } = schema as any & { tooltips: any[] };
 
   const eOptions = Array.isArray(enumOptions) ? enumOptions : [];
   const eDisabled = Array.isArray(enumDisabled) ? enumDisabled : [];

@@ -42,6 +42,7 @@ import {
   bcscPrivacyZones as defaultBcscPrivacyZones,
   bcscAttributes as defaultBcscAttributes,
 } from '@app/utils/constants';
+import validator from '@rjsf/validator-ajv8';
 
 const Description = styled.p`
   margin: 0;
@@ -298,7 +299,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUISchema({ integration: request as Integration, formData, isAdmin });
+  const uiSchema = getUISchema({ integration: request as Integration, formData, isAdmin, teams, schemas });
 
   const handleFormSubmit = async () => {
     if (loading) return;
@@ -454,10 +455,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         onSubmit={handleFormSubmit}
         formData={formData}
         formContext={{ isAdmin, teams, formData, setFormData, loadTeams, bcscPrivacyZones }}
-        FieldTemplate={FieldTemplate}
-        ArrayFieldTemplate={ArrayFieldTemplate}
+        templates={{ FieldTemplate, ArrayFieldTemplate }}
         liveValidate={visited[formStage] || isApplied}
-        validate={customValidate}
+        customValidate={customValidate}
+        validator={validator}
       >
         {showFormButtons ? (
           <FormButtons

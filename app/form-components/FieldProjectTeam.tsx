@@ -1,11 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FieldTemplateProps } from 'react-jsonschema-form';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import CenteredModal from 'components/CenteredModal';
 import CreateTeamForm from 'form-components/team-form/CreateTeamForm';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons';
+import FieldTemplate from './FieldTemplate';
+import { createTeamModalId } from '@app/utils/constants';
+import { FieldTemplateProps } from '@rjsf/utils/lib/types';
 
 const Container = styled.div`
   display: grid;
@@ -24,9 +26,6 @@ const Description = styled.p`
   grid-column: 2;
   color: #7f7f7f;
 `;
-
-import FieldTemplate from './FieldTemplate';
-import { createTeamModalId } from '@app/utils/constants';
 
 export default function FieldProjectTeam(props: FieldTemplateProps) {
   const { formContext } = props;

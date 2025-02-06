@@ -2,6 +2,7 @@ import { authenticator } from 'otplib';
 
 class PlaygroundPage {
   path: string = 'https://bcgov.github.io/keycloak-example-apps/';
+  header: string = 'Keycloak OIDC Playground';
 
   // Element Selectors
   authServerUrl: string = 'input[name="url"]';
@@ -15,84 +16,60 @@ class PlaygroundPage {
     this.setAuthServerUrl(url);
     this.setRealm(realm);
     this.setClientId(client);
+    this.clickUpdate();
+    cy.wait(2000);
     if (idpHint !== null) {
       this.selectOptions();
       this.setIDPHint(idpHint);
-      this.selectConfig();
+      this.clickUpdate();
     }
-    this.clickUpdate();
+    // Wait is needed to allow keycloak.js to update client. Watching the network request is not enough
+    // as it needs more time for the local update as well. There is not a good ui indicator for this.
+    cy.wait(2000);
+    this.selectConfig();
   };
 
   // Helper functions
   selectConfig() {
     cy.get('div').contains('Keycloak OIDC Config').click({ force: true });
-    cy.wait(2000);
   }
 
   selectOptions() {
     cy.get('div').contains('Keycloak Login Options').click({ force: true });
-    cy.wait(2000);
   }
 
   setAuthServerUrl(url: string | null = 'https://dev.sandbox.loginproxy.gov.bc.ca/auth') {
     // Check if url is null and set the default value if it is
     url = url === null ? 'https://dev.sandbox.loginproxy.gov.bc.ca/auth' : url;
 
-    cy.get(this.authServerUrl)
-      .clear()
-      .type(url + '{enter}');
+    cy.get(this.authServerUrl).clear().type(url);
   }
 
   setRealm(realm: string | null = 'standard') {
     // Check if realm is null and set the default value if it is
     realm = realm === null ? 'standard' : realm;
 
-    cy.get(this.realm)
-      .clear()
-      .type(realm + '{enter}');
+    cy.get(this.realm).clear().type(realm);
   }
 
   setClientId(clientId: string) {
-    cy.get(this.clientId)
-      .clear()
-      .type(clientId + '{enter}')
-      .then(() => {
-        cy.wait(2000);
-      });
+    cy.get(this.clientId).clear().type(clientId);
   }
 
   setIDPHint(idpHint: string) {
-    cy.get(this.idpHint)
-      .clear()
-      .type(idpHint + '{enter}');
+    cy.get(this.idpHint).clear().type(idpHint);
   }
 
   clickUpdate() {
-    // Double Tap the Update button to make sure the data is loaded
-    cy.contains(this.commonButton, 'Update', { timeout: 10000 })
-      .click({ force: true })
-      .then(() => {
-        cy.wait(2000);
-      });
-    cy.wait(2000); // Wait a bit because to make sure the data is loaded
-    cy.contains(this.commonButton, 'Update', { timeout: 10000 })
-      .click()
-      .then(() => {
-        cy.wait(2000);
-      });
+    cy.get('.content.active').contains(this.commonButton, 'Update').click({ force: true });
   }
 
   clickLogin() {
-    cy.contains(this.commonButton, 'Login', { timeout: 10000 })
-      .click({ force: true })
-      .then(() => {
-        cy.wait(2000);
-      });
+    cy.contains(this.commonButton, 'Login', { timeout: 10000 }).click({ force: true });
   }
 
   clickLogout() {
     cy.contains(this.commonButton, 'Logout', { timeout: 10000 }).click({ force: true });
-    cy.wait(2000);
   }
 
   checkProviders(providers: string[]) {
@@ -117,8 +94,6 @@ class PlaygroundPage {
     cy.get('#user').type(username, { log: false });
     cy.get('#password').type(password, { log: false });
     cy.get('input[type="submit"]', { timeout: 20000 }).click();
-    // Continue button condition
-    cy.wait(2000);
     cy.get('body').then((bodyElement) => {
       if (bodyElement.find('input[type="submit"]').length > 0) {
         cy.get('input[type="submit"]').click();
@@ -132,8 +107,6 @@ class PlaygroundPage {
     cy.get('#user').type(username, { log: false });
     cy.get('#password').type(password, { log: false });
     cy.get('input[type="submit"]', { timeout: 20000 }).click();
-    // Continue button condition
-    cy.wait(2000);
     cy.get('body').then((bodyElement) => {
       if (bodyElement.find('input[type="submit"]').length > 0) {
         cy.get('input[type="submit"]').click();

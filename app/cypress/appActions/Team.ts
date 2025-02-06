@@ -47,10 +47,8 @@ class Team {
               .eq(n)
               .type(this.userEmail[n], { delay: 50 })
               .trigger('select');
-            cy.wait(3000);
             cy.realPress('Tab');
             cy.realPress('Tab');
-            cy.wait(3000);
             cy.get(this.teamPage.userRole, { timeout: 10000 }).eq(n).select(this.userRole[n]);
             n++;
           }
@@ -77,7 +75,6 @@ class Team {
         cy.get('table > tbody > tr', { timeout: 10000 }).eq(index).scrollIntoView().trigger('click'); // first click to focus and set the row to Active
         if (this.teamNameNew !== '') {
           cy.get(this.teamPage.editTeamButton, { timeout: 10000 }).eq(index).scrollIntoView().trigger('click'); // Second on to Edit
-          cy.wait(1000);
           cy.get(this.teamPage.modalEditTeam, { timeout: 10000 })
             .should('be.visible')
             .then(() => {
@@ -94,12 +91,10 @@ class Team {
           cy.get('table').eq(0).click();
           cy.contains('td', this.teamNameNew, { timeout: 10000 }).parent().scrollIntoView().trigger('click');
           cy.contains('td', this.teamNameNew, { timeout: 10000 }).parent().scrollIntoView().trigger('click');
-          cy.wait(2000);
         } else {
           cy.get('table').eq(0).click();
           cy.contains('td', this.teamName, { timeout: 10000 }).parent().scrollIntoView().trigger('click');
           cy.contains('td', this.teamName, { timeout: 10000 }).parent().scrollIntoView().trigger('click');
-          cy.wait(2000);
         }
         let n = 0;
         while (this.deleteUser.length > n) {
@@ -128,9 +123,7 @@ class Team {
             cy.contains('td', this.teamName, { timeout: 10000 }).parent().scrollIntoView().trigger('click');
             cy.contains('td', this.teamName, { timeout: 10000 }).parent().scrollIntoView().trigger('click');
           }
-          cy.wait(2000);
           cy.get(this.teamPage.addNewTeamMember, { timeout: 10000 }).click();
-          cy.wait(2000);
 
           cy.get(this.teamPage.modalAddMember, { timeout: 10000 })
             .should('be.visible')
@@ -140,11 +133,9 @@ class Team {
                 if (n > 0) {
                   cy.get(this.teamPage.addUser, { timeout: 10000 }).first().scrollIntoView().trigger('click');
                 }
-                cy.wait(2000);
                 cy.get(this.teamPage.userEmail, { timeout: 10000 })
                   .eq(n)
                   .type(this.addUser[n]['useremail'].toString(), { delay: 50 });
-                cy.wait(2000);
                 cy.realPress('Tab');
                 cy.get(this.teamPage.userRole, { timeout: 10000 })
                   .eq(n)
@@ -201,12 +192,10 @@ class Team {
             .eq(deleteTeams[i] - n)
             .scrollIntoView()
             .click({ force: true }); // Second on to delete
-          cy.wait(1000);
           cy.get(this.teamPage.modalDeleteTeam)
             .find(this.teamPage.confirmDeleteTeam)
             .scrollIntoView()
             .click({ force: true });
-          cy.wait(2000);
           i++;
           n++;
         }

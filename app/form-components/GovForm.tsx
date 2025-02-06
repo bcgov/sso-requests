@@ -1,6 +1,5 @@
-import Form from '@rjsf/core';
+import Form, { FormProps } from '@rjsf/core';
 import omit from 'lodash.omit';
-import { FormProps } from 'react-jsonschema-form';
 import Input from '@button-inc/bcgov-theme/Input';
 import Textarea from '@button-inc/bcgov-theme/Textarea';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
@@ -26,6 +25,7 @@ export default function GovForm(props: FormProps<any> & { children: React.ReactN
       noHtml5Validate
       ErrorList={() => null}
       transformErrors={transformErrors}
+      showErrorList={false}
     />
   );
 }

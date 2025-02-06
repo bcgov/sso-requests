@@ -67,7 +67,6 @@ describe('SSO Tests', () => {
         });
 
         cy.visit(playground.path);
-        cy.wait(2000);
 
         playground.fillInPlayground(
           null,
@@ -77,11 +76,9 @@ describe('SSO Tests', () => {
         );
 
         playground.clickLogin();
-        cy.wait(2000);
 
         if (!data.single_idp_1) {
           cy.get('#social-' + data.idp_hint_1, { timeout: 10000 }).click({ force: true });
-          cy.wait(2000);
         }
 
         // Log in
@@ -105,10 +102,7 @@ describe('SSO Tests', () => {
           cy.clearCookie(cookieName, { domain });
         });
 
-        cy.wait(1000);
-
         cy.visit(playground.path);
-        cy.wait(2000);
 
         playground.fillInPlayground(
           null,
@@ -118,7 +112,6 @@ describe('SSO Tests', () => {
         );
 
         playground.clickLogin();
-        cy.wait(2000);
 
         if (data.result_2 && data.single_idp_2) {
           // This tells of a succesfull log in and that the session is attached to the user
@@ -126,7 +119,6 @@ describe('SSO Tests', () => {
         } else {
           if (!data.single_idp_2) {
             cy.get('#social-' + data.idp_hint_2, { timeout: 10000 }).click({ force: true });
-            cy.wait(2000);
             if (data.result_2) {
               // This tells of a succesfull log in and that the session is attached to the user
               cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
@@ -146,7 +138,6 @@ describe('SSO Tests', () => {
             cy.get('#kc-error-message > p').contains(data.error_2);
           }
         }
-        cy.wait(5000);
         // This tells of a succesfull log in and that the session is attached to the user
         if (data.result_2) {
           // This tells of a succesfull log in and that the session is attached to the user

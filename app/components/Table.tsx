@@ -446,7 +446,7 @@ function Table({
                   );
                 })
               ) : (
-                <tr>
+                <tr key={'no-data-found'}>
                   <td colSpan={10}>{noDataFoundElement}</td>
                 </tr>
               )}

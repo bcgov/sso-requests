@@ -1,23 +1,21 @@
-import { WidgetProps } from 'react-jsonschema-form';
-import { JSONSchema6 } from 'json-schema';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import { useState } from 'react';
 import styled from 'styled-components';
 import Link from '@button-inc/bcgov-theme/Link';
+import { WidgetProps } from '@rjsf/utils/lib/types';
 
 const BcscAttributeInfo = styled.p`
   margin-top: 0.5rem;
 `;
 
 function BcscAttributesWidget(props: WidgetProps) {
-  const { id, disabled, options, value, autofocus = false, readonly, onChange, schema, rawErrors } = props;
-  const { enumOptions, enumDisabled, enumHidden, inline = false } = options;
-  const { tooltips } = schema as JSONSchema6 & { tooltips: any[] };
+  const { disabled, options, value, onChange } = props;
+  const { enumOptions } = options;
   const eOptions = Array.isArray(enumOptions) ? enumOptions : [];
   const [attributes, setAttributes] = useState<string[]>(value);
 
   const handleAttributeChange = async (
-    newValue: MultiValue<{ value: string; label: string }>,
+    _newValue: MultiValue<{ value: string; label: string }>,
     actionMeta: ActionMeta<{
       value: string;
       label: string;

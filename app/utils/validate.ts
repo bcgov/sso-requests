@@ -1,8 +1,7 @@
-import { FormValidation } from 'react-jsonschema-form';
-import validate from 'react-jsonschema-form/lib/validate';
 import { Integration } from '@app/interfaces/Request';
 import { preservedClaims } from './constants';
 import { usesDigitalCredential } from '@app/helpers/integration';
+import validator from '@rjsf/validator-ajv8';
 
 const isValidKeycloakURI = (isProd: boolean, uri: string) => {
   try {
@@ -28,7 +27,8 @@ export const isValidKeycloakURIProd = isValidKeycloakURI.bind(null, true);
 const validationMessage = 'Please enter a valid URI';
 export const MAX_IDLE_SECONDS = 30 * 60;
 export const MAX_LIFETIME_SECONDS = 600 * 60;
-export const customValidate = (formData: any, errors: FormValidation, fields?: string[]) => {
+
+export const customValidate = (formData: any, errors: any, uiSchema: any, fields?: any) => {
   const {
     projectName = '',
     devValidRedirectUris = [],
@@ -89,7 +89,9 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
     prodSessionMaxLifespan: sessionMaxLifespan(prodSessionMaxLifespan, 'prodSessionMaxLifespan'),
     devValidRedirectUris: () => {
       const isAllValid = devValidRedirectUris.every(isValidKeycloakURIDev);
-      if (!isAllValid) validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURIDev);
+      if (!isAllValid) {
+        validateArrayFields(devValidRedirectUris, errors, 'devValidRedirectUris', isValidKeycloakURIDev);
+      }
     },
     testValidRedirectUris: () => {
       if (environments.includes('test')) {
@@ -189,7 +191,7 @@ export const customValidate = (formData: any, errors: FormValidation, fields?: s
 };
 export const createCustomValidate = (fields: string[]) => {
   return function (formData: any, errors: any) {
-    return customValidate(formData, errors, fields);
+    return customValidate(formData, errors, {}, fields);
   };
 };
 const validateArrayFields = (arrayValues: any, errors: any, key: string, func: (val: string) => boolean) => {
@@ -205,16 +207,16 @@ const validateArrayFields = (arrayValues: any, errors: any, key: string, func: (
   });
 };
 export const validateForm = (formData: Integration, schemas: any[], visited?: any) => {
-  const errors: any = {};
+  const stepErrors: any = {};
   schemas.forEach((schema, i) => {
     if (visited && !visited[i]) return;
     const hasCustomValidation = schema.customValidation && schema?.customValidation.length > 0;
-    const { errors: err } = validate(
+    const { errors: err } = validator.validateFormData(
       formData,
       schema,
       hasCustomValidation ? createCustomValidate(schema.customValidation) : undefined,
     );
-    if (err.length > 0) errors[i] = err;
+    if (err.length > 0) stepErrors[i] = err;
   });
-  return errors;
+  return stepErrors;
 };

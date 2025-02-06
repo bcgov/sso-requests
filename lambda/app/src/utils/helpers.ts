@@ -62,7 +62,6 @@ export const processRequest = (session: Session, data: Integration, isMerged: bo
 
   if (isMerged) {
     immutableFields.push('realm');
-    if (data?.protocol === 'saml') immutableFields.push('projectName');
   }
 
   if (!isAdminUser) {

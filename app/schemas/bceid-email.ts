@@ -1,4 +1,4 @@
-import { JSONSchema6 } from 'json-schema';
+import { RJSFSchema } from '@rjsf/utils';
 
 export default {
   type: 'object',
@@ -21,4 +21,4 @@ export default {
       fullWidth: true,
     },
   },
-} as JSONSchema6;
+} as RJSFSchema;

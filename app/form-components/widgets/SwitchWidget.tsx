@@ -1,6 +1,6 @@
-import { WidgetProps } from 'react-jsonschema-form';
 import Switch from 'react-switch';
 import { useState } from 'react';
+import { WidgetProps } from '@rjsf/utils/lib/types';
 
 function SwitchWidget(props: WidgetProps) {
   const { id, disabled, value, readonly, onChange } = props;

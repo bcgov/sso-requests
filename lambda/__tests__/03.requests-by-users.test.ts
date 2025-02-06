@@ -233,47 +233,6 @@ describe('create/manage integration by authenticated user', () => {
       );
       expect(updateIntegrationRes.status).toEqual(422);
     });
-
-    it('should not allow to update project name of a saml integration in submitted state', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      let integrationRes = await createIntegration(
-        getCreateIntegrationData({
-          projectName: 'Project name at draft',
-        }),
-      );
-
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
-      expect(integration.status).toEqual('draft');
-
-      let updateIntegrationRes = await updateIntegration(
-        getUpdateIntegrationData({
-          projectName: 'Project name before submit',
-          integration,
-          identityProviders: ['idir'],
-          envs: ['dev', 'test', 'prod'],
-          protocol: 'saml',
-        }),
-        true,
-      );
-
-      expect(updateIntegrationRes.status).toEqual(200);
-      integration = updateIntegrationRes.body;
-      expect(integration.status).toEqual('applied');
-
-      const projNameAfterApplied = 'Project name after applied';
-
-      updateIntegrationRes = await updateIntegration(
-        getUpdateIntegrationData({
-          projectName: projNameAfterApplied,
-          integration,
-        }),
-        true,
-      );
-      expect(updateIntegrationRes.status).toEqual(200);
-      integration = updateIntegrationRes.body;
-      expect(integration.projectName).not.toEqual(projNameAfterApplied);
-    });
   } catch (err) {
     console.error('EXCEPTION: ', err);
   }

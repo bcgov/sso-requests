@@ -1,5 +1,4 @@
 import isNil from 'lodash.isnil';
-import { JSONSchema6 } from 'json-schema';
 import getRequesterInfoSchema from '@app/schemas/requester-info';
 import termsAndConditionsSchema from '@app/schemas/terms-and-conditions';
 import getProvidersGoldSchema from '@app/schemas/providers-gold';
@@ -8,8 +7,9 @@ import getReviewSubmitSchema from '@app/schemas/review-submit';
 import { Team } from '@app/interfaces/team';
 import { Integration } from '@app/interfaces/Request';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
+import { RJSFSchema } from '@rjsf/utils';
 
-export interface Schema extends JSONSchema6 {
+export interface Schema extends RJSFSchema {
   customValidation?: string[];
   headerText: string;
   stepText: string;

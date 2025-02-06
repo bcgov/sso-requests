@@ -40,7 +40,6 @@ describe('Run IDP Stopper Test', () => {
         let playground = new Playground();
 
         cy.visit(playground.path);
-        cy.wait(2000);
 
         playground.fillInPlayground(
           null,
