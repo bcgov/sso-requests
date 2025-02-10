@@ -25,7 +25,7 @@ resource "aws_lambda_function" "app" {
       APP_ENV                    = var.app_env
       NODE_ENV                   = "production"
       LOCAL_DEV                  = var.local_dev
-      DB_HOSTNAME                = module.db.this_rds_cluster_endpoint
+      DB_HOSTNAME                = module.db.cluster_endpoint
       DB_USERNAME                = var.db_username
       DB_PASSWORD                = random_password.db_password.result
       DB_NAME                    = var.db_name
