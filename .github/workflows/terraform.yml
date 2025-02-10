@@ -77,6 +77,11 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
 
+          REQUEST_QUEUE_RATE=rate(24 hours)
+          RDS_MAX_CAPACITY=1
+          RDS_MIN_CAPACITY=0
+          RDS_SCALE_DOWN_TIME=300
+
           EOF
 
       - name: Set env to test
@@ -130,6 +135,11 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
 
+          REQUEST_QUEUE_RATE=rate(24 hours)
+          RDS_MAX_CAPACITY=1
+          RDS_MIN_CAPACITY=0
+          RDS_SCALE_DOWN_TIME=300
+
           EOF
 
       - name: Set env to production
@@ -182,6 +192,11 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_DEV=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_PROD}}
+
+          REQUEST_QUEUE_RATE=rate(5 minutes)
+          RDS_MAX_CAPACITY=2
+          RDS_MIN_CAPACITY=0.5
+          RDS_SCALE_DOWN_TIME=1800
 
           EOF
 
@@ -323,6 +338,11 @@ jobs:
           bcsc_registration_base_url_dev="${{env.BCSC_REGISTRATION_BASE_URL_DEV}}"
           bcsc_registration_base_url_test="${{env.BCSC_REGISTRATION_BASE_URL_TEST}}"
           bcsc_registration_base_url_prod="${{env.BCSC_REGISTRATION_BASE_URL_PROD}}"
+
+          request_queue_rate="${{env.REQUEST_QUEUE_RATE}}"
+          rds_max_capacity="${{env.RDS_MAX_CAPACITY}}"
+          rds_min_capacity="${{env.RDS_MIN_CAPACITY}}"
+          rds_scale_down_time="${{env.RDS_SCALE_DOWN_TIME}}"
           EOF
 
         working-directory: ./terraform
