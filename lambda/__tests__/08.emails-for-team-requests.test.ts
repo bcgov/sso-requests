@@ -19,6 +19,24 @@ import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { generateInvitationToken } from '@lambda-app/helpers/token';
 
+jest.mock('@lambda-app/controllers/bc-services-card', () => {
+  return {
+    getPrivacyZones: jest.fn(() => Promise.resolve([{ privacy_zone_uri: 'zone1', privacy_zone_name: 'zone1' }])),
+    getAttributes: jest.fn(() =>
+      Promise.resolve([
+        {
+          name: 'age',
+          scope: 'profile',
+        },
+        {
+          name: 'postal_code',
+          scope: 'address',
+        },
+      ]),
+    ),
+  };
+});
+
 jest.mock('../app/src/keycloak/integration', () => {
   const original = jest.requireActual('../app/src/keycloak/integration');
   return {
@@ -458,6 +476,40 @@ describe('integration email updates for teams', () => {
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc.length).toEqual(2);
       expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
+    });
+
+    it('should render the expected template after removing bc services card idp from prod integration', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const projectName: string = 'Remove BCSC IDP Prod';
+      let integrationRes = await buildIntegration({
+        projectName,
+        bceid: true,
+        prodEnv: true,
+        submitted: true,
+        bcServicesCard: true,
+        teamId,
+      });
+      expect(integrationRes.status).toEqual(200);
+      integration = integrationRes.body;
+
+      emailList = createMockSendEmail();
+
+      let updateIntegrationRes = await updateIntegration(
+        getUpdateIntegrationData({
+          integration,
+          identityProviders: ['azureidir', 'bceidbasic'],
+        }),
+        true,
+      );
+      expect(updateIntegrationRes.status).toEqual(200);
+
+      const template = await renderTemplate(EMAILS.DISABLE_BCSC_IDP, {
+        integration,
+      });
+
+      expect(emailList.length).toEqual(3);
+      expect(emailList[0].subject).toEqual(template.subject);
+      expect(emailList[0].body).toEqual(template.body);
     });
   } catch (err) {
     console.error('EXCEPTION: ', err);
