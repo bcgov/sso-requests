@@ -1069,7 +1069,8 @@ exports[`Email template snapshots Should return the expected email for DISABLE_B
 <strong>Client Name: </strong>test<br />
 <strong>Submitted by: </strong>SSO Admin<br />
 <strong>Privacy Zone: </strong>zone<br />
-<strong>Attributes: </strong>given_name,given_names<br /> <p>
+<strong>Attributes: </strong>given_name,given_names<br />
+ <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1078,6 +1079,7 @@ exports[`Email template snapshots Should return the expected email for DISABLE_B
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
 </p>
 <p>Thank you.<br />Pathfinder SSO Team</p>
+
 "
 `;
 
