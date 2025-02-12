@@ -372,4 +372,17 @@ describe('Email template snapshots', () => {
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
   });
+
+  it('Should return the expected email for DISABLE_BCSC_IDP', async () => {
+    const rendered = await renderTemplate(EMAILS.DISABLE_BCSC_IDP, {
+      integration: {
+        ...formDataProd,
+        bcscAttributes: ['given_name', 'given_names'],
+        bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
+      },
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
 });

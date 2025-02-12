@@ -56,7 +56,7 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
         if (checkGithubGroup(idp)) {
           idpDisabled.push('githubpublic', 'githubbcgov');
         }
-        if (idp === 'bcservicescard') idpDisabled.push('bcservicescard');
+        if (idp === 'bcservicescard' && bcServicesCardApproved) idpDisabled.push('bcservicescard');
       });
     }
 

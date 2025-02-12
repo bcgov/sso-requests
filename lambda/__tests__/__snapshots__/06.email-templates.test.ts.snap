@@ -1058,6 +1058,29 @@ exports[`Email template snapshots Should return the expected email for DELETE_IN
 "
 `;
 
+exports[`Email template snapshots Should return the expected email for DISABLE_BCSC_IDP 1`] = `"[DEV] BC Services Card integration disabled for Client (test)"`;
+
+exports[`Email template snapshots Should return the expected email for DISABLE_BCSC_IDP 2`] = `
+"<h3>Hello Team,</h3>
+<p>
+  We would like to inform you that the BCSC IDP has been disabled for the below integration in production environment.
+</p>
+<strong>SSO Integration ID: </strong>1<br />
+<strong>Client Name: </strong>test<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>Privacy Zone: </strong>zone<br />
+<strong>Attributes: </strong>given_name,given_names<br /> <p>
+  If you have any questions, please contact us by
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+"
+`;
+
 exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ BC Services Card 1`] = `"[DEV] BC Services Card Request ID 1 approved and being processed (email 1 of 2)"`;
 
 exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ BC Services Card 2`] = `

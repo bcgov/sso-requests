@@ -628,6 +628,9 @@ export const updateRequest = async (
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
       const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
 
+      const removingBcscIdp =
+        originalData.devIdps.includes('bcservicescard') && !current.devIdps.includes('bcservicescard');
+
       current.requester = await getRequester(session, current.id);
 
       finalData = getCurrentValue();
@@ -660,6 +663,13 @@ export const updateRequest = async (
               waitingBcServicesCardProdApproval,
               addingProd,
             },
+          });
+        }
+
+        if (removingBcscIdp) {
+          emails.push({
+            code: EMAILS.DISABLE_BCSC_IDP,
+            data: { integration: finalData },
           });
         }
       } else {
