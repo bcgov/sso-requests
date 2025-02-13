@@ -23,6 +23,7 @@ import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
 import { isNonProdDigitalCredentialRequest } from './helpers';
+import disableBcscIdp from './disable-bcsc-idp';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
@@ -38,6 +39,7 @@ const applyBceidBottom = readTemplate('apply-bceid-bottom');
 const applyBcServicesCardBottom = readTemplate('apply-bc-services-card-bottom');
 const applyGithubBottom = readTemplate('apply-github-bottom');
 const integrationDetail = readTemplate('integration-detail');
+const bcscClientDetail = readTemplate('bcsc-client-detail');
 const dashboardLogin = readTemplate('dashboard-login');
 const processingTime = readTemplate('processing-time');
 const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
@@ -84,6 +86,7 @@ Handlebars.registerPartial('applyBceidBottom', applyBceidBottom);
 Handlebars.registerPartial('applyGithubBottom', applyGithubBottom);
 Handlebars.registerPartial('applyBcServicesCardBottom', applyBcServicesCardBottom);
 Handlebars.registerPartial('integrationDetail', integrationDetail);
+Handlebars.registerPartial('bcscClientDetail', bcscClientDetail);
 Handlebars.registerPartial('dashboardLogin', dashboardLogin);
 Handlebars.registerPartial('processingTime', processingTime);
 Handlebars.registerPartial('ssoUpdatesMailingListMessage', ssoUpdatesMailingListMessage);
@@ -154,6 +157,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.ORPHAN_INTEGRATION:
       builder = orphanIntegration;
+      break;
+    case EMAILS.DISABLE_BCSC_IDP:
+      builder = disableBcscIdp;
       break;
     default:
       break;
