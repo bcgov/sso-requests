@@ -21,21 +21,13 @@ jobs:
           restore-keys: ${{ runner.os }}-yarn-
 
       - name: Install asdf
-        uses: asdf-vm/actions/setup@v3
+        uses: asdf-vm/actions/install@v3
       - name: Cache asdf tools
         uses: actions/cache@v4
         with:
           path: |
             /home/runner/.asdf
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
-
-      - name: Install required tools
-        run: |
-          sudo apt install uuid uuid-dev
-          cat .tool-versions | cut -f 1 -d ' ' | xargs -n 1 asdf plugin-add || true
-          asdf plugin-update --all
-          asdf install
-          asdf reshim
 
       - name: Rerun Pre-Commit Hooks on CI
         run: |
