@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "docker-build": "next build && next start",
+    "docker-build": "next build && npx --yes serve out",
     "jest-preview": "jest-preview"
   },
   "dependencies": {
