@@ -90,6 +90,7 @@ jobs:
         run: |
           yarn
           yarn build
+          yarn export
           touch ./out/.nojekyll
         working-directory: ./app
 
