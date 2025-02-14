@@ -2,7 +2,6 @@ const APP_URL = process.env.APP_URL || '';
 const BASE_PATH = process.env.APP_BASE_PATH || '';
 
 module.exports = {
-  output: 'export',
   reactStrictMode: true,
   serverRuntimeConfig: {},
   publicRuntimeConfig: {
