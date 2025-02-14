@@ -24,7 +24,7 @@ env:
 jobs:
   terraform:
     permissions: write-all
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set env to development
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
