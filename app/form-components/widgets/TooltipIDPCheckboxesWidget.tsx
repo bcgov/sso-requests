@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import InfoOverlay from 'components/InfoOverlay';
 import styled from 'styled-components';
 import { SECONDARY_BLUE } from 'styles/theme';
-import { WidgetProps } from '@rjsf/utils/lib/types';
+import { RJSFSchema, WidgetProps } from '@rjsf/utils/lib/types';
 import { filterIdps } from '../FormTemplate';
 import isEqual from 'lodash/isEqual';
 
@@ -36,7 +36,10 @@ function deselectValue(value: string, selected: string[]) {
 function TooltipIDPCheckboxesWidget(props: WidgetProps) {
   const { id, disabled, options, value, autofocus = false, readonly, onChange, schema } = props;
   const { enumOptions, enumDisabled, enumHidden, inline = false } = options;
-  const { tooltips, warningMessage } = schema as any & { tooltips: any[]; warningMessage: string };
+  const { tooltips, warningMessage } = schema as RJSFSchema & {
+    tooltips: { content: string; hide?: number; alpha?: boolean }[];
+    warningMessage: string;
+  };
 
   const eOptions = Array.isArray(enumOptions) ? enumOptions : [];
   const eDisabled = Array.isArray(enumDisabled) ? enumDisabled : [];
@@ -97,13 +100,13 @@ function TooltipIDPCheckboxesWidget(props: WidgetProps) {
 
         if (inline) {
           return (
-            <label key={index} className={classes}>
+            <label key={option.value} className={classes}>
               {checkbox}
             </label>
           );
         } else {
           return (
-            <div key={index} className={classes}>
+            <div key={option.value} className={classes}>
               <label>{checkbox}</label>
             </div>
           );
