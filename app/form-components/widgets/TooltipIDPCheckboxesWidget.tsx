@@ -20,12 +20,9 @@ const WarningText = styled.p`
   margin-top: 0.2em;
 `;
 
-// https://github.com/rjsf-team/react-jsonschema-form/blob/master/packages/core/src/components/widgets/CheckboxesWidget.js
 function selectValue(value: string, selected: string[], all: string[]) {
   const at = all.indexOf(value);
   const updated = selected.slice(0, at).concat(value, selected.slice(at));
-  // As inserting values at predefined index positions doesn't work with empty
-  // arrays, we need to reorder the updated selection to match the initial order
   return updated.sort((a, b) => all.indexOf(a) - all.indexOf(b));
 }
 
@@ -33,7 +30,10 @@ function deselectValue(value: string, selected: string[]) {
   return selected.filter((v) => v !== value);
 }
 
-function TooltipCheckboxesWidget(props: WidgetProps) {
+/**
+ * Customized checkboxes widget for IDP selection. For a generic checkboxes example see https://github.com/rjsf-team/react-jsonschema-form/blob/main/packages/core/src/components/widgets/CheckboxesWidget.tsx
+ */
+function TooltipIDPCheckboxesWidget(props: WidgetProps) {
   const { id, disabled, options, value, autofocus = false, readonly, onChange, schema } = props;
   const { enumOptions, enumDisabled, enumHidden, inline = false } = options;
   const { tooltips, warningMessage } = schema as any & { tooltips: any[]; warningMessage: string };
@@ -114,4 +114,4 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
   );
 }
 
-export default TooltipCheckboxesWidget;
+export default TooltipIDPCheckboxesWidget;
