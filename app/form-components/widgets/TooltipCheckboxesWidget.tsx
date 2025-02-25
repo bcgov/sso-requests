@@ -4,6 +4,8 @@ import InfoOverlay from 'components/InfoOverlay';
 import styled from 'styled-components';
 import { SECONDARY_BLUE } from 'styles/theme';
 import { WidgetProps } from '@rjsf/utils/lib/types';
+import { filterIdps } from '../FormTemplate';
+import isEqual from 'lodash/isEqual';
 
 const AlphaTag = styled.span`
   background: ${SECONDARY_BLUE};
@@ -39,6 +41,7 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
   const eOptions = Array.isArray(enumOptions) ? enumOptions : [];
   const eDisabled = Array.isArray(enumDisabled) ? enumDisabled : [];
   const eHidden = Array.isArray(enumHidden) ? enumHidden : [];
+  const formData = props.formContext.formData;
 
   return (
     <div className="checkboxes" id={id}>
@@ -58,9 +61,23 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
               onChange={(event) => {
                 const all = eOptions.map(({ value }) => value);
                 if (event.target.checked) {
-                  onChange(selectValue(option.value, value, all));
+                  const newIdps = filterIdps(
+                    formData.devIdps,
+                    formData.devIdps.concat(option.value),
+                    formData.status === 'applied',
+                    formData.bceidApproved,
+                    formData.protocol,
+                  );
+                  if (!isEqual(formData.devIdps, newIdps)) onChange(selectValue(option.value, value, all));
                 } else {
-                  onChange(deselectValue(option.value, value));
+                  const newIdps = filterIdps(
+                    formData.devIdps,
+                    formData.devIdps.filter((idp: string) => idp !== option.value),
+                    formData.status === 'applied',
+                    formData.bceidApproved,
+                    formData.protocol,
+                  );
+                  if (!isEqual(formData.devIdps, newIdps)) onChange(deselectValue(option.value, value));
                 }
               }}
             />

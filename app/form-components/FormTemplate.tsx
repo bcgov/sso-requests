@@ -55,7 +55,7 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
-const filterIdps = (
+export const filterIdps = (
   currentIdps: string[] = [],
   updatedIdps: string[] = [],
   applied = true,
