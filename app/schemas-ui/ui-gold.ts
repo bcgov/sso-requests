@@ -4,7 +4,7 @@ import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';
 import TooltipRadioWidget from '@app/form-components/widgets/TooltipRadioWidget';
-import TooltipCheckboxesWidget from '@app/form-components/widgets/TooltipCheckboxesWidget';
+import TooltipIDPCheckboxesWidget from '@app/form-components/widgets/TooltipIDPCheckboxesWidget';
 import FieldTermsAndConditions from '@app/form-components/FieldTermsAndConditions';
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
@@ -208,7 +208,7 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
       'ui:enumNames': ['Browser Login', 'Service Account', 'Browser Login and Service Account'],
     },
     devIdps: {
-      'ui:widget': TooltipCheckboxesWidget,
+      'ui:widget': TooltipIDPCheckboxesWidget,
       'ui:enumDisabled': idpDisabled,
       'ui:enumHidden': idpHidden,
       'ui:enumNames': schemas[1]?.properties?.devIdps?.items?.enum.map((idp: string) => idpMap[idp]) || [],

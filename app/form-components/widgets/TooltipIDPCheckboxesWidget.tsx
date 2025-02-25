@@ -3,7 +3,9 @@ import clsx from 'clsx';
 import InfoOverlay from 'components/InfoOverlay';
 import styled from 'styled-components';
 import { SECONDARY_BLUE } from 'styles/theme';
-import { WidgetProps } from '@rjsf/utils/lib/types';
+import { RJSFSchema, WidgetProps } from '@rjsf/utils/lib/types';
+import { filterIdps } from '../FormTemplate';
+import isEqual from 'lodash/isEqual';
 
 const AlphaTag = styled.span`
   background: ${SECONDARY_BLUE};
@@ -18,12 +20,9 @@ const WarningText = styled.p`
   margin-top: 0.2em;
 `;
 
-// https://github.com/rjsf-team/react-jsonschema-form/blob/master/packages/core/src/components/widgets/CheckboxesWidget.js
 function selectValue(value: string, selected: string[], all: string[]) {
   const at = all.indexOf(value);
   const updated = selected.slice(0, at).concat(value, selected.slice(at));
-  // As inserting values at predefined index positions doesn't work with empty
-  // arrays, we need to reorder the updated selection to match the initial order
   return updated.sort((a, b) => all.indexOf(a) - all.indexOf(b));
 }
 
@@ -31,14 +30,21 @@ function deselectValue(value: string, selected: string[]) {
   return selected.filter((v) => v !== value);
 }
 
-function TooltipCheckboxesWidget(props: WidgetProps) {
+/**
+ * Customized checkboxes widget for IDP selection. For a generic checkboxes example see https://github.com/rjsf-team/react-jsonschema-form/blob/main/packages/core/src/components/widgets/CheckboxesWidget.tsx
+ */
+function TooltipIDPCheckboxesWidget(props: WidgetProps) {
   const { id, disabled, options, value, autofocus = false, readonly, onChange, schema } = props;
   const { enumOptions, enumDisabled, enumHidden, inline = false } = options;
-  const { tooltips, warningMessage } = schema as any & { tooltips: any[]; warningMessage: string };
+  const { tooltips, warningMessage } = schema as RJSFSchema & {
+    tooltips: { content: string; hide?: number; alpha?: boolean }[];
+    warningMessage: string;
+  };
 
   const eOptions = Array.isArray(enumOptions) ? enumOptions : [];
   const eDisabled = Array.isArray(enumDisabled) ? enumDisabled : [];
   const eHidden = Array.isArray(enumHidden) ? enumHidden : [];
+  const formData = props.formContext.formData;
 
   return (
     <div className="checkboxes" id={id}>
@@ -58,9 +64,23 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
               onChange={(event) => {
                 const all = eOptions.map(({ value }) => value);
                 if (event.target.checked) {
-                  onChange(selectValue(option.value, value, all));
+                  const newIdps = filterIdps(
+                    formData.devIdps,
+                    formData.devIdps.concat(option.value),
+                    formData.status === 'applied',
+                    formData.bceidApproved,
+                    formData.protocol,
+                  );
+                  if (!isEqual(formData.devIdps, newIdps)) onChange(selectValue(option.value, value, all));
                 } else {
-                  onChange(deselectValue(option.value, value));
+                  const newIdps = filterIdps(
+                    formData.devIdps,
+                    formData.devIdps.filter((idp: string) => idp !== option.value),
+                    formData.status === 'applied',
+                    formData.bceidApproved,
+                    formData.protocol,
+                  );
+                  if (!isEqual(formData.devIdps, newIdps)) onChange(deselectValue(option.value, value));
                 }
               }}
             />
@@ -80,13 +100,13 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
 
         if (inline) {
           return (
-            <label key={index} className={classes}>
+            <label key={option.value} className={classes}>
               {checkbox}
             </label>
           );
         } else {
           return (
-            <div key={index} className={classes}>
+            <div key={option.value} className={classes}>
               <label>{checkbox}</label>
             </div>
           );
@@ -97,4 +117,4 @@ function TooltipCheckboxesWidget(props: WidgetProps) {
   );
 }
 
-export default TooltipCheckboxesWidget;
+export default TooltipIDPCheckboxesWidget;
