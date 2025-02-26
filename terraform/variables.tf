@@ -247,3 +247,8 @@ variable "request_queue_rate" {
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule#argument-reference for formatting options.
   default = "rate(5 minutes)"
 }
+
+variable "bcsc_signing_algorithm" {
+  type    = string
+  default = "RS256"
+}

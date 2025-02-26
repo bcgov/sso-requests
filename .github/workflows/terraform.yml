@@ -82,6 +82,8 @@ jobs:
           RDS_MIN_CAPACITY=0
           RDS_SCALE_DOWN_TIME=300
 
+          BCSC_SIGNING_ALGORITHM=PS256
+
           EOF
 
       - name: Set env to test
@@ -140,6 +142,8 @@ jobs:
           RDS_MIN_CAPACITY=0
           RDS_SCALE_DOWN_TIME=300
 
+          BCSC_SIGNING_ALGORITHM=RS256
+
           EOF
 
       - name: Set env to production
@@ -197,6 +201,8 @@ jobs:
           RDS_MAX_CAPACITY=2
           RDS_MIN_CAPACITY=0.5
           RDS_SCALE_DOWN_TIME=1800
+
+          BCSC_SIGNING_ALGORITHM=RS256
 
           EOF
 
@@ -344,6 +350,7 @@ jobs:
           rds_max_capacity="${{env.RDS_MAX_CAPACITY}}"
           rds_min_capacity="${{env.RDS_MIN_CAPACITY}}"
           rds_scale_down_time="${{env.RDS_SCALE_DOWN_TIME}}"
+          bcsc_signing_algorithm="${{env.BCSC_SIGNING_ALGORITHM}}"
           EOF
 
         working-directory: ./terraform
