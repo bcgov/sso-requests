@@ -4,8 +4,6 @@ import InfoOverlay from 'components/InfoOverlay';
 import styled from 'styled-components';
 import { SECONDARY_BLUE } from 'styles/theme';
 import { RJSFSchema, WidgetProps } from '@rjsf/utils/lib/types';
-import { filterIdps } from '../FormTemplate';
-import isEqual from 'lodash/isEqual';
 
 const AlphaTag = styled.span`
   background: ${SECONDARY_BLUE};
@@ -64,23 +62,9 @@ function TooltipIDPCheckboxesWidget(props: WidgetProps) {
               onChange={(event) => {
                 const all = eOptions.map(({ value }) => value);
                 if (event.target.checked) {
-                  const newIdps = filterIdps(
-                    formData.devIdps,
-                    formData.devIdps.concat(option.value),
-                    formData.status === 'applied',
-                    formData.bceidApproved,
-                    formData.protocol,
-                  );
-                  if (!isEqual(formData.devIdps, newIdps)) onChange(selectValue(option.value, value, all));
+                  onChange(selectValue(option.value, value, all));
                 } else {
-                  const newIdps = filterIdps(
-                    formData.devIdps,
-                    formData.devIdps.filter((idp: string) => idp !== option.value),
-                    formData.status === 'applied',
-                    formData.bceidApproved,
-                    formData.protocol,
-                  );
-                  if (!isEqual(formData.devIdps, newIdps)) onChange(deselectValue(option.value, value));
+                  onChange(deselectValue(option.value, value));
                 }
               }}
             />
