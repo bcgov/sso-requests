@@ -549,7 +549,7 @@ describe('SAML', () => {
     expect(result).toEqual(false);
   });
 
-  it('allows removing bceid type once bceid is approved', () => {
+  it('prevents removing bceid type once bceid is approved', () => {
     const bceidApproved = true;
     let result = validateIDPs({
       currentIdps: ['bceidbusiness'],
@@ -559,7 +559,7 @@ describe('SAML', () => {
       protocol,
       bceidApproved,
     });
-    expect(result).toEqual(true);
+    expect(result).toEqual(false);
   });
 });
 
