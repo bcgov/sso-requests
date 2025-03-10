@@ -469,15 +469,9 @@ describe('Basic Info - Identity Providers', () => {
     expect(idpCheckboxMap['Basic BCeID']).not.toBeChecked();
     expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
     expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked();
-
-    // should not unselect all BCeID types
-    fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
-    expect(idpCheckboxMap['Basic BCeID']).not.toBeChecked();
-    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
-    await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).toBeChecked());
   });
 
-  it('should be freezed after BCeID approved', async () => {
+  it('Should disable alternative bceid options after approval', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -498,19 +492,13 @@ describe('Basic Info - Identity Providers', () => {
       if (elem) idpCheckboxMap[idpTitles[x]] = elem as HTMLInputElement;
     }
 
-    expect(idpCheckboxMap['Basic BCeID']).toBeDisabled();
+    expect(idpCheckboxMap['Basic BCeID']).not.toBeDisabled();
     expect(idpCheckboxMap['Business BCeID']).toBeDisabled();
     expect(idpCheckboxMap['Basic or Business BCeID']).toBeDisabled();
 
     expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
     expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
     expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked();
-
-    // should select another BCeID type
-    fireEvent.click(idpCheckboxMap['Basic or Business BCeID']);
-    expect(idpCheckboxMap['Basic BCeID']).toBeChecked();
-    expect(idpCheckboxMap['Business BCeID']).not.toBeChecked();
-    await waitFor(() => expect(idpCheckboxMap['Basic or Business BCeID']).not.toBeChecked());
   });
 
   it("Should only disable digital credential if it's a SAML integration", async () => {

@@ -43,6 +43,7 @@ import {
   bcscAttributes as defaultBcscAttributes,
 } from '@app/utils/constants';
 import validator from '@rjsf/validator-ajv8';
+import { validateIDPs } from '@app/utils/helpers';
 
 const Description = styled.p`
   margin: 0;
@@ -55,14 +56,39 @@ const HeaderContainer = styled.div`
   min-height: 150px;
 `;
 
-export const filterIdps = (
-  currentIdps: string[] = [],
-  updatedIdps: string[] = [],
+/**
+ * UI requirement to adjust the users idp selection for them. e.g. if they add bceidboth, to automatically remove any other bceid types.
+ */
+export const adjustIdps = ({
+  currentIdps,
+  updatedIdps,
   applied = true,
   bceidApproved = false,
   protocol = 'oidc',
-) => {
-  if (currentIdps.length === updatedIdps.length) return updatedIdps;
+  isAdmin = false,
+  githubApproved = false,
+  bcServicesCardApproved = false,
+}: {
+  currentIdps: string[];
+  updatedIdps: string[];
+  applied?: boolean;
+  bceidApproved?: boolean;
+  protocol?: string;
+  isAdmin?: boolean;
+  githubApproved?: boolean;
+  bcServicesCardApproved?: boolean;
+}) => {
+  const valid = validateIDPs({
+    currentIdps,
+    updatedIdps,
+    applied,
+    bceidApproved,
+    protocol,
+    isAdmin,
+    githubApproved,
+    bcServicesCardApproved,
+  });
+  if (valid) return updatedIdps;
 
   const idpAdded = currentIdps.length < updatedIdps.length;
   let idps = updatedIdps;
@@ -78,28 +104,12 @@ export const filterIdps = (
         idps.push(newIdp);
       }
     } else if (checkBceidGroup(newIdp)) {
-      if (applied && bceidApproved) idps = currentIdps;
-      else if (checkBceidRegularGroup(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidBoth);
+      if (checkBceidRegularGroup(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidBoth);
       else if (checkBceidBoth(newIdp)) idps = updatedIdps.filter(checkIdirGroupAndNotBceidRegularGroup);
     } else if (checkGithubGroup(newIdp)) idps = updatedIdps.filter(checkNotGithubGroup).concat(newIdp);
-  } else {
-    // once the integration is created (applied) and until approved,
-    // only allow to switch over to another BCeID type; prevent them from unselecting all BCeID types.
-    if (applied && !bceidApproved && currentIdps.some(checkBceidGroup) && !updatedIdps.some(checkBceidGroup)) {
-      idps = currentIdps;
-    }
   }
 
   return idps;
-};
-
-const checkHasNoBceidIdp = (arr: []) => {
-  if (arr === undefined || arr.length == 0) return true;
-  let result = true;
-  arr.map((idp: string) => {
-    if (idp.startsWith('bceid')) result = false;
-  });
-  return result;
 };
 
 const trimRedirectUris = (urls: string[], dropEmptyRedirectUris = false) => {
@@ -134,7 +144,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const router = useRouter();
   const { step } = router.query;
   const stage = step ? Number(step) : 0;
-  const [formData, setFormData] = useState((request || {}) as Integration);
+  const [formData, setFormData] = useState({
+    ...(request || {}),
+    isAdmin: currentUser.isAdmin || false,
+  } as Integration);
   const [formStage, setFormStage] = useState(stage);
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -180,21 +193,18 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const currentIdps = formData?.devIdps || [];
     const updatedIdps = newData.devIdps || [];
 
-    let devIdps = filterIdps(
+    const devIdps = adjustIdps({
       currentIdps,
       updatedIdps,
-      formData.status === 'applied',
-      formData.bceidApproved,
-      formData.protocol,
-    );
+      applied: formData.status === 'applied',
+      bceidApproved: formData.bceidApproved,
+      protocol: formData.protocol,
+      isAdmin: formData.isAdmin,
+      githubApproved: formData.githubApproved,
+    });
+    const processed = { ...newData, devIdps };
 
     const togglingTeamToTrue = !formData.usesTeam && newData.usesTeam === true;
-    const togglingBceidApprovedToFalse = newData.bceidApproved === true && checkHasNoBceidIdp(newData.devIdps);
-
-    if (formData.protocol !== newData.protocol && devIdps.length > 1) {
-      devIdps = [];
-    }
-    const processed = { ...newData, devIdps };
 
     if (newData.protocol !== 'saml') {
       if (formData.protocol !== newData.protocol) processed.clientId = '';
@@ -213,9 +223,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     if (togglingTeamToTrue) {
       if (processed.projectLead === true && !isNew) processed.projectLead = false;
     }
-
-    //to prevent the data integrity issue: case for admin role, one can remove bceid-related idps after prod been approved;
-    if (togglingBceidApprovedToFalse) processed.bceidApproved = false;
 
     setFormData(processed);
 
