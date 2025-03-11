@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import Handlebars = require('handlebars');
 import { processRequest } from '../helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';
-import { sendEmail } from '@lambda-shared/utils/ches';
+import { getReadableIntegrationDiff, sendEmail } from '@lambda-shared/utils/ches';
 import {
   SSO_EMAIL_ADDRESS,
   IDIM_EMAIL_ADDRESS,
@@ -30,11 +30,13 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   integration: IntegrationData;
   addingProd?: boolean;
+  changes?: any;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const data = { ...originalData, integration: await processRequest(integration) };
+  const readableDiff = getReadableIntegrationDiff(originalData.changes);
+  const data = { ...originalData, integration: await processRequest(integration), changes: readableDiff };
 
   return {
     subject: subjectHandler(data),
@@ -45,8 +47,12 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration, addingProd } = data;
   const emails = await getIntegrationEmails(integration);
+  const resettingBceidApproval = data.changes?.some(
+    (change) => change.path[0] === 'bceidApproved' && change.lhs === true && change.rhs === false,
+  );
   const cc = [SSO_EMAIL_ADDRESS];
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceidProd(integration) || usesBcServicesCardProd(integration) || resettingBceidApproval)
+    cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
   if (usesDigitalCredential(integration) && addingProd) {
     cc.push(DIT_EMAIL_ADDRESS);

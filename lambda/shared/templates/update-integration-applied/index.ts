@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import Handlebars = require('handlebars');
 import { processRequest } from '../helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';
-import { sendEmail } from '@lambda-shared/utils/ches';
+import { getReadableIntegrationDiff, sendEmail } from '@lambda-shared/utils/ches';
 import {
   SSO_EMAIL_ADDRESS,
   DIT_EMAIL_ADDRESS,
@@ -36,7 +36,8 @@ interface DataProps {
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const data = { ...originalData, integration: await processRequest(integration) };
+  const readableDiff = getReadableIntegrationDiff(integration.lastChanges);
+  const data = { ...originalData, integration: await processRequest(integration), changes: readableDiff };
 
   return {
     subject: subjectHandler(data),
@@ -48,8 +49,12 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration, addingProd } = data;
   const emails = await getIntegrationEmails(integration);
   const cc = [SSO_EMAIL_ADDRESS];
+  const resettingBceidApproval = data.integration.lastChanges?.some(
+    (change) => change.path[0] === 'bceidApproved' && change.lhs === true && change.rhs === false,
+  );
 
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceidProd(integration) || usesBcServicesCardProd(integration) || resettingBceidApproval)
+    cc.push(IDIM_EMAIL_ADDRESS);
   if (usesDigitalCredential(integration) && addingProd) cc.push(DIT_EMAIL_ADDRESS);
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);
 
