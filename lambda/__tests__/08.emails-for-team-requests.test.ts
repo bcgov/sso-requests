@@ -237,6 +237,7 @@ describe('integration email updates for teams', () => {
         integration,
         waitingBceidProdApproval: false,
         waitingGithubProdApproval: false,
+        changes: integration.lastChanges,
       });
 
       expect(emailList.length).toEqual(2);
@@ -277,6 +278,7 @@ describe('integration email updates for teams', () => {
         integration,
         waitingBceidProdApproval: true,
         waitingGithubProdApproval: false,
+        changes: integration.lastChanges,
       });
 
       expect(emailList.length).toEqual(2);
