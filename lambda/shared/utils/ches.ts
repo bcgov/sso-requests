@@ -305,8 +305,6 @@ export const getReadableIntegrationDiff = (diff?: any) => {
 
   let readableDiff = '';
   const arrayChanges: any = {};
-  idpMap;
-  envMap;
 
   diff.forEach((diff) => {
     if (!shownFields.includes(diff.path[0])) return;
@@ -346,8 +344,14 @@ export const getReadableIntegrationDiff = (diff?: any) => {
     const removed = values.old.filter((val) => !values.new.includes(val));
     const added = values.new.filter((val) => !values.old.includes(val));
     readableDiff += `<strong>${key}:</strong><br/>`;
-    if (removed.length) readableDiff += `Removed: <ul>${removed.map((val) => `<li>${val}</li>`).join('')}</ul>`;
-    if (added.length) readableDiff += `Added: <ul>${added.map((val) => `<li>${val}</li>`).join('')}</ul>`;
+    if (removed.length) {
+      const removedListItems = removed.map((val) => `<li>${val}</li>`).join('');
+      readableDiff += `Removed: <ul>${removedListItems}</ul>`;
+    }
+    if (added.length) {
+      const addedListItems = added.map((val) => `<li>${val}</li>`).join('');
+      readableDiff += `Added: <ul>${addedListItems}</ul>`;
+    }
   });
 
   return readableDiff;
