@@ -150,7 +150,7 @@ describe('integration email updates for individual users', () => {
     it('should cc the bceid team when removing bceid idps from a previously approved integration', async () => {
       // Setup a BCeID approved integration
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
-      const projectName: string = 'Non BCeID Apply';
+      const projectName: string = 'BCeID Apply';
       let integrationRes = await buildIntegration({ projectName, submitted: true, bceid: true, bceidApproved: true });
       expect(integrationRes.status).toEqual(200);
 
@@ -169,17 +169,23 @@ describe('integration email updates for individual users', () => {
     it('Should include the most recent changes in the submission and applied emails', async () => {
       // Setup a BCeID approved integration
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const projectName: string = 'Non BCeID Apply';
-      let integrationRes = await buildIntegration({ projectName, submitted: true, bceid: true, bceidApproved: true });
+      const originalProjectName: string = 'original project name';
+      let integrationRes = await buildIntegration({
+        projectName: originalProjectName,
+        submitted: true,
+        bceid: true,
+        bceidApproved: true,
+      });
       expect(integrationRes.status).toEqual(200);
 
       emailList = createMockSendEmail();
 
       // Remove BCeID to check new emails
-      await updateIntegration({ ...integrationRes.body, projectName: 'new project' }, true);
+      const newProjectName = 'new project';
+      await updateIntegration({ ...integrationRes.body, projectName: newProjectName }, true);
       expect(emailList.length).toBe(2);
       emailList.forEach((emailData) => {
-        expect(emailData.body.includes(`${integrationRes.body.projectName} => new project`)).toBeTruthy();
+        expect(emailData.body.includes(`${originalProjectName} => ${newProjectName}`)).toBeTruthy();
       });
     });
 
