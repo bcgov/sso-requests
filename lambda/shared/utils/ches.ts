@@ -297,23 +297,43 @@ const shownFields = [
 ];
 
 /**
+ * Basic type for deep-diffs. Library does not export types.
+ */
+interface Diff {
+  kind: string;
+  path: (string | number)[];
+  index?: number;
+  item?: Diff;
+  lhs: any;
+  rhs: any;
+}
+
+/**
  * Generate readable html to be used in the handlebars email template generator for integration updates.
  * @param diff A diff from the deep-diff library https://www.npmjs.com/package/deep-diff of integration changes.
  */
-export const getReadableIntegrationDiff = (diff?: any) => {
+export const getReadableIntegrationDiff = (diff?: Diff[]) => {
   if (!diff || !Array.isArray(diff)) return '';
 
   let readableDiff = '';
-  const arrayChanges: any = {};
+  // Object tracking array type changes to handle index-swapping. Saves list of removed and added values per key.
+  const arrayChanges: { [key: string]: { old: any[]; new: any[] } } = {};
 
   diff.forEach((diff) => {
-    if (!shownFields.includes(diff.path[0])) return;
+    const path = diff.path[0] as string;
+    if (!shownFields.includes(path)) return;
     const isArrayChange = diff.kind === 'A';
+    const isArrayEdit = diff.path.length > 1;
 
-    // Most recent changes are saved using the deep-diff npm library here: https://www.npmjs.com/package/deep-diff
-    // Array changes are based on index. To track index shifting saving new and old changes into a hash and filtering below.
-    if (isArrayChange) {
-      const { name, prevValue, newValue } = mapNames(diff.path[0], diff.item.lhs, diff.item.rhs);
+    if (isArrayChange || isArrayEdit) {
+      // Array edits are under item key, additions and deletions directly on object
+      const lhs = diff.item?.lhs ?? diff.lhs;
+      const rhs = diff.item?.rhs ?? diff.rhs;
+
+      // Map values to readable labels
+      const { name, prevValue, newValue } = mapNames(path, lhs, rhs);
+
+      // Add to changes if the key if exists, or create the key if not exists. Add conditionally since prev/old value may not exist if creating/deleting.
       if (arrayChanges.hasOwnProperty(name)) {
         prevValue && arrayChanges[name].old.push(prevValue);
         newValue && arrayChanges[name].new.push(newValue);
@@ -323,26 +343,18 @@ export const getReadableIntegrationDiff = (diff?: any) => {
           new: newValue ? [newValue] : [],
         };
       }
-    } else if (diff.path.length > 1) {
-      const { name, prevValue, newValue } = mapNames(diff.path[0], diff.lhs, diff.rhs);
-      if (arrayChanges.hasOwnProperty(name)) {
-        arrayChanges[name].new.push(newValue);
-        arrayChanges[name].old.push(prevValue);
-      } else {
-        arrayChanges[name] = {
-          old: [prevValue],
-          new: [newValue],
-        };
-      }
     } else {
-      const { name, prevValue, newValue } = mapNames(diff.path[0], diff.lhs, diff.rhs);
+      const { name, prevValue, newValue } = mapNames(path, diff.lhs, diff.rhs);
       readableDiff += `<strong>${startCase(name)}:</strong> ${prevValue} => ${newValue}<br/>`;
     }
   });
 
   Object.entries(arrayChanges).forEach(([key, values]: any) => {
+    // Filter out values that were both added and deleted to prevent double-listing swapped values
     const removed = values.old.filter((val) => !values.new.includes(val));
     const added = values.new.filter((val) => !values.old.includes(val));
+    if (!removed.length && !added.length) return;
+
     readableDiff += `<strong>${key}:</strong><br/>`;
     if (removed.length) {
       const removedListItems = removed.map((val) => `<li>${val}</li>`).join('');
