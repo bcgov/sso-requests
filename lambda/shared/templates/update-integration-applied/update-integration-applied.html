@@ -4,7 +4,9 @@
   {{/if}}
 </p>
 <p>Below is a summary of your integration request details:</p>
-{{> integrationDetail }} {{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if
-waitingGithubProdApproval}} {{> applyGithubBottom }} {{/if}}{{#if waitingBcServicesCardProdApproval}} {{>
-createBcServicesCardBottom }} {{/if}} {{> dashboardLogin }} {{> ssoUpdatesMailingListMessage }} {{#if
-(isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer }}
+{{> integrationDetail }} {{#if changes}}
+<p>Below is a summary of your changes:</p>
+{{changes}} {{/if}} {{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if waitingGithubProdApproval}}
+{{> applyGithubBottom }} {{/if}}{{#if waitingBcServicesCardProdApproval}} {{> createBcServicesCardBottom }} {{/if}} {{>
+dashboardLogin }} {{> ssoUpdatesMailingListMessage }} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
+digitalCredentialInfoContact }} {{/if}} {{> footer }}

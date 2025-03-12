@@ -192,6 +192,7 @@ describe('Email template snapshots', () => {
       integration: formDataDevTest,
       waitingBceidProdApproval: false,
       waitingGithubProdApproval: false,
+      changes: formDataProd.lastChanges,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -203,6 +204,7 @@ describe('Email template snapshots', () => {
       integration: formDataProd,
       waitingBceidProdApproval: true,
       waitingGithubProdApproval: false,
+      changes: formDataProd.lastChanges,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -214,6 +216,7 @@ describe('Email template snapshots', () => {
       integration: formDataProd,
       waitingBceidProdApproval: false,
       waitingGithubProdApproval: true,
+      changes: formDataProd.lastChanges,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -225,6 +228,7 @@ describe('Email template snapshots', () => {
       integration: formDataProd,
       waitingBceidProdApproval: true,
       waitingGithubProdApproval: true,
+      changes: formDataProd.lastChanges,
     });
 
     expect(rendered.subject).toMatchSnapshot();
@@ -239,6 +243,7 @@ describe('Email template snapshots', () => {
         testIdps: ['bcservicescard'],
         prodIdps: ['bcservicescard'],
         bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
+        changes: formDataProd.lastChanges,
       },
       waitingBcServicesCardProdApproval: true,
     });

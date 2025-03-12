@@ -561,6 +561,7 @@ export const updateRequest = async (
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
+    let changes = null;
 
     if (submit) {
       const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
@@ -620,6 +621,7 @@ export const updateRequest = async (
 
       finalData = getCurrentValue();
       const emails: { code: string; data: any }[] = [];
+      changes = getDifferences(finalData, originalData);
 
       // updating...
       if (isMerged) {
@@ -646,6 +648,7 @@ export const updateRequest = async (
               waitingBceidProdApproval,
               waitingGithubProdApproval,
               waitingBcServicesCardProdApproval,
+              changes,
               addingProd,
             },
           });
@@ -671,7 +674,6 @@ export const updateRequest = async (
       await sendTemplates(emails);
     }
 
-    const changes = getDifferences(finalData, originalData);
     current.lastChanges = changes || null;
     let updated = await current.save();
 

@@ -60,6 +60,10 @@ export const formDataDev: IntegrationData = {
     displayName: 'Test User',
     additionalEmail: '',
   },
+  lastChanges: [
+    { lhs: true, rhs: false, kind: 'E', path: ['bceidApproved'] },
+    { lhs: 'project-1', rhs: 'project-2', kind: 'E', path: ['projectName'] },
+  ],
 };
 
 export const formDataDevTest: IntegrationData = {
