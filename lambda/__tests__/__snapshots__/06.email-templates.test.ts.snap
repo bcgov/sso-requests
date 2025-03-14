@@ -1374,9 +1374,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   Your Pathfinder SSO change for integration ID 1 is approved. </p>
 
 <h4>Changes made:</h4>
-<blockquote>
-    <strong>Project Name:</strong> project-1 => project-2<br/>
-</blockquote>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
 <hr />
 
 <h4>Final details summary:</h4>
@@ -1396,7 +1394,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   </li>
 </ul>
 </blockquote>
-<hr /> 
+<hr />
   <p>
   Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
@@ -1433,9 +1431,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
 
 <h4>Changes made:</h4>
-<blockquote>
-    <strong>Project Name:</strong> project-1 => project-2<br/>
-</blockquote>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
 <hr />
 
 <h4>Final details summary:</h4>
@@ -1460,14 +1456,14 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
-</blockquote> 
+</blockquote>
 <hr />
 <p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-     <p>
+    <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1487,9 +1483,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
 
 <h4>Changes made:</h4>
-<blockquote>
-    <strong>Project Name:</strong> project-1 => project-2<br/>
-</blockquote>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
 <hr />
 
 <h4>Final details summary:</h4>
@@ -1520,14 +1514,14 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
-</blockquote> 
+</blockquote>
 <hr />
 <p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-   <strong>Next Steps for your integration with BCeID:</strong>
+  <strong>Next Steps for your integration with BCeID:</strong>
 <p>
   As you've requested an integration with BCeID, any production integration request requires you to work with the
   Identity and Information Management (IDIM) team.
@@ -1550,8 +1544,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     <div style="display: none">&nbsp;</div>
   </li>
 </ol>
-  
-<table border="0" width="100%" cellpadding="0" cellspacing="0">
+   <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
       style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
@@ -1608,9 +1601,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
 
 <h4>Changes made:</h4>
-<blockquote>
-    <strong>Project Name:</strong> project-1 => project-2<br/>
-</blockquote>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
 <hr />
 
 <h4>Final details summary:</h4>
@@ -1641,14 +1632,14 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
-</blockquote> 
+</blockquote>
 <hr />
 <p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-   <strong>Next Steps for your integration with BCeID:</strong>
+  <strong>Next Steps for your integration with BCeID:</strong>
 <p>
   As you've requested an integration with BCeID, any production integration request requires you to work with the
   Identity and Information Management (IDIM) team.
@@ -1691,9 +1682,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
 
 <h4>Changes made:</h4>
-<blockquote>
-    <strong>Project Name:</strong> project-1 => project-2<br/>
-</blockquote>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
 <hr />
 
 <h4>Final details summary:</h4>
@@ -1724,15 +1713,14 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
-</blockquote> 
+</blockquote>
 <hr />
 <p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-   
-<table border="0" width="100%" cellpadding="0" cellspacing="0">
+   <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
       style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
@@ -1819,14 +1807,14 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
-</blockquote> 
+</blockquote>
 <hr />
 <p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-    <table border="0" width="100%" cellpadding="0" cellspacing="0">
+   <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
       style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
