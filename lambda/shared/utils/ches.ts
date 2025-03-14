@@ -355,15 +355,16 @@ export const getReadableIntegrationDiff = (diff?: Diff[]) => {
     const added = values.new.filter((val) => !values.old.includes(val));
     if (!removed.length && !added.length) return;
 
-    readableDiff += `<strong>${key}:</strong><br/>`;
+    readableDiff += `<strong>${key}:</strong><br/><ul>`;
     if (removed.length) {
       const removedListItems = removed.map((val) => `<li>${val}</li>`).join('');
-      readableDiff += `Removed: <ul>${removedListItems}</ul>`;
+      readableDiff += `<li>Removed: <ul>${removedListItems}</ul></li>`;
     }
     if (added.length) {
       const addedListItems = added.map((val) => `<li>${val}</li>`).join('');
-      readableDiff += `Added: <ul>${addedListItems}</ul>`;
+      readableDiff += `<li>Added: <ul>${addedListItems}</ul></li>`;
     }
+    readableDiff += '</ul>';
   });
 
   return readableDiff;
