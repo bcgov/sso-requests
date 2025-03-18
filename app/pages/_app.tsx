@@ -197,8 +197,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   };
 
   const handleLogout = async () => {
+    const idToken = getTokens().id_token;
     removeTokens();
-    window.location.href = getEndSessionUrl();
+    if (idToken) window.location.href = getEndSessionUrl(idToken);
   };
 
   const surveyContext = useMemo(() => ({ setShowSurvey }), [user]);
