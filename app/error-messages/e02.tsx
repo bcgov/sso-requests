@@ -1,9 +1,16 @@
+import { getEndSessionUrl } from 'utils/openid';
+
 export function getTemplate() {
   const title = 'Failed to authenticate the user';
   const content = (
     <text transform="translate(228 245)" fill="#777" fontSize="18" fontFamily="OpenSans, Open Sans">
       <tspan x="0" y="0">
-        Please try refreshing your browser
+        Please try{' '}
+      </tspan>
+      <tspan fill="#006fc4">
+        <a href={getEndSessionUrl()} title="Clear Session">
+          clearing your token
+        </a>
       </tspan>
       <tspan>, and if the problem</tspan>
       <tspan x="0" y="26">

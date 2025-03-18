@@ -87,10 +87,11 @@ export const getAccessToken = async ({ code, state }: { code: string; state: str
   return axios(config).then((res) => res.data, console.error);
 };
 
-export const getEndSessionUrl = (idToken: string) => {
+export const getEndSessionUrl = (idToken?: string) => {
   const params = {
     post_logout_redirect_uri: sso_redirect_uri,
     id_token_hint: idToken,
+    client_id: sso_client_id,
   };
 
   return `${meta.end_session_endpoint}?${qs.stringify(params, { encode: false })}`;
