@@ -68,6 +68,14 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, bo
 };
 
 /**
+ * Formatting for email to clearly indicate empty values on optional fields. Want to avoid falsy overrides e.g. 0
+ */
+const formatChangeString = (val: string) => {
+  if (val === '' || val === undefined || val === null) return '[null]';
+  return val;
+};
+
+/**
  * Map the request name and values to readable labels for email formatting.
  * @param name The key from request payload
  * @param prevValue The original value
@@ -76,13 +84,21 @@ export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, bo
 const mapNames = (name: string, prevValue: string, newValue: string) => {
   // Dev Settings
   if (name === 'devLoginTitle') {
-    return { name: 'Development Login Page Name', prevValue, newValue };
+    return {
+      name: 'Development Login Page Name',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   if (name === 'devDisplayHeaderTitle') {
     return { name: 'Development Display SSO Header Title', prevValue, newValue };
   }
   if (name === 'devHomePageUri') {
-    return { name: 'Development Home Page URI', prevValue, newValue };
+    return {
+      name: 'Development Home Page URI',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   if (name === 'devAccessTokenLifespan') {
     return { name: 'Development Access Token Lifespan', prevValue, newValue };
@@ -123,13 +139,21 @@ const mapNames = (name: string, prevValue: string, newValue: string) => {
 
   // Test
   if (name === 'testLoginTitle') {
-    return { name: 'Test Login Page Name', prevValue, newValue };
+    return {
+      name: 'Test Login Page Name',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   if (name === 'testDisplayHeaderTitle') {
     return { name: 'Test Display SSO Header Title', prevValue, newValue };
   }
   if (name === 'testHomePageUri') {
-    return { name: 'Test Home Page URI', prevValue, newValue };
+    return {
+      name: 'Test Home Page URI',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   if (name === 'testAccessTokenLifespan') {
     return { name: 'Test Access Token Lifespan', prevValue, newValue };
@@ -170,13 +194,21 @@ const mapNames = (name: string, prevValue: string, newValue: string) => {
 
   // Prod
   if (name === 'prodLoginTitle') {
-    return { name: 'Production Login Page Name', prevValue, newValue };
+    return {
+      name: 'Production Login Page Name',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   if (name === 'prodDisplayHeaderTitle') {
     return { name: 'Production Display SSO Header Title', prevValue, newValue };
   }
   if (name === 'prodHomePageUri') {
-    return { name: 'Production Home Page URI', prevValue, newValue };
+    return {
+      name: 'Production Home Page URI',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   if (name === 'prodAccessTokenLifespan') {
     return { name: 'Production Access Token Lifespan', prevValue, newValue };
@@ -217,10 +249,18 @@ const mapNames = (name: string, prevValue: string, newValue: string) => {
 
   // Global Settings
   if (name === 'bcscPrivacyZone') {
-    return { name: 'BC Services Card Privacy Zone', prevValue, newValue };
+    return {
+      name: 'BC Services Card Privacy Zone',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   if (name === 'bcscAttributes') {
-    return { name: 'BC Services Card Attributes', prevValue, newValue };
+    return {
+      name: 'BC Services Card Attributes',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   if (name === 'devIdps') {
     return { name: 'Identity Providers', prevValue: idpMap[prevValue], newValue: idpMap[newValue] };
@@ -236,6 +276,13 @@ const mapNames = (name: string, prevValue: string, newValue: string) => {
   }
   if (name === 'environments') {
     return { name: 'Environments', prevValue: envMap[prevValue], newValue: envMap[newValue] };
+  }
+  if (name === 'additionalRoleAttribute') {
+    return {
+      name: 'Additional Role Attrbitue',
+      prevValue: formatChangeString(prevValue),
+      newValue: formatChangeString(newValue),
+    };
   }
   return { name, prevValue, newValue };
 };
@@ -291,7 +338,6 @@ const shownFields = [
   'prodOfflineAccessEnabled',
   'bcscPrivacyZone',
   'bcscAttributes',
-  'bcServicesCardApproved',
   'testHomePageUri',
   'prodHomePageUri',
 ];
