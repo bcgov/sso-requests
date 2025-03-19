@@ -24,7 +24,7 @@ env:
 jobs:
   terraform:
     permissions: write-all
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Set env to development
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
@@ -76,6 +76,13 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_DEV=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_SIT}}
+
+          REQUEST_QUEUE_RATE=rate(24 hours)
+          RDS_MAX_CAPACITY=1
+          RDS_MIN_CAPACITY=0
+          RDS_SCALE_DOWN_TIME=300
+
+          BCSC_SIGNING_ALGORITHM=PS256
 
           EOF
 
@@ -130,6 +137,13 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
 
+          REQUEST_QUEUE_RATE=rate(24 hours)
+          RDS_MAX_CAPACITY=1
+          RDS_MIN_CAPACITY=0
+          RDS_SCALE_DOWN_TIME=300
+
+          BCSC_SIGNING_ALGORITHM=RS256
+
           EOF
 
       - name: Set env to production
@@ -183,9 +197,15 @@ jobs:
           BCSC_REGISTRATION_BASE_URL_TEST=${{secrets.BCSC_REGISTRATION_BASE_URL_TEST}}
           BCSC_REGISTRATION_BASE_URL_PROD=${{secrets.BCSC_REGISTRATION_BASE_URL_PROD}}
 
+          REQUEST_QUEUE_RATE=rate(5 minutes)
+          RDS_MAX_CAPACITY=2
+          RDS_MIN_CAPACITY=0.5
+          RDS_SCALE_DOWN_TIME=1800
+
+          BCSC_SIGNING_ALGORITHM=RS256
+
           EOF
 
-      - uses: hmarr/debug-action@v3
       - uses: actions/checkout@v4
 
       - name: Get yarn cache directory path
@@ -233,6 +253,8 @@ jobs:
         run: |
           make build_all
         working-directory: ./lambda
+
+      - uses: hashicorp/setup-terraform@v3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -323,6 +345,12 @@ jobs:
           bcsc_registration_base_url_dev="${{env.BCSC_REGISTRATION_BASE_URL_DEV}}"
           bcsc_registration_base_url_test="${{env.BCSC_REGISTRATION_BASE_URL_TEST}}"
           bcsc_registration_base_url_prod="${{env.BCSC_REGISTRATION_BASE_URL_PROD}}"
+
+          request_queue_rate="${{env.REQUEST_QUEUE_RATE}}"
+          rds_max_capacity="${{env.RDS_MAX_CAPACITY}}"
+          rds_min_capacity="${{env.RDS_MIN_CAPACITY}}"
+          rds_scale_down_time="${{env.RDS_SCALE_DOWN_TIME}}"
+          bcsc_signing_algorithm="${{env.BCSC_SIGNING_ALGORITHM}}"
           EOF
 
         working-directory: ./terraform

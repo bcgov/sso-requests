@@ -86,6 +86,7 @@
     "lodash.pick": "^4.4.0",
     "lodash.remove": "^4.7.0",
     "lodash.sortby": "^4.7.0",
+    "lodash.startcase": "^4.4.0",
     "lodash.tolower": "^4.1.2",
     "lodash.trim": "^4.5.1",
     "lodash.uniq": "^4.5.0",

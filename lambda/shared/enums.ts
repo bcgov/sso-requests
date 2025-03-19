@@ -42,6 +42,7 @@ export const EMAILS = {
   RESTORE_INTEGRATION: 'restore-integration',
   RESTORE_TEAM_API_ACCOUNT: 'restore-team-api-account',
   ORPHAN_INTEGRATION: 'orphan-integration',
+  DISABLE_BCSC_IDP: 'disable-bcsc-idp',
 };
 
 export const REQUEST_TYPES = {

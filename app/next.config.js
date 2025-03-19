@@ -2,6 +2,7 @@ const APP_URL = process.env.APP_URL || '';
 const BASE_PATH = process.env.APP_BASE_PATH || '';
 
 module.exports = {
+  output: 'export',
   reactStrictMode: true,
   serverRuntimeConfig: {},
   publicRuntimeConfig: {
@@ -27,12 +28,4 @@ module.exports = {
   // basePath has to start with a /
   // basePath has to be either an empty string or a path prefix
   basePath: BASE_PATH,
-  async rewrites() {
-    return [
-      {
-        source: '/app/:path*',
-        destination: `http://${process.env.SSO_REQUESTS_BACKEND_HOSTNAME || 'localhost'}:8080/app/:path*`, // Proxy to Backend
-      },
-    ];
-  },
 };

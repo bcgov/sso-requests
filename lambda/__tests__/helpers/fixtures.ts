@@ -60,6 +60,10 @@ export const formDataDev: IntegrationData = {
     displayName: 'Test User',
     additionalEmail: '',
   },
+  lastChanges: [
+    { lhs: true, rhs: false, kind: 'E', path: ['bceidApproved'] },
+    { lhs: 'project-1', rhs: 'project-2', kind: 'E', path: ['projectName'] },
+  ],
 };
 
 export const formDataDevTest: IntegrationData = {
@@ -138,6 +142,7 @@ export const getUpdateIntegrationData = (args: {
   publicAccess?: boolean;
   bceidApproved?: boolean;
   githubApproved?: boolean;
+  bcServicesCardApproved?: boolean;
 }) => {
   const {
     projectName = args.integration.projectName,
@@ -148,6 +153,7 @@ export const getUpdateIntegrationData = (args: {
     publicAccess = args.integration.publicAccess || true,
     bceidApproved = args.integration.bceidApproved || false,
     githubApproved = args.integration.githubApproved || false,
+    bcServicesCardApproved = args.integration.githubApproved || false,
   } = args;
 
   const samlIntegration = protocol === 'saml';
@@ -169,6 +175,7 @@ export const getUpdateIntegrationData = (args: {
     authType,
     bceidApproved,
     githubApproved,
+    bcServicesCardApproved,
     devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,
     testSamlLogoutPostBindingUri: samlIntegration && envs.includes('test') ? 'https://a' : undefined,
     prodSamlLogoutPostBindingUri: samlIntegration && envs.includes('prod') ? 'https://a' : undefined,

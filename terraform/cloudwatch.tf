@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_event_rule" "request_queue" {
   name                = "request-queue-scheduler"
-  schedule_expression = "rate(5 minutes)"
+  schedule_expression = var.request_queue_rate
 }
 
 resource "aws_cloudwatch_event_target" "request_queue" {

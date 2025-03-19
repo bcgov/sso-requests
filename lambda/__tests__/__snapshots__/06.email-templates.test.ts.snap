@@ -1058,6 +1058,31 @@ exports[`Email template snapshots Should return the expected email for DELETE_IN
 "
 `;
 
+exports[`Email template snapshots Should return the expected email for DISABLE_BCSC_IDP 1`] = `"[DEV] BC Services Card integration disabled for Client (test)"`;
+
+exports[`Email template snapshots Should return the expected email for DISABLE_BCSC_IDP 2`] = `
+"<h3>Hello Team,</h3>
+<p>
+  We would like to inform you that the BCSC IDP has been disabled for the below integration in production environment.
+</p>
+<strong>SSO Integration ID: </strong>1<br />
+<strong>Client Name: </strong>test<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>Privacy Zone: </strong>zone<br />
+<strong>Attributes: </strong>given_name,given_names<br />
+ <p>
+  If you have any questions, please contact us by
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
 exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ BC Services Card 1`] = `"[DEV] BC Services Card Request ID 1 approved and being processed (email 1 of 2)"`;
 
 exports[`Email template snapshots Should return the expected email for PROD_APPROVED w/ BC Services Card 2`] = `
@@ -1347,8 +1372,13 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 "<h3>Hello Pathfinder SSO friend,</h3>
 <p>
   Your Pathfinder SSO change for integration ID 1 is approved. </p>
-<p>Below is a summary of your integration request details:</p>
-<strong>Project name: </strong>test<br />
+
+<h4>Changes made:</h4>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
+<hr />
+
+<h4>Final details summary:</h4>
+<blockquote><strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>IDIR - MFA<br />
 <strong>Environments: </strong>Development<br />
@@ -1363,7 +1393,9 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
-   <p>
+</blockquote>
+<hr />
+  <p>
   Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
@@ -1397,8 +1429,13 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 exports[`Email template snapshots Should return the expected email for UPDATE_INTEGRATION_SUBMITTED 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
-<p>Below is a summary of your integration request details:</p>
-<strong>Project name: </strong>test<br />
+
+<h4>Changes made:</h4>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
+<hr />
+
+<h4>Final details summary:</h4>
+<blockquote><strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>IDIR - MFA<br />
 <strong>Environments: </strong>Development, Test<br />
@@ -1419,7 +1456,9 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
- <p>
+</blockquote>
+<hr />
+<p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
@@ -1442,8 +1481,13 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 exports[`Email template snapshots Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
-<p>Below is a summary of your integration request details:</p>
-<strong>Project name: </strong>test<br />
+
+<h4>Changes made:</h4>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
+<hr />
+
+<h4>Final details summary:</h4>
+<blockquote><strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>IDIR - MFA<br />
 <strong>Environments: </strong>Development, Test, Production<br />
@@ -1470,20 +1514,14 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
- <p>
+</blockquote>
+<hr />
+<p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-  <table border="0" width="100%" cellpadding="0" cellspacing="0">
-  <tr>
-    <td
-      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
-    ></td>
-  </tr>
-</table>
-<br />
- <strong>Next Steps for your integration with BCeID:</strong>
+  <strong>Next Steps for your integration with BCeID:</strong>
 <p>
   As you've requested an integration with BCeID, any production integration request requires you to work with the
   Identity and Information Management (IDIM) team.
@@ -1506,8 +1544,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     <div style="display: none">&nbsp;</div>
   </li>
 </ol>
-
-  <table border="0" width="100%" cellpadding="0" cellspacing="0">
+   <table border="0" width="100%" cellpadding="0" cellspacing="0">
   <tr>
     <td
       style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
@@ -1562,8 +1599,13 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 exports[`Email template snapshots Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
-<p>Below is a summary of your integration request details:</p>
-<strong>Project name: </strong>test<br />
+
+<h4>Changes made:</h4>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
+<hr />
+
+<h4>Final details summary:</h4>
+<blockquote><strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>IDIR - MFA<br />
 <strong>Environments: </strong>Development, Test, Production<br />
@@ -1590,20 +1632,14 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
- <p>
+</blockquote>
+<hr />
+<p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
 </p>
-  <table border="0" width="100%" cellpadding="0" cellspacing="0">
-  <tr>
-    <td
-      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
-    ></td>
-  </tr>
-</table>
-<br />
- <strong>Next Steps for your integration with BCeID:</strong>
+  <strong>Next Steps for your integration with BCeID:</strong>
 <p>
   As you've requested an integration with BCeID, any production integration request requires you to work with the
   Identity and Information Management (IDIM) team.
@@ -1626,8 +1662,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     <div style="display: none">&nbsp;</div>
   </li>
 </ol>
-
-   <p>
+    <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat
@@ -1645,8 +1680,13 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 exports[`Email template snapshots Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ GitHub 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
-<p>Below is a summary of your integration request details:</p>
-<strong>Project name: </strong>test<br />
+
+<h4>Changes made:</h4>
+<blockquote><strong>Project Name:</strong> project-1 => project-2<br/></blockquote>
+<hr />
+
+<h4>Final details summary:</h4>
+<blockquote><strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>IDIR - MFA<br />
 <strong>Environments: </strong>Development, Test, Production<br />
@@ -1673,7 +1713,9 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
- <p>
+</blockquote>
+<hr />
+<p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
@@ -1733,8 +1775,10 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 exports[`Email template snapshots Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ unapproved BC Services Card 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO change request for integration ID 1 is successfully submitted.</p>
-<p>Below is a summary of your integration request details:</p>
-<strong>Project name: </strong>test<br />
+
+
+<h4>Final details summary:</h4>
+<blockquote><strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
 <strong>Identity Providers: </strong>BC Services Card<br />
 
@@ -1763,7 +1807,9 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
     </ul>
   </li>
 </ul>
- <p>
+</blockquote>
+<hr />
+<p>
   <strong>The expected processing time is 5 minutes</strong><br />
   Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
   not the requester, this email serves only to notify you of the request status.
