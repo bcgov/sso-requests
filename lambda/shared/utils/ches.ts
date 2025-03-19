@@ -256,11 +256,7 @@ const mapNames = (name: string, prevValue: string, newValue: string) => {
     };
   }
   if (name === 'bcscAttributes') {
-    return {
-      name: 'BC Services Card Attributes',
-      prevValue: formatChangeString(prevValue),
-      newValue: formatChangeString(newValue),
-    };
+    return { name: 'BC Services Card Attributes', prevValue, newValue };
   }
   if (name === 'devIdps') {
     return { name: 'Identity Providers', prevValue: idpMap[prevValue], newValue: idpMap[newValue] };
