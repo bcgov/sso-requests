@@ -285,7 +285,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded.',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -386,7 +386,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -452,7 +452,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -501,7 +501,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -561,7 +561,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -636,7 +636,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -710,7 +710,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -1429,7 +1429,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -1572,7 +1572,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name, URL encoded',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
