@@ -860,7 +860,6 @@ describe('Social IDP', () => {
 
     const expectedErrorText = errorMessages.confirmSocial;
 
-    // screen.debug(undefined, 300000);
     expect(queryByText(expectedErrorText)).toBeTruthy();
 
     const socialTermsAndConditionsCheckbox = document.querySelector('#root_confirmSocial') as HTMLInputElement;
