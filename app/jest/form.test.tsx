@@ -835,7 +835,6 @@ describe('Social IDP', () => {
     const socialCheckbox = queryByText('Social')?.parentElement?.querySelector(
       "input[type='checkbox",
     ) as HTMLInputElement;
-    // This has a ridiculously long label that will probably change, grabbing by id
     let socialTermsAndConditionsCheckbox = document.querySelector('#root_confirmSocial');
     expect(socialTermsAndConditionsCheckbox).toBeFalsy();
 
@@ -852,7 +851,6 @@ describe('Social IDP', () => {
     const socialCheckbox = queryByText('Social')?.parentElement?.querySelector(
       "input[type='checkbox",
     ) as HTMLInputElement;
-    // This has a ridiculously long label that will probably change, grabbing by id
 
     fireEvent.click(socialCheckbox);
 

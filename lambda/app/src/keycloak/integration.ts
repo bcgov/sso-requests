@@ -109,8 +109,6 @@ export const getDefaultClientScopes = (integration: IntegrationData, environment
       return !['bcservicescard', 'social'].includes(idp);
     }) || [];
 
-  // The new "IDP" will just be called social. Need to map that to include all da scopes here, dont mess with rjsf that will be a painful way to go.
-
   if (integration[`${environment}Idps`].includes('social')) {
     otherIdpScopes = otherIdpScopes.concat(socialIdps);
   }
