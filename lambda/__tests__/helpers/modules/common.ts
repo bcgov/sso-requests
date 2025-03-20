@@ -18,13 +18,19 @@ export const getAppApiHeartBeat = async () => {
 
 const getIdentityProviderList = (
   bceid: boolean = false,
+  bceidBusiness: boolean = false,
+  bceidBoth: boolean = false,
   github: boolean = false,
+  githubPublic: boolean = false,
   digitalCredential: boolean = false,
   bcServicesCard: boolean = false,
 ) => {
   const idps = ['azureidir'];
   if (bceid) idps.push('bceidbasic');
+  if (bceidBusiness) idps.push('bceidbusiness');
+  if (bceidBoth) idps.push('bceidboth');
   if (github) idps.push('githubbcgov');
+  if (githubPublic) idps.push('githubpublic');
   if (digitalCredential) idps.push('digitalcredential');
   if (bcServicesCard) idps.push('bcservicescard');
   return idps;
@@ -59,11 +65,20 @@ export const buildIntegration = async (args: {
   publicAccess?: boolean;
   prodEnv?: boolean;
   submitted?: boolean;
+  bceidBusiness?: boolean;
+  bceidBoth?: boolean;
+  githubPublic?: boolean;
+  bceidApproved?: boolean;
+  githubApproved?: boolean;
+  bcServicesCardApproved?: boolean;
 }) => {
   const {
     projectName,
     bceid = false,
     github = false,
+    bceidBusiness = false,
+    bceidBoth = false,
+    githubPublic = false,
     digitalCredential = false,
     bcServicesCard = false,
     teamId,
@@ -72,6 +87,9 @@ export const buildIntegration = async (args: {
     publicAccess = true,
     prodEnv = false,
     submitted = false,
+    githubApproved = false,
+    bceidApproved = false,
+    bcServicesCardApproved = false,
   } = args;
 
   let integration: Integration;
@@ -90,11 +108,22 @@ export const buildIntegration = async (args: {
 
   const updateableIntegration = getUpdateIntegrationData({
     integration,
-    identityProviders: getIdentityProviderList(bceid, github, digitalCredential, bcServicesCard),
+    identityProviders: getIdentityProviderList(
+      bceid,
+      bceidBusiness,
+      bceidBoth,
+      github,
+      githubPublic,
+      digitalCredential,
+      bcServicesCard,
+    ),
     envs,
     protocol,
     authType,
     publicAccess,
+    bceidApproved,
+    githubApproved,
+    bcServicesCardApproved,
   });
 
   if (bcServicesCard) {

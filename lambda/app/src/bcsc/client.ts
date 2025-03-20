@@ -59,8 +59,8 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
       scope: requiredScopes.join(' '),
       contacts: contacts,
       token_endpoint_auth_method: 'client_secret_post',
-      id_token_signed_response_alg: 'RS256',
-      userinfo_signed_response_alg: 'RS256',
+      id_token_signed_response_alg: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',
+      userinfo_signed_response_alg: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',
       // Sub must be requested. Otherwise id token will have a randomized identifier.
       claims: [...integration.bcscAttributes, 'sub'],
       privacy_zone_uri: bcscPrivacyZoneURI,
@@ -92,8 +92,8 @@ export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integra
       scope: requiredScopes.join(' '),
       contacts,
       token_endpoint_auth_method: 'client_secret_post',
-      id_token_signed_response_alg: 'RS256',
-      userinfo_signed_response_alg: 'RS256',
+      id_token_signed_response_alg: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',
+      userinfo_signed_response_alg: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',
       claims: [...integration.bcscAttributes, 'sub'],
       // TODO: Keep it commented until encryption is allowed
       //jwks_uri: jwksUri,

@@ -285,7 +285,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -305,7 +305,8 @@ export const setRoutes = (app: any) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
-      const result = await roleController.get(req.teamId, integrationId, environment, roleName);
+      const decodedRoleName = decodeURIComponent(roleName);
+      const result = await roleController.get(req.teamId, integrationId, environment, decodedRoleName);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -385,7 +386,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -421,7 +422,8 @@ export const setRoutes = (app: any) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
-      const result = await roleController.update(req.teamId, integrationId, roleName, environment, req.body);
+      const decodedRoleName = decodeURIComponent(roleName);
+      const result = await roleController.update(req.teamId, integrationId, decodedRoleName, environment, req.body);
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -450,7 +452,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -469,7 +471,8 @@ export const setRoutes = (app: any) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
-      await roleController.delete(req.teamId, integrationId, roleName, environment);
+      const decodedRoleName = decodeURIComponent(roleName);
+      await roleController.delete(req.teamId, integrationId, decodedRoleName, environment);
       res.status(204).send();
     } catch (err) {
       handleError(res, err);
@@ -498,7 +501,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -526,7 +529,8 @@ export const setRoutes = (app: any) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
-      const result = await roleController.getComposites(req.teamId, integrationId, roleName, environment);
+      const decodedRoleName = decodeURIComponent(roleName);
+      const result = await roleController.getComposites(req.teamId, integrationId, decodedRoleName, environment);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -557,13 +561,13 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
       #swagger.parameters['compositeRoleName'] = {
         in: 'path',
-        description: 'Composite role name',
+        description: 'Composite role name, URL encoded',
         required: true,
         example: 'composite-role'
       }
@@ -594,12 +598,14 @@ export const setRoutes = (app: any) => {
       try {
         if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
         const { integrationId, environment, roleName, compositeRoleName } = req.params;
+        const decodedRoleName = decodeURIComponent(roleName);
+        const decodedCompositeRoleName = decodeURIComponent(compositeRoleName);
         const result = await roleController.getComposite(
           req.teamId,
           integrationId,
-          roleName,
+          decodedRoleName,
           environment,
-          compositeRoleName,
+          decodedCompositeRoleName,
         );
         res.status(200).json(result);
       } catch (err) {
@@ -630,7 +636,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -666,7 +672,14 @@ export const setRoutes = (app: any) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params;
-      const result = await roleController.createComposite(req.teamId, integrationId, roleName, environment, req.body);
+      const decodedRoleName = decodeURIComponent(roleName);
+      const result = await roleController.createComposite(
+        req.teamId,
+        integrationId,
+        decodedRoleName,
+        environment,
+        req.body,
+      );
       res.status(200).json(result);
     } catch (err) {
       handleError(res, err);
@@ -697,13 +710,13 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
       #swagger.parameters['compositeRoleName'] = {
         in: 'path',
-        description: 'Composite role name',
+        description: 'Composite role name, url encoded ',
         required: true,
         example: 'composite-role'
       }
@@ -730,7 +743,15 @@ export const setRoutes = (app: any) => {
       try {
         if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
         const { integrationId, environment, roleName, compositeRoleName } = req.params;
-        await roleController.deleteComposite(req.teamId, integrationId, roleName, environment, compositeRoleName);
+        const decodedRoleName = decodeURIComponent(roleName);
+        const decodedCompositeRoleName = decodeURIComponent(compositeRoleName);
+        await roleController.deleteComposite(
+          req.teamId,
+          integrationId,
+          decodedRoleName,
+          environment,
+          decodedCompositeRoleName,
+        );
         res.status(204).send();
       } catch (err) {
         handleError(res, err);
@@ -1408,7 +1429,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -1441,11 +1462,12 @@ export const setRoutes = (app: any) => {
     */
     try {
       const { integrationId, environment, roleName } = req.params;
+      const decodedRoleName = decodeURIComponent(roleName);
       const result = await userRoleMappingController.listUsersByRolename(
         req.teamId,
         integrationId,
         environment,
-        roleName,
+        decodedRoleName,
         req.query,
       );
       res.status(200).json(result);
@@ -1550,7 +1572,7 @@ export const setRoutes = (app: any) => {
       }
       #swagger.parameters['roleName'] = {
         in: 'path',
-        description: 'Role name',
+        description: 'Role name, URL encoded. Valid UTF-8 encoding required',
         required: true,
         example: 'client-role'
       }
@@ -1573,12 +1595,13 @@ export const setRoutes = (app: any) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, username, roleName } = req.params;
+      const decodedRoleName = decodeURIComponent(roleName);
       const result = await userRoleMappingController.deleteRoleFromUser(
         req.teamId,
         integrationId,
         environment,
         username,
-        roleName,
+        decodedRoleName,
       );
       res.status(204).send();
     } catch (err) {

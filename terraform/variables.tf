@@ -221,3 +221,34 @@ variable "bcsc_registration_base_url_prod" {
   type      = string
   sensitive = true
 }
+
+
+variable "rds_scale_down_time" {
+  type        = number
+  description = "time in seconds of inactivity to scale down the RDS database"
+  default     = 60
+}
+
+variable "rds_max_capacity" {
+  type        = number
+  description = "Maximum number of ACUs to scale up to"
+  default     = 2
+}
+
+variable "rds_min_capacity" {
+  type        = number
+  description = "Minimum number of ACUs to scale down to."
+  default     = 0
+}
+
+variable "request_queue_rate" {
+  type        = string
+  description = "Rate to run the request queue."
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule#argument-reference for formatting options.
+  default = "rate(5 minutes)"
+}
+
+variable "bcsc_signing_algorithm" {
+  type    = string
+  default = "RS256"
+}

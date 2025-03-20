@@ -186,7 +186,7 @@ describe('integration validations', () => {
       );
       expect(approvedRes.status).toEqual(200);
       githubIntegration = approvedRes.body;
-      const changeGithubIdp = ['idir', 'githubpublic'];
+      const changeGithubIdp = ['azureidir', 'githubpublic'];
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const changeIdpRes = await updateIntegration(
         {
@@ -266,13 +266,7 @@ describe('integration validations', () => {
         },
         true,
       );
-      expect(unapproveIdpRes.status).toEqual(200);
-      expect(unapproveIdpRes.body.bcServicesCardApproved).toEqual(true); // unchanged
-      expect(unapproveIdpRes.body.devIdps).toEqual(addNewIdp); // updated
-      expect(unapproveIdpRes.body.testIdps).toEqual(addNewIdp); // updated
-      expect(unapproveIdpRes.body.prodIdps).toEqual(addNewIdp); // updated
-      expect(unapproveIdpRes.body.bcscPrivacyZone).toEqual('zone1'); // unchanged
-      expect(unapproveIdpRes.body.bcscAttributes).toEqual(['age', 'postal_code']); // unchanged
+      expect(unapproveIdpRes.status).toEqual(422);
     });
   } catch (err) {
     console.error('EXCEPTION: ', err);
@@ -297,9 +291,7 @@ describe('integration validations', () => {
       }),
       true,
     );
-
-    expect(updateIntegrationRes.status).toEqual(200);
-    expect(updateIntegrationRes.body.devIdps).toEqual(['azureidir', 'bceidbasic']);
+    expect(updateIntegrationRes.status).toEqual(422);
   });
 
   it('should allow admin users to add a discontinued idp', async () => {
@@ -359,5 +351,69 @@ describe('integration validations', () => {
 
     expect(updateIntegrationRes.status).toEqual(200);
     expect(updateIntegrationRes.body.devIdps).toEqual(['idir', 'azureidir', 'bceidbasic']);
+  });
+});
+
+describe('Approval Resets', () => {
+  beforeEach(async () => {
+    createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
+  });
+
+  describe('Admin', () => {
+    it('resets bceid approval status when all bceid idps are removed', async () => {
+      let integrationRes = await buildIntegration({
+        projectName: 'test',
+        bceid: true,
+        bceidApproved: true,
+      });
+      let response = await updateIntegration({ ...integrationRes.body, devIdps: ['azureidir'] }, true);
+      expect(response.status).toBe(200);
+      expect(response.body.bceidApproved).toBeFalsy();
+
+      integrationRes = await buildIntegration({
+        projectName: 'test',
+        bceid: true,
+        bceidBusiness: true,
+        bceidApproved: true,
+      });
+      response = await updateIntegration({ ...integrationRes.body, devIdps: ['azureidir'] }, true);
+      expect(response.status).toBe(200);
+      expect(response.body.bceidApproved).toBeFalsy();
+    });
+
+    it('preserves bceid approval status when a bceid idp remains', async () => {
+      const integrationRes = await buildIntegration({
+        projectName: 'test',
+        bceid: true,
+        bceidBusiness: true,
+        bceidApproved: true,
+      });
+      const response = await updateIntegration({ ...integrationRes.body, devIdps: ['bceidbasic'] }, true);
+      expect(response.status).toBe(200);
+      expect(response.body.bceidApproved).toBeTruthy();
+    });
+
+    it('Removes github approval status when all github Idps are removed', async () => {
+      const integrationRes = await buildIntegration({
+        projectName: 'test',
+        github: true,
+        githubApproved: true,
+      });
+      const response = await updateIntegration({ ...integrationRes.body, devIdps: ['azureidir'] }, true);
+      expect(response.status).toBe(200);
+      expect(response.body.githubApproved).toBeFalsy();
+    });
+
+    it('Keeps github approval status when github Idps remain', async () => {
+      const integrationRes = await buildIntegration({
+        projectName: 'test',
+        github: true,
+        githubApproved: true,
+      });
+      expect(integrationRes.status).toBe(200);
+      const response = await updateIntegration({ ...integrationRes.body, devIdps: ['githubbcgov', 'azureidir'] }, true);
+      expect(response.status).toBe(200);
+      expect(response.body.githubApproved).toBeTruthy();
+    });
   });
 });

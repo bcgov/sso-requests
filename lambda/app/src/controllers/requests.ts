@@ -70,7 +70,8 @@ import {
 } from '@lambda-app/keycloak/clientScopes';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 import createHttpError from 'http-errors';
-import { getDiscontinuedIdps } from '@app/utils/helpers';
+import { validateIDPs } from '@app/utils/helpers';
+import { getIdpApprovalStatus } from '@lambda-app/helpers/permissions';
 
 const APP_ENV = process.env.APP_ENV || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -508,15 +509,6 @@ export const updateRequest = async (
         }),
       );
     }
-    // filter out discontinued idps only for non-admins creating new integrations, i.e. only when adding new idps
-
-    if (!userIsAdmin) {
-      const newIdps = rest.devIdps.filter((idp) => !originalData.devIdps.includes(idp));
-      const invalidIdps = getDiscontinuedIdps();
-      rest.devIdps = rest.devIdps.filter(
-        (idp) => !newIdps.includes(idp) || (newIdps.includes(idp) && !invalidIdps.includes(idp)),
-      );
-    }
 
     const allowedData = processRequest(session, rest, isMerged);
     assign(current, allowedData);
@@ -524,38 +516,31 @@ export const updateRequest = async (
     const mergedData = getCurrentValue();
 
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
-    if (isApprovingBceid && !userIsAdmin && !bceidApprover)
-      throw new createHttpError.Forbidden('not allowed to approve bceid');
-
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
-    if (isApprovingGithub && !userIsAdmin && !githubApprover)
-      throw new createHttpError.Forbidden('not allowed to approve github');
-
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
-    if (isApprovingBCSC && !userIsAdmin && !bcscApprover)
-      throw new createHttpError.Forbidden('not allowed to approve bc services card');
 
-    if (originalData.bceidApproved) {
-      // given approved, if adding/changing existing bceid idps throw error
-      const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
-      if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('bceid')))
-        throw new createHttpError.Forbidden('not allowed to update bceid idps');
-    }
+    const updatedAttributes = getIdpApprovalStatus({
+      isAdmin: userIsAdmin,
+      originalData,
+      updatedData: current,
+      bceidApprover,
+      githubApprover,
+      bcscApprover,
+    });
+    assign(current, updatedAttributes);
 
-    if (originalData.githubApproved) {
-      // given approved, if adding/changing existing github idps throw error
-      const newIdpSet = current.devIdps.filter((idp: string) => !originalData.devIdps.includes(idp));
-      if (newIdpSet.length > 0 && newIdpSet.find((idp: string) => idp.startsWith('github')))
-        throw new createHttpError.Forbidden('not allowed to update github idps');
-    }
-
-    if (originalData.bcServicesCardApproved) {
-      // given approved, if removing existing bc services card idp throw error
-      if (!current.devIdps.find((idp: string) => idp === 'bcservicescard'))
-        throw new createHttpError.Forbidden('not allowed to remove bc services card idp');
-      // keep bcsc attributes and privacy zone in sync with original data. do not allow updates
-      current.bcscAttributes = originalData.bcscAttributes;
-      current.bcscPrivacyZone = originalData.bcscPrivacyZone;
+    const validIDPSelection = validateIDPs({
+      currentIdps: originalData.devIdps,
+      updatedIdps: current.devIdps,
+      applied: originalData.applied,
+      bceidApproved: originalData.bceidApproved,
+      githubApproved: originalData.githubApproved,
+      bcServicesCardApproved: originalData.bcServicesCardApproved,
+      protocol: current.protocol,
+      isAdmin: userIsAdmin,
+    });
+    if (!validIDPSelection) {
+      throw new createHttpError[400]('Invalid IDP Selection');
     }
 
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
@@ -576,6 +561,7 @@ export const updateRequest = async (
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
+    let changes = null;
 
     if (submit) {
       const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
@@ -628,10 +614,14 @@ export const updateRequest = async (
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
       const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
 
+      const removingBcscIdp =
+        originalData.devIdps.includes('bcservicescard') && !current.devIdps.includes('bcservicescard');
+
       current.requester = await getRequester(session, current.id);
 
       finalData = getCurrentValue();
       const emails: { code: string; data: any }[] = [];
+      changes = getDifferences(finalData, originalData);
 
       // updating...
       if (isMerged) {
@@ -658,8 +648,16 @@ export const updateRequest = async (
               waitingBceidProdApproval,
               waitingGithubProdApproval,
               waitingBcServicesCardProdApproval,
+              changes,
               addingProd,
             },
+          });
+        }
+
+        if (removingBcscIdp) {
+          emails.push({
+            code: EMAILS.DISABLE_BCSC_IDP,
+            data: { integration: finalData },
           });
         }
       } else {
@@ -676,7 +674,6 @@ export const updateRequest = async (
       await sendTemplates(emails);
     }
 
-    const changes = getDifferences(finalData, originalData);
     current.lastChanges = changes || null;
     let updated = await current.save();
 
@@ -1044,7 +1041,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
   if (baseData.environments.includes('prod')) baseData.prodIdps = baseData.devIdps;
 
-  // prevent the TF from creating BCeID integration in prod environment if not approved
+  // prevent creating BCeID integration in prod environment if not approved
   if (!baseData.bceidApproved && hasBceid) {
     baseData.prodIdps = baseData.prodIdps.filter(checkNotBceidGroup);
   }

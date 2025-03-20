@@ -225,4 +225,61 @@ describe('IDP Approver', () => {
   });
 });
 
+describe('Approval Permissions', () => {
+  it('Keeps bceid approval flag immutable for regular users', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid',
+      submitted: true,
+      bceid: true,
+      prodEnv: true,
+    });
+    const approveRes = await updateIntegration(
+      {
+        ...bceidIntegration.body,
+        bceidApproved: true,
+      },
+      true,
+    );
+    expect(approveRes.body.bceidApproved).toBeFalsy();
+  });
+
+  it('Keeps github approval flag immutable for regular users', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const githubIntegration = await buildIntegration({
+      projectName: 'github',
+      submitted: true,
+      github: true,
+      prodEnv: true,
+    });
+    const approveRes = await updateIntegration(
+      {
+        ...githubIntegration.body,
+        githubApproved: true,
+      },
+      true,
+    );
+    expect(approveRes.body.githubApproved).toBeFalsy();
+  });
+
+  it('Keeps bcsc approval flag immutable for regular users', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const bcServicesCardIntegration = await buildIntegration({
+      projectName: 'bc-services-card',
+      submitted: true,
+      bcServicesCard: true,
+      prodEnv: true,
+    });
+    const approveRes = await updateIntegration(
+      {
+        ...bcServicesCardIntegration.body,
+        bcServicesCardApproved: true,
+      },
+      true,
+    );
+    console.log(approveRes.body);
+    expect(approveRes.body.bcServicesCardApproved).toBeFalsy();
+  });
+});
+
 // TODO: IDP approver can only update approved flag but can edit other fields for owned integrations

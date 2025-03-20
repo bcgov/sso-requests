@@ -49,7 +49,8 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     if (data && data?.rows?.length > 0) {
       const idpApprovalEvents: Event[] = [];
       data.rows.forEach((event) => {
-        if (event?.details?.changes?.find((c: any) => c?.path.includes(approvalTypeMap[type]))) {
+        // Only list events toggling approved to true
+        if (event?.details?.changes?.find((c: any) => c?.path.includes(approvalTypeMap[type]) && c.rhs === true)) {
           idpApprovalEvents.push(event);
         }
       });

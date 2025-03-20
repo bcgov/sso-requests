@@ -10,6 +10,7 @@ jest.mock('../../app/src/utils/rate-limiters', () => {
 
 jest.mock('../../shared/utils/ches', () => {
   return {
+    ...jest.requireActual('../../shared/utils/ches'),
     sendEmail: jest.fn(),
   };
 });

@@ -12,6 +12,7 @@ import {
   usesDigitalCredential,
   usesBcServicesCard,
   checkNotBcServicesCard,
+  checkBceidGroup,
 } from '@app/helpers/integration';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
@@ -373,4 +374,94 @@ export const getAllowedIdps = () => {
     'githubpublic',
     'githubbcgov',
   ];
+};
+
+/**
+ * Returns true if valid combination and false otherwise. Invalid combinations are mixing bceidboth with any other type
+ */
+const isInvalidBceidCombo = (idps: string[] = []) => {
+  if (!idps.includes('bceidboth')) return false;
+  if (idps.includes('bceidbasic') || idps.includes('bceidbusiness')) return true;
+  return false;
+};
+
+/**
+ * Returns true if valid combination and false otherwise. Invalid combinations are mixing github public and bcgov together
+ */
+const isInvalidGithubCombo = (idps: string[] = []) => idps.includes('githubpublic') && idps.includes('githubbcgov');
+
+const idpsEqual = (idpsA: string[], idpsB: string[]) => {
+  const allAInB = idpsA.every((idp) => idpsB.includes(idp));
+  const allBInA = idpsB.every((idp) => idpsA.includes(idp));
+  return allAInB && allBInA;
+};
+
+/**
+ * Shared validation function for client and API. Returns true if the updated idps are allowed and false otherwise.
+ */
+export const validateIDPs = ({
+  currentIdps,
+  updatedIdps,
+  applied = true,
+  bceidApproved = false,
+  protocol = 'oidc',
+  isAdmin = false,
+  githubApproved = false,
+  bcServicesCardApproved = false,
+}: {
+  currentIdps: string[];
+  updatedIdps: string[];
+  applied?: boolean;
+  bceidApproved?: boolean;
+  protocol?: string;
+  isAdmin?: boolean;
+  githubApproved?: boolean;
+  bcServicesCardApproved?: boolean;
+}) => {
+  if (idpsEqual(currentIdps, updatedIdps)) return true;
+
+  if (protocol === 'saml') {
+    if (updatedIdps.length > 1) return false;
+    if (bceidApproved && currentIdps[0] !== updatedIdps[0]) return false;
+  }
+
+  const invalidBceidCombo = isInvalidBceidCombo(updatedIdps);
+  const invalidGithubCombo = isInvalidGithubCombo(updatedIdps);
+  if (invalidBceidCombo || invalidGithubCombo) return false;
+
+  // Exclude admin-only options
+  if (!isAdmin && updatedIdps.includes('githubpublic')) {
+    return false;
+  }
+  const addingGithub =
+    (updatedIdps.includes('githubbcgov') && !currentIdps.includes('githubbcgov')) ||
+    (updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic'));
+  if (addingGithub && githubApproved) {
+    return false;
+  }
+
+  if (bceidApproved) {
+    const newBceidIdps = updatedIdps.filter(checkBceidGroup);
+    const previousBceidIdps = currentIdps.filter(checkBceidGroup);
+    if (newBceidIdps.some((idp) => !previousBceidIdps.includes(idp))) return false;
+  }
+
+  const discontinuedIdps = getDiscontinuedIdps();
+  if (!isAdmin) {
+    for (let idp of discontinuedIdps) {
+      if (!currentIdps.includes(idp) && updatedIdps.includes(idp)) return false;
+    }
+  }
+
+  // No one can remove bcsc after approval
+  if (bcServicesCardApproved && !updatedIdps.includes('bcservicescard') && currentIdps.includes('bcservicescard')) {
+    return false;
+  }
+
+  // No one can add bcsc after approval
+  if (bcServicesCardApproved && !currentIdps.includes('bcservicescard') && updatedIdps.includes('bcservicescard')) {
+    return false;
+  }
+
+  return true;
 };

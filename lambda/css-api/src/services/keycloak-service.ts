@@ -155,7 +155,8 @@ export class KeycloakService {
     try {
       const accessToken = await this.getAccessToken();
       const client = await this.getClient(clientId);
-      await this.httpClient.delete(`/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${roleName}`, {
+      const encodedRoleName = encodeURIComponent(roleName);
+      await this.httpClient.delete(`/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${encodedRoleName}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -174,8 +175,9 @@ export class KeycloakService {
     try {
       const accessToken = await this.getAccessToken();
       const client = await this.getClient(clientId);
+      const encodedRoleName = encodeURIComponent(roleName);
       const response = await this.httpClient.get(
-        `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${roleName}`,
+        `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${encodedRoleName}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -209,12 +211,17 @@ export class KeycloakService {
     try {
       const accessToken = await this.getAccessToken();
       const client = await this.getClient(clientId);
-      await this.httpClient.put(`/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${roleName}`, role, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+      const encodedRoleName = encodeURIComponent(roleName);
+      await this.httpClient.put(
+        `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${encodedRoleName}`,
+        role,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
       return await this.getClientRole(clientId, role?.name);
     } catch (error) {
       if (error instanceof AxiosError && error.response) {
@@ -240,8 +247,9 @@ export class KeycloakService {
     if (invalidRoles.length > 0) {
       throw new createHttpError[404](`composite roles (${invalidRoles.join(', ')}) not found`);
     }
+    const encodedRoleName = encodeURIComponent(roleName);
     await this.httpClient.post(
-      `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${roleName}/composites`,
+      `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${encodedRoleName}/composites`,
       clientRoles.filter((r) => compositeRoles.find((role) => role.name === r.name)),
       {
         headers: {
@@ -264,9 +272,9 @@ export class KeycloakService {
     } else if (!clientRolesNames.includes(compositeRoleName)) {
       throw new createHttpError.NotFound(`composite role ${compositeRoleName} not found`);
     }
-
+    const encodedRoleName = encodeURIComponent(roleName);
     await this.httpClient.delete(
-      `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${roleName}/composites`,
+      `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${encodedRoleName}/composites`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -290,9 +298,9 @@ export class KeycloakService {
     if (compositeRoleName && !clientRolesNames.includes(compositeRoleName)) {
       throw new createHttpError.NotFound(`composite role ${compositeRoleName} not found`);
     }
-
+    const encodedRoleName = encodeURIComponent(roleName);
     const response = await this.httpClient.get(
-      `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${roleName}/composites`,
+      `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${encodedRoleName}/composites`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -314,8 +322,9 @@ export class KeycloakService {
     const accessToken = await this.getAccessToken();
     const client = await this.getClient(clientId);
     try {
+      const encodedRoleName = encodeURIComponent(roleName);
       const response = await this.httpClient.get(
-        `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${roleName}/users?first=${first}&max=${max}`,
+        `/auth/admin/realms/${this.realm}/clients/${client?.id}/roles/${encodedRoleName}/users?first=${first}&max=${max}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

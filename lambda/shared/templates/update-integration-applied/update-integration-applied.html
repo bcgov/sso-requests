@@ -3,8 +3,17 @@
   Your Pathfinder SSO change for integration ID {{integration.id}} is approved. {{#if hasBceid}} {{> bceidWarning}}
   {{/if}}
 </p>
-<p>Below is a summary of your integration request details:</p>
-{{> integrationDetail }} {{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if
-waitingGithubProdApproval}} {{> applyGithubBottom }} {{/if}}{{#if waitingBcServicesCardProdApproval}} {{>
-createBcServicesCardBottom }} {{/if}} {{> dashboardLogin }} {{> ssoUpdatesMailingListMessage }} {{#if
-(isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer }}
+
+{{#if changes}}
+<h4>Changes made:</h4>
+<blockquote>{{changes}}</blockquote>
+<hr />
+{{/if}}
+
+<h4>Final details summary:</h4>
+<blockquote>{{> integrationDetail }}</blockquote>
+<hr />
+{{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if waitingGithubProdApproval}} {{>
+applyGithubBottom }} {{/if}}{{#if waitingBcServicesCardProdApproval}} {{> createBcServicesCardBottom }} {{/if}} {{>
+dashboardLogin }} {{> ssoUpdatesMailingListMessage }} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
+digitalCredentialInfoContact }} {{/if}} {{> footer }}

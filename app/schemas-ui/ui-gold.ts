@@ -4,7 +4,7 @@ import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';
 import TooltipRadioWidget from '@app/form-components/widgets/TooltipRadioWidget';
-import TooltipCheckboxesWidget from '@app/form-components/widgets/TooltipCheckboxesWidget';
+import TooltipIDPCheckboxesWidget from '@app/form-components/widgets/TooltipIDPCheckboxesWidget';
 import FieldTermsAndConditions from '@app/form-components/FieldTermsAndConditions';
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
@@ -38,32 +38,43 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
     environments = [],
     bceidApproved = false,
     bcServicesCardApproved = false,
+    githubApproved = false,
   } = integration || {};
   const isNew = isNil(id);
   const isApplied = status === 'applied';
   const disableBcscUpdateApproved = integration?.devIdps?.includes('bcservicescard') && bcServicesCardApproved;
+  const isSaml = integration?.protocol === 'saml';
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
   let idpDisabled: string[] = [];
   let idpHidden: string[] = [];
+  let allIdpsDisabled = false;
 
-  if (!isAdmin) {
-    if (isApplied) {
-      devIdps.forEach((idp) => {
-        if (checkBceidGroup(idp)) {
-          if (bceidApproved) idpDisabled.push('bceidbasic', 'bceidbusiness', 'bceidboth');
-        }
-        if (checkGithubGroup(idp)) {
-          idpDisabled.push('githubpublic', 'githubbcgov');
-        }
-        if (idp === 'bcservicescard') idpDisabled.push('bcservicescard');
+  // If applied AND approved, ALL users can only remove. Removal will reset the approval, allowing them to add again.
+  // Allowing this in one swipe really complicates things, mostly because there is one "bceidapproved" flag and not 3.
+  if (isApplied) {
+    if (isSaml && bceidApproved) {
+      allIdpsDisabled = true;
+    }
+    if (bceidApproved) {
+      ['bceidbasic', 'bceidbusiness', 'bceidboth'].forEach((bceidIdp) => {
+        if (!devIdps.includes(bceidIdp)) idpDisabled.push(bceidIdp);
       });
     }
-
-    idpDisabled = uniq(idpDisabled);
-
-    if (!isApplied || !devIdps.includes('githubpublic')) idpHidden.push('githubpublic');
+    if (githubApproved) {
+      ['githubpublic', 'githubbcgov'].forEach((githubIdp) => {
+        if (!devIdps.includes(githubIdp)) idpDisabled.push(githubIdp);
+      });
+    }
+    if (bcServicesCardApproved) {
+      idpDisabled.push('bcservicescard');
+    }
   }
+
+  idpDisabled = uniq(idpDisabled);
+
+  // Only admins or integrations already using public github can use the IDP.
+  if (!isAdmin && (!isApplied || !devIdps.includes('githubpublic'))) idpHidden.push('githubpublic');
 
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
@@ -208,7 +219,8 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
       'ui:enumNames': ['Browser Login', 'Service Account', 'Browser Login and Service Account'],
     },
     devIdps: {
-      'ui:widget': TooltipCheckboxesWidget,
+      'ui:disabled': allIdpsDisabled,
+      'ui:widget': TooltipIDPCheckboxesWidget,
       'ui:enumDisabled': idpDisabled,
       'ui:enumHidden': idpHidden,
       'ui:enumNames': schemas[1]?.properties?.devIdps?.items?.enum.map((idp: string) => idpMap[idp]) || [],

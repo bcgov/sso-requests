@@ -7,6 +7,8 @@ locals {
   bceidboth_realm_name                  = "bceidboth"
   github_realm_name                     = "github"
   digitalcredential_realm_name          = "digitalcredential"
+  google_realm_name                     = "google"
+  microsoft_realm_name                  = "microsoft"
   sandbox_client_redirect_uri           = ""
   siteminder_single_sign_on_service_url = ""
 }
@@ -22,6 +24,8 @@ module "standard" {
   bceidbusiness_realm_name = local.bceidbusiness_realm_name
   bceidboth_realm_name     = local.bceidboth_realm_name
   github_realm_name        = local.github_realm_name
+  google_realm_name        = local.google_realm_name
+  microsoft_realm_name     = local.microsoft_realm_name
 
   idir_client_id                      = ""
   idir_client_secret                  = ""
@@ -39,4 +43,8 @@ module "standard" {
   digitalcredential_client_secret     = ""
   digitalcredential_authorization_url = ""
   digitalcredential_token_url         = ""
+  google_client_id                    = ""
+  google_client_secret                = ""
+  microsoft_client_id                 = ""
+  microsoft_client_secret             = ""
 }

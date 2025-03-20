@@ -21,7 +21,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -75,7 +75,6 @@ jobs:
         run: |
           yarn
           yarn build
-          yarn export
           touch ./out/.nojekyll
         working-directory: ./app
 

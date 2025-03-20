@@ -90,6 +90,7 @@ export interface Integration {
   prodHomePageUri?: string;
   bcscPrivacyZone?: string;
   bcscAttributes?: string[];
+  isAdmin?: boolean;
 }
 
 export interface Option {
