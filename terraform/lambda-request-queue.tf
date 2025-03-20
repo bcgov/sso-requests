@@ -39,6 +39,7 @@ resource "aws_lambda_function" "request_queue" {
       CHES_USERNAME             = var.ches_username
       GOLD_IP_ADDRESS           = var.gold_ip_address
 
+      INCLUDE_SOCIAL                  = var.include_social
       INCLUDE_BC_SERVICES_CARD        = var.include_bc_services_card
       BCSC_INITIAL_ACCESS_TOKEN_DEV   = var.bcsc_initial_access_token_dev
       BCSC_INITIAL_ACCESS_TOKEN_TEST  = var.bcsc_initial_access_token_test

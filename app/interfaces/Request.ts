@@ -91,6 +91,8 @@ export interface Integration {
   bcscPrivacyZone?: string;
   bcscAttributes?: string[];
   isAdmin?: boolean;
+  confirmSocial?: boolean;
+  socialApproved?: boolean;
 }
 
 export interface Option {
