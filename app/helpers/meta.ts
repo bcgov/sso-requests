@@ -8,6 +8,7 @@ export const idpMap: any = {
   githubpublic: 'GitHub',
   digitalcredential: 'Digital Credential',
   bcservicescard: 'BC Services Card',
+  social: 'Social',
 };
 
 export const envMap: any = {

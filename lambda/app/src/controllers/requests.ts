@@ -45,6 +45,8 @@ import {
   checkNotGithubGroup,
   usesBcServicesCard,
   checkBcServicesCard,
+  usesSocial,
+  checkNotSocial,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
 import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
@@ -1036,6 +1038,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
   const hasBCSC = usesBcServicesCard(baseData);
+  const hasSocial = usesSocial(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -1053,6 +1056,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   // prevent the TF from creating GitHub integration in prod environment if not approved
   if (!baseData.githubApproved && hasGithub) {
     baseData.prodIdps = baseData.prodIdps.filter(checkNotGithubGroup);
+  }
+
+  if (!baseData.socialApproved && hasSocial) {
+    baseData.prodIdps = baseData.prodIdps.filter(checkNotSocial);
   }
 
   return baseData;

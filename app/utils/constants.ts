@@ -41,6 +41,7 @@ export const errorMessages: ErrorMessages = {
   samlLogoutPostBindingUri: 'Please enter a valid URI',
   clientMaxLifespan: `Must be ${MAX_LIFETIME_SECONDS / 60} minutes or fewer.`,
   clientIdleTimeout: `Must be ${MAX_IDLE_SECONDS / 60} minutes or fewer.`,
+  confirmSocial: `You must agree to the terms to use social login.`,
 };
 
 export const messages = {

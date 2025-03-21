@@ -22,6 +22,7 @@ module.exports = {
     include_digital_credential: process.env.INCLUDE_DIGITAL_CREDENTIAL || false,
     include_bc_services_card: process.env.INCLUDE_BC_SERVICES_CARD || false,
     allow_bc_services_card_prod: process.env.ALLOW_BC_SERVICES_CARD_PROD || false,
+    include_social: process.env.INCLUDE_SOCIAL || false,
   },
   env: {},
   assetPrefix: APP_URL,

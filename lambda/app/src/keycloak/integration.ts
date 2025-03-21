@@ -97,10 +97,22 @@ export const samlClientProfile = (
   return samlClient;
 };
 
+/** Client scopes to add when social is selected. */
+export const socialIdps = ['google', 'microsoft'];
+
 export const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
   let defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common'];
 
-  const otherIdpScopes = integration[`${environment}Idps`]?.filter((idp) => idp !== 'bcservicescard') || [];
+  // BCSC and Social client scopes are not the same as the IDP name and need to be handled individually.
+  let otherIdpScopes =
+    integration[`${environment}Idps`]?.filter((idp) => {
+      return !['bcservicescard', 'social'].includes(idp);
+    }) || [];
+
+  if (integration[`${environment}Idps`].includes('social')) {
+    otherIdpScopes = otherIdpScopes.concat(socialIdps);
+  }
+
   if (integration.protocol === 'oidc') {
     defaultScopes = defaultScopes.concat(otherIdpScopes);
   } else {

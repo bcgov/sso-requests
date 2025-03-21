@@ -38,6 +38,7 @@ jobs:
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
           INCLUDE_DIGITAL_CREDENTIAL=true
+          INCLUDE_SOCIAL=true
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=true
           EOF
@@ -55,6 +56,7 @@ jobs:
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
           INCLUDE_BC_SERVICES_CARD=true
+          INCLUDE_SOCIAL=false
           ALLOW_BC_SERVICES_CARD_PROD=true
           EOF
 

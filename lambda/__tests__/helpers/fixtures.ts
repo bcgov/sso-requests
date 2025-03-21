@@ -39,6 +39,7 @@ export const formDataDev: IntegrationData = {
   projectName: 'test',
   clientId: 'test',
   serviceType: 'gold',
+  primaryEndUsers: [],
   publicAccess: true,
   devValidRedirectUris: ['https://b'],
   environments: ['dev'],
