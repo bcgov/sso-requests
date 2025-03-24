@@ -1,17 +1,18 @@
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
-import { usesBceid, usesGithub, usesBcServicesCard } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesBcServicesCard, usesSocial } from '@app/helpers/integration';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
 import AdminEventPanel from 'page-partials/admin-dashboard/AdminEventPanel';
 import { LoggedInUser } from 'interfaces/team';
 import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
 import BcServicesCardTabContent from './BcServicesCardTabContent';
+import SocialTabContent from './SocialTabContent';
 import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 import { useState } from 'react';
 import startCase from 'lodash.startcase';
-import { isBceidApprover, isBcServicesCardApprover, isGithubApprover } from '@app/utils/helpers';
+import { isBceidApprover, isBcServicesCardApprover, isGithubApprover, isSocialApprover } from '@app/utils/helpers';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -55,9 +56,13 @@ function AdminTabs({
   const hasBcServicesCardProd =
     hasBcServicesCard && hasProd && (currentUser.isAdmin || isBcServicesCardApprover(currentUser));
 
+  const hasSocial = usesSocial(integration);
+  const hasSocialProd = hasSocial && hasProd && (currentUser.isAdmin || isSocialApprover(currentUser));
+
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
   const handleBcServicesCardApproved = () => setRows();
+  const handleSocialApproved = () => setRows();
 
   return (
     <>
@@ -80,6 +85,11 @@ function AdminTabs({
         {hasBcServicesCardProd && (
           <Tab key="bcsc-prod" tab="BC Services Card Prod">
             <BcServicesCardTabContent integration={integration} onApproved={handleBcServicesCardApproved} />
+          </Tab>
+        )}
+        {hasSocialProd && (
+          <Tab key="social-prod" tab="Social Prod">
+            <SocialTabContent integration={integration} onApproved={handleSocialApproved} />
           </Tab>
         )}
 

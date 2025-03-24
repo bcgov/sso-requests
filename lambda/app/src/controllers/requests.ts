@@ -72,7 +72,7 @@ import {
 } from '@lambda-app/keycloak/clientScopes';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 import createHttpError from 'http-errors';
-import { validateIDPs } from '@app/utils/helpers';
+import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus } from '@lambda-app/helpers/permissions';
 
 const APP_ENV = process.env.APP_ENV || 'development';
@@ -475,6 +475,7 @@ export const updateRequest = async (
   const bceidApprover = isBceidApprover(session);
   const githubApprover = isGithubApprover(session);
   const bcscApprover = isBCServicesCardApprover(session);
+  const socialApprover = isSocialApprover(session);
   const allowedToUpdate = canUpdateRequestByUserId(session.user.id, data.id);
   const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
@@ -528,6 +529,7 @@ export const updateRequest = async (
       bceidApprover,
       githubApprover,
       bcscApprover,
+      socialApprover,
     });
     assign(current, updatedAttributes);
 
@@ -548,7 +550,7 @@ export const updateRequest = async (
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
     if (
       !userIsAdmin &&
-      (bceidApprover || githubApprover || bcscApprover) &&
+      (bceidApprover || githubApprover || bcscApprover || socialApprover) &&
       !(await canUpdateRequestByUserId(session.user.id, data.id))
     ) {
       Object.assign(current, {
@@ -556,6 +558,7 @@ export const updateRequest = async (
         bceidApproved: bceidApprover ? data.bceidApproved : originalData.bceidApproved,
         githubApproved: githubApprover ? data.githubApproved : originalData.githubApproved,
         bcServicesCardApproved: bcscApprover ? data.bcServicesCardApproved : originalData.bcServicesCardApproved,
+        socialApproved: socialApprover ? data.socialApproved : originalData.socialApproved,
       });
     }
 

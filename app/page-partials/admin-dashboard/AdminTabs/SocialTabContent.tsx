@@ -6,15 +6,15 @@ interface Props {
   onApproved?: () => void;
 }
 
-function BcServicesCardTabContent({ integration, onApproved }: Readonly<Props>) {
+function SocialTabContent({ integration, onApproved }: Props) {
   if (!integration) return null;
-  const { status, bcServicesCardApproved } = integration;
+  const { status, socialApproved } = integration;
 
-  const canApproveProd = !bcServicesCardApproved || false;
+  const canApproveProd = !socialApproved || false;
 
   return (
     <TabContent
-      type="BCServicesCard"
+      type="social"
       integration={integration}
       canApproveProd={canApproveProd}
       notApplied={status !== 'applied'}
@@ -23,4 +23,4 @@ function BcServicesCardTabContent({ integration, onApproved }: Readonly<Props>) 
   );
 }
 
-export default BcServicesCardTabContent;
+export default SocialTabContent;

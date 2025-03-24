@@ -8,6 +8,8 @@ import {
   GITHUB_ADMIN_IDIR_USERID_01,
   BCSC_ADMIN_IDIR_EMAIL_01,
   BCSC_ADMIN_IDIR_USERID_01,
+  SOCIAL_ADMIN_IDIR_USERID_01,
+  SOCIAL_ADMIN_IDIR_EMAIL_01,
 } from './helpers/fixtures';
 import { buildIntegration } from './helpers/modules/common';
 import {
@@ -72,26 +74,32 @@ jest.mock('@lambda-app/bcsc/client', () => {
 
 // TODO: IDP approver tests
 describe('IDP Approver', () => {
-  let bceidIntegration, githubIntegration, bcServicesCardIntegration;
   beforeAll(async () => {
+    process.env.INCLUDE_SOCIAL = 'true';
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     await cleanUpDatabaseTables();
-    bceidIntegration = await buildIntegration({
+    await buildIntegration({
       projectName: 'bceid',
       submitted: true,
       bceid: true,
       prodEnv: true,
     });
-    githubIntegration = await buildIntegration({
+    await buildIntegration({
       projectName: 'github',
       submitted: true,
       github: true,
       prodEnv: true,
     });
-    bcServicesCardIntegration = await buildIntegration({
+    await buildIntegration({
       projectName: 'bc-services-card',
       submitted: true,
       bcServicesCard: true,
+      prodEnv: true,
+    });
+    await buildIntegration({
+      projectName: 'social',
+      submitted: true,
+      social: true,
       prodEnv: true,
     });
   });
@@ -153,6 +161,66 @@ describe('IDP Approver', () => {
 
     expect(approveRes.status).toEqual(200);
     expect(approveRes.body.bceidApproved).toEqual(true);
+    expect(approveRes.body.devValidRedirectUris).toEqual(['https://other-application-route']);
+
+    const deleteRes = await deleteIntegration(createdReq.id);
+    expect(deleteRes.status).toEqual(200);
+  });
+
+  it('Social approver can view and approve any social integration but cannot edit/delete/restore', async () => {
+    createMockAuth(SOCIAL_ADMIN_IDIR_USERID_01, SOCIAL_ADMIN_IDIR_EMAIL_01, ['social-approver']);
+    const requests = await getRequestsForAdmins();
+
+    expect(requests.status).toEqual(200);
+    expect(requests.body.count).toEqual(1);
+    expect(requests.body.rows[0].projectName).toEqual('social');
+    expect(requests.body.rows[0].socialApproved).toEqual(false);
+
+    const approveRes = await updateIntegration(
+      { ...requests.body.rows[0], socialApproved: true, devValidRedirectUris: ['https://other-application-route'] },
+      true,
+    );
+
+    expect(approveRes.status).toEqual(200);
+    expect(approveRes.body.socialApproved).toEqual(true);
+    expect(approveRes.body.devValidRedirectUris).not.toEqual(['https://other-application-route']);
+
+    const deleteRes = await deleteIntegration(requests.body.rows[0].id);
+    expect(deleteRes.status).toEqual(401);
+
+    const eventsRes = await getEvents(requests.body.rows[0].id);
+    expect(eventsRes.status).toEqual(200);
+    expect(eventsRes.body.count).toEqual(1);
+    expect(eventsRes.body.rows.length).toEqual(1);
+    expect(eventsRes.body.rows[0].details.changes[0].path).toContain('socialApproved');
+
+    const restoreRes = await restoreIntegration(requests.body.rows[0].id, SOCIAL_ADMIN_IDIR_EMAIL_01);
+    expect(restoreRes.status).toEqual(403);
+  });
+
+  it('Social approver can edit/approve/delete owned integrations', async () => {
+    createMockAuth(SOCIAL_ADMIN_IDIR_USERID_01, SOCIAL_ADMIN_IDIR_EMAIL_01, ['social-approver']);
+    const socialApproverIntegration = await buildIntegration({
+      projectName: 'social-approver',
+      submitted: true,
+      social: true,
+      prodEnv: true,
+    });
+
+    expect(socialApproverIntegration.status).toEqual(200);
+
+    const requests = await getRequestsForAdmins();
+    const createdReq = requests.body.rows.find((row) => row.projectName === 'social-approver');
+    expect(requests.status).toEqual(200);
+    expect(createdReq).toBeTruthy();
+
+    const approveRes = await updateIntegration(
+      { ...createdReq, socialApproved: true, devValidRedirectUris: ['https://other-application-route'] },
+      true,
+    );
+
+    expect(approveRes.status).toEqual(200);
+    expect(approveRes.body.socialApproved).toEqual(true);
     expect(approveRes.body.devValidRedirectUris).toEqual(['https://other-application-route']);
 
     const deleteRes = await deleteIntegration(createdReq.id);

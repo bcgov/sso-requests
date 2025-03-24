@@ -273,7 +273,8 @@ legend {
   margin-left: 5px;
 }
 
-#root_agreeWithTerms + span {
+#root_agreeWithTerms + span,
+#root_confirmSocial + span {
   font-weight: bold;
   margin-left: 5px;
 }
