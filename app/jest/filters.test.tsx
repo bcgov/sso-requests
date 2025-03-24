@@ -36,7 +36,7 @@ describe('Format filters', () => {
     expect(filteredDevIdps).toEqual(['idir', 'azureidir']);
     expect(filteredEnvironments).toEqual(['dev']);
 
-    [filteredDevIdps, _, filteredEnvironments] = formatFilters([allIdpOptions[3]], [allEnvironmentOptions[0]]);
+    [filteredDevIdps] = formatFilters([allIdpOptions[3]], [allEnvironmentOptions[0]]);
     expect(filteredDevIdps).toEqual(['social']);
   });
 
