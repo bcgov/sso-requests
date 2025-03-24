@@ -96,7 +96,7 @@ describe('IDP Approver', () => {
       bcServicesCard: true,
       prodEnv: true,
     });
-    buildIntegration({
+    await buildIntegration({
       projectName: 'social',
       submitted: true,
       social: true,
