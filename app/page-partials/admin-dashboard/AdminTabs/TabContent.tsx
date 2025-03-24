@@ -8,6 +8,7 @@ import {
   checkIfBceidProdApplying,
   checkIfGithubProdApplying,
   checkIfBcServicesCardProdApplying,
+  checkIfSocialProdApplying,
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
@@ -22,9 +23,9 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github' | 'BCServicesCard';
+  type: 'bceid' | 'github' | 'BCServicesCard' | 'social';
   canApproveProd: boolean;
-  awaitingTFComplete: boolean;
+  notApplied: boolean;
   onApproved?: () => void;
 }
 
@@ -32,9 +33,10 @@ const approvalTypeMap = {
   bceid: 'bceidApproved',
   github: 'githubApproved',
   BCServicesCard: 'bcServicesCardApproved',
+  social: 'socialApproved',
 };
 
-function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onApproved }: Props) {
+function TabContent({ integration, type, canApproveProd, notApplied, onApproved }: Props) {
   const [openApprovalModal, setOpenApprovalModal] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
 
@@ -84,6 +86,9 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     case 'BCServicesCard':
       typeApproved = checkIfBcServicesCardProdApplying(integration);
       break;
+    case 'social':
+      typeApproved = checkIfSocialProdApplying(integration);
+      break;
   }
 
   let content;
@@ -98,12 +103,12 @@ function TabContent({ integration, type, canApproveProd, awaitingTFComplete, onA
     content = (
       <>
         <p>{`To begin the ${displayType} integration in production, Click Below.`}</p>
-        <button className="primary" onClick={openModal} disabled={awaitingTFComplete}>
+        <button className="primary" onClick={openModal} disabled={notApplied}>
           Approve Prod
         </button>
       </>
     );
-  } else if (awaitingTFComplete && typeApproved) {
+  } else if (notApplied && typeApproved) {
     content = (
       <div style={{ display: 'inline-flex', background: '#FFCCCB', borderRadius: '5px' }}>
         <div style={{ padding: 5 }}>

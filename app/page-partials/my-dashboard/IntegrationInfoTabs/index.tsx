@@ -8,7 +8,7 @@ import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import UserEventPanel from 'components/UserEventPanel';
 import { checkIfBceidProdApplying, checkIfGithubProdApplying, checkIfBcServicesCardProdApplying } from 'utils/helpers';
-import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard, usesSocial } from '@app/helpers/integration';
 import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -19,6 +19,7 @@ import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
 import ServiceAccountRoles from 'page-partials/my-dashboard/ServiceAccountRoles';
 import BcServicesCardPanel from './BcServicesCardStatusPanel';
+import SocialStatusPanel from './SocialStatusPanel';
 import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -100,6 +101,7 @@ const getInstallationTab = ({
               <BceidStatusPanel approvalContext={approvalContext} />
               <GithubStatusPanel approvalContext={approvalContext} />
               <BcServicesCardPanel approvalContext={approvalContext} />
+              <SocialStatusPanel approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -218,6 +220,7 @@ function IntegrationInfoTabs({ integration }: Props) {
     githubApproved = false,
     digitalCredentialApproved = false,
     bcServicesCardApproved = false,
+    socialApproved = false,
   } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
   const hasProd = environments.includes('prod');
@@ -225,9 +228,11 @@ function IntegrationInfoTabs({ integration }: Props) {
   const hasGithub = usesGithub(integration);
   const hasDigitalCredential = usesDigitalCredential(integration);
   const hasBcServicesCard = usesBcServicesCard(integration);
+  const hasSocial = usesSocial(integration);
   const awaitingBceidProd = hasBceid && hasProd && !bceidApproved;
   const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
   const awaitingBcServicesCardProd = hasBcServicesCard && hasProd && !bcServicesCardApproved;
+  const awaitingSocialProd = hasSocial && hasProd && !socialApproved;
   const bceidProdApplying = checkIfBceidProdApplying(integration);
   const githubProdApplying = checkIfGithubProdApplying(integration);
   const bcServicesCardProdApplying = checkIfBcServicesCardProdApplying(integration);
@@ -236,14 +241,17 @@ function IntegrationInfoTabs({ integration }: Props) {
     hasProd,
     hasBceid,
     hasGithub,
+    hasSocial,
     hasDigitalCredential,
     hasBcServicesCard,
     bceidApproved,
     githubApproved,
+    socialApproved,
     bcServicesCardApproved,
     awaitingBceidProd,
     awaitingGithubProd,
     awaitingBcServicesCardProd,
+    awaitingSocialProd,
     bceidProdApplying,
     githubProdApplying,
     bcServicesCardProdApplying,
@@ -273,10 +281,10 @@ function IntegrationInfoTabs({ integration }: Props) {
   const tabs = [];
   const allowedTabs = [];
 
-  // Integrations with only DC or BC services card should not have role management
+  // Integrations with only DC, social, or BC services card should not have role management
   const idpOnlyIntegrationsWithRoleManagementDisabled =
     integration.devIdps?.length &&
-    integration.devIdps?.every((idp) => ['digitalcredential', 'bcservicescard'].includes(idp));
+    integration.devIdps?.every((idp) => ['digitalcredential', 'bcservicescard', 'social'].includes(idp));
 
   if (displayStatus === 'Submitted') {
     if (['planFailed', 'applyFailed'].includes(integration.status as string)) {

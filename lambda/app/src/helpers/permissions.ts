@@ -1,5 +1,5 @@
 import { Session } from '@lambda-shared/interfaces';
-import { checkBceidGroup, checkBcServicesCard, checkGithubGroup } from '@app/helpers/integration';
+import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkSocial } from '@app/helpers/integration';
 import createHttpError from 'http-errors';
 import { isEqual } from 'lodash';
 
@@ -19,6 +19,7 @@ export const getIdpApprovalStatus = ({
   bceidApprover,
   githubApprover,
   bcscApprover,
+  socialApprover,
 }) => {
   const changedAttrs: any = {};
 
@@ -34,6 +35,10 @@ export const getIdpApprovalStatus = ({
   if (isApprovingBCSC && !isAdmin && !bcscApprover)
     throw new createHttpError.Forbidden('not allowed to approve bc services card');
 
+  const isApprovingSocial = !originalData.socialApproved && updatedData.socialApproved;
+  if (isApprovingSocial && !isAdmin && !socialApprover)
+    throw new createHttpError.Forbidden('not allowed to approve social');
+
   if (originalData.bceidApproved && !updatedData.devIdps.some(checkBceidGroup)) {
     changedAttrs.bceidApproved = false;
   }
@@ -44,6 +49,10 @@ export const getIdpApprovalStatus = ({
 
   if (originalData.bcServicesCardApproved && !updatedData.devIdps.some(checkBcServicesCard)) {
     changedAttrs.bcServicesCardApproved = false;
+  }
+
+  if (originalData.socialApproved && !updatedData.devIdps.some(checkSocial)) {
+    changedAttrs.socialApproved = false;
   }
 
   if (originalData.bcServicesCardApproved) {
