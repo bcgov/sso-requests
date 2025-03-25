@@ -23,6 +23,7 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
     github: ['githubbcgov', 'githubpublic'],
     digitalCredential: 'digitalcredential',
     bcservicescard: 'bcservicescard',
+    social: 'social',
   };
 
   let realms: string[] | null = [];
@@ -39,6 +40,8 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
       devIdps = devIdps?.concat(gold_realms.digitalCredential) || null;
     } else if (idp.value === 'bcservicescard') {
       devIdps = devIdps?.concat(gold_realms.bcservicescard) || null;
+    } else if (idp.value === 'social') {
+      devIdps = devIdps?.concat(gold_realms.social) || null;
     }
   });
 
