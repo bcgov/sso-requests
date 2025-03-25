@@ -79,6 +79,10 @@ describe('Create Integration Requests', () => {
           if (data.approvals.bcsc) {
             req.approveRequest('BC Services Card', dashboardPage.confirmBCSCButton);
           }
+
+          if (data.approvals.social) {
+            req.approveRequest('Social', dashboardPage.confirmSocialButton);
+          }
         });
       }
 

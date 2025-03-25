@@ -88,6 +88,7 @@ class RequestPage {
     githubBCGovLabel: 'GitHub BC Gov',
     digitalCredentialLabel: 'Digital Credential',
     bcscLabel: 'BC Services Card',
+    social: 'Social',
   };
 
   // In info modal, click close button
@@ -285,6 +286,14 @@ class RequestPage {
         cy.contains(matcher).find('input[type="checkbox"]').check();
       }
     });
+    // Agree to social when included
+    cy.get('label')
+      .contains('Do you acknowledge and agree that by choosing social login')
+      .then(($label) => {
+        if ($label.length > 0) {
+          $label.click();
+        }
+      });
   }
 
   setadditionalRoleAttribute(additionalRoleAttribute: string) {
