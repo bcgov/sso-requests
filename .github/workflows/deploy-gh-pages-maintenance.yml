@@ -55,6 +55,7 @@ jobs:
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
+          INCLUDE_DIGITAL_CREDENTIAL=true
           INCLUDE_BC_SERVICES_CARD=true
           INCLUDE_SOCIAL=false
           ALLOW_BC_SERVICES_CARD_PROD=true
