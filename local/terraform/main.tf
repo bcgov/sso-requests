@@ -47,4 +47,6 @@ module "standard" {
   google_client_secret                = ""
   microsoft_client_id                 = ""
   microsoft_client_secret             = ""
+  apple_client_id                     = ""
+  apple_client_secret                 = ""
 }
