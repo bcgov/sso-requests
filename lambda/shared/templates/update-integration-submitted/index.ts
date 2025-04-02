@@ -9,6 +9,7 @@ import {
   OCIO_EMAIL_ADDRESS,
   DIT_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
+  SOCIAL_APPROVAL_EMAIL_ADDRESS,
 } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
@@ -18,6 +19,7 @@ import {
   usesBceidProd,
   usesDigitalCredentialProd,
   usesDigitalCredential,
+  usesSocial,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
@@ -58,6 +60,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
     cc.push(DIT_EMAIL_ADDRESS);
   }
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);
+  if (usesSocial(integration)) cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
 
   return sendEmail({
     code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,

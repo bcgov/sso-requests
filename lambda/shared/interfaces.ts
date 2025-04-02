@@ -40,6 +40,12 @@ export interface EmailOptions {
   priority?: 'normal' | 'low' | 'high';
   subject?: string;
   tag?: string;
+  attachments?: {
+    content: Buffer | string;
+    filename: string;
+    contentType?: string;
+  }[];
+  contentType?: string;
   event?: EmailEvent;
 }
 
