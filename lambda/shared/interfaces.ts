@@ -45,7 +45,6 @@ export interface EmailOptions {
     filename: string;
     contentType?: string;
   }[];
-  contentType?: string;
   event?: EmailEvent;
 }
 
