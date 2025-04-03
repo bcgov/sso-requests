@@ -9,6 +9,7 @@ import { getTeamById } from '@lambda-app/queries/team';
 import { getUserById } from '@lambda-app/queries/user';
 import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
+import path from 'path';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -126,4 +127,16 @@ export const processIntegrationList = (integrations: IntegrationData[]) => {
 
 export const isNonProdDigitalCredentialRequest = (integration: IntegrationData) => {
   return integration.devIdps.includes('digitalcredential') && !integration.environments.includes('prod');
+};
+
+/**
+ * Resolve path to email attachments based on environment, since the lambda build flattens out the directories
+ * @param filename Name of the file
+ */
+export const resolveAttachmentPath = (filename: string) => {
+  if (process.env.LOCAL_DEV) {
+    return path.resolve(__dirname, 'attachments', filename);
+  } else {
+    return path.resolve(__dirname, filename);
+  }
 };

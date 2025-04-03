@@ -570,6 +570,18 @@ describe('integration email updates for individual users', () => {
       // Other email does not re-send attachment
       expect(emailList[1].attachments).toBeFalsy();
       expect(emailList[1].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
+
+      // Updates should also attach form on the first email only
+      emailList = createMockSendEmail();
+      await updateIntegration(integrationRes.body, true);
+      expect(emailList.length).toEqual(2);
+      // Expect update submitted email first with attached spreadsheet
+      expect(emailList[0].attachments.length).toBe(1);
+      expect(emailList[0].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
+
+      // Update finalized email does not re-send attachment
+      expect(emailList[1].attachments).toBeFalsy();
+      expect(emailList[1].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
     });
   } catch (err) {
     console.error('EXCEPTION: ', err);
