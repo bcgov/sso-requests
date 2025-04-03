@@ -70,6 +70,18 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
+  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ Social', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
+      integration: { ...formDataProd, devIdps: ['social'] },
+      waitingBceidProdApproval: false,
+      waitingGithubProdApproval: false,
+      waitingSocialProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
   it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ GitHub', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: formDataProd,
@@ -134,6 +146,16 @@ describe('Email template snapshots', () => {
       integration: { ...formDataDev },
       waitingBceidProdApproval: false,
       waitingGithubProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
+  it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved Social prod', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...formDataDev },
+      waitingSocialProdApproval: true,
     });
 
     expect(rendered.subject).toMatchSnapshot();

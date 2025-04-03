@@ -9,6 +9,7 @@ locals {
   digitalcredential_realm_name          = "digitalcredential"
   google_realm_name                     = "google"
   microsoft_realm_name                  = "microsoft"
+  apple_realm_name                      = "apple"
   sandbox_client_redirect_uri           = ""
   siteminder_single_sign_on_service_url = ""
 }
@@ -26,6 +27,7 @@ module "standard" {
   github_realm_name        = local.github_realm_name
   google_realm_name        = local.google_realm_name
   microsoft_realm_name     = local.microsoft_realm_name
+  apple_realm_name         = local.apple_realm_name
 
   idir_client_id                      = ""
   idir_client_secret                  = ""
@@ -47,4 +49,6 @@ module "standard" {
   google_client_secret                = ""
   microsoft_client_id                 = ""
   microsoft_client_secret             = ""
+  apple_client_id                     = ""
+  apple_client_secret                 = ""
 }

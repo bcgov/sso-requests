@@ -3,5 +3,6 @@
 <p>Below is a summary of your integration request details:</p>
 {{> integrationDetail }} {{> processingTime }} {{#if waitingBceidProdApproval}} {{> hr }} {{> createBceidBottom }}
 {{/if}} {{#if waitingGithubProdApproval}} {{> hr }} {{> createGithubBottom }} {{/if}}{{#if
-waitingBcServicesCardProdApproval}} {{> hr }} {{> createBcServicesCardBottom }} {{/if}} {{#if
-(isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer }}
+waitingBcServicesCardProdApproval}} {{> hr }} {{> createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}}
+{{> hr }} {{> createSocialBottom }} {{/if}} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
+digitalCredentialInfoContact }} {{/if}} {{> footer }}

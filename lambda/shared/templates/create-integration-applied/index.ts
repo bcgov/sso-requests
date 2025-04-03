@@ -8,11 +8,12 @@ import {
   DIT_EMAIL_ADDRESS,
   IDIM_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
+  SOCIAL_APPROVAL_EMAIL_ADDRESS,
 } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import type { RenderResult } from '../index';
-import { usesBcServicesCardProd, usesBceidProd, usesDigitalCredentialProd } from '@app/helpers/integration';
+import { usesBcServicesCardProd, usesBceidProd, usesDigitalCredentialProd, usesSocial } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request approved (email 2 of 2)`;
 const template = fs.readFileSync(__dirname + '/create-integration-applied.html', 'utf8');
@@ -26,6 +27,7 @@ interface DataProps {
   hasBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingBcServicesCardProdApproval?: boolean;
+  waitingSocialProdApproval?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
@@ -43,6 +45,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getIntegrationEmails(integration);
   const cc = [SSO_EMAIL_ADDRESS];
   if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesSocial(integration)) cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
   if (usesDigitalCredentialProd(integration)) {
     cc.push(DIT_EMAIL_ADDRESS, DIT_ADDITIONAL_EMAIL_ADDRESS);
   }

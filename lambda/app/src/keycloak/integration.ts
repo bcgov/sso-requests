@@ -98,7 +98,7 @@ export const samlClientProfile = (
 };
 
 /** Client scopes to add when social is selected. */
-export const socialIdps = ['google', 'microsoft'];
+export const socialIdps = ['google', 'microsoft', 'apple'];
 
 export const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
   let defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common'];

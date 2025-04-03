@@ -12,5 +12,6 @@
 <hr />
 {{> processingTime }} {{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if
 waitingGithubProdApproval}} {{> hr }} {{> createGithubBottom }} {{/if}}{{#if waitingBcServicesCardProdApproval}} {{> hr
-}} {{> createBcServicesCardBottom }} {{/if}} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
-digitalCredentialInfoContact }} {{/if}} {{> footer }}
+}} {{> createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}} {{> hr }} {{> createSocialBottom }}
+{{/if}} {{#if (isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer
+}}
