@@ -176,6 +176,18 @@ describe('create/manage integration by authenticated user', () => {
       expect(sendEmail).toHaveBeenCalled();
     });
 
+    it('should fetch an integration by userId when a draft team integration has not selected a team yet', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      let result = await createIntegration(getCreateIntegrationData({ projectName }));
+      result = await updateIntegration(
+        getUpdateIntegrationData({ integration: { ...result.body, usesTeam: true, teamId: null } }),
+      );
+
+      const retrieved = await getIntegrations();
+      const foundIntegration = retrieved.body.find((integration) => integration.id === result.body.id);
+      expect(foundIntegration).toBeTruthy();
+    });
+
     it('Should not allow public service accounts', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const integrationClone = { ...integration };

@@ -177,7 +177,7 @@ export const getUpdateIntegrationData = (args: {
     testIdps: envs.includes('test') ? identityProviders : [],
     prodIdps: envs.includes('prod') ? identityProviders : [],
     protocol,
-    teamId: args.integration.usesTeam ? args.integration.teamId.toString() : undefined,
+    teamId: args.integration.usesTeam ? args.integration.teamId?.toString() : undefined,
     authType,
     bceidApproved,
     githubApproved,
