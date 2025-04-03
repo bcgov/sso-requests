@@ -31,6 +31,14 @@ export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: stri
       usesTeam: false,
       userId,
     },
+    // Cover case that users switched to team but have not selected one yet. This only applies in draft since
+    // request cannot be submitted until a team is selected.
+    {
+      usesTeam: true,
+      teamId: null,
+      status: 'draft',
+      userId,
+    },
   ];
 
   return where;
