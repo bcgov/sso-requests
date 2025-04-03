@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
-import { processRequest, resolveAttachmentPath } from '../helpers';
+import { processRequest, resolveAttachmentPath, getIntegrationEmails } from '../helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import {
@@ -11,7 +11,6 @@ import {
   DIT_ADDITIONAL_EMAIL_ADDRESS,
   SOCIAL_APPROVAL_EMAIL_ADDRESS,
 } from '@lambda-shared/local';
-import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import {
   usesGithub,
