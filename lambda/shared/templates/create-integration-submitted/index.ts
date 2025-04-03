@@ -1,7 +1,6 @@
 import * as fs from 'fs';
-import path from 'path';
 import Handlebars = require('handlebars');
-import { processRequest } from '../helpers';
+import { processRequest, resolveAttachmentPath, getIntegrationEmails } from '../helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { sendEmail } from '@lambda-shared/utils/ches';
 import {
@@ -12,7 +11,6 @@ import {
   DIT_ADDITIONAL_EMAIL_ADDRESS,
   SOCIAL_APPROVAL_EMAIL_ADDRESS,
 } from '@lambda-shared/local';
-import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
 import {
   usesGithub,
@@ -55,7 +53,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
   if (usesSocial(integration)) {
     cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
-    const filePath = path.resolve(__dirname, 'social-assessment.xlsx');
+    const filePath = resolveAttachmentPath('social-assessment.xlsx');
     const buffer = fs.readFileSync(filePath);
     attachments.push({
       content: buffer.toString('base64'),
