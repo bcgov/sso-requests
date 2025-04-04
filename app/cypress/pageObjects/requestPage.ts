@@ -287,13 +287,13 @@ class RequestPage {
       }
     });
     // Agree to social when included
-    cy.get('label')
-      .contains('Do you acknowledge and agree that by choosing social login')
-      .then(($label) => {
-        if ($label.length > 0) {
-          $label.click();
-        }
-      });
+    // cy.get('label')
+    //   .contains('Do you acknowledge and agree that by choosing social login')
+    //   .then(($label) => {
+    //     if ($label.length > 0) {
+    //       $label.click();
+    //     }
+    //   });
   }
 
   setadditionalRoleAttribute(additionalRoleAttribute: string) {
