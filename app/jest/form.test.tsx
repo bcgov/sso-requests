@@ -210,6 +210,27 @@ describe('Form Template Saving and Navigation', () => {
     fireEvent.click(adminReview);
     await waitFor(() => expect(within(termsAndConditionsBox).queryByTitle(STEPPER_ERROR)).toBeNull());
   });
+
+  it('Loads correct usesTeam state', async () => {
+    const withTeamComponent = await setUpRender({
+      id: 0,
+      status: 'draft',
+      usesTeam: true,
+      teamId: null,
+    });
+    let usesTeamCheckbox = withTeamComponent.getByLabelText('Project Team') as HTMLInputElement;
+    expect(usesTeamCheckbox.checked).toBe(true);
+    withTeamComponent.unmount();
+
+    const withoutTeamComponent = await setUpRender({
+      id: 0,
+      status: 'draft',
+      usesTeam: false,
+      teamId: null,
+    });
+    usesTeamCheckbox = withoutTeamComponent.getByLabelText('Project Team') as HTMLInputElement;
+    expect(usesTeamCheckbox.checked).toBe(false);
+  });
 });
 
 describe('Form Template Loading Data', () => {
