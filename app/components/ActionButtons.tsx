@@ -28,7 +28,7 @@ interface StyledActionButtonProps {
 }
 
 export const ActionButton = styled(({ disabled, activeColor, isUnread, ...props }) => (
-  <FontAwesomeIcon {...props} />
+  <FontAwesomeIcon {...props} aria-disabled={disabled} />
 ))<StyledActionButtonProps>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
   ${(props) =>
