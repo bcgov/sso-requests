@@ -197,7 +197,7 @@ export const processRequest = (request: Integration): Integration => {
   }
 
   if (request.teamId) request.teamId = String(request.teamId);
-  else request.usesTeam = false;
+  else if (request.status !== 'draft') request.usesTeam = false;
 
   return changeNullToUndefined(request);
 };

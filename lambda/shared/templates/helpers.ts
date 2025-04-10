@@ -134,7 +134,7 @@ export const isNonProdDigitalCredentialRequest = (integration: IntegrationData) 
  * @param filename Name of the file
  */
 export const resolveAttachmentPath = (filename: string) => {
-  if (process.env.LOCAL_DEV) {
+  if (process.env.LOCAL_DEV === 'true') {
     return path.resolve(__dirname, 'attachments', filename);
   } else {
     return path.resolve(__dirname, filename);
