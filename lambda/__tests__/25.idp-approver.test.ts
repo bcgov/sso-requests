@@ -134,7 +134,7 @@ describe('IDP Approver', () => {
     expect(deleteResponse.status).toBe(401);
   });
 
-  it.skip('BCeID approver can view and approve any bceid integration but cannot edit/delete/restore', async () => {
+  it('BCeID approver can view and approve any bceid integration but cannot edit/delete/restore', async () => {
     createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
     const requests = await getRequestsForAdmins();
 
@@ -165,7 +165,7 @@ describe('IDP Approver', () => {
     expect(restoreRes.status).toEqual(403);
   });
 
-  it.skip('BCeID approver can edit/approve/delete owned integrations', async () => {
+  it('BCeID approver can edit/approve/delete owned integrations', async () => {
     createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
     const bceidApproverIntegration = await buildIntegration({
       projectName: 'bceid-approver',
@@ -194,7 +194,7 @@ describe('IDP Approver', () => {
     expect(deleteRes.status).toEqual(200);
   });
 
-  it.skip('Social approver can view and approve any social integration but cannot edit/delete/restore', async () => {
+  it('Social approver can view and approve any social integration but cannot edit/delete/restore', async () => {
     createMockAuth(SOCIAL_ADMIN_IDIR_USERID_01, SOCIAL_ADMIN_IDIR_EMAIL_01, ['social-approver']);
     const requests = await getRequestsForAdmins();
 
@@ -225,7 +225,7 @@ describe('IDP Approver', () => {
     expect(restoreRes.status).toEqual(403);
   });
 
-  it.skip('Social approver can edit/approve/delete owned integrations', async () => {
+  it('Social approver can edit/approve/delete owned integrations', async () => {
     createMockAuth(SOCIAL_ADMIN_IDIR_USERID_01, SOCIAL_ADMIN_IDIR_EMAIL_01, ['social-approver']);
     const socialApproverIntegration = await buildIntegration({
       projectName: 'social-approver',
@@ -254,7 +254,7 @@ describe('IDP Approver', () => {
     expect(deleteRes.status).toEqual(200);
   });
 
-  it.skip('GitHub approver can view and approve any github integration but cannot edit/delete/restore', async () => {
+  it('GitHub approver can view and approve any github integration but cannot edit/delete/restore', async () => {
     createMockAuth(GITHUB_ADMIN_IDIR_USERID_01, GITHUB_ADMIN_IDIR_EMAIL_01, ['github-approver']);
     const requests = await getRequestsForAdmins();
     expect(requests.status).toEqual(200);
@@ -284,7 +284,7 @@ describe('IDP Approver', () => {
     expect(restoreRes.status).toEqual(403);
   });
 
-  it.skip('BC Services Card approver can view and approve any bcsc integration but cannot edit/delete/restore', async () => {
+  it('BC Services Card approver can view and approve any bcsc integration but cannot edit/delete/restore', async () => {
     createMockAuth(BCSC_ADMIN_IDIR_USERID_01, BCSC_ADMIN_IDIR_EMAIL_01, ['bc-services-card-approver']);
     const requests = await getRequestsForAdmins();
     expect(requests.status).toEqual(200);
@@ -321,7 +321,7 @@ describe('IDP Approver', () => {
 });
 
 describe('Approval Permissions', () => {
-  it.skip('Keeps bceid approval flag immutable for regular users', async () => {
+  it('Keeps bceid approval flag immutable for regular users', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     const bceidIntegration = await buildIntegration({
       projectName: 'bceid',
@@ -339,7 +339,7 @@ describe('Approval Permissions', () => {
     expect(approveRes.body.bceidApproved).toBeFalsy();
   });
 
-  it.skip('Keeps github approval flag immutable for regular users', async () => {
+  it('Keeps github approval flag immutable for regular users', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     const githubIntegration = await buildIntegration({
       projectName: 'github',
@@ -357,7 +357,7 @@ describe('Approval Permissions', () => {
     expect(approveRes.body.githubApproved).toBeFalsy();
   });
 
-  it.skip('Keeps bcsc approval flag immutable for regular users', async () => {
+  it('Keeps bcsc approval flag immutable for regular users', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     const bcServicesCardIntegration = await buildIntegration({
       projectName: 'bc-services-card',
