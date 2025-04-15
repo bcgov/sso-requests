@@ -118,6 +118,12 @@ export const getAllowedRequest = async (session: Session, requestId: number, rol
                 usesTeam: false,
                 userId: session.user.id,
               },
+              {
+                usesTeam: true,
+                teamId: null,
+                status: 'draft',
+                userId: session.user.id,
+              },
             ],
           },
           {
