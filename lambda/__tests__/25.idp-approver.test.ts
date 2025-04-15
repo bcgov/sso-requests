@@ -13,6 +13,7 @@ import {
 } from './helpers/fixtures';
 import { buildIntegration } from './helpers/modules/common';
 import {
+  createIntegration,
   deleteIntegration,
   getEvents,
   getRequestsForAdmins,
@@ -105,6 +106,32 @@ describe('IDP Approver', () => {
   });
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('Approver can delete their own integration when team is not yet assigned', async () => {
+    createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
+    const unassignedTeamIntegration = await createIntegration({
+      projectName: 'Unassigned',
+      usesTeam: true,
+      teamId: null,
+    });
+    const deleteResponse = await deleteIntegration(unassignedTeamIntegration.body.id);
+    expect(deleteResponse.status).toBe(200);
+  });
+
+  it('Approver cannot delete others integrations when team is not yet assigned', async () => {
+    // Create as a different user
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const unassignedTeamIntegration = await createIntegration({
+      projectName: 'Unassigned',
+      usesTeam: true,
+      teamId: null,
+    });
+
+    // Attempt to delete as approver, expect failure
+    createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
+    const deleteResponse = await deleteIntegration(unassignedTeamIntegration.body.id);
+    expect(deleteResponse.status).toBe(401);
   });
 
   it('BCeID approver can view and approve any bceid integration but cannot edit/delete/restore', async () => {
