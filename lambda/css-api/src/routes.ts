@@ -1358,8 +1358,8 @@ export const setRoutes = (app: any) => {
       #swagger.tags = ['Users']
       #swagger.path = '/integrations/{integrationId}/{environment}/bceid/users'
       #swagger.method = 'get'
-      #swagger.description = 'Get list of BCeID users by query for target environment'
-      #swagger.summary = 'Get list of BCeID users'
+      #swagger.description = 'Get list of BCeID users by query for an integration in target environment'
+      #swagger.summary = 'Get list of BCeID users by query for an integration'
 
       #swagger.parameters['integrationId'] = {
         in: 'path',
@@ -1376,17 +1376,17 @@ export const setRoutes = (app: any) => {
         schema: { $ref: '#/components/schemas/environment' }
       }
 
-      #swagger.parameters['guid'] = {
-        in: 'query',
-        description: 'Guid',
-        example: 'tb914nlltlo4mz05viha1b4hdyi4xnad'
-      }
-
       #swagger.parameters['bceidType'] = {
         in: 'query',
         required: true,
         description: 'BCeID Type',
         schema: { $ref: '#/components/schemas/bceidType' }
+      }
+
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: 'tb914nlltlo4mz05viha1b4hdyi4xnad'
       }
 
       #swagger.parameters['displayName'] = {
