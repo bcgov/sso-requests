@@ -1,6 +1,9 @@
 import { Integration } from '@app/interfaces/Request';
 import { Team } from '@app/interfaces/team';
 
+/**
+ * For an integration the user has access to, determine delete permissions.
+ */
 export const canDeleteIntegration = (integration: Integration) => {
   if (
     !integration ||
@@ -11,7 +14,7 @@ export const canDeleteIntegration = (integration: Integration) => {
     return false;
   }
 
-  if (integration.usesTeam) {
+  if (integration.usesTeam && integration.teamId) {
     if (integration.userTeamRole === 'admin') return true;
   } else return true;
 
