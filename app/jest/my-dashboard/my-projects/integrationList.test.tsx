@@ -4,6 +4,7 @@ import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import { sampleRequest } from '../../samples/integrations';
 import { formatWikiURL } from '@app/utils/constants';
 import * as requestService from 'services/request';
+import { Integration } from '@app/interfaces/Request';
 
 const setIntegration = jest.fn();
 const setIntegrationCount = jest.fn();
@@ -111,49 +112,38 @@ describe('Integration list', () => {
 });
 
 describe('Delete Permissions', () => {
-  it('allows deletion for direct ownership', async () => {
-    jest
-      .spyOn(requestService, 'getRequests')
-      .mockResolvedValueOnce([[{ ...sampleRequest, usesTeam: false, projectLead: true }], null]);
+  const setupDeleteRender = (integration: Integration) => {
+    jest.spyOn(requestService, 'getRequests').mockResolvedValueOnce([[{ ...sampleRequest, ...integration }], null]);
     render(<IntegrationListComponent />);
-
-    const button = await screen.findByRole('button', { name: 'Delete' });
-    expect(button).toHaveAttribute('aria-disabled', 'false');
+    return screen.findByRole('button', { name: 'Delete' });
+  };
+  it('allows deletion for direct ownership', async () => {
+    const deleteButton = await setupDeleteRender({ ...sampleRequest, usesTeam: false, projectLead: true });
+    expect(deleteButton).toHaveAttribute('aria-disabled', 'false');
   });
 
   it('allows deletion for direct ownership when team is not yet selected', async () => {
-    jest
-      .spyOn(requestService, 'getRequests')
-      .mockResolvedValueOnce([[{ ...sampleRequest, usesTeam: true, projectLead: false, teamId: undefined }], null]);
-    render(<IntegrationListComponent />);
-
-    const button = await screen.findByRole('button', { name: 'Delete' });
-    expect(button).toHaveAttribute('aria-disabled', 'false');
+    const deleteButton = await setupDeleteRender({ usesTeam: true, projectLead: false, teamId: undefined });
+    expect(deleteButton).toHaveAttribute('aria-disabled', 'false');
   });
 
   it('disables deletion for team integration when user is not a team admin', async () => {
-    jest
-      .spyOn(requestService, 'getRequests')
-      .mockResolvedValueOnce([
-        [{ ...sampleRequest, usesTeam: true, projectLead: false, teamId: 1, userTeamRole: 'member' }],
-        null,
-      ]);
-    render(<IntegrationListComponent />);
-
-    const button = await screen.findByRole('button', { name: 'Delete' });
-    expect(button).toHaveAttribute('aria-disabled', 'true');
+    const deleteButton = await setupDeleteRender({
+      usesTeam: true,
+      projectLead: false,
+      teamId: 1,
+      userTeamRole: 'member',
+    });
+    expect(deleteButton).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('allows deletion for team integration when user is a team admin', async () => {
-    jest
-      .spyOn(requestService, 'getRequests')
-      .mockResolvedValueOnce([
-        [{ ...sampleRequest, usesTeam: true, projectLead: false, teamId: 1, userTeamRole: 'admin' }],
-        null,
-      ]);
-    render(<IntegrationListComponent />);
-
-    const button = await screen.findByRole('button', { name: 'Delete' });
-    expect(button).toHaveAttribute('aria-disabled', 'false');
+    const deleteButton = await setupDeleteRender({
+      usesTeam: true,
+      projectLead: false,
+      teamId: 1,
+      userTeamRole: 'admin',
+    });
+    expect(deleteButton).toHaveAttribute('aria-disabled', 'false');
   });
 });
