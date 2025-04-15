@@ -34,6 +34,14 @@ export type ListUsersFilterQuery = {
   guid?: string;
 };
 
+export type ListBceidUsersFilterQuery = {
+  bceidType: 'basic' | 'business' | 'both';
+  displayName?: string;
+  username?: string;
+  email?: string;
+  guid?: string;
+};
+
 export type ListUsersByRoleName = {
   page?: number;
   max?: number;

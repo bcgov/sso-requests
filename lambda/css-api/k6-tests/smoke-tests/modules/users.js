@@ -421,9 +421,210 @@ export const testUsers = (options) => {
     }
   });
 
-  group('GET users associated to Basic BCeID', () => {
+  // group('GET users associated to Basic BCeID', () => {
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/basic-bceid/users`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when no query params passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/basic-bceid/users?param1=1&param2=2`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/basic-bceid/users?guid=a`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when query param guid of length < 2 is passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = new URL(`${__ENV.css_api_url}/${__ENV.environment}/basic-bceid/users`);
+  //     url.searchParams.append('firstName', 'test');
+  //     url.searchParams.append('lastName', 'user');
+  //     url.searchParams.append('email', 'test.user@gov.bc.ca');
+  //     url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3dsf43r');
+  //     const response = http.get(url.toString(), options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when other query params with valid guid is passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/basic-bceid/users?guid=312321dsadf3243dsf4543d`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 200 when a valid guid is passed and is success': (r) => r.status === 200,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  // });
+
+  // group('GET users associated to Business BCeID', () => {
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/business-bceid/users`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when no query params passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/business-bceid/users?param1=1&param2=2`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/business-bceid/users?guid=a`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when query param guid of length < 2 is passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = new URL(`${__ENV.css_api_url}/${__ENV.environment}/business-bceid/users`);
+  //     url.searchParams.append('firstName', 'test');
+  //     url.searchParams.append('lastName', 'user');
+  //     url.searchParams.append('email', 'test.user@gov.bc.ca');
+  //     url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3dsf43r');
+  //     const response = http.get(url.toString(), options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when other query params with valid guid is passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/business-bceid/users?guid=312321dsadf3243dsf4543d`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 200 when a valid guid is passed and is success': (r) => r.status === 200,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  // });
+
+  // group('GET users associated to Basic/Business BCeID', () => {
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/basic-business-bceid/users`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when no query params passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/basic-business-bceid/users?param1=1&param2=2`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when arbitrary query params passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/basic-business-bceid/users?guid=a`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when query param guid of length < 2 is passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = new URL(`${__ENV.css_api_url}/${__ENV.environment}/basic-business-bceid/users`);
+  //     url.searchParams.append('firstName', 'test');
+  //     url.searchParams.append('lastName', 'user');
+  //     url.searchParams.append('email', 'test.user@gov.bc.ca');
+  //     url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3dsf43r');
+  //     const response = http.get(url.toString(), options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 400 when other query params with valid guid is passed': (r) => r.status === 400,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  //   {
+  //     const url = __ENV.css_api_url + `/${__ENV.environment}/basic-business-bceid/users?guid=312321dsadf3243dsf4543d`;
+  //     const response = http.get(url, options);
+
+  //     console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+  //     check(response, {
+  //       'should return 200 when a valid guid is passed and is success': (r) => r.status === 200,
+  //     });
+
+  //     sleep(SLEEP_DURATION);
+  //   }
+  // });
+
+  group('GET users associated to BCeID', () => {
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/basic-bceid/users`;
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/bceid/users`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -435,7 +636,8 @@ export const testUsers = (options) => {
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/basic-bceid/users?param1=1&param2=2`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/bceid/users?param1=1&param2=2`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
@@ -447,175 +649,87 @@ export const testUsers = (options) => {
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/basic-bceid/users?guid=a`;
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/bceid/users?bceidType=invalid`;
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 400 when query param guid of length < 2 is passed': (r) => r.status === 400,
+        'should return 400 when invalid bceidType is passed': (r) => r.status === 400,
       });
 
       sleep(SLEEP_DURATION);
     }
     {
-      const url = new URL(`${__ENV.css_api_url}/${__ENV.environment}/basic-bceid/users`);
-      url.searchParams.append('firstName', 'test');
-      url.searchParams.append('lastName', 'user');
-      url.searchParams.append('email', 'test.user@gov.bc.ca');
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/bceid/users?bceidType=basic`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when correct bceidType is passed with no other query params': (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+    {
+      const url =
+        __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/bceid/users?bceidType=basic&guid=a`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when when correct bceidType is passed with a query param guid of length < 2 is passed': (
+          r,
+        ) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+    {
+      const url =
+        __ENV.css_api_url +
+        `/integrations/${integrationId}/${__ENV.environment}/bceid/users?bceidType=basic&displayName=a`;
+      const response = http.get(url, options);
+
+      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
+
+      check(response, {
+        'should return 400 when when correct bceidType is passed with a query param displayName of length < 2 is passed':
+          (r) => r.status === 400,
+      });
+
+      sleep(SLEEP_DURATION);
+    }
+    {
+      const url = new URL(
+        `${__ENV.css_api_url}/integrations/${integrationId}/${__ENV.environment}/bceid/users?bceidType=basic`,
+      );
       url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3dsf43r');
       const response = http.get(url.toString(), options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 400 when other query params with valid guid is passed': (r) => r.status === 400,
+        'should return 200 when a valid guid is passed': (r) => r.status === 400,
       });
 
       sleep(SLEEP_DURATION);
     }
     {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/basic-bceid/users?guid=312321dsadf3243dsf4543d`;
-      const response = http.get(url, options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 200 when a valid guid is passed and is success': (r) => r.status === 200,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-  });
-
-  group('GET users associated to Business BCeID', () => {
-    {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/business-bceid/users`;
-      const response = http.get(url, options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 400 when no query params passed': (r) => r.status === 400,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-    {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/business-bceid/users?param1=1&param2=2`;
-      const response = http.get(url, options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-    {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/business-bceid/users?guid=a`;
-      const response = http.get(url, options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 400 when query param guid of length < 2 is passed': (r) => r.status === 400,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-    {
-      const url = new URL(`${__ENV.css_api_url}/${__ENV.environment}/business-bceid/users`);
-      url.searchParams.append('firstName', 'test');
-      url.searchParams.append('lastName', 'user');
-      url.searchParams.append('email', 'test.user@gov.bc.ca');
+      const url = __ENV.css_api_url + `/integrations/${integrationId}/${__ENV.environment}/bceid/users?bceidType=basic`;
       url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3dsf43r');
-      const response = http.get(url.toString(), options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 400 when other query params with valid guid is passed': (r) => r.status === 400,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-    {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/business-bceid/users?guid=312321dsadf3243dsf4543d`;
+      url.searchParams.append('displayName', 'Test');
+      url.searchParams.append('username', 'User');
+      url.searchParams.append('email', 'test.bceid.basic@gov.bc.ca');
       const response = http.get(url, options);
 
       console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
 
       check(response, {
-        'should return 200 when a valid guid is passed and is success': (r) => r.status === 200,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-  });
-
-  group('GET users associated to Basic/Business BCeID', () => {
-    {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/basic-business-bceid/users`;
-      const response = http.get(url, options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 400 when no query params passed': (r) => r.status === 400,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-    {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/basic-business-bceid/users?param1=1&param2=2`;
-      const response = http.get(url, options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 400 when arbitrary query params passed': (r) => r.status === 400,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-    {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/basic-business-bceid/users?guid=a`;
-      const response = http.get(url, options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 400 when query param guid of length < 2 is passed': (r) => r.status === 400,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-    {
-      const url = new URL(`${__ENV.css_api_url}/${__ENV.environment}/basic-business-bceid/users`);
-      url.searchParams.append('firstName', 'test');
-      url.searchParams.append('lastName', 'user');
-      url.searchParams.append('email', 'test.user@gov.bc.ca');
-      url.searchParams.append('guid', 'd2sf5tsdw3wsd54645gfgw3dsf43r');
-      const response = http.get(url.toString(), options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 400 when other query params with valid guid is passed': (r) => r.status === 400,
-      });
-
-      sleep(SLEEP_DURATION);
-    }
-    {
-      const url = __ENV.css_api_url + `/${__ENV.environment}/basic-business-bceid/users?guid=312321dsadf3243dsf4543d`;
-      const response = http.get(url, options);
-
-      console.debug(`Response from CSS API: ${JSON.stringify(response, 0, 2)}`);
-
-      check(response, {
-        'should return 200 when a valid guid is passed and is success': (r) => r.status === 200,
+        'should return 200 when a valid query params are passed and is success': (r) => r.status === 200,
       });
 
       sleep(SLEEP_DURATION);
