@@ -148,7 +148,7 @@ const GITHUB_USER_QUERY_REQ = {
   },
 };
 
-const BCEID_USER_QUERY_REQ = {
+const BCEID_USER_QUERY_REQ_LEGACY = {
   type: 'object',
   properties: {
     guid: {
@@ -169,8 +169,88 @@ const BCEID_USER_QUERY_REQ = {
   },
 };
 
+const BCEID_USER_QUERY_REQ = {
+  type: 'object',
+  properties: {
+    bceidType: {
+      type: 'string',
+      enum: ['basic', 'business', 'both'],
+      errorMessage: {
+        _: 'bceidType should be one of basic, business or both',
+      },
+    },
+    displayName: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'displayName should be string with length >= 2',
+      },
+    },
+    username: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'username should be string with length >= 2',
+      },
+    },
+    email: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'email should be string with length >= 2',
+      },
+    },
+    guid: {
+      type: 'string',
+      minLength: 2,
+      errorMessage: {
+        _: 'guid should be string with length >= 2',
+      },
+    },
+  },
+  required: ['bceidType'],
+  anyOf: [
+    {
+      required: ['displayName'],
+      errorMessage: {
+        required: 'displayName is required',
+        minLength: 'displayName should be string with length >= 2',
+      },
+    },
+    {
+      required: ['username'],
+      errorMessage: {
+        required: 'username is required',
+        minLength: 'username should be string with length >= 2',
+      },
+    },
+    {
+      required: ['email'],
+      errorMessage: {
+        required: 'email is required',
+        minLength: 'email should be string with length >= 2',
+      },
+    },
+    {
+      required: ['guid'],
+      errorMessage: {
+        required: 'guid is required',
+      },
+    },
+  ],
+  additionalProperties: false,
+  errorMessage: {
+    required: {
+      bceidType: 'bceidType is required',
+    },
+    additionalProperties: 'only display name, username, email and guid are supported',
+  },
+};
+
 export const findCommonUserQueryValidator = validator.compile(COMMON_USER_QUERY_REQ);
 
 export const findGithubUserQueryValidator = validator.compile(GITHUB_USER_QUERY_REQ);
+
+export const findBceidLegacyUserQueryValidator = validator.compile(BCEID_USER_QUERY_REQ_LEGACY);
 
 export const findBceidUserQueryValidator = validator.compile(BCEID_USER_QUERY_REQ);

@@ -173,6 +173,10 @@ describe('emails for teams', () => {
       });
       await createIntegrationRoles(role, integration.id, 'dev');
     });
+
+    jest.spyOn(KeycloakService.prototype, 'getUsers').mockImplementation(() => {
+      return Promise.resolve(searchUsersByIdpRows);
+    });
   });
 
   afterAll(async () => {
@@ -397,6 +401,27 @@ describe('emails for teams', () => {
         guid: searchUsersByIdpRows[0].username.split('@')[0],
       })
       .expect(200);
+    expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
+    expect(result.body.data[0].firstName).toBe(searchUsersByIdpRows[0].firstName);
+    expect(result.body.data[0].lastName).toBe(searchUsersByIdpRows[0].lastName);
+    expect(result.body.data[0].email).toBe(searchUsersByIdpRows[0].email);
+  });
+
+  it('gets bceid users associated with integration', async () => {
+    jest.spyOn(KeycloakService.prototype, 'getUserRealmRoles').mockImplementation(() => {
+      return Promise.resolve([{ name: `client-${integration.clientId}` }]);
+    });
+    const result = await supertest(app)
+      .get(`${API_BASE_PATH}/integrations/${integration.id}/dev/bceid/users`)
+      .query({
+        bceidType: 'basic',
+        guid: searchUsersByIdpRows[0].username.split('@')[0],
+        email: searchUsersByIdpRows[0].email,
+        displayName: searchUsersByIdpRows[0].firstName,
+        username: searchUsersByIdpRows[0].lastName,
+      })
+      .expect(200);
+
     expect(result.body.data[0].username).toBe(searchUsersByIdpRows[0].username);
     expect(result.body.data[0].firstName).toBe(searchUsersByIdpRows[0].firstName);
     expect(result.body.data[0].lastName).toBe(searchUsersByIdpRows[0].lastName);

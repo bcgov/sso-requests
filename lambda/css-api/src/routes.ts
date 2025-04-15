@@ -1175,7 +1175,9 @@ export const setRoutes = (app: any) => {
   });
 
   app.get(`/:environment/basic-bceid/users`, async (req, res) => {
-    /*#swagger.auto = false
+    /*
+      #swagger.deprecated = true
+      #swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/basic-bceid/users'
       #swagger.method = 'get'
@@ -1232,7 +1234,8 @@ export const setRoutes = (app: any) => {
   });
 
   app.get(`/:environment/business-bceid/users`, async (req, res) => {
-    /*#swagger.auto = false
+    /*#swagger.deprecated = true
+      #swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/business-bceid/users'
       #swagger.method = 'get'
@@ -1291,7 +1294,8 @@ export const setRoutes = (app: any) => {
   });
 
   app.get(`/:environment/basic-business-bceid/users`, async (req, res) => {
-    /*#swagger.auto = false
+    /*#swagger.deprecated = true
+      #swagger.auto = false
       #swagger.tags = ['Users']
       #swagger.path = '/{environment}/basic-business-bceid/users'
       #swagger.method = 'get'
@@ -1343,6 +1347,95 @@ export const setRoutes = (app: any) => {
     try {
       const { environment } = req.params;
       const result = await userController.listUsers(environment, 'bceidboth', req.query);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      handleError(res, err);
+    }
+  });
+
+  app.get(`/integrations/:integrationId/:environment/bceid/users`, async (req, res) => {
+    /*#swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.path = '/integrations/{integrationId}/{environment}/bceid/users'
+      #swagger.method = 'get'
+      #swagger.description = 'Get list of BCeID users by query for target environment'
+      #swagger.summary = 'Get list of BCeID users'
+
+      #swagger.parameters['integrationId'] = {
+        in: 'path',
+        description: 'Integration Id',
+        required: true,
+        type: 'number',
+        example: 1234
+      }
+
+      #swagger.parameters['environment'] = {
+        in: 'path',
+        description: 'Environment',
+        required: true,
+        schema: { $ref: '#/components/schemas/environment' }
+      }
+
+      #swagger.parameters['guid'] = {
+        in: 'query',
+        description: 'Guid',
+        example: 'tb914nlltlo4mz05viha1b4hdyi4xnad'
+      }
+
+      #swagger.parameters['bceidType'] = {
+        in: 'query',
+        required: true,
+        description: 'BCeID Type',
+        schema: { $ref: '#/components/schemas/bceidType' }
+      }
+
+      #swagger.parameters['displayName'] = {
+        in: 'query',
+        description: 'Display or Full name of the user',
+        example: 'Julius Caesar'
+      }
+      #swagger.parameters['username'] = {
+        in: 'query',
+        description: 'Username of the user',
+        example: 'juliuscaesar'
+      }
+      #swagger.parameters['email'] = {
+        in: 'query',
+        description: 'Email',
+        example: 'julius.caesar@email.com'
+      }
+
+      #swagger.responses[200] = {
+        description: 'OK',
+        schema: {
+            data: [
+            {
+              username: 'tb914nlltlo4mz05viha1b4hdyi4xnad@bceidbasic',
+              email: 'julius-caesar@email.com',
+              firstName: 'Julius',
+              lastName: 'Caesar',
+              attributes: {
+                display_name: ['Julius Caesar'],
+                bceid_user_guid: ['tb914nlltlo4mz05viha1b4hdyi4xnad'],
+                bceid_username: ['JULIUSCA']
+              },
+            }
+          ]
+        }
+      }
+      #swagger.responses[400] = {
+        description: 'Bad Request',
+        schema: { message: 'string' }
+      }
+      #swagger.responses[422] = {
+        description: 'Unprocessable Entity',
+        schema: {message: 'string'}
+      }
+    */
+
+    try {
+      const { integrationId, environment } = req.params;
+      const result = await userController.listBceidUsers(req.teamId, integrationId, environment, req.query);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
