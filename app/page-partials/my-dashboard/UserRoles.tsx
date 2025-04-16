@@ -316,7 +316,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   useEffect(() => {
     reset();
     getRoles();
-    if (selectedRequest.devIdps) setSelectedIdp(selectedRequest.devIdps.length > 0 ? selectedRequest.devIdps[0] : '');
   }, [selectedEnvironment]);
 
   useEffect(() => {
