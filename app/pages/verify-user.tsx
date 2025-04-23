@@ -5,6 +5,7 @@ import { LoggedInUser } from 'interfaces/team';
 import { getAuthorizationUrl } from 'utils/openid';
 import ErrorImage from 'svg/ErrorImage';
 import Link from 'next/link';
+import keycloak from '@app/utils/keycloak';
 
 interface Props {
   currentUser: LoggedInUser;
@@ -60,12 +61,6 @@ export default function VerifyUser({ currentUser }: Props) {
     return null;
   }
 
-  const handleLogin = async () => {
-    sessionStorage.setItem('team_id', (teamId || '') as string);
-    const authUrl = await getAuthorizationUrl({ kc_idp_hint: 'idir' });
-    window.location.href = authUrl;
-  };
-
   let errorTitle = '';
   let errorContents = ['If you know the team admin, please reach out them, so they'];
   if (!validated) {
@@ -84,7 +79,7 @@ export default function VerifyUser({ currentUser }: Props) {
         {validated ? (
           <>
             <p>You have successfully joined team # {teamId}. Please click below to login and view your dashboard.</p>
-            <button onClick={handleLogin} className="primary">
+            <button onClick={() => keycloak.login()} className="primary">
               Login
             </button>
           </>

@@ -266,10 +266,10 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   };
 
   useEffect(() => {
-    if (!session.isAdmin && !isIdpApprover(session)) {
+    if (!session?.isAdmin && !isIdpApprover(session)) {
       router.push('/my-dashboard');
     } else {
-      if (session.isAdmin && !columnFilters.find((v: any) => v.label === 'IDPs')) {
+      if (session?.isAdmin && !columnFilters.find((v: any) => v.label === 'IDPs')) {
         setColumnFilters([
           ...columnFilters,
           {
@@ -384,7 +384,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                 archived: row.archived ? 'Deleted' : 'Active',
                 environments: row.environments,
                 clientId: row.clientId,
-                actions: session.isAdmin ? (
+                actions: session?.isAdmin ? (
                   <ActionButtonContainer>
                     <ActionButton
                       icon={faEye}

@@ -400,7 +400,7 @@ function Table({
               // Loop over the header rows
               headerGroups.map((headerGroup) => (
                 // Apply the header row props
-                <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+                <tr {...headerGroup.getHeaderGroupProps()}>
                   {
                     // Loop over the headers in each row
                     headerGroup.headers.map((column) => (

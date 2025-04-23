@@ -39,25 +39,25 @@ function AdminTabs({
   activeKey = defaultTabKey,
 }: Props) {
   const [environment, setEnvironment] = useState('dev');
-  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount && currentUser.isAdmin;
-  const showEventsTabIf = currentUser.isAdmin;
+  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount && currentUser?.isAdmin;
+  const showEventsTabIf = currentUser?.isAdmin;
   if (!integration) return null;
   const { environments = [] } = integration;
 
   const hasProd = environments.includes('prod');
 
   const hasBceid = usesBceid(integration);
-  const hasBceidProd = hasBceid && hasProd && (currentUser.isAdmin || isBceidApprover(currentUser));
+  const hasBceidProd = hasBceid && hasProd && (currentUser?.isAdmin || isBceidApprover(currentUser));
 
   const hasGithub = usesGithub(integration);
-  const hasGithubProd = hasGithub && hasProd && (currentUser.isAdmin || isGithubApprover(currentUser));
+  const hasGithubProd = hasGithub && hasProd && (currentUser?.isAdmin || isGithubApprover(currentUser));
 
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasBcServicesCardProd =
-    hasBcServicesCard && hasProd && (currentUser.isAdmin || isBcServicesCardApprover(currentUser));
+    hasBcServicesCard && hasProd && (currentUser?.isAdmin || isBcServicesCardApprover(currentUser));
 
   const hasSocial = usesSocial(integration);
-  const hasSocialProd = hasSocial && hasProd && (currentUser.isAdmin || isSocialApprover(currentUser));
+  const hasSocialProd = hasSocial && hasProd && (currentUser?.isAdmin || isSocialApprover(currentUser));
 
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
