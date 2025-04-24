@@ -14,13 +14,10 @@ Cypress.Commands.add('login', (username, password, host, siteminder) => {
   // Click the login button
   home.clickLoginButton();
 
-  // Validate the login proxy only when we are not targeting a local install
-  if (Cypress.env('host') != 'http://localhost:3000') {
-    cy.origin(Cypress.env('loginproxy'), () => {
-      cy.get('#kc-header-wrapper', { timeout: 10000 }).contains('COMMON HOSTED SINGLE SIGN-ON').should('be.visible');
-      cy.get('#social-idir', { timeout: 10000 }).click();
-    });
-  }
+  cy.origin(Cypress.env('loginproxy'), () => {
+    cy.get('#kc-header-wrapper', { timeout: 10000 }).contains('COMMON HOSTED SINGLE SIGN-ON').should('be.visible');
+    cy.get('#social-idir', { timeout: 10000 }).click();
+  });
 
   // Validate siteminder and login
   cy.origin(siteminder || Cypress.env('siteminder'), { args: sentArgs }, ({ user, pass }) => {
