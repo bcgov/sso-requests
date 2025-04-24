@@ -1,10 +1,11 @@
 class Navigation {
   goToMyDashboard() {
-    cy.get('a[href="/my-dashboard/integrations"]').click();
+    cy.get('a[href="/my-dashboard"]').click();
   }
 
   goToMyTeams() {
-    cy.get('a[href="/my-dashboard/teams"]').click();
+    cy.get('a[href="/my-dashboard"]').click();
+    cy.contains('My Teams').click();
   }
 
   goToAdminDashboard() {
