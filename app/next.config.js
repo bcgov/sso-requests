@@ -11,7 +11,7 @@ module.exports = {
     app_url: APP_URL,
     api_url: process.env.API_URL || '',
     sso_url: process.env.SSO_URL || 'http://localhost:8080',
-    sso_client_id: process.env.SSO_CLIENT_ID || '',
+    sso_client_id: process.env.SSO_CLIENT_ID || 'testclient',
     sso_redirect_uri: process.env.SSO_REDIRECT_URI || APP_URL || 'http://localhost:3000',
     sso_authorization_response_mode: process.env.SSO_AUTHORIZATION_RESPONSE_MODE || 'fragment', // 'query' | 'fragment'
     sso_authorization_response_type: process.env.SSO_AUTHORIZATION_RESPONSE_TYPE || 'code',
