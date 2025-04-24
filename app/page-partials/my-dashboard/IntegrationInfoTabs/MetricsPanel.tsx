@@ -5,7 +5,7 @@ import { TopAlert, withTopAlert } from 'layout/TopAlert';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import startCase from 'lodash.startcase';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Text, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { getMetrics } from '@app/services/grafana';
 import throttle from 'lodash.throttle';
 import DateTimePicker from '@app/components/DateTimePicker';

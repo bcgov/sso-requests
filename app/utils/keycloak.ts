@@ -1,7 +1,7 @@
 import getConfig from 'next/config';
 import Keycloak from 'keycloak-js';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
+const { publicRuntimeConfig = {} } = getConfig() ?? {};
 const { sso_client_id, sso_url } = publicRuntimeConfig;
 
 const keycloak = new Keycloak({

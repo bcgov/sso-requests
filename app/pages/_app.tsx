@@ -58,8 +58,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [session, setSession] = useState<KeycloakTokenParsed | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [, setError] = useState<any>(null);
-  const [refreshTokenState, setRefreshTokenState] = useState('');
   const [surveyTriggerEvent, setSurveyTriggerEvent] = useState<keyof UserSurveyInformation | null>(null);
   const [displaySurvey, setDisplaySurvey] = useState(false);
   const [openSurvey, setOpenSurvey] = useState(false);
@@ -147,6 +145,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   const handleLogin = async () => keycloak.login({ redirectUri: `${app_url}/my-dashboard` });
   const handleLogout = async () => keycloak.logout({ redirectUri: app_url });
 
+  const sessionContext = useMemo(() => ({ session, user, keycloak }), [session, user, keycloak]);
   const surveyContext = useMemo(() => ({ setShowSurvey }), [user]);
 
   if (loading) return <PageLoader />;
@@ -157,7 +156,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   }
 
   return (
-    <SessionContext.Provider value={{ session, user, keycloak }}>
+    <SessionContext.Provider value={sessionContext}>
       <SurveyContext.Provider value={surveyContext}>
         {maintenance_mode && maintenance_mode === 'true' ? (
           <Component {...pageProps} />

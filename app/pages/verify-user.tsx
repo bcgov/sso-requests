@@ -2,7 +2,6 @@ import React from 'react';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { useRouter } from 'next/router';
 import { LoggedInUser } from 'interfaces/team';
-import { getAuthorizationUrl } from 'utils/openid';
 import ErrorImage from 'svg/ErrorImage';
 import Link from 'next/link';
 import keycloak from '@app/utils/keycloak';
