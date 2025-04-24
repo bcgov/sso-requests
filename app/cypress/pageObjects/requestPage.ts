@@ -181,8 +181,10 @@ class RequestPage {
   }
 
   startRequest() {
-    cy.visit('/my-dashboard');
-    cy.get(this.requestIntegration).click();
+    cy.url().then((url) => {
+      if (!url.includes('/my-dashboard')) cy.visit('/my-dashboard');
+      cy.get(this.requestIntegration).click();
+    });
   }
 
   setTeam(team: boolean) {
