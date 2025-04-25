@@ -1133,9 +1133,8 @@ class Request {
   }
 
   getID(name: string) {
+    this.navigation.goToMyDashboard();
     return cy
-      .log('Get ID: ' + name) // Start the command chain with a log.
-      .visit(this.reqPage.path) // Visit the page.
       .contains('td', name, { timeout: 10000 })
       .scrollIntoView() // Find the name and scroll into view.
       .contains('td', name, { timeout: 10000 }) // Find the name again to ensure visibility.
