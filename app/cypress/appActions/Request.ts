@@ -129,7 +129,7 @@ class Request {
 
   // Actions
   approveRequest(title: string, confirmSelector: string) {
-    this.navigation.goToMyDashboard();
+    this.navigation.goToAdminDashboard();
     this.dashboardPage.selectRequest(this.projectName);
 
     cy.contains('div[role="tab"]', `${title} Prod`).trigger('click');
