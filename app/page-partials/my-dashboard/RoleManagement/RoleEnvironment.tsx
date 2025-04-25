@@ -449,7 +449,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           colfilters={[]}
           activateRow={noop}
           rowSelectorKey={'guid'}
-          noDataFoundElement={<td colSpan={5}>No users found.</td>}
+          noDataFoundElement={<span>No users found.</span>}
         ></Table>
       );
     } else if (rightPanelTab === 'Service Accounts') {
@@ -492,7 +492,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           colfilters={[]}
           activateRow={noop}
           rowSelectorKey={'projectName'}
-          noDataFoundElement={<td colSpan={5}>No service accounts found.</td>}
+          noDataFoundElement={<span>No service accounts found.</span>}
         ></Table>
       );
     } else {
@@ -540,7 +540,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           disableSortBy: true,
         },
       ]}
-      noDataFoundElement={<td>No roles found.</td>}
+      noDataFoundElement={<span>No roles found.</span>}
       activateRow={activateRow}
       rowSelectorKey={'role'}
       data={roles.map((role: string, index: number) => {

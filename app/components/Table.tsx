@@ -261,16 +261,18 @@ function Table({
   if (rowCount > limit) rowSpaces = limit;
 
   const awesomePlaceholder = (
-    <td colSpan={100}>
-      <div
-        style={{
-          height: `${rowSpaces * (TABLE_ROW_HEIGHT_MINI + TABLE_ROW_SPACING) - TABLE_ROW_SPACING}px`,
-          paddingTop: '10px',
-        }}
-      >
-        <TextBlock rows={rowSpaces * 2} color="#CCC" />
-      </div>
-    </td>
+    <tr>
+      <td colSpan={100}>
+        <div
+          style={{
+            height: `${rowSpaces * (TABLE_ROW_HEIGHT_MINI + TABLE_ROW_SPACING) - TABLE_ROW_SPACING}px`,
+            paddingTop: '10px',
+          }}
+        >
+          <TextBlock rows={rowSpaces * 2} color="#CCC" />
+        </div>
+      </td>
+    </tr>
   );
 
   const numOfItemsPerPage = () => {
@@ -333,7 +335,7 @@ function Table({
     <Grid.Col span={filterColSpan} style={{ textAlign: 'right' }}>
       <FiltersContainer itemsLength={colfilters.length}>
         {colfilters.map((filter: TableFilter) => (
-          <Label key={filter.label}>
+          <Label key={filter.key}>
             {filter.multiselect ? (
               <>
                 {filter.label}

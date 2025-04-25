@@ -213,6 +213,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       onChange: setSelectedEnvironments,
       options: environmentOptions,
       label: 'Environments',
+      key: 'environments',
     },
     {
       value: workflowStatus,
@@ -220,6 +221,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       onChange: setWorkflowStatus,
       options: workflowStatusOptions,
       label: 'Workflow Status',
+      key: 'workflowStatus',
     },
     {
       value: archiveStatus,
@@ -228,6 +230,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       options: archiveStatusOptions,
       defaultValue: archiveStatus,
       label: 'Archive Status',
+      key: 'archiveStatus',
     },
   ]);
 
@@ -278,6 +281,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
             onChange: setSelectedIdp,
             options: idpOptions,
             label: 'IDPs',
+            key: 'idps',
           },
         ]);
       }

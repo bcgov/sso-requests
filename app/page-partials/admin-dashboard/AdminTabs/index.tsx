@@ -17,6 +17,7 @@ import { isBceidApprover, isBcServicesCardApprover, isGithubApprover, isSocialAp
 const TabWrapper = styled.div`
   padding-left: 1rem;
   padding-right: 1rem;
+  margin-top: 1rem;
 `;
 
 export type TabKey = 'details' | 'configuration-url' | 'events';
@@ -105,9 +106,9 @@ function AdminTabs({
           <Tab key="roles" tab="Roles">
             <TabWrapper>
               <Tabs onChange={setEnvironment} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-                <br />
                 {environments.map((env) => (
                   <Tab key={env} tab={startCase(env)}>
+                    <br />
                     <RoleEnvironment environment={env} integration={integration} viewOnly={true} />
                   </Tab>
                 ))}
