@@ -21,6 +21,7 @@ module "standard" {
   bceidbasic_realm_name    = local.bceidbasic_realm_name
   bceidbusiness_realm_name = local.bceidbusiness_realm_name
   bceidboth_realm_name     = local.bceidboth_realm_name
+  github_realm_name        = local.github_realm_name
 
   idir_client_id                      = ""
   idir_client_secret                  = ""
