@@ -1,0 +1,49 @@
+import Handlebars from 'handlebars';
+import { sendEmail } from '@app/utils/ches';
+import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
+import { User, UserSurveyInformation } from '@app/shared/interfaces';
+import { processUser } from '../helpers';
+import { EMAILS } from '@app/shared/enums';
+import type { RenderResult } from '../index';
+import { surveyCompletedNotification } from './survey-completed-notification';
+
+const SUBJECT_TEMPLATE = `Survey for {{triggerEvent}} submitted.`;
+
+const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE);
+const bodyHandler = Handlebars.compile(surveyCompletedNotification);
+
+const triggerEventDisplayMap = {
+  addUserToRole: 'role mappings',
+  createRole: 'role creation',
+  cssApiRequest: 'css api requests',
+  createIntegration: 'integration creations and updates',
+};
+
+interface DataProps {
+  user: User;
+  public: boolean;
+  message: string;
+  rating: number;
+  triggerEvent: keyof UserSurveyInformation;
+}
+
+export const render = async (originalData: DataProps): Promise<RenderResult> => {
+  const { user } = originalData;
+  const triggerEventDisplay = triggerEventDisplayMap[originalData.triggerEvent];
+  const data = { ...originalData, user: await processUser(user), triggerEventDisplay };
+  return {
+    subject: subjectHandler(data),
+    body: bodyHandler(data),
+  };
+};
+
+export const send = async (data: DataProps, rendered: RenderResult) => {
+  return sendEmail({
+    code: EMAILS.REQUEST_LIMIT_EXCEEDED,
+    to: [data.user.idirEmail],
+    cc: [SSO_EMAIL_ADDRESS],
+    ...rendered,
+  });
+};
+
+export default { render, send };

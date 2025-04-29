@@ -1,0 +1,21 @@
+export const updateIntegrationApplied = `
+<h3>Hello Pathfinder SSO friend,</h3>
+<p>
+  Your Pathfinder SSO change for integration ID {{integration.id}} is approved. {{#if hasBceid}} {{> bceidWarning}}
+  {{/if}}
+</p>
+
+{{#if changes}}
+  <h4>Changes made:</h4>
+  <blockquote>{{changes}}</blockquote>
+  <hr />
+{{/if}}
+
+<h4>Final details summary:</h4>
+<blockquote>{{> integrationDetail }}</blockquote>
+<hr />
+{{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if waitingGithubProdApproval}} {{>
+applyGithubBottom }} {{/if}}{{#if waitingBcServicesCardProdApproval}} {{> createBcServicesCardBottom }} {{/if}}{{#if
+waitingSocialProdApproval}} {{> applySocialBottom }} {{/if}} {{> dashboardLogin }} {{> ssoUpdatesMailingListMessage }}
+{{#if (isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer }}
+`;

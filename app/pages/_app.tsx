@@ -5,7 +5,6 @@ import type { AppProps } from 'next/app';
 import { fetchIssuerConfiguration } from 'utils/provider';
 import { getAuthorizationUrl, getAccessToken, getEndSessionUrl, parseCallbackParams } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
-import { wakeItUp } from 'services/auth';
 import { getProfile, updateProfile } from 'services/user';
 import { setTokens, getTokens, removeTokens } from 'utils/store';
 import Layout from 'layout/Layout';
@@ -158,8 +157,6 @@ function MyApp({ Component, pageProps }: AppProps) {
         },
       });
     }
-
-    wakeItUp();
     fetchUser();
   }, []);
 

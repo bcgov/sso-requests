@@ -1,0 +1,13 @@
+export const deleteTeamApiAccountSubmitted = `
+<h1>Your Pathfinder SSO CSS API Account has been deleted.</h1>
+<p>
+  <strong>Team Name: </strong>{{team.name}}<br />
+  <strong>Submitted by: </strong>{{requester}}<br />
+</p>
+<p>
+  Please Log in to your dashboard to access the CSS API Account. If you are not the requester, this email serves only to
+  notify you of the request status.
+</p>
+
+{{> footer }}
+`;

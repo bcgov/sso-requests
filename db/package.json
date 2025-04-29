@@ -1,0 +1,19 @@
+{
+  "name": "lambda-db",
+  "version": "1.0.0",
+  "description": "lambda functions for db setup",
+  "license": "Apache-2.0",
+  "author": "SSO Team",
+  "scripts": {
+    "compile": "tsc"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "sequelize": "^6.37.7",
+    "umzug": "^3.1.1"
+  }
+}

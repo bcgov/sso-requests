@@ -2,7 +2,6 @@ import isString from 'lodash.isstring';
 import { errorMessages, environmentOptions } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
 import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
-import { Change } from '@app/interfaces/Event';
 import { getStatusDisplayName } from '@app/utils/status';
 import {
   usesBceid,
@@ -15,6 +14,31 @@ import {
   usesSocial,
   checkNotSocial,
 } from '@app/helpers/integration';
+import { Session } from '@app/shared/interfaces';
+import omit from 'lodash.omit';
+import sortBy from 'lodash.sortby';
+import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
+import compact from 'lodash.compact';
+import { diff } from 'deep-diff';
+import { validateForm } from './validate';
+import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
+import getConfig from 'next/config';
+import { NextApiResponse } from 'next';
+//import { sendTemplate } from '@app/shared/templates';
+//import { EMAILS } from '@app/shared/enums';
+
+const { serverRuntimeConfig } = getConfig();
+const {
+  bcsc_registration_base_url_dev,
+  bcsc_registration_base_url_test,
+  bcsc_registration_base_url_prod,
+  bcsc_initial_access_token_dev,
+  bcsc_initial_access_token_test,
+  bcsc_initial_access_token_prod,
+  keycloak_v2_dev_url,
+  keycloak_v2_test_url,
+  keycloak_v2_prod_url,
+} = serverRuntimeConfig;
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const gold_realms: GoldIDPOption = {
@@ -226,71 +250,6 @@ export const transformErrors = (errors: any) => {
   });
 };
 
-export const formatChangeEventDetails = (changes: Change[]) => {
-  if (!changes || changes.length === 0) return <div>No changes</div>;
-
-  const changesJSX = changes.map((change) => {
-    const { kind, lhs, rhs, path, item } = change;
-    const changedPath = path[0];
-    switch (kind) {
-      case 'E':
-        return (
-          <>
-            <strong>Edited {changedPath}: </strong>
-            Changed <code>{String(lhs)}</code> to <code>{String(rhs)}</code>
-          </>
-        );
-      case 'A':
-        if (item?.kind === 'D')
-          return (
-            <>
-              <strong>Changed Array {changedPath}: </strong>
-              Deleted <code> {item?.lhs}</code>
-            </>
-          );
-        if (item?.kind === 'N')
-          return (
-            <>
-              <strong>Changed Array {changedPath}: </strong>
-              Added <code>{item?.rhs}</code>
-            </>
-          );
-        else
-          return (
-            <>
-              <strong>Changed Array {changedPath}: </strong>
-              Edited{' '}
-              <code>
-                {item?.lhs} to {item?.rhs}
-              </code>
-            </>
-          );
-      case 'N':
-        return (
-          <>
-            <strong>Added {changedPath}: </strong>
-            <code>{item}</code>
-          </>
-        );
-      case 'D':
-        return (
-          <>
-            <strong>Deleted {changedPath} </strong>
-          </>
-        );
-      default:
-        return <code>{JSON.stringify(change, null, 2)}</code>;
-    }
-  });
-  return (
-    <ul>
-      {changesJSX.map((change, i) => (
-        <li key={i}>{change}</li>
-      ))}
-    </ul>
-  );
-};
-
 export const hasAnyPendingStatus = (requests: Integration[]) => {
   return requests.some((request) => {
     return [
@@ -496,4 +455,203 @@ export const validateIDPs = ({
   }
 
   return true;
+};
+
+export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
+export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
+
+let cachedClaims: any[] = [];
+
+export const omitNonFormFields = (data: Integration) =>
+  omit(data, [
+    'updatedAt',
+    'createdAt',
+    'archived',
+    'status',
+    'environments',
+    'actionNumber',
+    'prNumber',
+    'userId',
+    'idirUserid',
+    'idirUserDisplayName',
+    'id',
+  ]);
+
+export type BceidEvent = 'submission' | 'deletion' | 'update';
+
+const sortURIFields = (data: any) => {
+  const sortedData = { ...data };
+  const { devValidRedirectUris, testValidRedirectUris, prodValidRedirectUris } = data;
+  sortedData.devValidRedirectUris = sortBy(devValidRedirectUris);
+  sortedData.testValidRedirectUris = sortBy(testValidRedirectUris);
+  sortedData.prodValidRedirectUris = sortBy(prodValidRedirectUris);
+  return sortedData;
+};
+
+const durationAdditionalFields: any[] = [];
+['dev', 'test', 'prod'].forEach((env) => {
+  const addDurationAdditionalField = (field: any) => durationAdditionalFields.push(`${env}${field}`);
+  oidcDurationAdditionalFields.forEach(addDurationAdditionalField);
+  samlDurationAdditionalFields.forEach(addDurationAdditionalField);
+  durationAdditionalFields.push(`${env}OfflineAccessEnabled`);
+});
+
+export const sanitizeRequest = (session: Session, data: Integration, isMerged: boolean) => {
+  const isAdminUser = isAdmin(session);
+
+  let immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
+
+  if (isMerged) {
+    immutableFields.push('realm');
+  }
+
+  if (!isAdminUser) {
+    immutableFields.push(...durationAdditionalFields, 'clientId');
+
+    if (!isBceidApprover(session)) {
+      immutableFields.push('bceidApproved');
+    }
+
+    if (!isGithubApprover(session)) {
+      immutableFields.push('githubApproved');
+    }
+
+    if (!isBCServicesCardApprover(session)) {
+      immutableFields.push('bcServicesCardApproved');
+    }
+  }
+
+  if (isAdminUser) {
+    if (data?.protocol === 'oidc') {
+      ['dev', 'test', 'prod'].forEach((env: string) => {
+        if (!data[`${env}OfflineAccessEnabled` as keyof Integration])
+          immutableFields.push(`${env}OfflineSessionIdleTimeout`, `${env}OfflineSessionMaxLifespan`);
+      });
+    }
+  }
+
+  data = omit(data, immutableFields);
+  data = sortURIFields(data);
+  data.testIdps = data.testIdps || [];
+  data.prodIdps = data.prodIdps || [];
+
+  data.devRoles = compact(data.devRoles || []);
+  data.testRoles = compact(data.testRoles || []);
+  data.prodRoles = compact(data.prodRoles || []);
+
+  if (data.protocol === 'saml') data.authType = 'browser-login';
+
+  if (data?.usesTeam === true) data.projectLead = false;
+
+  return data;
+};
+
+export const getDifferences = (newData: any, originalData: Integration) => {
+  newData = sortURIFields(newData);
+  if (newData.usesTeam === true) newData.teamId = parseInt(newData.teamId);
+  return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
+};
+
+export const validateRequest = async (formData: any, original: Integration, teams: any[], isUpdate = false) => {
+  const validationArgs: any = { formData, teams };
+
+  if (usesBcServicesCard(formData)) {
+    const [validPrivacyZones, validAttributes] = await Promise.all([getPrivacyZones(), getAttributes()]);
+    validationArgs.bcscPrivacyZones = validPrivacyZones;
+    validationArgs.bcscAttributes = validAttributes;
+  }
+  const schemas = getSchemas(validationArgs);
+  return validateForm(formData, schemas);
+};
+
+export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
+
+export const isBCServicesCardApprover = (session: Session) =>
+  session.client_roles?.includes('bc-services-card-approver');
+
+export const getAllowedIdpsForApprover = (session: Session) => {
+  const idps: string[] = [];
+  if (session.client_roles.length === 0) return idps;
+  session.client_roles.forEach((role) => {
+    if (role === 'bceid-approver') idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+    if (role === 'bc-services-card-approver') idps.push('bcservicescard');
+    if (role === 'github-approver') idps.push('githubbcgov', 'githubpublic');
+    if (role === 'social-approver') idps.push('social');
+  });
+  return idps;
+};
+
+export const getDisplayName = (session: Session) => compact([session.given_name, session.family_name]).join(' ');
+
+export const getBCSCEnvVars = (env: string) => {
+  let bcscBaseUrl: string = '';
+  let accessToken: string = '';
+  let kcBaseUrl: string = '';
+
+  if (env === 'dev') {
+    bcscBaseUrl = bcsc_registration_base_url_dev;
+    accessToken = bcsc_initial_access_token_dev;
+    kcBaseUrl = keycloak_v2_dev_url;
+  }
+  if (env === 'test') {
+    bcscBaseUrl = bcsc_registration_base_url_test;
+    accessToken = bcsc_initial_access_token_test;
+    kcBaseUrl = keycloak_v2_test_url;
+  }
+  if (env === 'prod') {
+    bcscBaseUrl = bcsc_registration_base_url_prod;
+    accessToken = bcsc_initial_access_token_prod;
+    kcBaseUrl = keycloak_v2_prod_url;
+  }
+  return {
+    bcscBaseUrl,
+    accessToken,
+    kcBaseUrl,
+  };
+};
+
+export const getRequiredBCSCScopes = async (claims: string[]) => {
+  if (cachedClaims.length === 0) {
+    cachedClaims = await getAttributes();
+  }
+  const allClaims = cachedClaims;
+  const requiredScopes = allClaims.filter((claim) => claims.includes(claim.name)).map((claim) => claim.scope);
+
+  // Profile will always be a required scope since the sub depends on it
+  if (!requiredScopes.includes('profile')) {
+    requiredScopes.push('profile');
+  }
+  return ['openid', ...Array.from(new Set(requiredScopes))];
+};
+
+export const compareTwoArrays = (arr1: string[], arr2: string[]) => {
+  if (arr1.length !== arr2.length) {
+    return false;
+  } else {
+    for (let i = 0; i < arr1.length; i++) {
+      if (arr1[i] !== arr2[i]) {
+        return false;
+      } else {
+        continue;
+      }
+    }
+  }
+  return true;
+};
+
+const tryJSON = (str: string) => {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return str;
+  }
+};
+
+export const handleError = (res: NextApiResponse, err: any) => {
+  let message = err.message || err;
+  if (isString(message)) {
+    message = tryJSON(message);
+  }
+  console.log({ success: false, message });
+  res.status(err?.status || 422).json({ success: false, message });
 };
