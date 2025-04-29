@@ -3,21 +3,24 @@ import url from 'url';
 import compact from 'lodash.compact';
 import startCase from 'lodash.startcase';
 import uniq from 'lodash.uniq';
-import { EmailOptions } from '../interfaces';
+import { EmailOptions } from '@app/shared/interfaces';
 import https from 'https';
 import { envMap, idpMap } from '@app/helpers/meta';
+import getConfig from 'next/config';
 
-const compactUniq = (v) => uniq(compact(v));
+const { serverRuntimeConfig = {} } = getConfig() || {};
+const { ches_token_endpoint, ches_username, ches_password, realm_registry_api } = serverRuntimeConfig;
+
+const compactUniq = (v: any) => uniq(compact(v));
 
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
 
-const fetchChesToken = async (username, password) => {
-  const tokenEndpoint = process.env.CHES_TOKEN_ENDPOINT;
+const fetchChesToken = async (username: string, password: string) => {
   const params = new url.URLSearchParams({ grant_type: 'client_credentials' });
   try {
-    const payload = await axios.post(tokenEndpoint, params.toString(), {
+    const payload = await axios.post(ches_token_endpoint, params.toString(), {
       headers: {
         'Accept-Encoding': 'application/json',
       },
@@ -37,9 +40,8 @@ const fetchChesToken = async (username, password) => {
 };
 
 export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, body, ...rest }: EmailOptions) => {
-  const { CHES_USERNAME: username, CHES_PASSWORD: password, REALM_REGISTRY_API: realmRegistryApi } = process.env;
-  const chesAPIEndpoint = realmRegistryApi + '/emails';
-  const [accessToken, error] = await fetchChesToken(username, password);
+  const chesAPIEndpoint = realm_registry_api + '/emails';
+  const [accessToken, error] = await fetchChesToken(ches_username, ches_password);
   if (error) throw Error(error);
 
   const reqPayload = {
@@ -393,17 +395,17 @@ export const getReadableIntegrationDiff = (diff?: Diff[]) => {
 
   Object.entries(arrayChanges).forEach(([key, values]: any) => {
     // Filter out values that were both added and deleted to prevent double-listing swapped values
-    const removed = values.old.filter((val) => !values.new.includes(val));
-    const added = values.new.filter((val) => !values.old.includes(val));
+    const removed = values.old.filter((val: any) => !values.new.includes(val));
+    const added = values.new.filter((val: any) => !values.old.includes(val));
     if (!removed.length && !added.length) return;
 
     readableDiff += `<strong>${key}:</strong><br/><ul>`;
     if (removed.length) {
-      const removedListItems = removed.map((val) => `<li>${val}</li>`).join('');
+      const removedListItems = removed.map((val: any) => `<li>${val}</li>`).join('');
       readableDiff += `<li>Removed: <ul>${removedListItems}</ul></li>`;
     }
     if (added.length) {
-      const addedListItems = added.map((val) => `<li>${val}</li>`).join('');
+      const addedListItems = added.map((val: any) => `<li>${val}</li>`).join('');
       readableDiff += `<li>Added: <ul>${addedListItems}</ul></li>`;
     }
     readableDiff += '</ul>';

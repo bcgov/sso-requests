@@ -1,4 +1,4 @@
-import { models } from '@lambda-shared/sequelize/models/models';
+import { models } from '@app/shared/sequelize/models/models';
 
 export const name = '2022.07.05T15.30.09.populate-user-id-in-requests-table';
 

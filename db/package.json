@@ -5,14 +5,22 @@
   "license": "Apache-2.0",
   "author": "SSO Team",
   "scripts": {
-    "compile": "tsc"
+    "compile": "./node_modules/.bin/tsc && ./node_modules/.bin/tsc-alias"
   },
   "devDependencies": {
+    "@types/lodash.tolower": "^4.1.9",
+    "@types/lodash.trim": "^4.5.9",
+    "copyfiles": "^2.4.1",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.15",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
+    "lodash.tolower": "^4.1.2",
+    "lodash.trim": "^4.5.1",
+    "pg": "^8.15.6",
+    "pg-format": "^1.0.4",
     "sequelize": "^6.37.7",
     "umzug": "^3.1.1"
   }

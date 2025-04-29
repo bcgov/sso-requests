@@ -10,6 +10,8 @@ COPY . .
 
 RUN make app_install
 
-RUN make server_install
+RUN make db_install
 
-ENTRYPOINT [ "yarn", "--cwd", "./localserver", "dev"]
+RUN make db_compile
+
+ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_start"]

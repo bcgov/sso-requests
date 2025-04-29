@@ -304,7 +304,7 @@ const init = (sequelize: any, DataTypes: any) => {
       },
       userTeamRole: {
         type: DataTypes.VIRTUAL,
-        get() {
+        get: (): string => {
           //@ts-ignore
           return this.getDataValue('userTeamRole');
         },

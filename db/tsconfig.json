@@ -1,19 +1,13 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "ES2020",
-    "moduleResolution": "node",
-    "preserveConstEnums": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "sourceMap": false,
-    "rootDir": "./src",
+    "rootDir": "../",
     "baseUrl": "./",
-    "outDir": "./dist",
     "paths": {
       "@app/*": ["../app/*"]
-    }
+    },
+    "outDir": "./dist"
   },
-  "include": ["src/**/*", "../app/shared/**/*"],
+  "include": ["src/**/*", "../app/shared/sequelize/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }

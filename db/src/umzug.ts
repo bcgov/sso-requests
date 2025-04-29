@@ -1,7 +1,7 @@
 import { Umzug, SequelizeStorage } from 'umzug';
 import { sequelize } from '@app/shared/sequelize/models/models';
 
-export const createMigrator = async (logger?: any) => {
+export const createMigrator = async () => {
   return new Umzug({
     migrations: [
       await import('./migrations/2021.07.01T15.57.60.create-requests-table'),
@@ -65,6 +65,6 @@ export const createMigrator = async (logger?: any) => {
     storage: new SequelizeStorage({
       sequelize,
     }),
-    logger: logger || console,
+    logger: console,
   });
 };

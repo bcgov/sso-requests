@@ -1,5 +1,5 @@
 import { verify, sign, JsonWebTokenError, TokenExpiredError, NotBeforeError } from 'jsonwebtoken';
-import { User } from '@lambda-shared/interfaces';
+import { User } from '@app/shared/interfaces';
 
 const VERIFY_USER_SECRET = process.env.VERIFY_USER_SECRET || 'asdf';
 
@@ -7,7 +7,7 @@ export const generateInvitationToken = (user: User, teamId: number) => {
   return sign({ userId: user.id, teamId }, VERIFY_USER_SECRET, { expiresIn: '2d' });
 };
 
-export const parseInvitationToken = (token) => {
+export const parseInvitationToken = (token: any) => {
   try {
     const data = (verify(token, VERIFY_USER_SECRET) as any) || {};
     return data;

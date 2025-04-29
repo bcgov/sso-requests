@@ -1,7 +1,6 @@
 #!make
 
 SHELL := /usr/bin/env bash
-TARGET := ../../../terraform/lambda-db.zip
 
 .PHONY: install
 install:
@@ -17,4 +16,3 @@ build: install
 build:
 	@rm -rf dist
 	@yarn build
-	@cd dist; rm -f $(TARGET); zip -rq $(TARGET) *
