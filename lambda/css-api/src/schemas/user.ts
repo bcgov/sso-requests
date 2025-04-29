@@ -1,3 +1,4 @@
+import { errorMessage } from '@lambda-app/utils/helpers';
 import validator from '../ajv-validator';
 
 const COMMON_USER_QUERY_REQ = {
@@ -171,79 +172,64 @@ const BCEID_USER_QUERY_REQ_LEGACY = {
 
 const BCEID_USER_QUERY_REQ = {
   type: 'object',
-  properties: {
-    bceidType: {
-      type: 'string',
-      enum: ['basic', 'business', 'both'],
-      errorMessage: {
-        _: 'bceidType should be one of basic, business or both',
+  if: {
+    properties: {
+      bceidType: {
+        type: 'string',
       },
     },
-    displayName: {
-      type: 'string',
-      minLength: 2,
-      errorMessage: {
-        _: 'displayName should be string with length >= 2',
-      },
-    },
-    username: {
-      type: 'string',
-      minLength: 2,
-      errorMessage: {
-        _: 'username should be string with length >= 2',
-      },
-    },
-    email: {
-      type: 'string',
-      minLength: 2,
-      errorMessage: {
-        _: 'email should be string with length >= 2',
-      },
-    },
-    guid: {
-      type: 'string',
-      minLength: 2,
-      errorMessage: {
-        _: 'guid should be string with length >= 2',
-      },
-    },
+    required: ['bceidType'],
   },
-  required: ['bceidType'],
-  anyOf: [
-    {
-      required: ['displayName'],
-      errorMessage: {
-        required: 'displayName is required',
-        minLength: 'displayName should be string with length >= 2',
+  then: {
+    properties: {
+      displayName: {
+        type: 'string',
+        minLength: 2,
+        errorMessage: {
+          _: 'displayName should be string with length >= 2',
+        },
+      },
+      username: {
+        type: 'string',
+        minLength: 2,
+        errorMessage: {
+          _: 'username should be string with length >= 2',
+        },
+      },
+      email: {
+        type: 'string',
+        minLength: 2,
+        errorMessage: {
+          _: 'email should be string with length >= 2',
+        },
+      },
+      guid: {
+        type: 'string',
+        minLength: 2,
+        errorMessage: {
+          _: 'guid should be string with length >= 2',
+        },
       },
     },
-    {
-      required: ['username'],
-      errorMessage: {
-        required: 'username is required',
-        minLength: 'username should be string with length >= 2',
+    anyOf: [
+      {
+        required: ['displayName'],
       },
-    },
-    {
-      required: ['email'],
-      errorMessage: {
-        required: 'email is required',
-        minLength: 'email should be string with length >= 2',
+      {
+        required: ['username'],
       },
-    },
-    {
-      required: ['guid'],
-      errorMessage: {
-        required: 'guid is required',
+      {
+        required: ['email'],
       },
-    },
-  ],
-  additionalProperties: false,
-  errorMessage: {
-    required: {
-      bceidType: 'bceidType is required',
-    },
-    additionalProperties: 'only display name, username, email and guid are supported',
+      {
+        required: ['guid'],
+      },
+    ],
+    errorMessage: 'One of displayName, username, email and guid are required',
+  },
+  else: {
+    required: ['bceidType'],
+    errorMessage: { required: { bceidType: 'bceidType is required' } },
   },
 };
 
