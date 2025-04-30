@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import TeamPage from '../pageObjects/teamPage';
+import Navigation from './Navigation';
 const regex = new RegExp('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 
 interface User {
@@ -12,6 +13,7 @@ interface User {
  */
 class Team {
   teamPage = new TeamPage();
+  navigation = new Navigation();
 
   teamName!: string;
   userRole!: string[];
@@ -154,7 +156,7 @@ class Team {
 
   deleteTeam() {
     if (!this.fullName) return;
-    cy.visit(this.teamPage.path);
+    this.navigation.goToMyTeams();
     const row = cy.contains(this.fullName);
 
     row.trigger('click');
@@ -167,7 +169,7 @@ class Team {
     let i = 0;
     let deleteTeams: number[] = [];
     let teamPage = new TeamPage();
-    cy.visit(this.teamPage.path);
+    this.navigation.goToMyTeams();
     cy.get('button').contains('+ Create a New Team', { timeout: 10000 }).should('be.visible');
 
     cy.get('table > tbody > tr > td:nth-child(1)')

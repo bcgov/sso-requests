@@ -3,6 +3,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendar } from '@fortawesome/free-solid-svg-icons';
 import { FormLabel } from 'react-bootstrap';
+import React from 'react';
 
 export default function DateTimePicker(props: ReactDatePickerProps & { label: string }) {
   return (
@@ -19,7 +20,7 @@ export default function DateTimePicker(props: ReactDatePickerProps & { label: st
   );
 }
 
-function DateTimeInput({ value, onClick, label }: any) {
+const DateTimeInput = React.forwardRef(({ value, onClick, label }: any, ref) => {
   return (
     <>
       <FormLabel style={{ fontWeight: 'bold' }}>{label}</FormLabel>
@@ -33,4 +34,4 @@ function DateTimeInput({ value, onClick, label }: any) {
       </div>
     </>
   );
-}
+});

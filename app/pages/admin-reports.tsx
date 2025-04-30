@@ -85,7 +85,7 @@ export default function AdminReports({ session }: PageProps) {
   const [downloadError, setDownloadError] = useState(false);
 
   useEffect(() => {
-    if (!session.isAdmin && !isIdpApprover(session)) {
+    if (!session?.isAdmin && !isIdpApprover(session)) {
       router.push('/my-dashboard');
     }
   }, []);

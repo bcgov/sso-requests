@@ -1,4 +1,7 @@
+import Navigation from '../appActions/Navigation';
+
 class RequestPage {
+  navigation = new Navigation();
   path: string = '/my-dashboard/integrations';
   savedMessage: string = 'Last saved at';
   formSavingSpinnerSelector: string = '[data-testid="rotating-lines-svg"]';
@@ -181,7 +184,7 @@ class RequestPage {
   }
 
   startRequest() {
-    cy.visit('/my-dashboard');
+    this.navigation.goToMyDashboard();
     cy.get(this.requestIntegration).click();
   }
 

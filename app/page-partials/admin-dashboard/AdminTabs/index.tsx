@@ -17,6 +17,7 @@ import { isBceidApprover, isBcServicesCardApprover, isGithubApprover, isSocialAp
 const TabWrapper = styled.div`
   padding-left: 1rem;
   padding-right: 1rem;
+  margin-top: 1rem;
 `;
 
 export type TabKey = 'details' | 'configuration-url' | 'events';
@@ -39,25 +40,25 @@ function AdminTabs({
   activeKey = defaultTabKey,
 }: Props) {
   const [environment, setEnvironment] = useState('dev');
-  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount && currentUser.isAdmin;
-  const showEventsTabIf = currentUser.isAdmin;
+  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount && currentUser?.isAdmin;
+  const showEventsTabIf = currentUser?.isAdmin;
   if (!integration) return null;
   const { environments = [] } = integration;
 
   const hasProd = environments.includes('prod');
 
   const hasBceid = usesBceid(integration);
-  const hasBceidProd = hasBceid && hasProd && (currentUser.isAdmin || isBceidApprover(currentUser));
+  const hasBceidProd = hasBceid && hasProd && (currentUser?.isAdmin || isBceidApprover(currentUser));
 
   const hasGithub = usesGithub(integration);
-  const hasGithubProd = hasGithub && hasProd && (currentUser.isAdmin || isGithubApprover(currentUser));
+  const hasGithubProd = hasGithub && hasProd && (currentUser?.isAdmin || isGithubApprover(currentUser));
 
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasBcServicesCardProd =
-    hasBcServicesCard && hasProd && (currentUser.isAdmin || isBcServicesCardApprover(currentUser));
+    hasBcServicesCard && hasProd && (currentUser?.isAdmin || isBcServicesCardApprover(currentUser));
 
   const hasSocial = usesSocial(integration);
-  const hasSocialProd = hasSocial && hasProd && (currentUser.isAdmin || isSocialApprover(currentUser));
+  const hasSocialProd = hasSocial && hasProd && (currentUser?.isAdmin || isSocialApprover(currentUser));
 
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
@@ -105,9 +106,9 @@ function AdminTabs({
           <Tab key="roles" tab="Roles">
             <TabWrapper>
               <Tabs onChange={setEnvironment} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-                <br />
                 {environments.map((env) => (
                   <Tab key={env} tab={startCase(env)}>
+                    <br />
                     <RoleEnvironment environment={env} integration={integration} viewOnly={true} />
                   </Tab>
                 ))}

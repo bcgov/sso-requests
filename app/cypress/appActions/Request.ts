@@ -2,7 +2,9 @@ import { v4 as uuidv4 } from 'uuid';
 import RequestPage from '../pageObjects/requestPage';
 import TeamPage from '../pageObjects/teamPage';
 import DashboardPage from '../pageObjects/dashboardPage';
+import HomePage from '../pageObjects/homePage';
 import Utilities from '../appActions/Utilities';
+import Navigation from './Navigation';
 let util = new Utilities();
 
 const regex = new RegExp('@[0-9]{17}');
@@ -32,6 +34,8 @@ class Request {
   reqPage = new RequestPage();
   teamPage = new TeamPage();
   dashboardPage = new DashboardPage();
+  navigation = new Navigation();
+  homePage = new HomePage();
   teamFullNames: string[] = [];
 
   // Request Variables
@@ -125,7 +129,7 @@ class Request {
 
   // Actions
   approveRequest(title: string, confirmSelector: string) {
-    cy.visit(this.dashboardPage.path);
+    this.navigation.goToAdminDashboard();
     this.dashboardPage.selectRequest(this.projectName);
 
     cy.contains('div[role="tab"]', `${title} Prod`).trigger('click');
@@ -157,7 +161,7 @@ class Request {
       this.reqPage.setProjectLead(this.projectLead);
       if (!this.projectLead) {
         this.reqPage.confirmClose();
-        cy.visit('/my-dashboard'); // return to dashboard
+        this.navigation.goToMyDashboard();
         return;
       }
     }
@@ -236,7 +240,7 @@ class Request {
     this.reqPage.confirmDelete(this.conFirm);
 
     // Navigate to the page if not there already (e.g for admins)
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 20000 });
@@ -257,7 +261,7 @@ class Request {
   validateRequest(id: string): boolean {
     let n = 0;
     cy.log('Validate Request: ' + id);
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 })
       .parent()
@@ -371,14 +375,14 @@ class Request {
     }
 
     // Back to the dashboard page
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     return true;
   }
 
   updateRequest(id: string): boolean {
     cy.log('Update Request: ' + id);
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 })
       .parent()
@@ -407,7 +411,7 @@ class Request {
       } else {
         if (!this.projectLead) {
           this.reqPage.confirmClose();
-          cy.visit('/my-dashboard'); // return to dashboard
+          this.navigation.goToMyDashboard();
           return false;
         }
       }
@@ -501,7 +505,8 @@ class Request {
 
   deleteRequest(id: string) {
     cy.log('Delete Request: ' + id);
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
+
     // identify first column
     cy.get(this.reqPage.integrationsTable, { timeout: 10000 }).each(($elm, index) => {
       // text captured from column1
@@ -523,7 +528,7 @@ class Request {
   }
 
   deleteAllRequests() {
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     // identify first column
     cy.get(this.reqPage.integrationsTableName).each(($elm, index) => {
@@ -590,7 +595,7 @@ class Request {
 
   addRole(id: string, role: string, env: string) {
     cy.log('Add Role ' + id);
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
@@ -617,7 +622,7 @@ class Request {
 
   addUsertoRole(id: string, role: string, env: string, user: string): boolean {
     cy.log('Add User to Role ' + id);
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
@@ -644,7 +649,7 @@ class Request {
 
   createCompositeRole(id: string, role_main: string, role_second: string, env: string): boolean {
     cy.log('Add Composite Role ' + id);
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
@@ -694,7 +699,7 @@ class Request {
 
   removeRole(id: string, role: string, env: string): boolean {
     cy.log('Remove Role ' + id);
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
@@ -716,7 +721,7 @@ class Request {
   }
 
   searchUser(id: string, environment: string, idp: string, criterion: string, error: boolean, search_value: string) {
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
@@ -737,7 +742,7 @@ class Request {
   }
 
   searchIdim(id: string, environment: string, idp: string, criterion: string, error: boolean, search_value: string) {
-    cy.visit(this.reqPage.path);
+    this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
@@ -1052,7 +1057,7 @@ class Request {
 
   deleteTeam() {
     if (!this.teamFullNames?.length) return;
-    cy.visit(this.teamPage.path);
+    this.navigation.goToMyTeams();
 
     this.teamFullNames.forEach((teamFullName) => {
       const row = cy.contains(teamFullName);
@@ -1128,9 +1133,8 @@ class Request {
   }
 
   getID(name: string) {
+    this.navigation.goToMyDashboard();
     return cy
-      .log('Get ID: ' + name) // Start the command chain with a log.
-      .visit(this.reqPage.path) // Visit the page.
       .contains('td', name, { timeout: 10000 })
       .scrollIntoView() // Find the name and scroll into view.
       .contains('td', name, { timeout: 10000 }) // Find the name again to ensure visibility.

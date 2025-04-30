@@ -33,7 +33,7 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests-sandbox
           APP_BASE_PATH=/sso-requests-sandbox
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth
           DEPLOY_REPO_NAME=bcgov/sso-requests-sandbox
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
@@ -51,7 +51,7 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests
           APP_BASE_PATH=/sso-requests
           API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
+          SSO_URL=https://loginproxy.gov.bc.ca/auth
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}

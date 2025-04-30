@@ -1,5 +1,4 @@
-import { getEndSessionUrl } from 'utils/openid';
-
+import keycloak from 'utils/keycloak';
 export function getTemplate() {
   const title = 'Failed to authenticate the user';
   const content = (
@@ -7,10 +6,8 @@ export function getTemplate() {
       <tspan x="0" y="0">
         Please try{' '}
       </tspan>
-      <tspan fill="#006fc4">
-        <a href={getEndSessionUrl()} title="Clear Session">
-          clearing your token
-        </a>
+      <tspan fill="#006fc4" onClick={() => keycloak.logout()} style={{ cursor: 'pointer' }}>
+        clearing your token
       </tspan>
       <tspan>, and if the problem</tspan>
       <tspan x="0" y="26">

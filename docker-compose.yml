@@ -25,7 +25,7 @@ services:
     environment:
       APP_ENV: develop
       API_URL: http://localhost:8080/app
-      SSO_URL: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+      SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
       SSO_CLIENT_ID: css-app-in-gold-4128
       SSO_REDIRECT_URI: http://localhost:3000
       SSO_AUTHORIZATION_RESPONSE_TYPE: code

@@ -64,14 +64,16 @@ const FormattedList = ({ list, title, inline = false, testid }: FormattedListPro
       <tr>
         <td>{title}</td>
         {(list?.length === 1 || inline) && (
-          <SemiBold data-testid={testid}>
-            {list?.map((item, i) => (
-              <span key={item}>
-                {item}
-                {i !== list.length - 1 && ', '}{' '}
-              </span>
-            ))}
-          </SemiBold>
+          <td>
+            <SemiBold data-testid={testid}>
+              {list?.map((item, i) => (
+                <span key={item}>
+                  {item}
+                  {i !== list.length - 1 && ', '}{' '}
+                </span>
+              ))}
+            </SemiBold>
+          </td>
         )}
       </tr>
       {!inline && (list?.length || 0) > 1 && (
