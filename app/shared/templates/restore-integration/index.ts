@@ -1,0 +1,42 @@
+import Handlebars from 'handlebars';
+import { processRequest } from '../helpers';
+import { IntegrationData } from '@app/shared/interfaces';
+import { sendEmail } from '@app/utils/ches';
+import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
+import { getIntegrationEmails } from '../helpers';
+import { EMAILS } from '@app/shared/enums';
+import type { RenderResult } from '../index';
+import { restoreIntegration } from './restore-integration';
+
+const SUBJECT_TEMPLATE = `Pathfinder SSO request restored`;
+
+const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
+const bodyHandler = Handlebars.compile(restoreIntegration, { noEscape: true });
+
+interface DataProps {
+  integration: IntegrationData;
+  hasClientSecret: boolean;
+}
+
+export const render = async (originalData: DataProps): Promise<RenderResult> => {
+  const { integration } = originalData;
+  const data = { ...originalData, integration: await processRequest(integration) };
+
+  return {
+    subject: subjectHandler(data),
+    body: bodyHandler(data),
+  };
+};
+
+export const send = async (data: DataProps, rendered: RenderResult) => {
+  const { integration } = data;
+  const emails = await getIntegrationEmails(integration);
+  return sendEmail({
+    code: EMAILS.CREATE_INTEGRATION_APPLIED,
+    to: emails,
+    cc: [SSO_EMAIL_ADDRESS],
+    ...rendered,
+  });
+};
+
+export default { render, send };

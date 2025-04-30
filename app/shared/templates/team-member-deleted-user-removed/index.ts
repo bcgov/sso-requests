@@ -1,0 +1,41 @@
+import Handlebars from 'handlebars';
+import { Team, User } from '@app/shared/interfaces';
+import { sendEmail } from '@app/utils/ches';
+import { getUserEmails, processTeam, processUser } from '../helpers';
+import { EMAILS } from '@app/shared/enums';
+import type { RenderResult } from '../index';
+import { teamMemberDeletedUserRemoved } from './team-member-deleted-user-removed';
+
+const SUBJECT_TEMPLATE = `Team Admin has modified {{team.name}}`;
+
+const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
+const bodyHandler = Handlebars.compile(teamMemberDeletedUserRemoved, { noEscape: true });
+
+interface DataProps {
+  user: User;
+  team: Team;
+}
+
+export const render = async (originalData: DataProps): Promise<RenderResult> => {
+  const { team, user } = originalData;
+  const data = { ...originalData, team: await processTeam(team), user: await processUser(user) };
+
+  return {
+    subject: subjectHandler(data),
+    body: bodyHandler(data),
+  };
+};
+
+export const send = async (data: DataProps, rendered: RenderResult) => {
+  const { team, user } = data;
+  const emails = getUserEmails(user as any);
+
+  return sendEmail({
+    code: EMAILS.TEAM_MEMBER_DELETED_USER_REMOVED,
+    to: emails,
+    cc: [],
+    ...rendered,
+  });
+};
+
+export default { render, send };

@@ -1,0 +1,10 @@
+export const createIntegrationSubmitted = `
+<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID {{integration.id}} is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+{{> integrationDetail }} {{> processingTime }} {{#if waitingBceidProdApproval}} {{> hr }} {{> createBceidBottom }}
+{{/if}} {{#if waitingGithubProdApproval}} {{> hr }} {{> createGithubBottom }} {{/if}}{{#if
+waitingBcServicesCardProdApproval}} {{> hr }} {{> createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}}
+{{> hr }} {{> createSocialBottom }} {{/if}} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
+digitalCredentialInfoContact }} {{/if}} {{> footer }}
+`;

@@ -1,0 +1,9 @@
+export const prodApproved = `
+<h3>Hello Pathfinder SSO friend,</h3>
+<p>
+  Your Pathfinder SSO production environment for {{type}} <strong>integration request ID {{integration.id}}</strong> has
+  been approved.
+</p>
+<p>Below is a summary of your integration request details:</p>
+{{> integrationDetail }} {{> processingTime }} {{> ssoUpdatesMailingListMessage }} {{> footer }}
+`;
