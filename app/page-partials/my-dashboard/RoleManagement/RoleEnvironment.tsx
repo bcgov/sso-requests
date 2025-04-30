@@ -150,15 +150,22 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [compositeRoleError, setCompositeRoleError] = useState(false);
 
   const populateTabs = () => {
+    let tabs: string[] = [];
     if (integration.authType === 'service-account') {
-      setRightPanelTabs(['Service Accounts', 'Composite Roles']);
-      setRightPanelTab('Service Accounts');
+      tabs = ['Service Accounts', 'Composite Roles'];
     } else if (integration.authType === 'browser-login') {
-      setRightPanelTabs(['Users', 'Composite Roles']);
-      setRightPanelTab('Users');
+      tabs = ['Users', 'Composite Roles'];
     } else {
-      setRightPanelTabs(['Users', 'Service Accounts', 'Composite Roles']);
-      setRightPanelTab('Users');
+      tabs = ['Users', 'Service Accounts', 'Composite Roles'];
+    }
+    setRightPanelTabs(tabs);
+    // If there is no active tab, default to leftmost tab.
+    if (rightPanelTab === '') {
+      setRightPanelTab(tabs[0]);
+    }
+    // If the currently active tab is in the new set, keep it selected. Otherwise revert to the default.
+    else if (!tabs.includes(rightPanelTab)) {
+      setRightPanelTab(tabs[0]);
     }
   };
 
