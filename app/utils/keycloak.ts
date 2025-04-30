@@ -11,6 +11,4 @@ const keycloak = new Keycloak({
 });
 
 keycloak.onAuthRefreshError = () => keycloak.logout();
-
-keycloak.onTokenExpired = () => console.log('expired?');
 export default keycloak;
