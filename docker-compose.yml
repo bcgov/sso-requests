@@ -15,91 +15,91 @@ services:
     networks:
       - css-net
 
-  sso-portal-ui:
-    container_name: sso-portal-ui
-    image: sso-requests:latest
-    entrypoint: yarn
-    command: ['--cwd', './app', 'docker-build']
-    ports:
-      - 3000:3000
-    environment:
-      APP_ENV: develop
-      API_URL: http://localhost:8080/app
-      SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
-      SSO_CLIENT_ID: css-app-in-gold-4128
-      SSO_REDIRECT_URI: http://localhost:3000
-      SSO_AUTHORIZATION_RESPONSE_TYPE: code
-      SSO_AUTHORIZATION_SCOPE: openid
-      SSO_TOKEN_GRANT_TYPE: authorization_code
-      KC_IDP_HINT: idir
-      ENABLE_GOLD: 'true'
-      MAINTENANCE_MODE_ACTIVE: 'false'
-      SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests
-      APP_URL: http://localhost:3000
-      INCLUDE_DIGITAL_CREDENTIAL: 'true'
-      INCLUDE_BC_SERVICES_CARD: 'true'
-      ALLOW_BC_SERVICES_CARD_PROD: 'true'
-      INCLUDE_SOCIAL: 'true'
-    depends_on:
-      - sso-requests
-    networks:
-      - css-net
+  # sso-portal-ui:
+  #   container_name: sso-portal-ui
+  #   image: sso-requests:latest
+  #   entrypoint: yarn
+  #   command: ['--cwd', './app', 'docker-build']
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     APP_ENV: develop
+  #     API_URL: http://localhost:8080/app
+  #     SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
+  #     SSO_CLIENT_ID: css-app-in-gold-4128
+  #     SSO_REDIRECT_URI: http://localhost:3000
+  #     SSO_AUTHORIZATION_RESPONSE_TYPE: code
+  #     SSO_AUTHORIZATION_SCOPE: openid
+  #     SSO_TOKEN_GRANT_TYPE: authorization_code
+  #     KC_IDP_HINT: idir
+  #     ENABLE_GOLD: 'true'
+  #     MAINTENANCE_MODE_ACTIVE: 'false'
+  #     SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests
+  #     APP_URL: http://localhost:3000
+  #     INCLUDE_DIGITAL_CREDENTIAL: 'true'
+  #     INCLUDE_BC_SERVICES_CARD: 'true'
+  #     ALLOW_BC_SERVICES_CARD_PROD: 'true'
+  #     INCLUDE_SOCIAL: 'true'
+  #   depends_on:
+  #     - sso-requests
+  #   networks:
+  #     - css-net
 
-  sso-requests:
-    container_name: sso-requests
-    image: sso-requests:latest
-    entrypoint: ['/bin/bash', '-c', 'yarn --cwd ./localserver migrate-db && yarn --cwd ./localserver dev']
-    ports:
-      - 8080:8080
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - sso-db
-    environment:
-      PORT: 8080
-      APP_URL: http://localhost:3000
-      APP_ENV: local
-      API_AUTH_SECRET: s3cr3t
-      NODE_ENV: development
-      ALLOW_SILVER: 'false'
-      ALLOW_GOLD: 'true'
-      DATABASE_URL: postgresql://postgres:postgres@sso-db:5433/ssorequests
-      SSO_CLIENT_ID: css-app-in-gold-4128
-      SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
-      KEYCLOAK_V2_DEV_USERNAME: admin
-      KEYCLOAK_V2_DEV_PASSWORD: admin
-      KEYCLOAK_V2_DEV_URL: http://dev-keycloak:9080
-      KEYCLOAK_V2_TEST_USERNAME: admin
-      KEYCLOAK_V2_TEST_PASSWORD: admin
-      KEYCLOAK_V2_TEST_URL: http://test-keycloak:9081
-      KEYCLOAK_V2_PROD_USERNAME: admin
-      KEYCLOAK_V2_PROD_PASSWORD: admin
-      KEYCLOAK_V2_PROD_URL: http://prod-keycloak:9082
-      GH_BRANCH: main
-      GH_OWNER: bcgov
-      CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email
-      CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
-      CHES_USERNAME: test
-      CHES_PASSWORD: test
-      VERIFY_USER_SECRET: s3cr3t
-      API_URL: http://localhost:8080
-      REALM_REGISTRY_API: https://realm-registry-sandbox.apps.gold.devops.gov.bc.ca/api
-      LOCAL_DEV: 'true'
-      GRAFANA_API_TOKEN: s3cr3t
-      GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
-      GOLD_IP_ADDRESS: '142.34.229.4'
-      CYPRESS_RUNNER: 'true'
-      INCLUDE_DIGITAL_CREDENTIAL: 'true'
-      INCLUDE_SOCIAL: 'true'
-      BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
-      BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
-      BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
-      INCLUDE_BC_SERVICES_CARD: 'true'
-      ALLOW_BC_SERVICES_CARD_PROD: 'true'
-    networks:
-      css-net:
-        aliases: [sso-requests-api]
+  # sso-requests:
+  #   container_name: sso-requests
+  #   image: sso-requests:latest
+  #   entrypoint: ['/bin/bash', '-c', 'yarn --cwd ./localserver migrate-db && yarn --cwd ./localserver dev']
+  #   ports:
+  #     - 8080:8080
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - sso-db
+  #   environment:
+  #     PORT: 8080
+  #     APP_URL: http://localhost:3000
+  #     APP_ENV: local
+  #     API_AUTH_SECRET: s3cr3t
+  #     NODE_ENV: development
+  #     ALLOW_SILVER: 'false'
+  #     ALLOW_GOLD: 'true'
+  #     DATABASE_URL: postgresql://postgres:postgres@sso-db:5433/ssorequests
+  #     SSO_CLIENT_ID: css-app-in-gold-4128
+  #     SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+  #     KEYCLOAK_V2_DEV_USERNAME: admin
+  #     KEYCLOAK_V2_DEV_PASSWORD: admin
+  #     KEYCLOAK_V2_DEV_URL: http://dev-keycloak:9080
+  #     KEYCLOAK_V2_TEST_USERNAME: admin
+  #     KEYCLOAK_V2_TEST_PASSWORD: admin
+  #     KEYCLOAK_V2_TEST_URL: http://test-keycloak:9081
+  #     KEYCLOAK_V2_PROD_USERNAME: admin
+  #     KEYCLOAK_V2_PROD_PASSWORD: admin
+  #     KEYCLOAK_V2_PROD_URL: http://prod-keycloak:9082
+  #     GH_BRANCH: main
+  #     GH_OWNER: bcgov
+  #     CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email
+  #     CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
+  #     CHES_USERNAME: test
+  #     CHES_PASSWORD: test
+  #     VERIFY_USER_SECRET: s3cr3t
+  #     API_URL: http://localhost:8080
+  #     REALM_REGISTRY_API: https://realm-registry-sandbox.apps.gold.devops.gov.bc.ca/api
+  #     LOCAL_DEV: 'true'
+  #     GRAFANA_API_TOKEN: s3cr3t
+  #     GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
+  #     GOLD_IP_ADDRESS: '142.34.229.4'
+  #     CYPRESS_RUNNER: 'true'
+  #     INCLUDE_DIGITAL_CREDENTIAL: 'true'
+  #     INCLUDE_SOCIAL: 'true'
+  #     BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
+  #     BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
+  #     BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
+  #     INCLUDE_BC_SERVICES_CARD: 'true'
+  #     ALLOW_BC_SERVICES_CARD_PROD: 'true'
+  #   networks:
+  #     css-net:
+  #       aliases: [sso-requests-api]
 
   dev-keycloak:
     container_name: dev-keycloak

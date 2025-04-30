@@ -37,6 +37,7 @@ const fetchChesToken = async (username, password) => {
 };
 
 export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, body, ...rest }: EmailOptions) => {
+  return true;
   const { CHES_USERNAME: username, CHES_PASSWORD: password, REALM_REGISTRY_API: realmRegistryApi } = process.env;
   const chesAPIEndpoint = realmRegistryApi + '/emails';
   const [accessToken, error] = await fetchChesToken(username, password);

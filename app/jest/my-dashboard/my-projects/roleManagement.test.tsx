@@ -245,7 +245,7 @@ describe('role management tab', () => {
     rerender(<RoleEnvironment integration={{ ...sampleRequest, authType: 'service-account' }} />);
     expect(screen.queryByText('Composite Roles')).toHaveAttribute('aria-selected', 'true');
 
-    // Switch to service accounts tab and than render a browser only integration
+    // Switch to service accounts tab and then render a browser only integration
     fireEvent.click(screen.getByText('Service Accounts'));
     expect(screen.queryByText('Service Accounts')).toHaveAttribute('aria-selected', 'true');
     rerender(<RoleEnvironment integration={{ ...sampleRequest, authType: 'browser-login' }} />);
