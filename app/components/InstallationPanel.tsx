@@ -100,7 +100,7 @@ const InstallationPanel = ({ integration, alert }: Props) => {
           return (
             <React.Fragment key={env.name}>
               <Grid.Row collapse="992" gutter={[]} align="center">
-                <Grid.Col span={1} style={{ width: '100%', height: '30px' }}>
+                <Grid.Col span={1} style={{ width: '100%' }}>
                   <EnvTitle>
                     {env.display} {idpList}
                   </EnvTitle>
