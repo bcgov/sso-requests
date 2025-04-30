@@ -9,12 +9,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isAuth = await authenticate(req, res);
     if (!isAuth) return;
     const { session } = isAuth as { session: Session };
-    if (req.method === 'GET') {
+    if (req.method === 'POST') {
       const result = await listRoles(session as Session, req.body);
       res.status(200).json(result);
-    } else if (req.method === 'POST') {
+    } else if (req.method === 'PUT') {
       const result = await createClientRole(session?.user?.id!, req.body);
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['POST', 'PUT']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

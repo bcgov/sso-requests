@@ -23,6 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await sendTemplate(EMAILS.SURVEY_COMPLETED, { user: session.user, rating, message, triggerEvent });
 
       res.status(200).json({ message: 'Survey created successfully' });
+    } else {
+      res.setHeader('Allow', ['POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

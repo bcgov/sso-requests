@@ -179,7 +179,7 @@ export const manageUserRole = async ({
 }): Promise<(string[] | null)[]> => {
   try {
     const result = await instance
-      .put('keycloak/user-role', { environment, integrationId, username, roleName, mode })
+      .put('keycloak/user-roles', { environment, integrationId, username, roleName, mode })
       .then((res) => res.data);
 
     return [result, null];
@@ -248,7 +248,7 @@ export const createRole = async ({
 }): Promise<(any | null)[]> => {
   try {
     const result = await instance
-      .post(`keycloak/roles`, { environment, integrationId, roleName })
+      .put(`keycloak/roles`, { environment, integrationId, roleName })
       .then((res) => res.data);
 
     return [result, null];

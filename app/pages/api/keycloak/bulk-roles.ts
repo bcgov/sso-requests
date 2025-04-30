@@ -18,6 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const result = await bulkCreateClientRoles(session?.user?.id as number, req.body);
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

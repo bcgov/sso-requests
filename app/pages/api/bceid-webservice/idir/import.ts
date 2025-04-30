@@ -11,6 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await importIdirUser(req.body);
       if (!result) res.status(404).send({ success: false, message: 'No results found' });
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

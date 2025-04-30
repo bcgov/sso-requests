@@ -23,6 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       const result = await restoreRequest(session as Session, Number(id), email);
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

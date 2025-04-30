@@ -13,6 +13,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id } = req.query;
       await inviteTeamMembers(session?.user?.id!, [req.body], Number(id));
       res.status(200).send({ message: 'Invitations sent successfully' });
+    } else {
+      res.setHeader('Allow', ['POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

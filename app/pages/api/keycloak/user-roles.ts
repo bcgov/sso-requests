@@ -15,6 +15,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (req.method === 'PUT') {
       const result = await updateUserRoleMappings(session?.user?.id!, req.body);
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['POST', 'PUT']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

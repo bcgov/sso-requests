@@ -13,6 +13,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id } = req.query;
       const result = await getAllowedTeam(Number(id), session?.user!, { raw: true });
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['GET']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

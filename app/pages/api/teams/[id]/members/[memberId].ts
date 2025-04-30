@@ -17,6 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id, memberId } = req.query;
       const result = await removeUserFromTeam(session?.user?.id!, Number(memberId), Number(id));
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['PUT', 'DELETE']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

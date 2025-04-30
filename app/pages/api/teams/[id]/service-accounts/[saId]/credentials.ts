@@ -17,6 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id: teamId, saId } = req.query;
       const result = await updateServiceAccountSecret(session?.user?.id!, Number(teamId), Number(saId));
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['GET', 'PUT']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);

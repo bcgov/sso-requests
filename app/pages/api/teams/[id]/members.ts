@@ -18,6 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id } = req.query;
       const result = await addUsersToTeam(Number(id), session?.user?.id!, req.body);
       res.status(200).json(result);
+    } else {
+      res.setHeader('Allow', ['GET', 'POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
     handleError(res, error);
