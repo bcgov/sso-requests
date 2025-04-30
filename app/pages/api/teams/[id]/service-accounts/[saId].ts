@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { handleError } from '@app/utils/helpers';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { getAllowedTeams } from '@app/queries/team';
+import { deleteServiceAccount, getServiceAccount } from '@app/controllers/team';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -10,7 +10,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!isAuth) return;
     const { session } = isAuth as { session: Session };
     if (req.method === 'GET') {
-      const result = await getAllowedTeams(session?.user!, { raw: true });
+      const { id: teamId, saId } = req.query;
+      const result = await getServiceAccount(session?.user?.id!, Number(teamId), Number(saId));
+      res.status(200).json(result);
+    } else if (req.method === 'DELETE') {
+      const { id: teamId, saId } = req.query;
+      const result = await deleteServiceAccount(session as Session, session?.user?.id!, Number(teamId), Number(saId));
       res.status(200).json(result);
     }
   } catch (error) {

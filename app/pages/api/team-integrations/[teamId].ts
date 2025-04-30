@@ -6,7 +6,7 @@ import { getIntegrations } from '@app/controllers/requests';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    if (req.method !== 'GET') {
+    if (req.method === 'GET') {
       const isAuth = await authenticate(req, res);
       if (!isAuth) return;
       const { session } = isAuth as { session: Session };

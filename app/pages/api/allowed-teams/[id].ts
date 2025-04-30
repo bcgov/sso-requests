@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isAuth = await authenticate(req, res);
     if (!isAuth) return;
     const { session } = isAuth as { session: Session };
-    if (req.method !== 'GET') {
+    if (req.method === 'GET') {
       const { id } = req.query;
       const result = await getAllowedTeam(Number(id), session?.user!, { raw: true });
       res.status(200).json(result);

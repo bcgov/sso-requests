@@ -2,16 +2,17 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { handleError } from '@app/utils/helpers';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { getAllowedTeams } from '@app/queries/team';
+import { inviteTeamMembers } from '@app/controllers/team';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const isAuth = await authenticate(req, res);
     if (!isAuth) return;
     const { session } = isAuth as { session: Session };
-    if (req.method === 'GET') {
-      const result = await getAllowedTeams(session?.user!, { raw: true });
-      res.status(200).json(result);
+    if (req.method === 'POST') {
+      const { id } = req.query;
+      await inviteTeamMembers(session?.user?.id!, [req.body], Number(id));
+      res.status(200).send({ message: 'Invitations sent successfully' });
     }
   } catch (error) {
     handleError(res, error);

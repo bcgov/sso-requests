@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const isAuth = await authenticate(req, res);
     if (!isAuth) return;
-    if (req.method !== 'GET') {
+    if (req.method === 'GET') {
       const { email } = req.query;
       if (!email) {
         res.status(400).send('Must include email query parameter');
