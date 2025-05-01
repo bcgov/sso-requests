@@ -1,0 +1,60 @@
+image:
+  tag: dev
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+env:
+  APP_ENV: development
+  API_URL: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/api
+  SSO_URL: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+  SSO_CLIENT_ID: css-app-in-gold-4128'
+  SSO_REDIRECT_URI: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
+  SSO_AUTHORIZATION_RESPONSE_TYPE: code
+  SSO_AUTHORIZATION_SCOPE: openid
+  SSO_TOKEN_GRANT_TYPE: authorization_code
+  DB_HOSTNAME: sso-requests-patroni
+  DB_PORT: 5432
+  DB_NAME: sso-requests
+  MAINTENANCE_MODE_ACTIVE: 'false'
+  APP_URL: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
+  INCLUDE_DIGITAL_CREDENTIAL: 'true'
+  INCLUDE_BC_SERVICES_CARD: 'true'
+  ALLOW_BC_SERVICES_CARD_PROD: 'true'
+  NODE_ENV: development
+  SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+  KEYCLOAK_V2_DEV_URL: https://dev.sandbox.loginproxy.gov.bc.ca
+  KEYCLOAK_V2_TEST_URL: https://test.sandbox.loginproxy.gov.bc.ca
+  KEYCLOAK_V2_PROD_URL: https://sandbox.loginproxy.gov.bc.ca
+  REALM_REGISTRY_API: https://realm-registry-sandbox.apps.gold.devops.gov.bc.ca
+  GOLD_IP_ADDRESS: '142.34.229.4'
+  BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
+  BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
+  BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
+  GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
+  CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email
+  CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
+
+route:
+  host: sso-requests-sandbox.apps.gold.devops.gov.bc.ca
+
+patroni:
+  image:
+    repository: registry.opensource.zalan.do/acid/spilo-14
+    pullPolicy: Always
+    tag: 2.1-p5
+
+  walG:
+    enabled: false
+
+patroni:
+  replicaCount: 1
+
+  podDisruptionBudget:
+    enabled: false

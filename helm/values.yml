@@ -1,0 +1,72 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/bcgov/sso-requests
+  tag: dev
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: gh-registry-config
+
+nameOverride: sso-requests
+
+fullnameOverride: sso-requests
+
+env: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+
+route:
+  host:
+
+postgres:
+  host: sso-requests-patroni
+  port: 5432
+  username:
+    secret: sso-requests-patroni-appusers
+    key: username-appuser1
+  password:
+    secret: sso-requests-patroni-appusers
+    key: password-appuser1
+  database: ssorequests
+  ssl: true
+
+jwt:
+  tokenExpiry: 1h
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+patroni:
+  replicaCount: 2
+
+  additionalCredentials:
+    - username: ssorequests
+      password:
+
+  walG:
+    enabled: true
+    scheduleCronJob: 00 01 * * *
+    retainBackups: 2
+    pvc:
+      size: 1Gi
+
+  resources: {}
+  persistentVolume:
+    size: 1Gi
+
+  podDisruptionBudget:
+    enabled: true

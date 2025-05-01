@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - SSOTEAM-2108
     paths:
       - 'app/**'
       - 'Dockerfile'
@@ -25,6 +26,12 @@ jobs:
     steps:
       - uses: hmarr/debug-action@v3
       - uses: actions/checkout@v4
+      - name: Install CLI tools from OpenShift Mirror
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          source: mirror
+          kam: latest
+          oc: 4.18.7
 
       - name: Log in to the GitHub Container registry
         uses: docker/login-action@v3
@@ -71,7 +78,58 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ${{ endsWith(github.ref, '/main') && format('{0}/{1}:{2}', env.GITHUB_REGISTRY, env.IMAGE_NAME, steps.release.outputs.tag_name) || steps.meta.outputs.tags }}
+          tags: ${{ env.GITHUB_REGISTRY }}/${{env.IMAGE_NAME}}:dev
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Set env to development
+        if: (github.ref == 'refs/heads/SSOTEAM-2108' && github.event_name == 'push')
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          OPENSHIFT_TOKEN=${{ secrets.DEV_OPENSHIFT_TOKEN }}
+          OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
+          EOF
+
+      - name: Set env to production
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          OPENSHIFT_TOKEN=${{ secrets.PROD_OPENSHIFT_TOKEN }}
+          OPENSHIFT_NAMESPACE=${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
+          EOF
+
+      - name: Authenticate and set context
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+          openshift_token: ${{ env.OPENSHIFT_TOKEN }}
+          namespace: ${{ env.OPENSHIFT_NAMESPACE }}
+          insecure_skip_tls_verify: true
+
+      - name: Deploy app with Helm chart
+        run: |
+          namespace=${{ env.OPENSHIFT_NAMESPACE }}
+          helm dep up
+          helm upgrade --install --atomic sso-requests . -n ${namespace} \
+          -f values.yaml -f "values-${namespace}.yaml" \
+          --set image.tag="${{ steps.get-tag.outputs.release_tag }}" \
+          --set envVars.apiAuthSecret="${{ secrets.API_AUTH_SECRET }}" \
+          --set envVars.keycloakV2DevUsername="${{ secrets.KEYCLOAK_V2_DEV_USERNAME }}" \
+          --set envVars.keycloakV2DevPassword="${{ secrets.KEYCLOAK_V2_DEV_PASSWORD }}" \
+          --set envVars.keycloakV2ProdUsername="${{ secrets.KEYCLOAK_V2_PROD_USERNAME }}" \
+          --set envVars.keycloakV2ProdPassword="${{ secrets.KEYCLOAK_V2_PROD_PASSWORD }}" \
+          --set envVars.keycloakV2TestUsername="${{ secrets.KEYCLOAK_V2_TEST_USERNAME }}" \
+          --set envVars.keycloakV2TestPassword="${{ secrets.KEYCLOAK_V2_TEST_PASSWORD }}" \
+          --set envVars.chesUsername="${{ secrets.CHES_USERNAME_PROD }}" \
+          --set envVars.chesPassword="${{ secrets.CHES_PASSWORD_PROD }}" \
+          --set envVars.grafanaApiToken="${{ secrets.GRAFANA_API_TOKEN }}" \
+          --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
+          --set envVars.msGraphApiClientId="${{ secrets.MS_GRAPH_API_CLIENT_ID }}" \
+          --set envVars.msGraphApiClientSecret="${{ secrets.MS_GRAPH_API_CLIENT_SECRET }}" \
+          --set envVars.bcscInitialAccessTokenDev="${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
+          --set envVars.bcscInitialAccessTokenProd="${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
+          --set envVars.bcscInitialAccessTokenTest="${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
+          --set envVars.redisHost="${{ secrets.DEV_REDIS_HOST }}" \
+          --set envVars.ghAccessToken="${{ secrets.GH_ACCESS_TOKEN }}"
+        working-directory: ./helm
