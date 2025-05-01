@@ -113,7 +113,7 @@ jobs:
           helm dep up
           helm upgrade --install --atomic sso-requests . -n ${namespace} \
           -f values.yaml -f "values-${namespace}.yaml" \
-          --set image.tag="${{ steps.get-tag.outputs.release_tag }}" \
+          --set image.tag="${{ env.GITHUB_REGISTRY }}/${{env.IMAGE_NAME}}:dev" \
           --set envVars.apiAuthSecret="${{ secrets.API_AUTH_SECRET }}" \
           --set envVars.keycloakV2DevUsername="${{ secrets.KEYCLOAK_V2_DEV_USERNAME }}" \
           --set envVars.keycloakV2DevPassword="${{ secrets.KEYCLOAK_V2_DEV_PASSWORD }}" \
