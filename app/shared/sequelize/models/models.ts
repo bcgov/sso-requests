@@ -9,14 +9,17 @@ import UserTeam from './UserTeam';
 import RequestQueue from './RequestQueue';
 import RequestRole from './RequestRole';
 import BcscClient from './BcscClient';
+import getConfig from 'next/config';
 
-const env = process.env.NODE_ENV || 'development';
-const config = configs[env];
+const { serverRuntimeConfig = {} } = getConfig() || {};
+const { node_env } = serverRuntimeConfig as { node_env: keyof typeof configs };
+
+const config = configs[node_env];
 
 export const models: any = {};
 export const modelNames: string[] = [];
 
-export const sequelize = new Sequelize(config.database, config.username, config.password, config as any);
+export const sequelize = new Sequelize(config?.database, config.username, config.password, config as any);
 
 console.log('sequelize initialized', !!sequelize);
 

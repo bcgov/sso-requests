@@ -4,7 +4,7 @@ import RedisClient from 'ioredis';
 import getConfig from 'next/config';
 
 const { serverRuntimeConfig = {} } = getConfig() || {};
-const { node_env, redis_host } = serverRuntimeConfig;
+const { redis_host, node_env } = serverRuntimeConfig;
 
 const getClientIp = (req: any) => {
   const id = req.params?.id ?? req.params?.integrationId;

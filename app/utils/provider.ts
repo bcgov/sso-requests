@@ -1,8 +1,8 @@
 import axios from 'axios';
 import getConfig from 'next/config';
 
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { sso_url } = serverRuntimeConfig;
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { sso_url } = publicRuntimeConfig;
 
 export const meta: any = {};
 

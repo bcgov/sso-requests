@@ -3,8 +3,8 @@ import axios, { AxiosRequestHeaders, AxiosResponse, AxiosError } from 'axios';
 import { getAuthHeader } from 'services/auth';
 import Router from 'next/router';
 
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { api_url } = serverRuntimeConfig;
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { api_url } = publicRuntimeConfig;
 
 const instance = axios.create({
   baseURL: `${api_url}/`,

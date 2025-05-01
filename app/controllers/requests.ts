@@ -74,8 +74,13 @@ import { bcscIdpMappers } from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus } from '@app/helpers/permissions';
+import getConfig from 'next/config';
 
-const APP_ENV = process.env.APP_ENV || 'development';
+const { publicRuntimeConfig = {}, serverRuntimeConfig = {} } = getConfig() || {};
+const { app_env } = publicRuntimeConfig;
+const { node_env } = serverRuntimeConfig;
+
+const APP_ENV = app_env || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
 
 const envFields = [
@@ -1107,7 +1112,7 @@ export const processIntegrationRequest = async (
     payload.browserFlowOverride = browserFlowAlias;
   }
 
-  if (['development', 'production'].includes(process.env.NODE_ENV)) {
+  if (['development', 'production'].includes(node_env)) {
     return await standardClients(payload, restore, existingClientId, addingProd);
   }
 };

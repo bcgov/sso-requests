@@ -5,8 +5,8 @@ import createHttpError from 'http-errors';
 import * as path from 'path';
 import getConfig from 'next/config';
 
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { sso_configuration_endpoint, sso_client_id } = serverRuntimeConfig;
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { sso_configuration_endpoint, sso_client_id } = publicRuntimeConfig;
 
 import axios from 'axios';
 import jwt, { JwtPayload } from 'jsonwebtoken';

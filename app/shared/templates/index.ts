@@ -43,10 +43,14 @@ import {
   createVerifiedCredentialBottom,
   digitalCredentialInfoContact,
 } from './partials';
+import getConfig from 'next/config';
 
-const APP_URL = process.env.APP_URL || 'http://localhost:3000';
-const API_URL = process.env.API_URL || 'http://localhost:8080/app';
-const APP_ENV = process.env.APP_ENV || 'development';
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { app_url, api_url, app_env } = publicRuntimeConfig;
+
+const APP_URL = app_url;
+const API_URL = api_url;
+const APP_ENV = app_env;
 
 const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string | undefined => {
   if (!primaryUsers?.length) {

@@ -1,8 +1,8 @@
 import rs from 'jsrsasign';
 import getConfig from 'next/config';
 
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { sso_client_id } = serverRuntimeConfig;
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { sso_client_id } = publicRuntimeConfig;
 
 import { meta } from './provider';
 import { parseJWTPayload, parseJWTHeader } from './helpers';

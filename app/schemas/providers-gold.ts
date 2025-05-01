@@ -7,9 +7,9 @@ import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesSocial } from '@app/helpers/integration';
 import { getDiscontinuedIdps } from '@app/utils/helpers';
 
-const { serverRuntimeConfig = {} } = getConfig() || {};
+const { publicRuntimeConfig = {} } = getConfig() || {};
 const { include_digital_credential, include_bc_services_card, allow_bc_services_card_prod, include_social } =
-  serverRuntimeConfig;
+  publicRuntimeConfig;
 
 export default function getSchema(
   integration: Integration,
@@ -99,7 +99,7 @@ export default function getSchema(
 
     /*
       Schemas are shared between lambda functions and client app to keep validations in sync.
-      They set env vars differently though, process.env is used in lambdas but serverRuntimeConfig in client app.
+      They set env vars differently though, process.env is used in lambdas but publicRuntimeConfig in client app.
       Need to check both to see if dc is allowed.
     */
     const include_dc = include_digital_credential === 'true' || process.env.INCLUDE_DIGITAL_CREDENTIAL === 'true';

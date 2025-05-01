@@ -6,6 +6,10 @@ import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import { disableBcscIdp } from './disable-bcsc-idp';
+import getConfig from 'next/config';
+
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { app_env } = publicRuntimeConfig;
 
 const SUBJECT_TEMPLATE = `BC Services Card integration disabled for Client ({{integration.projectName}})`;
 
@@ -30,7 +34,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration } = data;
   const emails = [SSO_EMAIL_ADDRESS];
   const cc = [];
-  if (process.env.APP_ENV === 'production' && integration?.environments?.includes('prod')) {
+  if (app_env === 'production' && integration?.environments?.includes('prod')) {
     cc.push(IDIM_EMAIL_ADDRESS);
   }
 

@@ -4,7 +4,7 @@ import createHttpError from 'http-errors';
 
 import getConfig from 'next/config';
 
-const { serverRuntimeConfig = {} } = getConfig() || {};
+const { serverRuntimeConfig = {}, publicRuntimeConfig = {} } = getConfig() || {};
 const {
   keycloak_v2_dev_url,
   keycloak_v2_dev_username,
@@ -15,9 +15,10 @@ const {
   keycloak_v2_prod_url,
   keycloak_v2_prod_username,
   keycloak_v2_prod_password,
-  app_env,
   gold_ip_address,
 } = serverRuntimeConfig;
+
+const { app_env } = publicRuntimeConfig;
 
 export const getAdminClient = async (data: { serviceType: string; environment: string }) => {
   const { environment } = data;

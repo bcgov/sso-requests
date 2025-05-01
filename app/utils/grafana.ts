@@ -1,10 +1,14 @@
 import axios from 'axios';
+import getConfig from 'next/config';
+
+const { serverRuntimeConfig = {} } = getConfig() || {};
+const { grafana_api_url, grafana_api_token } = serverRuntimeConfig;
 
 export const fetchDatasourceUID = async (datasourceName: string) => {
   return axios
-    .get(`${process.env.GRAFANA_API_URL}/datasources`, {
+    .get(`${grafana_api_url}/datasources`, {
       headers: {
-        Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
+        Authorization: `Bearer ${grafana_api_token}`,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
@@ -15,7 +19,7 @@ export const fetchDatasourceUID = async (datasourceName: string) => {
 export const queryGrafana = async (query: string, start: number, end: number, limit: number) => {
   const lokiUID = await fetchDatasourceUID('SSO Loki');
   const response = await axios.post(
-    `${process.env.GRAFANA_API_URL}/ds/query`,
+    `${grafana_api_url}/ds/query`,
     {
       queries: [
         {
@@ -37,7 +41,7 @@ export const queryGrafana = async (query: string, start: number, end: number, li
         ds_type: 'loki',
       },
       headers: {
-        Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
+        Authorization: `Bearer ${grafana_api_token}`,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
@@ -70,11 +74,11 @@ export const clientEventsAggregationQuery = async (
   };
 
   const headers = {
-    Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
+    Authorization: `Bearer ${grafana_api_token}`,
     'Content-Type': 'application/json',
     Accept: 'application/json',
   };
-  const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
+  const res: any = await axios.post(`${grafana_api_url}/ds/query`, query, { headers });
 
   const values = res?.data?.results?.A?.frames[0]?.data?.values;
 

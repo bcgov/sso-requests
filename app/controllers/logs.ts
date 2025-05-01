@@ -3,9 +3,13 @@ import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
 import { createEvent } from './requests';
 import { EVENTS } from '@app/shared/enums';
+import getConfig from 'next/config';
+
+const { publicRuntimeConfig = {} } = getConfig() || {};
+const { app_env } = publicRuntimeConfig;
 
 // Loki limit lower in sandbox.
-const LOG_SIZE_LIMIT = process.env.APP_ENV === 'production' ? 25000 : 5000;
+const LOG_SIZE_LIMIT = app_env === 'production' ? 25000 : 5000;
 const MAX_DAYS = 3;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
