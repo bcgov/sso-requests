@@ -1,27 +1,23 @@
 import * as pg from 'pg';
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { db_hostname, db_username, db_password, db_name } = serverRuntimeConfig;
 
 const config = {
   local_development: {
     dialect: 'postgres',
     dialectModule: pg,
     use_env_variable: 'DATABASE_URL',
-    host: db_hostname || 'localhost',
-    username: db_username || '',
-    password: db_password || '',
-    database: db_name || '',
+    host: process.env.DB_HOSTNAME || 'localhost',
+    username: process.env.DB_USERNAME || '',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || '',
   },
   development: {
     dialect: 'postgres',
     dialectModule: pg,
     use_env_variable: 'DATABASE_URL',
-    host: db_hostname || 'localhost',
-    username: db_username || '',
-    password: db_password || '',
-    database: db_name || '',
+    host: process.env.DB_HOSTNAME || 'localhost',
+    username: process.env.DB_USERNAME || '',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || '',
     logging: false,
   },
   test: {
@@ -29,10 +25,10 @@ const config = {
     dialectModule: pg,
     logging: false,
     use_env_variable: 'DATABASE_URL',
-    host: db_hostname || 'localhost',
-    username: db_username || '',
-    password: db_password || '',
-    database: db_name || '',
+    host: process.env.DB_HOSTNAME || 'localhost',
+    username: process.env.DB_USERNAME || '',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || '',
     pool: {
       max: 5,
       min: 0,
@@ -41,10 +37,10 @@ const config = {
     },
   },
   production: {
-    host: db_hostname || 'localhost',
-    username: db_username || '',
-    password: db_password || '',
-    database: db_name || '',
+    host: process.env.DB_HOSTNAME || 'localhost',
+    username: process.env.DB_USERNAME || '',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || '',
     dialect: 'postgres',
     dialectModule: pg,
     omitNull: true,

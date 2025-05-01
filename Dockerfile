@@ -16,4 +16,6 @@ RUN make db_compile
 
 RUN make app_build
 
+RUN yarn next telemetry disable
+
 ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_start"]

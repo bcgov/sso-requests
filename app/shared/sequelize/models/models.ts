@@ -9,12 +9,8 @@ import UserTeam from './UserTeam';
 import RequestQueue from './RequestQueue';
 import RequestRole from './RequestRole';
 import BcscClient from './BcscClient';
-import getConfig from 'next/config';
 
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { node_env } = serverRuntimeConfig as { node_env: keyof typeof configs };
-
-const config = configs[node_env];
+const config = configs[`${process.env.NODE_ENV || 'development'}`];
 
 export const models: any = {};
 export const modelNames: string[] = [];
