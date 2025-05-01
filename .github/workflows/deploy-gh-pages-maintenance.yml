@@ -53,6 +53,7 @@ jobs:
           SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
+          INCLUDE_DIGITAL_CREDENTIAL=true
           MAINTENANCE_MODE_ACTIVE=${{github.event.inputs.maintenanceEnabled}}
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=true
