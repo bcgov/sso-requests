@@ -38,6 +38,8 @@ env:
   CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email
   CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
 
+envVars: {}
+
 route:
   host: sso-requests-sandbox.apps.gold.devops.gov.bc.ca
 

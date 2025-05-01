@@ -4,8 +4,8 @@ import { refreshSession } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { base_path } = publicRuntimeConfig;
+const { serverRuntimeConfig = {} } = getConfig() || {};
+const { base_path } = serverRuntimeConfig;
 
 export const getAuthHeader = async (): Promise<string> => {
   await refreshTokenIfExpiriesSoon();

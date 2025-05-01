@@ -4,8 +4,8 @@ import { devValidRedirectUris } from './providers';
 import FieldAccessTokenTop from '@app/form-components/FieldAccessTokenTop';
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { include_bc_services_card } = publicRuntimeConfig;
+const { serverRuntimeConfig = {} } = getConfig() || {};
+const { include_bc_services_card } = serverRuntimeConfig;
 
 export const roles = {
   type: 'array',
