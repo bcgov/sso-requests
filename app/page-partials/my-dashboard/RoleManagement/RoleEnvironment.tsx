@@ -452,7 +452,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           }
           loadMoreItem={() => fetchUsers(false, selectedRole)}
           hasMoreItem={hasMoreUser}
-          loader={<LoaderContainer />}
+          loader={<LoaderContainer key="loader-component" />}
           colfilters={[]}
           activateRow={noop}
           rowSelectorKey={'guid'}
