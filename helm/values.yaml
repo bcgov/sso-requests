@@ -41,6 +41,10 @@ affinity: {}
 patroni:
   replicaCount: 2
 
+  additionalCredentials:
+   - username: ssorequests
+     password:
+
   walG:
     enabled: true
     scheduleCronJob: 00 01 * * *
