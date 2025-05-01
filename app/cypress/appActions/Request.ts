@@ -594,26 +594,19 @@ class Request {
   }
 
   addRole(id: string, role: string, env: string) {
-    cy.log('Add Role ' + id);
     this.navigation.goToMyDashboard();
-
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
-    cy.get(this.reqPage.tabTechDetails).click();
-    cy.get(this.reqPage.tabRoleManagement).click();
-    if (env === 'dev') {
-      cy.get('#rc-tabs-2-tab-dev').click();
-    } else if (env === 'test') {
-      cy.get('#rc-tabs-2-tab-test').click();
-    } else if (env === 'prod') {
-      cy.get('#rc-tabs-2-tab-prod').click();
-    }
-    cy.get(this.reqPage.createRoleButton).click();
-    cy.get(this.reqPage.roleNameInputField).first().clear().type(role);
-    cy.get(this.reqPage.roleEnvironment)
-      .first()
-      .clear()
-      .type(env + '{enter}');
+    cy.get('[data-testid="integration-details-tabs"]').within(() => {
+      cy.contains(this.reqPage.tabRoleManagement).click();
+      cy.contains(util.capitalizeFirst(env)).click();
+      cy.get(this.reqPage.createRoleButton).click();
+      cy.get(this.reqPage.roleNameInputField).first().clear().type(role);
+      cy.get(this.reqPage.roleEnvironment)
+        .first()
+        .clear()
+        .type(env + '{enter}');
+    });
 
     cy.get(this.reqPage.confirmCreateNewRole).click({
       force: true,
@@ -623,26 +616,25 @@ class Request {
   addUsertoRole(id: string, role: string, env: string, user: string): boolean {
     cy.log('Add User to Role ' + id);
     this.navigation.goToMyDashboard();
-
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
-    if (this.authType === 'service-account') {
-      cy.get('#rc-tabs-1-tab-service-account-role-management', { timeout: 10000 }).click();
-      cy.get('#rc-tabs-1-tab-service-account-role-management', { timeout: 10000 }).then(() => {
-        cy.get('#rc-tabs-2-tab-' + env).click();
+    cy.get('[data-testid="integration-details-tabs"]').within(() => {
+      if (this.authType === 'service-account') {
+        cy.contains(this.reqPage.tabServiceAccountRoleManagement).click();
+        cy.contains(util.capitalizeFirst(env)).click();
         cy.get('input[id^="react-select-"]').type(role + '{enter}');
-      });
-    } else {
-      cy.get(this.reqPage.tabUserRoleManagement).click();
-      cy.get(this.reqPage.tabUserRoleManagement).then(() => {
-        this.reqPage.setRoleEnvironment(env);
-        this.reqPage.setRoleIdp(this.identityProvider[0]);
-        this.reqPage.setRoleCriterion('First Name');
-        this.reqPage.setRoleSearch(user);
-        this.reqPage.setRolePickUser(user);
-        this.reqPage.setRoleAssignSelect(role);
-      });
-    }
+      } else {
+        cy.contains(this.reqPage.tabUserRoleManagement).click();
+        cy.contains(this.reqPage.tabUserRoleManagement).then(() => {
+          this.reqPage.setRoleEnvironment(env);
+          this.reqPage.setRoleIdp(this.identityProvider[0]);
+          this.reqPage.setRoleCriterion('First Name');
+          this.reqPage.setRoleSearch(user);
+          this.reqPage.setRolePickUser(user);
+          this.reqPage.setRoleAssignSelect(role);
+        });
+      }
+    });
 
     return true;
   }
@@ -650,22 +642,17 @@ class Request {
   createCompositeRole(id: string, role_main: string, role_second: string, env: string): boolean {
     cy.log('Add Composite Role ' + id);
     this.navigation.goToMyDashboard();
-
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
-    cy.get(this.reqPage.tabTechDetails).click();
-    cy.get(this.reqPage.tabRoleManagement).click();
-    cy.get('#rc-tabs-2-tab-' + env, { timeout: 10000 }).click();
-    cy.contains('td', role_main)
-      .parent()
-      .within(($el) => {
-        cy.wrap($el).click();
-      });
-    cy.get('.rc-tabs-tab').contains('Composite Roles').click();
-    cy.get('input[id^="react-select-"][role ="combobox"]')
-      .eq(0)
-      .type(role_second + '{enter}');
-
+    cy.get('[data-testid="integration-details-tabs"]').within(() => {
+      cy.contains(this.reqPage.tabRoleManagement).click();
+      cy.contains(util.capitalizeFirst(env)).click();
+      cy.contains('td', role_main).click();
+      cy.contains('Composite Roles').click();
+      cy.get('input[id^="react-select-"][role ="combobox"]')
+        .eq(0)
+        .type(role_second + '{enter}');
+    });
     return true;
   }
 
@@ -703,30 +690,26 @@ class Request {
 
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
-    cy.get(this.reqPage.tabTechDetails).click();
-    cy.get(this.reqPage.tabRoleManagement)
-      .click()
-      .then(() => {
-        cy.get('#rc-tabs-2-tab-' + env).click();
-        cy.contains('td', role)
-          .parent()
-          .within(($el) => {
-            cy.wrap($el).click();
-            cy.get('svg').click();
-          });
-        cy.get(this.reqPage.confirmDeleteRole).scrollIntoView().click({ force: true });
-      });
-
+    cy.get('[data-testid="integration-details-tabs"]').within(() => {
+      cy.contains(this.reqPage.tabRoleManagement).click();
+      cy.contains(util.capitalizeFirst(env)).click();
+      cy.contains('td', role)
+        .parent()
+        .within(($el) => {
+          cy.wrap($el).click();
+          cy.get('svg').click();
+        });
+    });
+    cy.get(this.reqPage.confirmDeleteRole).scrollIntoView().click({ force: true });
     return true;
   }
 
   searchUser(id: string, environment: string, idp: string, criterion: string, error: boolean, search_value: string) {
     this.navigation.goToMyDashboard();
-
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
 
-    cy.get(this.reqPage.tabUserRoleManagement).click();
-    cy.get(this.reqPage.tabUserRoleManagement).then(() => {
+    cy.get('[data-testid="integration-details-tabs"]').within(() => {
+      cy.contains(this.reqPage.tabUserRoleManagement).click();
       this.reqPage.setRoleEnvironment(environment);
       this.reqPage.setRoleIdp(idp);
       this.reqPage.setRoleCriterion(criterion);
@@ -745,12 +728,9 @@ class Request {
     this.navigation.goToMyDashboard();
 
     cy.contains('td', id, { timeout: 10000 }).parent().click().scrollIntoView();
-
-    cy.get(this.reqPage.tabUserRoleManagement).click();
-    cy.get(this.reqPage.tabUserRoleManagement).then(() => {
+    cy.get('[data-testid="integration-details-tabs"]').within(() => {
+      cy.contains(this.reqPage.tabUserRoleManagement).click();
       this.reqPage.setRoleEnvironment(environment);
-      //this.reqPage.setRoleIdp(idp);
-      //this.reqPage.setRoleCriterion(criterion);
       this.reqPage.setRoleSearch(uuidv4()); // just a fake value to trigger an error response
       cy.contains('div', 'The user you searched for does not exist.', { timeout: 10000 }).should('be.visible');
       cy.get(this.reqPage.idimSearchButton).scrollIntoView().click({ force: true });

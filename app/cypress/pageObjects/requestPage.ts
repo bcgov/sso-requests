@@ -29,10 +29,11 @@ class RequestPage {
   deleteButton: string = '[data-testid="action-button-delete"]';
   confirmDeleteInt: string = 'button[data-testid="confirm-delete-confirm-deletion"]';
   confirmDeleteIntModal: string = '[id^="delete-modal-"]';
-  tabTechDetails: string = '#rc-tabs-1-tab-tech-details';
-  tabRoleManagement: string = '#rc-tabs-1-tab-role-management';
-  tabUserRoleManagement: string = '#rc-tabs-1-tab-user-role-management';
-  tabHistory: string = '#rc-tabs-1-tab-history';
+  tabTechDetails: string = 'Technical Details';
+  tabRoleManagement: string = 'Role Management';
+  tabUserRoleManagement: string = 'Assign Users to Roles';
+  tabServiceAccountRoleManagement: string = 'Assign Service Account to Roles';
+  tabHistory: string = 'Change History';
   usesTeam: string = '#root_usesTeam';
   usesDisplayHeaderDev: string = '#root_devDisplayHeaderTitle';
   usesDisplayHeaderTest: string = '#root_testDisplayHeaderTitle';
