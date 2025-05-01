@@ -8,9 +8,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN make disable_telemetry
-
 RUN make app_install
+
+RUN make disable_telemetry
 
 RUN make db_install
 
