@@ -21,7 +21,7 @@ env:
   SSO_TOKEN_GRANT_TYPE: authorization_code
   DB_HOSTNAME: sso-requests-patroni
   DB_PORT: 5432
-  DB_NAME: sso-requests
+  DB_NAME: ssorequests
   MAINTENANCE_MODE_ACTIVE: 'false'
   APP_URL: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
   INCLUDE_DIGITAL_CREDENTIAL: 'true'
