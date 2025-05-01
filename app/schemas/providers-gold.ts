@@ -7,9 +7,9 @@ import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesSocial } from '@app/helpers/integration';
 import { getDiscontinuedIdps } from '@app/utils/helpers';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
+const { serverRuntimeConfig = {} } = getConfig() || {};
 const { include_digital_credential, include_bc_services_card, allow_bc_services_card_prod, include_social } =
-  publicRuntimeConfig;
+  serverRuntimeConfig;
 
 export default function getSchema(
   integration: Integration,

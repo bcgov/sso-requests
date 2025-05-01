@@ -5,5 +5,5 @@ appVersion: 5.0.0
 description: CSS Application for requesting integrations
 dependencies:
   - name: patroni
-    version: 1.5.1
+    version: 1.6.1
     repository: https://bcgov.github.io/sso-helm-charts

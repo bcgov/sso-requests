@@ -1,0 +1,6 @@
+dependencies:
+- name: patroni
+  repository: https://bcgov.github.io/sso-helm-charts
+  version: 1.5.1
+digest: sha256:df1184647e069e0affc7f3bf829dc305b335f43f627c4e2bf93c78360423b876
+generated: "2025-05-01T12:18:57.208506-07:00"

@@ -11,7 +11,7 @@ env:
   APP_ENV: development
   API_URL: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/api
   SSO_URL: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
-  SSO_CLIENT_ID: css-app-in-gold-4128'
+  SSO_CLIENT_ID: css-app-in-gold-4128
   SSO_REDIRECT_URI: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
   SSO_AUTHORIZATION_RESPONSE_TYPE: code
   SSO_AUTHORIZATION_SCOPE: openid

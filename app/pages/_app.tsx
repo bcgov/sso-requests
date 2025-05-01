@@ -20,8 +20,8 @@ import '@bcgov/bc-sans/css/BCSans.css';
 import { parseJWTPayload } from '@app/utils/helpers';
 import SurveyBox from '@app/components/SurveyBox';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { base_path, kc_idp_hint, maintenance_mode } = publicRuntimeConfig;
+const { serverRuntimeConfig = {} } = getConfig() || {};
+const { base_path, kc_idp_hint, maintenance_mode } = serverRuntimeConfig;
 
 const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, `${base_path}/admin-dashboard`];
 

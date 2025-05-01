@@ -4,7 +4,7 @@ import { AuthUrlParams } from 'interfaces/utils';
 
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
+const { serverRuntimeConfig = {} } = getConfig() || {};
 const {
   sso_client_id,
   sso_authorization_scope,
@@ -12,7 +12,7 @@ const {
   sso_authorization_response_type,
   sso_redirect_uri,
   sso_token_grant_type,
-} = publicRuntimeConfig;
+} = serverRuntimeConfig;
 
 import { meta } from './provider';
 
