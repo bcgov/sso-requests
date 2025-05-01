@@ -8,6 +8,8 @@ WORKDIR /app
 
 COPY . .
 
+RUN make disable_telemetry
+
 RUN make app_install
 
 RUN make db_install
@@ -15,7 +17,5 @@ RUN make db_install
 RUN make db_compile
 
 RUN make app_build
-
-RUN yarn next telemetry disable
 
 ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_start"]

@@ -24,6 +24,10 @@ db_compile:
 migrations:
 	node ./db/dist/db/src/main.js
 
+.PHONY: disable_telemetry
+disable_telemetry:
+	yarn --cwd ./app next telemetry disable
+
 .PHONY: setup_env
 setup_env:
 	@cd app; cp .env.example .env
