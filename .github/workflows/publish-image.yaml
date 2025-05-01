@@ -25,6 +25,72 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: hmarr/debug-action@v3
+      - name: Set env to development
+        # if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
+          GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD }}
+          KEYCLOAK_V2_TEST_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_V2_TEST_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_TEST_PASSWORD }}
+          KEYCLOAK_V2_PROD_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_PROD_USERNAME }}
+          KEYCLOAK_V2_PROD_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_PROD_PASSWORD }}
+          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
+          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
+          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          REDIS_HOST=${{secrets.DEV_REDIS_HOST}}
+
+          EOF
+
+      - name: Set env to test
+        if: (github.ref == 'refs/heads/test' && github.event_name == 'push') || (github.base_ref == 'test' && github.event_name == 'pull_request')
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
+          GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.TEST_KEYCLOAK_V2_DEV_PASSWORD }}
+          KEYCLOAK_V2_TEST_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_V2_TEST_PASSWORD=${{ secrets.TEST_KEYCLOAK_V2_TEST_PASSWORD }}
+          KEYCLOAK_V2_PROD_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_PROD_USERNAME }}
+          KEYCLOAK_V2_PROD_PASSWORD=${{ secrets.TEST_KEYCLOAK_V2_PROD_PASSWORD }}
+          REALM_REGISTRY_API=${{ secrets.DEV_REALM_REGISTRY_API }}
+          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
+          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
+          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
+          REDIS_HOST=${{secrets.TEST_REDIS_HOST}}
+
+          EOF
+
+      - name: Set env to production
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.base_ref == 'main' && github.event_name == 'pull_request')
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
+          GRAFANA_API_TOKEN=${{ secrets.PROD_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.PROD_KEYCLOAK_V2_DEV_PASSWORD }}
+          KEYCLOAK_V2_TEST_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_V2_TEST_PASSWORD=${{ secrets.PROD_KEYCLOAK_V2_TEST_PASSWORD }}
+          KEYCLOAK_V2_PROD_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_PROD_USERNAME }}
+          KEYCLOAK_V2_PROD_PASSWORD=${{ secrets.PROD_KEYCLOAK_V2_PROD_PASSWORD }}
+          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
+          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
+          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_PROD}}
+          REDIS_HOST=${{secrets.PROD_REDIS_HOST}}
+
+          EOF
       - uses: actions/checkout@v4
       - name: Install CLI tools from OpenShift Mirror
         uses: redhat-actions/openshift-tools-installer@v1
@@ -114,22 +180,23 @@ jobs:
           helm upgrade --install --atomic sso-requests . -n ${namespace} \
           -f values.yaml -f "values-${namespace}.yaml" \
           --set image.tag="dev" \
-          --set envVars.apiAuthSecret="${{ secrets.API_AUTH_SECRET }}" \
-          --set envVars.keycloakV2DevUsername="${{ secrets.KEYCLOAK_V2_DEV_USERNAME }}" \
-          --set envVars.keycloakV2DevPassword="${{ secrets.KEYCLOAK_V2_DEV_PASSWORD }}" \
-          --set envVars.keycloakV2ProdUsername="${{ secrets.KEYCLOAK_V2_PROD_USERNAME }}" \
-          --set envVars.keycloakV2ProdPassword="${{ secrets.KEYCLOAK_V2_PROD_PASSWORD }}" \
-          --set envVars.keycloakV2TestUsername="${{ secrets.KEYCLOAK_V2_TEST_USERNAME }}" \
-          --set envVars.keycloakV2TestPassword="${{ secrets.KEYCLOAK_V2_TEST_PASSWORD }}" \
-          --set envVars.chesUsername="${{ secrets.CHES_USERNAME_PROD }}" \
-          --set envVars.chesPassword="${{ secrets.CHES_PASSWORD_PROD }}" \
-          --set envVars.grafanaApiToken="${{ secrets.GRAFANA_API_TOKEN }}" \
+          --set envVars.apiAuthSecret="${{ env.API_AUTH_SECRET }}" \
+          --set envVars.keycloakV2DevUsername="${{ env.KEYCLOAK_V2_DEV_USERNAME }}" \
+          --set envVars.keycloakV2DevPassword="${{ env.KEYCLOAK_V2_DEV_PASSWORD }}" \
+          --set envVars.keycloakV2ProdUsername="${{ env.KEYCLOAK_V2_PROD_USERNAME }}" \
+          --set envVars.keycloakV2ProdPassword="${{ env.KEYCLOAK_V2_PROD_PASSWORD }}" \
+          --set envVars.keycloakV2TestUsername="${{ env.KEYCLOAK_V2_TEST_USERNAME }}" \
+          --set envVars.keycloakV2TestPassword="${{ env.KEYCLOAK_V2_TEST_PASSWORD }}" \
+          --set envVars.chesUsername="${{ env.CHES_USERNAME }}" \
+          --set envVars.chesPassword="${{ env.CHES_PASSWORD }}" \
+          --set envVars.grafanaApiToken="${{ env.GRAFANA_API_TOKEN }}" \
           --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
           --set envVars.msGraphApiClientId="${{ secrets.MS_GRAPH_API_CLIENT_ID }}" \
           --set envVars.msGraphApiClientSecret="${{ secrets.MS_GRAPH_API_CLIENT_SECRET }}" \
-          --set envVars.bcscInitialAccessTokenDev="${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
-          --set envVars.bcscInitialAccessTokenProd="${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
-          --set envVars.bcscInitialAccessTokenTest="${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
-          --set envVars.redisHost="${{ secrets.DEV_REDIS_HOST }}" \
-          --set envVars.ghAccessToken="${{ secrets.GH_ACCESS_TOKEN }}"
+          --set envVars.bcscInitialAccessTokenDev="${{ env.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
+          --set envVars.bcscInitialAccessTokenProd="${{ env.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
+          --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
+          --set envVars.redisHost="${{ env.REDIS_HOST }}" \
+          --set envVars.ghAccessToken="${{ secrets.GH_ACCESS_TOKEN }}" \
+          --set envVars.verifyUserSecret="${{ env.VERIFY_USER_SECRET }}"
         working-directory: ./helm

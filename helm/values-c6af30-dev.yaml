@@ -37,6 +37,8 @@ env:
   GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
   CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email
   CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
+  BCSC_SIGNING_ALGORITHM: PS256
+  UPTIME_STATUS_DOMAIN_NAME: status.sandbox.loginproxy.gov.bc.ca
 
 envVars: {}
 

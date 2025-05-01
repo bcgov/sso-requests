@@ -130,6 +130,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: gh-access-token
+            - name: VERIFY_USER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: verify-user-secret
             {{- range $key, $val := .Values.env }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}
