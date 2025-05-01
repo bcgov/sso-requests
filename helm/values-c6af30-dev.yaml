@@ -6,9 +6,6 @@ resources:
   limits:
     cpu: 500m
     memory: 1024Mi
-  requests:
-    cpu: 250m
-    memory: 512Mi
 
 env:
   APP_ENV: development
@@ -46,9 +43,10 @@ route:
 
 patroni:
   image:
-    repository: registry.opensource.zalan.do/acid/spilo-14
+    repository:  ghcr.io/zalando/spilo-15
     pullPolicy: Always
-    tag: 2.1-p5
+    tag: 3.2-p1
+  postgresMajorVersion: 15
 
   walG:
     enabled: false
@@ -57,4 +55,7 @@ patroni:
   replicaCount: 1
 
   podDisruptionBudget:
+    enabled: false
+
+  transportServerClaim:
     enabled: false
