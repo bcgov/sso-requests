@@ -16,7 +16,6 @@ RUN make db_install
 
 RUN make db_compile
 
-# Set execute permission for entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+RUN make app_build
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_start"]

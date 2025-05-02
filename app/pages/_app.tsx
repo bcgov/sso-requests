@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import getConfig from 'next/config';
-import type { AppProps } from 'next/app';
+import type { AppContext, AppProps } from 'next/app';
 import { fetchIssuerConfiguration } from 'utils/provider';
 import { getAuthorizationUrl, getAccessToken, getEndSessionUrl, parseCallbackParams } from 'utils/openid';
 import { verifyToken } from 'utils/jwt';
@@ -19,6 +19,7 @@ import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import '@bcgov/bc-sans/css/BCSans.css';
 import { parseJWTPayload } from '@app/utils/helpers';
 import SurveyBox from '@app/components/SurveyBox';
+import App from 'next/app';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path, kc_idp_hint, maintenance_mode } = publicRuntimeConfig;
@@ -278,4 +279,16 @@ function MyApp({ Component, pageProps }: AppProps) {
     </SessionContext.Provider>
   );
 }
+
+MyApp.getInitialProps = async (appContext: AppContext) => {
+  const appProps = await App.getInitialProps(appContext);
+  const { publicRuntimeConfig = {} } = getConfig() || {};
+  return {
+    ...appProps,
+    pageProps: {
+      ...appProps.pageProps,
+    },
+  };
+};
+
 export default MyApp;

@@ -1,12 +1,10 @@
 import { AxiosResponse } from 'axios';
 import { JsonWebKey } from 'crypto';
-import { IncomingHttpHeaders } from 'http';
 import createHttpError from 'http-errors';
-import * as path from 'path';
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { sso_configuration_endpoint, sso_client_id } = publicRuntimeConfig;
+const { serverRuntimeConfig = {} } = getConfig() || {};
+const { sso_configuration_endpoint, sso_client_id } = serverRuntimeConfig;
 
 import axios from 'axios';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -100,6 +98,7 @@ export const authenticate = async (
     session.user = user;
     return { session, user };
   } catch (error) {
+    console.error(error);
     res.status(401).json({ success: false, message: 'not authorized' });
     return null;
   }
