@@ -8,9 +8,6 @@ WORKDIR /app
 
 COPY . .
 
-# Create and set permissions for .next directory
-RUN mkdir -p /app/.next && chmod -R 777 /app/.next
-
 RUN make app_install
 
 RUN make disable_telemetry
@@ -19,4 +16,7 @@ RUN make db_install
 
 RUN make db_compile
 
-ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_build && make app_start"]
+# Set execute permission for entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
