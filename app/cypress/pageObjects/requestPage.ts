@@ -92,7 +92,6 @@ class RequestPage {
     githubBCGovLabel: 'GitHub BC Gov',
     digitalCredentialLabel: 'Digital Credential',
     bcscLabel: 'BC Services Card',
-    social: 'Social',
   };
 
   // In info modal, click close button
