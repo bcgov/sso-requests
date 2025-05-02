@@ -1,8 +1,9 @@
 class Navigation {
+  basePath: string = Cypress.env('APP_BASE_PATH') ?? '';
   goToMyDashboard() {
     cy.url().then((url) => {
       cy.log(url);
-      if (!url.includes('/my-dashboard')) cy.get('header a[href="/my-dashboard"]').click();
+      if (!url.includes('/my-dashboard')) cy.get(`header a[href="${this.basePath}/my-dashboard"]`).click();
     });
   }
 
@@ -11,7 +12,7 @@ class Navigation {
       if (url.includes('/my-dashboard/teams')) return;
       if (url.includes('/my-dashboard') && !url.includes('/teams')) cy.contains('My Teams').click();
       else {
-        cy.get('header a[href="/my-dashboard"]').click();
+        cy.get(`header a[href="${this.basePath}/my-dashboard"]`).click();
         cy.contains('My Teams').click();
       }
     });
@@ -19,7 +20,7 @@ class Navigation {
 
   goToAdminDashboard() {
     cy.url().then((url) => {
-      if (!url.endsWith('/admin-dashboard')) cy.get('header a[href="/admin-dashboard"]').click();
+      if (!url.endsWith('/admin-dashboard')) cy.get(`header a[href="${this.basePath}/admin-dashboard"]`).click();
     });
   }
 }
