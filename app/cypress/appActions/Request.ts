@@ -506,7 +506,6 @@ class Request {
   deleteRequest(id: string) {
     cy.log('Delete Request: ' + id);
     this.navigation.goToMyDashboard();
-
     // identify first column
     cy.get(this.reqPage.integrationsTable, { timeout: 10000 }).each(($elm, index) => {
       // text captured from column1
@@ -514,15 +513,10 @@ class Request {
       const projectName = $elm.next().text();
       // matching criteria
       if (t.includes(id)) {
-        cy.get(this.reqPage.integrationsTable).eq(index).scrollIntoView();
-        cy.get(this.reqPage.integrationsTableStatus)
-          .eq(index)
-          .then(() => {
-            cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
-            this.reqPage.confirmDeleteIntegration(id, projectName);
-            cy.get('[data-testid="grid-loading"]').should('exist');
-            cy.get('[data-testid="grid-loading"]').should('not.exist');
-          });
+        cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
+        this.reqPage.confirmDeleteIntegration(id, projectName);
+        cy.get('[data-testid="grid-loading"]').should('exist');
+        cy.get('[data-testid="grid-loading"]').should('not.exist');
       }
     });
   }
