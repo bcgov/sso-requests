@@ -1,5 +1,5 @@
 class Navigation {
-  basePath: string = Cypress.env('APP_BASE_PATH') ?? '';
+  basePath: string = Cypress.env('localtest') ? '' : '/sso-requests-sandbox';
   goToMyDashboard() {
     cy.url().then((url) => {
       cy.log(url);
