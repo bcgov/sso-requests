@@ -8,6 +8,9 @@ WORKDIR /app
 
 COPY . .
 
+# Create and set permissions for .next directory
+RUN mkdir -p /app/.next && chmod -R 777 /app/.next
+
 RUN make app_install
 
 RUN make disable_telemetry
