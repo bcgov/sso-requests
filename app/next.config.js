@@ -3,8 +3,7 @@ const BASE_PATH = process.env.APP_BASE_PATH || '';
 
 module.exports = {
   reactStrictMode: true,
-  publicRuntimeConfig: {},
-  serverRuntimeConfig: {
+  publicRuntimeConfig: {
     app_url: process.env.APP_URL || 'http://localhost:3000',
     app_env: process.env.APP_ENV || 'development',
     base_path: process.env.BASE_PATH,
@@ -23,6 +22,8 @@ module.exports = {
     include_bc_services_card: process.env.INCLUDE_BC_SERVICES_CARD || false,
     include_social: process.env.INCLUDE_SOCIAL || false,
     allow_bc_services_card_prod: process.env.ALLOW_BC_SERVICES_CARD_PROD || false,
+  },
+  serverRuntimeConfig: {
     node_env: process.env.NODE_ENV || 'development',
     api_auth_secret: process.env.API_AUTH_SECRET || '',
     db_username: process.env.DB_USERNAME || '',

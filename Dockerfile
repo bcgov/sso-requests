@@ -16,6 +16,4 @@ RUN make db_install
 
 RUN make db_compile
 
-RUN make app_build
-
-ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_start"]
+ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_build && make app_start"]
