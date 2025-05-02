@@ -1,7 +1,8 @@
 class Navigation {
   basePath: string = Cypress.env('localtest') ? '' : '/sso-requests-sandbox';
   waitForPageLoad() {
-    // Wait for loader to disappear to ensure full page load
+    // Wait for loader to appear and clear to ensure full page load
+    cy.get('[data-testid="grid-loading"]').should('exist');
     cy.get('[data-testid="grid-loading"]').should('not.exist');
   }
 
@@ -33,7 +34,6 @@ class Navigation {
     cy.url().then((url) => {
       if (!url.endsWith('/admin-dashboard')) {
         cy.get(`header a[href="${this.basePath}/admin-dashboard"]`).click();
-        this.waitForPageLoad();
       }
     });
   }
