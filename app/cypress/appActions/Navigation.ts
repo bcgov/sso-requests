@@ -32,9 +32,7 @@ class Navigation {
 
   goToAdminDashboard() {
     cy.url().then((url) => {
-      if (!url.endsWith('/admin-dashboard')) {
-        cy.get(`header a[href="${this.basePath}/admin-dashboard"]`).click();
-      }
+      if (!url.endsWith('/admin-dashboard')) cy.get(`header a[href="${this.basePath}/admin-dashboard"]`).click();
     });
   }
 }

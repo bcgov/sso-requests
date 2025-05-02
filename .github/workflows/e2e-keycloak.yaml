@@ -48,12 +48,12 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-videos
-          path: app/cypress/videos/**/*
-          if-no-files-found: ignore
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
 
   idp-stopper:
     runs-on: ubuntu-latest
@@ -83,12 +83,12 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-videos
-          path: app/cypress/videos/**/*
-          if-no-files-found: ignore
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
 
   search-users:
     runs-on: ubuntu-latest
@@ -118,12 +118,12 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-videos
-          path: app/cypress/videos/**/*
-          if-no-files-found: ignore
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
 
   roles-tests:
     runs-on: ubuntu-latest
@@ -153,12 +153,12 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-videos
-          path: app/cypress/videos/**/*
-          if-no-files-found: ignore
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -188,9 +188,9 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-videos
-          path: app/cypress/videos/**/*
-          if-no-files-found: ignore
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: cypress-videos
+      #     path: app/cypress/videos/**/*
+      #     if-no-files-found: ignore
