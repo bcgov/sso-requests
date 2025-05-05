@@ -50,9 +50,9 @@ const RoleManagement = ({ integration }: Props) => {
       </button>
       <TopMargin />
       <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-        <br />
         {environments.map((env) => (
           <Tab key={env} tab={startCase(env)}>
+            <br />
             <RoleEnvironment key={updateKey} environment={env} integration={integration}></RoleEnvironment>
           </Tab>
         ))}

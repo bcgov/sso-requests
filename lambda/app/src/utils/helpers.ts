@@ -139,6 +139,7 @@ export const getAllowedIdpsForApprover = (session: Session) => {
     if (role === 'bceid-approver') idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
     if (role === 'bc-services-card-approver') idps.push('bcservicescard');
     if (role === 'github-approver') idps.push('githubbcgov', 'githubpublic');
+    if (role === 'social-approver') idps.push('social');
   });
   return idps;
 };

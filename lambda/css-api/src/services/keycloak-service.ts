@@ -16,6 +16,13 @@ interface KeycloakTokenResponse {
   scope: string;
 }
 
+interface UserQuery {
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
+
 export class KeycloakService {
   private realm: string = 'standard';
   private httpClient: AxiosInstance;
@@ -403,6 +410,64 @@ export class KeycloakService {
         data: [clientRoles.find((role) => role.name === roleName)],
       },
     );
+  }
+
+  async getUserCount(userQuery: UserQuery) {
+    const accessToken = await this.getAccessToken();
+    const queryParams = new URLSearchParams();
+
+    if (userQuery.username) queryParams.append('username', userQuery.username);
+    if (userQuery.firstName) queryParams.append('firstName', userQuery.firstName);
+    if (userQuery.lastName) queryParams.append('lastName', userQuery.lastName);
+    if (userQuery.email) queryParams.append('email', userQuery.email);
+
+    return await this.httpClient.get(`/auth/admin/realms/${this.realm}/users/count?${queryParams.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  }
+
+  async getUsers(userQuery: UserQuery) {
+    const data = [];
+    const accessToken = await this.getAccessToken();
+    const queryParams = new URLSearchParams();
+
+    if (userQuery.username) queryParams.append('username', userQuery.username);
+    if (userQuery.firstName) queryParams.append('firstName', userQuery.firstName);
+    if (userQuery.lastName) queryParams.append('lastName', userQuery.lastName);
+    if (userQuery.email) queryParams.append('email', userQuery.email);
+
+    const userCount = await this.getUserCount(userQuery);
+
+    // fetch users in batches of 50
+    for (let i = 0; i < Math.ceil(userCount.data / 50); i++) {
+      queryParams.append('first', (i * 50).toString());
+      queryParams.append('max', '50');
+      const response = await this.httpClient.get(`/auth/admin/realms/${this.realm}/users?${queryParams.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (response.data.length === 0) break;
+      data.push(...response.data);
+    }
+    return data;
+  }
+
+  async getUserRealmRoles(username: string) {
+    const accessToken = await this.getAccessToken();
+    const user = await this.getUser(username);
+    const response = await this.httpClient.get(
+      `/auth/admin/realms/${this.realm}/users/${user?.id}/role-mappings/realm`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    return response.data;
   }
 }
 

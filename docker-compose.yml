@@ -25,7 +25,7 @@ services:
     environment:
       APP_ENV: develop
       API_URL: http://localhost:8080/app
-      SSO_URL: https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+      SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
       SSO_CLIENT_ID: css-app-in-gold-4128
       SSO_REDIRECT_URI: http://localhost:3000
       SSO_AUTHORIZATION_RESPONSE_TYPE: code
@@ -39,6 +39,7 @@ services:
       INCLUDE_DIGITAL_CREDENTIAL: 'true'
       INCLUDE_BC_SERVICES_CARD: 'true'
       ALLOW_BC_SERVICES_CARD_PROD: 'true'
+      INCLUDE_SOCIAL: 'true'
     depends_on:
       - sso-requests
     networks:
@@ -90,6 +91,7 @@ services:
       GOLD_IP_ADDRESS: '142.34.229.4'
       CYPRESS_RUNNER: 'true'
       INCLUDE_DIGITAL_CREDENTIAL: 'true'
+      INCLUDE_SOCIAL: 'true'
       BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca

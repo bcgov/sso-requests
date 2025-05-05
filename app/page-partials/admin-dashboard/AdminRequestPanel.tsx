@@ -22,10 +22,8 @@ export default function AdminRequestPanel({ currentUser, request, onUpdate }: Pr
   return (
     <EventContent>
       <br />
-      <RequestPreview request={request}>
-        <br />
-        {currentUser.isAdmin && <MetadataEditModal request={request} onUpdate={onUpdate} />}
-      </RequestPreview>
+      <RequestPreview request={request} />
+      {currentUser.isAdmin && <MetadataEditModal request={request} onUpdate={onUpdate} />}
     </EventContent>
   );
 }

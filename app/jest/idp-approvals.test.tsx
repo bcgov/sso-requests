@@ -5,117 +5,146 @@ import * as requestModule from 'services/request';
 import * as eventModule from 'services/event';
 import { Integration } from '@app/interfaces/Request';
 import { updateRequest } from 'services/request';
-
 const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
 const MOCK_PRIVACY_ZONE_NAME = 'uniqueZoneName';
 
-const sampleEvents = () => {
-  return [
-    {
-      id: 1,
-      requestId: 1,
-      eventCode: 'request-update-success',
-      idirUserid: null,
-      details: {
-        changes: [
-          {
-            lhs: false,
-            rhs: true,
-            path: ['bceidApproved'],
-            kind: 'E',
-          },
-        ],
-      },
-      idirUserDisplayName: 'BCeID Approver',
-      createdAt: '2024-09-24T21:18:21.546Z',
-      updatedAt: '2024-09-24T21:18:21.546Z',
+const sampleEvents = {
+  bceidApproved: {
+    id: 1,
+    requestId: 1,
+    eventCode: 'request-update-success',
+    idirUserid: null,
+    details: {
+      changes: [
+        {
+          lhs: false,
+          rhs: true,
+          path: ['bceidApproved'],
+          kind: 'E',
+        },
+      ],
     },
-    {
-      id: 2,
-      requestId: 2,
-      eventCode: 'request-update-success',
-      idirUserid: null,
-      details: {
-        changes: [
-          {
-            lhs: false,
-            rhs: true,
-            path: ['githubApproved'],
-            kind: 'E',
-          },
-        ],
-      },
-      idirUserDisplayName: 'GitHub Approver',
-      createdAt: '2024-09-24T21:18:21.546Z',
-      updatedAt: '2024-09-24T21:18:21.546Z',
+    idirUserDisplayName: 'BCeID Approver',
+    createdAt: '2024-09-24T21:18:21.546Z',
+    updatedAt: '2024-09-24T21:18:21.546Z',
+  },
+  githubApproved: {
+    id: 2,
+    requestId: 2,
+    eventCode: 'request-update-success',
+    idirUserid: null,
+    details: {
+      changes: [
+        {
+          lhs: false,
+          rhs: true,
+          path: ['githubApproved'],
+          kind: 'E',
+        },
+      ],
     },
-    {
-      id: 3,
-      requestId: 3,
-      eventCode: 'request-update-success',
-      idirUserid: null,
-      details: {
-        changes: [
-          {
-            lhs: false,
-            rhs: true,
-            path: ['bcServicesCardApproved'],
-            kind: 'E',
-          },
-        ],
-      },
-      idirUserDisplayName: 'BC Services Card Approver',
-      createdAt: '2024-09-24T21:18:21.546Z',
-      updatedAt: '2024-09-24T21:18:21.546Z',
+    idirUserDisplayName: 'GitHub Approver',
+    createdAt: '2024-09-24T21:18:21.546Z',
+    updatedAt: '2024-09-24T21:18:21.546Z',
+  },
+  bcscApproved: {
+    id: 3,
+    requestId: 3,
+    eventCode: 'request-update-success',
+    idirUserid: null,
+    details: {
+      changes: [
+        {
+          lhs: false,
+          rhs: true,
+          path: ['bcServicesCardApproved'],
+          kind: 'E',
+        },
+      ],
     },
-  ];
+    idirUserDisplayName: 'BC Services Card Approver',
+    createdAt: '2024-09-24T21:18:21.546Z',
+    updatedAt: '2024-09-24T21:18:21.546Z',
+  },
+  socialApproved: {
+    id: 3,
+    requestId: 3,
+    eventCode: 'request-update-success',
+    idirUserid: null,
+    details: {
+      changes: [
+        {
+          lhs: false,
+          rhs: true,
+          path: ['socialApproved'],
+          kind: 'E',
+        },
+      ],
+    },
+    idirUserDisplayName: 'Social Approver',
+    createdAt: '2024-09-24T21:18:21.546Z',
+    updatedAt: '2024-09-24T21:18:21.546Z',
+  },
 };
+const sampleEventsArray = Object.values(sampleEvents);
 
-const sampleRequests = (): Integration[] => {
-  return [
-    {
-      ...sampleRequest,
-      id: 1,
-      projectName: `BCeID Approver`,
-      status: 'applied',
-      serviceType: 'gold',
-      environments: ['dev', 'test', 'prod'],
-      devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      authType: 'both',
-      bceidApproved: false,
-    },
-    {
-      ...sampleRequest,
-      id: 2,
-      projectName: `GitHub Approver`,
-      status: 'applied',
-      serviceType: 'gold',
-      environments: ['dev', 'test', 'prod'],
-      devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      authType: 'both',
-      githubApproved: false,
-    },
-    {
-      ...sampleRequest,
-      id: 3,
-      projectName: `BC Services Card Approver`,
-      status: 'applied',
-      serviceType: 'gold',
-      environments: ['dev', 'test', 'prod'],
-      devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
-      authType: 'both',
-      bcServicesCardApproved: false,
-      bcscPrivacyZone: 'uniqueZoneUri',
-      bcscAttributes: ['age'],
-    },
-  ];
+const sampleRequests: { [key: string]: Integration } = {
+  bceid: {
+    ...sampleRequest,
+    id: 1,
+    projectName: `BCeID Approver`,
+    status: 'applied',
+    serviceType: 'gold',
+    environments: ['dev', 'test', 'prod'],
+    devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    authType: 'both',
+    bceidApproved: false,
+  },
+  github: {
+    ...sampleRequest,
+    id: 2,
+    projectName: `GitHub Approver`,
+    status: 'applied',
+    serviceType: 'gold',
+    environments: ['dev', 'test', 'prod'],
+    devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    authType: 'both',
+    githubApproved: false,
+  },
+  social: {
+    ...sampleRequest,
+    id: 2,
+    projectName: `Social Approver`,
+    status: 'applied',
+    serviceType: 'gold',
+    environments: ['dev', 'test', 'prod'],
+    devIdps: ['bceidbasic', 'social', 'bcservicescard'],
+    testIdps: ['bceidbasic', 'social', 'bcservicescard'],
+    prodIdps: ['bceidbasic', 'social', 'bcservicescard'],
+    authType: 'both',
+    socialApproved: false,
+  },
+  bcsc: {
+    ...sampleRequest,
+    id: 3,
+    projectName: `BC Services Card Approver`,
+    status: 'applied',
+    serviceType: 'gold',
+    environments: ['dev', 'test', 'prod'],
+    devIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    testIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    prodIdps: ['bceidbasic', 'githubbcgov', 'bcservicescard'],
+    authType: 'both',
+    bcServicesCardApproved: false,
+    bcscPrivacyZone: 'uniqueZoneUri',
+    bcscAttributes: ['age'],
+  },
 };
+const sampleRequestsArray = Object.values(sampleRequests);
 
 const sampleSession = {
   email: '',
@@ -168,11 +197,11 @@ describe('IDP Approvals', () => {
   it('BCeID Approver', async () => {
     jest
       .spyOn(requestModule, 'getRequestAll')
-      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests()[0]] }, null]));
+      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests.bceid] }, null]));
     jest.spyOn(requestModule, 'updateRequest').mockImplementation(() => Promise.resolve([{}, null]));
     jest
       .spyOn(eventModule, 'getEvents')
-      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
+      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEventsArray as any }, null]));
     render(
       <AdminDashboard
         session={{ ...sampleSession, client_roles: ['bceid-approver'] }}
@@ -201,7 +230,7 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(requestModule, 'getRequestAll')
       .mockImplementationOnce(() =>
-        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests()[0], bceidApproved: true }] }, null]),
+        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests.bceid, bceidApproved: true }] }, null]),
       );
 
     //test on confirm button
@@ -211,8 +240,8 @@ describe('IDP Approvals', () => {
       expect(screen.queryByText('Bceid Approve')).not.toBeInTheDocument();
     });
 
-    const approvedString = `Approved by ${sampleEvents()[0].idirUserDisplayName} on ${new Date(
-      sampleEvents()[0].createdAt,
+    const approvedString = `Approved by ${sampleEvents.bceidApproved.idirUserDisplayName} on ${new Date(
+      sampleEvents.bceidApproved.createdAt,
     ).toLocaleString()}`;
 
     expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
@@ -221,11 +250,11 @@ describe('IDP Approvals', () => {
   it('GitHub Approver', async () => {
     jest
       .spyOn(requestModule, 'getRequestAll')
-      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests()[1]] }, null]));
+      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests.github] }, null]));
     jest.spyOn(requestModule, 'updateRequest').mockImplementation(() => Promise.resolve([{}, null]));
     jest
       .spyOn(eventModule, 'getEvents')
-      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
+      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEventsArray as any }, null]));
     render(
       <AdminDashboard
         session={{ ...sampleSession, client_roles: ['github-approver'] }}
@@ -254,7 +283,7 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(requestModule, 'getRequestAll')
       .mockImplementationOnce(() =>
-        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests()[1], githubApproved: true }] }, null]),
+        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests.github, githubApproved: true }] }, null]),
       );
 
     //test on confirm button
@@ -263,21 +292,73 @@ describe('IDP Approvals', () => {
     await waitFor(() => {
       expect(screen.queryByText('Github Approve')).not.toBeInTheDocument();
     });
-    const approvedString = `Approved by ${sampleEvents()[1].idirUserDisplayName} on ${new Date(
-      sampleEvents()[1].createdAt,
+    const approvedString = `Approved by ${sampleEvents.githubApproved.idirUserDisplayName} on ${new Date(
+      sampleEvents.githubApproved.createdAt,
     ).toLocaleString()}`;
 
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
+  });
+
+  it('Restricts Social Approver to social integrations and allows approval', async () => {
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests.social] }, null]));
+    jest.spyOn(requestModule, 'updateRequest').mockImplementation(() => Promise.resolve([{}, null]));
+    jest
+      .spyOn(eventModule, 'getEvents')
+      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEventsArray as any }, null]));
+    const { debug } = render(
+      <AdminDashboard
+        session={{ ...sampleSession, client_roles: ['social-approver'] }}
+        onLoginClick={jest.fn}
+        onLogoutClick={jest.fn}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Social Approver')).toBeInTheDocument();
+    });
+
+    actionButtonsValidations();
+
+    fireEvent.click(screen.getByText('Social Approver'));
+
+    // should not see other IDPs
+    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('Github Prod')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Social Prod'));
+    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+    fireEvent.click(approveProdButton);
+    expect(screen.getByText('Social Approve'));
+
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() =>
+        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests.social, socialApproved: true }] }, null]),
+      );
+
+    //test on confirm button
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateRequest).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByText('Social Approve')).not.toBeInTheDocument();
+    });
+    const approvedString = `Approved by ${sampleEvents.socialApproved.idirUserDisplayName} on ${new Date(
+      sampleEvents.socialApproved.createdAt,
+    ).toLocaleString()}`;
     expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
   });
 
   it('BC Services Card Approver', async () => {
     jest
       .spyOn(requestModule, 'getRequestAll')
-      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests()[2]] }, null]));
+      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests.bcsc] }, null]));
     jest.spyOn(requestModule, 'updateRequest').mockImplementation(() => Promise.resolve([{}, null]));
     jest
       .spyOn(eventModule, 'getEvents')
-      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEvents() as any }, null]));
+      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEventsArray as any }, null]));
     render(
       <AdminDashboard
         session={{ ...sampleSession, client_roles: ['bc-services-card-approver'] }}
@@ -306,7 +387,7 @@ describe('IDP Approvals', () => {
     jest
       .spyOn(requestModule, 'getRequestAll')
       .mockImplementationOnce(() =>
-        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests()[2], bcServicesCardApproved: true }] }, null]),
+        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests.bcsc, bcServicesCardApproved: true }] }, null]),
       );
 
     //test on confirm button
@@ -315,8 +396,8 @@ describe('IDP Approvals', () => {
     await waitFor(() => {
       expect(screen.queryByText('BC Services Card Approve')).not.toBeInTheDocument();
     });
-    const approvedString = `Approved by ${sampleEvents()[2].idirUserDisplayName} on ${new Date(
-      sampleEvents()[2].createdAt,
+    const approvedString = `Approved by ${sampleEvents.bcscApproved.idirUserDisplayName} on ${new Date(
+      sampleEvents.bcscApproved.createdAt,
     ).toLocaleString()}`;
 
     expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);

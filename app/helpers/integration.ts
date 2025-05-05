@@ -3,6 +3,7 @@ import { Integration } from '@app/interfaces/Request';
 export const checkBceidBoth = (idp: string) => idp === 'bceidboth';
 export const checkDigitalCredential = (idp: string) => idp === 'digitalcredential';
 export const checkBcServicesCard = (idp: string) => idp === 'bcservicescard';
+export const checkSocial = (idp: string) => idp === 'social';
 export const checkIdirGroup = (idp: string) => ['idir', 'azureidir'].includes(idp);
 export const checkBceidGroup = (idp: string) => idp.startsWith('bceid');
 export const checkNotBceidGroup = (idp: string) => !checkBceidGroup(idp);
@@ -14,6 +15,7 @@ export const checkGithubGroup = (idp: string) => ['githubpublic', 'githubbcgov']
 export const checkNotGithubGroup = (idp: string) => !checkGithubGroup(idp);
 export const checkNotDigitalCredential = (idp: string) => !checkDigitalCredential(idp);
 export const checkNotBcServicesCard = (idp: string) => !checkBcServicesCard(idp);
+export const checkNotSocial = (idp: string) => !checkSocial(idp);
 
 export const usesBceid = (integration: Integration) => {
   if (!integration) return false;
@@ -45,6 +47,12 @@ export const usesBcServicesCard = (integration: Integration) => {
   const { devIdps = [] } = integration;
 
   return devIdps.some(checkBcServicesCard);
+};
+
+export const usesSocial = (integration: Integration) => {
+  if (!integration) return false;
+  const { devIdps = [] } = integration;
+  return devIdps.some(checkSocial);
 };
 
 export const usesBceidProd = (integration: Integration) => {

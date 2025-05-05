@@ -7,6 +7,7 @@ const allIdpOptions = [
     label: 'BCeID',
   },
   { value: 'github', label: 'GitHub' },
+  { value: 'social', label: 'Social' },
 ];
 
 const allEnvironmentOptions = [
@@ -26,13 +27,17 @@ describe('Format filters', () => {
       'bceidboth',
       'githubbcgov',
       'githubpublic',
+      'social',
     ]);
     expect(environments).toEqual(['dev', 'test', 'prod']);
 
-    const [filteredDevIdps, _, filteredEnvironments] = formatFilters([allIdpOptions[0]], [allEnvironmentOptions[0]]);
+    let [filteredDevIdps, _, filteredEnvironments] = formatFilters([allIdpOptions[0]], [allEnvironmentOptions[0]]);
 
     expect(filteredDevIdps).toEqual(['idir', 'azureidir']);
     expect(filteredEnvironments).toEqual(['dev']);
+
+    [filteredDevIdps] = formatFilters([allIdpOptions[3]], [allEnvironmentOptions[0]]);
+    expect(filteredDevIdps).toEqual(['social']);
   });
 
   it('Should convert empty array to null', () => {

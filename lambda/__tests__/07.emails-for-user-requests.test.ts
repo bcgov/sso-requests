@@ -10,7 +10,7 @@ import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './he
 import { Integration } from 'app/interfaces/Request';
 import { renderTemplate } from '@lambda-shared/templates';
 import { EMAILS } from '@lambda-shared/enums';
-import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
+import { IDIM_EMAIL_ADDRESS, SOCIAL_APPROVAL_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@lambda-shared/local';
 import { buildIntegration } from './helpers/modules/common';
 
 jest.mock('@lambda-app/controllers/bc-services-card', () => {
@@ -551,6 +551,37 @@ describe('integration email updates for individual users', () => {
       expect(emailList.length).toEqual(3);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
+    });
+
+    it('should render the expected template after submission of a social integration', async () => {
+      process.env.INCLUDE_SOCIAL = 'true';
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      emailList = createMockSendEmail();
+      const projectName: string = 'Social Submit';
+      const integrationRes = await buildIntegration({ projectName, submitted: true, social: true });
+      expect(integrationRes.status).toEqual(200);
+      integration = integrationRes.body;
+
+      expect(emailList.length).toEqual(2);
+      // Expect submission email first with attached spreadsheet
+      expect(emailList[0].attachments.length).toBe(1);
+      expect(emailList[0].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
+
+      // Other email does not re-send attachment
+      expect(emailList[1].attachments).toBeFalsy();
+      expect(emailList[1].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
+
+      // Updates should also attach form on the first email only
+      emailList = createMockSendEmail();
+      await updateIntegration(integrationRes.body, true);
+      expect(emailList.length).toEqual(2);
+      // Expect update submitted email first with attached spreadsheet
+      expect(emailList[0].attachments.length).toBe(1);
+      expect(emailList[0].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
+
+      // Update finalized email does not re-send attachment
+      expect(emailList[1].attachments).toBeFalsy();
+      expect(emailList[1].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
     });
   } catch (err) {
     console.error('EXCEPTION: ', err);

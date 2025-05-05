@@ -31,12 +31,13 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests-sandbox
           APP_BASE_PATH=/sso-requests-sandbox
           API_URL=https://gcp9dahm4c.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth/realms/standard
+          SSO_URL=https://dev.loginproxy.gov.bc.ca/auth
           DEPLOY_REPO_NAME=bcgov/sso-requests-sandbox
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
           INCLUDE_DIGITAL_CREDENTIAL=true
           INCLUDE_BC_SERVICES_CARD=true
+          INCLUDE_SOCIAL=false
           ALLOW_BC_SERVICES_CARD_PROD=true
 
           EOF
@@ -48,11 +49,12 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests
           APP_BASE_PATH=/sso-requests
           API_URL=https://kgodz1zmk2.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://loginproxy.gov.bc.ca/auth/realms/standard
+          SSO_URL=https://loginproxy.gov.bc.ca/auth
           DEPLOY_REPO_NAME=bcgov/sso-requests
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
           INCLUDE_DIGITAL_CREDENTIAL=true
+          INCLUDE_SOCIAL=false
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=true
           EOF
@@ -65,11 +67,12 @@ jobs:
           APP_URL=https://bcgov.github.io/sso-requests-preview
           APP_BASE_PATH=/sso-requests-preview
           API_URL=https://kcbkts0s8a.execute-api.ca-central-1.amazonaws.com/test/app/
-          SSO_URL=https://test.loginproxy.gov.bc.ca/auth/realms/standard
+          SSO_URL=https://test.loginproxy.gov.bc.ca/auth
           DEPLOY_REPO_NAME=bcgov/sso-requests-preview
           ENABLE_GOLD=true
           MAINTENANCE_MODE_ACTIVE=false
           INCLUDE_DIGITAL_CREDENTIAL=true
+          INCLUDE_SOCIAL=false
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=false
           EOF

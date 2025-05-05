@@ -5,6 +5,8 @@ export const IDIM_EMAIL_ADDRESS =
 
 export const OCIO_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 
+export const SOCIAL_APPROVAL_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
+
 export const DIT_EMAIL_ADDRESS = 'ditrust@gov.bc.ca';
 
 export const DIT_ADDITIONAL_EMAIL_ADDRESS =

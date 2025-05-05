@@ -11,14 +11,13 @@ function BcServicesCardTabContent({ integration, onApproved }: Readonly<Props>) 
   const { status, bcServicesCardApproved } = integration;
 
   const canApproveProd = !bcServicesCardApproved || false;
-  const awaitingTFComplete = status !== 'applied';
 
   return (
     <TabContent
       type="BCServicesCard"
       integration={integration}
       canApproveProd={canApproveProd}
-      awaitingTFComplete={awaitingTFComplete}
+      notApplied={status !== 'applied'}
       onApproved={onApproved}
     />
   );

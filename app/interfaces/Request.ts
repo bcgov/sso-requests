@@ -91,6 +91,8 @@ export interface Integration {
   bcscPrivacyZone?: string;
   bcscAttributes?: string[];
   isAdmin?: boolean;
+  confirmSocial?: boolean;
+  socialApproved?: boolean;
 }
 
 export interface Option {
@@ -108,6 +110,7 @@ export interface GoldIDPOption {
   github: string | string[];
   digitalCredential: string | string[];
   bcservicescard: string | string[];
+  social: string | string[];
 }
 
 export interface ClientRole {

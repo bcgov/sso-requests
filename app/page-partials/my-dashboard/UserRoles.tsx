@@ -67,7 +67,8 @@ type IDPS =
   | 'bceidboth'
   | 'githubpublic'
   | 'githubbcgov'
-  | 'digitalcredential';
+  | 'digitalcredential'
+  | 'social';
 
 const PAGE_LIMIT = 15;
 
@@ -315,7 +316,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   useEffect(() => {
     reset();
     getRoles();
-    if (selectedRequest.devIdps) setSelectedIdp(selectedRequest.devIdps.length > 0 ? selectedRequest.devIdps[0] : '');
   }, [selectedEnvironment]);
 
   useEffect(() => {
@@ -593,7 +593,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                     onChange: setSelectedIdp,
                     options: idps
                       // Don't allow role assignment to DC or BCSC users
-                      .filter((idp) => !['digitalcredential', 'bcservicescard'].includes(idp))
+                      .filter((idp) => !['digitalcredential', 'bcservicescard', 'social'].includes(idp))
                       .map((idp) => ({ value: idp, label: idpMap[idp] })),
                   },
                   {

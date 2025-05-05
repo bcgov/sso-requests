@@ -13,7 +13,7 @@ import DeleteModal from './DeleteModal';
 export const ActionButtonContainer = styled.div`
   height: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: end;
   align-items: center;
   padding-right: 15px;
   & > * {
@@ -28,7 +28,7 @@ interface StyledActionButtonProps {
 }
 
 export const ActionButton = styled(({ disabled, activeColor, isUnread, ...props }) => (
-  <FontAwesomeIcon {...props} />
+  <FontAwesomeIcon {...props} aria-disabled={disabled} />
 ))<StyledActionButtonProps>`
   cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
   ${(props) =>
