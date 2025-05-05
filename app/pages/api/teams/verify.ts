@@ -6,7 +6,8 @@ import { handleError } from '@app/utils/helpers';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
-      const token = req.query.token;
+      const { token } = req.query;
+
       if (!token) return res.redirect(`/verify-user?message=notoken`);
       else {
         const { error, message, userId, teamId } = parseInvitationToken(token);

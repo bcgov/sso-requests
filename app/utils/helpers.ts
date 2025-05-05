@@ -24,8 +24,7 @@ import { validateForm } from './validate';
 import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
 import getConfig from 'next/config';
 import { NextApiResponse } from 'next';
-//import { sendTemplate } from '@app/shared/templates';
-//import { EMAILS } from '@app/shared/enums';
+import { findOrCreateUser } from '@app/controllers/user';
 
 const { serverRuntimeConfig } = getConfig();
 const {
@@ -581,7 +580,9 @@ export const getAllowedIdpsForApprover = (session: Session) => {
   return idps;
 };
 
-export const getDisplayName = (session: Session) => compact([session.given_name, session.family_name]).join(' ');
+export const getDisplayName = (session: Session) => {
+  return compact([session.given_name, session.family_name]).join(' ');
+};
 
 export const getBCSCEnvVars = (env: string) => {
   let bcscBaseUrl: string = '';
@@ -652,6 +653,14 @@ export const handleError = (res: NextApiResponse, err: any) => {
   if (isString(message)) {
     message = tryJSON(message);
   }
+  console.error('Error:', err);
   console.log({ success: false, message });
-  res.status(err?.status || 422).json({ success: false, message });
+  return res.status(err?.status || 422).json({ success: false, message });
+};
+
+export const processUserSession = async (session: Session): Promise<{ session: Session; user: User }> => {
+  const user: any = await findOrCreateUser(session);
+  user.isAdmin = isAdmin(session);
+  session.user = user;
+  return { session, user };
 };

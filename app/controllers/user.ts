@@ -14,6 +14,7 @@ import { UserSurveyInformation } from '@app/shared/interfaces';
 import { createEvent } from './requests';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
+import compact from 'lodash.compact';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -21,7 +22,7 @@ export const findOrCreateUser = async (session: Session) => {
 
   if (!idir_userid || !email) throw new createHttpError.Unauthorized('invalid IDIR account');
 
-  const displayName = getDisplayName(session);
+  const displayName = compact([session.given_name, session.family_name]).join(' ');
   const conditions = [{ idirEmail: email }, { idirUserid: idir_userid }];
   const users = await models.user.findAll({ where: { [Op.or]: conditions } });
   let user = users[0];

@@ -1,16 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { handleError } from '@app/utils/helpers';
+import { handleError, processUserSession } from '@app/utils/helpers';
 import { getAllowedRequest } from '@app/queries/request';
 import { fetchLogs } from '@app/controllers/logs';
+import { logsRateLimiter } from '@app/utils/rate-limiters';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
-      const isAuth = await authenticate(req, res);
-      if (!isAuth) return;
-      const { session } = isAuth as { session: Session };
+      await logsRateLimiter(req, res);
+
+      const userSession = await authenticate(req.headers);
+      if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
+      const { session } = await processUserSession(userSession as Session);
+
       const { id } = req.query || {};
       const { start, end, env } = req.query || {};
       const userRequest = await getAllowedRequest(session, Number(id));
@@ -30,9 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.setHeader('Content-Length', JSON.stringify(data).length);
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Content-Disposition', `attachment`);
-        res.status(status).send(data);
+        return res.status(status).send(data);
       } else {
-        res.status(status).send({ message });
+        return res.status(status).send({ message });
       }
     } else {
       res.setHeader('Allow', ['GET']);

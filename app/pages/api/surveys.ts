@@ -4,13 +4,14 @@ import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { sendTemplate } from '@app/shared/templates';
 import { EMAILS } from '@app/shared/enums';
-import { handleError } from '@app/utils/helpers';
+import { handleError, processUserSession } from '@app/utils/helpers';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const isAuth = await authenticate(req, res);
-    if (!isAuth) return;
-    const { session } = isAuth as { session: Session };
+    const userSession = await authenticate(req.headers);
+    if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
+    const { session } = await processUserSession(userSession as Session);
+
     if (req.method === 'POST') {
       const { rating, message, triggerEvent } = req.body;
 
@@ -22,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await createSurvey(session, req.body);
       await sendTemplate(EMAILS.SURVEY_COMPLETED, { user: session.user, rating, message, triggerEvent });
 
-      res.status(200).json({ message: 'Survey created successfully' });
+      return res.status(200).json({ message: 'Survey created successfully' });
     } else {
       res.setHeader('Allow', ['POST']);
       res.status(405).end(`Method ${req.method} Not Allowed`);

@@ -5,12 +5,13 @@ import { authenticate } from '@app/utils/authenticate';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const isAuth = await authenticate(req, res);
-    if (!isAuth) return;
+    const userSession = await authenticate(req.headers);
+    if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
+
     if (req.method === 'POST') {
       const result = await searchIdirUsers(req.body);
-      if (!result) res.status(404).send({ success: false, message: 'No results found' });
-      else res.status(200).json(result);
+      if (!result) return res.status(404).send({ success: false, message: 'No results found' });
+      else return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['POST']);
       res.status(405).end(`Method ${req.method} Not Allowed`);

@@ -5,11 +5,12 @@ import { getPrivacyZones } from '@app/controllers/bc-services-card';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const isAuth = await authenticate(req, res);
-    if (!isAuth) return;
+    const userSession = await authenticate(req.headers);
+    if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
+
     if (req.method === 'GET') {
       const result = await getPrivacyZones();
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET']);
       res.status(405).end(`Method ${req.method} Not Allowed`);

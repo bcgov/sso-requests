@@ -10,12 +10,19 @@ import RequestQueue from './RequestQueue';
 import RequestRole from './RequestRole';
 import BcscClient from './BcscClient';
 
-const config = configs[`${process.env.NODE_ENV || 'development'}`];
+const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
 export const models: any = {};
 export const modelNames: string[] = [];
+export let sequelize: Sequelize = {} as Sequelize;
 
-export const sequelize = new Sequelize(config?.database, config.username, config.password, config as any);
+if (config.databaseUrl) {
+  sequelize = new Sequelize(config.databaseUrl, config);
+} else if (config.use_env_variable && process.env[config.use_env_variable]) {
+  const sequelize = new Sequelize(process.env[config.use_env_variable]!, config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
 
 console.log('sequelize initialized', !!sequelize);
 

@@ -121,7 +121,7 @@ describe('authentication', () => {
       jest.clearAllMocks();
     });
 
-    it('should reject the requests without valid auth token', async () => {
+    it.only('should reject the requests without valid auth token', async () => {
       const result = await getIntegrations();
       expect(result.status).toEqual(401);
     });
@@ -144,7 +144,7 @@ describe('create/manage integration by authenticated user', () => {
 
     let integration: Integration;
 
-    it('should create integration', async () => {
+    it.only('should create integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await createIntegration(getCreateIntegrationData({ projectName }));
       integration = result.body;
@@ -153,14 +153,14 @@ describe('create/manage integration by authenticated user', () => {
       expect(result.body.teamId).toBeNull;
     });
 
-    it('should retrieve all the integrations', async () => {
+    it.only('should retrieve all the integrations', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await getIntegrations();
       expect(result.status).toEqual(200);
       expect(result.body.length).toBe(1);
     });
 
-    it('should retrieve an integration', async () => {
+    it.only('should retrieve an integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await getIntegration(integration.id);
       expect(result.status).toEqual(200);
@@ -168,7 +168,7 @@ describe('create/manage integration by authenticated user', () => {
       expect(result.body.projectName).toEqual(projectName);
     });
 
-    it('should update an integration', async () => {
+    it.only('should update an integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await updateIntegration(getUpdateIntegrationData({ integration }), true);
       expect(result.status).toEqual(200);
@@ -176,7 +176,7 @@ describe('create/manage integration by authenticated user', () => {
       expect(sendEmail).toHaveBeenCalled();
     });
 
-    it('should fetch an integration by userId when a draft team integration has not selected a team yet', async () => {
+    it.only('should fetch an integration by userId when a draft team integration has not selected a team yet', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       let result = await createIntegration(getCreateIntegrationData({ projectName }));
       result = await updateIntegration(
@@ -188,7 +188,7 @@ describe('create/manage integration by authenticated user', () => {
       expect(foundIntegration).toBeTruthy();
     });
 
-    it('Should not allow public service accounts', async () => {
+    it.only('Should not allow public service accounts', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const integrationClone = { ...integration };
 

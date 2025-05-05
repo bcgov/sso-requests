@@ -494,6 +494,7 @@ export const updateRequest = async (
     if (!current) throw new Error('Request not found');
     const getCurrentValue = () => current.get({ plain: true, clone: true });
 
+    console.log('🚀 ~ getCurrentValue:', getCurrentValue());
     if (current.status === 'applied' && !submit) {
       throw Error('Temporary updates not allowed for applied requests.');
     }
@@ -607,7 +608,6 @@ export const updateRequest = async (
             );
         }
       }
-
       current.status = 'submitted';
       let environments = current.environments.concat();
 

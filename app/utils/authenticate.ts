@@ -14,6 +14,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { Session, User } from '@app/shared/interfaces';
 import { findOrCreateUser } from '@app/controllers/user';
 import { isAdmin } from './helpers';
+import { IncomingHttpHeaders } from 'http';
 
 const ssoConfigurationEndpoint = sso_configuration_endpoint;
 const audience = sso_client_id;
@@ -35,7 +36,7 @@ const getConfiguration = async () => {
   return _ssoConfig;
 };
 
-const validateJWTSignature = async (token: any) => {
+const validateJWTSignature = async (token: string): Promise<Session | boolean> => {
   try {
     // 1. Decode the ID token.
     const { header } = jws.decode(token) as jws.Signature;
@@ -47,7 +48,7 @@ const validateJWTSignature = async (token: any) => {
     const isValidKid = !!key;
 
     if (!isValidKid) {
-      return null;
+      return false;
     }
 
     // 3. Verify the signature using the public key
@@ -75,31 +76,21 @@ const validateJWTSignature = async (token: any) => {
 
     return { idir_userid, email, client_roles: client_roles || [], family_name, given_name, bearerToken: '' };
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return false;
   }
 };
 
-export const authenticate = async (
-  req: NextApiRequest,
-  res: NextApiResponse,
-): Promise<{ session: Session; user: User } | null> => {
+export const authenticate = async (headers: IncomingHttpHeaders): Promise<Session | Boolean> => {
   try {
-    const authHeader = req.headers?.authorization;
+    const authHeader = headers?.authorization;
     if (!authHeader) {
-      res.status(401).json({ success: false, message: 'not authorized' });
-      return null;
+      return false;
     }
     const bearerToken = (authHeader as string).split('Bearer ')[1] as string;
-    const session = (await validateJWTSignature(bearerToken)) as any;
-    session.bearerToken = bearerToken;
-    const user: User = await findOrCreateUser(session);
-    user.isAdmin = isAdmin(session);
-    session.user = user;
-    return { session, user };
+    return (await validateJWTSignature(bearerToken)) as any;
   } catch (error) {
     console.error(error);
-    res.status(401).json({ success: false, message: 'not authorized' });
-    return null;
+    return false;
   }
 };

@@ -5,7 +5,7 @@ import getConfig from 'next/config';
 const { serverRuntimeConfig = {} } = getConfig() || {};
 const { verify_user_secret } = serverRuntimeConfig;
 
-const VERIFY_USER_SECRET = verify_user_secret;
+const VERIFY_USER_SECRET = verify_user_secret || process.env.VERIFY_USER_SECRET;
 
 export const generateInvitationToken = (user: User, teamId: number) => {
   return sign({ userId: user.id, teamId }, VERIFY_USER_SECRET, { expiresIn: '2d' });

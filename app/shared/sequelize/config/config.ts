@@ -25,6 +25,7 @@ const config = {
     dialectModule: pg,
     logging: false,
     use_env_variable: 'DATABASE_URL',
+    databaseUrl: process.env.DATABASE_URL || 'postgresql://localhost:5432/ssorequests_test',
     host: process.env.DB_HOSTNAME || 'localhost',
     username: process.env.DB_USERNAME || '',
     password: process.env.DB_PASSWORD || '',

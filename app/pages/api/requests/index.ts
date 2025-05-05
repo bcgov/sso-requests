@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate } from '@app/utils/authenticate';
 import { Session, User } from '@app/shared/interfaces';
-import { handleError } from '@app/utils/helpers';
+import { handleError, processUserSession } from '@app/utils/helpers';
 import {
   createRequest,
   deleteRequest,
@@ -12,27 +12,31 @@ import {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const isAuth = await authenticate(req, res);
-    if (!isAuth) return;
-    const { session } = isAuth as { session: Session };
+    const userSession = await authenticate(req.headers);
+    if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
+    const { session } = await processUserSession(userSession as Session);
+
     if (req.method === 'GET') {
       const { include } = req.query || {};
       const result = await getRequests(session as Session, session?.user as User, include as string);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } else if (req.method === 'POST') {
       const result = await createRequest(session as Session, req.body);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } else if (req.method === 'PUT') {
       const { submit } = req.query || {};
+      console.log('🚀 ~ handler ~ req.query:', req.query);
+      console.log('🚀 ~ handler ~ req.body:', req.body);
+
       const result = await updateRequest(session as Session, req.body, session?.user as User, submit as string);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } else if (req.method === 'DELETE') {
       const { id } = req.query || {};
       const authorized = await isAllowedToDeleteIntegration(session as Session, Number(id));
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to delete this integration' });
       const result = await deleteRequest(session as Session, session?.user!, Number(id));
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
       res.status(405).end(`Method ${req.method} Not Allowed`);

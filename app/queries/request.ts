@@ -1,8 +1,8 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, User } from '@app/shared/interfaces';
-import { getAllowedIdpsForApprover, isAdmin } from '../utils/helpers';
-import { getMyTeamsLiteral, getUserTeamRole } from './literals';
+import { getAllowedIdpsForApprover, isAdmin } from '@app/utils/helpers';
+import { getMyTeamsLiteral, getUserTeamRole } from '@app/queries/literals';
 
 const commonPopulation = [
   {
