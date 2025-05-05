@@ -11,7 +11,7 @@ module.exports = {
     typography: 'typography/dist/index', // prevent jest `require` the base file itself in runtime
   },
   transform: { '\\.[jt]sx?$': 'babel-jest' },
-  transformIgnorePatterns: ['<rootDir>/node_modules/(?!(@rjsf)/)', '\\.pnp\\.[^\\/]+$'],
+  transformIgnorePatterns: ['<rootDir>/node_modules/(?!(@rjsf|keycloak-js)/)', '\\.pnp\\.[^\\/]+$'],
   modulePaths: ['<rootDir>'],
   moduleDirectories: ['node_modules'],
   testEnvironment: 'jsdom',

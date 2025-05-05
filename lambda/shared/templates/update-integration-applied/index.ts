@@ -8,6 +8,7 @@ import {
   DIT_EMAIL_ADDRESS,
   IDIM_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
+  SOCIAL_APPROVAL_EMAIL_ADDRESS,
 } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
@@ -17,6 +18,7 @@ import {
   usesBceidProd,
   usesDigitalCredential,
   usesDigitalCredentialProd,
+  usesSocial,
 } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO change request approved and can be downloaded (email 2 of 2)`;
@@ -57,6 +59,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
     cc.push(IDIM_EMAIL_ADDRESS);
   if (usesDigitalCredential(integration) && addingProd) cc.push(DIT_EMAIL_ADDRESS);
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);
+  if (usesSocial(integration)) cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
 
   return sendEmail({
     code: EMAILS.UPDATE_INTEGRATION_APPLIED,

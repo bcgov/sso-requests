@@ -210,6 +210,27 @@ describe('Form Template Saving and Navigation', () => {
     fireEvent.click(adminReview);
     await waitFor(() => expect(within(termsAndConditionsBox).queryByTitle(STEPPER_ERROR)).toBeNull());
   });
+
+  it('Loads correct usesTeam state', async () => {
+    const withTeamComponent = await setUpRender({
+      id: 0,
+      status: 'draft',
+      usesTeam: true,
+      teamId: null,
+    });
+    let usesTeamCheckbox = withTeamComponent.getByLabelText('Project Team') as HTMLInputElement;
+    expect(usesTeamCheckbox.checked).toBe(true);
+    withTeamComponent.unmount();
+
+    const withoutTeamComponent = await setUpRender({
+      id: 0,
+      status: 'draft',
+      usesTeam: false,
+      teamId: null,
+    });
+    usesTeamCheckbox = withoutTeamComponent.getByLabelText('Project Team') as HTMLInputElement;
+    expect(usesTeamCheckbox.checked).toBe(false);
+  });
 });
 
 describe('Form Template Loading Data', () => {
@@ -790,5 +811,80 @@ describe('BC Services Card IDP and dependencies', () => {
     );
     fireEvent.click(sandbox.basicInfoBox);
     expect(queryByText('IDIR')).not.toBeNull();
+  });
+});
+
+describe('Social IDP', () => {
+  const defaultRender = {
+    id: 0,
+    serviceType: 'gold',
+    status: 'draft',
+    environments: ['dev', 'test', 'prod'],
+  };
+  it('Shows social IDP when the env variable is set', async () => {
+    process.env.INCLUDE_SOCIAL = 'true';
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('Social')?.parentElement?.querySelector("input[type='checkbox") as HTMLInputElement;
+    expect(checkbox).toBeTruthy();
+  });
+
+  it('Does not show social IDP when the env variable is explicitly false', async () => {
+    process.env.INCLUDE_SOCIAL = 'false';
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('Social')?.parentElement?.querySelector("input[type='checkbox") as HTMLInputElement;
+    expect(checkbox).toBeFalsy();
+  });
+
+  it('Defaults to not show social IDP when env variable is missing', async () => {
+    process.env.INCLUDE_SOCIAL = undefined;
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('Social')?.parentElement?.querySelector("input[type='checkbox") as HTMLInputElement;
+    expect(checkbox).toBeFalsy();
+  });
+
+  it('Displays social terms and conditions only when social IDP is selected', async () => {
+    process.env.INCLUDE_SOCIAL = 'true';
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const socialCheckbox = queryByText('Social')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    let socialTermsAndConditionsCheckbox = document.querySelector('#root_confirmSocial');
+    expect(socialTermsAndConditionsCheckbox).toBeFalsy();
+
+    fireEvent.click(socialCheckbox);
+    socialTermsAndConditionsCheckbox = document.querySelector('#root_confirmSocial');
+    expect(socialTermsAndConditionsCheckbox).toBeTruthy();
+  });
+
+  it('Displays error when terms and conditions is not checked and clears once selected', async () => {
+    process.env.INCLUDE_SOCIAL = 'true';
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const socialCheckbox = queryByText('Social')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+
+    fireEvent.click(socialCheckbox);
+
+    // Live validation turns on after user leaves the page, leave and return to trigger
+    fireEvent.click(sandbox.developmentBox);
+    fireEvent.click(sandbox.basicInfoBox);
+
+    const expectedErrorText = errorMessages.confirmSocial;
+
+    expect(queryByText(expectedErrorText)).toBeTruthy();
+
+    const socialTermsAndConditionsCheckbox = document.querySelector('#root_confirmSocial') as HTMLInputElement;
+    fireEvent.click(socialTermsAndConditionsCheckbox);
+    expect(queryByText(expectedErrorText)).toBeFalsy();
   });
 });

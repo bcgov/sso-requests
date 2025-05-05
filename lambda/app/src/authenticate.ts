@@ -62,8 +62,6 @@ const validateJWTSignature = async (token) => {
     } = jwt.verify(token, pem, {
       audience,
       issuer,
-      maxAge: '8h',
-      ignoreExpiration: true,
     });
     if (!['idir', 'azureidir'].includes(identity_provider) || !idir_userid) {
       throw new createHttpError.Unauthorized('IDP is not IDIR');

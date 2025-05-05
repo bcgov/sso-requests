@@ -42,6 +42,9 @@ const doc = {
       environment: {
         '@enum': ['dev', 'test', 'prod'],
       },
+      bceidType: {
+        '@enum': ['basic', 'business', 'both'],
+      },
       idp: {
         '@enum': [
           'azure-idir',

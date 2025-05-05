@@ -370,6 +370,58 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 "
 `;
 
+exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved Social prod 1`] = `"[DEV] Pathfinder SSO request approved (email 2 of 2)"`;
+
+exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved Social prod 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>
+  Your Pathfinder SSO request ID 1 is successfully approved. </p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Primary End Users: </strong>None Selected<br />
+<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Environments: </strong>Development<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+</ul>
+   <p><strong>*Social production integration is not approved and not ready to use yet</strong></p>
+  <p>
+  Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
+  to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
+  notify you of the request status.
+</p>
+ <p>
+  Please join the
+  <a
+    href="https://digital.gov.bc.ca/sso-notifications/"
+    title="SSO Updates Mailing list"
+    target="_blank"
+    rel="noreferrer"
+    >SSO Updates Mailing list</a
+  >
+  within the DevOps Platform Services Communications to receive important updates on the service and any outages.
+</p>
+  <p>
+  If you have any questions, please contact us by
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED 1`] = `"[DEV] Pathfinder SSO request approved (email 2 of 2)"`;
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED 2`] = `
@@ -938,6 +990,95 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 "
 `;
 
+exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ Social 1`] = `"[DEV] Pathfinder SSO request submitted & additional important information (email 1 of 2)"`;
+
+exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ Social 2`] = `
+"<h3>Hello Pathfinder SSO friend,</h3>
+<p>Your Pathfinder SSO request ID 1 is successfully submitted.</p>
+<p>Below is a summary of your integration request details:</p>
+<strong>Project name: </strong>test<br />
+<strong>Primary End Users: </strong>None Selected<br />
+<strong>Identity Providers: </strong>Social<br />
+<strong>Environments: </strong>Development, Test, Production<br />
+<strong>Accountable person(s): </strong>Test User<br />
+<strong>Submitted by: </strong>SSO Admin<br />
+<strong>URIs:</strong>
+<ul>
+  <li>
+    Development:
+    <ul>
+      <li>https://b</li>
+    </ul>
+  </li>
+  <li>
+    Test:
+    <ul>
+      <li>https://test</li>
+    </ul>
+  </li>
+  <li>
+    Production:
+    <ul>
+      <li>https://a</li>
+    </ul>
+  </li>
+</ul>
+ <p>
+  <strong>The expected processing time is 5 minutes</strong><br />
+  Once the request is approved, you will receive another email that your JSON Client Installation is ready. If you are
+  not the requester, this email serves only to notify you of the request status.
+</p>
+  
+<table border="0" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td
+      style="background: none; border-bottom: 1px solid #d7dfe3; height: 1px; width: 100%; margin: 0px 0px 0px 0px"
+    ></td>
+  </tr>
+</table>
+<br />
+ <strong>Next Steps for your integration with Social Login:</strong>
+<p>
+  As you’ve requested integration with Social Login, any production integration request requires you work with the CDT
+  Delivery team.
+</p>
+
+<p>
+  On a best effort basis, the Delivery team will reach out to you within 2-3 business days to schedule an on-boarding
+  meeting.
+</p>
+
+<p>
+  <strong>Please have the following before your meeting with the Delivery team.</strong>
+</p>
+
+<ol>
+  <li>
+    Answers to the following:
+    <ul>
+      <li>Details of your use case(s)</li>
+      <li>Has your Ministry MISO and MPO approved your use of social login?</li>
+      <li>When do you need access to the production environment by?</li>
+      <li>When will your end users need access to the production environment?</li>
+    </ul>
+  </li>
+  <li>Complete the attached Self-Assessment.</li>
+</ol>
+
+<div style="display: none">&nbsp;</div>
+   <p>
+  If you have any questions, please contact us by
+  <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
+    Rocket.Chat
+  </a>
+  or email at:
+  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
+</p>
+<p>Thank you.<br />Pathfinder SSO Team</p>
+
+"
+`;
+
 exports[`Email template snapshots Should return the expected email for CREATE_TEAM_API_ACCOUNT_APPROVED 1`] = `"[DEV] SSO CSS API Account created (email 2 of 2)"`;
 
 exports[`Email template snapshots Should return the expected email for CREATE_TEAM_API_ACCOUNT_APPROVED 2`] = `
@@ -1411,7 +1552,8 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
   >
   within the DevOps Platform Services Communications to receive important updates on the service and any outages.
 </p>
-  <p>
+
+ <p>
   If you have any questions, please contact us by
   <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
     Rocket.Chat

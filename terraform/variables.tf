@@ -28,6 +28,12 @@ variable "include_digital_credential" {
   default     = "false"
 }
 
+variable "include_social" {
+  description = "Whether to include social as an IDP option"
+  type        = string
+  default     = "false"
+}
+
 variable "grafana_api_token" {
   description = "API token for the grafana service account."
   type        = string

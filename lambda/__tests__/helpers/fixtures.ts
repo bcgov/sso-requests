@@ -8,6 +8,9 @@ export const SSO_ADMIN_EMAIL_01 = 'sso.admin.user-01@gov.bc.ca';
 export const BCEID_ADMIN_IDIR_USERID_01 = 'BCEID_ADMIN_USER_01';
 export const BCEID_ADMIN_IDIR_EMAIL_01 = 'bceid.admin.user-01@gov.bc.ca';
 
+export const SOCIAL_ADMIN_IDIR_USERID_01 = 'SOCIAL_ADMIN_USER_01';
+export const SOCIAL_ADMIN_IDIR_EMAIL_01 = 'social.admin.user-01@gov.bc.ca';
+
 export const GITHUB_ADMIN_IDIR_USERID_01 = 'GITHUB_ADMIN_USER_01';
 export const GITHUB_ADMIN_IDIR_EMAIL_01 = 'github.admin.user-01@gov.bc.ca';
 
@@ -39,6 +42,7 @@ export const formDataDev: IntegrationData = {
   projectName: 'test',
   clientId: 'test',
   serviceType: 'gold',
+  primaryEndUsers: [],
   publicAccess: true,
   devValidRedirectUris: ['https://b'],
   environments: ['dev'],
@@ -143,6 +147,7 @@ export const getUpdateIntegrationData = (args: {
   bceidApproved?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
+  socialApproved?: boolean;
 }) => {
   const {
     projectName = args.integration.projectName,
@@ -153,7 +158,8 @@ export const getUpdateIntegrationData = (args: {
     publicAccess = args.integration.publicAccess || true,
     bceidApproved = args.integration.bceidApproved || false,
     githubApproved = args.integration.githubApproved || false,
-    bcServicesCardApproved = args.integration.githubApproved || false,
+    bcServicesCardApproved = args.integration.bcServicesCardApproved || false,
+    socialApproved = args.integration.socialApproved || false,
   } = args;
 
   const samlIntegration = protocol === 'saml';
@@ -171,11 +177,12 @@ export const getUpdateIntegrationData = (args: {
     testIdps: envs.includes('test') ? identityProviders : [],
     prodIdps: envs.includes('prod') ? identityProviders : [],
     protocol,
-    teamId: args.integration.usesTeam ? args.integration.teamId.toString() : undefined,
+    teamId: args.integration.usesTeam ? args.integration.teamId?.toString() : undefined,
     authType,
     bceidApproved,
     githubApproved,
     bcServicesCardApproved,
+    socialApproved,
     devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,
     testSamlLogoutPostBindingUri: samlIntegration && envs.includes('test') ? 'https://a' : undefined,
     prodSamlLogoutPostBindingUri: samlIntegration && envs.includes('prod') ? 'https://a' : undefined,
@@ -183,6 +190,7 @@ export const getUpdateIntegrationData = (args: {
     devLoginTitle: '',
     testLoginTitle: '',
     prodLoginTitle: '',
+    confirmSocial: true,
   };
 };
 

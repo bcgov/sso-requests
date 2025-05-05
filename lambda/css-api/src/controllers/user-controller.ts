@@ -1,6 +1,6 @@
 import { UserService } from '../services/user-service';
 import { inject, injectable } from 'tsyringe';
-import { ListUsersFilterQuery } from '../types';
+import { ListBceidUsersFilterQuery, ListUsersFilterQuery } from '../types';
 
 @injectable()
 export class UserController {
@@ -8,5 +8,14 @@ export class UserController {
 
   public async listUsers(environment: string, idp: string, query: ListUsersFilterQuery) {
     return await this.userService.getUsers(environment, idp, query);
+  }
+
+  public async listBceidUsers(
+    teamId: number,
+    integrationId: number,
+    environment: string,
+    query: ListBceidUsersFilterQuery,
+  ) {
+    return await this.userService.getBceidUsers(teamId, integrationId, environment, query);
   }
 }

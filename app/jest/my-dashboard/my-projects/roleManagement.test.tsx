@@ -221,6 +221,40 @@ describe('role management tab', () => {
     });
   });
 
+  it('Should keep the active tab selected if still avaiable on a new integration', async () => {
+    // Setup render and select a role
+    const { rerender } = render(<RoleEnvironment integration={{ ...sampleRequest, authType: 'both' }} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' }));
+    });
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+
+    // Defaults to users tab
+    expect(screen.queryByText('Users')).toBeInTheDocument();
+    expect(screen.queryByText('Service Accounts')).toBeInTheDocument();
+    expect(screen.queryByText('Composite Roles')).toBeInTheDocument();
+    expect(screen.queryByText('Users')).toHaveAttribute('aria-selected', 'true');
+
+    // Switch to Composite roles tab
+    fireEvent.click(screen.getByText('Composite Roles'));
+    expect(screen.queryByText('Users')).toHaveAttribute('aria-selected', 'false');
+    expect(screen.queryByText('Composite Roles')).toHaveAttribute('aria-selected', 'true');
+
+    // Expect rerender to keep active tab selection since composite roles are avaiable on service-accounts
+    rerender(<RoleEnvironment integration={{ ...sampleRequest, authType: 'service-account' }} />);
+    expect(screen.queryByText('Composite Roles')).toHaveAttribute('aria-selected', 'true');
+
+    // Switch to service accounts tab and then render a browser only integration
+    fireEvent.click(screen.getByText('Service Accounts'));
+    expect(screen.queryByText('Service Accounts')).toHaveAttribute('aria-selected', 'true');
+    rerender(<RoleEnvironment integration={{ ...sampleRequest, authType: 'browser-login' }} />);
+
+    // Defaults back to users tab and service accounts tab unavailable
+    expect(screen.queryByText('Service Accounts')).not.toBeInTheDocument();
+    expect(screen.queryByText('Users')).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('Should be able to click the remove service account button, and corresponding modal showing up', async () => {
     render(<RoleEnvironmentComponent />);
     fireEvent.click(await screen.findByRole('button', { name: 'Search' }));

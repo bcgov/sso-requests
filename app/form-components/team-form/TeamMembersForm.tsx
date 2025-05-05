@@ -145,7 +145,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         they accept the invitation, they will have access to your project. Their invitation will expire in{' '}
         <strong>2 business days</strong>.
       </p>
-      <p>
+      <div>
         <span className="strong">Roles:</span>
         <br />
         <div>
@@ -180,7 +180,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
             </Link>
           </span>
         </div>
-      </p>
+      </div>
       <MembersSection>
         <Container>
           <strong>Member</strong>

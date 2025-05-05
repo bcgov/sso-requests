@@ -69,6 +69,7 @@ jobs:
 
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=true
+          INCLUDE_SOCIAL=false
 
           BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
           BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
@@ -129,6 +130,7 @@ jobs:
 
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=false
+          INCLUDE_SOCIAL=false
 
           BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
           BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
@@ -189,6 +191,7 @@ jobs:
 
           INCLUDE_BC_SERVICES_CARD=true
           ALLOW_BC_SERVICES_CARD_PROD=true
+          INCLUDE_SOCIAL=false
 
           BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
           BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
@@ -345,6 +348,8 @@ jobs:
           bcsc_registration_base_url_dev="${{env.BCSC_REGISTRATION_BASE_URL_DEV}}"
           bcsc_registration_base_url_test="${{env.BCSC_REGISTRATION_BASE_URL_TEST}}"
           bcsc_registration_base_url_prod="${{env.BCSC_REGISTRATION_BASE_URL_PROD}}"
+
+          include_social="${{env.INCLUDE_SOCIAL}}"
 
           request_queue_rate="${{env.REQUEST_QUEUE_RATE}}"
           rds_max_capacity="${{env.RDS_MAX_CAPACITY}}"

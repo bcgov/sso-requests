@@ -7,8 +7,8 @@ import {
   isBCServicesCardApprover,
   isGithubApprover,
 } from '@lambda-app/utils/helpers';
-import { EVENTS } from '@lambda-shared/enums';
 import { Op } from 'sequelize';
+import { isSocialApprover } from '@app/utils/helpers';
 
 export const getEvents = async (
   session: Session,
@@ -41,6 +41,8 @@ export const getEvents = async (
 
   if (isBCServicesCardApprover(session)) approvedKeys.push('bcServicesCardApproved');
 
+  if (isSocialApprover(session)) approvedKeys.push('socialApproved');
+
   if (approvedKeys.length > 0) {
     where[Op.or] = [
       approvedKeys.map((key) => ({
@@ -59,7 +61,7 @@ export const getEvents = async (
     ];
   }
 
-  const result: Promise<{ count: number; rows: any[] }> = await models.event.findAndCountAll({
+  const result: { count: number; rows: any[] } = await models.event.findAndCountAll({
     where,
     limit,
     offset: page > 0 ? (page - 1) * limit : 0,

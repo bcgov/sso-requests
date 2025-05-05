@@ -45,6 +45,8 @@ import {
   checkNotGithubGroup,
   usesBcServicesCard,
   checkBcServicesCard,
+  usesSocial,
+  checkNotSocial,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@lambda-app/keycloak/users';
 import { getRolesWithEnvironments } from '@lambda-app/queries/roles';
@@ -70,7 +72,7 @@ import {
 } from '@lambda-app/keycloak/clientScopes';
 import { bcscIdpMappers } from '@lambda-app/utils/constants';
 import createHttpError from 'http-errors';
-import { validateIDPs } from '@app/utils/helpers';
+import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus } from '@lambda-app/helpers/permissions';
 
 const APP_ENV = process.env.APP_ENV || 'development';
@@ -473,6 +475,7 @@ export const updateRequest = async (
   const bceidApprover = isBceidApprover(session);
   const githubApprover = isGithubApprover(session);
   const bcscApprover = isBCServicesCardApprover(session);
+  const socialApprover = isSocialApprover(session);
   const allowedToUpdate = canUpdateRequestByUserId(session.user.id, data.id);
   const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
@@ -518,6 +521,7 @@ export const updateRequest = async (
     const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
+    const isApprovingSocial = !originalData.socialApproved && current.socialApproved;
 
     const updatedAttributes = getIdpApprovalStatus({
       isAdmin: userIsAdmin,
@@ -526,6 +530,7 @@ export const updateRequest = async (
       bceidApprover,
       githubApprover,
       bcscApprover,
+      socialApprover,
     });
     assign(current, updatedAttributes);
 
@@ -546,7 +551,7 @@ export const updateRequest = async (
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
     if (
       !userIsAdmin &&
-      (bceidApprover || githubApprover || bcscApprover) &&
+      (bceidApprover || githubApprover || bcscApprover || socialApprover) &&
       !(await canUpdateRequestByUserId(session.user.id, data.id))
     ) {
       Object.assign(current, {
@@ -554,6 +559,7 @@ export const updateRequest = async (
         bceidApproved: bceidApprover ? data.bceidApproved : originalData.bceidApproved,
         githubApproved: githubApprover ? data.githubApproved : originalData.githubApproved,
         bcServicesCardApproved: bcscApprover ? data.bcServicesCardApproved : originalData.bcServicesCardApproved,
+        socialApproved: socialApprover ? data.socialApproved : originalData.socialApproved,
       });
     }
 
@@ -610,9 +616,13 @@ export const updateRequest = async (
       const hasBcServicesCard = usesBcServicesCard(current);
       const hasBcServicesCardProd = hasBcServicesCard && hasProd;
 
+      const hasSocial = usesSocial(current);
+      const hasSocialProd = hasSocial && hasProd;
+
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
       const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
+      const waitingSocialProdApproval = hasSocialProd && !current.socialApproved;
 
       const removingBcscIdp =
         originalData.devIdps.includes('bcservicescard') && !current.devIdps.includes('bcservicescard');
@@ -640,6 +650,11 @@ export const updateRequest = async (
             code: EMAILS.PROD_APPROVED,
             data: { integration: finalData, type: 'BC Services Card' },
           });
+        } else if (isApprovingSocial) {
+          emails.push({
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'Social' },
+          });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
@@ -648,6 +663,7 @@ export const updateRequest = async (
               waitingBceidProdApproval,
               waitingGithubProdApproval,
               waitingBcServicesCardProdApproval,
+              waitingSocialProdApproval,
               changes,
               addingProd,
             },
@@ -668,6 +684,7 @@ export const updateRequest = async (
             waitingBceidProdApproval,
             waitingGithubProdApproval,
             waitingBcServicesCardProdApproval,
+            waitingSocialProdApproval,
           },
         });
       }
@@ -1036,6 +1053,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
   const hasBCSC = usesBcServicesCard(baseData);
+  const hasSocial = usesSocial(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData.environments.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -1053,6 +1071,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   // prevent the TF from creating GitHub integration in prod environment if not approved
   if (!baseData.githubApproved && hasGithub) {
     baseData.prodIdps = baseData.prodIdps.filter(checkNotGithubGroup);
+  }
+
+  if (!baseData.socialApproved && hasSocial) {
+    baseData.prodIdps = baseData.prodIdps.filter(checkNotSocial);
   }
 
   return baseData;
@@ -1174,9 +1196,11 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const hasProd = integration.environments.includes('prod');
     const hasBceid = usesBceid(integration);
     const hasGithub = usesGithub(integration);
+    const hasSocial = usesSocial(integration);
     const hasBcServicesCard = usesBcServicesCard(integration);
     const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
     const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
+    const waitingSocialProdApproval = hasSocial && hasProd && !integration.socialApproved;
     const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
 
     const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
@@ -1186,6 +1210,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
       hasBceid,
       waitingGithubProdApproval,
       waitingBcServicesCardProdApproval,
+      waitingSocialProdApproval,
       addingProd,
     });
   }

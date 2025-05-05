@@ -84,6 +84,16 @@ const init = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: false,
       },
+      confirmSocial: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+      },
+      socialApproved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+      },
       bceidApproved: {
         type: DataTypes.BOOLEAN,
         allowNull: true,

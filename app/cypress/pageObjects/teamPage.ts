@@ -1,5 +1,8 @@
+import Navigation from '../appActions/Navigation';
+
 class TeamPage {
   path: string = '/my-dashboard/teams';
+  navigation = new Navigation();
 
   addiEmail: string = 'input[type="email"][data-testid="addi-email"]';
   confirmDeleteTeam: string = '[data-testid="confirm-delete-delete-team"]';
@@ -29,7 +32,7 @@ class TeamPage {
   addNewTeamMember: string = '[data-testid="add-new-team-member"]';
 
   startTeam() {
-    cy.visit(this.path);
+    this.navigation.goToMyTeams();
     cy.get('button').contains('+ Create a New Team').should('be.visible');
   }
 

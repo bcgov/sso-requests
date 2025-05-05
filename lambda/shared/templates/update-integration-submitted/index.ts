@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars = require('handlebars');
-import { processRequest } from '../helpers';
+import { processRequest, resolveAttachmentPath } from '../helpers';
 import { IntegrationData } from '@lambda-shared/interfaces';
 import { getReadableIntegrationDiff, sendEmail } from '@lambda-shared/utils/ches';
 import {
@@ -9,6 +9,7 @@ import {
   OCIO_EMAIL_ADDRESS,
   DIT_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
+  SOCIAL_APPROVAL_EMAIL_ADDRESS,
 } from '@lambda-shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@lambda-shared/enums';
@@ -18,6 +19,7 @@ import {
   usesBceidProd,
   usesDigitalCredentialProd,
   usesDigitalCredential,
+  usesSocial,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
@@ -47,6 +49,7 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration, addingProd } = data;
   const emails = await getIntegrationEmails(integration);
+  const attachments = [];
   const resettingBceidApproval = data.changes?.some(
     (change) => change.path[0] === 'bceidApproved' && change.lhs === true && change.rhs === false,
   );
@@ -58,11 +61,22 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
     cc.push(DIT_EMAIL_ADDRESS);
   }
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);
+  if (usesSocial(integration)) {
+    cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
+    const filePath = resolveAttachmentPath('social-assessment.xlsx');
+    const buffer = fs.readFileSync(filePath);
+    attachments.push({
+      content: buffer.toString('base64'),
+      filename: 'self-assessment.xlsx',
+      encoding: 'base64',
+    });
+  }
 
   return sendEmail({
     code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
     to: emails,
     cc,
+    attachments,
     ...rendered,
   });
 };

@@ -34,6 +34,9 @@ class Utilities {
   md5(data: string): string {
     return crypto.createHash('md5').update(data).digest('hex');
   }
+  capitalizeFirst(string: string): string {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
   getDate(): string {
     let today = new Date();
     let dd = padStart(String(today.getDate()), 2, '0');

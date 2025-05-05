@@ -24,6 +24,7 @@ import {
   checkNotGithubGroup,
   usesDigitalCredential,
   usesBcServicesCard,
+  checkSocial,
 } from '@app/helpers/integration';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
@@ -218,7 +219,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     }
 
     if (newData.authType !== 'browser-login') processed.publicAccess = false;
-
+    // Reset confirmation when removing social IDP
+    if (!devIdps.some(checkSocial)) processed.confirmSocial = false;
     // If user switches to team integration before submitting then set project lead to false
     if (togglingTeamToTrue) {
       if (processed.projectLead === true && !isNew) processed.projectLead = false;

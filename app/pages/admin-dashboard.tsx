@@ -29,6 +29,7 @@ const idpOptions = [
   { value: 'github', label: 'GitHub' },
   { value: 'digitalcredential', label: 'Digital Credential' },
   { value: 'bcservicescard', label: 'BC Services Card' },
+  { value: 'social', label: 'Social' },
 ];
 
 const archiveStatusOptions = [
@@ -212,6 +213,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       onChange: setSelectedEnvironments,
       options: environmentOptions,
       label: 'Environments',
+      key: 'environments',
     },
     {
       value: workflowStatus,
@@ -219,6 +221,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       onChange: setWorkflowStatus,
       options: workflowStatusOptions,
       label: 'Workflow Status',
+      key: 'workflowStatus',
     },
     {
       value: archiveStatus,
@@ -227,6 +230,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       options: archiveStatusOptions,
       defaultValue: archiveStatus,
       label: 'Archive Status',
+      key: 'archiveStatus',
     },
   ]);
 
@@ -265,10 +269,10 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   };
 
   useEffect(() => {
-    if (!session.isAdmin && !isIdpApprover(session)) {
+    if (!session?.isAdmin && !isIdpApprover(session)) {
       router.push('/my-dashboard');
     } else {
-      if (session.isAdmin && !columnFilters.find((v: any) => v.label === 'IDPs')) {
+      if (session?.isAdmin && !columnFilters.find((v: any) => v.label === 'IDPs')) {
         setColumnFilters([
           ...columnFilters,
           {
@@ -277,6 +281,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
             onChange: setSelectedIdp,
             options: idpOptions,
             label: 'IDPs',
+            key: 'idps',
           },
         ]);
       }
@@ -383,7 +388,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                 archived: row.archived ? 'Deleted' : 'Active',
                 environments: row.environments,
                 clientId: row.clientId,
-                actions: session.isAdmin ? (
+                actions: session?.isAdmin ? (
                   <ActionButtonContainer>
                     <ActionButton
                       icon={faEye}
