@@ -65,14 +65,14 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     setActiveTeamId(team?.id);
     setTeam(team);
     if (team) {
-      await updateServiceAccounts(team.id!);
-      setCanDeleteTeam((activeTeam && Number(activeTeam.integrationCount) === 0) || false);
+      await updateServiceAccounts(team);
+      setCanDeleteTeam((team && Number(team.integrationCount) === 0) || false);
     }
   };
 
-  const updateServiceAccounts = async (id: number) => {
-    if (activeTeam?.role === 'admin') {
-      const [data, error] = await getServiceAccounts(id);
+  const updateServiceAccounts = async (team: Team | null) => {
+    if (team?.role === 'admin') {
+      const [data, error] = await getServiceAccounts(team.id);
 
       if (error) {
         alert.show({ variant: 'danger', content: 'Failed to load service accounts for team. Please refresh.' });
