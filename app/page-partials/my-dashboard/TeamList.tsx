@@ -66,7 +66,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     setTeam(team);
     if (team) {
       await updateServiceAccounts(team);
-      setCanDeleteTeam(Number(team.integrationCount) === 0 || false);
+      setCanDeleteTeam(Number(team.integrationCount) === 0);
     }
   };
 
