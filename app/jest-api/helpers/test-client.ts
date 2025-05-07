@@ -82,35 +82,39 @@ export function extractRouteParams(url: string): Record<string, string> {
       params[paramName] = urlSegments[index] || '';
     }
   });
-
   return params;
 }
 
 export const testClient = (handler: NextApiHandler, bodyParser = true) => {
-  return request.agent(
-    createServer((req: IncomingMessage, res: ServerResponse) => {
-      const [url, queryParams] = req.url!.split('?');
-      const params = new URLSearchParams(queryParams);
-      const query = Object.fromEntries(params);
+  try {
+    return request.agent(
+      createServer((req: IncomingMessage, res: ServerResponse) => {
+        const [url, queryParams] = req.url!.split('?');
+        const params = new URLSearchParams(queryParams);
+        const query = Object.fromEntries(params);
 
-      const customConfig = {
-        api: {
-          bodyParser,
-        },
-      };
+        const customConfig = {
+          api: {
+            bodyParser,
+          },
+        };
 
-      return apiResolver(
-        req,
-        res,
-        { ...query, ...extractRouteParams(url) },
-        Object.assign(handler, { config: customConfig }),
-        {
-          previewModeEncryptionKey: '',
-          previewModeId: '',
-          previewModeSigningKey: '',
-        },
-        true,
-      );
-    }),
-  );
+        return apiResolver(
+          req,
+          res,
+          { ...query, ...extractRouteParams(url) },
+          Object.assign(handler, { config: customConfig }),
+          {
+            previewModeEncryptionKey: '',
+            previewModeId: '',
+            previewModeSigningKey: '',
+          },
+          true,
+        );
+      }),
+    );
+  } catch (err) {
+    console.log('EXCEPTION : ', err);
+    throw new Error('Error creating test client');
+  }
 };

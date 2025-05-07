@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     if (req.method === 'GET') {
       await logsRateLimiter(req, res);
-
+      if (res.headersSent) return;
       const userSession = await authenticate(req.headers);
       if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
       const { session } = await processUserSession(userSession as Session);

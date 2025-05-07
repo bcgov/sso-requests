@@ -3,6 +3,8 @@ import { API_BASE_PATH } from '../constants';
 import { IntegrationData, QUEUE_ACTION } from '@app/shared/interfaces';
 import { models } from '@app/shared/sequelize/models/models';
 import requestsHandler from '@app/pages/api/requests';
+import requestMetricsHandler from '@app/pages/api/requests/[id]/metrics';
+import requestsRestoreHandler from '@app/pages/api/requests/[id]/restore';
 import requestHandler from '@app/pages/api/request';
 import requestsAllHandler from '@app/pages/api/requests-all';
 import kcBulkRolesHandler from '@app/pages/api/keycloak/bulk-roles';
@@ -70,11 +72,13 @@ export const deleteIntegration = async (integrationId: number) => {
 };
 
 export const restoreIntegration = async (integrationId: number, email?: string) => {
-  return await testClient(requestsHandler).post(`${API_BASE_PATH}/requests/${integrationId}/restore`).send({ email });
+  return await testClient(requestsRestoreHandler)
+    .post(`${API_BASE_PATH}/requests/${integrationId}/restore`)
+    .send({ email });
 };
 
 export const fetchMetrics = async (integrationId: number, fromDate: string, toDate: string, env: string) => {
-  return await testClient(requestsHandler).get(
+  return await testClient(requestMetricsHandler).get(
     `${API_BASE_PATH}/requests/${integrationId}/metrics?fromDate=${fromDate}&toDate=${toDate}&env=${env}`,
   );
 };

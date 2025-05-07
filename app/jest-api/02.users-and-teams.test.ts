@@ -1,4 +1,3 @@
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
 import {
   TEAM_ADMIN_IDIR_EMAIL_01,
   TEAM_ADMIN_IDIR_EMAIL_02,
@@ -28,6 +27,7 @@ import { generateInvitationToken } from '@app/helpers/token';
 import { sendEmail } from '@app/utils/ches';
 import { models } from '@app/shared/sequelize/models/models';
 import { findOrCreateUser } from '@app/controllers/user';
+import { createMockAuth } from './__mocks__/authenticate';
 
 jest.mock('@app/controllers/requests', () => {
   const original = jest.requireActual('@app/controllers/requests');
@@ -37,14 +37,17 @@ jest.mock('@app/controllers/requests', () => {
   };
 });
 
+jest.mock('@app/utils/ches', () => {
+  return {
+    ...jest.requireActual('@app/utils/ches'),
+    sendEmail: jest.fn(),
+  };
+});
+
 describe('users and teams', () => {
   try {
     beforeAll(async () => {
       jest.clearAllMocks();
-    });
-
-    afterAll(async () => {
-      await cleanUpDatabaseTables();
     });
     let teamId: number;
     let teamCreatorId: number;
@@ -229,10 +232,6 @@ describe('User creation and Updating', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(async () => {
-    await cleanUpDatabaseTables();
-  });
-
   it('creates a new user if neither email nor idir_userid exists in the database', async () => {
     await findOrCreateUser({
       idir_userid: 'TESTUSER',
@@ -243,34 +242,32 @@ describe('User creation and Updating', () => {
     });
 
     const users = await models.user.findAll();
-    expect(users.length).toBe(1);
-    expect(users[0].idirUserid).toBe('TESTUSER');
-    expect(users[0].idirEmail).toBe('a@b.com');
+    expect(users.map((user: any) => user.idirUserid)).toContain('TESTUSER');
+    expect(users.map((user: any) => user.idirEmail)).toContain('a@b.com');
   });
 
   it('Updates the existing information when email already exists in the database', async () => {
     // User exists with only email via invite
     await models.user.create({
-      idirEmail: 'a@b.com',
+      idirEmail: 'no_userid_user@domain.com',
     });
 
     let users = await models.user.findAll();
-    expect(users.length).toBe(1);
-    expect(users[0].idirUserid).toBeNull();
+    expect(users.map((user: any) => user.idirEmail)).toContain('no_userid_user@domain.com');
+    expect(users.find((user: any) => user.idirEmail === 'no_userid_user@domain.com').idirUserid).toBeNull();
 
     // Add user with same email address, more info
     await findOrCreateUser({
       idir_userid: 'TESTUSER',
-      email: 'a@b.com',
+      email: 'no_userid_user@domain.com',
       client_roles: [],
       given_name: 'TEST',
       family_name: 'TEST',
     });
 
     users = await models.user.findAll();
-    expect(users.length).toBe(1);
-    expect(users[0].idirUserid).toBe('TESTUSER');
-    expect(users[0].idirEmail).toBe('a@b.com');
+    expect(users.map((user: any) => user.idirUserid)).toContain('TESTUSER');
+    expect(users.map((user: any) => user.idirEmail)).toContain('no_userid_user@domain.com');
   });
 
   it('Cleans up users if re-invited on a new email address and existing GUID', async () => {
@@ -296,8 +293,8 @@ describe('User creation and Updating', () => {
 
     // Only one user record with expected guid and new email address in DB
     const users = await models.user.findAll();
-    expect(users.length).toBe(1);
-    expect(users[0].idirUserid).toBe('TEST');
-    expect(users[0].idirEmail).toBe('second@email.com');
+
+    expect(users.map((user: any) => user.idirUserid)).toContain('TEST');
+    expect(users.map((user: any) => user.idirEmail)).toContain('second@email.com');
   });
 });

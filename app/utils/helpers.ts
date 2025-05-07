@@ -22,22 +22,8 @@ import compact from 'lodash.compact';
 import { diff } from 'deep-diff';
 import { validateForm } from './validate';
 import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
-import getConfig from 'next/config';
 import { NextApiResponse } from 'next';
 import { findOrCreateUser } from '@app/controllers/user';
-
-const { serverRuntimeConfig } = getConfig();
-const {
-  bcsc_registration_base_url_dev,
-  bcsc_registration_base_url_test,
-  bcsc_registration_base_url_prod,
-  bcsc_initial_access_token_dev,
-  bcsc_initial_access_token_test,
-  bcsc_initial_access_token_prod,
-  keycloak_v2_dev_url,
-  keycloak_v2_test_url,
-  keycloak_v2_prod_url,
-} = serverRuntimeConfig;
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const gold_realms: GoldIDPOption = {
@@ -590,19 +576,19 @@ export const getBCSCEnvVars = (env: string) => {
   let kcBaseUrl: string = '';
 
   if (env === 'dev') {
-    bcscBaseUrl = bcsc_registration_base_url_dev;
-    accessToken = bcsc_initial_access_token_dev;
-    kcBaseUrl = keycloak_v2_dev_url;
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_DEV || '';
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_DEV || '';
+    kcBaseUrl = process.env.KEYCLOAK_V2_DEV_URL || '';
   }
   if (env === 'test') {
-    bcscBaseUrl = bcsc_registration_base_url_test;
-    accessToken = bcsc_initial_access_token_test;
-    kcBaseUrl = keycloak_v2_test_url;
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_TEST || '';
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_TEST || '';
+    kcBaseUrl = process.env.KEYCLOAK_V2_TEST_URL || '';
   }
   if (env === 'prod') {
-    bcscBaseUrl = bcsc_registration_base_url_prod;
-    accessToken = bcsc_initial_access_token_prod;
-    kcBaseUrl = keycloak_v2_prod_url;
+    bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_PROD || '';
+    accessToken = process.env.BCSC_INITIAL_ACCESS_TOKEN_PROD || '';
+    kcBaseUrl = process.env.KEYCLOAK_V2_PROD_URL || '';
   }
   return {
     bcscBaseUrl,

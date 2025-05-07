@@ -78,7 +78,6 @@ import getConfig from 'next/config';
 
 const { publicRuntimeConfig = {}, serverRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
-const { node_env } = serverRuntimeConfig;
 
 const APP_ENV = app_env || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -494,7 +493,6 @@ export const updateRequest = async (
     if (!current) throw new Error('Request not found');
     const getCurrentValue = () => current.get({ plain: true, clone: true });
 
-    console.log('🚀 ~ getCurrentValue:', getCurrentValue());
     if (current.status === 'applied' && !submit) {
       throw Error('Temporary updates not allowed for applied requests.');
     }
@@ -736,7 +734,7 @@ export const updateRequest = async (
       }
 
       await createEvent(eventData);
-      await processIntegrationRequest(updated, false, existingClientId, addingProd);
+      const a = await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
       updated = await getAllowedRequest(session, data?.id!);
     }
@@ -1112,7 +1110,7 @@ export const processIntegrationRequest = async (
     payload.browserFlowOverride = browserFlowAlias;
   }
 
-  if (['development', 'production'].includes(node_env)) {
+  if (['development', 'production'].includes(process.env.NODE_ENV)) {
     return await standardClients(payload, restore, existingClientId, addingProd);
   }
 };

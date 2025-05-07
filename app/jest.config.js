@@ -18,4 +18,5 @@ module.exports = {
   rootDir: '.',
   verbose: true,
   coverageReporters: ['json', 'html'],
+  testMatch: ['<rootDir>/jest/**/?(*.)+(spec|test).+(ts|tsx|js)'],
 };

@@ -25,9 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json(result);
     } else if (req.method === 'PUT') {
       const { submit } = req.query || {};
-      console.log('🚀 ~ handler ~ req.query:', req.query);
-      console.log('🚀 ~ handler ~ req.body:', req.body);
-
       const result = await updateRequest(session as Session, req.body, session?.user as User, submit as string);
       return res.status(200).json(result);
     } else if (req.method === 'DELETE') {

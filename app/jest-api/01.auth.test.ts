@@ -1,8 +1,8 @@
-import { cleanUpDatabaseTables, clearMockAuth, createMockAuth } from './helpers/utils';
 import { getAppApiHeartBeat } from './helpers/modules/common';
 import { createIntegration, getIntegrations, getListOfIntegrations } from './helpers/modules/integrations';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
-import { authenticate } from '@app/utils/authenticate';
+import { clearMockAuth, createMockAuth } from './__mocks__/authenticate';
+import { generateRandomName } from './helpers/utils';
 
 jest.mock('@app/controllers/requests', () => {
   const original = jest.requireActual('@app/controllers/requests');
@@ -20,10 +20,6 @@ describe('authentication', () => {
 
     afterEach(async () => {
       jest.clearAllMocks();
-    });
-
-    afterAll(async () => {
-      await cleanUpDatabaseTables();
     });
 
     it('should get success response from heartbeat endpoint', async () => {
@@ -46,7 +42,7 @@ describe('authentication', () => {
 
     it('should reject the non-logged user to create an integration', async () => {
       clearMockAuth();
-      const result = await createIntegration({});
+      const result = await createIntegration({ projectName: generateRandomName() });
       expect(result.status).toEqual(401);
       expect(result.body.message).toContain('not authorized');
     });

@@ -1,17 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { deleteStaleUsers } from '@app/controllers/user';
-import getConfig from 'next/config';
 import { handleError } from '@app/utils/helpers';
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { api_auth_secret } = serverRuntimeConfig;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'POST') {
       const { Authorization, authorization } = req.headers || {};
       const authHeader = Authorization || authorization;
-      if (!authHeader || authHeader !== api_auth_secret) {
+      if (!authHeader || authHeader !== process.env.API_AUTH_SECRET) {
         return res.status(401).json({ success: false, message: 'not authorized' });
       }
       const result = await deleteStaleUsers(req.body);

@@ -12,7 +12,7 @@ module.exports = createJestConfig(customJestConfig);
 module.exports = {
   rootDir: '.',
   preset: 'ts-jest/presets/js-with-ts',
-  testMatch: ['**/?(*.)+(spec|test).+(ts|tsx|js)'],
+  testMatch: ['<rootDir>/jest-api/**/?(*.)+(spec|test).+(ts|tsx|js)'],
   transform: {
     '\\.[jt]sx?$': 'babel-jest',
     // IMPORTANT: js is here intentionally to transform js files with ES Module syntax. The overriding config file allows js.

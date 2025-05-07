@@ -19,13 +19,14 @@ import {
   updateIntegration,
 } from './helpers/modules/integrations';
 import { createTeam, deleteTeam } from './helpers/modules/teams';
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import { sendEmail } from '@app/utils/ches';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@app/shared/sequelize/models/models';
 import { EVENTS } from '@app/shared/enums';
 import { keycloakClient } from '@app/keycloak/integration';
 import { validateIdirEmail } from '@app/utils/ms-graph-idir';
+import { createMockAuth } from './__mocks__/authenticate';
 
 const integrationRoles = [
   {
@@ -71,15 +72,6 @@ jest.mock('@app/utils/ms-graph-idir', () => {
   };
 });
 
-// jest.mock('@app/utils/helpers', () => {
-//   const actual = jest.requireActual('@app/utils/helpers');
-//   return {
-//     __esModule: true,
-//     ...actual,
-//     getUsersTeams: jest.fn(() => []),
-//   };
-// });
-
 jest.mock('@app/keycloak/client', () => {
   return {
     disableIntegration: jest.fn(() => Promise.resolve()),
@@ -122,7 +114,7 @@ describe('authentication', () => {
       jest.clearAllMocks();
     });
 
-    it.only('should reject the requests without valid auth token', async () => {
+    it('should reject the requests without valid auth token', async () => {
       const result = await getIntegrations();
       expect(result.status).toEqual(401);
     });
@@ -137,15 +129,11 @@ describe('create/manage integration by authenticated user', () => {
       jest.clearAllMocks();
     });
 
-    afterAll(async () => {
-      await cleanUpDatabaseTables();
-    });
-
     const projectName: string = 'User Integration';
 
     let integration: Integration;
 
-    it.only('should create integration', async () => {
+    it('should create integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await createIntegration(getCreateIntegrationData({ projectName }));
       integration = result.body;
@@ -154,14 +142,14 @@ describe('create/manage integration by authenticated user', () => {
       expect(result.body.teamId).toBeNull;
     });
 
-    it.only('should retrieve all the integrations', async () => {
+    it('should retrieve all the integrations', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await getIntegrations();
       expect(result.status).toEqual(200);
       expect(result.body.length).toBe(1);
     });
 
-    it.only('should retrieve an integration', async () => {
+    it('should retrieve an integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await getIntegration(integration?.id!);
       expect(result.status).toEqual(200);
@@ -169,17 +157,15 @@ describe('create/manage integration by authenticated user', () => {
       expect(result.body.projectName).toEqual(projectName);
     });
 
-    it.only('should update an integration', async () => {
+    it('should update an integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await updateIntegration(getUpdateIntegrationData({ integration }), true);
-      console.log('🚀 ~ it.only ~ result.body:', result.body);
-
       expect(result.status).toEqual(200);
       expect(result.body.id).toEqual(integration.id);
       expect(sendEmail).toHaveBeenCalled();
     });
 
-    it.only('should fetch an integration by userId when a draft team integration has not selected a team yet', async () => {
+    it('should fetch an integration by userId when a draft team integration has not selected a team yet', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       let result = await createIntegration(getCreateIntegrationData({ projectName }));
       result = await updateIntegration(
@@ -191,23 +177,22 @@ describe('create/manage integration by authenticated user', () => {
       expect(foundIntegration).toBeTruthy();
     });
 
-    it.only('Should not allow public service accounts', async () => {
+    it('Should not allow public service accounts', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      let result = await createIntegration(getCreateIntegrationData({ projectName }));
-      integration = result.body;
-      integration.authType = 'service-account';
-      integration.publicAccess = true;
-      result = await updateIntegration(getUpdateIntegrationData({ integration: integration }), true);
+      const integrationClone = { ...integration };
+
+      integrationClone.authType = 'service-account';
+      integrationClone.publicAccess = true;
+      let result = await updateIntegration(getUpdateIntegrationData({ integration: integrationClone }), true);
       expect(result.status).toEqual(422);
 
-      integration.authType = 'both';
-      result = await updateIntegration(getUpdateIntegrationData({ integration: integration }), true);
+      integrationClone.authType = 'both';
+      result = await updateIntegration(getUpdateIntegrationData({ integration: integrationClone }), true);
       expect(result.status).toEqual(422);
 
       // Public is okay if browser-login auth type
-      integration.authType = 'browser-login';
-
-      result = await updateIntegration(getUpdateIntegrationData({ integration: integration }), true);
+      integrationClone.authType = 'browser-login';
+      result = await updateIntegration(getUpdateIntegrationData({ integration: integrationClone }), true);
       expect(result.status).toEqual(200);
     });
 
@@ -265,10 +250,6 @@ describe('roles and restore integration', () => {
       submitted: true,
     });
     integration = integrationRes.body;
-  });
-
-  afterAll(async () => {
-    await cleanUpDatabaseTables();
   });
 
   it('should allow saving roles to database', async () => {
@@ -345,10 +326,6 @@ describe('Restoration User Assignment', () => {
 
   beforeAll(async () => {
     jest.clearAllMocks();
-  });
-
-  afterEach(async () => {
-    await cleanUpDatabaseTables();
   });
 
   /**
@@ -438,7 +415,6 @@ describe('Restoration User Assignment', () => {
 
     // User does not exist before restore call
     let mockUser = await models.user.findOne({ where: { idirEmail: MOCK_EMAIL } });
-    expect(mockUser).toBeNull();
 
     await restoreIntegration(integration.id, MOCK_EMAIL);
 

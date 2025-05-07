@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { session } = await processUserSession(userSession as Session);
 
     if (req.method === 'GET') {
-      const integrations = await findMyOrTeamIntegrationsByService(session?.user?.id as number);
+      const integrations = await findMyOrTeamIntegrationsByService(Number(session?.user?.id));
       return res.status(200).json({ ...session?.user, integrations });
     } else if (req.method === 'POST') {
       const result = await updateProfile(session, req.body);
