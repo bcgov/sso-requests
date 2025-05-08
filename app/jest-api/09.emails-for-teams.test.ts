@@ -31,12 +31,12 @@ jest.mock('@app/helpers/token', () => {
 });
 
 describe('emails for teams', () => {
+  let emailList: any = [];
+  let team: any = {};
+
   afterAll(async () => {
     await cleanUpDatabaseTables();
   });
-
-  let emailList: any = [];
-  let team: any = {};
 
   it('should create a team', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);

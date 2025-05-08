@@ -1,4 +1,4 @@
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import * as IdpModule from '@app/keycloak/idp';
 import * as ClientScopeModule from '@app/keycloak/clientScopes';
 import { buildGitHubRequestData, createBCSCIntegration } from '@app/controllers/requests';
@@ -7,6 +7,7 @@ import { bcscIdpMappers } from '@app/utils/constants';
 import { submitNewIntegration } from './helpers/modules/integrations';
 import { IntegrationData } from '@app/shared/interfaces';
 import { getDefaultClientScopes } from '@app/keycloak/integration';
+import { createMockAuth } from './__mocks__/authenticate';
 
 jest.mock('@app/controllers/bc-services-card', () => {
   return {

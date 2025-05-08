@@ -1,5 +1,6 @@
 module.exports = {
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/', '<rootDir>/cypress/'],
+  testMatch: ['<rootDir>/jest/**/?(*.)+(spec|test).+(ts|tsx|js)'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/$1',

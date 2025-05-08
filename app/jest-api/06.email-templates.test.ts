@@ -37,6 +37,7 @@ jest.mock('@app/controllers/bc-services-card', () => {
 describe('Email template snapshots', () => {
   let teamId: number;
   beforeAll(async () => {
+    await cleanUpDatabaseTables();
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     const result = await createTeam(postTeam);
     teamId = result.body.id;
@@ -49,6 +50,7 @@ describe('Email template snapshots', () => {
   afterAll(async () => {
     await cleanUpDatabaseTables();
   });
+
   it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
       integration: formDataDevTest,

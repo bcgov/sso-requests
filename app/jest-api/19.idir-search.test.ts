@@ -1,4 +1,4 @@
-import { createMockAuth } from './helpers/utils';
+import { createMockAuth } from './__mocks__/authenticate';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { searchIdirUsers } from './helpers/modules/users';
 import { searchIdirEmail } from '@app/utils/ms-graph-idir';

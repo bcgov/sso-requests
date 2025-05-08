@@ -1,7 +1,8 @@
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { getListOfIntegrations } from './helpers/modules/integrations';
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import { buildIntegration } from './helpers/modules/common';
+import { createMockAuth } from './__mocks__/authenticate';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');

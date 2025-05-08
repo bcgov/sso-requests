@@ -5,23 +5,11 @@ const query =
 
 // by default it truncates all the tables
 export const cleanUpDatabaseTables = async (dropTables: boolean = false) => {
-  console.log('Starting DB cleanup...');
-  const tableNames = [
-    'users_teams',
-    'events',
-    'users',
-    'requests',
-    'SequelizeMeta',
-    'surveys',
-    'request_roles',
-    'bcsc_clients',
-    'teams',
-    'request_queues',
-  ];
+  let tableNames: any = await sequelize.query(query);
+  tableNames = tableNames.map((v: any) => v[0]);
   for (const table of tableNames) {
-    await sequelize.query(`${dropTables ? 'DROP' : 'TRUNCATE'} TABLE "${table}" RESTART IDENTITY CASCADE`);
+    await sequelize.query(`${dropTables ? 'DROP' : 'TRUNCATE'} TABLE "${table}" CASCADE`);
   }
-  console.log('DB cleanup completed!');
 };
 
 export const activateTeamPendingUsers = async (teamId: number) => {

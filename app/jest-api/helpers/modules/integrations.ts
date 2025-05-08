@@ -31,7 +31,10 @@ export const getIntegrations = async () => {
 };
 
 export const getListOfIntegrations = async (data?: { searchField: string[]; searchKey: string }) => {
-  return await testClient(requestsAllHandler).post(`${API_BASE_PATH}/requests-all`).type('json').send();
+  return await testClient(requestsAllHandler)
+    .post(`${API_BASE_PATH}/requests-all`)
+    .send(data)
+    .set('Accept', 'application/json');
 };
 
 export const updateIntegration = async (data: IntegrationData, submit: boolean = false) => {
@@ -68,7 +71,7 @@ export const createCompositeRoles = async (data: {
 };
 
 export const deleteIntegration = async (integrationId: number) => {
-  return await testClient(requestsHandler).del(`${API_BASE_PATH}/requests?id=${integrationId}`);
+  return await testClient(requestsHandler).delete(`${API_BASE_PATH}/requests?id=${integrationId}`);
 };
 
 export const restoreIntegration = async (integrationId: number, email?: string) => {

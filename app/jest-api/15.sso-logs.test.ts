@@ -1,10 +1,11 @@
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import { getUpdateIntegrationData } from './helpers/fixtures';
 import { models } from '@app/shared/sequelize/models/models';
 import { queryGrafana } from '@app/utils/grafana';
 import { EVENTS } from '@app/shared/enums';
 import * as rateLimiters from '@app/utils/rate-limiters';
 import { getLogs } from './helpers/modules/logs';
+import { createMockAuth } from './__mocks__/authenticate';
 
 jest.mock('@app/utils/grafana', () => {
   return {

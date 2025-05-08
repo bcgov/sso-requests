@@ -28,6 +28,7 @@ import { sendEmail } from '@app/utils/ches';
 import { models } from '@app/shared/sequelize/models/models';
 import { findOrCreateUser } from '@app/controllers/user';
 import { createMockAuth } from './__mocks__/authenticate';
+import { cleanUpDatabaseTables } from './helpers/utils';
 
 jest.mock('@app/controllers/requests', () => {
   const original = jest.requireActual('@app/controllers/requests');
@@ -48,6 +49,10 @@ describe('users and teams', () => {
   try {
     beforeAll(async () => {
       jest.clearAllMocks();
+    });
+
+    afterAll(async () => {
+      await cleanUpDatabaseTables();
     });
     let teamId: number;
     let teamCreatorId: number;
@@ -230,6 +235,10 @@ describe('users and teams', () => {
 describe('User creation and Updating', () => {
   beforeAll(async () => {
     jest.clearAllMocks();
+  });
+
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
   });
 
   it('creates a new user if neither email nor idir_userid exists in the database', async () => {

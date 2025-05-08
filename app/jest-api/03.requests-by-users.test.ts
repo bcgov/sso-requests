@@ -114,6 +114,10 @@ describe('authentication', () => {
       jest.clearAllMocks();
     });
 
+    afterAll(async () => {
+      await cleanUpDatabaseTables();
+    });
+
     it('should reject the requests without valid auth token', async () => {
       const result = await getIntegrations();
       expect(result.status).toEqual(401);
@@ -127,6 +131,10 @@ describe('create/manage integration by authenticated user', () => {
   try {
     beforeAll(async () => {
       jest.clearAllMocks();
+    });
+
+    afterAll(async () => {
+      await cleanUpDatabaseTables();
     });
 
     const projectName: string = 'User Integration';

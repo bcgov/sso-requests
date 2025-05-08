@@ -1,11 +1,13 @@
 import { Status } from '@app/interfaces/types';
-import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { models } from '@app/shared/sequelize/models/models';
 import { IntegrationData } from '@app/shared/interfaces';
 import { DIT_ADDITIONAL_EMAIL_ADDRESS, DIT_EMAIL_ADDRESS } from '@app/shared/local';
 import { submitNewIntegration, updateIntegration } from './helpers/modules/integrations';
 import { EMAILS } from '@app/shared/enums';
+import { createMockAuth } from './__mocks__/authenticate';
+import { createMockSendEmail } from './__mocks__/mail';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');
@@ -113,6 +115,9 @@ describe('Digital Credential Validations', () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
   });
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
+  });
 
   it('Only allows Digital Credential as an IDP for OIDC integrations', async () => {
     const samlResult = await submitNewIntegration({ ...mockIntegration, protocol: 'saml' });
@@ -126,6 +131,10 @@ describe('Digital Credential Validations', () => {
 describe('Digital Credential Feature flag', () => {
   beforeAll(async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+  });
+
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
   });
 
   it('Does not allow digital credential as an IDP if feature flag is not included in env vars', async () => {

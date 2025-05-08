@@ -86,6 +86,10 @@ describe('roles and composites', () => {
     integration = integrationRes.body;
   });
 
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
+  });
+
   it('should allow saving roles to database', async () => {
     await createBulkRoles({ integrationId: integration?.id!, roles: integrationRoles });
     const dbRoles = await models.requestRole.findAll({

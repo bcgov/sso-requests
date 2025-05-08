@@ -2,7 +2,7 @@ import { getAppApiHeartBeat } from './helpers/modules/common';
 import { createIntegration, getIntegrations, getListOfIntegrations } from './helpers/modules/integrations';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { clearMockAuth, createMockAuth } from './__mocks__/authenticate';
-import { generateRandomName } from './helpers/utils';
+import { cleanUpDatabaseTables, generateRandomName } from './helpers/utils';
 
 jest.mock('@app/controllers/requests', () => {
   const original = jest.requireActual('@app/controllers/requests');
@@ -16,6 +16,10 @@ describe('authentication', () => {
   try {
     beforeAll(async () => {
       jest.clearAllMocks();
+    });
+
+    afterAll(async () => {
+      await cleanUpDatabaseTables();
     });
 
     afterEach(async () => {

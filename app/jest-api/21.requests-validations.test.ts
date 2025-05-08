@@ -11,12 +11,13 @@ import {
 } from './helpers/fixtures';
 import { createIntegration, updateIntegration } from './helpers/modules/integrations';
 import { createTeam, verifyTeamMember } from './helpers/modules/teams';
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import { Integration } from '@app/interfaces/Request';
 import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { generateInvitationToken } from '@app/helpers/token';
 import { models } from '@app/shared/sequelize/models/models';
+import { createMockAuth } from './__mocks__/authenticate';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');

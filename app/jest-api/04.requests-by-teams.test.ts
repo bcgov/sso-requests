@@ -58,6 +58,10 @@ describe('create/manage integrations by authenticated user', () => {
     teamId = result.body.id;
   });
 
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
+  });
+
   it('should verify team members added by the admin', async () => {
     createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
     const userRes = await getAuthenticatedUser();

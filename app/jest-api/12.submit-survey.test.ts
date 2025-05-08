@@ -1,7 +1,9 @@
-import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import { SSO_TEAM_IDIR_EMAIL, SSO_TEAM_IDIR_USER } from './helpers/fixtures';
 import { models } from '@app/shared/sequelize/models/models';
 import { createSurvey } from './helpers/modules/surveys';
+import { createMockAuth } from './__mocks__/authenticate';
+import { createMockSendEmail } from './__mocks__/mail';
 
 const surveyData = {
   rating: 1,

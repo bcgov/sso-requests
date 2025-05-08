@@ -1,6 +1,7 @@
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import { SSO_TEAM_IDIR_EMAIL, SSO_TEAM_IDIR_USER } from './helpers/fixtures';
 import { getAuthenticatedUser, updateProfile } from './helpers/modules/users';
+import { createMockAuth } from './__mocks__/authenticate';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');
@@ -15,7 +16,7 @@ describe('User Profile', () => {
     createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await cleanUpDatabaseTables();
   });
 

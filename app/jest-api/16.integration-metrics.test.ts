@@ -1,8 +1,9 @@
 import { TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, postTeam } from './helpers/fixtures';
-import { cleanUpDatabaseTables, createMockAuth } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import { buildIntegration } from './helpers/modules/common';
 import { Integration } from '@app/interfaces/Request';
 import { fetchMetrics } from './helpers/modules/integrations';
+import { createMockAuth } from './__mocks__/authenticate';
 
 jest.mock('@app/utils/grafana', () => {
   return {

@@ -6,7 +6,6 @@ import {
   SSO_ADMIN_EMAIL_01,
 } from './helpers/fixtures';
 import { deleteIntegration, updateIntegration } from './helpers/modules/integrations';
-import { cleanUpDatabaseTables } from './helpers/utils';
 import { Integration } from '@app/interfaces/Request';
 import { renderTemplate } from '@app/shared/templates';
 import { EMAILS } from '@app/shared/enums';
@@ -14,6 +13,7 @@ import { IDIM_EMAIL_ADDRESS, SOCIAL_APPROVAL_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } 
 import { buildIntegration } from './helpers/modules/common';
 import { createMockAuth } from './__mocks__/authenticate';
 import { createMockSendEmail } from './__mocks__/mail';
+import { cleanUpDatabaseTables } from './helpers/utils';
 
 jest.mock('@app/controllers/bc-services-card', () => {
   return {

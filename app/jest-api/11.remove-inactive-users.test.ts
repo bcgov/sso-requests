@@ -1,4 +1,4 @@
-import { cleanUpDatabaseTables, createMockAuth, createMockSendEmail } from './helpers/utils';
+import { cleanUpDatabaseTables } from './helpers/utils';
 import {
   SSO_TEAM_IDIR_EMAIL,
   SSO_TEAM_IDIR_USER,
@@ -18,6 +18,8 @@ import { EMAILS } from '@app/shared/enums';
 import { renderTemplate } from '@app/shared/templates';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { deleteIntegration } from './helpers/modules/integrations';
+import { createMockAuth } from './__mocks__/authenticate';
+import { createMockSendEmail } from './__mocks__/mail';
 
 const testUser: any = {
   username: TEAM_ADMIN_IDIR_USERNAME_01,
