@@ -1,5 +1,13 @@
 replicaCount: 1
 
+requestMonitorJob:
+  enabled: true
+  schedule: '0 7 * * *'
+  image:
+    repository: ghcr.io/bcgov/sso-requests-monitor
+    tag: dev
+    pullPolicy: Always
+
 image:
   repository: ghcr.io/bcgov/sso-requests
   tag: dev
@@ -42,8 +50,8 @@ patroni:
   replicaCount: 2
 
   additionalCredentials:
-   - username: ssorequests
-     password:
+    - username: ssorequests
+      password:
 
   walG:
     enabled: true

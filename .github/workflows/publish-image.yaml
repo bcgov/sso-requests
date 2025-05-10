@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - SSOTEAM-2108
     paths:
       - 'app/**'
       - 'Dockerfile'
@@ -31,6 +30,9 @@ jobs:
           cat >> $GITHUB_ENV <<EOF
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_URL=${{ secrets.DEV_KEYCLOAK_V2_DEV_URL }}
+          KEYCLOAK_V2_TEST_URL=${{ secrets.DEV_KEYCLOAK_V2_TEST_URL }}
+          KEYCLOAK_V2_PROD_URL=${{ secrets.DEV_KEYCLOAK_V2_PROD_URL }}
           KEYCLOAK_V2_DEV_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
           KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD }}
           KEYCLOAK_V2_TEST_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
@@ -53,6 +55,9 @@ jobs:
           cat >> $GITHUB_ENV <<EOF
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_URL=${{ secrets.TEST_KEYCLOAK_V2_DEV_URL }}
+          KEYCLOAK_V2_TEST_URL=${{ secrets.TEST_KEYCLOAK_V2_TEST_URL }}
+          KEYCLOAK_V2_PROD_URL=${{ secrets.TEST_KEYCLOAK_V2_PROD_URL }}
           KEYCLOAK_V2_DEV_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_DEV_USERNAME }}
           KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.TEST_KEYCLOAK_V2_DEV_PASSWORD }}
           KEYCLOAK_V2_TEST_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_TEST_USERNAME }}
@@ -76,6 +81,9 @@ jobs:
           cat >> $GITHUB_ENV <<EOF
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.PROD_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_URL=${{ secrets.PROD_KEYCLOAK_V2_DEV_URL }}
+          KEYCLOAK_V2_TEST_URL=${{ secrets.PROD_KEYCLOAK_V2_TEST_URL }}
+          KEYCLOAK_V2_PROD_URL=${{ secrets.PROD_KEYCLOAK_V2_PROD_URL }}
           KEYCLOAK_V2_DEV_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_DEV_USERNAME }}
           KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.PROD_KEYCLOAK_V2_DEV_PASSWORD }}
           KEYCLOAK_V2_TEST_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_TEST_USERNAME }}
@@ -198,5 +206,9 @@ jobs:
           --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
           --set envVars.redisHost="${{ env.REDIS_HOST }}" \
           --set envVars.ghAccessToken="${{ secrets.GH_ACCESS_TOKEN }}" \
-          --set envVars.verifyUserSecret="${{ env.VERIFY_USER_SECRET }}"
+          --set envVars.verifyUserSecret="${{ env.VERIFY_USER_SECRET }}" \
+          --set envVars.rc_webhook_url="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
+          --set envVars.keycloakV2DevUrl="${{ env.KEYCLOAK_V2_DEV_URL }}" \
+          --set envVars.keycloakV2TestUrl="${{ env.KEYCLOAK_V2_TEST_URL }}" \
+          --set envVars.keycloakV2ProdUrl="${{ env.KEYCLOAK_V2_PROD_URL }}"
         working-directory: ./helm

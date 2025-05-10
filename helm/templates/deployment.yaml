@@ -45,6 +45,11 @@ spec:
                 secretKeyRef:
                   name: {{ printf "%s-patroni-appusers" (include "..fullname" .) }}
                   key: password-appuser1
+            - name: KEYCLOAK_V2_DEV_URL
+              valueFrom:
+              secretKeyRef:
+                name: {{ include "..fullname" . }}
+                key: keycloak-v2-dev-url
             - name: KEYCLOAK_V2_DEV_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -55,6 +60,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: keycloak-v2-dev-password
+            - name: KEYCLOAK_V2_PROD_URL
+              valueFrom:
+              secretKeyRef:
+                name: {{ include "..fullname" . }}
+                key: keycloak-v2-prod-url
             - name: KEYCLOAK_V2_PROD_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -65,6 +75,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: keycloak-v2-prod-password
+            - name: KEYCLOAK_V2_TEST_URL
+              valueFrom:
+              secretKeyRef:
+                name: {{ include "..fullname" . }}
+                key: keycloak-v2-test-url
             - name: KEYCLOAK_V2_TEST_USERNAME
               valueFrom:
                 secretKeyRef:

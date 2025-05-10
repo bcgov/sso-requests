@@ -1,0 +1,29 @@
+{
+  "name": "request-monitor",
+  "version": "1.0.0",
+  "description": "Function to apply any request changes from the monitor",
+  "main": "index.js",
+  "scripts": {
+    "compile": "./node_modules/.bin/tsc && ./node_modules/.bin/tsc-alias",
+    "start": "node ./build/main.js",
+    "test": "jest --config ./jest.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/http-errors": "^2.0.4",
+    "@types/jest": "^29.5.14",
+    "@types/pg": "^8.10.9",
+    "dotenv": "^16.5.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "http-errors": "^2.0.0",
+    "pg": "^8.15.6",
+    "tsc-alias": "^1.8.16"
+  }
+}

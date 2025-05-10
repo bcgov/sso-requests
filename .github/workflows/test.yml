@@ -44,13 +44,9 @@ jobs:
       - name: Install dependencies for frontend
         run: make app_install
 
-      - name: Install dependencies for backend
-        run: make server_install
-
       - name: Run frontend unit tests
         run: |
           yarn test --coverage
-          yarn build
         working-directory: ./app
 
       - name: Setup postgres
@@ -68,8 +64,8 @@ jobs:
           PGUSER: postgres
           DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
         run: |
-          yarn test --coverage
-        working-directory: ./lambda
+          yarn test-api --coverage
+        working-directory: ./app
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
