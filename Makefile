@@ -37,6 +37,10 @@ setup_env:
 app_test:
 	yarn --cwd ./app/jest test --collectCoverage
 
+.PHONY: api_test
+api_test:
+	yarn --cwd ./app/jest-api test-api --collectCoverage
+
 .PHONY: app
 app:
 	yarn --cwd ./app dev
