@@ -71,4 +71,12 @@ module.exports = {
   // basePath has to start with a /
   // basePath has to be either an empty string or a path prefix
   basePath: BASE_PATH,
+  webpack: (config, { webpack }) => {
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^pg-native$|^cloudflare:sockets$/,
+      }),
+    );
+    return config;
+  },
 };

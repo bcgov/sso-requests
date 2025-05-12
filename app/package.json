@@ -75,6 +75,7 @@
     "next": "^14.2.24",
     "pg": "^8.7.3",
     "pg-format": "^1.0.4",
+    "pg-hstore": "^2.3.4",
     "rate-limit-redis": "^4.2.0",
     "re-resizable": "6.9.9",
     "react": "18.2.0",
@@ -176,5 +177,13 @@
   },
   "resolutions": {
     "json5": ">=2.2.2"
+  },
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false,
+    "dns": false,
+    "net": false,
+    "tls": false
   }
 }

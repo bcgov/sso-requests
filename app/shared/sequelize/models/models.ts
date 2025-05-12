@@ -19,7 +19,7 @@ export let sequelize: Sequelize = {} as Sequelize;
 if (config.databaseUrl) {
   sequelize = new Sequelize(config.databaseUrl, config);
 } else if (config.use_env_variable && process.env[config.use_env_variable]) {
-  const sequelize = new Sequelize(process.env[config.use_env_variable]!, config);
+  sequelize = new Sequelize(process.env[config.use_env_variable]!, config);
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
