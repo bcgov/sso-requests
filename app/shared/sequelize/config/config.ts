@@ -45,13 +45,15 @@ const config = {
     dialect: 'postgres',
     dialectModule: pg,
     omitNull: true,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        // Ref.: https://github.com/brianc/node-postgres/issues/2009
-        rejectUnauthorized: false,
-      },
-    },
+    dialectOptions: process.env.LOCAL_DEV
+      ? {}
+      : {
+          ssl: {
+            require: true,
+            // Ref.: https://github.com/brianc/node-postgres/issues/2009
+            rejectUnauthorized: false,
+          },
+        },
     use_env_variable: 'DATABASE_URL',
     logging: false,
   },

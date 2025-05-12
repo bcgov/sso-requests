@@ -5,6 +5,7 @@ import { Integration } from '@app/interfaces/Request';
 import createHttpError from 'http-errors';
 import heartBeatHandler from '@app/pages/api/heartbeat';
 import { testClient } from '../test-client';
+import { expect } from '@jest/globals';
 
 export const getAppApiHeartBeat = async () => {
   return await testClient(heartBeatHandler).get(`${API_BASE_PATH}/heartbeat`);

@@ -152,7 +152,7 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ${{ env.GITHUB_REGISTRY }}/${{env.IMAGE_NAME}}:dev
+          tags: ${{ endsWith(github.ref, '/main') && format('{0}/{1}:{2}', env.GITHUB_REGISTRY, env.IMAGE_NAME, steps.release.outputs.tag_name) || steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
