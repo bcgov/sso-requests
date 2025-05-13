@@ -1,17 +1,14 @@
-export const restoreTeamApiAccount = `
-<h1>Your Pathfinder SSO CSS API Account has been restored.</h1>
-<strong>Please note that the client secret has been reset so you will have to update your application config to use this API
-  Account.</strong>
+<h1>Your Pathfinder SSO CSS API Account has been created.</h1>
 <p>
   <strong>Team Name: </strong>{{team.name}}<br />
   <strong>Submitted by: </strong>{{requester}}<br />
   {{#if integrations}}
-    <strong>Integrations:</strong>
+  <strong>Integrations:</strong>
   {{/if}}
 </p>
 <ul>
   {{#each integrations}}
-    <li>{{id}} - {{projectName}}</li>
+  <li>{{id}} - {{projectName}}</li>
   {{/each}}
 </ul>
 <p>
@@ -20,4 +17,3 @@ export const restoreTeamApiAccount = `
 </p>
 
 {{> footer }}
-`;

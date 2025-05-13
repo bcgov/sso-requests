@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import noop from 'lodash.noop';
 import { models } from '@app/shared/sequelize/models/models';
@@ -23,34 +24,29 @@ import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
 import { isNonProdDigitalCredentialRequest } from './helpers';
 import disableBcscIdp from './disable-bcsc-idp';
-import {
-  footer,
-  hr,
-  createBceidBottom,
-  createGithubBottom,
-  createBcServicesCardBottom,
-  createSocialBottom,
-  applyBceidBottom,
-  applyGithubBottom,
-  applySocialBottom,
-  applyBcServicesCardBottom,
-  integrationDetail,
-  bcscClientDetail,
-  dashboardLogin,
-  processingTime,
-  ssoUpdatesMailingListMessage,
-  bceidWarning,
-  createVerifiedCredentialBottom,
-  digitalCredentialInfoContact,
-} from './partials';
-import getConfig from 'next/config';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { app_url, api_url, app_env } = publicRuntimeConfig;
-
-const APP_URL = app_url;
-const API_URL = api_url;
-const APP_ENV = app_env;
+const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://localhost:8080/app';
+const APP_ENV = process.env.APP_ENV || 'development';
+const readTemplate = (templateKey) => fs.readFileSync(__dirname + `/${templateKey}.html`, 'utf8');
+const footer = readTemplate('footer');
+const hr = readTemplate('hr');
+const createBceidBottom = readTemplate('create-bceid-bottom');
+const createGithubBottom = readTemplate('create-github-bottom');
+const createDigitalCredentialBottom = readTemplate('create-verified-credential-bottom');
+const createBcServicesCardBottom = readTemplate('create-bc-services-card-bottom');
+const createSocialBottom = readTemplate('create-social-bottom');
+const applyBceidBottom = readTemplate('apply-bceid-bottom');
+const applyBcServicesCardBottom = readTemplate('apply-bc-services-card-bottom');
+const applyGithubBottom = readTemplate('apply-github-bottom');
+const applySocialBottom = readTemplate('apply-social-bottom');
+const integrationDetail = readTemplate('integration-detail');
+const bcscClientDetail = readTemplate('bcsc-client-detail');
+const dashboardLogin = readTemplate('dashboard-login');
+const processingTime = readTemplate('processing-time');
+const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
+const bceidWarning = readTemplate('bceid-warning');
+const digitalCredentialInfoContact = readTemplate('digital-credential-info-contact');
 
 const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string | undefined => {
   if (!primaryUsers?.length) {
@@ -86,7 +82,7 @@ Handlebars.registerPartial('footer', footer);
 Handlebars.registerPartial('hr', hr);
 Handlebars.registerPartial('createBceidBottom', createBceidBottom);
 Handlebars.registerPartial('createGithubBottom', createGithubBottom);
-Handlebars.registerPartial('createDigitalCredentialBottom', createVerifiedCredentialBottom);
+Handlebars.registerPartial('createDigitalCredentialBottom', createDigitalCredentialBottom);
 Handlebars.registerPartial('createBcServicesCardBottom', createBcServicesCardBottom);
 Handlebars.registerPartial('createSocialBottom', createSocialBottom);
 Handlebars.registerPartial('applyBceidBottom', applyBceidBottom);
@@ -106,7 +102,7 @@ Handlebars.registerHelper('capitalize', capitalize);
 Handlebars.registerHelper('isNonProdDigitalCredentialRequest', isNonProdDigitalCredentialRequest);
 
 const getBuilder = (key: string) => {
-  let builder = { render: (v: any) => v, send: noop };
+  let builder = { render: (v) => v, send: noop };
 
   switch (key) {
     case EMAILS.PROD_APPROVED:
@@ -194,7 +190,7 @@ export const renderTemplate = async (code: string, data: any): Promise<RenderRes
   return result;
 };
 
-const createEvent = async (data: any) => {
+const createEvent = async (data) => {
   try {
     await models.event.create(data);
   } catch (err) {
@@ -216,7 +212,7 @@ export const sendTemplate = async (code: string, data: any) => {
       createEvent({
         eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
         requestId: data.integration.id,
-        details: { emailCode: code, error: (err as Error)?.message || err },
+        details: { emailCode: code, error: err.message || err },
       });
     }
   }

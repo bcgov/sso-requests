@@ -1,4 +1,3 @@
-export const orphanIntegration = `
 <h3>Hello Team,</h3>
 <p>
   The requestor for the non-team integration with <strong>Request ID {{integration.id}}</strong> has been removed from
@@ -9,19 +8,18 @@ export const orphanIntegration = `
 <strong>Project name: </strong>{{integration.projectName}}<br />
 <strong>Environments: </strong>{{integration.envNames}}<br />
 {{#if integration.browserLoginEnabled}}
-  <strong>URIs:</strong>
-  <ul>
-    {{#each integration.redirectUris}}
-      <li>
-        {{this.name}}:
-        <ul>
-          {{#each this.uris}}
-            <li>{{this}}</li>
-          {{/each}}
-        </ul>
-      </li>
-    {{/each}}
-  </ul>
+<strong>URIs:</strong>
+<ul>
+  {{#each integration.redirectUris}}
+  <li>
+    {{this.name}}:
+    <ul>
+      {{#each this.uris}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </li>
+  {{/each}}
+</ul>
 {{/if}}
 <p>Thank you.<br />Pathfinder SSO Team</p>
-`;

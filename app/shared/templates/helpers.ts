@@ -1,4 +1,4 @@
-import { Op } from 'sequelize';
+import { Op, Model } from 'sequelize';
 import map from 'lodash.map';
 import compact from 'lodash.compact';
 import flatten from 'lodash.flatten';
@@ -10,8 +10,6 @@ import { getUserById } from '@app/queries/user';
 import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
 import path from 'path';
-import { User } from '@app/interfaces/team';
-import dynamic from 'next/dynamic';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -47,7 +45,7 @@ export const processRequest = async (integrationOrModel: any) => {
     authType = 'browser-login',
   } = integration;
 
-  const idps = integration?.devIdps;
+  const idps = integration.devIdps;
   const idpNames = idps?.map((idp) => idpMap[idp]).join(', ');
   const envNames = environments.map((env) => envMap[env]).join(', ');
   const redirectUris = environments.map((env) => ({
@@ -75,12 +73,12 @@ export const getAccountableEntity = async (integration: Integration) => {
     const team = integration.team ? integration.team : await getTeamById(Number(integration.teamId));
     return team?.name || '';
   } else {
-    const user = integration.user ? integration.user : await getUserById(integration?.userId as number);
+    const user = integration.user ? integration.user : await getUserById(integration?.userId!);
     return user?.displayName || '';
   }
 };
 
-export const getUserEmails = (user: User, primaryEmailOnly = false) =>
+export const getUserEmails = (user: any, primaryEmailOnly: boolean = false) =>
   compact(primaryEmailOnly ? [user.idirEmail] : [user.idirEmail, user.additionalEmail]);
 
 export const getTeamEmails = async (teamId: number, primaryEmailOnly = false, roles = ['member', 'admin']) => {
@@ -136,5 +134,9 @@ export const isNonProdDigitalCredentialRequest = (integration: IntegrationData) 
  * @param filename Name of the file
  */
 export const resolveAttachmentPath = (filename: string) => {
-  return path.resolve(process.cwd(), 'shared', 'templates', 'attachments', filename);
+  if (process.env.LOCAL_DEV === 'true') {
+    return path.resolve(__dirname, 'attachments', filename);
+  } else {
+    return path.resolve(__dirname, filename);
+  }
 };

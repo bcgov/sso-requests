@@ -1,15 +1,16 @@
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { Team, User } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
 import { getTeamEmails, processTeam, processUser } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { teamMemberDeletedAdmins } from './team-member-deleted-admins';
 
 const SUBJECT_TEMPLATE = `Team Admin has modified {{team.name}}`;
+const template = fs.readFileSync(__dirname + '/team-member-deleted-admins.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(teamMemberDeletedAdmins, { noEscape: true });
+const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   user: User;

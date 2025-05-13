@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
@@ -6,12 +7,12 @@ import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { restoreIntegration } from './restore-integration';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request restored`;
+const template = fs.readFileSync(__dirname + '/restore-integration.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(restoreIntegration, { noEscape: true });
+const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;

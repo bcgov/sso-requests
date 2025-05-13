@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { sendEmail } from '@app/utils/ches';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
@@ -5,12 +6,12 @@ import { User } from '@app/shared/interfaces';
 import { processUser } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { requestLimitExceeded } from './request-limit-exceeded';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request limit reached`;
+const template = fs.readFileSync(__dirname + '/request-limit-exceeded.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(requestLimitExceeded, { noEscape: true });
+const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   user: User;

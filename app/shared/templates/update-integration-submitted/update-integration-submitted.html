@@ -1,11 +1,10 @@
-export const updateIntegrationSubmitted = `
 <h3>Hello Pathfinder SSO friend,</h3>
 <p>Your Pathfinder SSO change request for integration ID {{integration.id}} is successfully submitted.</p>
 
 {{#if changes}}
-  <h4>Changes made:</h4>
-  <blockquote>{{changes}}</blockquote>
-  <hr />
+<h4>Changes made:</h4>
+<blockquote>{{changes}}</blockquote>
+<hr />
 {{/if}}
 
 <h4>Final details summary:</h4>
@@ -16,4 +15,3 @@ waitingGithubProdApproval}} {{> hr }} {{> createGithubBottom }} {{/if}}{{#if wai
 }} {{> createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}} {{> hr }} {{> createSocialBottom }}
 {{/if}} {{#if (isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer
 }}
-`;

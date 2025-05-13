@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
@@ -7,12 +8,12 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import { usesBceidProd, usesBcServicesCardProd } from '@app/helpers/integration';
-import { prodApproved } from './prod-approved';
 
 const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved and being processed (email 1 of 2)`;
+const template = fs.readFileSync(__dirname + '/prod-approved.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(prodApproved, { noEscape: true });
+const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;

@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { sendEmail } from '@app/utils/ches';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
@@ -5,12 +6,12 @@ import { User, UserSurveyInformation } from '@app/shared/interfaces';
 import { processUser } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { surveyCompletedNotification } from './survey-completed-notification';
 
 const SUBJECT_TEMPLATE = `Survey for {{triggerEvent}} submitted.`;
+const template = fs.readFileSync(__dirname + '/survey-completed-notification.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE);
-const bodyHandler = Handlebars.compile(surveyCompletedNotification);
+const bodyHandler = Handlebars.compile(template);
 
 const triggerEventDisplayMap = {
   addUserToRole: 'role mappings',

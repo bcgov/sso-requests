@@ -30,8 +30,6 @@ export const getSchemas = ({
   bcscPrivacyZones?: BcscPrivacyZone[];
   bcscAttributes?: BcscAttribute[];
 }) => {
-  console.log('here');
-
   if (!integration) integration = formData;
 
   const isApplied = integration.status === 'applied';

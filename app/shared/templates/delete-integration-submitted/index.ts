@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
@@ -19,12 +20,12 @@ import {
   usesDigitalCredential,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
-import { deleteIntegrationSubmitted } from './delete-integration-submitted';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO integration ID {{integration.id}} deleted`;
+const template = fs.readFileSync(__dirname + '/delete-integration-submitted.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(deleteIntegrationSubmitted, { noEscape: true });
+const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;

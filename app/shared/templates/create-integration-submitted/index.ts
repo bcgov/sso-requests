@@ -1,5 +1,6 @@
-import { processRequest, resolveAttachmentPath, getIntegrationEmails } from '../helpers';
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
+import { processRequest, resolveAttachmentPath, getIntegrationEmails } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
 import {
@@ -19,13 +20,12 @@ import {
   usesSocial,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
-import { createIntegrationSubmitted } from './create-integration-submitted';
-import { promises as fs } from 'fs';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request submitted & additional important information (email 1 of 2)`;
+const template = fs.readFileSync(__dirname + '/create-integration-submitted.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(createIntegrationSubmitted, { noEscape: true });
+const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
@@ -54,7 +54,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   if (usesSocial(integration)) {
     cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
     const filePath = resolveAttachmentPath('social-assessment.xlsx');
-    const buffer = await fs.readFile(filePath);
+    const buffer = fs.readFileSync(filePath);
     attachments.push({
       content: buffer.toString('base64'),
       filename: 'self-assessment.xlsx',

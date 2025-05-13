@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
@@ -5,12 +6,12 @@ import { sendEmail } from '@app/utils/ches';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { orphanIntegration } from './orphan-integration';
 
 const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} transfer of ownership`;
+const template = fs.readFileSync(__dirname + '/orphan-integration.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(orphanIntegration, { noEscape: true });
+const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;

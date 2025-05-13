@@ -1,5 +1,6 @@
-import { processRequest } from '../helpers';
+import * as fs from 'fs';
 import Handlebars from 'handlebars';
+import { processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
 import {
@@ -13,12 +14,12 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import { usesBcServicesCardProd, usesBceidProd, usesDigitalCredentialProd, usesSocial } from '@app/helpers/integration';
-import { createIntegrationApplied } from './create-integration-applied';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request approved (email 2 of 2)`;
+const template = fs.readFileSync(__dirname + '/create-integration-applied.html', 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
-const bodyHandler = Handlebars.compile(createIntegrationApplied, { noEscape: true });
+const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
@@ -56,7 +57,5 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
     ...rendered,
   });
 };
-
-export async function getStaticProps() {}
 
 export default { render, send };

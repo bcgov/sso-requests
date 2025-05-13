@@ -1,4 +1,3 @@
-export const createIntegrationApplied = `
 <h3>Hello Pathfinder SSO friend,</h3>
 <p>
   Your Pathfinder SSO request ID {{integration.id}} is successfully approved. {{#if hasBceid}} {{> bceidWarning}}
@@ -10,4 +9,3 @@ waitingGithubProdApproval}} {{> applyGithubBottom }} {{/if}}{{#if waitingBcServi
 createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}} {{> applySocialBottom }} {{/if}} {{>
 dashboardLogin }} {{> ssoUpdatesMailingListMessage }} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
 digitalCredentialInfoContact }} {{/if}} {{> footer }}
-`;
