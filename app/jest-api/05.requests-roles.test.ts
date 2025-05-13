@@ -4,7 +4,7 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@app/shared/sequelize/models/models';
 import { Integration } from '@app/interfaces/Request';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 const integrationRoles = [
   {

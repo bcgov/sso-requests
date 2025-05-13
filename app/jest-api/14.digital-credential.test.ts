@@ -6,8 +6,8 @@ import { IntegrationData } from '@app/shared/interfaces';
 import { DIT_ADDITIONAL_EMAIL_ADDRESS, DIT_EMAIL_ADDRESS } from '@app/shared/local';
 import { submitNewIntegration, updateIntegration } from './helpers/modules/integrations';
 import { EMAILS } from '@app/shared/enums';
-import { createMockAuth } from './__mocks__/authenticate';
-import { createMockSendEmail } from './__mocks__/mail';
+import { createMockAuth } from './mocks/authenticate';
+import { createMockSendEmail } from './mocks/mail';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');

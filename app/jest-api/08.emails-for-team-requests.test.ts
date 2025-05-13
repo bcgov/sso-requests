@@ -18,8 +18,8 @@ import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { generateInvitationToken } from '@app/helpers/token';
-import { createMockAuth } from './__mocks__/authenticate';
-import { createMockSendEmail } from './__mocks__/mail';
+import { createMockAuth } from './mocks/authenticate';
+import { createMockSendEmail } from './mocks/mail';
 
 jest.mock('@app/controllers/bc-services-card', () => {
   return {

@@ -1,4 +1,4 @@
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, formDataDev, formDataProd } from './helpers/fixtures';
 import { submitNewIntegration } from './helpers/modules/integrations';
 import { IntegrationData } from '@app/shared/interfaces';

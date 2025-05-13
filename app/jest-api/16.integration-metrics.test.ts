@@ -3,7 +3,7 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { buildIntegration } from './helpers/modules/common';
 import { Integration } from '@app/interfaces/Request';
 import { fetchMetrics } from './helpers/modules/integrations';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 jest.mock('@app/utils/grafana', () => {
   return {

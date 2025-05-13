@@ -5,7 +5,7 @@ import { queryGrafana } from '@app/utils/grafana';
 import { EVENTS } from '@app/shared/enums';
 import * as rateLimiters from '@app/utils/rate-limiters';
 import { getLogs } from './helpers/modules/logs';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 jest.mock('@app/utils/grafana', () => {
   return {

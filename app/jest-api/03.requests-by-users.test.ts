@@ -26,7 +26,7 @@ import { models } from '@app/shared/sequelize/models/models';
 import { EVENTS } from '@app/shared/enums';
 import { keycloakClient } from '@app/keycloak/integration';
 import { validateIdirEmail } from '@app/utils/ms-graph-idir';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 const integrationRoles = [
   {

@@ -9,8 +9,8 @@ import {
 } from './helpers/fixtures';
 import { activateTeamPendingUsers, cleanUpDatabaseTables } from './helpers/utils';
 import { createTeam, deleteMembersOfTeam, deleteTeam, getMembersOfTeam } from './helpers/modules/teams';
-import { createMockSendEmail } from './__mocks__/mail';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockSendEmail } from './mocks/mail';
+import { createMockAuth } from './mocks/authenticate';
 
 const TEST_TOKEN = 'testtoken';
 

@@ -20,7 +20,7 @@ import {
   updateIntegration,
 } from './helpers/modules/integrations';
 import { cleanUpDatabaseTables } from './helpers/utils';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');

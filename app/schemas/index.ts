@@ -30,6 +30,8 @@ export const getSchemas = ({
   bcscPrivacyZones?: BcscPrivacyZone[];
   bcscAttributes?: BcscAttribute[];
 }) => {
+  console.log('here');
+
   if (!integration) integration = formData;
 
   const isApplied = integration.status === 'applied';
@@ -65,6 +67,8 @@ export const oidcDurationAdditionalFields = [
   'SessionIdleTimeout',
   'SessionMaxLifespan',
 ];
+
+export const test = 'sadasdfasd';
 
 export const samlDurationAdditionalFields = ['AssertionLifespan'];
 

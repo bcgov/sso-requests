@@ -16,7 +16,7 @@ import {
   isGithubApprover,
   isBCServicesCardApprover,
   sanitizeRequest,
-} from '../utils/helpers';
+} from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
 import { ACTION_TYPES, EMAILS, REQUEST_TYPES } from '@app/shared/enums';
@@ -40,7 +40,6 @@ import {
   usesBceid,
   usesGithub,
   usesDigitalCredential,
-  checkDigitalCredential,
   checkNotBceidGroup,
   checkNotGithubGroup,
   usesBcServicesCard,
@@ -57,6 +56,7 @@ import {
   samlDurationAdditionalFields,
   samlFineGrainEndpointConfig,
   samlSignedAssertions,
+  test,
 } from '@app/schemas';
 import pick from 'lodash.pick';
 import { validateIdirEmail } from '@app/utils/ms-graph-idir';
@@ -76,12 +76,11 @@ import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus } from '@app/helpers/permissions';
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig = {}, serverRuntimeConfig = {} } = getConfig() || {};
+const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
 
 const APP_ENV = app_env || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
-
 const envFields = [
   'DisplayHeaderTitle',
   'LoginTitle',

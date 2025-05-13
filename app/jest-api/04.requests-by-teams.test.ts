@@ -25,7 +25,7 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { models } from '@app/shared/sequelize/models/models';
 import { buildIntegration } from './helpers/modules/common';
 import { Integration } from '@app/interfaces/Request';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');

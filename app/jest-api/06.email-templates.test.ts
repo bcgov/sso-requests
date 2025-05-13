@@ -14,7 +14,7 @@ import { generateInvitationToken } from '@app/helpers/token';
 import { createTeam, verifyTeamMember } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { cleanUpDatabaseTables } from './helpers/utils';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 const MOCK_PRIVACY_ZONE_URI = 'zone';
 

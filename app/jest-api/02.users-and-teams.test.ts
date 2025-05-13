@@ -27,7 +27,7 @@ import { generateInvitationToken } from '@app/helpers/token';
 import { sendEmail } from '@app/utils/ches';
 import { models } from '@app/shared/sequelize/models/models';
 import { findOrCreateUser } from '@app/controllers/user';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 import { cleanUpDatabaseTables } from './helpers/utils';
 
 jest.mock('@app/controllers/requests', () => {

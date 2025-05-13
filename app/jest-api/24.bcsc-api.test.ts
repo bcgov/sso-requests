@@ -3,6 +3,8 @@ import { createBCSCClient, updateBCSCClient } from '@app/utils/bcsc-client';
 import { getPrivacyZones } from '@app/controllers/bc-services-card';
 import axios from 'axios';
 
+jest.mock('axios');
+
 jest.mock('@app/controllers/bc-services-card', () => {
   return {
     getPrivacyZones: jest.fn(() => Promise.resolve([{ privacy_zone_uri: 'zone', privacy_zone_name: 'zone' }])),

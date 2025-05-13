@@ -7,7 +7,7 @@ import { bcscIdpMappers } from '@app/utils/constants';
 import { submitNewIntegration } from './helpers/modules/integrations';
 import { IntegrationData } from '@app/shared/interfaces';
 import { getDefaultClientScopes } from '@app/keycloak/integration';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 jest.mock('@app/controllers/bc-services-card', () => {
   return {

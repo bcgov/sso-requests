@@ -11,8 +11,8 @@ import { renderTemplate } from '@app/shared/templates';
 import { EMAILS } from '@app/shared/enums';
 import { IDIM_EMAIL_ADDRESS, SOCIAL_APPROVAL_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { buildIntegration } from './helpers/modules/common';
-import { createMockAuth } from './__mocks__/authenticate';
-import { createMockSendEmail } from './__mocks__/mail';
+import { createMockAuth } from './mocks/authenticate';
+import { createMockSendEmail } from './mocks/mail';
 import { cleanUpDatabaseTables } from './helpers/utils';
 
 jest.mock('@app/controllers/bc-services-card', () => {

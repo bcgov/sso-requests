@@ -8,7 +8,7 @@ import {
 import { buildIntegration } from './helpers/modules/common';
 import { listClientCompositeRoles, listClientRoles, listClientRoleUsers } from './helpers/modules/roles';
 import { cleanUpDatabaseTables } from './helpers/utils';
-import { createMockAuth } from './__mocks__/authenticate';
+import { createMockAuth } from './mocks/authenticate';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');

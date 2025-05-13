@@ -18,8 +18,8 @@ import { EMAILS } from '@app/shared/enums';
 import { renderTemplate } from '@app/shared/templates';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { deleteIntegration } from './helpers/modules/integrations';
-import { createMockAuth } from './__mocks__/authenticate';
-import { createMockSendEmail } from './__mocks__/mail';
+import { createMockAuth } from './mocks/authenticate';
+import { createMockSendEmail } from './mocks/mail';
 
 const testUser: any = {
   username: TEAM_ADMIN_IDIR_USERNAME_01,
