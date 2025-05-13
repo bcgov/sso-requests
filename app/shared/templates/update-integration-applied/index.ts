@@ -22,7 +22,10 @@ import {
 } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO change request approved and can be downloaded (email 2 of 2)`;
-const template = fs.readFileSync(__dirname + '/update-integration-applied.html', 'utf8');
+const template = fs.readFileSync(
+  `${process.cwd()}/shared/templates/update-integration-applied/update-integration-applied.html`,
+  'utf8',
+);
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
@@ -38,7 +41,7 @@ interface DataProps {
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const readableDiff = getReadableIntegrationDiff(integration.lastChanges);
+  const readableDiff = getReadableIntegrationDiff(integration?.lastChanges!);
   const data = { ...originalData, integration: await processRequest(integration), changes: readableDiff };
 
   return {

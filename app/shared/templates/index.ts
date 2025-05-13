@@ -28,7 +28,8 @@ import disableBcscIdp from './disable-bcsc-idp';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
 const APP_ENV = process.env.APP_ENV || 'development';
-const readTemplate = (templateKey) => fs.readFileSync(__dirname + `/${templateKey}.html`, 'utf8');
+const readTemplate = (templateKey: string) =>
+  fs.readFileSync(`${process.cwd()}/shared/templates` + `/${templateKey}.html`, 'utf8');
 const footer = readTemplate('footer');
 const hr = readTemplate('hr');
 const createBceidBottom = readTemplate('create-bceid-bottom');
@@ -102,7 +103,7 @@ Handlebars.registerHelper('capitalize', capitalize);
 Handlebars.registerHelper('isNonProdDigitalCredentialRequest', isNonProdDigitalCredentialRequest);
 
 const getBuilder = (key: string) => {
-  let builder = { render: (v) => v, send: noop };
+  let builder = { render: (v: any) => v, send: noop };
 
   switch (key) {
     case EMAILS.PROD_APPROVED:
@@ -190,7 +191,7 @@ export const renderTemplate = async (code: string, data: any): Promise<RenderRes
   return result;
 };
 
-const createEvent = async (data) => {
+const createEvent = async (data: any) => {
   try {
     await models.event.create(data);
   } catch (err) {
@@ -212,7 +213,7 @@ export const sendTemplate = async (code: string, data: any) => {
       createEvent({
         eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
         requestId: data.integration.id,
-        details: { emailCode: code, error: err.message || err },
+        details: { emailCode: code, error: (err as any).message || err },
       });
     }
   }

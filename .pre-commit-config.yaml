@@ -13,7 +13,7 @@ repos:
         exclude: ^helm/
       - id: end-of-file-fixer
       - id: trailing-whitespace
-        exclude: 'lambda/__tests__/__snapshots__'
+        exclude: 'app/jest-api/__snapshots__'
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.6.2
     hooks:

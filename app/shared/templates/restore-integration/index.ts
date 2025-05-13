@@ -9,7 +9,10 @@ import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request restored`;
-const template = fs.readFileSync(__dirname + '/restore-integration.html', 'utf8');
+const template = fs.readFileSync(
+  `${process.cwd()}/shared/templates/restore-integration/restore-integration.html`,
+  'utf8',
+);
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

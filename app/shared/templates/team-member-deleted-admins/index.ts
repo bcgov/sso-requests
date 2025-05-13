@@ -7,7 +7,10 @@ import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Team Admin has modified {{team.name}}`;
-const template = fs.readFileSync(__dirname + '/team-member-deleted-admins.html', 'utf8');
+const template = fs.readFileSync(
+  `${process.cwd()}/shared/templates/team-member-deleted-admins/team-member-deleted-admins.html`,
+  'utf8',
+);
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

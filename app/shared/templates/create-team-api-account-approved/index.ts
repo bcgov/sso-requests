@@ -8,7 +8,10 @@ import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 
 const SUBJECT_TEMPLATE = `SSO CSS API Account created (email 2 of 2)`;
-const template = fs.readFileSync(__dirname + '/create-team-api-account-approved.html', 'utf8');
+const template = fs.readFileSync(
+  `${process.cwd()}/shared/templates/create-team-api-account-approved/create-team-api-account-approved.html`,
+  'utf8',
+);
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

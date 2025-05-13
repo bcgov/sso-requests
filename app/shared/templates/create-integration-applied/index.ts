@@ -16,7 +16,10 @@ import type { RenderResult } from '../index';
 import { usesBcServicesCardProd, usesBceidProd, usesDigitalCredentialProd, usesSocial } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request approved (email 2 of 2)`;
-const template = fs.readFileSync(__dirname + '/create-integration-applied.html', 'utf8');
+const template = fs.readFileSync(
+  `${process.cwd()}/shared/templates/create-integration-applied/create-integration-applied.html`,
+  'utf8',
+);
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

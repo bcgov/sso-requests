@@ -8,7 +8,10 @@ import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} transfer of ownership`;
-const template = fs.readFileSync(__dirname + '/orphan-integration.html', 'utf8');
+const template = fs.readFileSync(
+  `${process.cwd()}/shared/templates/orphan-integration/orphan-integration.html`,
+  'utf8',
+);
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

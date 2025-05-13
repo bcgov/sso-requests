@@ -10,7 +10,7 @@ import type { RenderResult } from '../index';
 import { usesBceidProd, usesBcServicesCardProd } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved and being processed (email 1 of 2)`;
-const template = fs.readFileSync(__dirname + '/prod-approved.html', 'utf8');
+const template = fs.readFileSync(`${process.cwd()}/shared/templates/prod-approved/prod-approved.html`, 'utf8');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

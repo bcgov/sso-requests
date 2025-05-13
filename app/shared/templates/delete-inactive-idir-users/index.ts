@@ -7,7 +7,10 @@ import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { getTeamEmails } from '../helpers';
 
 const SUBJECT_TEMPLATE = `In-active IDIR User Removed`;
-const template = fs.readFileSync(__dirname + '/delete-inactive-idir-users.html', 'utf8');
+const template = fs.readFileSync(
+  `${process.cwd()}/shared/templates/delete-inactive-idir-users/delete-inactive-idir-users.html`,
+  'utf8',
+);
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
