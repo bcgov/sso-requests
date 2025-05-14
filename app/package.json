@@ -19,6 +19,7 @@
   "dependencies": {
     "@azure/msal-node": "^3.5.1",
     "@babel/plugin-transform-private-methods": "^7.25.9",
+    "@babel/preset-env": "^7.27.2",
     "@bcgov-sso/common-react-components": "^1.30.3",
     "@bcgov/bc-sans": "1.0.1",
     "@button-inc/bcgov-theme": "1.0.1",
@@ -76,7 +77,6 @@
     "pg": "^8.7.3",
     "pg-format": "^1.0.4",
     "pg-hstore": "^2.3.4",
-    "rate-limit-redis": "^4.2.0",
     "re-resizable": "6.9.9",
     "react": "18.2.0",
     "react-bootstrap": "2.5.0",
@@ -100,7 +100,6 @@
   "devDependencies": {
     "@babel/core": "^7.27.1",
     "@babel/plugin-transform-modules-commonjs": "^7.27.1",
-    "@babel/preset-env": "^7.27.2",
     "@babel/preset-typescript": "7.18.6",
     "@jest/test-sequencer": "^29.7.0",
     "@peculiar/webcrypto": "1.4.0",
@@ -170,12 +169,11 @@
     "mochawesome-merge": "^4.3.0",
     "mochawesome-report-generator": "^6.2.0",
     "nanoid": "5.0.9",
-    "node-mocks-http": "^1.17.2",
     "otplib": "^12.0.1",
     "supertest": "^7.1.0",
     "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.0.2",
+    "typescript": "5.8.3",
     "uuid": "^10.0.0"
   },
   "resolutions": {

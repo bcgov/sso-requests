@@ -5,6 +5,9 @@ RUN apt-get update && apt-get install curl make -y \
 
 WORKDIR /app
 
+# Set the environment to production
+ENV NODE_ENV=production
+
 COPY . .
 
 RUN make app_install
