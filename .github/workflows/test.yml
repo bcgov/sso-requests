@@ -52,18 +52,22 @@ jobs:
       - name: Setup postgres
         env:
           PGUSER: postgres
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: ssorequests_test
-          DB_HOSTNAME: localhost
         run: |
           pg_ctl start
           createdb runner || true
           chmod +x ./db-setup.sh
           ./db-setup.sh ssorequests_test
-          make db_compile
-          make db_migrate
         working-directory: ./.bin
+
+      - name: Run Database Migrations
+        env:
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: ssorequests_test
+          DB_HOSTNAME: localhost
+        run: |
+          make db_compile && make db_migrate
+        working-directory: ./app
 
       - name: Run backend integration tests
         env:
