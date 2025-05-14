@@ -30,9 +30,9 @@ jobs:
           cat >> $GITHUB_ENV <<EOF
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
-          KEYCLOAK_V2_DEV_URL=${{ secrets.DEV_KEYCLOAK_V2_DEV_URL }}
-          KEYCLOAK_V2_TEST_URL=${{ secrets.DEV_KEYCLOAK_V2_TEST_URL }}
-          KEYCLOAK_V2_PROD_URL=${{ secrets.DEV_KEYCLOAK_V2_PROD_URL }}
+          KEYCLOAK_V2_DEV_URL=https://dev.sandbox.loginproxy.gov.bc.ca
+          KEYCLOAK_V2_TEST_URL=https://test.sandbox.loginproxy.gov.bc.ca
+          KEYCLOAK_V2_PROD_URL=https://sandbox.loginproxy.gov.bc.ca
           KEYCLOAK_V2_DEV_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
           KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD }}
           KEYCLOAK_V2_TEST_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
@@ -55,9 +55,9 @@ jobs:
           cat >> $GITHUB_ENV <<EOF
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
-          KEYCLOAK_V2_DEV_URL=${{ secrets.TEST_KEYCLOAK_V2_DEV_URL }}
-          KEYCLOAK_V2_TEST_URL=${{ secrets.TEST_KEYCLOAK_V2_TEST_URL }}
-          KEYCLOAK_V2_PROD_URL=${{ secrets.TEST_KEYCLOAK_V2_PROD_URL }}
+          KEYCLOAK_V2_DEV_URL=https://sso-keycloak-c6af30-dev.apps.golddr.devops.gov.bc.ca
+          KEYCLOAK_V2_TEST_URL=https://sso-keycloak-c6af30-test.apps.golddr.devops.gov.bc.ca
+          KEYCLOAK_V2_PROD_URL=https://sso-keycloak-c6af30-prod.apps.golddr.devops.gov.bc.ca
           KEYCLOAK_V2_DEV_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_DEV_USERNAME }}
           KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.TEST_KEYCLOAK_V2_DEV_PASSWORD }}
           KEYCLOAK_V2_TEST_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_TEST_USERNAME }}
@@ -81,9 +81,9 @@ jobs:
           cat >> $GITHUB_ENV <<EOF
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.PROD_GRAFANA_API_TOKEN }}
-          KEYCLOAK_V2_DEV_URL=${{ secrets.PROD_KEYCLOAK_V2_DEV_URL }}
-          KEYCLOAK_V2_TEST_URL=${{ secrets.PROD_KEYCLOAK_V2_TEST_URL }}
-          KEYCLOAK_V2_PROD_URL=${{ secrets.PROD_KEYCLOAK_V2_PROD_URL }}
+          KEYCLOAK_V2_DEV_URL=https://dev.loginproxy.gov.bc.ca
+          KEYCLOAK_V2_TEST_URL=https://test.loginproxy.gov.bc.ca
+          KEYCLOAK_V2_PROD_URL=https://loginproxy.gov.bc.ca
           KEYCLOAK_V2_DEV_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_DEV_USERNAME }}
           KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.PROD_KEYCLOAK_V2_DEV_PASSWORD }}
           KEYCLOAK_V2_TEST_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_TEST_USERNAME }}
