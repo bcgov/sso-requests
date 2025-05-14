@@ -1,4 +1,7 @@
+import Navigation from '../appActions/Navigation';
+
 class RequestPage {
+  navigation = new Navigation();
   path: string = '/my-dashboard/integrations';
   savedMessage: string = 'Last saved at';
   formSavingSpinnerSelector: string = '[data-testid="rotating-lines-svg"]';
@@ -26,10 +29,11 @@ class RequestPage {
   deleteButton: string = '[data-testid="action-button-delete"]';
   confirmDeleteInt: string = 'button[data-testid="confirm-delete-confirm-deletion"]';
   confirmDeleteIntModal: string = '[id^="delete-modal-"]';
-  tabTechDetails: string = '#rc-tabs-1-tab-tech-details';
-  tabRoleManagement: string = '#rc-tabs-1-tab-role-management';
-  tabUserRoleManagement: string = '#rc-tabs-1-tab-user-role-management';
-  tabHistory: string = '#rc-tabs-1-tab-history';
+  tabTechDetails: string = 'Technical Details';
+  tabRoleManagement: string = 'Role Management';
+  tabUserRoleManagement: string = 'Assign Users to Roles';
+  tabServiceAccountRoleManagement: string = 'Assign Service Account to Roles';
+  tabHistory: string = 'Change History';
   usesTeam: string = '#root_usesTeam';
   usesDisplayHeaderDev: string = '#root_devDisplayHeaderTitle';
   usesDisplayHeaderTest: string = '#root_testDisplayHeaderTitle';
@@ -88,7 +92,6 @@ class RequestPage {
     githubBCGovLabel: 'GitHub BC Gov',
     digitalCredentialLabel: 'Digital Credential',
     bcscLabel: 'BC Services Card',
-    social: 'Social',
   };
 
   // In info modal, click close button
@@ -181,7 +184,7 @@ class RequestPage {
   }
 
   startRequest() {
-    cy.visit('/my-dashboard');
+    this.navigation.goToMyDashboard();
     cy.get(this.requestIntegration).click();
   }
 

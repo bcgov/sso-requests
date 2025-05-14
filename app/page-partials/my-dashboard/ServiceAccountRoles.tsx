@@ -193,9 +193,9 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
         </Alert>
       </TopAlertWrapper>
       <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-        <br />
         {environments.map((env) => (
           <Tab key={env} tab={startCase(env)}>
+            <br />
             <Grid cols={10}>
               <Grid.Row collapse="1100" gutter={[15, 2]}>
                 <Grid.Col span={5}>

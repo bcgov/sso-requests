@@ -20,6 +20,7 @@ import {
   getTeams,
   sendTeamInvite,
   updateTeam,
+  updateTeamMember,
   verifyTeamMember,
 } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
@@ -201,6 +202,29 @@ describe('users and teams', () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_02, TEAM_ADMIN_IDIR_EMAIL_02);
       const result = await deleteMembersOfTeam(teamId, teamMemberIds[teamMemberIds.length - 1]);
       expect(result.status).toEqual(200);
+    });
+
+    it('Should not allow team members to change team member roles', async () => {
+      createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
+      const result = await updateTeamMember(teamId, teamMemberIds[0], { role: 'admin' });
+      expect(result.status).toEqual(403);
+    });
+
+    it('Should allow team admins to change team member roles and return the updated user', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_02, TEAM_ADMIN_IDIR_EMAIL_02);
+      // Get the ID of the other team admin to test role updates
+      const teamAdminIndex = postTeam.members.findIndex((member) => member.idirEmail === TEAM_ADMIN_IDIR_EMAIL_03);
+      const teamAdminId = teamMemberIds[teamAdminIndex];
+
+      // Change user to member
+      let result = await updateTeamMember(teamId, teamAdminId, { role: 'member' });
+      expect(result.status).toEqual(200);
+      expect(result.body.id).toBe(teamAdminId);
+      expect(result.body.role).toBe('member');
+      // // Update back to admin
+      result = await updateTeamMember(teamId, teamAdminId, { role: 'admin' });
+      expect(result.body.id).toBe(teamAdminId);
+      expect(result.body.role).toBe('admin');
     });
 
     it('should allow admins to re-send invitations', async () => {

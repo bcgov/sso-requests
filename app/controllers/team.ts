@@ -203,7 +203,7 @@ export const updateMemberInTeam = async (
     },
   );
 
-  return getMemberOnTeam(teamId, userId, { raw: true });
+  return getMemberOnTeam(teamId, memberUserId, { raw: true });
 };
 
 export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {

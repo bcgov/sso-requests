@@ -337,7 +337,13 @@ function IntegrationInfoTabs({ integration }: Props) {
 
   return (
     <IntegrationWrapper integration={integration}>
-      <Tabs activeKey={activeKey} onChange={handleTabClick} tabBarGutter={30} destroyInactiveTabPane={true}>
+      <Tabs
+        activeKey={activeKey}
+        onChange={handleTabClick}
+        tabBarGutter={30}
+        destroyInactiveTabPane={true}
+        data-testid="integration-details-tabs"
+      >
         {tabs}
       </Tabs>
     </IntegrationWrapper>

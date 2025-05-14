@@ -80,7 +80,7 @@ const HoverItem = styled.li`
   }
 `;
 
-const HeaderTitle = styled.div`
+const HeaderTitle = styled.span`
   height: 100%;
 `;
 

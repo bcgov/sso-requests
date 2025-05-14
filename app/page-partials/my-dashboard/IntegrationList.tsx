@@ -221,23 +221,21 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
               authType: authTypeDisplay[integration.authType || 'browser-login'],
               serviceType: 'Gold',
               actions: (
-                <RightFloatButtons>
-                  <ActionButtons
-                    request={integration}
-                    onDelete={(_: any, error: AxiosError | null) => {
-                      if (error) {
-                        alert.show({
-                          variant: 'danger',
-                          content: `Failed to delete integration ${integration.projectName}.`,
-                        });
-                      } else {
-                        loadIntegrations();
-                      }
-                    }}
-                    defaultActiveColor="#fff"
-                    delIconStyle={{ marginLeft: '7px' }}
-                  />
-                </RightFloatButtons>
+                <ActionButtons
+                  request={integration}
+                  onDelete={(_: any, error: AxiosError | null) => {
+                    if (error) {
+                      alert.show({
+                        variant: 'danger',
+                        content: `Failed to delete integration ${integration.projectName}.`,
+                      });
+                    } else {
+                      loadIntegrations();
+                    }
+                  }}
+                  defaultActiveColor="#fff"
+                  delIconStyle={{ marginLeft: '7px' }}
+                />
               ),
             };
           })}

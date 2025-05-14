@@ -13,7 +13,7 @@ import DeleteModal from './DeleteModal';
 export const ActionButtonContainer = styled.div`
   height: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: end;
   align-items: center;
   padding-right: 15px;
   & > * {

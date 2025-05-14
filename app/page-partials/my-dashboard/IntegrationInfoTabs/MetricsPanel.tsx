@@ -5,7 +5,7 @@ import { TopAlert, withTopAlert } from 'layout/TopAlert';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import startCase from 'lodash.startcase';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Text, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { getMetrics } from '@app/services/grafana';
 import throttle from 'lodash.throttle';
 import DateTimePicker from '@app/components/DateTimePicker';
@@ -77,12 +77,12 @@ const MetricsPanel = ({ integration, alert }: Props) => {
     setEnvironment(key);
   };
 
-  const handleFromDateChange = (val: Date) => {
-    setFromDate(val);
+  const handleFromDateChange = (val: Date | null) => {
+    if (val) setFromDate(val);
   };
 
-  const handleToDateChange = (val: Date) => {
-    setToDate(val);
+  const handleToDateChange = (val: Date | null) => {
+    if (val) setToDate(val);
   };
 
   const fetchMetrics = useCallback(
@@ -117,7 +117,7 @@ const MetricsPanel = ({ integration, alert }: Props) => {
           <DateTimePicker
             placeholderText="Start Date"
             selected={new Date(fromDate)}
-            onChange={(date: Date) => handleFromDateChange(date)}
+            onChange={(date: Date | null) => handleFromDateChange(date)}
             minDate={new Date(metricsStartDate)}
             maxDate={toDate}
             label="Start Date"
@@ -125,7 +125,7 @@ const MetricsPanel = ({ integration, alert }: Props) => {
           <DateTimePicker
             placeholderText="End Date"
             selected={new Date(toDate)}
-            onChange={(date: Date) => handleToDateChange(date)}
+            onChange={(date: Date | null) => handleToDateChange(date)}
             minDate={fromDate}
             label="End Date"
           />
@@ -133,8 +133,6 @@ const MetricsPanel = ({ integration, alert }: Props) => {
       </div>
 
       <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-        <br />
-
         {environments.map((env) => (
           <Tab key={env} tab={startCase(env)}>
             <div style={{ width: '100%', height: 300 }}>
@@ -169,7 +167,8 @@ const MetricsPanel = ({ integration, alert }: Props) => {
                 </ResponsiveContainer>
               ) : (
                 <div style={{ textAlign: 'center' }}>
-                  <Text>No data available yet!</Text>
+                  <br />
+                  <p>No data available yet!</p>
                 </div>
               )}
             </div>
