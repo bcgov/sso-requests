@@ -28,7 +28,6 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
   if (['development', 'production'].includes(process.env.APP_ENV || 'development')) {
     const keycloakHostname = keycloakUrl.replace('https://', '');
     const ip = await dns.promises.lookup(keycloakHostname);
-    console.log('🚀 ~ getAdminClient ~ ip:', ip);
     if (ip?.address !== process.env.GOLD_IP_ADDRESS) {
       throw new createHttpError.UnprocessableEntity(
         `keycloak is not operational in the gold ${environment} environment, therefore resource updates will not be processed.`,

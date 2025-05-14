@@ -66,7 +66,7 @@ jobs:
           DB_NAME: ssorequests_test
           DB_HOSTNAME: localhost
         run: |
-          make db_install && make db_compile && make db_migrate
+          make db_install && make db_compile && make migrations
         working-directory: .
 
       - name: Run backend integration tests
