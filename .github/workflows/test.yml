@@ -67,7 +67,7 @@ jobs:
           DB_HOSTNAME: localhost
         run: |
           make db_compile && make db_migrate
-        working-directory: ./app
+        working-directory: .
 
       - name: Run backend integration tests
         env:

@@ -2,24 +2,6 @@ import KcAdminClient from '@keycloak/keycloak-admin-client';
 import dns from 'dns';
 import createHttpError from 'http-errors';
 
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig = {}, publicRuntimeConfig = {} } = getConfig() || {};
-const {
-  keycloak_v2_dev_url,
-  keycloak_v2_dev_username,
-  keycloak_v2_dev_password,
-  keycloak_v2_test_url,
-  keycloak_v2_test_username,
-  keycloak_v2_test_password,
-  keycloak_v2_prod_url,
-  keycloak_v2_prod_username,
-  keycloak_v2_prod_password,
-  gold_ip_address,
-} = serverRuntimeConfig;
-
-const { app_env } = publicRuntimeConfig;
-
 export const getAdminClient = async (data: { serviceType: string; environment: string }) => {
   const { environment } = data;
 
@@ -28,25 +10,26 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
   let keycloakPassword;
 
   if (environment === 'dev') {
-    keycloakUrl = keycloak_v2_dev_url;
-    keycloakUsername = keycloak_v2_dev_username;
-    keycloakPassword = keycloak_v2_dev_password;
+    keycloakUrl = process.env.KEYCLOAK_V2_DEV_URL || '';
+    keycloakUsername = process.env.KEYCLOAK_V2_DEV_USERNAME || '';
+    keycloakPassword = process.env.KEYCLOAK_V2_DEV_PASSWORD || '';
   } else if (environment === 'test') {
-    keycloakUrl = keycloak_v2_test_url;
-    keycloakUsername = keycloak_v2_test_username;
-    keycloakPassword = keycloak_v2_test_password;
+    keycloakUrl = process.env.KEYCLOAK_V2_TEST_URL || '';
+    keycloakUsername = process.env.KEYCLOAK_V2_TEST_USERNAME || '';
+    keycloakPassword = process.env.KEYCLOAK_V2_TEST_PASSWORD || '';
   } else if (environment === 'prod') {
-    keycloakUrl = keycloak_v2_prod_url;
-    keycloakUsername = keycloak_v2_prod_username;
-    keycloakPassword = keycloak_v2_prod_password;
+    keycloakUrl = process.env.KEYCLOAK_V2_PROD_URL || '';
+    keycloakUsername = process.env.KEYCLOAK_V2_PROD_USERNAME || '';
+    keycloakPassword = process.env.KEYCLOAK_V2_PROD_PASSWORD || '';
   } else {
     throw new createHttpError.BadRequest('invalid environment');
   }
 
-  if (['development', 'production'].includes(app_env)) {
+  if (['development', 'production'].includes(process.env.APP_ENV || 'development')) {
     const keycloakHostname = keycloakUrl.replace('https://', '');
     const ip = await dns.promises.lookup(keycloakHostname);
-    if (ip.address !== gold_ip_address) {
+    console.log('🚀 ~ getAdminClient ~ ip:', ip);
+    if (ip?.address !== process.env.GOLD_IP_ADDRESS) {
       throw new createHttpError.UnprocessableEntity(
         `keycloak is not operational in the gold ${environment} environment, therefore resource updates will not be processed.`,
       );
