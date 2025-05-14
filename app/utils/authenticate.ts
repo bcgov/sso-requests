@@ -66,8 +66,6 @@ const validateJWTSignature = async (token: string): Promise<Session | boolean> =
     } = jwt.verify(token, pem, {
       audience,
       issuer,
-      maxAge: '8h',
-      ignoreExpiration: true,
     }) as JwtPayload;
 
     if (!['idir', 'azureidir'].includes(identity_provider) || !idir_userid) {

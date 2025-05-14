@@ -53,6 +53,13 @@ export const deleteTeam = async (teamId: number) => {
   return await testClient(teamHandler).del(`${API_BASE_PATH}/teams/${teamId}`);
 };
 
+export const updateTeamMember = async (teamId: number, memberId: number, data: { role: string }) => {
+  return await testClient(teamMemberHandler)
+    .put(`${API_BASE_PATH}/teams/${teamId}/members/${memberId}`)
+    .send(data)
+    .set('Accept', 'application/json');
+};
+
 export const updateTeamMembers = async (teamId: number) => {
   await models.usersTeam.update(
     { pending: false },
