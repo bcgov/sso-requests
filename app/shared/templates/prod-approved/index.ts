@@ -1,6 +1,6 @@
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 import Handlebars from 'handlebars';
-import { processRequest } from '../helpers';
+import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
 import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
@@ -10,7 +10,7 @@ import type { RenderResult } from '../index';
 import { usesBceidProd, usesBcServicesCardProd } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved and being processed (email 1 of 2)`;
-const template = fs.readFileSync(`${process.cwd()}/shared/templates/prod-approved/prod-approved.html`, 'utf8');
+const template = getEmailTemplate('prod-approved/prod-approved.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

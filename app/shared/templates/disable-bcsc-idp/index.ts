@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
-import { processRequest } from '../helpers';
+import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
 import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
@@ -9,7 +9,7 @@ import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `BC Services Card integration disabled for Client ({{integration.projectName}})`;
-const template = fs.readFileSync(`${process.cwd()}/shared/templates/disable-bcsc-idp/disable-bcsc-idp.html`, 'utf8');
+const template = getEmailTemplate('disable-bcsc-idp/disable-bcsc-idp.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
-import { processRequest } from '../helpers';
+import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { getReadableIntegrationDiff, sendEmail } from '@app/utils/ches';
 import {
@@ -22,10 +22,7 @@ import {
 } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO change request approved and can be downloaded (email 2 of 2)`;
-const template = fs.readFileSync(
-  `${process.cwd()}/shared/templates/update-integration-applied/update-integration-applied.html`,
-  'utf8',
-);
+const template = getEmailTemplate('update-integration-applied/update-integration-applied.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

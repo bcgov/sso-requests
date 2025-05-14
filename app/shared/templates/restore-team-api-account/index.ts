@@ -2,16 +2,13 @@ import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { Team, IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
-import { getTeamEmails, processIntegrationList, processTeam } from '../helpers';
+import { getEmailTemplate, getTeamEmails, processIntegrationList, processTeam } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 
 const SUBJECT_TEMPLATE = `SSO CSS API Account restored`;
-const template = fs.readFileSync(
-  `${process.cwd()}/shared/templates/restore-team-api-account/restore-team-api-account.html`,
-  'utf8',
-);
+const template = getEmailTemplate('restore-team-api-account/restore-team-api-account.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

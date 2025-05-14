@@ -10,6 +10,7 @@ import { getUserById } from '@app/queries/user';
 import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
 import path from 'path';
+import fs from 'fs';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -133,10 +134,11 @@ export const isNonProdDigitalCredentialRequest = (integration: IntegrationData) 
  * Resolve path to email attachments based on environment, since the lambda build flattens out the directories
  * @param filename Name of the file
  */
-export const resolveAttachmentPath = (filename: string) => {
-  if (process.env.LOCAL_DEV === 'true') {
-    return path.resolve(`${process.cwd()}/shared/templates`, 'attachments', filename);
+
+export const getEmailTemplate = (templatePath: string) => {
+  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+    return fs.readFileSync(`${process.cwd()}/shared/templates/${templatePath}`, 'utf8');
   } else {
-    return path.resolve(`${process.cwd()}/shared/templates`, filename);
+    return '<p>Template not found</p>';
   }
 };

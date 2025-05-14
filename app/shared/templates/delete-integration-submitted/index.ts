@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
-import { processRequest } from '../helpers';
+import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
 import {
@@ -22,10 +22,7 @@ import {
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO integration ID {{integration.id}} deleted`;
-const template = fs.readFileSync(
-  `${process.cwd()}/shared/templates/delete-integration-submitted/delete-integration-submitted.html`,
-  'utf8',
-);
+const template = getEmailTemplate('delete-integration-submitted/delete-integration-submitted.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

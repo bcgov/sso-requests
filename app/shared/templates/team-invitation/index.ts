@@ -1,12 +1,12 @@
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { sendEmail } from '@app/utils/ches';
-import { processTeam } from '../helpers';
+import { getEmailTemplate, processTeam } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Invitation to join {{team.name}}`;
-const template = fs.readFileSync(`${process.cwd()}/shared/templates/team-invitation/team-invitation.html`, 'utf8');
+const template = getEmailTemplate('team-invitation/team-invitation.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

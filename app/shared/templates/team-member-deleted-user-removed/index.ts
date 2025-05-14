@@ -2,15 +2,12 @@ import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { Team, User } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
-import { getUserEmails, processTeam, processUser } from '../helpers';
+import { getEmailTemplate, getUserEmails, processTeam, processUser } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Team Admin has modified {{team.name}}`;
-const template = fs.readFileSync(
-  `${process.cwd()}/shared/templates/team-member-deleted-user-removed/team-member-deleted-user-removed.html`,
-  'utf8',
-);
+const template = getEmailTemplate('team-member-deleted-user-removed/team-member-deleted-user-removed.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

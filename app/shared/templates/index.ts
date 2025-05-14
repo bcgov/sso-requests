@@ -22,32 +22,30 @@ import surveyCompleted from './survey-completed-notification';
 import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
-import { isNonProdDigitalCredentialRequest } from './helpers';
+import { getEmailTemplate, isNonProdDigitalCredentialRequest } from './helpers';
 import disableBcscIdp from './disable-bcsc-idp';
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const API_URL = process.env.API_URL || 'http://localhost:8080/app';
 const APP_ENV = process.env.APP_ENV || 'development';
-const readTemplate = (templateKey: string) =>
-  fs.readFileSync(`${process.cwd()}/shared/templates` + `/${templateKey}.html`, 'utf8');
-const footer = readTemplate('footer');
-const hr = readTemplate('hr');
-const createBceidBottom = readTemplate('create-bceid-bottom');
-const createGithubBottom = readTemplate('create-github-bottom');
-const createDigitalCredentialBottom = readTemplate('create-verified-credential-bottom');
-const createBcServicesCardBottom = readTemplate('create-bc-services-card-bottom');
-const createSocialBottom = readTemplate('create-social-bottom');
-const applyBceidBottom = readTemplate('apply-bceid-bottom');
-const applyBcServicesCardBottom = readTemplate('apply-bc-services-card-bottom');
-const applyGithubBottom = readTemplate('apply-github-bottom');
-const applySocialBottom = readTemplate('apply-social-bottom');
-const integrationDetail = readTemplate('integration-detail');
-const bcscClientDetail = readTemplate('bcsc-client-detail');
-const dashboardLogin = readTemplate('dashboard-login');
-const processingTime = readTemplate('processing-time');
-const ssoUpdatesMailingListMessage = readTemplate('sso-updates-mailing-list-message');
-const bceidWarning = readTemplate('bceid-warning');
-const digitalCredentialInfoContact = readTemplate('digital-credential-info-contact');
+const footer = getEmailTemplate('footer.html');
+const hr = getEmailTemplate('hr.html');
+const createBceidBottom = getEmailTemplate('create-bceid-bottom.html');
+const createGithubBottom = getEmailTemplate('create-github-bottom.html');
+const createDigitalCredentialBottom = getEmailTemplate('create-verified-credential-bottom.html');
+const createBcServicesCardBottom = getEmailTemplate('create-bc-services-card-bottom.html');
+const createSocialBottom = getEmailTemplate('create-social-bottom.html');
+const applyBceidBottom = getEmailTemplate('apply-bceid-bottom.html');
+const applyBcServicesCardBottom = getEmailTemplate('apply-bc-services-card-bottom.html');
+const applyGithubBottom = getEmailTemplate('apply-github-bottom.html');
+const applySocialBottom = getEmailTemplate('apply-social-bottom.html');
+const integrationDetail = getEmailTemplate('integration-detail.html');
+const bcscClientDetail = getEmailTemplate('bcsc-client-detail.html');
+const dashboardLogin = getEmailTemplate('dashboard-login.html');
+const processingTime = getEmailTemplate('processing-time.html');
+const ssoUpdatesMailingListMessage = getEmailTemplate('sso-updates-mailing-list-message.html');
+const bceidWarning = getEmailTemplate('bceid-warning.html');
+const digitalCredentialInfoContact = getEmailTemplate('digital-credential-info-contact.html');
 
 const formatPrimaryUsers = (primaryUsers: string[], otherDetails: string): string | undefined => {
   if (!primaryUsers?.length) {

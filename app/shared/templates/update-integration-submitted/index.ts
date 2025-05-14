@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
-import { processRequest, resolveAttachmentPath } from '../helpers';
+import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { getReadableIntegrationDiff, sendEmail } from '@app/utils/ches';
 import {
@@ -24,10 +24,7 @@ import {
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO change request submitted (email 1 of 2)`;
-const template = fs.readFileSync(
-  `${process.cwd()}/shared/templates/update-integration-submitted/update-integration-submitted.html`,
-  'utf8',
-);
+const template = getEmailTemplate('update-integration-submitted/update-integration-submitted.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
@@ -66,8 +63,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);
   if (usesSocial(integration)) {
     cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
-    const filePath = resolveAttachmentPath('social-assessment.xlsx');
-    const buffer = fs.readFileSync(filePath);
+    const buffer = fs.readFileSync(`${process.cwd()}/shared/templates/attachments/social-assessment.xlsx`);
     attachments.push({
       content: buffer.toString('base64'),
       filename: 'self-assessment.xlsx',

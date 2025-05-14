@@ -3,15 +3,12 @@ import Handlebars from 'handlebars';
 import { sendEmail } from '@app/utils/ches';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { User, UserSurveyInformation } from '@app/shared/interfaces';
-import { processUser } from '../helpers';
+import { getEmailTemplate, processUser } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `Survey for {{triggerEvent}} submitted.`;
-const template = fs.readFileSync(
-  `${process.cwd()}/shared/templates/survey-completed-notification/survey-completed-notification.html`,
-  'utf8',
-);
+const template = getEmailTemplate('survey-completed-notification/survey-completed-notification.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE);
 const bodyHandler = Handlebars.compile(template);
