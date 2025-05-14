@@ -48,8 +48,15 @@ app:
 
 .PHONY: local_db
 local_db:
-	pushd .bin && bash ./db-setup.sh && bash ./db-setup.sh ssorequests_test && popd
-	yarn --cwd ./localserver migrate-db
+	pushd .bin && bash ./db-setup.sh && popd
+	yarn --cwd ./db compile
+	yarn --cwd ./db migrate
+
+.PHONY: local_test_db
+local_test_db:
+	pushd .bin && bash ./db-setup.sh ssorequests_test && popd
+	yarn --cwd ./db compile
+	yarn --cwd ./db migrate-test
 
 .PHONY: schema
 schema:

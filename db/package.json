@@ -5,7 +5,9 @@
   "license": "Apache-2.0",
   "author": "SSO Team",
   "scripts": {
-    "compile": "./node_modules/.bin/tsc && ./node_modules/.bin/tsc-alias"
+    "compile": "./node_modules/.bin/tsc && ./node_modules/.bin/tsc-alias",
+    "migrate": "DB_NAME=ssorequests node ./dist/db/src/main.js",
+    "migrate-test": "DB_NAME=ssorequests_test node ./dist/db/src/main.js"
   },
   "devDependencies": {
     "@types/lodash.tolower": "^4.1.9",

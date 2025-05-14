@@ -71,6 +71,12 @@ You could run the apps locally on your host machine using npm commands or in you
   make local_db
   ```
 
+- Generate initial test database schemas
+
+  ```sh
+  make local_test_db
+  ```
+
 _**Note:** If the script has logged `migration done` but won't close, you can exit with `ctrl + c`._
 
 - Start the app

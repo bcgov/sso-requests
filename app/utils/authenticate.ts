@@ -10,10 +10,7 @@ import axios from 'axios';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import jws from 'jws';
 import jwkToPem from 'jwk-to-pem';
-import { NextApiRequest, NextApiResponse } from 'next';
-import { Session, User } from '@app/shared/interfaces';
-import { findOrCreateUser } from '@app/controllers/user';
-import { isAdmin } from './helpers';
+import { Session } from '@app/shared/interfaces';
 import { IncomingHttpHeaders } from 'http';
 
 const ssoConfigurationEndpoint = sso_configuration_endpoint;
