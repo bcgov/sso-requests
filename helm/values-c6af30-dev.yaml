@@ -29,7 +29,7 @@ env:
   ALLOW_BC_SERVICES_CARD_PROD: 'true'
   NODE_ENV: development
   SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
-  REALM_REGISTRY_API: https://realm-registry-sandbox.apps.gold.devops.gov.bc.ca
+  REALM_REGISTRY_API: https://realm-registry-sandbox.apps.gold.devops.gov.bc.ca/api
   GOLD_IP_ADDRESS: '142.34.229.4'
   BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
   BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
