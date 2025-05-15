@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - SSOTEAM-2108-new01
+    paths:
+      - 'app/**'
+      - 'Dockerfile'
+      - 'helm/**'
+      - '.github/workflows/publish-image-nk.yaml'
 
 env:
   GITHUB_REGISTRY: ghcr.io

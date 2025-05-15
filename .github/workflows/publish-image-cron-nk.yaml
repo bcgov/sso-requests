@@ -1,4 +1,4 @@
-name: Create and publish CSS App image By NK
+name: Create and publish CSS CronJobs image By NK
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - SSOTEAM-2108-new01
     paths:
       - 'cron/**'
+      - '.github/workflows/publish-image-cron-nk.yaml'
 
 env:
   GITHUB_REGISTRY: ghcr.io
@@ -54,7 +55,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./cron
-          file: Dockerfile
+          file: ./cron/Dockerfile
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/${{env.IMAGE_NAME}}:dev
           labels: ${{ steps.meta.outputs.labels }}
