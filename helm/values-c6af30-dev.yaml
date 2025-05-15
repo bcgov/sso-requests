@@ -2,6 +2,20 @@ image:
   tag: dev
   pullPolicy: Always
 
+cronJobs:
+  enabled: true
+  image:
+    repository: ghcr.io/bcgov/sso-requests-cron
+    tag: dev
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 100m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
 resources:
   limits:
     cpu: 500m

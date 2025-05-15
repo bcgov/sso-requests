@@ -25,7 +25,7 @@ spec:
           image: "{{ .Values.cronJobs.image.repository }}:{{ .Values.cronJobs.image.tag }}"
           imagePullPolicy: {{ .Values.cronJobs.image.pullPolicy }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.cronJobs.resources | nindent 12 }}
           env:
             - name: API_AUTH_SECRET
               valueFrom:

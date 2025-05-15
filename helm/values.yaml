@@ -1,12 +1,5 @@
 replicaCount: 1
 
-cronJobs:
-  enabled: true
-  image:
-    repository: ghcr.io/bcgov/sso-requests-cron
-    tag: dev
-    pullPolicy: Always
-
 image:
   repository: ghcr.io/bcgov/sso-requests
   tag: dev
