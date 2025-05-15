@@ -30,6 +30,11 @@ spec:
               name: http
               protocol: TCP
           env:
+            - name: APP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: app-url
             - name: API_AUTH_SECRET
               valueFrom:
                 secretKeyRef:
@@ -150,11 +155,12 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: verify-user-secret
+            - name: RC_SSO_OPS_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: rc_webhook_url
             {{- range $key, $val := .Values.env }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}
             {{- end }}
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}

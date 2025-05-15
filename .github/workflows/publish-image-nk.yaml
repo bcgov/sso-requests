@@ -20,6 +20,7 @@ jobs:
       - name: Set env to development
         run: |
           cat >> $GITHUB_ENV <<EOF
+          APP_URL=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
           KEYCLOAK_V2_DEV_URL=https://dev.sandbox.loginproxy.gov.bc.ca
@@ -117,6 +118,7 @@ jobs:
           helm upgrade --install --atomic sso-requests . -n ${namespace} \
           -f values.yaml -f "values-${namespace}.yaml" \
           --set image.tag="dev" \
+          --set envVars.appUrl="${{ env.APP_URL }}" \
           --set envVars.apiAuthSecret="${{ env.API_AUTH_SECRET }}" \
           --set envVars.keycloakV2DevUsername="${{ env.KEYCLOAK_V2_DEV_USERNAME }}" \
           --set envVars.keycloakV2DevPassword="${{ env.KEYCLOAK_V2_DEV_PASSWORD }}" \

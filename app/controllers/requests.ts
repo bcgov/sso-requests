@@ -32,6 +32,7 @@ import {
   canUpdateRequestByUserId,
   getIntegrationById,
   getWhereClauseForAllRequests,
+  getAllActiveRequests,
 } from '@app/queries/request';
 import { fetchClient } from '@app/keycloak/client';
 import { getUserTeamRole } from '@app/queries/literals';
@@ -75,6 +76,9 @@ import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus } from '@app/helpers/permissions';
 import getConfig from 'next/config';
+import { Integration } from '@app/interfaces/Request';
+import axios from 'axios';
+import { getKeycloakClientsByEnv } from './keycloak';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
@@ -1217,5 +1221,121 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
       waitingSocialProdApproval,
       addingProd,
     });
+  }
+};
+
+export const retryFailedRequests = async () => {
+  const REQUEST_QUEUE_INTERVAL_SECONDS = 60;
+  const MAX_ATTEMPTS = 5;
+  try {
+    const requestQueue = await models.requestQueue.findAll();
+    if (requestQueue.length === 0) {
+      console.info('Request queue empty, exiting.');
+    }
+
+    for (const queuedRequest of requestQueue) {
+      if (queuedRequest.attempts >= MAX_ATTEMPTS) {
+        console.info(`request ${queuedRequest.request.clientId} at maximum attempts. Skipping.`);
+        continue;
+      }
+
+      // Only act on queued items more than a minute old to prevent potential duplication.
+      const requestQueueSecondsAgo = (new Date().getTime() - new Date(queuedRequest.createdAt).getTime()) / 1000;
+      if (requestQueueSecondsAgo < REQUEST_QUEUE_INTERVAL_SECONDS) continue;
+
+      console.info(`processing queued request ${queuedRequest.request.id}`);
+      const { existingClientId, ...request } = queuedRequest.request;
+
+      // Handle client update for each env
+      const environmentPromises = queuedRequest.request.environments.map((env: string) =>
+        keycloakClient(env, request, existingClientId),
+      );
+      const envResults = await Promise.all(environmentPromises);
+
+      const allEnvironmentsSucceeded = envResults.every((result) => result);
+      const sendEmail = queuedRequest.action !== ACTION_TYPES.DELETE;
+
+      // Update DB, create event and send email based on keycloak results.
+      if (allEnvironmentsSucceeded) {
+        await models.request.update({ status: 'applied' }, { where: { id: queuedRequest.requestId } });
+        await models.requestQueue.destroy({ where: { id: queuedRequest.id } });
+        await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id });
+        if (sendEmail) await updatePlannedIntegration(request);
+      } else {
+        await models.requestQueue.update({ attempts: queuedRequest.attempts + 1 }, { where: { id: queuedRequest.id } });
+        await models.request.update({ status: 'applyFailed' }, { where: { id: queuedRequest.requestId } });
+        await createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: request.id });
+      }
+      if (queuedRequest.attempts >= MAX_ATTEMPTS - 1) {
+        let message = `Request ${queuedRequest.request.clientId} has reached maximum retries and requires manual intervention.`;
+        if (process.env.NODE_ENV === 'development') {
+          message = 'SANDBOX: ' + message;
+        }
+        await axios.post(
+          process.env.RC_SSO_OPS_WEBHOOK || '',
+          { projectName: 'request_queue', message },
+          { headers: { Accept: 'application/json' } },
+        );
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const getListOfDescrepencies = async () => {
+  const header = `**${
+    process.env.APP_ENV === 'production' ? '' : '[SANDBOX] '
+  }List of discrepancies by environment:** \n\n`;
+  try {
+    let data = '';
+    const listOfDiscrepencies: {
+      [key: string]: string[];
+    } = {
+      dev: [],
+      test: [],
+      prod: [],
+    };
+
+    for (const env of ['dev', 'test', 'prod']) {
+      const cssRequests = await getAllActiveRequests(env);
+      const kcClients = await getKeycloakClientsByEnv(env);
+
+      for (const cssRqst of cssRequests) {
+        const matchingKcClient = kcClients.find(
+          (kcClient) => kcClient.clientId === cssRqst.clientId && kcClient.enabled,
+        );
+        if (!matchingKcClient) {
+          listOfDiscrepencies[env].push(cssRqst.clientId);
+        }
+      }
+    }
+
+    if (
+      listOfDiscrepencies.dev.length > 0 ||
+      listOfDiscrepencies.test.length > 0 ||
+      listOfDiscrepencies.prod.length > 0
+    ) {
+      const header = `**${
+        process.env.APP_ENV === 'production' ? '' : '[SANDBOX] '
+      }List of discrepancies by environment:** \n\n`;
+
+      if (listOfDiscrepencies.dev.length > 0) data = data + `**dev:** \n${listOfDiscrepencies.dev.join(', ')}\n\n`;
+      if (listOfDiscrepencies.test.length > 0) data = data + `**test:** \n${listOfDiscrepencies.test.join(', ')}\n\n`;
+      if (listOfDiscrepencies.prod.length > 0) data = data + `**prod:** \n${listOfDiscrepencies.prod.join(', ')}\n\n`;
+      await axios.post(
+        process.env.RC_SSO_OPS_WEBHOOK || '',
+        { projectName: 'css-request-monitor', message: header + data, statusCode: '' },
+        { headers: { Accept: 'application/json' } },
+      );
+    }
+    return data;
+  } catch (err) {
+    console.error('could not get discrepancies', err);
+    await axios.post(
+      process.env.RC_SSO_OPS_WEBHOOK || '',
+      { projectName: 'css-request-monitor', message: '**Failed to get discrepancies**\n\n', statusCode: 'ERROR' },
+      { headers: { Accept: 'application/json' } },
+    );
   }
 };

@@ -284,3 +284,16 @@ export const getWhereClauseForAllRequests = (data: {
 
   return where;
 };
+
+export const getAllActiveRequests = async (enviroment: string, options?: { raw: boolean }) => {
+  const where: any = { apiServiceAccount: false, archived: false };
+  if (enviroment) {
+    where.environments = {
+      [Op.overlap]: [enviroment],
+    };
+  }
+  return models.request.findAll({
+    where,
+    ...options,
+  });
+};
