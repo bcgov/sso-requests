@@ -49,7 +49,7 @@ export default function EventContent({ events }: Props) {
                 </div>
                 {event.eventCode === 'request-update-success' ? (
                   <>
-                    <FormatChangeEventDetails {...event.details.changes} />
+                    <FormatChangeEventDetails changes={event.details.changes} />
                     <strong>Comment: </strong>
                     <p>{event.details.comment}</p>
                   </>

@@ -1,8 +1,7 @@
 import { Change } from '@app/interfaces/Event';
 
-export default function FormatChangeEventDetails(changes: Change[]) {
+export default function FormatChangeEventDetails({ changes }: { changes: Change[] }) {
   if (!changes || changes.length === 0) return <div>No changes</div>;
-
   const changesJSX = changes.map((change) => {
     const { kind, lhs, rhs, path, item } = change;
     const changedPath = path[0];

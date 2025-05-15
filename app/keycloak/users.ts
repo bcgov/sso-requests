@@ -55,7 +55,7 @@ export const searchUsers = async ({
   clientId?: string;
 }) => {
   if (searchKey?.length < 2) return [];
-  const userProperties: { [key: string]: string } = { property: '' };
+  const userProperties: { [key: string]: string } = {};
   userProperties[property] = searchKey;
 
   if (idp.startsWith('bceid') && clientId)

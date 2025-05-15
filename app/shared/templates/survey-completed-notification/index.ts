@@ -18,6 +18,8 @@ const triggerEventDisplayMap = {
   createRole: 'role creation',
   cssApiRequest: 'css api requests',
   createIntegration: 'integration creations and updates',
+  downloadLogs: 'log downloads',
+  viewMetrics: 'integration metrics',
 };
 
 interface DataProps {
