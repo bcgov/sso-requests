@@ -60,7 +60,16 @@ jobs:
           createdb runner || true
           chmod +x ./.bin/db-setup.sh
           ./.bin/db-setup.sh ssorequests
-          yarn --cwd ./localserver migrate-db
+
+      - name: Run Database Migrations
+        env:
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: ssorequests
+          DB_HOSTNAME: localhost
+        run: |
+          make db_install && make db_compile && make migrations
+        working-directory: .
 
       - name: Load Test Data
         run: psql -h localhost -d ssorequests -U postgres -p 5432 -a -q -f init.sql
