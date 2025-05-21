@@ -96,6 +96,7 @@ jobs:
 
       - name: Run api integration tests
         env:
+          PGUSER: postgres
           DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
         run: |
           yarn test
