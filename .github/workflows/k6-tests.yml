@@ -68,8 +68,10 @@ jobs:
           DB_NAME: ssorequests
           DB_HOSTNAME: localhost
         run: |
-          make db_install && make db_compile && make migrations
-        working-directory: .
+          yarn install
+          yarn compile
+          yarn migrate
+        working-directory: ./db
 
       - name: Load Test Data
         run: psql -h localhost -d ssorequests -U postgres -p 5432 -a -q -f init.sql
