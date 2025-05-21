@@ -44,7 +44,7 @@ spec:
             - name: DB_HOSTNAME
               value: sso-requests-patroni
             - name: DB_PORT
-              value: 5432
+              value: "5432"
             - name: DB_NAME
               value: ssorequests
             - name: KEYCLOAK_DEV_URL
