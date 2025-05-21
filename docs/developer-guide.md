@@ -108,6 +108,16 @@ _**Note:** If the script has logged `migration done` but won't close, you can ex
 
 #### Steps
 
+- Build sso-requests:latest and sso-requests-api:latest images using below commands
+
+  ```
+  docker-buildx build -t sso-requests .
+
+  cd ./api
+
+  docker-buildx build -t sso-requests-api .
+  ```
+
 - Run `make setup_env` from the root directory to generate,
 
   - `.env` file under `./app` folder
