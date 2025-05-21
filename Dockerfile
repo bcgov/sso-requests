@@ -10,9 +10,9 @@ ENV NODE_ENV=production
 
 COPY *.json ./
 
-COPY app ./
+COPY app ./app
 
-COPY db ./
+COPY db ./db
 
 COPY Makefile ./
 
