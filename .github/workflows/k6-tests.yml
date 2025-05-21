@@ -87,8 +87,7 @@ jobs:
           KEYCLOAK_V2_TEST_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
           KEYCLOAK_V2_TEST_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_TEST_PASSWORD }}
         run: |
-          cp .env.example .env
-          yarn dev &
+          yarn dev
         working-directory: ./api
 
       - name: Run Smoke Tests
@@ -99,7 +98,7 @@ jobs:
           K6_USERNAME: osz5ls7vfd4wmuhaq661j2imez1finc5@idir
           K6_CSS_API_URL: http://localhost:8080/api/v1
           K6_KEYCLOAK_TOKEN_URL: https://sandbox.loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token
-        run: k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL -e keycloak_token_url=$K6_KEYCLOAK_TOKEN_URL smoke-tests.js
+        run: k6 run -e client_id=$K6_CLIENT_ID -e client_secret=$K6_CLIENT_SECRET -e environment=$K6_ENVIRONMENT -e username=$K6_USERNAME -e css_api_url=$K6_CSS_API_URL -e keycloak_token_url=$K6_KEYCLOAK_TOKEN_URL smoke-tests.js --http-debug="full"
         working-directory: ./loadtests/css-api/smoke-tests
 
       - name: Cleanup Test Data
