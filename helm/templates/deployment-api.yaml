@@ -41,6 +41,12 @@ spec:
                 secretKeyRef:
                   name: {{ printf "%s-patroni-appusers" (include "..fullname" .) }}
                   key: password-appuser1
+            - name: DB_HOSTNAME
+              value: sso-requests-patroni
+            - name: DB_PORT
+              value: 5432
+            - name: DB_NAME
+              value: ssorequests
             - name: KEYCLOAK_DEV_URL
               valueFrom:
                 secretKeyRef:
@@ -96,6 +102,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: grafana-api-token
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: redis-host
             {{- range $key, $val := .Values.api.extraEnvs }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}

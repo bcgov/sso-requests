@@ -33,7 +33,6 @@ api:
     API_VERSION: v1
     API_ENV: development
     API_URL: https://sso-requests-api.apps.gold.devops.gov.bc.ca
-    REDIS_HOST: sso-requests-redis
   route:
     host: sso-requests-api.apps.gold.devops.gov.bc.ca
 
@@ -54,9 +53,6 @@ env:
   SSO_AUTHORIZATION_RESPONSE_TYPE: code
   SSO_AUTHORIZATION_SCOPE: openid
   SSO_TOKEN_GRANT_TYPE: authorization_code
-  DB_HOSTNAME: sso-requests-patroni
-  DB_PORT: 5432
-  DB_NAME: ssorequests
   MAINTENANCE_MODE_ACTIVE: 'false'
   INCLUDE_DIGITAL_CREDENTIAL: 'true'
   INCLUDE_BC_SERVICES_CARD: 'true'
@@ -72,7 +68,6 @@ env:
   CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
   BCSC_SIGNING_ALGORITHM: PS256
   UPTIME_STATUS_DOMAIN_NAME: status.sandbox.loginproxy.gov.bc.ca
-  REDIS_HOST: sso-requests-redis
 
 envVars: {}
 
