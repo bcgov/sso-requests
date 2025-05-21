@@ -26,6 +26,10 @@ spec:
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
           env:
             - name: DB_USERNAME
               valueFrom:
@@ -92,4 +96,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: grafana-api-token
+            {{- range $key, $val := .Values.api.extraEnvs }}
+            - name: {{  $key | quote | upper }}
+              value: {{ $val | quote }}
+            {{- end }}
 {{- end }}

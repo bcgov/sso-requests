@@ -1,7 +1,7 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: {{ include "..fullname" . }}
+  name: {{ printf "%s-api" (include "..fullname" .) }}
   labels:
     app.kubernetes.io/name: {{ include "..name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -11,12 +11,12 @@ metadata:
     haproxy.router.openshift.io/balance: roundrobin
     haproxy.router.openshift.io/disable_cookies: 'true'
 spec:
-  {{- if .Values.route.host }}
-  host: {{ .Values.route.host }}
+  {{- if .Values.api.route.host }}
+  host: {{ .Values.api.route.host }}
   {{- end }}
   tls:
     insecureEdgeTerminationPolicy: Redirect
     termination: edge
   to:
     kind: Service
-    name: {{ include "..fullname" . }}
+    name: {{ printf "%s-api" (include "..fullname" .) }}

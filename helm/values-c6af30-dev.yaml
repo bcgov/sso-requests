@@ -34,6 +34,8 @@ api:
     API_ENV: development
     API_URL: https://sso-requests-api.apps.gold.devops.gov.bc.ca
     REDIS_HOST: sso-requests-redis
+  route:
+    host: sso-requests-api.apps.gold.devops.gov.bc.ca
 
 resources:
   limits:
