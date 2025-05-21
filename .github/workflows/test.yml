@@ -89,6 +89,16 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
+      - name: Install dependencies for api
+        run: |
+          yarn install
+        working-directory: ./api
+
+      - name: Run api integration tests
+        run: |
+          yarn test
+        working-directory: ./api
+
   commitlint:
     runs-on: ubuntu-24.04
     steps:
