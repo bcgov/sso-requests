@@ -99,7 +99,7 @@ jobs:
           KEYCLOAK_TEST_URL: https://test.sandbox.loginproxy.gov.bc.ca
           KEYCLOAK_PROD_URL: https://sandbox.loginproxy.gov.bc.ca
         run: |
-          yarn dev
+          yarn dev &
         working-directory: ./api
 
       - name: Run Smoke Tests
