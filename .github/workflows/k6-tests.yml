@@ -82,10 +82,22 @@ jobs:
 
       - name: Run CSS API
         env:
-          KEYCLOAK_V2_DEV_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
-          KEYCLOAK_V2_DEV_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD}}
-          KEYCLOAK_V2_TEST_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
-          KEYCLOAK_V2_TEST_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_TEST_PASSWORD }}
+          NODE_ENV: development
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_HOSTNAME: localhost
+          DB_PORT: 5432
+          DB_NAME: ssorequests
+          API_ENV: development
+          API_VERSION: v1
+          API_URL: http://localhost:8080
+          KEYCLOAK_DEV_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_DEV_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD}}
+          KEYCLOAK_TEST_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_TEST_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_TEST_PASSWORD }}
+          KEYCLOAK_DEV_URL: https://dev.sandbox.loginproxy.gov.bc.ca
+          KEYCLOAK_TEST_URL: https://test.sandbox.loginproxy.gov.bc.ca
+          KEYCLOAK_PROD_URL: https://sandbox.loginproxy.gov.bc.ca
         run: |
           yarn dev
         working-directory: ./api
