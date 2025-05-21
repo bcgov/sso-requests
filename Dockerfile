@@ -8,7 +8,13 @@ WORKDIR /app
 # Set the environment to production
 ENV NODE_ENV=production
 
-COPY . .
+COPY *.json ./
+
+COPY app ./
+
+COPY db ./
+
+COPY Makefile ./
 
 RUN make app_install
 

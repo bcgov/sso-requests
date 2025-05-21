@@ -1,0 +1,95 @@
+{{- if .Values.api.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-api" (include "..fullname" .) }}
+  labels:
+    app.kubernetes.io/name: {{ include "..name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "..chart" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ printf "%s-api" (include "..fullname" .) }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ printf "%s-api" (include "..fullname" .) }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-patroni-appusers" (include "..fullname" .) }}
+                  key: username-appuser1
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-patroni-appusers" (include "..fullname" .) }}
+                  key: password-appuser1
+            - name: KEYCLOAK_DEV_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-dev-url
+            - name: KEYCLOAK_DEV_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-dev-username
+            - name: KEYCLOAK_DEV_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-dev-password
+            - name: KEYCLOAK_PROD_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-prod-url
+            - name: KEYCLOAK_PROD_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-prod-username
+            - name: KEYCLOAK_PROD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-prod-password
+            - name: KEYCLOAK_TEST_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-test-url
+            - name: KEYCLOAK_TEST_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-test-username
+            - name: KEYCLOAK_TEST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: keycloak-v2-test-password
+            - name: GRAFANA_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: grafana-api-url
+            - name: GRAFANA_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: grafana-api-token
+{{- end }}

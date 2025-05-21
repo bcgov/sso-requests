@@ -8,6 +8,7 @@ on:
       - 'app/**'
       - 'Dockerfile'
       - 'helm/**'
+      - 'api/**'
       - '.github/workflows/publish-image-nk.yaml'
 
 env:
@@ -133,6 +134,7 @@ jobs:
           --set envVars.keycloakV2TestPassword="${{ env.KEYCLOAK_V2_TEST_PASSWORD }}" \
           --set envVars.chesUsername="${{ env.CHES_USERNAME }}" \
           --set envVars.chesPassword="${{ env.CHES_PASSWORD }}" \
+          --set envVars.grafanaApiUrl="${{ env.GRAFANA_API_URL }}" \
           --set envVars.grafanaApiToken="${{ env.GRAFANA_API_TOKEN }}" \
           --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
           --set envVars.msGraphApiClientId="${{ secrets.MS_GRAPH_API_CLIENT_ID }}" \

@@ -16,6 +16,25 @@ cronJobs:
       cpu: 50m
       memory: 128Mi
 
+api:
+  enabled: true
+  image:
+    repository: ghcr.io/bcgov/sso-requests-api
+    tag: dev
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 150m
+      memory: 256Mi
+  extraEnvs:
+    API_VERSION: v1
+    API_ENV: development
+    API_URL: https://sso-requests-api.apps.gold.devops.gov.bc.ca
+    REDIS_HOST: sso-requests-redis
+
 resources:
   limits:
     cpu: 500m
@@ -47,11 +66,11 @@ env:
   BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
   BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
   BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
-  GRAFANA_API_URL: https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
   CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email
   CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
   BCSC_SIGNING_ALGORITHM: PS256
   UPTIME_STATUS_DOMAIN_NAME: status.sandbox.loginproxy.gov.bc.ca
+  REDIS_HOST: sso-requests-redis
 
 envVars: {}
 
