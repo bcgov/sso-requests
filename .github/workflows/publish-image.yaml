@@ -48,6 +48,7 @@ jobs:
           BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
           BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
           REDIS_HOST=${{secrets.DEV_REDIS_HOST}}
+          GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
 
           EOF
 
@@ -75,6 +76,8 @@ jobs:
           BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
           BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
           REDIS_HOST=${{secrets.TEST_REDIS_HOST}}
+          GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
+
 
           EOF
 
@@ -101,6 +104,8 @@ jobs:
           BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
           BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_PROD}}
           REDIS_HOST=${{secrets.PROD_REDIS_HOST}}
+          GRAFANA_API_URL=https://sso-grafana.apps.gold.devops.gov.bc.ca/api
+
 
           EOF
       - uses: actions/checkout@v4
