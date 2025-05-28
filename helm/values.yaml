@@ -12,6 +12,8 @@ nameOverride: sso-requests
 
 fullnameOverride: sso-requests
 
+existingSecret: false
+
 env: {}
 
 service:

@@ -92,3 +92,11 @@ patroni:
 
   transportServerClaim:
     enabled: false
+
+
+redis:
+  architecture: standalone
+  auth:
+    enabled: true
+    existingSecret: sso-requests
+    existingSecretPasswordKey: redis-password-key
