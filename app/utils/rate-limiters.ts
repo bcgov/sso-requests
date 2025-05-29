@@ -2,6 +2,7 @@ import rateLimit from 'express-rate-limit';
 import { NextApiRequest, NextApiResponse } from 'next';
 // import { RequestHandler } from 'next/dist/server/next';
 import RedisStore from 'rate-limit-redis';
+import RedisClient from 'ioredis';
 
 const getClientIp = (req: any) => {
   const id = req.query?.id ?? req.query?.integrationId;
