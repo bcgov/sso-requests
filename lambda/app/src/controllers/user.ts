@@ -300,7 +300,7 @@ export const deleteStaleUsers = async (
           [],
         );
         await sendTemplate(EMAILS.REMOVE_INACTIVE_IDIR_USER_FROM_TEAM, {
-          username: existingUser.idirUserid,
+          username: user.attributes.idir_username || user.username,
           teamName: team.teamName,
           emails: otherAdminEmails,
         });
