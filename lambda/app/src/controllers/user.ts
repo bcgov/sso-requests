@@ -296,7 +296,7 @@ export const deleteStaleUsers = async (
           raw: true,
         });
         const otherAdminEmails = otherAdmins.reduce(
-          (acc, curr) => acc.concat(curr.idirEmail).concat(curr.additionalEmail || []),
+          (acc, curr) => acc.concat(curr.idirEmail).concat(curr.additionalEmail ?? []),
           [],
         );
         await sendTemplate(EMAILS.REMOVE_INACTIVE_IDIR_USER_FROM_TEAM, {
