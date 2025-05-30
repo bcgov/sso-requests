@@ -62,7 +62,6 @@ module.exports = {
     bcsc_initial_access_token_test: process.env.BCSC_INITIAL_ACCESS_TOKEN_TEST || '',
     bcsc_initial_access_token_prod: process.env.BCSC_INITIAL_ACCESS_TOKEN_PROD || '',
     redis_host: process.env.REDIS_HOST || '',
-    redis_password: process.env.REDIS_PASSWORD || '',
     gh_access_token: process.env.GH_ACCESS_TOKEN || '',
     verify_user_secret: process.env.VERIFY_USER_SECRET || 'asdf',
     bcsc_signing_algorithm: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',

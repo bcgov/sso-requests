@@ -107,11 +107,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: redis-host
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "..fullname" . }}
-                  key: redis-password-key
             {{- range $key, $val := .Values.api.extraEnvs }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}

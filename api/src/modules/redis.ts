@@ -20,8 +20,7 @@ export const logsRateLimiter = rateLimit({
     process.env.NODE_ENV === 'production'
       ? new RedisStore({
           // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-          sendCommand: async (...args: string[]) =>
-            new RedisClient({ host: process.env.REDIS_HOST, password: process.env.REDIS_PASSWORD }).call(...args),
+          sendCommand: async (...args: string[]) => new RedisClient({ host: process.env.REDIS_HOST }).call(...args),
         })
       : null,
 });
