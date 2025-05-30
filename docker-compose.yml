@@ -96,7 +96,6 @@ services:
       KEYCLOAK_V2_PROD_PASSWORD: admin
       KEYCLOAK_V2_PROD_URL: http://prod-keycloak:9082
       REDIS_HOST: localhost
-      REDIS_PASSWORD: ''
     depends_on:
       - sso-db
     networks:

@@ -156,11 +156,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: redis-host
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "..fullname" . }}
-                  key: redis-password-key
             - name: GH_ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:

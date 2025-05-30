@@ -1,7 +1,6 @@
 name: Create and publish CSS App image By NK
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - SSOTEAM-2108-new01
