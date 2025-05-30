@@ -121,7 +121,6 @@ function MyApp({ Component, pageProps }: AppProps) {
         .init({
           redirectUri: sso_redirect_uri,
           onLoad: 'check-sso',
-          checkLoginIframe: false,
         })
         .then(() => {
           const processedSession = proccessSession(keycloak.idTokenParsed);
@@ -143,7 +142,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (session) getUser();
   }, [session]);
 
-  const handleLogin = async () => keycloak.login({ redirectUri: `${app_url}/my-dashboard`, idpHint: 'idir' });
+  const handleLogin = async () => keycloak.login({ redirectUri: `${app_url}/my-dashboard` });
   const handleLogout = async () => keycloak.logout({ redirectUri: app_url });
 
   const sessionContext = useMemo(() => ({ session, user, keycloak }), [session, user, keycloak]);
