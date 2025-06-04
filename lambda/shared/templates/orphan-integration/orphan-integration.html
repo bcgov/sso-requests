@@ -1,7 +1,8 @@
 <h3>Hello Team,</h3>
 <p>
-  The requestor for the non-team integration with <strong>Request ID {{integration.id}}</strong> has been removed from
-  the system so it has been transitioned to
+  The {{#if integration.usesTeam}}last team admin for the integration{{else}}requestor for the non-team
+  integration{{/if}} with <strong>Request ID {{integration.id}}</strong> has been removed from the system so it has been
+  transitioned to
   <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer"> bcgov.sso@gov.bc.ca </a>
   team.
 </p>

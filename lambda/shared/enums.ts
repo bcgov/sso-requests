@@ -38,6 +38,7 @@ export const EMAILS = {
   CREATE_TEAM_API_ACCOUNT_APPROVED: 'create-team-api-account-approved',
   DELETE_TEAM_API_ACCOUNT_SUBMITTED: 'delete-team-api-account-submitted',
   DELETE_INACTIVE_IDIR_USER: 'delete-inactive-idir-users',
+  REMOVE_INACTIVE_IDIR_USER_FROM_TEAM: 'remove-inactive-idir-user-from-team',
   SURVEY_COMPLETED: 'survey-completed-notification',
   RESTORE_INTEGRATION: 'restore-integration',
   RESTORE_TEAM_API_ACCOUNT: 'restore-team-api-account',
