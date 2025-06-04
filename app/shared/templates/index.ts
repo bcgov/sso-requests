@@ -18,6 +18,7 @@ import createTeamApiAccountSubmitted from './create-team-api-account-submitted';
 import createTeamApiAccountApproved from './create-team-api-account-approved';
 import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
 import deleteInactiveIdirUsers from './delete-inactive-idir-users';
+import removeInactiveIdirUserFromTeam from './remove-inactive-idir-user-from-team';
 import surveyCompleted from './survey-completed-notification';
 import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
@@ -148,6 +149,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.DELETE_INACTIVE_IDIR_USER:
       builder = deleteInactiveIdirUsers;
+      break;
+    case EMAILS.REMOVE_INACTIVE_IDIR_USER_FROM_TEAM:
+      builder = removeInactiveIdirUserFromTeam;
       break;
     case EMAILS.SURVEY_COMPLETED:
       builder = surveyCompleted;
