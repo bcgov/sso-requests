@@ -12,10 +12,10 @@ env:
   CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
   CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CYPRESS_host: 'https://bcgov.github.io/sso-requests-sandbox/'
+  CYPRESS_host: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
   CYPRESS_smoketest: false
   CYPRESS_localtest: false
-  CYPRESS_BASE_URL: 'https://bcgov.github.io/sso-requests-sandbox/'
+  CYPRESS_BASE_URL: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
 
 jobs:
   pre-reqs:
