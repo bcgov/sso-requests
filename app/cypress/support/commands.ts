@@ -14,18 +14,13 @@ Cypress.Commands.add('login', (username, password, host, siteminder) => {
   // Click the login button
   home.clickLoginButton();
 
-  cy.origin(Cypress.env('loginproxy'), () => {
-    cy.get('#kc-header-wrapper', { timeout: 10000 }).contains('COMMON HOSTED SINGLE SIGN-ON').should('be.visible');
-    cy.get('#social-idir', { timeout: 10000 }).click();
-  });
+  cy.get('#kc-header-wrapper', { timeout: 10000 }).contains('COMMON HOSTED SINGLE SIGN-ON').should('be.visible');
+  cy.get('#social-idir', { timeout: 10000 }).click();
 
-  // Validate siteminder and login
-  cy.origin(siteminder || Cypress.env('siteminder'), { args: sentArgs }, ({ user, pass }) => {
-    cy.get('#login-to', { timeout: 10000 }).contains('Log in to ').should('be.visible');
-    cy.get('#user', { timeout: 10000 }).type(user || Cypress.env('username'));
-    cy.get('#password', { timeout: 10000 }).type(pass || Cypress.env('password'), { log: false });
-    cy.get('input[name=btnSubmit]', { timeout: 10000 }).click();
-  });
+  cy.get('#login-to', { timeout: 10000 }).contains('Log in to ').should('be.visible');
+  cy.get('#user', { timeout: 10000 }).type(Cypress.env('username'));
+  cy.get('#password', { timeout: 10000 }).type(Cypress.env('password'), { log: false });
+  cy.get('input[name=btnSubmit]', { timeout: 10000 }).click();
 
   cy.contains('Common Hosted Single Sign-on (CSS)');
   cy.get('button', { timeout: 20000 }).contains('Log out').should('be.visible');
