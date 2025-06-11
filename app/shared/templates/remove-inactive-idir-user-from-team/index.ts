@@ -4,9 +4,10 @@ import { sendEmail } from '@app/utils/ches';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
+import { getEmailTemplate } from '../helpers';
 
 const SUBJECT_TEMPLATE = `In-active IDIR User Removed From Team`;
-const template = fs.readFileSync(__dirname + '/remove-inactive-idir-user-from-team.html', 'utf8');
+const template = getEmailTemplate('remove-inactive-idir-user-from-team/remove-inactive-idir-user-from-team.html');
 
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
