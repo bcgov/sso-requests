@@ -4,6 +4,30 @@ SHELL := /usr/bin/env bash
 app_install:
 	yarn --cwd ./app install
 
+.PHONY: app_build
+app_build:
+	yarn --cwd ./app build
+
+.PHONY: app_start
+app_start:
+	yarn --cwd ./app start
+
+.PHONY: db_install
+db_install:
+	yarn --cwd ./db install
+
+.PHONY: db_compile
+db_compile:
+	yarn --cwd ./db compile
+
+.PHONY: migrations
+migrations:
+	node ./db/dist/db/src/main.js
+
+.PHONY: disable_telemetry
+disable_telemetry:
+	yarn --cwd ./app next telemetry disable
+
 .PHONY: setup_env
 setup_env:
 	@cd app; cp .env.example .env
@@ -13,28 +37,26 @@ setup_env:
 app_test:
 	yarn --cwd ./app/jest test --collectCoverage
 
-.PHONY: server_test
-server_test:
-	yarn --cwd ./lambda test
+.PHONY: api_test
+api_test:
+	yarn --cwd ./app/jest-api test-api --collectCoverage
 
 .PHONY: app
 app:
 	yarn --cwd ./app dev
 
-.PHONY: server_install
-server_install:
-	yarn install
-	@cd lambda; make install_all
-	yarn --cwd ./localserver install
-
-.PHONY: server
-server:
-	yarn --cwd ./localserver dev
 
 .PHONY: local_db
 local_db:
-	pushd .bin && bash ./db-setup.sh && bash ./db-setup.sh ssorequests_test && popd
-	yarn --cwd ./localserver migrate-db
+	pushd .bin && bash ./db-setup.sh && popd
+	yarn --cwd ./db compile
+	yarn --cwd ./db migrate
+
+.PHONY: local_test_db
+local_test_db:
+	pushd .bin && bash ./db-setup.sh ssorequests_test && popd
+	yarn --cwd ./db compile
+	yarn --cwd ./db migrate-test
 
 .PHONY: schema
 schema:

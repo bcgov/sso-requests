@@ -23,9 +23,7 @@ const content = (lines: string[]) => (
       You may still
     </tspan>
     <tspan y="52" x="95" fill="#006fc4">
-      <Link href="/my-dashboard">
-        <a>login to your dashboard</a>
-      </Link>
+      <Link href="/my-dashboard">login to your dashboard</Link>
     </tspan>
     <tspan y="52"> to start a new integration</tspan>
     <tspan y="78" x="0">
@@ -61,7 +59,7 @@ export default function VerifyUser({ currentUser }: Props) {
   }
 
   let errorTitle = '';
-  let errorContents = ['If you know the team admin, please reach out them, so they'];
+  let errorContents = ['If you know the team admin, please reach out to them, so they'];
   if (!validated) {
     if (message === 'expired') {
       errorTitle = 'This link has expired.';

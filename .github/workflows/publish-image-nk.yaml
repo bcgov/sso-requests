@@ -1,0 +1,153 @@
+name: Create and publish CSS App image By NK
+
+on:
+  push:
+    branches:
+      - SSOTEAM-2108-new01
+    paths:
+      - 'app/**'
+      - 'Dockerfile'
+      - 'helm/**'
+      - 'api/**'
+      - '.github/workflows/publish-image-nk.yaml'
+
+env:
+  GITHUB_REGISTRY: ghcr.io
+  IMAGE_NAME: bcgov/sso-requests
+
+jobs:
+  build-and-push-image-nk:
+    permissions: write-all
+    runs-on: ubuntu-24.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: hmarr/debug-action@v3
+      - name: Set env to development
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          APP_URL=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
+          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
+          GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_URL=https://dev.sandbox.loginproxy.gov.bc.ca
+          KEYCLOAK_V2_TEST_URL=https://test.sandbox.loginproxy.gov.bc.ca
+          KEYCLOAK_V2_PROD_URL=https://sandbox.loginproxy.gov.bc.ca
+          KEYCLOAK_V2_DEV_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD }}
+          KEYCLOAK_V2_TEST_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_V2_TEST_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_TEST_PASSWORD }}
+          KEYCLOAK_V2_PROD_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_PROD_USERNAME }}
+          KEYCLOAK_V2_PROD_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_PROD_PASSWORD }}
+          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
+          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
+          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
+          REDIS_HOST=${{secrets.DEV_REDIS_HOST}}
+          GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
+
+          EOF
+
+      - uses: actions/checkout@v4
+      - name: Install CLI tools from OpenShift Mirror
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          source: mirror
+          kam: latest
+          oc: 4.18.7
+
+      - name: Log in to the GitHub Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GITHUB_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - id: get-tag
+        name: Get Tag
+        run: |
+          echo "release_tag=${{ endsWith(github.ref, '/main') && steps.release.outputs.tag_name || steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-buildx-
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ env.GITHUB_REGISTRY }}/${{env.IMAGE_NAME}}:dev
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Set env to development
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          OPENSHIFT_TOKEN=${{ secrets.DEV_OPENSHIFT_TOKEN }}
+          OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
+          EOF
+
+      - name: Authenticate and set context
+        uses: redhat-actions/oc-login@v1
+        with:
+          openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
+          openshift_token: ${{ env.OPENSHIFT_TOKEN }}
+          namespace: ${{ env.OPENSHIFT_NAMESPACE }}
+          insecure_skip_tls_verify: true
+
+      - name: Deploy app with Helm chart
+        run: |
+          namespace=${{ env.OPENSHIFT_NAMESPACE }}
+          helm dep up
+          helm upgrade --install --atomic sso-requests . -n ${namespace} \
+          -f values.yaml -f "values-${namespace}.yaml" \
+          --set image.tag="dev" \
+          --set envVars.appUrl="${{ env.APP_URL }}" \
+          --set envVars.apiAuthSecret="${{ env.API_AUTH_SECRET }}" \
+          --set envVars.keycloakV2DevUsername="${{ env.KEYCLOAK_V2_DEV_USERNAME }}" \
+          --set envVars.keycloakV2DevPassword="${{ env.KEYCLOAK_V2_DEV_PASSWORD }}" \
+          --set envVars.keycloakV2ProdUsername="${{ env.KEYCLOAK_V2_PROD_USERNAME }}" \
+          --set envVars.keycloakV2ProdPassword="${{ env.KEYCLOAK_V2_PROD_PASSWORD }}" \
+          --set envVars.keycloakV2TestUsername="${{ env.KEYCLOAK_V2_TEST_USERNAME }}" \
+          --set envVars.keycloakV2TestPassword="${{ env.KEYCLOAK_V2_TEST_PASSWORD }}" \
+          --set envVars.chesUsername="${{ env.CHES_USERNAME }}" \
+          --set envVars.chesPassword="${{ env.CHES_PASSWORD }}" \
+          --set envVars.grafanaApiUrl="${{ env.GRAFANA_API_URL }}" \
+          --set envVars.grafanaApiToken="${{ env.GRAFANA_API_TOKEN }}" \
+          --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
+          --set envVars.msGraphApiClientId="${{ secrets.MS_GRAPH_API_CLIENT_ID }}" \
+          --set envVars.msGraphApiClientSecret="${{ secrets.MS_GRAPH_API_CLIENT_SECRET }}" \
+          --set envVars.bcscInitialAccessTokenDev="${{ env.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
+          --set envVars.bcscInitialAccessTokenProd="${{ env.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
+          --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
+          --set envVars.redisHost="${{ env.REDIS_HOST }}" \
+          --set envVars.ghAccessToken="${{ secrets.GH_ACCESS_TOKEN }}" \
+          --set envVars.verifyUserSecret="${{ env.VERIFY_USER_SECRET }}" \
+          --set envVars.rc_webhook_url="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
+          --set envVars.keycloakV2DevUrl="${{ env.KEYCLOAK_V2_DEV_URL }}" \
+          --set envVars.keycloakV2TestUrl="${{ env.KEYCLOAK_V2_TEST_URL }}" \
+          --set envVars.keycloakV2ProdUrl="${{ env.KEYCLOAK_V2_PROD_URL }}"
+        working-directory: ./helm
