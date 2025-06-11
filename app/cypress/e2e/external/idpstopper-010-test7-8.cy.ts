@@ -24,6 +24,7 @@ describe('Run IDP Stopper Test', () => {
   testData.forEach((data, index) => {
     // Only run the test if the smoketest flag is set and the test is a smoketest
     if (util.runOk(data)) {
+      let integration: Cypress.Chainable | undefined;
       let req = new Request();
       it(`Create ${data.create.projectname} (Test ID: ${data.create.test_id}) - ${data.create.description}`, () => {
         cy.setid(null).then(() => {
@@ -31,40 +32,38 @@ describe('Run IDP Stopper Test', () => {
         });
         req.showCreateContent(data);
         req.populateCreateContent(data);
-        req.createRequest();
-        cy.logout();
-      });
+        integration = req.createRequest();
 
-      // Using the OIDC Playground to test the IDP Stopper
-      it('Go to Playground', () => {
-        cy.visit(playground.path);
+        integration?.then(() => {
+          cy.visit(playground.path);
 
-        playground.fillInPlayground(
-          null,
-          null,
-          kebabCase(data.create.projectname) + '-' + req.uid + '-' + Number(req.id),
-          null,
-        );
+          playground.fillInPlayground(
+            null,
+            null,
+            kebabCase(data.create.projectname) + '-' + req.uid + '-' + Number(req.id),
+            null,
+          );
 
-        playground.clickLogin();
+          playground.clickLogin();
 
-        // For multiple IDPs, check all are displayed to user as login options
-        if (data.create.identityprovider.length > 1) {
-          cy.get('#kc-social-providers').within(() => {
-            let n = 0;
-            while (n < data.create.identityprovider.length) {
-              if (data.create.identityprovider[n] !== '') {
-                cy.contains('li', data.create.identityprovider[n]);
+          // For multiple IDPs, check all are displayed to user as login options
+          if (data.create.identityprovider.length > 1) {
+            cy.get('#kc-social-providers').within(() => {
+              let n = 0;
+              while (n < data.create.identityprovider.length) {
+                if (data.create.identityprovider[n] !== '') {
+                  cy.contains('li', data.create.identityprovider[n]);
+                }
+                n++;
               }
-              n++;
-            }
-          });
-        } else {
-          // For a single IDP, check redirects directly to the IDPs url
-          cy.url().then((url) => {
-            expect(url.startsWith(data.idpUrl)).to.be.true;
-          });
-        }
+            });
+          } else {
+            // For a single IDP, check redirects directly to the IDPs url
+            cy.url().then((url) => {
+              expect(url.startsWith(data.idpUrl)).to.be.true;
+            });
+          }
+        });
       });
 
       it('Delete the request', () => {

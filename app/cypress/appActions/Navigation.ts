@@ -1,5 +1,4 @@
 class Navigation {
-  basePath: string = Cypress.env('localtest') ? '' : '/sso-requests-sandbox';
   waitForPageLoad() {
     // Wait for loader to appear and clear to ensure full page load
     cy.get('[data-testid="grid-loading"]').should('exist');
@@ -10,7 +9,7 @@ class Navigation {
     cy.url().then((url) => {
       cy.log(url);
       if (!url.includes('/my-dashboard') || url.includes('/teams')) {
-        cy.get(`header a[href="${this.basePath}/my-dashboard"]`).click();
+        cy.get(`header a[href="/my-dashboard"]`).click();
         this.waitForPageLoad();
       }
     });
@@ -23,7 +22,7 @@ class Navigation {
         cy.contains('My Teams').click();
         this.waitForPageLoad();
       } else {
-        cy.get(`header a[href="${this.basePath}/my-dashboard"]`).click();
+        cy.get(`header a[href="/my-dashboard"]`).click();
         cy.contains('My Teams').click();
         this.waitForPageLoad();
       }
@@ -32,7 +31,7 @@ class Navigation {
 
   goToAdminDashboard() {
     cy.url().then((url) => {
-      if (!url.endsWith('/admin-dashboard')) cy.get(`header a[href="${this.basePath}/admin-dashboard"]`).click();
+      if (!url.endsWith('/admin-dashboard')) cy.get(`header a[href="/admin-dashboard"]`).click();
     });
   }
 }
