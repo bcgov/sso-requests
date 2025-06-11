@@ -3,7 +3,7 @@ import isNil from 'lodash/isNil';
 import { models } from '@app/shared/sequelize/models/models';
 import { Session, User } from '@app/shared/interfaces';
 import { lowcase } from '@app/helpers/string';
-import { getDisplayName, isAdmin } from '../utils/helpers';
+import { isAdmin } from '../utils/helpers';
 import { findAllowedIntegrationInfo, getIntegrationById } from '@app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
@@ -14,7 +14,6 @@ import { createEvent } from './requests';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
 import compact from 'lodash.compact';
-import { Integration } from '@app/interfaces/Request';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -268,7 +267,7 @@ export const deleteStaleUsers = async (
                 return sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
                   integration,
                   teamId: team.teamId,
-                  username: user?.attributes?.idir_username || user.username,
+                  username: user?.attributes?.idir_username ?? user.username,
                   clientId: teamAdmins[0].integrationId,
                   teamAdmin: team.role === 'admin',
                   roles: [],
