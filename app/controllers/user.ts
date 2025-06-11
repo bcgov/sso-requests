@@ -1,15 +1,14 @@
-import { Op } from 'sequelize';
+import { literal, Op } from 'sequelize';
 import isNil from 'lodash/isNil';
 import { models } from '@app/shared/sequelize/models/models';
 import { Session, User } from '@app/shared/interfaces';
 import { lowcase } from '@app/helpers/string';
-import { getDisplayName, isAdmin } from '../utils/helpers';
+import { isAdmin } from '../utils/helpers';
 import { findAllowedIntegrationInfo, getIntegrationById } from '@app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { EMAILS, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
-import { getAllEmailsOfTeam } from '@app/queries/team';
 import { UserSurveyInformation } from '@app/shared/interfaces';
 import { createEvent } from './requests';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
@@ -174,13 +173,20 @@ export const isAllowedToManageRoles = async (session: Session, integrationId: nu
   return canCreateOrDeleteRoles(integration);
 };
 
+/*
+  Function called when cron job deletes users from keycloak, to notify any team members and fix and changed ownership:
+  - If a user with client roles in any environment is deleted, all owners of that client are notified
+  - If a user is deleted from production keycloak, and the user was the last admin on a team, gives our team ownership of that teams integrations
+  - If a user is deleted from production keycloak and directly owned an integration, gives our team ownership of it
+  - If a user is deleted from production keycloak and is on a team, notifies all team members
+*/
 export const deleteStaleUsers = async (
   user: UserRepresentation & { clientData: { client: string; roles: string[] }[]; env: string },
 ) => {
   try {
     const deletedFromProduction = user.env === 'prod';
     const userHadRoles = user?.clientData && user?.clientData?.length > 0;
-    // Send formatted email with roles information to all team members if the deleted user had roles.
+    // Send formatted email with roles information to all integration owners if the deleted user had roles.
     if (userHadRoles) {
       await Promise.all(
         user.clientData.map(async (cl: { client: string; roles: string[] }) => {
@@ -190,26 +196,15 @@ export const deleteStaleUsers = async (
             },
             raw: true,
           });
-          if (integration?.teamId && !integration.archived) {
-            const userEmails = await getAllEmailsOfTeam(integration.teamId);
-            let isTeamAdmin = false;
-            // Only production users affect team management
-            if (deletedFromProduction) {
-              userEmails.map((u) => {
-                if (u.idir_email === user.email && u.role === 'admin') {
-                  isTeamAdmin = true;
-                }
-              });
-            }
-            await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
-              teamId: integration.teamId,
-              username: user?.attributes?.idir_username || user.username,
-              clientId: cl.client,
-              roles: cl.roles,
-              env: user.env,
-              teamAdmin: isTeamAdmin,
-            });
-          }
+          if (!integration || integration.archived) return false;
+          await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
+            integration,
+            teamId: integration.teamId,
+            username: user?.attributes?.idir_username || user.username,
+            clientId: cl.client,
+            roles: cl.roles,
+            env: user.env,
+          });
         }),
       );
     }
@@ -225,116 +220,130 @@ export const deleteStaleUsers = async (
       raw: true,
     });
 
+    if (!existingUser) return false;
     if (!ssoUser) throw new createHttpError.BadRequest('user(bcgov.sso@gov.bc.ca) not found');
 
-    if (existingUser) {
-      const teams = await models.usersTeam.findAll({
+    // Fetch all teams the user is on
+    const teams = await models.usersTeam.findAll({
+      where: {
+        user_id: existingUser.id,
+        pending: false,
+      },
+      attributes: {
+        include: [[literal('team.name'), 'teamName']],
+      },
+      include: [
+        {
+          model: models.team,
+          required: true,
+          attributes: [],
+        },
+      ],
+      raw: true,
+    });
+
+    for (let team of teams) {
+      const teamAdmins = await models.usersTeam.findAll({
         where: {
-          user_id: existingUser.id,
+          team_id: team.teamId,
+          role: 'admin',
           pending: false,
         },
         raw: true,
       });
 
-      if (teams.length > 0) {
-        for (let team of teams) {
-          let addedSsoTeamUserAsAdmin = false;
-          // If the userId on an integration is the deleted user, reassign it to us and add us to its owning team.
-          const teamRequests = await models.request.findAll({
-            where: {
-              apiServiceAccount: false,
-              usesTeam: true,
-              userId: existingUser.id,
-              teamId: team.teamId,
-            },
-          });
-
-          if (teamRequests.length > 0) {
-            // add sso team user to team
-            await models.usersTeam.create({
-              role: 'admin',
-              pending: false,
-              teamId: team.teamId,
-              userId: ssoUser.id,
-            });
-
-            addedSsoTeamUserAsAdmin = true;
-
-            for (let rqst of teamRequests) {
-              // assign sso team user
-              rqst.userId = ssoUser.id;
-              await rqst.save();
-              // Notification was already sent above if roles were included.
-              if (!userHadRoles && !rqst.archived) {
-                await sendTemplate(EMAILS.DELETE_INACTIVE_IDIR_USER, {
-                  teamId: rqst.teamId,
-                  username: user.attributes.idir_username || user.username,
-                  clientId: rqst.id,
+      // Assign us to the team if this user was the only existing admin
+      if (teamAdmins.length === 1 && teamAdmins[0].userId === existingUser.id) {
+        await models.usersTeam.create({ role: 'admin', pending: false, teamId: team.teamId, userId: ssoUser.id });
+        const orphanedRequests = await models.request.findAll({
+          where: { teamId: team.teamId },
+        });
+        await Promise.all(
+          orphanedRequests.map((integration: any) => {
+            // Override userid regardless of archive status, to avoid bad foreign key refs
+            integration.userId = ssoUser.id;
+            return integration.save().then(() => {
+              if (!integration.archived)
+                return sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
+                  integration,
+                  teamId: team.teamId,
+                  username: user?.attributes?.idir_username ?? user.username,
+                  clientId: teamAdmins[0].integrationId,
                   teamAdmin: team.role === 'admin',
                   roles: [],
                   env: user.env,
                 });
-              }
-            }
-          }
-          // If the user was not the initial creator, but still the only admin, also reassign it to us.
-          const teamAdmins = await models.usersTeam.findAll({
-            where: {
-              team_id: team.teamId,
-              role: 'admin',
-              pending: false,
-            },
-            raw: true,
-          });
-
-          if (!addedSsoTeamUserAsAdmin) {
-            // if a team has only inactive user as the admin. Add sso team user
-            if (teamAdmins.length === 1 && teamAdmins.find((adm: any) => adm.userId === existingUser.id)) {
-              await models.usersTeam.create({ role: 'admin', pending: false, teamId: team.teamId, userId: ssoUser.id });
-            }
-          }
-        }
+            });
+          }),
+        );
       }
+      // If there are other admins, just notify them of the change
+      else if (teamAdmins.length > 0) {
+        // Update any references to the deleted user id to ours
+        await models.request.update(
+          { userId: ssoUser.id },
+          { where: { userId: existingUser.id, teamId: team.teamId } },
+        );
+        const otherAdmins = await models.user.findAll({
+          where: { id: { [Op.not]: existingUser.id } },
+          include: [
+            {
+              model: models.usersTeam,
+              where: { teamId: team.teamId, role: 'admin', pending: false },
+              required: true,
+              attributes: [],
+            },
+          ],
+          attributes: ['id', 'idirEmail', 'additionalEmail'],
+          raw: true,
+        });
+        const otherAdminEmails = otherAdmins.reduce(
+          (acc: any, curr: any) => acc.concat(curr.idirEmail).concat(curr.additionalEmail ?? []),
+          [],
+        );
+        await sendTemplate(EMAILS.REMOVE_INACTIVE_IDIR_USER_FROM_TEAM, {
+          username: user.attributes.idir_username ?? user.username,
+          teamName: team.teamName,
+          emails: otherAdminEmails,
+        });
+      }
+    }
 
-      // non-team integrations
-      const nonTeamRequests = await models.request.findAll({
-        where: {
-          apiServiceAccount: false,
-          usesTeam: false,
-          userId: existingUser.id,
-          teamId: null,
-        },
-      });
+    // non-team integrations
+    const nonTeamRequests = await models.request.findAll({
+      where: {
+        apiServiceAccount: false,
+        usesTeam: false,
+        userId: existingUser.id,
+        teamId: null,
+      },
+    });
 
-      if (nonTeamRequests.length > 0) {
-        for (let rqst of nonTeamRequests) {
-          try {
-            // assign sso team user
-            rqst.userId = ssoUser.id;
-            await rqst.save();
+    if (nonTeamRequests.length > 0) {
+      for (let rqst of nonTeamRequests) {
+        try {
+          // assign sso team user
+          rqst.userId = ssoUser.id;
+          await rqst.save();
 
-            if (!rqst.archived) {
-              await sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
-                integration: rqst,
-              });
-            }
-          } catch (err) {
-            console.log(err);
-            createEvent({
-              eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_FAILURE,
-              requestId: rqst?.id,
-              userId: ssoUser.id,
+          if (!rqst.archived) {
+            await sendTemplate(EMAILS.ORPHAN_INTEGRATION, {
+              integration: rqst,
             });
           }
+        } catch (err) {
+          console.log(err);
+          createEvent({
+            eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_FAILURE,
+            requestId: rqst?.id,
+            userId: ssoUser.id,
+          });
         }
       }
-
-      await existingUser.destroy();
-
-      return true;
-    } else {
-      return false;
     }
+
+    await existingUser.destroy();
+    return true;
   } catch (err) {
     console.error(err);
     throw new createHttpError.UnprocessableEntity((err as any).message || err);

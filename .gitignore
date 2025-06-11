@@ -82,3 +82,6 @@ lambda/jest-stare/*
 role-migration/migrate-roles.sql
 .vscode
 **/dist/*
+
+# Helm Dependencies
+**/charts/*.tgz

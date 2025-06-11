@@ -1,5 +1,5 @@
 const init = (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
+  const UsersTeam = sequelize.define(
     'usersTeam',
     {
       userId: {
@@ -23,8 +23,12 @@ const init = (sequelize: any, DataTypes: any) => {
     },
     {
       underscored: true,
+      associate: function (models: any) {
+        UsersTeam.belongsTo(models.team, { foreignKey: 'teamId', targetKey: 'id' });
+      },
     },
   );
+  return UsersTeam;
 };
 
 export default init;
