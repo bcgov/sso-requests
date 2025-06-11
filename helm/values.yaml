@@ -41,6 +41,11 @@ tolerations: []
 affinity: {}
 
 patroni:
+  image:
+    repository:  ghcr.io/bcgov/sso-spilo-17
+    pullPolicy: Always
+    tag: 4.0-p2
+
   replicaCount: 2
 
   additionalCredentials:
