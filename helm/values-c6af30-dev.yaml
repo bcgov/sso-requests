@@ -75,10 +75,6 @@ route:
   host: sso-requests-sandbox.apps.gold.devops.gov.bc.ca
 
 patroni:
-  image:
-    repository:  ghcr.io/zalando/spilo-15
-    pullPolicy: Always
-    tag: 3.2-p1
   postgresMajorVersion: 15
 
   walG:
