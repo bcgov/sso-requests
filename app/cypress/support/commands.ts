@@ -8,8 +8,6 @@ Cypress.Commands.add('login', (username, password, host, siteminder) => {
   // Go to the host
   cy.visit(host || Cypress.env('host'));
 
-  const sentArgs = { user: username, pass: password };
-
   cy.contains('Common Hosted Single Sign-on (CSS)');
   // Click the login button
   home.clickLoginButton();
