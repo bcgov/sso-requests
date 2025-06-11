@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { sendEmail } from '@app/utils/ches';
 import { EMAILS } from '@app/shared/enums';
