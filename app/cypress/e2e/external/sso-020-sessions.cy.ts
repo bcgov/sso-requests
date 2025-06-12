@@ -60,10 +60,8 @@ describe('SSO Tests', () => {
     it(`Test: "${data.id}": ${data.idp_hint_1}/ ${data.idp_hint_2}`, function () {
       //Isolate this session to be exclusively for the test otherwise context will be shared with other tests
       cy.session(data.id, () => {
-        cy.origin('https://dev.sandbox.loginproxy.gov.bc.ca', () => {
-          cy.on('uncaught:exception', (e) => {
-            return false;
-          });
+        cy.on('uncaught:exception', (e) => {
+          return false;
         });
 
         cy.visit(playground.path);

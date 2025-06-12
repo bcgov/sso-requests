@@ -1,0 +1,100 @@
+image:
+  tag: dev
+  pullPolicy: Always
+
+cronJobs:
+  enabled: true
+  image:
+    repository: ghcr.io/bcgov/sso-requests-cron
+    tag: dev
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 100m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+api:
+  enabled: true
+  image:
+    repository: ghcr.io/bcgov/sso-requests-api
+    tag: dev
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 100m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+  extraEnvs:
+    API_VERSION: v1
+    API_ENV: development
+    API_URL: https://sso-requests-api.apps.gold.devops.gov.bc.ca
+  route:
+    host: sso-requests-api.apps.gold.devops.gov.bc.ca
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 1024Mi
+  requests:
+    cpu: 50m
+    memory: 256Mi
+
+env:
+  APP_ENV: development
+  API_URL: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/api
+  SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
+  SSO_CLIENT_ID: css-app-in-gold-4128
+  SSO_REDIRECT_URI: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
+  SSO_AUTHORIZATION_RESPONSE_TYPE: code
+  SSO_AUTHORIZATION_SCOPE: openid
+  SSO_TOKEN_GRANT_TYPE: authorization_code
+  MAINTENANCE_MODE_ACTIVE: 'false'
+  INCLUDE_DIGITAL_CREDENTIAL: 'true'
+  INCLUDE_BC_SERVICES_CARD: 'true'
+  ALLOW_BC_SERVICES_CARD_PROD: 'true'
+  NODE_ENV: development
+  SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+  REALM_REGISTRY_API: https://realm-registry-sandbox.apps.gold.devops.gov.bc.ca/api
+  GOLD_IP_ADDRESS: '142.34.229.4'
+  BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
+  BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
+  BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
+  CHES_API_ENDPOINT: https://ches.api.gov.bc.ca/api/v1/email
+  CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
+  BCSC_SIGNING_ALGORITHM: PS256
+  UPTIME_STATUS_DOMAIN_NAME: status.sandbox.loginproxy.gov.bc.ca
+
+envVars: {}
+
+route:
+  host: sso-requests-sandbox.apps.gold.devops.gov.bc.ca
+
+patroni:
+  postgresMajorVersion: 15
+
+  walG:
+    enabled: false
+
+  replicaCount: 2
+
+  podDisruptionBudget:
+    enabled: false
+
+  transportServerClaim:
+    enabled: false
+
+  persistentVolume:
+    size: 0.25Gi
+
+redis:
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      size: 0.25Gi

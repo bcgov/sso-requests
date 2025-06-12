@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Event } from 'interfaces/Event';
-import { formatChangeEventDetails } from 'utils/helpers';
+import FormatChangeEventDetails from './FormatChangeEventDetails';
 
 const Content = styled.div`
   margin-top: 20px;
@@ -49,7 +49,7 @@ export default function EventContent({ events }: Props) {
                 </div>
                 {event.eventCode === 'request-update-success' ? (
                   <>
-                    {formatChangeEventDetails(event.details.changes)}
+                    <FormatChangeEventDetails changes={event.details.changes} />
                     <strong>Comment: </strong>
                     <p>{event.details.comment}</p>
                   </>

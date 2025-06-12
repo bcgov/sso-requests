@@ -1,0 +1,9 @@
+dependencies:
+- name: patroni
+  repository: https://bcgov.github.io/sso-helm-charts
+  version: 1.6.1
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 21.1.7
+digest: sha256:fe8df69d90b4fdf9d99eef5638d85347a9e44e2bb2443d4b26576c958df18b5c
+generated: "2025-05-27T11:06:55.029384755-07:00"

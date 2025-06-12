@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "../",
+    "baseUrl": "./",
+    "paths": {
+      "@app/*": ["../app/*"]
+    },
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*", "../app/shared/sequelize/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
+}

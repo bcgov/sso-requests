@@ -66,6 +66,8 @@ export const oidcDurationAdditionalFields = [
   'SessionMaxLifespan',
 ];
 
+export const test = 'sadasdfasd';
+
 export const samlDurationAdditionalFields = ['AssertionLifespan'];
 
 export const samlFineGrainEndpointConfig = ['SamlLogoutPostBindingUri'];

@@ -1,4 +1,0 @@
-{
-  "watch": false,
-  "exec": "ts-node -r tsconfig-paths/register -r dotenv/config ./migrate-db.ts"
-}

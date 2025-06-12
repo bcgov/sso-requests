@@ -60,7 +60,6 @@ You could run the apps locally on your host machine using npm commands or in you
 
   ```sh
    make app_install
-   make server_install
   ```
 
   _**Note:** Installing all dependencies the first time will take a while._
@@ -72,15 +71,15 @@ You could run the apps locally on your host machine using npm commands or in you
   make local_db
   ```
 
-_**Note:** If the script has logged `migration done` but won't close, you can exit with `ctrl + c`._
-
-- Start the server
+- Generate initial test database schemas
 
   ```sh
-  make server
+  make local_test_db
   ```
 
-- In another terminal, start the app
+_**Note:** If the script has logged `migration done` but won't close, you can exit with `ctrl + c`._
+
+- Start the app
 
   ```sh
   make app
@@ -109,9 +108,19 @@ _**Note:** If the script has logged `migration done` but won't close, you can ex
 
 #### Steps
 
+- Build sso-requests:latest and sso-requests-api:latest images using below commands
+
+  ```
+  docker-buildx build -t sso-requests .
+
+  cd ./api
+
+  docker-buildx build -t sso-requests-api .
+  ```
+
 - Run `make setup_env` from the root directory to generate,
 
-  - `.env` file under `./app` and `./localserver` folders
+  - `.env` file under `./app` folder
 
 - To build and start the containers (postgres, next app and backend app)
 
@@ -137,7 +146,7 @@ Add the `--volume` flag to the previous command to clean up volumes after comple
 ```
   dev-keycloak:
     container_name: dev-keycloak
-    image: sso-keycloak:18.0.2
+    image: sso-keycloak:26.0.6
     command: ['-Djboss.socket.binding.port-offset=1000']
     depends_on:
       - sso-db
@@ -177,7 +186,7 @@ To run tests for the front-end application, run
 For the backend application, run:
 
 ```sh
-  make server_test
+  make api_test
 ```
 
 ### Cypress tests

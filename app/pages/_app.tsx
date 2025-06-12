@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import getConfig from 'next/config';
-import type { AppProps } from 'next/app';
-import { wakeItUp } from 'services/auth';
+import type { AppContext, AppProps } from 'next/app';
 import { getProfile, updateProfile } from 'services/user';
 import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
@@ -16,6 +15,7 @@ import '@bcgov/bc-sans/css/BCSans.css';
 import SurveyBox from '@app/components/SurveyBox';
 import Keycloak, { KeycloakTokenParsed } from 'keycloak-js';
 import keycloak from '@app/utils/keycloak';
+import App from 'next/app';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path, maintenance_mode, sso_redirect_uri, app_url } = publicRuntimeConfig;
@@ -114,8 +114,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       });
     }
 
-    wakeItUp();
-
     if (!keycloak.didInitialize) {
       keycloak
         .init({
@@ -126,7 +124,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           const processedSession = proccessSession(keycloak.idTokenParsed);
           setSession(processedSession);
         })
-        .catch((err) => console.error(err))
+        .catch((err: Error) => console.error(err))
         .finally(() => {
           setLoading(false);
         });
@@ -209,4 +207,16 @@ function MyApp({ Component, pageProps }: AppProps) {
     </SessionContext.Provider>
   );
 }
+
+MyApp.getInitialProps = async (appContext: AppContext) => {
+  const appProps = await App.getInitialProps(appContext);
+  const { publicRuntimeConfig = {} } = getConfig() || {};
+  return {
+    ...appProps,
+    pageProps: {
+      ...appProps.pageProps,
+    },
+  };
+};
+
 export default MyApp;
