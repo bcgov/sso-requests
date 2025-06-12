@@ -7,6 +7,7 @@ import * as requestQueryModule from '@app/queries/request';
 import * as keycloakModule from '@app/controllers/keycloak';
 import { getListOfDescrepencies } from '@app/controllers/requests';
 import axios from 'axios';
+import { models } from '@app/shared/sequelize/models/models';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');
@@ -73,5 +74,18 @@ describe('fetch descrepencies', () => {
 
     // Check if RC notification was sent
     expect(axios.post).toHaveBeenCalled();
+  });
+
+  it('Should not include draft or failed requests in the active requests list', async () => {
+    jest.restoreAllMocks();
+    await cleanUpDatabaseTables();
+
+    // Setup draft and failed requests in dev
+    await models.request.create({ status: 'draft', projectName: 'draft', environments: ['dev'] });
+    await models.request.create({ status: 'applyFailed', projectName: 'applyFailed', environments: ['dev'] });
+
+    const activeIntegrations = await requestQueryModule.getAllActiveRequests('dev');
+    // Integrations are not counted as active
+    expect(activeIntegrations.length).toBe(0);
   });
 });
