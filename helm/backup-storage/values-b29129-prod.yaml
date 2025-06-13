@@ -1,0 +1,21 @@
+persistence:
+  backup:
+    size: 10Gi
+  verification:
+    size: 5Gi
+
+env:
+  ENVIRONMENT_FRIENDLY_NAME:
+    value: 'SSO Requests Production Backup'
+  ENVIRONMENT_NAME:
+    value: b29129-prod
+  WEBHOOK_URL:
+    # value: '<<WEBHOOK URL FOR ROCKETCHAT>>'
+    secure: true
+
+  DAILY_BACKUPS:
+    value: '7'
+  WEEKLY_BACKUPS:
+    value: '4'
+  MONTHLY_BACKUPS:
+    value: '1'

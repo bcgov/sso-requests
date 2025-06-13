@@ -1,0 +1,21 @@
+nameOverride: sso-requests-backup-storage
+fullnameOverride: sso-requests-backup-storage
+
+image:
+  repository: ghcr.io/bcgov/backup-container
+  tag: 2.10.3
+  pullPolicy: Always
+
+backupConfig: |
+  sso-requests-patroni:5432/ssorequests
+  0 1 * * * default ./backup.sh -s
+  0 4 * * * default ./backup.sh -I -s -v all
+
+db:
+  secretName: sso-requests-patroni-appusers
+  usernameKey: username-appuser1
+  passwordKey: password-appuser1
+
+env:
+  ENVIRONMENT_FRIENDLY_NAME:
+    value: 'SSO Request Backup'
