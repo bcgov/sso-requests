@@ -3,10 +3,8 @@ nameOverride: sso-requests-backup-storage
 fullnameOverride: sso-requests-backup-storage
 
 image:
-  repository: bcgovimages/backup-container
-  # repository: bcgovimages/backup-patroni
-
-  tag: backup-storage-0.1.16
+  repository: ghcr.io/bcgov/backup-container
+  tag: 2.10.3
   pullPolicy: Always
 
 backupConfig: |

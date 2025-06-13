@@ -1,8 +1,8 @@
 persistence:
   backup:
-    size: 3Gi
+    size: 700Mi
   verification:
-    size: 1Gi
+    size: 300Mi
 
 env:
   ENVIRONMENT_FRIENDLY_NAME:
