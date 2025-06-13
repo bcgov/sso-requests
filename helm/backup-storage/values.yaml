@@ -1,4 +1,3 @@
-# see
 nameOverride: sso-requests-backup-storage
 fullnameOverride: sso-requests-backup-storage
 
