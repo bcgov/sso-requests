@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
@@ -43,7 +43,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import ServiceAccountsList from './ServiceAccountsList';
 import { ErrorMessage, InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
-import { SurveyContext } from '@app/pages/_app';
+import { SurveyContext } from '@app/utils/context';
 import { docusaurusURL, messages } from '@app/utils/constants';
 
 const INVITATION_EXPIRY_DAYS = 2;

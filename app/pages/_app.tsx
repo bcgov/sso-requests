@@ -13,9 +13,10 @@ import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import '@bcgov/bc-sans/css/BCSans.css';
 import SurveyBox from '@app/components/SurveyBox';
-import Keycloak, { KeycloakTokenParsed } from 'keycloak-js';
+import { KeycloakTokenParsed } from 'keycloak-js';
 import keycloak from '@app/utils/keycloak';
 import App from 'next/app';
+import { SessionContext, SurveyContext } from '@app/utils/context';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path, maintenance_mode, sso_redirect_uri, app_url } = publicRuntimeConfig;
@@ -30,12 +31,6 @@ const proccessSession = (session?: KeycloakTokenParsed | null) => {
   return session;
 };
 
-export interface SessionContextInterface {
-  session: KeycloakTokenParsed | null;
-  user: User | null;
-  keycloak: Keycloak;
-}
-
 const defaultUserSurveys: UserSurveyInformation = {
   addUserToRole: false,
   createIntegration: false,
@@ -44,11 +39,6 @@ const defaultUserSurveys: UserSurveyInformation = {
   viewMetrics: false,
   downloadLogs: false,
 };
-
-export const SessionContext = React.createContext<SessionContextInterface | null>(null);
-export const SurveyContext = React.createContext<{
-  setShowSurvey: (show: boolean, eventType: keyof UserSurveyInformation) => void;
-} | null>(null);
 
 const refreshTokenPromptTime = 300; // 5 minutes
 

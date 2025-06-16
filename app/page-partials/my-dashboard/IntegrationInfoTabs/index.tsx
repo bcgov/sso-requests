@@ -284,7 +284,7 @@ function IntegrationInfoTabs({ integration }: Props) {
   // Integrations with only DC, social, or BC services card should not have role management
   const idpOnlyIntegrationsWithRoleManagementDisabled =
     integration.devIdps?.length &&
-    integration.devIdps?.every((idp) => ['digitalcredential', 'bcservicescard', 'social'].includes(idp));
+    integration.devIdps?.every((idp) => ['digitalcredential', 'bcservicescard', 'social', 'otp'].includes(idp));
 
   if (displayStatus === 'Submitted') {
     if (['planFailed', 'applyFailed'].includes(integration.status as string)) {

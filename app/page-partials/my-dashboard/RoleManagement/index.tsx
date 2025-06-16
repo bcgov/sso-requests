@@ -7,7 +7,7 @@ import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import CreateRoleContent from './CreateRoleContent';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import RoleEnvironment from './RoleEnvironment';
-import { SurveyContext } from '@app/pages/_app';
+import { SurveyContext } from '@app/utils/context';
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);

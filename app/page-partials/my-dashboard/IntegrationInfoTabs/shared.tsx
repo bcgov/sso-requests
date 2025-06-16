@@ -61,6 +61,7 @@ export interface ApprovalContext {
   hasDigitalCredential: boolean;
   hasBcServicesCard: boolean;
   bcServicesCardApproved: boolean;
+  hasOTP: boolean;
   bceidApproved: boolean;
   githubApproved: boolean;
   socialApproved: boolean;
