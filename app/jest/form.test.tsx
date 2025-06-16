@@ -888,3 +888,44 @@ describe('Social IDP', () => {
     expect(queryByText(expectedErrorText)).toBeFalsy();
   });
 });
+
+describe('One Time Passcode IDP', () => {
+  const defaultRender = {
+    id: 0,
+    serviceType: 'gold',
+    status: 'draft',
+    environments: ['dev', 'test', 'prod'],
+  };
+  it('Shows OTP IDP when the env variable is set', async () => {
+    process.env.INCLUDE_OTP = 'true';
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(checkbox).toBeTruthy();
+  });
+
+  it('Does not show OTP IDP when the env variable is explicitly false', async () => {
+    process.env.INCLUDE_OTP = 'false';
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(checkbox).toBeFalsy();
+  });
+
+  it('Defaults to not show OTP IDP when env variable is missing', async () => {
+    process.env.INCLUDE_OTP = undefined;
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(checkbox).toBeFalsy();
+  });
+});

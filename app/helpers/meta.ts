@@ -9,6 +9,7 @@ export const idpMap: any = {
   digitalcredential: 'Digital Credential',
   bcservicescard: 'BC Services Card',
   social: 'Social',
+  otp: 'One Time Passcode',
 };
 
 export const envMap: any = {

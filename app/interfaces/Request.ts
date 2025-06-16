@@ -66,6 +66,7 @@ export interface Integration {
   bceidApproved?: boolean;
   githubApproved?: boolean;
   digitalCredentialApproved?: boolean;
+  OTPApproved?: boolean;
   bcServicesCardApproved?: boolean;
   archived?: boolean;
   provisioned?: boolean;
@@ -109,6 +110,7 @@ export interface GoldIDPOption {
   bceid: string | string[];
   github: string | string[];
   digitalCredential: string | string[];
+  otp: string | string[];
   bcservicescard: string | string[];
   social: string | string[];
 }

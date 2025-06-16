@@ -47,6 +47,8 @@ import {
   checkBcServicesCard,
   usesSocial,
   checkNotSocial,
+  checkNotOTP,
+  usesOTP,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/users';
 import { getRolesWithEnvironments } from '@app/queries/roles';
@@ -1062,6 +1064,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasGithub = usesGithub(baseData);
   const hasBCSC = usesBcServicesCard(baseData);
   const hasSocial = usesSocial(baseData);
+  const hasOTP = usesOTP(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData?.environments?.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -1083,6 +1086,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
 
   if (!baseData.socialApproved && hasSocial) {
     baseData.prodIdps = baseData?.prodIdps?.filter(checkNotSocial);
+  }
+
+  if (!baseData.OTPApproved && hasOTP) {
+    baseData.prodIdps = baseData?.prodIdps?.filter(checkNotOTP);
   }
 
   return baseData;

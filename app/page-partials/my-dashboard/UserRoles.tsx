@@ -21,7 +21,7 @@ import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { SurveyContext } from '@app/pages/_app';
+import { SurveyContext } from '@app/utils/context';
 
 const Label = styled.label`
   font-weight: bold;
@@ -592,8 +592,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                     multiselect: false,
                     onChange: setSelectedIdp,
                     options: idps
-                      // Don't allow role assignment to DC or BCSC users
-                      .filter((idp) => !['digitalcredential', 'bcservicescard', 'social'].includes(idp))
+                      // Don't allow role assignment to DC, OTP, or BCSC users
+                      .filter((idp) => !['digitalcredential', 'bcservicescard', 'social', 'otp'].includes(idp))
                       .map((idp) => ({ value: idp, label: idpMap[idp] })),
                   },
                   {

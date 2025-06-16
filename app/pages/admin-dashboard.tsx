@@ -30,6 +30,7 @@ const idpOptions = [
   { value: 'digitalcredential', label: 'Digital Credential' },
   { value: 'bcservicescard', label: 'BC Services Card' },
   { value: 'social', label: 'Social' },
+  { value: 'otp', label: 'One Time Passcode' },
 ];
 
 const archiveStatusOptions = [
