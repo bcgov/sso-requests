@@ -18,6 +18,9 @@ services:
   sso-requests:
     container_name: sso-requests
     image: sso-requests:latest
+    build:
+      dockerfile: Dockerfile
+      context: .
     ports:
       - 3000:3000
     environment:
@@ -66,36 +69,6 @@ services:
       BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
-    depends_on:
-      - sso-db
-    networks:
-      - css-net
-
-  sso-requests-api:
-    container_name: sso-requests-api
-    image: sso-requests-api:latest
-    ports:
-      - 8080:8080
-    environment:
-      NODE_ENV: development
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      DB_HOSTNAME: sso-db
-      DB_PORT: 5433
-      DB_NAME: ssorequests
-      API_URL: http://localhost:8080
-      API_ENV: development
-      API_VERSION: v1
-      KEYCLOAK_V2_DEV_USERNAME: admin
-      KEYCLOAK_V2_DEV_PASSWORD: admin
-      KEYCLOAK_V2_DEV_URL: http://dev-keycloak:9080
-      KEYCLOAK_V2_TEST_USERNAME: admin
-      KEYCLOAK_V2_TEST_PASSWORD: admin
-      KEYCLOAK_V2_TEST_URL: http://test-keycloak:9081
-      KEYCLOAK_V2_PROD_USERNAME: admin
-      KEYCLOAK_V2_PROD_PASSWORD: admin
-      KEYCLOAK_V2_PROD_URL: http://prod-keycloak:9082
-      REDIS_HOST: localhost
     depends_on:
       - sso-db
     networks:
