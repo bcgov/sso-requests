@@ -4,7 +4,8 @@ import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { sendTemplate } from '@app/shared/templates';
 import { EMAILS } from '@app/shared/enums';
-import { handleError, processUserSession } from '@app/utils/helpers';
+import { handleError } from '@app/utils/helpers';
+import { processUserSession } from '@app/controllers/user';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

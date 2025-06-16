@@ -349,3 +349,10 @@ export const deleteStaleUsers = async (
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
+
+export const processUserSession = async (session: Session): Promise<{ session: Session; user: User }> => {
+  const user: any = await findOrCreateUser(session);
+  user.isAdmin = isAdmin(session);
+  session.user = user;
+  return { session, user };
+};

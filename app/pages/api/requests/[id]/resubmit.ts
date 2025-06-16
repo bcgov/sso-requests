@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { handleError, processUserSession } from '@app/utils/helpers';
+import { handleError } from '@app/utils/helpers';
+import { processUserSession } from '@app/controllers/user';
 import { resubmitRequest } from '@app/controllers/requests';
 import createHttpError from 'http-errors';
 
