@@ -23,7 +23,6 @@ import { diff } from 'deep-diff';
 import { validateForm } from './validate';
 import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
 import { NextApiResponse } from 'next';
-import { findOrCreateUser } from '@app/controllers/user';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const gold_realms: GoldIDPOption = {
@@ -33,6 +32,7 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
     digitalCredential: 'digitalcredential',
     bcservicescard: 'bcservicescard',
     social: 'social',
+    otp: 'otp',
   };
 
   let realms: string[] | null = [];
@@ -51,6 +51,8 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
       devIdps = devIdps?.concat(gold_realms.bcservicescard) || null;
     } else if (idp.value === 'social') {
       devIdps = devIdps?.concat(gold_realms.social) || null;
+    } else if (idp.value === 'otp') {
+      devIdps = devIdps?.concat(gold_realms.otp) || null;
     }
   });
 
@@ -642,11 +644,4 @@ export const handleError = (res: NextApiResponse, err: any) => {
   console.error('Error:', err);
   console.log({ success: false, message });
   return res.status(err?.status || 422).json({ success: false, message });
-};
-
-export const processUserSession = async (session: Session): Promise<{ session: Session; user: User }> => {
-  const user: any = await findOrCreateUser(session);
-  user.isAdmin = isAdmin(session);
-  session.user = user;
-  return { session, user };
 };

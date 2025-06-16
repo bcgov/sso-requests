@@ -2,6 +2,7 @@ import { Integration } from '@app/interfaces/Request';
 
 export const checkBceidBoth = (idp: string) => idp === 'bceidboth';
 export const checkDigitalCredential = (idp: string) => idp === 'digitalcredential';
+export const checkOTP = (idp: string) => idp === 'otp';
 export const checkBcServicesCard = (idp: string) => idp === 'bcservicescard';
 export const checkSocial = (idp: string) => idp === 'social';
 export const checkIdirGroup = (idp: string) => ['idir', 'azureidir'].includes(idp);
@@ -14,6 +15,7 @@ export const checkIdirGroupAndNotBceidRegularGroup = (idp: string) =>
 export const checkGithubGroup = (idp: string) => ['githubpublic', 'githubbcgov'].includes(idp);
 export const checkNotGithubGroup = (idp: string) => !checkGithubGroup(idp);
 export const checkNotDigitalCredential = (idp: string) => !checkDigitalCredential(idp);
+export const checkNotOTP = (idp: string) => !checkOTP(idp);
 export const checkNotBcServicesCard = (idp: string) => !checkBcServicesCard(idp);
 export const checkNotSocial = (idp: string) => !checkSocial(idp);
 
@@ -39,6 +41,14 @@ export const usesDigitalCredential = (integration: Integration) => {
   const { devIdps = [] } = integration;
 
   return devIdps.some(checkDigitalCredential);
+};
+
+export const usesOTP = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { devIdps = [] } = integration;
+
+  return devIdps.some(checkOTP);
 };
 
 export const usesBcServicesCard = (integration: Integration) => {
@@ -85,4 +95,12 @@ export const usesDigitalCredentialProd = (integration: Integration) => {
   const { environments = [] } = integration;
 
   return usesDigitalCredential(integration) && environments.includes('prod');
+};
+
+export const usesOTPProd = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { environments = [] } = integration;
+
+  return usesOTP(integration) && environments.includes('prod');
 };

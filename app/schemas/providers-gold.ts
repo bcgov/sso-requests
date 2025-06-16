@@ -8,8 +8,13 @@ import { usesBcServicesCard, usesSocial } from '@app/helpers/integration';
 import { getDiscontinuedIdps } from '@app/utils/helpers';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { include_digital_credential, include_bc_services_card, allow_bc_services_card_prod, include_social } =
-  publicRuntimeConfig;
+const {
+  include_digital_credential,
+  include_bc_services_card,
+  allow_bc_services_card_prod,
+  include_social,
+  include_otp,
+} = publicRuntimeConfig;
 
 export default function getSchema(
   integration: Integration,
@@ -23,6 +28,7 @@ export default function getSchema(
   const allow_bcsc_prod = allow_bc_services_card_prod === 'true' || process.env.ALLOW_BC_SERVICES_CARD_PROD === 'true';
   let include_bcsc = include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true';
   const includeSocial = include_social === 'true' || process.env.INCLUDE_SOCIAL === 'true';
+  const includeOTP = include_otp === 'true' || process.env.INCLUDE_OTP === 'true';
 
   if (integration.environments?.includes('prod') && !allow_bcsc_prod) {
     include_bcsc = false;
@@ -116,6 +122,10 @@ export default function getSchema(
       idpEnum.push('social');
     }
 
+    if (includeOTP) {
+      idpEnum.push('otp');
+    }
+
     // grandfather existing integrations and allow them to remove discontinued IDPs
     getDiscontinuedIdps().forEach((idp) => {
       if (devIdps?.includes(idp) && !idpEnum.includes(idp)) {
@@ -133,8 +143,9 @@ export default function getSchema(
         type: 'string',
         enum: idpEnum,
       },
-      warningMessage:
-        'Role assignment is not available for the BC Services Card and Digital Credential Identity Providers.',
+      warningMessage: includeOTP
+        ? 'Role assignment is not available for the BC Services Cards, Digital Credential, or One Time Passcode Identity Providers.'
+        : 'Role assignment is not available for the BC Services Card and Digital Credential Identity Providers.',
       tooltips: idpEnum.map((idp) => {
         if (idp === 'azureidir') {
           return {
@@ -162,6 +173,12 @@ export default function getSchema(
             content: `To learn more about using the BC Services Card option visit our <a href="${formatWikiURL(
               'Our-Partners-the-Identity-Providers#what-are-identity-providers',
             )}" target="_blank">additional information</a>.`,
+            hide: 3000,
+          };
+        }
+        if (idp === 'otp') {
+          return {
+            content: `One time passcode is a zero identity assurance credential.`,
             hide: 3000,
           };
         }

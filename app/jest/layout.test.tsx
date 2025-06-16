@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Layout from 'layout/Layout';
 import { updateProfile } from 'services/user';
 import { session } from './utils/helpers';
-import { SessionContext } from '@app/pages/_app';
+import { SessionContext } from '@app/utils/context';
 import { User } from 'interfaces/team';
 import { formatWikiURL } from '@app/utils/constants';
 

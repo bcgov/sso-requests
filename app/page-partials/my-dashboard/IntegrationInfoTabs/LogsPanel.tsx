@@ -8,7 +8,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import InfoOverlay from 'components/InfoOverlay';
 import { subtractDaysFromDate } from '@app/utils/helpers';
 import CenteredModal from '@app/components/CenteredModal';
-import { SurveyContext } from '@app/pages/_app';
+import { SurveyContext } from '@app/utils/context';
 import { Axios, AxiosProgressEvent } from 'axios';
 
 const ModalContent = styled.div`

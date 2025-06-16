@@ -18,6 +18,7 @@ module.exports = {
     kc_idp_hint: process.env.KC_IDP_HINT || '',
     sso_client_id: process.env.SSO_CLIENT_ID || 'testclient',
     include_digital_credential: process.env.INCLUDE_DIGITAL_CREDENTIAL || false,
+    include_otp: process.env.INCLUDE_OTP || false,
     include_bc_services_card: process.env.INCLUDE_BC_SERVICES_CARD || false,
     include_social: process.env.INCLUDE_SOCIAL || false,
     allow_bc_services_card_prod: process.env.ALLOW_BC_SERVICES_CARD_PROD || false,

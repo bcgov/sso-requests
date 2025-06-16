@@ -35,7 +35,7 @@ import { Team, LoggedInUser } from 'interfaces/team';
 import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
-import { SurveyContext } from '@app/pages/_app';
+import { SurveyContext } from '@app/utils/context';
 import { docusaurusURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
@@ -60,7 +60,7 @@ const HeaderContainer = styled.div`
 /**
  * UI requirement to adjust the users idp selection for them. e.g. if they add bceidboth, to automatically remove any other bceid types.
  */
-export const adjustIdps = ({
+const adjustIdps = ({
   currentIdps,
   updatedIdps,
   applied = true,

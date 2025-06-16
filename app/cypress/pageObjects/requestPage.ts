@@ -92,6 +92,7 @@ class RequestPage {
     githubBCGovLabel: 'GitHub BC Gov',
     digitalCredentialLabel: 'Digital Credential',
     bcscLabel: 'BC Services Card',
+    otpLabel: 'One Time Passcode',
   };
 
   // In info modal, click close button

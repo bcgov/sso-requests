@@ -12,7 +12,7 @@ import DateTimePicker from '@app/components/DateTimePicker';
 import { InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
 import { subtractDaysFromDate } from '@app/utils/helpers';
-import { SurveyContext } from '@app/pages/_app';
+import { SurveyContext } from '@app/utils/context';
 
 export const DatePickerContainer = styled.div`
   height: 100%;

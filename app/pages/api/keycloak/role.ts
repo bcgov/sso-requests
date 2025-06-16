@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { handleError, processUserSession } from '@app/utils/helpers';
+import { handleError } from '@app/utils/helpers';
+import { processUserSession } from '@app/controllers/user';
 import { getClientRole } from '@app/controllers/roles';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

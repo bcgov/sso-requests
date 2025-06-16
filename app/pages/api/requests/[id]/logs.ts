@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { handleError, processUserSession } from '@app/utils/helpers';
+import { handleError } from '@app/utils/helpers';
+import { processUserSession } from '@app/controllers/user';
 import { getAllowedRequest } from '@app/queries/request';
 import { fetchLogs } from '@app/controllers/logs';
 import { logsRateLimiter } from '@app/utils/rate-limiters';

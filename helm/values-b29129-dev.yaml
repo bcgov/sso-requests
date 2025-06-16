@@ -56,6 +56,7 @@ env:
   MAINTENANCE_MODE_ACTIVE: 'false'
   INCLUDE_DIGITAL_CREDENTIAL: 'true'
   INCLUDE_BC_SERVICES_CARD: 'true'
+  INCLUDE_OTP: 'true'
   ALLOW_BC_SERVICES_CARD_PROD: 'true'
   NODE_ENV: development
   SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration

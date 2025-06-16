@@ -8,7 +8,14 @@ import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import UserEventPanel from 'components/UserEventPanel';
 import { checkIfBceidProdApplying, checkIfGithubProdApplying, checkIfBcServicesCardProdApplying } from 'utils/helpers';
-import { usesBceid, usesGithub, usesDigitalCredential, usesBcServicesCard, usesSocial } from '@app/helpers/integration';
+import {
+  usesBceid,
+  usesGithub,
+  usesDigitalCredential,
+  usesBcServicesCard,
+  usesSocial,
+  usesOTP,
+} from '@app/helpers/integration';
 import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -229,6 +236,7 @@ function IntegrationInfoTabs({ integration }: Props) {
   const hasDigitalCredential = usesDigitalCredential(integration);
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasSocial = usesSocial(integration);
+  const hasOTP = usesOTP(integration);
   const awaitingBceidProd = hasBceid && hasProd && !bceidApproved;
   const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
   const awaitingBcServicesCardProd = hasBcServicesCard && hasProd && !bcServicesCardApproved;
@@ -244,6 +252,7 @@ function IntegrationInfoTabs({ integration }: Props) {
     hasSocial,
     hasDigitalCredential,
     hasBcServicesCard,
+    hasOTP,
     bceidApproved,
     githubApproved,
     socialApproved,
@@ -284,7 +293,7 @@ function IntegrationInfoTabs({ integration }: Props) {
   // Integrations with only DC, social, or BC services card should not have role management
   const idpOnlyIntegrationsWithRoleManagementDisabled =
     integration.devIdps?.length &&
-    integration.devIdps?.every((idp) => ['digitalcredential', 'bcservicescard', 'social'].includes(idp));
+    integration.devIdps?.every((idp) => ['digitalcredential', 'bcservicescard', 'social', 'otp'].includes(idp));
 
   if (displayStatus === 'Submitted') {
     if (['planFailed', 'applyFailed'].includes(integration.status as string)) {
