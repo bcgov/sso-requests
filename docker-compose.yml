@@ -24,7 +24,6 @@ services:
     ports:
       - 3000:3000
     environment:
-      APP_ENV: development
       API_URL: http://localhost:3000/api
       SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
       SSO_CLIENT_ID: css-app-in-gold-4128
@@ -40,6 +39,7 @@ services:
       INCLUDE_BC_SERVICES_CARD: 'true'
       ALLOW_BC_SERVICES_CARD_PROD: 'true'
       INCLUDE_SOCIAL: 'true'
+      INCLUDE_OTP: 'true'
       API_AUTH_SECRET: s3cr3t
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@sso-db:5433/ssorequests
@@ -69,6 +69,7 @@ services:
       BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
+      APP_ENV: 'local'
     depends_on:
       - sso-db
     networks:
