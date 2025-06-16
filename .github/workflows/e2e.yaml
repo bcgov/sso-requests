@@ -1,0 +1,54 @@
+name: Run E2E tests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    paths:
+      - app/**
+      - docker-compose.yml
+      - github/workflows/e2e.yaml
+
+env:
+  CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+  CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
+  CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
+  CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CYPRESS_host: 'http://localhost:3000'
+  CYPRESS_smoketest: true
+  CYPRESS_localtest: true
+  CYPRESS_BASE_URL: 'http://localhost:3000'
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: isbang/compose-action@v1.5.1
+        with:
+          compose-file: './docker-compose.yml'
+      - name: E2E Tests
+        uses: cypress-io/github-action@v6
+        id: smoke
+        continue-on-error: false
+        with:
+          summary-title: 'E2E tests'
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 360
+          install-command: yarn
+          working-directory: app
+          spec: |
+            cypress/e2e/ci/smoke-10-brokenlinks.cy.ts
+            cypress/e2e/ci/*.cy.ts
+          browser: electron
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: app/cypress/screenshots/**/*
+          if-no-files-found: ignore
