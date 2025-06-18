@@ -10,8 +10,8 @@
 <h4>Final details summary:</h4>
 <blockquote>{{> integrationDetail }}</blockquote>
 <hr />
-{{> processingTime }} {{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if
-waitingGithubProdApproval}} {{> hr }} {{> createGithubBottom }} {{/if}}{{#if waitingBcServicesCardProdApproval}} {{> hr
-}} {{> createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}} {{> hr }} {{> createSocialBottom }}
-{{/if}} {{#if (isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer
-}}
+{{> processingTime }} {{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if waitingOTPProdApproval}}
+{{> createOTPBottom }} {{/if}} {{#if waitingGithubProdApproval}} {{> hr }} {{> createGithubBottom }} {{/if}}{{#if
+waitingBcServicesCardProdApproval}} {{> hr }} {{> createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}}
+{{> hr }} {{> createSocialBottom }} {{/if}} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
+digitalCredentialInfoContact }} {{/if}} {{> footer }}

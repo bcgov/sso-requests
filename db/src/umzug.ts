@@ -60,6 +60,7 @@ export const createMigrator = async () => {
       await import('./migrations/2024.09.16T00.00.00.remove-vc-approved'),
       await import('./migrations/2024.12.03T10.55.55.request-queue-attempts-column'),
       await import('./migrations/2025.03.20T09.43.69.add-social-confirmation'),
+      await import('./migrations/2025.06.17T12.31.60.add-otp-approved'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

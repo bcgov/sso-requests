@@ -27,6 +27,7 @@ interface DataProps {
   waitingGithubProdApproval?: boolean;
   waitingBcServicesCardProdApproval?: boolean;
   waitingSocialProdApproval?: boolean;
+  waitingOTPProdApproval?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {

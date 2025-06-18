@@ -6,6 +6,7 @@ import {
   isBceidApprover,
   isBCServicesCardApprover,
   isGithubApprover,
+  isOTPApprover,
 } from '@app/utils/helpers';
 import { Op } from 'sequelize';
 import { isSocialApprover } from '@app/utils/helpers';
@@ -38,6 +39,8 @@ export const getEvents = async (
   if (isBceidApprover(session)) approvedKeys.push('bceidApproved');
 
   if (isGithubApprover(session)) approvedKeys.push('githubApproved');
+
+  if (isOTPApprover(session)) approvedKeys.push('otpApproved');
 
   if (isBCServicesCardApprover(session)) approvedKeys.push('bcServicesCardApproved');
 

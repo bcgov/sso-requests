@@ -72,6 +72,7 @@ export interface RequestsAttributes {
   testAssertionLifespan: number;
   prodAssertionLifespan: number;
   githubApproved: boolean;
+  otpApproved: boolean;
   additionalRoleAttribute: string;
   devDisplayHeaderTitle: boolean;
   testDisplayHeaderTitle: boolean;
@@ -175,7 +176,8 @@ export type RequestsOptionalAttributes =
   | 'bcscAttributes'
   | 'bcServicesCardApproved'
   | 'confirmSocial'
-  | 'socialApproved';
+  | 'socialApproved'
+  | 'otpApproved';
 export type RequestsCreationAttributes = Optional<RequestsAttributes, RequestsOptionalAttributes>;
 
 export class Requests extends Model<RequestsAttributes, RequestsCreationAttributes> implements RequestsAttributes {
@@ -254,6 +256,7 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
   testAssertionLifespan!: number;
   prodAssertionLifespan!: number;
   githubApproved!: boolean;
+  otpApproved!: boolean;
   additionalRoleAttribute!: string;
   devDisplayHeaderTitle!: boolean;
   testDisplayHeaderTitle!: boolean;
@@ -690,6 +693,12 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
           allowNull: false,
           defaultValue: false,
           field: 'github_approved',
+        },
+        otpApproved: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+          field: 'otp_approved',
         },
         additionalRoleAttribute: {
           type: DataTypes.STRING(255),

@@ -66,7 +66,7 @@ export interface Integration {
   bceidApproved?: boolean;
   githubApproved?: boolean;
   digitalCredentialApproved?: boolean;
-  OTPApproved?: boolean;
+  otpApproved?: boolean;
   bcServicesCardApproved?: boolean;
   archived?: boolean;
   provisioned?: boolean;

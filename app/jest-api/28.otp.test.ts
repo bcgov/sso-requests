@@ -31,7 +31,6 @@ jest.mock('@app/queries/request', () => {
 
 const otpDevIntegration: IntegrationData = {
   ...formDataDev,
-  confirmSocial: true,
   devIdps: ['otp', 'azureidir'],
 };
 
@@ -88,5 +87,19 @@ describe('Build Github Dispatch', () => {
     );
     // Should map to include each idps client scope
     expect(result.includes('otp')).toBeFalsy();
+  });
+
+  it('Does add the idp scope if included in the production idp list', () => {
+    const result = getDefaultClientScopes(
+      {
+        ...otpProdIntegration,
+        clientId: 'myClient',
+        devIdps: ['otp', 'idir'],
+        testIdps: ['otp', 'idir'],
+        prodIdps: ['idir', 'otp'],
+      },
+      'prod',
+    );
+    expect(result.includes('otp')).toBeTruthy();
   });
 });

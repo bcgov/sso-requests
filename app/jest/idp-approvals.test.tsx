@@ -85,6 +85,25 @@ const sampleEvents = {
     createdAt: '2024-09-24T21:18:21.546Z',
     updatedAt: '2024-09-24T21:18:21.546Z',
   },
+  otpApproved: {
+    id: 4,
+    requestId: 4,
+    eventCode: 'request-update-success',
+    idirUserid: null,
+    details: {
+      changes: [
+        {
+          lhs: false,
+          rhs: true,
+          path: ['otpApproved'],
+          kind: 'E',
+        },
+      ],
+    },
+    idirUserDisplayName: 'OTP Approver',
+    createdAt: '2024-09-24T21:18:21.546Z',
+    updatedAt: '2024-09-24T21:18:21.546Z',
+  },
 };
 const sampleEventsArray = Object.values(sampleEvents);
 
@@ -142,6 +161,19 @@ const sampleRequests: { [key: string]: Integration } = {
     bcServicesCardApproved: false,
     bcscPrivacyZone: 'uniqueZoneUri',
     bcscAttributes: ['age'],
+  },
+  otp: {
+    ...sampleRequest,
+    id: 4,
+    projectName: `OTP Approver`,
+    status: 'applied',
+    serviceType: 'gold',
+    environments: ['dev', 'test', 'prod'],
+    devIdps: ['bceidbasic', 'otp', 'bcservicescard'],
+    testIdps: ['bceidbasic', 'otp', 'bcservicescard'],
+    prodIdps: ['bceidbasic', 'otp', 'bcservicescard'],
+    authType: 'both',
+    otpApproved: false,
   },
 };
 const sampleRequestsArray = Object.values(sampleRequests);
@@ -347,6 +379,59 @@ describe('IDP Approvals', () => {
     });
     const approvedString = `Approved by ${sampleEvents.socialApproved.idirUserDisplayName} on ${new Date(
       sampleEvents.socialApproved.createdAt,
+    ).toLocaleString()}`;
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
+  });
+
+  it('Restricts OTP Approver to otp integrations and allows approval', async () => {
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests.otp] }, null]));
+    jest.spyOn(requestModule, 'updateRequest').mockImplementation(() => Promise.resolve([{}, null]));
+    jest
+      .spyOn(eventModule, 'getEvents')
+      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEventsArray as any }, null]));
+    const { debug } = render(
+      <AdminDashboard
+        session={{ ...sampleSession, client_roles: ['otp-approver'] }}
+        onLoginClick={jest.fn}
+        onLogoutClick={jest.fn}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('OTP Approver')).toBeInTheDocument();
+    });
+
+    debug(undefined, 300000);
+
+    actionButtonsValidations();
+
+    fireEvent.click(screen.getByText('OTP Approver'));
+
+    // should not see other IDPs
+    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('OTP Prod'));
+    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+    fireEvent.click(approveProdButton);
+    expect(screen.getByText('Otp Approve'));
+
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() =>
+        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests.otp, otpApproved: true }] }, null]),
+      );
+
+    //test on confirm button
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateRequest).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByText('Otp Approve')).not.toBeInTheDocument();
+    });
+    const approvedString = `Approved by ${sampleEvents.otpApproved.idirUserDisplayName} on ${new Date(
+      sampleEvents.otpApproved.createdAt,
     ).toLocaleString()}`;
     expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
   });

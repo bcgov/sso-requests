@@ -32,6 +32,7 @@ import { ErrorMessage } from '@app/components/MessageBox';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import LogsPanel from './LogsPanel';
 import { formatWikiURL } from 'utils/constants';
+import OTPStatusPanel from './OTPStatusPanel';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -109,6 +110,7 @@ const getInstallationTab = ({
               <GithubStatusPanel approvalContext={approvalContext} />
               <BcServicesCardPanel approvalContext={approvalContext} />
               <SocialStatusPanel approvalContext={approvalContext} />
+              <OTPStatusPanel approvalContext={approvalContext} />
             </Grid.Col>
           </Grid.Row>
         </Grid>
@@ -227,6 +229,7 @@ function IntegrationInfoTabs({ integration }: Props) {
     githubApproved = false,
     digitalCredentialApproved = false,
     bcServicesCardApproved = false,
+    otpApproved = false,
     socialApproved = false,
   } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
@@ -241,6 +244,7 @@ function IntegrationInfoTabs({ integration }: Props) {
   const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
   const awaitingBcServicesCardProd = hasBcServicesCard && hasProd && !bcServicesCardApproved;
   const awaitingSocialProd = hasSocial && hasProd && !socialApproved;
+  const awaitingOTPProd = hasOTP && hasProd && !otpApproved;
   const bceidProdApplying = checkIfBceidProdApplying(integration);
   const githubProdApplying = checkIfGithubProdApplying(integration);
   const bcServicesCardProdApplying = checkIfBcServicesCardProdApplying(integration);
@@ -250,6 +254,7 @@ function IntegrationInfoTabs({ integration }: Props) {
     hasBceid,
     hasGithub,
     hasSocial,
+    otpApproved,
     hasDigitalCredential,
     hasBcServicesCard,
     hasOTP,
@@ -261,6 +266,7 @@ function IntegrationInfoTabs({ integration }: Props) {
     awaitingGithubProd,
     awaitingBcServicesCardProd,
     awaitingSocialProd,
+    awaitingOTPProd,
     bceidProdApplying,
     githubProdApplying,
     bcServicesCardProdApplying,

@@ -5,7 +5,7 @@
 </p>
 <p>Below is a summary of your integration request details:</p>
 {{> integrationDetail }} {{#if waitingBceidProdApproval}} {{> createBceidBottom }} {{/if}} {{#if
-waitingGithubProdApproval}} {{> applyGithubBottom }} {{/if}}{{#if waitingBcServicesCardProdApproval}} {{>
-createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}} {{> applySocialBottom }} {{/if}} {{>
-dashboardLogin }} {{> ssoUpdatesMailingListMessage }} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
-digitalCredentialInfoContact }} {{/if}} {{> footer }}
+waitingOTPProdApproval}} {{> applyOTPBottom }} {{/if}} {{#if waitingGithubProdApproval}} {{> applyGithubBottom }}
+{{/if}}{{#if waitingBcServicesCardProdApproval}} {{> createBcServicesCardBottom }} {{/if}}{{#if
+waitingSocialProdApproval}} {{> applySocialBottom }} {{/if}} {{> dashboardLogin }} {{> ssoUpdatesMailingListMessage }}
+{{#if (isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer }}
