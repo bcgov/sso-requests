@@ -34,6 +34,9 @@ jobs:
             /home/runner/.asdf
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
 
+      - name: Install asdf
+        uses: asdf-vm/actions/install@v3
+
       - name: Rerun Pre-Commit Hooks on CI
         run: |
           pip install -r requirements.txt
@@ -54,8 +57,10 @@ jobs:
         run: |
           pg_ctl start
           createdb runner || true
+          psql -U postgres -c "drop database if exists ssorequests_test"
           chmod +x ./db-setup.sh
           ./db-setup.sh ssorequests_test
+
         working-directory: ./.bin
 
       - name: Run Database Migrations
@@ -68,53 +73,43 @@ jobs:
           make db_install && make db_compile && make migrations
         working-directory: .
 
-      - name: Check migration state
+      - name: Run backend integration tests
         env:
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: ssorequests_test
-          DB_HOSTNAME: localhost
+          PGUSER: postgres
+          DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
         run: |
-          psql -U $DB_USERNAME -d $DB_NAME -c "SELECT * FROM \"SequelizeMeta\";"
-          psql -U $DB_USERNAME -d $DB_NAME -c "\d+ requests"
+          yarn test-api --coverage
+        working-directory: ./app
 
-  #     - name: Run backend integration tests
-  #       env:
-  #         PGUSER: postgres
-  #         DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
-  #       run: |
-  #         yarn test-api --coverage
-  #       working-directory: ./app
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          slug: bcgov/sso-requests
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./app/coverage/lcov.info, ./lambda/coverage/lcov.info
+          flags: unitests
+          name: codecov
+          fail_ci_if_error: false
+          verbose: true
 
-  #     - name: Upload coverage reports to Codecov
-  #       uses: codecov/codecov-action@v4
-  #       env:
-  #         slug: bcgov/sso-requests
-  #       with:
-  #         token: ${{ secrets.CODECOV_TOKEN }}
-  #         file: ./app/coverage/lcov.info, ./lambda/coverage/lcov.info
-  #         flags: unitests
-  #         name: codecov
-  #         fail_ci_if_error: false
-  #         verbose: true
+      - name: Install dependencies for api
+        run: |
+          yarn install
+        working-directory: ./api
 
-  #     - name: Install dependencies for api
-  #       run: |
-  #         yarn install
-  #       working-directory: ./api
+      - name: Run api integration tests
+        env:
+          PGUSER: postgres
+          DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
+        run: |
+          yarn test
+        working-directory: ./api
 
-  #     - name: Run api integration tests
-  #       env:
-  #         PGUSER: postgres
-  #         DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
-  #       run: |
-  #         yarn test
-  #       working-directory: ./api
-
-  # commitlint:
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #     - uses: wagoid/commitlint-github-action@v5
+  commitlint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v5

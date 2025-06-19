@@ -5,5 +5,4 @@ else
  db="ssorequests"
 fi
 
-# echo "SELECT 'DROP DATABASE $db'\gexec" | psql -U postgres -d postgres
 echo "SELECT 'CREATE DATABASE $db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$db')\gexec" | psql -U postgres -d postgres
