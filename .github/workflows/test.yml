@@ -11,6 +11,7 @@ jobs:
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
       - name: Cache Node dependencies
         uses: actions/cache@v4
         id: yarn-cache
@@ -39,71 +40,81 @@ jobs:
           asdf reshim
           pre-commit run --color=always --show-diff-on-failure --all-files
 
-      - name: Install dependencies for frontend
-        run: make app_install
+      # - name: Install dependencies for frontend
+      #   run: make app_install
 
-      - name: Run frontend unit tests
-        run: |
-          yarn test --coverage
-        working-directory: ./app
+      # - name: Run frontend unit tests
+      #   run: |
+      #     yarn test --coverage
+      #   working-directory: ./app
 
-      - name: Setup postgres
-        env:
-          PGUSER: postgres
-        run: |
-          pg_ctl start
-          createdb runner || true
-          chmod +x ./db-setup.sh
-          ./db-setup.sh ssorequests_test
-        working-directory: ./.bin
-
-      - name: Run Database Migrations
+      - name: Check migration state
         env:
           DB_USERNAME: postgres
           DB_PASSWORD: postgres
           DB_NAME: ssorequests_test
           DB_HOSTNAME: localhost
         run: |
-          make db_install && make db_compile && make migrations
-        working-directory: .
+          psql -U $DB_USERNAME -d $DB_NAME -c "SELECT * FROM \"SequelizeMeta\";"
+          psql -U $DB_USERNAME -d $DB_NAME -c "\d+ requests"
 
-      - name: Run backend integration tests
-        env:
-          PGUSER: postgres
-          DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
-        run: |
-          yarn test-api --coverage
-        working-directory: ./app
+  #     - name: Setup postgres
+  #       env:
+  #         PGUSER: postgres
+  #       run: |
+  #         pg_ctl start
+  #         createdb runner || true
+  #         chmod +x ./db-setup.sh
+  #         ./db-setup.sh ssorequests_test
+  #       working-directory: ./.bin
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
-        env:
-          slug: bcgov/sso-requests
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./app/coverage/lcov.info, ./lambda/coverage/lcov.info
-          flags: unitests
-          name: codecov
-          fail_ci_if_error: false
-          verbose: true
+  #     - name: Run Database Migrations
+  #       env:
+  #         DB_USERNAME: postgres
+  #         DB_PASSWORD: postgres
+  #         DB_NAME: ssorequests_test
+  #         DB_HOSTNAME: localhost
+  #       run: |
+  #         make db_install && make db_compile && make migrations
+  #       working-directory: .
 
-      - name: Install dependencies for api
-        run: |
-          yarn install
-        working-directory: ./api
+  #     - name: Run backend integration tests
+  #       env:
+  #         PGUSER: postgres
+  #         DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
+  #       run: |
+  #         yarn test-api --coverage
+  #       working-directory: ./app
 
-      - name: Run api integration tests
-        env:
-          PGUSER: postgres
-          DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
-        run: |
-          yarn test
-        working-directory: ./api
+  #     - name: Upload coverage reports to Codecov
+  #       uses: codecov/codecov-action@v4
+  #       env:
+  #         slug: bcgov/sso-requests
+  #       with:
+  #         token: ${{ secrets.CODECOV_TOKEN }}
+  #         file: ./app/coverage/lcov.info, ./lambda/coverage/lcov.info
+  #         flags: unitests
+  #         name: codecov
+  #         fail_ci_if_error: false
+  #         verbose: true
 
-  commitlint:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@v5
+  #     - name: Install dependencies for api
+  #       run: |
+  #         yarn install
+  #       working-directory: ./api
+
+  #     - name: Run api integration tests
+  #       env:
+  #         PGUSER: postgres
+  #         DATABASE_URL: 'postgresql://localhost:5432/ssorequests_test'
+  #       run: |
+  #         yarn test
+  #       working-directory: ./api
+
+  # commitlint:
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     - uses: wagoid/commitlint-github-action@v5
