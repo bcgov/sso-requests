@@ -13,7 +13,7 @@ locals {
 }
 
 module "standard" {
-  source       = "github.com/bcgov/sso-terraform-modules?ref=dev/modules/base-realms/realm-standard"
+  source       = "github.com/bcgov/sso-terraform?ref=dev/terraform-modules/modules/base-realms/realm-standard"
   keycloak_url = var.keycloak_url
 
   standard_realm_name      = local.standard_realm_name
