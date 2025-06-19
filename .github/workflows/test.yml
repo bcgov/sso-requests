@@ -48,6 +48,16 @@ jobs:
       #     yarn test --coverage
       #   working-directory: ./app
 
+      - name: Setup postgres
+        env:
+          PGUSER: postgres
+        run: |
+          pg_ctl start
+          createdb runner || true
+          chmod +x ./db-setup.sh
+          ./db-setup.sh ssorequests_test
+        working-directory: ./.bin
+
       - name: Check migration state
         env:
           DB_USERNAME: postgres
@@ -57,17 +67,6 @@ jobs:
         run: |
           psql -U $DB_USERNAME -d $DB_NAME -c "SELECT * FROM \"SequelizeMeta\";"
           psql -U $DB_USERNAME -d $DB_NAME -c "\d+ requests"
-
-  #     - name: Setup postgres
-  #       env:
-  #         PGUSER: postgres
-  #       run: |
-  #         pg_ctl start
-  #         createdb runner || true
-  #         chmod +x ./db-setup.sh
-  #         ./db-setup.sh ssorequests_test
-  #       working-directory: ./.bin
-
   #     - name: Run Database Migrations
   #       env:
   #         DB_USERNAME: postgres
