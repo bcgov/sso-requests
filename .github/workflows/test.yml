@@ -40,13 +40,13 @@ jobs:
           asdf reshim
           pre-commit run --color=always --show-diff-on-failure --all-files
 
-      # - name: Install dependencies for frontend
-      #   run: make app_install
+      - name: Install dependencies for frontend
+        run: make app_install
 
-      # - name: Run frontend unit tests
-      #   run: |
-      #     yarn test --coverage
-      #   working-directory: ./app
+      - name: Run frontend unit tests
+        run: |
+          yarn test --coverage
+        working-directory: ./app
 
       - name: Setup postgres
         env:
