@@ -16,6 +16,7 @@ import {
   isGithubApprover,
   isBCServicesCardApprover,
   sanitizeRequest,
+  isOTPApprover,
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
@@ -487,6 +488,7 @@ export const updateRequest = async (
   const githubApprover = isGithubApprover(session);
   const bcscApprover = isBCServicesCardApprover(session);
   const socialApprover = isSocialApprover(session);
+  const otpApprover = isOTPApprover(session);
   const allowedToUpdate = canUpdateRequestByUserId(session?.user?.id as number, data?.id!);
   const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
@@ -533,6 +535,7 @@ export const updateRequest = async (
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
     const isApprovingSocial = !originalData.socialApproved && current.socialApproved;
+    const isApprovingOTP = !originalData.otpApproved && current.otpApproved;
 
     const updatedAttributes = getIdpApprovalStatus({
       isAdmin: userIsAdmin,
@@ -542,6 +545,7 @@ export const updateRequest = async (
       githubApprover,
       bcscApprover,
       socialApprover,
+      otpApprover,
     });
     assign(current, updatedAttributes);
 
@@ -562,7 +566,7 @@ export const updateRequest = async (
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
     if (
       !userIsAdmin &&
-      (bceidApprover || githubApprover || bcscApprover || socialApprover) &&
+      (bceidApprover || githubApprover || bcscApprover || socialApprover || otpApprover) &&
       !(await canUpdateRequestByUserId(session?.user?.id as number, data?.id!))
     ) {
       Object.assign(current, {
@@ -571,6 +575,7 @@ export const updateRequest = async (
         githubApproved: githubApprover ? data.githubApproved : originalData.githubApproved,
         bcServicesCardApproved: bcscApprover ? data.bcServicesCardApproved : originalData.bcServicesCardApproved,
         socialApproved: socialApprover ? data.socialApproved : originalData.socialApproved,
+        otpApproved: otpApprover ? data.otpApproved : originalData.otpApproved,
       });
     }
 
@@ -629,10 +634,14 @@ export const updateRequest = async (
       const hasSocial = usesSocial(current);
       const hasSocialProd = hasSocial && hasProd;
 
+      const hasOTP = usesOTP(current);
+      const hasOTPProd = hasOTP && hasProd;
+
       const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
       const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
       const waitingSocialProdApproval = hasSocialProd && !current.socialApproved;
+      const waitingOTPProdApproval = hasOTPProd && !current.otpApproved;
 
       const removingBcscIdp =
         originalData.devIdps.includes('bcservicescard') && !current.devIdps.includes('bcservicescard');
@@ -665,6 +674,11 @@ export const updateRequest = async (
             code: EMAILS.PROD_APPROVED,
             data: { integration: finalData, type: 'Social' },
           });
+        } else if (isApprovingOTP) {
+          emails.push({
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'One Time Passcode' },
+          });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
@@ -674,6 +688,7 @@ export const updateRequest = async (
               waitingGithubProdApproval,
               waitingBcServicesCardProdApproval,
               waitingSocialProdApproval,
+              waitingOTPProdApproval,
               changes,
               addingProd,
             },
@@ -695,6 +710,7 @@ export const updateRequest = async (
             waitingGithubProdApproval,
             waitingBcServicesCardProdApproval,
             waitingSocialProdApproval,
+            waitingOTPProdApproval,
           },
         });
       }
@@ -1088,7 +1104,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
     baseData.prodIdps = baseData?.prodIdps?.filter(checkNotSocial);
   }
 
-  if (!baseData.OTPApproved && hasOTP) {
+  if (!baseData.otpApproved && hasOTP) {
     baseData.prodIdps = baseData?.prodIdps?.filter(checkNotOTP);
   }
 
@@ -1212,11 +1228,13 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const hasBceid = usesBceid(integration);
     const hasGithub = usesGithub(integration);
     const hasSocial = usesSocial(integration);
+    const hasOTP = usesOTP(integration);
     const hasBcServicesCard = usesBcServicesCard(integration);
     const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
     const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
     const waitingSocialProdApproval = hasSocial && hasProd && !integration.socialApproved;
     const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
+    const waitingOTPProdApproval = hasOTP && hasProd && !integration.otpApproved;
 
     const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
     await sendTemplate(emailCode, {
@@ -1226,6 +1244,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
       waitingGithubProdApproval,
       waitingBcServicesCardProdApproval,
       waitingSocialProdApproval,
+      waitingOTPProdApproval,
       addingProd,
     });
   }

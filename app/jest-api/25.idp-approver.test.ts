@@ -9,6 +9,8 @@ import {
   BCSC_ADMIN_IDIR_USERID_01,
   SOCIAL_ADMIN_IDIR_USERID_01,
   SOCIAL_ADMIN_IDIR_EMAIL_01,
+  OTP_ADMIN_IDIR_USERID_01,
+  OTP_ADMIN_IDIR_EMAIL_01,
 } from './helpers/fixtures';
 import { buildIntegration } from './helpers/modules/common';
 import {
@@ -77,6 +79,7 @@ jest.mock('@app/utils/bcsc-client', () => {
 describe('IDP Approver', () => {
   beforeAll(async () => {
     process.env.INCLUDE_SOCIAL = 'true';
+    process.env.INCLUDE_OTP = 'true';
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     await cleanUpDatabaseTables();
     await buildIntegration({
@@ -101,6 +104,12 @@ describe('IDP Approver', () => {
       projectName: 'social',
       submitted: true,
       social: true,
+      prodEnv: true,
+    });
+    await buildIntegration({
+      projectName: 'otp',
+      submitted: true,
+      otp: true,
       prodEnv: true,
     });
   });
@@ -248,6 +257,66 @@ describe('IDP Approver', () => {
 
     expect(approveRes.status).toEqual(200);
     expect(approveRes.body.socialApproved).toEqual(true);
+    expect(approveRes.body.devValidRedirectUris).toEqual(['https://other-application-route']);
+
+    const deleteRes = await deleteIntegration(createdReq.id);
+    expect(deleteRes.status).toEqual(200);
+  });
+
+  it('OTP approver can view and approve any otp integration but cannot edit/delete/restore', async () => {
+    createMockAuth(OTP_ADMIN_IDIR_USERID_01, OTP_ADMIN_IDIR_EMAIL_01, ['otp-approver']);
+    const requests = await getRequestsForAdmins();
+
+    expect(requests.status).toEqual(200);
+    expect(requests.body.count).toEqual(1);
+    expect(requests.body.rows[0].projectName).toEqual('otp');
+    expect(requests.body.rows[0].otpApproved).toEqual(false);
+
+    const approveRes = await updateIntegration(
+      { ...requests.body.rows[0], otpApproved: true, devValidRedirectUris: ['https://other-application-route'] },
+      true,
+    );
+
+    expect(approveRes.status).toEqual(200);
+    expect(approveRes.body.otpApproved).toEqual(true);
+    expect(approveRes.body.devValidRedirectUris).not.toEqual(['https://other-application-route']);
+
+    const deleteRes = await deleteIntegration(requests.body.rows[0].id);
+    expect(deleteRes.status).toEqual(401);
+
+    const eventsRes = await getEvents(requests.body.rows[0].id);
+    expect(eventsRes.status).toEqual(200);
+    expect(eventsRes.body.count).toEqual(1);
+    expect(eventsRes.body.rows.length).toEqual(1);
+    expect(eventsRes.body.rows[0].details.changes[0].path).toContain('otpApproved');
+
+    const restoreRes = await restoreIntegration(requests.body.rows[0].id, OTP_ADMIN_IDIR_EMAIL_01);
+    expect(restoreRes.status).toEqual(403);
+  });
+
+  it('OTP approver can edit/approve/delete owned integrations', async () => {
+    createMockAuth(OTP_ADMIN_IDIR_USERID_01, OTP_ADMIN_IDIR_EMAIL_01, ['otp-approver']);
+    const otpApproverIntegration = await buildIntegration({
+      projectName: 'otp-approver',
+      submitted: true,
+      otp: true,
+      prodEnv: true,
+    });
+
+    expect(otpApproverIntegration.status).toEqual(200);
+
+    const requests = await getRequestsForAdmins();
+    const createdReq = requests.body.rows.find((row: any) => row.projectName === 'otp-approver');
+    expect(requests.status).toEqual(200);
+    expect(createdReq).toBeTruthy();
+
+    const approveRes = await updateIntegration(
+      { ...createdReq, otpApproved: true, devValidRedirectUris: ['https://other-application-route'] },
+      true,
+    );
+
+    expect(approveRes.status).toEqual(200);
+    expect(approveRes.body.otpApproved).toEqual(true);
     expect(approveRes.body.devValidRedirectUris).toEqual(['https://other-application-route']);
 
     const deleteRes = await deleteIntegration(createdReq.id);

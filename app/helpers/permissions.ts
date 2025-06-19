@@ -2,7 +2,7 @@ import { Integration } from '@app/interfaces/Request';
 import { Team } from '@app/interfaces/team';
 import { Session } from '@app/shared/interfaces';
 import createHttpError from 'http-errors';
-import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkSocial } from './integration';
+import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkOTP, checkSocial } from './integration';
 import isequal from 'lodash.isequal';
 
 /**
@@ -82,6 +82,7 @@ export const getIdpApprovalStatus = ({
   githubApprover,
   bcscApprover,
   socialApprover,
+  otpApprover,
 }: any) => {
   const changedAttrs: any = {};
 
@@ -100,6 +101,13 @@ export const getIdpApprovalStatus = ({
   const isApprovingSocial = !originalData.socialApproved && updatedData.socialApproved;
   if (isApprovingSocial && !isAdmin && !socialApprover)
     throw new createHttpError.Forbidden('not allowed to approve social');
+
+  const isApprovingOTP = !originalData.otpApproved && updatedData.otpApproved;
+  if (isApprovingOTP && !isAdmin && !otpApprover) throw new createHttpError.Forbidden('not allowed to approve otp');
+
+  if (originalData.otpApproved && !updatedData.devIdps.some(checkOTP)) {
+    changedAttrs.otpApproved = false;
+  }
 
   if (originalData.bceidApproved && !updatedData.devIdps.some(checkBceidGroup)) {
     changedAttrs.bceidApproved = false;

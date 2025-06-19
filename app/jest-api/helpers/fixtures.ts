@@ -11,6 +11,9 @@ export const BCEID_ADMIN_IDIR_EMAIL_01 = 'bceid.admin.user-01@gov.bc.ca';
 export const SOCIAL_ADMIN_IDIR_USERID_01 = 'SOCIAL_ADMIN_USER_01';
 export const SOCIAL_ADMIN_IDIR_EMAIL_01 = 'social.admin.user-01@gov.bc.ca';
 
+export const OTP_ADMIN_IDIR_USERID_01 = 'OTP_ADMIN_USER_01';
+export const OTP_ADMIN_IDIR_EMAIL_01 = 'otp.admin.user-01@gov.bc.ca';
+
 export const GITHUB_ADMIN_IDIR_USERID_01 = 'GITHUB_ADMIN_USER_01';
 export const GITHUB_ADMIN_IDIR_EMAIL_01 = 'github.admin.user-01@gov.bc.ca';
 
@@ -148,6 +151,7 @@ export const getUpdateIntegrationData = (args: {
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
   socialApproved?: boolean;
+  otpApproved?: boolean;
 }) => {
   const {
     projectName = args.integration.projectName,
@@ -160,6 +164,7 @@ export const getUpdateIntegrationData = (args: {
     githubApproved = args.integration.githubApproved || false,
     bcServicesCardApproved = args.integration.bcServicesCardApproved || false,
     socialApproved = args.integration.socialApproved || false,
+    otpApproved = args.integration.otpApproved || false,
   } = args;
 
   const samlIntegration = protocol === 'saml';
@@ -183,6 +188,7 @@ export const getUpdateIntegrationData = (args: {
     githubApproved,
     bcServicesCardApproved,
     socialApproved,
+    otpApproved,
     devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,
     testSamlLogoutPostBindingUri: samlIntegration && envs?.includes('test') ? 'https://a' : undefined,
     prodSamlLogoutPostBindingUri: samlIntegration && envs?.includes('prod') ? 'https://a' : undefined,

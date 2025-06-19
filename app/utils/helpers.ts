@@ -304,6 +304,11 @@ export const checkIfSocialProdApplying = (integration: Integration) => {
   return prodApplying;
 };
 
+export const checkIfOTPProdApplying = (integration: Integration) => {
+  const prodApplying = checkIfProdApplying(integration, 'otp');
+  return prodApplying;
+};
+
 export const subtractDaysFromDate = (days: number) => {
   const d = new Date();
   d.setDate(d.getDate() - days);
@@ -316,6 +321,10 @@ export const isBceidApprover = (session: LoggedInUser) => {
 
 export const isGithubApprover = (session: LoggedInUser) => {
   return session.client_roles?.includes('github-approver');
+};
+
+export const isOTPApprover = (session: LoggedInUser) => {
+  return session.client_roles?.includes('otp-approver');
 };
 
 export const isSocialApprover = (session: LoggedInUser) => {
@@ -331,7 +340,8 @@ export const isIdpApprover = (session: LoggedInUser) => {
     isBceidApprover(session) ||
     isGithubApprover(session) ||
     isBcServicesCardApprover(session) ||
-    isSocialApprover(session)
+    isSocialApprover(session) ||
+    isOTPApprover(session)
   )
     return true;
   return false;
@@ -564,6 +574,7 @@ export const getAllowedIdpsForApprover = (session: Session) => {
     if (role === 'bc-services-card-approver') idps.push('bcservicescard');
     if (role === 'github-approver') idps.push('githubbcgov', 'githubpublic');
     if (role === 'social-approver') idps.push('social');
+    if (role === 'otp-approver') idps.push('otp');
   });
   return idps;
 };

@@ -387,6 +387,10 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.BOOLEAN,
         allowNull: true,
       },
+      otpApproved: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
       devHomePageUri: {
         type: DataTypes.TEXT,
         allowNull: true,

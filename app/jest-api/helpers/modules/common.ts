@@ -20,6 +20,7 @@ const getIdentityProviderList = (
   digitalCredential: boolean = false,
   bcServicesCard: boolean = false,
   social: boolean = false,
+  otp: boolean = false,
 ) => {
   const idps = ['azureidir'];
   if (bceid) idps.push('bceidbasic');
@@ -30,6 +31,7 @@ const getIdentityProviderList = (
   if (digitalCredential) idps.push('digitalcredential');
   if (bcServicesCard) idps.push('bcservicescard');
   if (social) idps.push('social');
+  if (otp) idps.push('otp');
   return idps;
 };
 
@@ -45,6 +47,7 @@ export const buildIntegration = async (args: {
   digitalCredential?: boolean;
   bcServicesCard?: boolean;
   social?: boolean;
+  otp?: boolean;
   teamId?: number;
   protocol?: string;
   authType?: string;
@@ -58,6 +61,7 @@ export const buildIntegration = async (args: {
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
   socialApproved?: boolean;
+  otpApproved?: boolean;
 }) => {
   const {
     projectName,
@@ -69,6 +73,7 @@ export const buildIntegration = async (args: {
     digitalCredential = false,
     bcServicesCard = false,
     social = false,
+    otp = false,
     teamId,
     protocol = 'oidc',
     authType = 'browser-login',
@@ -79,6 +84,7 @@ export const buildIntegration = async (args: {
     bceidApproved = false,
     bcServicesCardApproved = false,
     socialApproved = false,
+    otpApproved = false,
   } = args;
 
   let integration: Integration;
@@ -106,6 +112,7 @@ export const buildIntegration = async (args: {
       digitalCredential,
       bcServicesCard,
       social,
+      otp,
     ),
     envs,
     protocol,
@@ -115,6 +122,7 @@ export const buildIntegration = async (args: {
     githubApproved,
     bcServicesCardApproved,
     socialApproved,
+    otpApproved,
   });
 
   if (bcServicesCard) {
