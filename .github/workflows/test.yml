@@ -58,6 +58,16 @@ jobs:
           ./db-setup.sh ssorequests_test
         working-directory: ./.bin
 
+      - name: Run Database Migrations
+        env:
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: ssorequests_test
+          DB_HOSTNAME: localhost
+        run: |
+          make db_install && make db_compile && make migrations
+        working-directory: .
+
       - name: Check migration state
         env:
           DB_USERNAME: postgres
@@ -67,15 +77,6 @@ jobs:
         run: |
           psql -U $DB_USERNAME -d $DB_NAME -c "SELECT * FROM \"SequelizeMeta\";"
           psql -U $DB_USERNAME -d $DB_NAME -c "\d+ requests"
-  #     - name: Run Database Migrations
-  #       env:
-  #         DB_USERNAME: postgres
-  #         DB_PASSWORD: postgres
-  #         DB_NAME: ssorequests_test
-  #         DB_HOSTNAME: localhost
-  #       run: |
-  #         make db_install && make db_compile && make migrations
-  #       working-directory: .
 
   #     - name: Run backend integration tests
   #       env:
