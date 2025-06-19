@@ -25,15 +25,13 @@ jobs:
 
       - name: Install asdf
         uses: asdf-vm/actions/setup@v3
+
       - name: Cache asdf tools
         uses: actions/cache@v4
         with:
           path: |
             /home/runner/.asdf
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
-
-      - name: Install asdf
-        uses: asdf-vm/actions/install@v3
 
       - name: Rerun Pre-Commit Hooks on CI
         run: |
