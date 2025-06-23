@@ -1,12 +1,12 @@
 # Generating service accounts for the CICD pipeline
 
-The github actions need service accounts to run. The script `generate_sa.sh` will create a service acount for the prod environment of a given openshift project and give that account the roles in the dev, test, and prod environments for deploying the keycloak site.
+The github actions need service accounts to run. The script `generate_sa.sh` will create a service account for the prod environment and give that account the roles in the dev and prod environments for deploying the sso-requests site.
 
 ## Generate the service accounts
 
 While logged into the **Gold** instance run:
 
-`./generate_sa.sh <<LICENCE_PLATE>> gold`
+`./generate_sa.sh`
 
 The service account, roles, and rolebindings will be created.
 
@@ -16,7 +16,7 @@ The github actions require 1 secrets to deploy resources in Gold
 
 To generate this secret run:
 
-oc create token so-action-deployer-b29129 --duration=$((365\*24))h
+`oc create token sso-action-deployer-b29129 --duration=$((365\*24))h`
 
 And save it as `OPENSHIFT_TOKEN`, this token is not stored as an openshift secret.
 
