@@ -221,5 +221,6 @@ jobs:
           --set envVars.rc_webhook_url="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
           --set envVars.keycloakV2DevUrl="${{ env.KEYCLOAK_V2_DEV_URL }}" \
           --set envVars.keycloakV2TestUrl="${{ env.KEYCLOAK_V2_TEST_URL }}" \
-          --set envVars.keycloakV2ProdUrl="${{ env.KEYCLOAK_V2_PROD_URL }}"
+          --set envVars.keycloakV2ProdUrl="${{ env.KEYCLOAK_V2_PROD_URL }}" \
+          --set backup-storage.env.WEBHOOK_URL.value="${{ secrets.RC_SSO_OPS_WEBHOOK }}"
         working-directory: ./helm

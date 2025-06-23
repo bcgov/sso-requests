@@ -22,14 +22,4 @@ As of May 2024 we are using the backup-container's images directly in our deploy
 
 ## Deploying the charts
 
-### **BEFORE RUNNING HELM UPGRADE:**
-
-Make sure to add the rocket chat webhook to production facing values files. Make sure not to commit this value.
-
-Make certain the image tag reflects the version of the backup container you intend to deploy.
-
-### Installing and upgrading backups
-
-These charts can be upgraded using make commands:
-
-`make upgrade NAMESPACE=<<namespace>>`
+Backup container is installed as a dependant chart of sso-request helm chart
