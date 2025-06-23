@@ -14,6 +14,12 @@ The service account, roles, and rolebindings will be created.
 
 The github actions require 1 secrets to deploy resources in Gold
 
-Each service account will generate a secret in the `-prod` namespace with the name `sso-action-deployer-<<LICENCE_PLATE>>-token-#####`. Copy this token into the GithHub secrets on this repos.
+To generate this secret run:
 
-OPENSHIFT_TOKEN
+oc create token so-action-deployer-b29129 --duration=$((365\*24))h
+
+And save it as `OPENSHIFT_TOKEN`, this token is not stored as an openshift secret.
+
+### Old version **DEPRECATED**
+
+Each service account will generate a secret in the `-prod` namespace with the name `sso-action-deployer-<<LICENCE_PLATE>>-token-#####`. Copy this token into the GithHub secrets on this repos.
