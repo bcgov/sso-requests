@@ -336,23 +336,29 @@ export const keycloakClient = async (
         } else if (!integration.additionalRoleAttribute && additionalClientRolesMapper) {
           await deleteMapper(kcAdminClient, client.id!, realm, additionalClientRolesMapper.id!);
         }
-
-        if (defaultScopes.includes('otp')) {
-          await createPrivacyZoneMapper(
-            kcAdminClient,
-            integration.protocol,
-            client.id!,
-            realm,
-            integration.bcscPrivacyZone!,
-          );
-          await createPpidMapper(kcAdminClient, integration.protocol, client.id!, realm);
-        }
       } else if (
         integration.protocol === 'saml' &&
         integration.additionalRoleAttribute &&
         !protocolMappersForClient.find((mapper) => mapper.name === 'additional_client_roles')
       ) {
         await createAdditionalClientRolesMapper(kcAdminClient, integration.protocol, client.id!, realm, integration);
+      }
+
+      if (defaultScopes.includes('otp')) {
+        await createPrivacyZoneMapper(
+          kcAdminClient,
+          integration.protocol || 'oidc',
+          client.id!,
+          realm,
+          integration.bcscPrivacyZone!,
+        );
+        await createPpidMapper(kcAdminClient, integration.protocol || 'oidc', client.id!, realm);
+      } else {
+        const pzMapper = protocolMappersForClient.find((mapper) => mapper.name === 'privacy_zone');
+        if (pzMapper) await deleteMapper(kcAdminClient, client.id!, realm, pzMapper.id!);
+
+        const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
+        if (ppidMapper) await deleteMapper(kcAdminClient, client.id!, realm, ppidMapper.id!);
       }
     } else if (!protocolMappersForClient.find((mapper) => mapper.name === 'team')) {
       await createTeamMapper(kcAdminClient, client.id!, realm, integration);

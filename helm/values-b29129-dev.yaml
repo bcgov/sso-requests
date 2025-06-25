@@ -32,9 +32,9 @@ api:
   extraEnvs:
     API_VERSION: v1
     API_ENV: development
-    API_URL: https://sso-requests-api.apps.gold.devops.gov.bc.ca
+    API_URL: https://sso-requests-api-sandox.apps.gold.devops.gov.bc.ca
   route:
-    host: sso-requests-api.apps.gold.devops.gov.bc.ca
+    host: sso-requests-api-sandbox.apps.gold.devops.gov.bc.ca
 
 resources:
   limits:
@@ -113,7 +113,7 @@ backup-storage:
     ENVIRONMENT_NAME:
       value: b29129-dev
     WEBHOOK_URL:
-      value: ""
+      value: ''
       secure: true
 
     DAILY_BACKUPS:
