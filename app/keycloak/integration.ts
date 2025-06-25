@@ -301,11 +301,11 @@ export const keycloakClient = async (
 
       if (integration.protocol === 'oidc') {
         if (!protocolMappersForClient.find((mapper) => mapper.name === 'client_roles')) {
-          await createClientRolesMapper(kcAdminClient, client.id!, realm, integration);
+          await createClientRolesMapper(kcAdminClient, client.id!, realm);
         }
 
         if (!protocolMappersForClient.find((mapper) => mapper.name === 'access_token_aud')) {
-          await createAccessTokenAudMapper(kcAdminClient, client.id!, realm, integration);
+          await createAccessTokenAudMapper(kcAdminClient, client.id!, realm);
         }
 
         const additionalClientRolesMapper = protocolMappersForClient.find(
@@ -318,7 +318,7 @@ export const keycloakClient = async (
               integration.protocol,
               client.id!,
               realm,
-              integration,
+              integration.additionalRoleAttribute,
             );
           } else if (
             additionalClientRolesMapper &&
@@ -330,7 +330,7 @@ export const keycloakClient = async (
               integration.protocol,
               client.id!,
               realm,
-              integration,
+              integration.additionalRoleAttribute,
             );
           }
         } else if (!integration.additionalRoleAttribute && additionalClientRolesMapper) {
@@ -341,7 +341,13 @@ export const keycloakClient = async (
         integration.additionalRoleAttribute &&
         !protocolMappersForClient.find((mapper) => mapper.name === 'additional_client_roles')
       ) {
-        await createAdditionalClientRolesMapper(kcAdminClient, integration.protocol, client.id!, realm, integration);
+        await createAdditionalClientRolesMapper(
+          kcAdminClient,
+          integration.protocol,
+          client.id!,
+          realm,
+          integration.additionalRoleAttribute,
+        );
       }
 
       if (defaultScopes.includes('otp')) {
@@ -361,7 +367,7 @@ export const keycloakClient = async (
         if (ppidMapper) await deleteMapper(kcAdminClient, client.id!, realm, ppidMapper.id!);
       }
     } else if (!protocolMappersForClient.find((mapper) => mapper.name === 'team')) {
-      await createTeamMapper(kcAdminClient, client.id!, realm, integration);
+      await createTeamMapper(kcAdminClient, client.id!, realm, String(integration.teamId));
     }
     return true;
   } catch (err) {

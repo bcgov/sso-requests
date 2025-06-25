@@ -1,4 +1,3 @@
-import { Integration } from '@app/interfaces/Request';
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
 import ProtocolMapperRepresentation from '@keycloak/keycloak-admin-client/lib/defs/protocolMapperRepresentation';
 
@@ -13,12 +12,7 @@ export const listClientProtocolMappers = async (
   });
 };
 
-export const createClientRolesMapper = async (
-  kcAdminClient: KeycloakAdminClient,
-  clientId: string,
-  realm: string,
-  integration: Integration,
-) => {
+export const createClientRolesMapper = async (kcAdminClient: KeycloakAdminClient, clientId: string, realm: string) => {
   try {
     await kcAdminClient.clients.addProtocolMapper(
       {
@@ -32,7 +26,7 @@ export const createClientRolesMapper = async (
         config: {
           'claim.name': 'client_roles',
           'jsonType.label': 'String',
-          'usermodel.clientRoleMapping.clientId': integration.clientId,
+          'usermodel.clientRoleMapping.clientId': clientId,
           'id.token.claim': 'true',
           'access.token.claim': 'true',
           'userinfo.token.claim': 'true',
@@ -146,7 +140,7 @@ export const createTeamMapper = async (
   kcAdminClient: KeycloakAdminClient,
   clientId: string,
   realm: string,
-  integration: Integration,
+  teamId: string,
 ) => {
   try {
     await kcAdminClient.clients.addProtocolMapper(
@@ -162,7 +156,7 @@ export const createTeamMapper = async (
           'access.token.claim': 'true',
           'access.tokenResponse.claim': 'false',
           'claim.name': 'team',
-          'claim.value': integration.teamId,
+          'claim.value': teamId,
           'id.token.claim': 'true',
           'userinfo.token.claim': 'true',
         },
@@ -178,7 +172,7 @@ export const createAdditionalClientRolesMapper = async (
   protocol: string,
   clientId: string,
   realm: string,
-  integration: Integration,
+  additionalRoleAttribute: string,
 ) => {
   try {
     let config: ProtocolMapperRepresentation = { name: 'additional_client_roles' };
@@ -188,9 +182,9 @@ export const createAdditionalClientRolesMapper = async (
         protocol: 'openid-connect',
         protocolMapper: 'oidc-usermodel-client-role-mapper',
         config: {
-          'claim.name': integration.additionalRoleAttribute,
+          'claim.name': additionalRoleAttribute,
           'jsonType.label': 'String',
-          'usermodel.clientRoleMapping.clientId': integration.clientId,
+          'usermodel.clientRoleMapping.clientId': clientId,
           'id.token.claim': 'true',
           'access.token.claim': 'true',
           'userinfo.token.claim': 'true',
@@ -203,7 +197,7 @@ export const createAdditionalClientRolesMapper = async (
         protocol: 'saml',
         protocolMapper: 'saml-client-role-list-mapper',
         config: {
-          'attribute.name': integration.additionalRoleAttribute,
+          'attribute.name': additionalRoleAttribute,
           single: 'true',
         },
       };
@@ -227,7 +221,7 @@ export const updateAdditionalClientRolesMapper = async (
   protocol: string,
   clientId: string,
   realm: string,
-  integration: Integration,
+  additionalRoleAttribute: string,
 ) => {
   try {
     let config: ProtocolMapperRepresentation = { name: 'additional_client_roles' };
@@ -237,9 +231,9 @@ export const updateAdditionalClientRolesMapper = async (
         protocol: 'openid-connect',
         protocolMapper: 'oidc-usermodel-client-role-mapper',
         config: {
-          'claim.name': integration.additionalRoleAttribute,
+          'claim.name': additionalRoleAttribute,
           'jsonType.label': 'String',
-          'usermodel.clientRoleMapping.clientId': integration.clientId,
+          'usermodel.clientRoleMapping.clientId': clientId,
           'id.token.claim': 'true',
           'access.token.claim': 'true',
           'userinfo.token.claim': 'true',
@@ -252,7 +246,7 @@ export const updateAdditionalClientRolesMapper = async (
         protocol: 'saml',
         protocolMapper: 'saml-client-role-list-mapper',
         config: {
-          'attribute.name': integration.additionalRoleAttribute,
+          'attribute.name': additionalRoleAttribute,
           single: 'true',
         },
       };
@@ -288,7 +282,6 @@ export const createAccessTokenAudMapper = async (
   kcAdminClient: KeycloakAdminClient,
   clientId: string,
   realm: string,
-  integration: Integration,
 ) => {
   try {
     await kcAdminClient.clients.addProtocolMapper(
@@ -301,7 +294,7 @@ export const createAccessTokenAudMapper = async (
         protocol: 'openid-connect',
         protocolMapper: 'oidc-audience-mapper',
         config: {
-          'included.client.audience': integration.clientId,
+          'included.client.audience': clientId,
           'id.token.claim': 'false',
           'access.token.claim': 'true',
         },
