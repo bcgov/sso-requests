@@ -125,8 +125,9 @@ export const buildIntegration = async (args: {
     otpApproved,
   });
 
+  if (bcServicesCard || otp) updateableIntegration.bcscPrivacyZone = 'zone1';
+
   if (bcServicesCard) {
-    updateableIntegration.bcscPrivacyZone = 'zone1';
     updateableIntegration.bcscAttributes = ['age', 'postal_code'];
     updateableIntegration.devHomePageUri = 'https://example.com';
     updateableIntegration.testHomePageUri = 'https://example.com';
