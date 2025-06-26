@@ -3,7 +3,13 @@ import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01, formDataDev, formD
 import { submitNewIntegration } from './helpers/modules/integrations';
 import { IntegrationData } from '@app/shared/interfaces';
 import { buildGitHubRequestData } from '@app/controllers/requests';
-import { getDefaultClientScopes, socialIdps } from '@app/keycloak/integration';
+import { getDefaultClientScopes } from '@app/keycloak/integration';
+
+jest.mock('@app/controllers/bc-services-card', () => {
+  return {
+    getPrivacyZones: jest.fn(() => Promise.resolve([{ privacy_zone_uri: 'zone', privacy_zone_name: 'zone' }])),
+  };
+});
 
 const OLD_ENV = process.env;
 beforeEach(() => {
@@ -32,11 +38,13 @@ jest.mock('@app/queries/request', () => {
 const otpDevIntegration: IntegrationData = {
   ...formDataDev,
   devIdps: ['otp', 'azureidir'],
+  bcscPrivacyZone: 'zone',
 };
 
 const otpProdIntegration: IntegrationData = {
   ...formDataProd,
   devIdps: ['otp', 'azureidir'],
+  bcscPrivacyZone: 'zone',
 };
 
 describe('Feature flag', () => {
@@ -60,6 +68,17 @@ describe('Feature flag', () => {
     process.env.INCLUDE_OTP = 'true';
     const result = await submitNewIntegration(otpDevIntegration);
     expect(result.status).toBe(200);
+  });
+});
+
+describe('Validations', () => {
+  beforeAll(async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+  });
+  it('Does not allow to submit if privacy zone is not selected', async () => {
+    process.env.INCLUDE_OTP = 'true';
+    const result = await submitNewIntegration({ ...otpDevIntegration, bcscPrivacyZone: '' });
+    expect(result.status).toBe(422);
   });
 });
 

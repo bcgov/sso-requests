@@ -13,6 +13,7 @@ import {
   checkBceidGroup,
   usesSocial,
   checkNotSocial,
+  usesOTP,
 } from '@app/helpers/integration';
 import { Session } from '@app/shared/interfaces';
 import omit from 'lodash.omit';
@@ -552,9 +553,13 @@ export const getDifferences = (newData: any, originalData: Integration) => {
 export const validateRequest = async (formData: any, original: Integration, teams: any[], isUpdate = false) => {
   const validationArgs: any = { formData, teams };
 
-  if (usesBcServicesCard(formData)) {
-    const [validPrivacyZones, validAttributes] = await Promise.all([getPrivacyZones(), getAttributes()]);
+  if (usesBcServicesCard(formData) || usesOTP(formData)) {
+    const validPrivacyZones = await getPrivacyZones();
     validationArgs.bcscPrivacyZones = validPrivacyZones;
+  }
+
+  if (usesBcServicesCard(formData)) {
+    const validAttributes = await getAttributes();
     validationArgs.bcscAttributes = validAttributes;
   }
   const schemas = getSchemas(validationArgs);
