@@ -1,4 +1,3 @@
-import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
 import ProtocolMapperRepresentation from '@keycloak/keycloak-admin-client/lib/defs/protocolMapperRepresentation';
 
@@ -40,17 +39,16 @@ export const createClientRolesMapper = async (kcAdminClient: KeycloakAdminClient
   }
 };
 
-export const createPrivacyZoneMapper = async (
+export const managePrivacyZoneMapper = async (
   kcAdminClient: KeycloakAdminClient,
   protocol: string,
   clientId: string,
   realm: string,
-  privacyZone: string,
-  environment: string,
+  privacyZoneUri: string,
+  mapperId: string,
 ) => {
   let config: ProtocolMapperRepresentation = { name: 'privacy_zone' };
   try {
-    const privacyZoneUri = await getPrivacyZoneURI(environment, privacyZone);
     if (protocol === 'oidc') {
       config = {
         ...config,
@@ -82,13 +80,24 @@ export const createPrivacyZoneMapper = async (
       };
     }
 
-    await kcAdminClient.clients.addProtocolMapper(
-      {
-        id: clientId,
-        realm,
-      },
-      config,
-    );
+    if (!mapperId) {
+      await kcAdminClient.clients.addProtocolMapper(
+        {
+          id: clientId,
+          realm,
+        },
+        config,
+      );
+    } else {
+      await kcAdminClient.clients.updateProtocolMapper(
+        {
+          id: clientId,
+          realm,
+          mapperId,
+        },
+        { ...config, id: mapperId },
+      );
+    }
   } catch (err) {
     throw new Error('Failed to create privacy_zone mapper');
   }
@@ -170,12 +179,13 @@ export const createTeamMapper = async (
   }
 };
 
-export const createAdditionalClientRolesMapper = async (
+export const manageAdditionalClientRolesMapper = async (
   kcAdminClient: KeycloakAdminClient,
   protocol: string,
   clientId: string,
   realm: string,
   additionalRoleAttribute: string,
+  mapperId: string,
 ) => {
   try {
     let config: ProtocolMapperRepresentation = { name: 'additional_client_roles' };
@@ -206,63 +216,24 @@ export const createAdditionalClientRolesMapper = async (
       };
     }
 
-    await kcAdminClient.clients.addProtocolMapper(
-      {
-        id: clientId,
-        realm,
-      },
-      config,
-    );
-  } catch (err) {
-    throw new Error('Failed to create additional client roles mapper');
-  }
-};
-
-export const updateAdditionalClientRolesMapper = async (
-  id: string,
-  kcAdminClient: KeycloakAdminClient,
-  protocol: string,
-  clientId: string,
-  realm: string,
-  additionalRoleAttribute: string,
-) => {
-  try {
-    let config: ProtocolMapperRepresentation = { name: 'additional_client_roles' };
-    if (protocol === 'oidc') {
-      config = {
-        ...config,
-        protocol: 'openid-connect',
-        protocolMapper: 'oidc-usermodel-client-role-mapper',
-        config: {
-          'claim.name': additionalRoleAttribute,
-          'jsonType.label': 'String',
-          'usermodel.clientRoleMapping.clientId': clientId,
-          'id.token.claim': 'true',
-          'access.token.claim': 'true',
-          'userinfo.token.claim': 'true',
-          multivalued: 'true',
+    if (!mapperId) {
+      await kcAdminClient.clients.addProtocolMapper(
+        {
+          id: clientId,
+          realm,
         },
-      };
+        config,
+      );
     } else {
-      config = {
-        ...config,
-        protocol: 'saml',
-        protocolMapper: 'saml-client-role-list-mapper',
-        config: {
-          'attribute.name': additionalRoleAttribute,
-          single: 'true',
+      await kcAdminClient.clients.updateProtocolMapper(
+        {
+          id: clientId,
+          realm,
+          mapperId,
         },
-      };
+        { ...config, id: mapperId },
+      );
     }
-
-    await kcAdminClient.clients.updateProtocolMapper(
-      {
-        id: clientId,
-        realm,
-        mapperId: id,
-      },
-      { ...config, id },
-    );
   } catch (err) {
     throw new Error('Failed to create additional client roles mapper');
   }

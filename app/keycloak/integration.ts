@@ -2,7 +2,6 @@ import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clien
 import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@app/shared/interfaces';
 import AuthenticationFlowRepresentation from '@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation';
-import { models } from '@app/shared/sequelize/models/models';
 import { createBCSCIntegration, deleteBCSCIntegration } from '@app/controllers/requests';
 import { usesBcServicesCard } from '@app/helpers/integration';
 import axios from 'axios';
@@ -10,15 +9,15 @@ import createHttpError from 'http-errors';
 import { getByRequestId } from '@app/queries/bcsc-client';
 import {
   createAccessTokenAudMapper,
-  createAdditionalClientRolesMapper,
   createClientRolesMapper,
   createPpidMapper,
-  createPrivacyZoneMapper,
+  managePrivacyZoneMapper,
   createTeamMapper,
   deleteMapper,
   listClientProtocolMappers,
-  updateAdditionalClientRolesMapper,
+  manageAdditionalClientRolesMapper,
 } from './protocolMappers';
+import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 
 const realm = 'standard';
 
@@ -313,24 +312,25 @@ export const keycloakClient = async (
         );
         if (integration.additionalRoleAttribute) {
           if (!additionalClientRolesMapper) {
-            await createAdditionalClientRolesMapper(
+            await manageAdditionalClientRolesMapper(
               kcAdminClient,
               integration.protocol,
               client.id!,
               realm,
               integration.additionalRoleAttribute,
+              '',
             );
           } else if (
             additionalClientRolesMapper &&
             additionalClientRolesMapper?.config!['claim.name'] !== integration?.additionalRoleAttribute
           ) {
-            await updateAdditionalClientRolesMapper(
-              additionalClientRolesMapper.id!,
+            await manageAdditionalClientRolesMapper(
               kcAdminClient,
               integration.protocol,
               client.id!,
               realm,
               integration.additionalRoleAttribute,
+              additionalClientRolesMapper.id!,
             );
           }
         } else if (!integration.additionalRoleAttribute && additionalClientRolesMapper) {
@@ -341,25 +341,30 @@ export const keycloakClient = async (
         integration.additionalRoleAttribute &&
         !protocolMappersForClient.find((mapper) => mapper.name === 'additional_client_roles')
       ) {
-        await createAdditionalClientRolesMapper(
+        await manageAdditionalClientRolesMapper(
           kcAdminClient,
           integration.protocol,
           client.id!,
           realm,
           integration.additionalRoleAttribute,
+          '',
         );
       }
 
       if (defaultScopes.includes('otp')) {
-        await createPrivacyZoneMapper(
+        const privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
+        let pzMapper = protocolMappersForClient.find((mapper) => mapper.name === 'privacy_zone');
+        await managePrivacyZoneMapper(
           kcAdminClient,
           integration.protocol || 'oidc',
           client.id!,
           realm,
-          integration.bcscPrivacyZone!,
-          environment,
+          privacyZoneUri,
+          pzMapper?.id || '',
         );
-        await createPpidMapper(kcAdminClient, integration.protocol || 'oidc', client.id!, realm);
+
+        if (!protocolMappersForClient.find((mapper) => mapper.name === 'ppid'))
+          await createPpidMapper(kcAdminClient, integration.protocol || 'oidc', client.id!, realm);
       } else {
         const pzMapper = protocolMappersForClient.find((mapper) => mapper.name === 'privacy_zone');
         if (pzMapper) await deleteMapper(kcAdminClient, client.id!, realm, pzMapper.id!);
