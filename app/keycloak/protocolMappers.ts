@@ -99,7 +99,6 @@ export const managePrivacyZoneMapper = async (
       );
     }
   } catch (err) {
-    console.log('🚀 ~ err:', err);
     throw new Error('Failed to create privacy_zone mapper');
   }
 };
