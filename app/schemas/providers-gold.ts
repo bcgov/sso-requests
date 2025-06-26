@@ -4,7 +4,7 @@ import { idpMap } from '@app/helpers/meta';
 import getConfig from 'next/config';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
-import { usesBcServicesCard, usesSocial } from '@app/helpers/integration';
+import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
 import { getDiscontinuedIdps } from '@app/utils/helpers';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
@@ -35,6 +35,7 @@ export default function getSchema(
   }
 
   const bcscSelected = usesBcServicesCard(integration);
+  const otpSelected = usesOTP(integration);
   const socialSelected = usesSocial(integration);
 
   const protocolSchema = {
@@ -201,9 +202,14 @@ export default function getSchema(
     };
   }
 
-  if (bcscSelected && include_bcsc) {
-    properties.bcscPrivacyZone = privacyZonesSchema;
+  const bcscAvailableAndSelected = bcscSelected && include_bcsc;
+  const otpAvailableAndSelected = otpSelected && includeOTP;
 
+  if (bcscAvailableAndSelected || otpAvailableAndSelected) {
+    properties.bcscPrivacyZone = privacyZonesSchema;
+  }
+
+  if (bcscSelected && include_bcsc) {
     properties.bcscAttributes = {
       type: 'array',
       title: 'Please select attribute(s)',
