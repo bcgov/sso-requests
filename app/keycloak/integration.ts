@@ -9,7 +9,6 @@ import createHttpError from 'http-errors';
 import { getByRequestId } from '@app/queries/bcsc-client';
 import {
   createAccessTokenAudMapper,
-  createAdditionalClientRolesMapper,
   createClientRolesMapper,
   createPpidMapper,
   managePrivacyZoneMapper,
@@ -342,12 +341,13 @@ export const keycloakClient = async (
         integration.additionalRoleAttribute &&
         !protocolMappersForClient.find((mapper) => mapper.name === 'additional_client_roles')
       ) {
-        await createAdditionalClientRolesMapper(
+        await manageAdditionalClientRolesMapper(
           kcAdminClient,
           integration.protocol,
           client.id!,
           realm,
           integration.additionalRoleAttribute,
+          '',
         );
       }
 

@@ -179,54 +179,6 @@ export const createTeamMapper = async (
   }
 };
 
-export const createAdditionalClientRolesMapper = async (
-  kcAdminClient: KeycloakAdminClient,
-  protocol: string,
-  clientId: string,
-  realm: string,
-  additionalRoleAttribute: string,
-) => {
-  try {
-    let config: ProtocolMapperRepresentation = { name: 'additional_client_roles' };
-    if (protocol === 'oidc') {
-      config = {
-        ...config,
-        protocol: 'openid-connect',
-        protocolMapper: 'oidc-usermodel-client-role-mapper',
-        config: {
-          'claim.name': additionalRoleAttribute,
-          'jsonType.label': 'String',
-          'usermodel.clientRoleMapping.clientId': clientId,
-          'id.token.claim': 'true',
-          'access.token.claim': 'true',
-          'userinfo.token.claim': 'true',
-          multivalued: 'true',
-        },
-      };
-    } else {
-      config = {
-        ...config,
-        protocol: 'saml',
-        protocolMapper: 'saml-client-role-list-mapper',
-        config: {
-          'attribute.name': additionalRoleAttribute,
-          single: 'true',
-        },
-      };
-    }
-
-    await kcAdminClient.clients.addProtocolMapper(
-      {
-        id: clientId,
-        realm,
-      },
-      config,
-    );
-  } catch (err) {
-    throw new Error('Failed to create additional client roles mapper');
-  }
-};
-
 export const manageAdditionalClientRolesMapper = async (
   kcAdminClient: KeycloakAdminClient,
   protocol: string,
