@@ -41,7 +41,7 @@ const getBCSCContacts = async (integration: IntegrationData) => {
   return contacts;
 };
 
-const getPrivacyZoneURI = async (env: string, privacyZoneDisplayName: string) => {
+export const getPrivacyZoneURI = async (env: string, privacyZoneDisplayName: string) => {
   const uriData = await getPrivacyZones(env);
   const privacyZone = uriData.find((zone: any) => zone.privacy_zone_name === privacyZoneDisplayName);
   return privacyZone?.privacy_zone_uri;

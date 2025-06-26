@@ -1,3 +1,4 @@
+import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import KeycloakAdminClient from '@keycloak/keycloak-admin-client';
 import ProtocolMapperRepresentation from '@keycloak/keycloak-admin-client/lib/defs/protocolMapperRepresentation';
 
@@ -44,10 +45,12 @@ export const createPrivacyZoneMapper = async (
   protocol: string,
   clientId: string,
   realm: string,
-  privacyZoneUri: string,
+  privacyZone: string,
+  environment: string,
 ) => {
   let config: ProtocolMapperRepresentation = { name: 'privacy_zone' };
   try {
+    const privacyZoneUri = await getPrivacyZoneURI(environment, privacyZone);
     if (protocol === 'oidc') {
       config = {
         ...config,

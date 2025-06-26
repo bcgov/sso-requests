@@ -357,6 +357,7 @@ export const keycloakClient = async (
           client.id!,
           realm,
           integration.bcscPrivacyZone!,
+          environment,
         );
         await createPpidMapper(kcAdminClient, integration.protocol || 'oidc', client.id!, realm);
       } else {
