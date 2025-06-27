@@ -351,7 +351,7 @@ export const keycloakClient = async (
         );
       }
 
-      if (defaultScopes.includes('otp')) {
+      if (defaultScopes.includes('otp') || defaultScopes.includes('otp-saml')) {
         const privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
         let pzMapper = protocolMappersForClient.find((mapper) => mapper.name === 'privacy_zone');
         await managePrivacyZoneMapper(
