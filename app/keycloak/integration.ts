@@ -10,8 +10,8 @@ import { getByRequestId } from '@app/queries/bcsc-client';
 import {
   createAccessTokenAudMapper,
   createClientRolesMapper,
-  createPpidMapper,
-  managePrivacyZoneMapper,
+  managePpidMapper,
+  createPreferredUsernameMapper,
   createTeamMapper,
   deleteMapper,
   listClientProtocolMappers,
@@ -299,12 +299,16 @@ export const keycloakClient = async (
       }
 
       if (integration.protocol === 'oidc') {
+        if (!protocolMappersForClient.find((mapper) => mapper.name === 'preferred_username')) {
+          await createPreferredUsernameMapper(kcAdminClient, client.id!, realm);
+        }
+
         if (!protocolMappersForClient.find((mapper) => mapper.name === 'client_roles')) {
-          await createClientRolesMapper(kcAdminClient, client.id!, realm);
+          await createClientRolesMapper(kcAdminClient, client.id!, realm, integration.clientId!);
         }
 
         if (!protocolMappersForClient.find((mapper) => mapper.name === 'access_token_aud')) {
-          await createAccessTokenAudMapper(kcAdminClient, client.id!, realm);
+          await createAccessTokenAudMapper(kcAdminClient, client.id!, realm, integration.clientId!);
         }
 
         const additionalClientRolesMapper = protocolMappersForClient.find(
@@ -319,6 +323,7 @@ export const keycloakClient = async (
               realm,
               integration.additionalRoleAttribute,
               '',
+              integration.clientId!,
             );
           } else if (
             additionalClientRolesMapper &&
@@ -331,6 +336,7 @@ export const keycloakClient = async (
               realm,
               integration.additionalRoleAttribute,
               additionalClientRolesMapper.id!,
+              integration.clientId!,
             );
           }
         } else if (!integration.additionalRoleAttribute && additionalClientRolesMapper) {
@@ -348,27 +354,26 @@ export const keycloakClient = async (
           realm,
           integration.additionalRoleAttribute,
           '',
+          integration.clientId!,
         );
       }
 
       if (defaultScopes.includes('otp') || defaultScopes.includes('otp-saml')) {
         const privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
-        let pzMapper = protocolMappersForClient.find((mapper) => mapper.name === 'privacy_zone');
-        await managePrivacyZoneMapper(
-          kcAdminClient,
-          integration.protocol || 'oidc',
-          client.id!,
-          realm,
-          privacyZoneUri,
-          pzMapper?.id || '',
-        );
-
-        if (!protocolMappersForClient.find((mapper) => mapper.name === 'ppid'))
-          await createPpidMapper(kcAdminClient, integration.protocol || 'oidc', client.id!, realm);
+        const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
+        if (!ppidMapper) {
+          await managePpidMapper(kcAdminClient, integration.protocol || 'oidc', client.id!, realm, privacyZoneUri, '');
+        } else {
+          await managePpidMapper(
+            kcAdminClient,
+            integration.protocol || 'oidc',
+            client.id!,
+            realm,
+            privacyZoneUri,
+            ppidMapper?.id!,
+          );
+        }
       } else {
-        const pzMapper = protocolMappersForClient.find((mapper) => mapper.name === 'privacy_zone');
-        if (pzMapper) await deleteMapper(kcAdminClient, client.id!, realm, pzMapper.id!);
-
         const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
         if (ppidMapper) await deleteMapper(kcAdminClient, client.id!, realm, ppidMapper.id!);
       }

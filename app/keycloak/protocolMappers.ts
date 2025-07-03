@@ -12,7 +12,12 @@ export const listClientProtocolMappers = async (
   });
 };
 
-export const createClientRolesMapper = async (kcAdminClient: KeycloakAdminClient, clientId: string, realm: string) => {
+export const createClientRolesMapper = async (
+  kcAdminClient: KeycloakAdminClient,
+  clientId: string,
+  realm: string,
+  client: string,
+) => {
   try {
     await kcAdminClient.clients.addProtocolMapper(
       {
@@ -26,7 +31,7 @@ export const createClientRolesMapper = async (kcAdminClient: KeycloakAdminClient
         config: {
           'claim.name': 'client_roles',
           'jsonType.label': 'String',
-          'usermodel.clientRoleMapping.clientId': clientId,
+          'usermodel.clientRoleMapping.clientId': client,
           'id.token.claim': 'true',
           'access.token.claim': 'true',
           'userinfo.token.claim': 'true',
@@ -39,7 +44,7 @@ export const createClientRolesMapper = async (kcAdminClient: KeycloakAdminClient
   }
 };
 
-export const managePrivacyZoneMapper = async (
+export const managePpidMapper = async (
   kcAdminClient: KeycloakAdminClient,
   protocol: string,
   clientId: string,
@@ -47,35 +52,31 @@ export const managePrivacyZoneMapper = async (
   privacyZoneUri: string,
   mapperId: string,
 ) => {
-  let config: ProtocolMapperRepresentation = { name: 'privacy_zone' };
+  let config: ProtocolMapperRepresentation = { name: 'ppid' };
   try {
     if (protocol === 'oidc') {
       config = {
         ...config,
         protocol: 'openid-connect',
-        protocolMapper: 'oidc-hardcoded-claim-mapper',
+        protocolMapper: 'oidc-idp-ppid-mapper',
         config: {
-          'access.token.claim': 'false',
-          'access.tokenResponse.claim': 'false',
-          'claim.name': 'privacy_zone',
-          'claim.value': privacyZoneUri,
-          'id.token.claim': 'false',
-          'introspection.token.claim': 'false',
-          'jsonType.label': 'String',
+          'access.token.claim': 'true',
+          'claim.name': 'sub',
+          'id.token.claim': 'true',
+          'introspection.token.claim': 'true',
           'lightweight.claim': 'false',
-          'userinfo.token.claim': 'false',
+          'userinfo.token.claim': 'true',
+          privacy_zone: privacyZoneUri,
         },
       };
     } else {
       config = {
         ...config,
         protocol: 'saml',
-        protocolMapper: 'saml-hardcode-attribute-mapper',
+        protocolMapper: 'saml-ppid-nameid-mapper',
         config: {
-          'attribute.name': 'privacy_zone',
-          'attribute.nameformat': 'Basic',
-          'attribute.value': privacyZoneUri,
-          'friendly.name': config.name,
+          'nameid.format': 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
+          privacy_zone: privacyZoneUri,
         },
       };
     }
@@ -95,54 +96,12 @@ export const managePrivacyZoneMapper = async (
           realm,
           mapperId,
         },
-        { ...config, id: mapperId },
+        {
+          ...config,
+          id: mapperId,
+        },
       );
     }
-  } catch (err) {
-    throw new Error('Failed to create privacy_zone mapper');
-  }
-};
-
-export const createPpidMapper = async (
-  kcAdminClient: KeycloakAdminClient,
-  protocol: string,
-  clientId: string,
-  realm: string,
-) => {
-  let config: ProtocolMapperRepresentation = { name: 'ppid' };
-  try {
-    if (protocol === 'oidc') {
-      config = {
-        ...config,
-        protocol: 'openid-connect',
-        protocolMapper: 'oidc-idp-ppid-mapper',
-        config: {
-          'access.token.claim': 'true',
-          'claim.name': 'sub',
-          'id.token.claim': 'true',
-          'introspection.token.claim': 'true',
-          'lightweight.claim': 'false',
-          'userinfo.token.claim': 'true',
-        },
-      };
-    } else {
-      config = {
-        ...config,
-        protocol: 'saml',
-        protocolMapper: 'saml-ppid-nameid-mapper',
-        config: {
-          'nameid.format': 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
-        },
-      };
-    }
-
-    await kcAdminClient.clients.addProtocolMapper(
-      {
-        id: clientId,
-        realm,
-      },
-      config,
-    );
   } catch (err) {
     throw new Error('Failed to create ppid mapper');
   }
@@ -186,6 +145,7 @@ export const manageAdditionalClientRolesMapper = async (
   realm: string,
   additionalRoleAttribute: string,
   mapperId: string,
+  client: string,
 ) => {
   try {
     let config: ProtocolMapperRepresentation = { name: 'additional_client_roles' };
@@ -197,7 +157,7 @@ export const manageAdditionalClientRolesMapper = async (
         config: {
           'claim.name': additionalRoleAttribute,
           'jsonType.label': 'String',
-          'usermodel.clientRoleMapping.clientId': clientId,
+          'usermodel.clientRoleMapping.clientId': client,
           'id.token.claim': 'true',
           'access.token.claim': 'true',
           'userinfo.token.claim': 'true',
@@ -256,6 +216,7 @@ export const createAccessTokenAudMapper = async (
   kcAdminClient: KeycloakAdminClient,
   clientId: string,
   realm: string,
+  client: string,
 ) => {
   try {
     await kcAdminClient.clients.addProtocolMapper(
@@ -268,7 +229,7 @@ export const createAccessTokenAudMapper = async (
         protocol: 'openid-connect',
         protocolMapper: 'oidc-audience-mapper',
         config: {
-          'included.client.audience': clientId,
+          'included.client.audience': client,
           'id.token.claim': 'false',
           'access.token.claim': 'true',
         },
@@ -276,5 +237,35 @@ export const createAccessTokenAudMapper = async (
     );
   } catch (err) {
     throw new Error('Failed to create access token aud mapper');
+  }
+};
+
+export const createPreferredUsernameMapper = async (
+  kcAdminClient: KeycloakAdminClient,
+  clientId: string,
+  realm: string,
+) => {
+  try {
+    await kcAdminClient.clients.addProtocolMapper(
+      {
+        id: clientId,
+        realm,
+      },
+      {
+        name: 'preferred_username',
+        protocol: 'openid-connect',
+        protocolMapper: 'oidc-usermodel-property-mapper',
+        config: {
+          'introspection.token.claim': 'true',
+          'claim.name': 'preferred_username',
+          'user.attribute': 'username',
+          'id.token.claim': 'true',
+          'access.token.claim': 'true',
+          'userinfo.token.claim': 'true',
+        },
+      },
+    );
+  } catch (err) {
+    throw new Error('Failed to create preferred username mapper');
   }
 };
