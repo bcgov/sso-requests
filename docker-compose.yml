@@ -77,7 +77,7 @@ services:
 
   dev-keycloak:
     container_name: dev-keycloak
-    image: ghcr.io/bcgov/sso:26.0.7-build.1
+    image: ghcr.io/bcgov/sso:26.0.7-build.3
 
     depends_on:
       - sso-db
@@ -114,7 +114,7 @@ services:
 
   test-keycloak:
     container_name: test-keycloak
-    image: ghcr.io/bcgov/sso:26.0.7-build.1
+    image: ghcr.io/bcgov/sso:26.0.7-build.3
 
     depends_on:
       - sso-db
@@ -151,7 +151,7 @@ services:
 
   prod-keycloak:
     container_name: prod-keycloak
-    image: ghcr.io/bcgov/sso:26.0.7-build.1
+    image: ghcr.io/bcgov/sso:26.0.7-build.3
 
     depends_on:
       - sso-db
