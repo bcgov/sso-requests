@@ -5,6 +5,7 @@ class DashboardPage {
   confirmGithubButton: string = '[data-testid="confirm-delete-github-approve"]';
   confirmBCSCButton: string = '[data-testid="confirm-delete-bc-services-card-approve"]';
   confirmSocialButton: string = '[data-testid="confirm-delete-social-approve"]';
+  confirmOTPButton: string = '[data-testid="confirm-delete-otp-approve"]';
 
   selectRequest(name: string) {
     cy.contains('td', name, { timeout: 10000 }).parent().click();
