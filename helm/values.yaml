@@ -26,6 +26,27 @@ route:
 jwt:
   tokenExpiry: 1h
 
+api:
+  enabled: true
+  image:
+    repository: ghcr.io/bcgov/sso-requests-api
+    tag:
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 100m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+  extraEnvs:
+    API_VERSION: v1
+    API_ENV:
+    API_URL:
+  route:
+    host:
+    apiVanityHost:
+
 resources:
   limits:
     cpu: 1
