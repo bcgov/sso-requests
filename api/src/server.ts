@@ -33,7 +33,7 @@ app.use(
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/openapi/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(`/api/${process.env.API_VERSION}`, router);
 
