@@ -39,7 +39,6 @@ jobs:
         if: ${{endsWith(github.ref,'/dev') && github.event.inputs.environment  == 'dev' }}
         run: |
           cat >> $GITHUB_ENV <<EOF
-          OPENSHIFT_TOKEN=${{ secrets.DEV_OPENSHIFT_TOKEN }}
           OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
           EOF
 
@@ -47,7 +46,6 @@ jobs:
         if: ${{endsWith(github.ref,'/main') && github.event.inputs.environment  == 'prod' }}
         run: |
           cat >> $GITHUB_ENV <<EOF
-          OPENSHIFT_TOKEN=${{ secrets.PROD_OPENSHIFT_TOKEN }}
           OPENSHIFT_NAMESPACE=${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
           EOF
 
@@ -55,7 +53,7 @@ jobs:
         uses: redhat-actions/oc-login@v1
         with:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
-          openshift_token: ${{ env.OPENSHIFT_TOKEN }}
+          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
           insecure_skip_tls_verify: true
 
