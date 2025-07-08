@@ -35,6 +35,8 @@ api:
     API_URL: https://sso-requests-api-sandox.apps.gold.devops.gov.bc.ca
   route:
     host: sso-requests-api-sandbox.apps.gold.devops.gov.bc.ca
+    apiVanityHost: api-dev.loginproxy.gov.bc.ca
+
 
 resources:
   limits:

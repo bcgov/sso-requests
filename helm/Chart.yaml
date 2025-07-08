@@ -1,7 +1,7 @@
 apiVersion: v1
 name: sso-requests
 version: 0.0.2
-appVersion: 5.0.1
+appVersion: 5.0.2
 description: CSS Application for requesting integrations
 dependencies:
   - name: patroni
