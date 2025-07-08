@@ -57,8 +57,9 @@ jobs:
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
           insecure_skip_tls_verify: true
 
-      - name: Set CSS in Maintenance Mode
+      - name: Set CSS Maintenance Mode to Active or Inactive
         run: |
           namespace=${{ env.OPENSHIFT_NAMESPACE }}
-          oc set env deployment/sso-requests MAINTENANCE_MODE_ACTIVE=true -n ${namespace}
+          maintenanceEnabled=${{ github.event.inputs.maintenanceEnabled }}
+          oc set env deployment/sso-requests MAINTENANCE_MODE_ACTIVE=${maintenanceEnabled} -n ${namespace}
         working-directory: .
