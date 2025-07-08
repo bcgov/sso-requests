@@ -170,7 +170,6 @@ jobs:
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push')
         run: |
           cat >> $GITHUB_ENV <<EOF
-          OPENSHIFT_TOKEN=${{ secrets.DEV_OPENSHIFT_TOKEN }}
           OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
           EOF
 
@@ -178,7 +177,6 @@ jobs:
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
         run: |
           cat >> $GITHUB_ENV <<EOF
-          OPENSHIFT_TOKEN=${{ secrets.PROD_OPENSHIFT_TOKEN }}
           OPENSHIFT_NAMESPACE=${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
           EOF
 
