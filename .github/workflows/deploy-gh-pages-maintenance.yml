@@ -60,5 +60,6 @@ jobs:
       - name: Set CSS Maintenance Mode to Active or Inactive
         run: |
           namespace=${{ env.OPENSHIFT_NAMESPACE }}
-          oc set env deployment/sso-requests MAINTENANCE_MODE_ACTIVE=${{ github.event.inputs.maintenanceEnabled }} -n ${namespace}
+          maintenanceEnabled=${{ github.event.inputs.maintenanceEnabled }}
+          oc set env deployment/sso-requests MAINTENANCE_MODE_ACTIVE=${maintenanceEnabled} -n ${namespace}
         working-directory: .
