@@ -1,5 +1,5 @@
+{{- if .Values.api.route.apiVanityHost }}
 {{- $routeName := printf "%s-api-vanity" (include "..fullname" .) }}
-{{- $route := lookup "v1" "Route" .Release.Namespace $routeName }}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -13,24 +13,14 @@ metadata:
     haproxy.router.openshift.io/balance: roundrobin
     haproxy.router.openshift.io/disable_cookies: 'true'
 spec:
-  {{- if .Values.api.route.apiVanityHost }}
   host: {{ .Values.api.route.apiVanityHost }}
-  {{- end }}
   tls:
     insecureEdgeTerminationPolicy: Redirect
     termination: edge
-    {{- if $route }}
-    certificate: {{ index $route.spec.tls (print "certificate") }}
-    key: {{ index $route.spec.tls (print "key") }}
-    caCertificate: {{ index $route.spec.tls (print "caCertificate") }}
-    {{- else }}
-    certificate: |-
-      Add Certificate
-    key: |-
-      Add Key
-    caCertificate: |-
-      Add caCertificate
-    {{- end }}
+    certificate: {{ .Values.api.route.apiVanityCertificate }}
+    key: {{ .Values.api.route.apiVanityKey }}
+    caCertificate: {{ .Values.api.route.apiVanityCaCertificate }}
   to:
     kind: Service
     name: {{ printf "%s-api" (include "..fullname" .) }}
+{{- end }}
