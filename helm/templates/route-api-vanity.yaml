@@ -17,9 +17,12 @@ spec:
   tls:
     insecureEdgeTerminationPolicy: Redirect
     termination: edge
-    certificate: {{ .Values.api.route.apiVanityCertificate }}
-    key: {{ .Values.api.route.apiVanityKey }}
-    caCertificate: {{ .Values.api.route.apiVanityCaCertificate }}
+    certificate: |-
+{{ .Values.api.route.apiVanityCertificate | indent 6 }}
+    key: |-
+{{ .Values.api.route.apiVanityKey | indent 6 }}
+    caCertificate: |-
+{{ .Values.api.route.apiVanityCaCertificate | indent 6 }}
   to:
     kind: Service
     name: {{ printf "%s-api" (include "..fullname" .) }}
