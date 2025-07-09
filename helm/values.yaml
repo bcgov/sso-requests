@@ -46,6 +46,9 @@ api:
   route:
     host:
     apiVanityHost:
+    apiVanityKey:
+    apiVanityCertificate:
+    apiVanityCaCertificate:
 
 resources:
   limits:

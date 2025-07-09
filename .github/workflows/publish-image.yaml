@@ -220,5 +220,8 @@ jobs:
           --set envVars.keycloakV2DevUrl="${{ env.KEYCLOAK_V2_DEV_URL }}" \
           --set envVars.keycloakV2TestUrl="${{ env.KEYCLOAK_V2_TEST_URL }}" \
           --set envVars.keycloakV2ProdUrl="${{ env.KEYCLOAK_V2_PROD_URL }}" \
+          --set api.route.apiVanityCertificate="${{ secrets.API_CERTIFICATE }}" \
+          --set api.route.apiVanityCaCertificate="${{ secrets.API_CA_CERTIFICATE }}" \
+          --set api.route.apiVanityKey="${{ secrets.API_KEY }}" \
           --set backup-storage.env.WEBHOOK_URL.value="${{ secrets.RC_SSO_OPS_WEBHOOK }}"
         working-directory: ./helm
