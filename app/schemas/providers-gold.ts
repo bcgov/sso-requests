@@ -179,7 +179,7 @@ export default function getSchema(
         }
         if (idp === 'otp') {
           return {
-            content: `One time passcode is a zero identity assurance credential.`,
+            content: `This level of assurance may be appropriate for public transactions or for transactions where no specific link to a real-world person is necessary (i.e., a pseudonym is sufficient) but the ability to contact the individual or the ability for the individual to resume a transaction is a requirement (e.g., participating in an on-line learning course, signing up for an e-mail newsletter, or paying a bill or parking ticket where no specific identity is required, only an authorized payment).`,
             hide: 3000,
           };
         }
