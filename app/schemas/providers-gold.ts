@@ -179,7 +179,7 @@ export default function getSchema(
         }
         if (idp === 'otp') {
           return {
-            content: `This level of assurance may be appropriate for public transactions or for transactions where no specific link to a real-world person is necessary (i.e., a pseudonym is sufficient) but the ability to contact the individual or the ability for the individual to resume a transaction is a requirement (e.g., participating in an on-line learning course, signing up for an e-mail newsletter, or paying a bill or parking ticket where no specific identity is required, only an authorized payment).`,
+            content: `This is a <strong>low assurance</strong> identity solution. This level of assurance may be appropriate for public transactions or for transactions where no specific link to a real-world person is necessary (i.e., a pseudonym is sufficient) but the ability to contact the individual or the ability for the individual to resume a transaction is a requirement (e.g., participating in an on-line learning course, signing up for an e-mail newsletter, or paying a bill or parking ticket where no specific identity is required, only an authorized payment). For more information please refer to this <a href="https://www2.gov.bc.ca/assets/gov/government/services-for-government-and-broader-public-sector/information-technology-services/standards-files/identity_assurance_standard.pdf" target="_blank">document</a>.`,
             hide: 3000,
           };
         }
