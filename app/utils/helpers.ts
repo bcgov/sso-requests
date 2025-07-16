@@ -14,6 +14,7 @@ import {
   usesSocial,
   checkNotSocial,
   usesOTP,
+  checkNotOTP,
 } from '@app/helpers/integration';
 import { Session } from '@app/shared/interfaces';
 import omit from 'lodash.omit';
@@ -72,12 +73,15 @@ export const getRequestedEnvironments = (integration: Integration) => {
     environments = [],
     serviceType,
     socialApproved,
+    otpApproved,
   } = integration;
 
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasSocial = usesSocial(integration);
+  const hasOTP = usesOTP(integration);
+
   const options = environmentOptions.map((option) => {
     const idps = integration.devIdps;
     return { ...option, idps: idps || [] };
@@ -88,6 +92,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
     const githubApplying = checkIfGithubProdApplying(integration);
     const bcServicesCardApplying = checkIfBcServicesCardProdApplying(integration);
     const socialApplying = checkIfSocialProdApplying(integration);
+    const otpApplying = checkIfOTPProdApplying(integration);
 
     let envs = options.filter((env) => environments.includes(env.name));
     if (hasBceid && (!bceidApproved || bceidApplying))
@@ -111,6 +116,12 @@ export const getRequestedEnvironments = (integration: Integration) => {
     if (hasSocial && (!socialApproved || socialApplying))
       envs = envs.map((env) => {
         if (env.name === 'prod') env.idps = env.idps.filter(checkNotSocial);
+        return env;
+      });
+
+    if (hasOTP && (!otpApproved || otpApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter(checkNotOTP);
         return env;
       });
 
