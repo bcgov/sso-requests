@@ -207,7 +207,7 @@ describe('Applied Status', () => {
     ]);
   });
 
-  it('Should display OTP development only when prod is not approved', async () => {
+  it('Should only display OTP development environment when prod is not approved', async () => {
     render(
       <IntegrationInfoTabs
         integration={{
@@ -225,7 +225,7 @@ describe('Applied Status', () => {
     notExpectText(PROD_OTP_ENV_HEADER);
   });
 
-  it('Should display OTP development and prod when prod is approved', async () => {
+  it('Should display OTP development and prod environments when prod is approved', async () => {
     render(
       <IntegrationInfoTabs
         integration={{
