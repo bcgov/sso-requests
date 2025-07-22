@@ -9,6 +9,8 @@ import {
   OCIO_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
   DIT_EMAIL_ADDRESS,
+  OTP_EMAIL_ADDRESS_BCC,
+  OTP_EMAIL_ADDRESS_CC,
 } from '@app/shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
@@ -18,6 +20,7 @@ import {
   usesBcServicesCardProd,
   usesDigitalCredentialProd,
   usesDigitalCredential,
+  usesOTPProd,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
@@ -45,16 +48,21 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration } = data;
   const emails = await getIntegrationEmails(integration);
-  const cc = [SSO_EMAIL_ADDRESS];
+  let cc = [SSO_EMAIL_ADDRESS];
+  let bcc: string[] = [];
   if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
   if (usesDigitalCredential(integration)) cc.push(DIT_EMAIL_ADDRESS);
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);
-
+  if (usesOTPProd(integration)) {
+    cc = cc.concat(OTP_EMAIL_ADDRESS_CC);
+    bcc = bcc.concat(OTP_EMAIL_ADDRESS_BCC);
+  }
   return sendEmail({
     code: EMAILS.DELETE_INTEGRATION_SUBMITTED,
     to: emails,
     cc,
+    bcc,
     ...rendered,
   });
 };

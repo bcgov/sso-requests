@@ -10,6 +10,8 @@ import {
   DIT_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
   SOCIAL_APPROVAL_EMAIL_ADDRESS,
+  OTP_EMAIL_ADDRESS_CC,
+  OTP_EMAIL_ADDRESS_BCC,
 } from '@app/shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
@@ -20,6 +22,7 @@ import {
   usesDigitalCredentialProd,
   usesDigitalCredential,
   usesSocial,
+  usesOTPProd,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
@@ -53,7 +56,8 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const resettingBceidApproval = data.changes?.some(
     (change: any) => change.path[0] === 'bceidApproved' && change.lhs === true && change.rhs === false,
   );
-  const cc = [SSO_EMAIL_ADDRESS];
+  let cc = [SSO_EMAIL_ADDRESS];
+  let bcc: string[] = [];
   if (usesBceidProd(integration) || usesBcServicesCardProd(integration) || resettingBceidApproval)
     cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
@@ -70,11 +74,16 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
       encoding: 'base64',
     });
   }
+  if (usesOTPProd(integration)) {
+    cc = cc.concat(OTP_EMAIL_ADDRESS_CC);
+    bcc = bcc.concat(OTP_EMAIL_ADDRESS_BCC);
+  }
 
   return sendEmail({
     code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
     to: emails,
     cc,
+    bcc,
     attachments,
     ...rendered,
   });
