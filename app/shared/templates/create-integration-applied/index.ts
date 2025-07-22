@@ -14,7 +14,13 @@ import {
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { usesBcServicesCardProd, usesBceidProd, usesDigitalCredentialProd, usesOTPProd, usesSocial } from '@app/helpers/integration';
+import {
+  usesBcServicesCardProd,
+  usesBceidProd,
+  usesDigitalCredentialProd,
+  usesOTPProd,
+  usesSocial,
+} from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request approved (email 2 of 2)`;
 const template = getEmailTemplate('create-integration-applied/create-integration-applied.html');
