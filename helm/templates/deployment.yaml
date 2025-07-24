@@ -66,6 +66,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: keycloak-v2-dev-username
+            - name: EMAIL_ADDRESSES
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: email-addresses
             - name: KEYCLOAK_V2_DEV_PASSWORD
               valueFrom:
                 secretKeyRef:

@@ -8,11 +8,19 @@ import {
   IDIM_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
   SOCIAL_APPROVAL_EMAIL_ADDRESS,
+  OTP_EMAIL_ADDRESS_CC,
+  OTP_EMAIL_ADDRESS_BCC,
 } from '@app/shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { usesBcServicesCardProd, usesBceidProd, usesDigitalCredentialProd, usesSocial } from '@app/helpers/integration';
+import {
+  usesBcServicesCardProd,
+  usesBceidProd,
+  usesDigitalCredentialProd,
+  usesOTPProd,
+  usesSocial,
+} from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request approved (email 2 of 2)`;
 const template = getEmailTemplate('create-integration-applied/create-integration-applied.html');
@@ -43,8 +51,13 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration } = data;
   const emails = await getIntegrationEmails(integration);
-  const cc = [SSO_EMAIL_ADDRESS];
+  let cc = [SSO_EMAIL_ADDRESS];
+  let bcc: string[] = [];
   if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesOTPProd(integration)) {
+    cc = cc.concat(OTP_EMAIL_ADDRESS_CC);
+    bcc = bcc.concat(OTP_EMAIL_ADDRESS_BCC);
+  }
   if (usesSocial(integration)) cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
   if (usesDigitalCredentialProd(integration)) {
     cc.push(DIT_EMAIL_ADDRESS, DIT_ADDITIONAL_EMAIL_ADDRESS);
@@ -54,6 +67,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
     code: EMAILS.CREATE_INTEGRATION_APPLIED,
     to: emails,
     cc,
+    bcc,
     ...rendered,
   });
 };

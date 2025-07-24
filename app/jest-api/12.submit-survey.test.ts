@@ -4,6 +4,7 @@ import { models } from '@app/shared/sequelize/models/models';
 import { createSurvey } from './helpers/modules/surveys';
 import { createMockAuth } from './mocks/authenticate';
 import { createMockSendEmail } from './mocks/mail';
+import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 
 const surveyData = {
   rating: 1,
@@ -50,6 +51,6 @@ describe('Submit Survey', () => {
     await createSurvey(surveyData);
     expect(emailList.length).toBe(1);
     expect(emailList.find((email: any) => email.to.includes(userEmail))).toBeDefined();
-    expect(emailList.find((email: any) => email.cc.includes(SSO_TEAM_IDIR_EMAIL))).toBeDefined();
+    expect(emailList.find((email: any) => email.cc.includes(SSO_EMAIL_ADDRESS))).toBeDefined();
   });
 });
