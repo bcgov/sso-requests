@@ -528,7 +528,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].cc.length).toEqual(2);
       expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
     });
-    it.only('should render the expected template after removing bc services card idp from prod integration', async () => {
+    it('should render the expected template after removing bc services card idp from prod integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const projectName: string = 'Remove BCSC IDP Prod';
       let integrationRes = await buildIntegration({

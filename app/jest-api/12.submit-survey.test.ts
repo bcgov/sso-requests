@@ -44,7 +44,7 @@ describe('Submit Survey', () => {
     expect(survey).not.toBeNull();
   });
 
-  it.only('sends an email to the user and CCs the SSO team when a survey is submitted', async () => {
+  it('sends an email to the user and CCs the SSO team when a survey is submitted', async () => {
     const userEmail = 'public.user@mail.com';
     createMockAuth(SSO_TEAM_IDIR_USER, userEmail);
     const emailList = createMockSendEmail();
