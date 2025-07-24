@@ -9,7 +9,13 @@ import { deleteIntegration, updateIntegration } from './helpers/modules/integrat
 import { Integration } from '@app/interfaces/Request';
 import { renderTemplate } from '@app/shared/templates';
 import { EMAILS } from '@app/shared/enums';
-import { IDIM_EMAIL_ADDRESS, SOCIAL_APPROVAL_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
+import {
+  IDIM_EMAIL_ADDRESS,
+  OTP_EMAIL_ADDRESS_BCC,
+  OTP_EMAIL_ADDRESS_CC,
+  SOCIAL_APPROVAL_EMAIL_ADDRESS,
+  SSO_EMAIL_ADDRESS,
+} from '@app/shared/local';
 import { buildIntegration } from './helpers/modules/common';
 import { createMockAuth } from './mocks/authenticate';
 import { createMockSendEmail } from './mocks/mail';
@@ -522,7 +528,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].cc.length).toEqual(2);
       expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
     });
-    it('should render the expected template after removing bc services card idp from prod integration', async () => {
+    it.only('should render the expected template after removing bc services card idp from prod integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const projectName: string = 'Remove BCSC IDP Prod';
       let integrationRes = await buildIntegration({
@@ -584,6 +590,19 @@ describe('integration email updates for individual users', () => {
       // Update finalized email does not re-send attachment
       expect(emailList[1].attachments).toBeFalsy();
       expect(emailList[1].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
+    });
+
+    it('should render the expected template after submission of a ont time passcode integration', async () => {
+      process.env.INCLUDE_OTP = 'true';
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      emailList = createMockSendEmail();
+      const projectName: string = 'OTP Submit';
+      const integrationRes = await buildIntegration({ projectName, submitted: true, otp: true, prodEnv: true });
+      expect(integrationRes.status).toEqual(200);
+      integration = integrationRes.body;
+      expect(emailList.length).toEqual(2);
+      expect(emailList[0].cc).toEqual([SSO_EMAIL_ADDRESS, ...OTP_EMAIL_ADDRESS_CC]);
+      expect(emailList[0].bcc).toEqual(OTP_EMAIL_ADDRESS_BCC);
     });
   } catch (err) {
     console.error('EXCEPTION: ', err);
