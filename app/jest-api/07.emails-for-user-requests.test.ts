@@ -592,7 +592,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[1].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
     });
 
-    it('should render the expected template after submission of a ont time passcode integration', async () => {
+    it('should render the expected template after submission of a one time passcode integration', async () => {
       process.env.INCLUDE_OTP = 'true';
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       emailList = createMockSendEmail();
