@@ -604,6 +604,22 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].cc).toEqual([SSO_EMAIL_ADDRESS, ...OTP_EMAIL_ADDRESS_CC]);
       expect(emailList[0].bcc).toEqual(OTP_EMAIL_ADDRESS_BCC);
     });
+
+    it('should cc the expected people on production approval of OTP', async () => {
+      process.env.INCLUDE_OTP = 'true';
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const projectName: string = 'OTP Submit';
+      const integrationRes = await buildIntegration({ projectName, submitted: true, otp: true, prodEnv: true });
+
+      // Approve as sso-admin user
+      createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
+      emailList = createMockSendEmail();
+      await updateIntegration({ ...integrationRes.body, otpApproved: true }, true);
+      expect(emailList.length).toEqual(2);
+      const prodApprovalEmail = emailList.find((email: any) => email.code === EMAILS.PROD_APPROVED);
+      expect(prodApprovalEmail.cc).toEqual([SSO_EMAIL_ADDRESS, ...OTP_EMAIL_ADDRESS_CC]);
+      expect(prodApprovalEmail.bcc).toEqual(OTP_EMAIL_ADDRESS_BCC);
+    });
   } catch (err) {
     console.error('EXCEPTION: ', err);
   }
