@@ -70,7 +70,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
-                  key: email_addresses
+                  key: email-addresses
             - name: KEYCLOAK_V2_DEV_PASSWORD
               valueFrom:
                 secretKeyRef:
