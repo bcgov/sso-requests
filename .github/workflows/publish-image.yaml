@@ -214,7 +214,6 @@ jobs:
           --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
           --set envVars.EMAIL_ADDRESSES="${{ env.EMAIL_ADDRESSES }}" \
           --set envVars.redisHost="${{ env.REDIS_HOST }}" \
-          --set envVars.ghAccessToken="${{ secrets.GH_ACCESS_TOKEN }}" \
           --set envVars.verifyUserSecret="${{ env.VERIFY_USER_SECRET }}" \
           --set envVars.rc_webhook_url="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
           --set envVars.keycloakV2DevUrl="${{ env.KEYCLOAK_V2_DEV_URL }}" \
@@ -223,5 +222,8 @@ jobs:
           --set api.route.apiVanityCertificate="${{ secrets.API_CERTIFICATE }}" \
           --set api.route.apiVanityCaCertificate="${{ secrets.API_CA_CERTIFICATE }}" \
           --set api.route.apiVanityKey="${{ secrets.API_KEY }}" \
-          --set backup-storage.env.WEBHOOK_URL.value="${{ secrets.RC_SSO_OPS_WEBHOOK }}"
+          --set backup-storage.env.WEBHOOK_URL.value="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
+          --set envVars.ghAppId="${{ secrets.GH_APP_ID }}" \
+          --set envVars.ghAppPrivateKey="${{ secrets.GH_APP_PRIVATE_KEY }}" \
+          --set envVars.ghAppInstallationId="${{ secrets.GH_APP_INSTALLATION_ID }}"
         working-directory: ./helm
