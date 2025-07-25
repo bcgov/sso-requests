@@ -212,10 +212,10 @@ jobs:
           --set envVars.bcscInitialAccessTokenDev="${{ env.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
           --set envVars.bcscInitialAccessTokenProd="${{ env.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
           --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
-          --set envVars.EMAIL_ADDRESSES="${{ env.EMAIL_ADDRESSES }}" \
+          --set envVars.emailAddresses="${{ env.EMAIL_ADDRESSES }}" \
           --set envVars.redisHost="${{ env.REDIS_HOST }}" \
           --set envVars.verifyUserSecret="${{ env.VERIFY_USER_SECRET }}" \
-          --set envVars.rc_webhook_url="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
+          --set envVars.rcWebhookUrl="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
           --set envVars.keycloakV2DevUrl="${{ env.KEYCLOAK_V2_DEV_URL }}" \
           --set envVars.keycloakV2TestUrl="${{ env.KEYCLOAK_V2_TEST_URL }}" \
           --set envVars.keycloakV2ProdUrl="${{ env.KEYCLOAK_V2_PROD_URL }}" \
