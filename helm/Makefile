@@ -12,7 +12,7 @@ upgrade:
 
 .PHONY: lint
 lint:
-	helm upgrade --dry-run --install sso-requests -n "${namespace}" -f values.yaml -f "values-${namespace}.yaml"
+	helm upgrade --dry-run --install sso-requests . -n "${namespace}" -f values.yaml -f "values-${namespace}.yaml"
 
 .PHONY: uninstall
 uninstall:

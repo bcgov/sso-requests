@@ -49,7 +49,6 @@ jobs:
           BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
           REDIS_HOST=${{secrets.DEV_REDIS_HOST}}
           GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
-          EMAIL_ADDRESSES=${{secrets.DEV_EMAIL_ADDRESSES}}
 
           EOF
 
@@ -78,7 +77,6 @@ jobs:
           BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
           REDIS_HOST=${{secrets.TEST_REDIS_HOST}}
           GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
-          EMAIL_ADDRESSES=${{secrets.DEV_EMAIL_ADDRESSES}}
 
           EOF
 
@@ -106,7 +104,6 @@ jobs:
           BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_PROD}}
           REDIS_HOST=${{secrets.PROD_REDIS_HOST}}
           GRAFANA_API_URL=https://sso-grafana.apps.gold.devops.gov.bc.ca/api
-          EMAIL_ADDRESSES=${{secrets.PROD_EMAIL_ADDRESSES}}
           EOF
       - uses: actions/checkout@v4
       - name: Install CLI tools from OpenShift Mirror
@@ -213,7 +210,6 @@ jobs:
           --set envVars.bcscInitialAccessTokenDev="${{ env.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
           --set envVars.bcscInitialAccessTokenProd="${{ env.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
           --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
-          --set envVars.emailAddresses="${{ env.EMAIL_ADDRESSES }}" \
           --set envVars.redisHost="${{ env.REDIS_HOST }}" \
           --set envVars.verifyUserSecret="${{ env.VERIFY_USER_SECRET }}" \
           --set envVars.rcWebhookUrl="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
