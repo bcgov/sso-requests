@@ -24,6 +24,8 @@ jobs:
     # Only release on push to main
     if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     outputs:
       tag: ${{ steps.release.outputs.release_tag }}
     steps:
@@ -41,6 +43,8 @@ jobs:
   set_tag:
     needs: [create_release]
     if: always()
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.set.outputs.tag }}
