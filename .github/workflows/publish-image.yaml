@@ -40,7 +40,7 @@ jobs:
           max_commits: 100
 
   # Uses the created git tag for releases, and dev otherwise
-  set_tag:
+  set-tag:
     needs: [create_release]
     if: always()
     permissions:
@@ -98,8 +98,7 @@ jobs:
         with:
           context: ${{ matrix.image.context }}
           push: true
-          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/${{matrix.image.name}}:${{ needs.set_tag.outputs.tag }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/${{matrix.image.name}}:${{ needs.set-tag.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
