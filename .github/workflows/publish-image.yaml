@@ -1,6 +1,7 @@
 name: Create and publish CSS App image
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -11,6 +12,7 @@ on:
       - 'db/**'
       - 'helm/**'
       - 'api/**'
+      - 'cron/**'
       - '.github/workflows/publish-image.yaml'
 
 env:
@@ -18,13 +20,105 @@ env:
   IMAGE_NAME: bcgov/sso-requests
 
 jobs:
-  build-and-push-image:
+  create_release:
+    # Only release on push to main
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.release.outputs.release_tag }}
+    steps:
+      - name: Create Release
+        id: release
+        uses: rymndhng/release-on-push-action@v0.28.0
+        with:
+          bump_version_scheme: 'patch'
+          tag_prefix: 'v'
+          use_github_release_notes: 'true'
+          release_name: 'Release <RELEASE_VERSION>'
+          max_commits: 100
+
+  # Uses the created git tag for releases, and dev otherwise
+  set_tag:
+    needs: [create_release]
+    if: always()
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.set.outputs.tag }}
+    steps:
+      - name: Set tag based on context
+        id: set
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "::set-output name=tag::${{ needs.create_release.outputs.tag_name }}"
+          else
+            echo "::set-output name=tag::dev"
+          fi
+
+  build-and-push-images:
     permissions: write-all
     runs-on: ubuntu-24.04
+    needs: set-tag
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    strategy:
+      matrix:
+        image:
+          - name: sso-requests-cron
+            context: ./cron
+          - name: sso-requests
+            context: .
+          - name: sso-requests-api
+            context: ./api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to the GitHub Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GITHUB_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-buildx-
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.image.context }}
+          push: true
+          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/${{matrix.image.name}}:${{ needs.set_tag.outputs.tag }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  helm-deploy:
+    if: github.event_name != 'workflow_dispatch'
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    needs: build-and-push-images
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: hmarr/debug-action@v3
       - name: Set env to development
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
@@ -112,56 +206,6 @@ jobs:
           source: mirror
           kam: latest
           oc: 4.18.7
-
-      - name: Log in to the GitHub Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.GITHUB_REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Create Release
-        if: github.ref == 'refs/heads/main'
-        id: release
-        uses: rymndhng/release-on-push-action@v0.28.0
-        with:
-          bump_version_scheme: 'patch'
-          tag_prefix: 'v'
-          use_github_release_notes: 'true'
-          release_name: 'Release <RELEASE_VERSION>'
-          max_commits: 100 # default is 50
-
-      - id: get-tag
-        name: Get Tag
-        run: |
-          echo "release_tag=${{ endsWith(github.ref, '/main') && steps.release.outputs.tag_name || steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-buildx-
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: ${{ endsWith(github.ref, '/main') && format('{0}/{1}:{2}', env.GITHUB_REGISTRY, env.IMAGE_NAME, steps.release.outputs.tag_name) || steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Set env to development
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push')
