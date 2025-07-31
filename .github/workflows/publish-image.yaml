@@ -1,4 +1,4 @@
-name: Create and publish CSS App image
+name: Build Images and Deploy CSS
 
 on:
   workflow_dispatch:
@@ -40,7 +40,7 @@ jobs:
           max_commits: 100
 
   # Uses the created git tag for releases, and dev otherwise
-  set_tag:
+  set-tag:
     needs: [create_release]
     if: always()
     permissions:
@@ -62,6 +62,7 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-24.04
     needs: set-tag
+    if: always()
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
@@ -75,6 +76,10 @@ jobs:
             context: ./api
     steps:
       - uses: actions/checkout@v4
+
+      - name: Print tag
+        run: |
+          echo "Using tag: ${{ needs.set-tag.outputs.tag }}"
 
       - name: Log in to the GitHub Container registry
         uses: docker/login-action@v3
@@ -98,8 +103,7 @@ jobs:
         with:
           context: ${{ matrix.image.context }}
           push: true
-          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/${{matrix.image.name}}:${{ needs.set_tag.outputs.tag }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/${{matrix.image.name}}:${{ needs.set-tag.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
@@ -111,7 +115,6 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   helm-deploy:
-    if: github.event_name != 'workflow_dispatch'
     permissions:
       contents: read
     runs-on: ubuntu-24.04
@@ -236,6 +239,8 @@ jobs:
           helm upgrade --install --atomic sso-requests . -n ${namespace} \
           -f values.yaml -f "values-${namespace}.yaml" \
           --set image.tag="${{ steps.get-tag.outputs.release_tag }}" \
+          --set cronJobs.image.tag="${{ steps.get-tag.outputs.release_tag }}" \
+          --set api.image.tag="${{ steps.get-tag.outputs.release_tag }}" \
           --set envVars.appUrl="${{ env.APP_URL }}" \
           --set envVars.apiAuthSecret="${{ env.API_AUTH_SECRET }}" \
           --set envVars.keycloakV2DevUsername="${{ env.KEYCLOAK_V2_DEV_USERNAME }}" \
