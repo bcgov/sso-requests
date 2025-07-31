@@ -83,7 +83,11 @@ jobs:
           echo "Using tag: ${{ needs.set-tag.outputs.tag }}"
 
       - name: force fail
-        run: exit 1
+        run: |
+          if [[ "${{ matrix.image.name }}" == "sso-requests-api" ]]; then
+            echo "Simulating failure for sso-requests-api"
+            exit 1
+          fi
 
       # - name: Log in to the GitHub Container registry
       #   uses: docker/login-action@v3
