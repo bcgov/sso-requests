@@ -120,12 +120,13 @@ jobs:
       contents: read
     runs-on: ubuntu-24.04
     needs: build-and-push-images
-    if: ${{ success() }}
+    if: ${{ always() }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: test
-        run: echo "Hello"
+        run: |
+          echo "Build result: ${{ toJson(needs) }}"
       # - name: Set env to development
       #   if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
       #   run: |
