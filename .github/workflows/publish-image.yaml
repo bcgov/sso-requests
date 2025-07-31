@@ -1,4 +1,4 @@
-name: Create and publish CSS App image
+name: Build Images and Deploy CSS
 
 on:
   workflow_dispatch:
@@ -115,7 +115,6 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   helm-deploy:
-    if: github.event_name != 'workflow_dispatch'
     permissions:
       contents: read
     runs-on: ubuntu-24.04
@@ -240,6 +239,8 @@ jobs:
           helm upgrade --install --atomic sso-requests . -n ${namespace} \
           -f values.yaml -f "values-${namespace}.yaml" \
           --set image.tag="${{ steps.get-tag.outputs.release_tag }}" \
+          --set cronJobs.image.tag="${{ steps.get-tag.outputs.release_tag }}" \
+          --set api.image.tag="${{ steps.get-tag.outputs.release_tag }}" \
           --set envVars.appUrl="${{ env.APP_URL }}" \
           --set envVars.apiAuthSecret="${{ env.API_AUTH_SECRET }}" \
           --set envVars.keycloakV2DevUsername="${{ env.KEYCLOAK_V2_DEV_USERNAME }}" \
