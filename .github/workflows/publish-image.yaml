@@ -120,7 +120,7 @@ jobs:
       contents: read
     runs-on: ubuntu-24.04
     needs: build-and-push-images
-    if: ${{ always() }}
+    if: ${{ always() && needs.build-and-push-images.result == 'success' }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
