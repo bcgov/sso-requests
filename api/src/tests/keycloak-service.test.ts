@@ -19,6 +19,18 @@ const mockAxiosInstance = {
 } as unknown as AxiosInstance;
 mockedAxios.create.mockReturnValue(mockAxiosInstance);
 
+const newAccessToken = 'newAccessToken';
+const newRefreshToken = 'newRefreshToken';
+const successResp = {
+  status: 200,
+  data: { access_token: newAccessToken, refresh_token: newRefreshToken },
+};
+
+const errorResp = {
+  status: 500,
+  data: { message: 'Internal Server Error' },
+};
+
 function generateFakeJWT(payload: Record<string, any>): string {
   const header = {
     alg: 'RS256',
@@ -54,41 +66,32 @@ describe('Keycloak Token Requests', () => {
 
   it('Refreshes the tokens when the access token is expired and the refresh token is valid', async () => {
     setupTokens(0, 1800);
-    mockAxiosInstance.post.mockResolvedValue({
-      status: 200,
-      data: { access_token: 'accessToken', refresh_token: 'refreshToken' },
-    });
+    mockAxiosInstance.post.mockResolvedValue(successResp);
     await KeycloakClient.getAccessToken();
 
     // Note calls[0] is the first call. calls[0][0] is the url, calls[0][1] is the params
     const callParams = mockAxiosInstance.post.mock.calls[0][1];
     expect(callParams.get('grant_type')).toBe('refresh_token');
 
-    expect(KeycloakClient.accessToken).toBe('accessToken');
-    expect(KeycloakClient.refreshToken).toBe('refreshToken');
+    expect(KeycloakClient.accessToken).toBe(newAccessToken);
+    expect(KeycloakClient.refreshToken).toBe(newRefreshToken);
   });
 
   it('Requests a new token set when both current tokens are expired', async () => {
     setupTokens(0, 0);
-    mockAxiosInstance.post.mockResolvedValue({
-      status: 200,
-      data: { access_token: 'accessToken', refresh_token: 'refreshToken' },
-    });
+    mockAxiosInstance.post.mockResolvedValue(successResp);
     await KeycloakClient.getAccessToken();
 
     const callParams = mockAxiosInstance.post.mock.calls[0][1];
     expect(callParams.get('grant_type')).toBe('password');
 
-    expect(KeycloakClient.accessToken).toBe('accessToken');
-    expect(KeycloakClient.refreshToken).toBe('refreshToken');
+    expect(KeycloakClient.accessToken).toBe(newAccessToken);
+    expect(KeycloakClient.refreshToken).toBe(newRefreshToken);
   });
 
   it('Resets the refreshing flag when token refresh fails', async () => {
     setupTokens(0, 1800);
-    mockAxiosInstance.post.mockRejectedValue({
-      status: 500,
-      data: { message: 'Internal Server Error' },
-    });
+    mockAxiosInstance.post.mockRejectedValue(errorResp);
     await KeycloakClient.getAccessToken();
     expect(KeycloakClient.refreshing).toBe(false);
   });
@@ -97,15 +100,7 @@ describe('Keycloak Token Requests', () => {
     setupTokens(0, 1800);
 
     // Reject once then resolve to new tokens
-    mockAxiosInstance.post
-      .mockRejectedValueOnce({
-        status: 500,
-        data: { message: 'Internal Server Error' },
-      })
-      .mockResolvedValueOnce({
-        status: 200,
-        data: { access_token: 'accessToken', refresh_token: 'refreshToken' },
-      });
+    mockAxiosInstance.post.mockRejectedValueOnce(errorResp).mockResolvedValueOnce(successResp);
 
     // On keycloak call failure tokens should not update
     await KeycloakClient.getAccessToken();
@@ -114,8 +109,8 @@ describe('Keycloak Token Requests', () => {
 
     // Follow-up call still updates the tokens
     await KeycloakClient.getAccessToken();
-    expect(KeycloakClient.refreshToken).toBe('refreshToken');
-    expect(KeycloakClient.accessToken).toBe('accessToken');
+    expect(KeycloakClient.refreshToken).toBe(newRefreshToken);
+    expect(KeycloakClient.accessToken).toBe(newAccessToken);
   });
 });
 
@@ -124,15 +119,7 @@ describe('Token Initialization', () => {
   KeycloakClient.setEnvironment('dev');
 
   it('Handles token initialization failure', async () => {
-    mockAxiosInstance.post
-      .mockRejectedValueOnce({
-        status: 500,
-        data: { message: 'Internal Server Error' },
-      })
-      .mockResolvedValueOnce({
-        status: 200,
-        data: { access_token: 'accessToken', refresh_token: 'refreshToken' },
-      });
+    mockAxiosInstance.post.mockRejectedValueOnce(errorResp).mockResolvedValueOnce(successResp);
 
     // Failed request left tokens in a null state
     await KeycloakClient.getAccessToken();
@@ -141,7 +128,7 @@ describe('Token Initialization', () => {
 
     // Follow up request is still able to set them
     await KeycloakClient.getAccessToken();
-    expect(KeycloakClient.accessToken).toBe('accessToken');
-    expect(KeycloakClient.refreshToken).toBe('refreshToken');
+    expect(KeycloakClient.accessToken).toBe(newAccessToken);
+    expect(KeycloakClient.refreshToken).toBe(newRefreshToken);
   });
 });
