@@ -45,7 +45,7 @@ export class KeycloakService {
         return response;
       },
       (error: AxiosError) => {
-        logger.error(error);
+        logger.error('Uncaught error in axios interceptor: ', error);
         throw error;
       },
     );
