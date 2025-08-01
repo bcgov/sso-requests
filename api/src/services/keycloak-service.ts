@@ -45,11 +45,7 @@ export class KeycloakService {
         return response;
       },
       (error: AxiosError) => {
-        logger.error('keycloak request path: ', error?.request?.path);
-        logger.error('keycloak request headers: ', error?.request?.headers);
-        logger.error('keycloak response status: ', error?.response?.status);
-        logger.error('keycloak response data: ', error?.response?.data);
-        logger.error('keycloak response status message: ', error?.response?.statusText);
+        logger.error('Uncaught error in axios interceptor: ', error);
         throw error;
       },
     );
@@ -78,42 +74,53 @@ export class KeycloakService {
         return this.accessToken;
       }
       this.refreshing = true;
-      const response = await this.httpClient.post<KeycloakTokenResponse>(
-        '/auth/realms/master/protocol/openid-connect/token',
-        new URLSearchParams({
-          grant_type: 'refresh_token',
-          refresh_token: this.refreshToken,
-          client_id: 'admin-cli',
-        }),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+      try {
+        const response = await this.httpClient.post<KeycloakTokenResponse>(
+          '/auth/realms/master/protocol/openid-connect/token',
+          new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: this.refreshToken,
+            client_id: 'admin-cli',
+          }),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
           },
-        },
-      );
-      this.accessToken = response.data.access_token;
-      this.refreshToken = response.data.refresh_token;
-      this.refreshing = false;
-      return this.accessToken;
+        );
+        this.accessToken = response.data.access_token;
+        this.refreshToken = response.data.refresh_token;
+        return this.accessToken;
+      } catch (e) {
+        logger.error(`Error in token refresh: `, e);
+        return this.accessToken;
+      } finally {
+        this.refreshing = false;
+      }
     } else {
-      const { keycloakUsername, keycloakPassword } = getKeycloakCredentials(this.environment);
-      const response = await this.httpClient.post<KeycloakTokenResponse>(
-        '/auth/realms/master/protocol/openid-connect/token',
-        new URLSearchParams({
-          grant_type: 'password',
-          username: keycloakUsername,
-          password: keycloakPassword,
-          client_id: 'admin-cli',
-        }),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+      try {
+        const { keycloakUsername, keycloakPassword } = getKeycloakCredentials(this.environment);
+        const response = await this.httpClient.post<KeycloakTokenResponse>(
+          '/auth/realms/master/protocol/openid-connect/token',
+          new URLSearchParams({
+            grant_type: 'password',
+            username: keycloakUsername,
+            password: keycloakPassword,
+            client_id: 'admin-cli',
+          }),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
           },
-        },
-      );
-      this.accessToken = response.data.access_token;
-      this.refreshToken = response.data.refresh_token;
-      return this.accessToken;
+        );
+        this.accessToken = response.data.access_token;
+        this.refreshToken = response.data.refresh_token;
+        return this.accessToken;
+      } catch (e) {
+        logger.error('Error in access token request: ', e);
+        return this.accessToken;
+      }
     }
   }
 
