@@ -1,6 +1,6 @@
 // @ts-nocheck
 // Ignoring ts since test needs to frequently setup private class variables
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import 'reflect-metadata';
 import { KeycloakService } from '@/services/keycloak-service';
 

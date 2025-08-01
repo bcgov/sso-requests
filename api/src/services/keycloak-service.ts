@@ -90,11 +90,12 @@ export class KeycloakService {
         );
         this.accessToken = response.data.access_token;
         this.refreshToken = response.data.refresh_token;
+        return this.accessToken;
       } catch (e) {
         logger.error(`Error in token refresh: `, e);
+        return this.accessToken;
       } finally {
         this.refreshing = false;
-        return this.accessToken;
       }
     } else {
       try {
@@ -115,9 +116,9 @@ export class KeycloakService {
         );
         this.accessToken = response.data.access_token;
         this.refreshToken = response.data.refresh_token;
+        return this.accessToken;
       } catch (e) {
         logger.error('Error in access token request: ', e);
-      } finally {
         return this.accessToken;
       }
     }
