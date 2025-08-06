@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - dev
+      - chore/pipeline
     paths:
       - 'app/**'
       - 'Dockerfile'
@@ -118,13 +119,13 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-24.04
-    needs: build-and-push-images
+    needs: [build-and-push-images, set-tag]
     if: ${{ always() && needs.build-and-push-images.result == 'success' }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Set env to development
-        if: (github.ref == 'refs/heads/dev' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
+        if: (github.ref == 'refs/heads/chore/pipeline' && github.event_name == 'push') || (github.base_ref == 'dev' && github.event_name == 'pull_request')
         run: |
           cat >> $GITHUB_ENV <<EOF
           APP_URL=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
@@ -212,7 +213,7 @@ jobs:
           oc: 4.18.7
 
       - name: Set env to development
-        if: (github.ref == 'refs/heads/dev' && github.event_name == 'push')
+        if: (github.ref == 'refs/heads/chore/pipeline' && github.event_name == 'push')
         run: |
           cat >> $GITHUB_ENV <<EOF
           OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
@@ -239,9 +240,9 @@ jobs:
           helm dep up
           helm upgrade --install --atomic sso-requests . -n ${namespace} \
           -f values.yaml -f "values-${namespace}.yaml" \
-          --set image.tag="${{ steps.get-tag.outputs.release_tag }}" \
-          --set cronJobs.image.tag="${{ steps.get-tag.outputs.release_tag }}" \
-          --set api.image.tag="${{ steps.get-tag.outputs.release_tag }}" \
+          --set image.tag="${{ needs.set-tag.outputs.tag }}" \
+          --set cronJobs.image.tag="${{ needs.set-tag.outputs.tag }}" \
+          --set api.image.tag="${{ needs.set-tag.outputs.tag }}" \
           --set envVars.appUrl="${{ env.APP_URL }}" \
           --set envVars.apiAuthSecret="${{ env.API_AUTH_SECRET }}" \
           --set envVars.keycloakV2DevUsername="${{ env.KEYCLOAK_V2_DEV_USERNAME }}" \
