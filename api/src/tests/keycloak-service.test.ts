@@ -1,6 +1,5 @@
 // @ts-nocheck
 // Ignoring ts since test needs to frequently setup private class variables
-import axios, { AxiosInstance } from 'axios';
 import 'reflect-metadata';
 import { KeycloakService } from '@/services/keycloak-service';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -141,7 +140,7 @@ describe('Keycloak Token Requests', () => {
 
     // Should request a new token once, i.e. POST to /token
     const tokenRequests = mockAxios.history.filter((request) => request.url.endsWith(tokenUrl));
-    expect(mockAxios.history.post.length).toBe(1);
+    expect(tokenRequests.length).toBe(1);
   });
 
   it('Only sends one request if there is no error', async () => {
