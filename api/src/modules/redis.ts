@@ -2,6 +2,14 @@ import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import RedisClient from 'ioredis';
 
+let redisClient: RedisClient | null = null;
+
+if (process.env.REDIS_HOST) {
+  redisClient = new RedisClient({
+    host: process.env.REDIS_HOST,
+  });
+}
+
 const getClientIp = (req) => {
   const id = req.params?.id ?? req.params?.integrationId;
   const env = req.query?.env ?? req.params?.environment;
@@ -16,11 +24,10 @@ export const logsRateLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => getClientIp(req),
   message: 'Too many requests, please try again later.',
-  store:
-    process.env.NODE_ENV === 'production'
-      ? new RedisStore({
-          // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-          sendCommand: async (...args: string[]) => new RedisClient({ host: process.env.REDIS_HOST }).call(...args),
-        })
-      : null,
+  store: redisClient
+    ? new RedisStore({
+        // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+        sendCommand: async (...args: string[]) => redisClient.call(...args),
+      })
+    : undefined,
 });
