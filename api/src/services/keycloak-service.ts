@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import { getKeycloakCredentials } from '@/utils';
 import jwt from 'jsonwebtoken';
 import { RolePayload } from '@/types';
@@ -44,9 +44,28 @@ export class KeycloakService {
       (response) => {
         return response;
       },
-      (error: AxiosError) => {
-        logger.error('Uncaught error in axios interceptor: ', error);
-        throw error;
+      async (error: AxiosError) => {
+        const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+        const isTokenRequest = originalRequest.url?.includes('/protocol/openid-connect/token');
+        // If keycloak is giving a 401, clear the cached token and try again.
+        // Ignore token requests for retries to prevent looping
+        if (error.response?.status === 401 && !originalRequest._retry && !isTokenRequest) {
+          originalRequest._retry = true;
+
+          this.accessToken = null;
+          this.refreshToken = null;
+          const newToken = await this.getAccessToken();
+
+          originalRequest.headers = {
+            ...originalRequest.headers,
+            Authorization: `Bearer ${newToken}`,
+          };
+
+          return this.httpClient(originalRequest);
+        } else {
+          console.error(`Unhandled error in axios interceptor: ${error}`);
+          throw error;
+        }
       },
     );
   }

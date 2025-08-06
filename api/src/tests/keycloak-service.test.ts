@@ -1,30 +1,12 @@
 // @ts-nocheck
 // Ignoring ts since test needs to frequently setup private class variables
-import axios, { AxiosInstance } from 'axios';
 import 'reflect-metadata';
 import { KeycloakService } from '@/services/keycloak-service';
-
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
-const mockAxiosInstance = {
-  get: jest.fn(),
-  post: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn(),
-  interceptors: {
-    response: {
-      use: jest.fn(),
-    },
-  },
-} as unknown as AxiosInstance;
-mockedAxios.create.mockReturnValue(mockAxiosInstance);
+import AxiosMockAdapter from 'axios-mock-adapter';
 
 const newAccessToken = 'newAccessToken';
 const newRefreshToken = 'newRefreshToken';
-const successResp = {
-  status: 200,
-  data: { access_token: newAccessToken, refresh_token: newRefreshToken },
-};
+const successResp = { access_token: newAccessToken, refresh_token: newRefreshToken };
 
 const errorResp = {
   status: 500,
@@ -42,11 +24,24 @@ function generateFakeJWT(payload: Record<string, any>): string {
   return `${encodedHeader}.${encodedPayload}.signature`;
 }
 
+const tokenUrl = '/auth/realms/master/protocol/openid-connect/token';
+const getClientUrl = '/auth/admin/realms/standard/clients?clientId=1';
+
 describe('Keycloak Token Requests', () => {
   let originalAccessToken: string;
   let originalRefreshToken: string;
-  const KeycloakClient = new KeycloakService();
-  KeycloakClient.setEnvironment('dev');
+  let KeycloakClient: KeycloakService;
+  let mockAxios: AxiosMockAdapter;
+
+  beforeEach(() => {
+    KeycloakClient = new KeycloakService();
+    KeycloakClient.setEnvironment('dev');
+    mockAxios = new AxiosMockAdapter(KeycloakClient.httpClient);
+  });
+
+  afterEach(() => {
+    mockAxios.restore();
+  });
 
   const setupTokens = (accessTokenExpirySeconds, refreshTokenExpirySeconds) => {
     const now = Math.floor(Date.now() / 1000);
@@ -56,8 +51,6 @@ describe('Keycloak Token Requests', () => {
     originalAccessToken = KeycloakClient.accessToken;
   };
 
-  beforeEach(() => jest.resetAllMocks());
-
   it('Uses the access token when still valid', async () => {
     setupTokens(300, 1800);
     await KeycloakClient.getAccessToken();
@@ -66,11 +59,10 @@ describe('Keycloak Token Requests', () => {
 
   it('Refreshes the tokens when the access token is expired and the refresh token is valid', async () => {
     setupTokens(0, 1800);
-    mockAxiosInstance.post.mockResolvedValue(successResp);
+    mockAxios.onPost(tokenUrl).reply(200, successResp);
     await KeycloakClient.getAccessToken();
 
-    // Note calls[0] is the first call. calls[0][0] is the url, calls[0][1] is the params
-    const callParams = mockAxiosInstance.post.mock.calls[0][1];
+    const callParams = new URLSearchParams(mockAxios.history.post[0].data);
     expect(callParams.get('grant_type')).toBe('refresh_token');
 
     expect(KeycloakClient.accessToken).toBe(newAccessToken);
@@ -79,10 +71,10 @@ describe('Keycloak Token Requests', () => {
 
   it('Requests a new token set when both current tokens are expired', async () => {
     setupTokens(0, 0);
-    mockAxiosInstance.post.mockResolvedValue(successResp);
+    mockAxios.onPost(tokenUrl).reply(200, successResp);
     await KeycloakClient.getAccessToken();
 
-    const callParams = mockAxiosInstance.post.mock.calls[0][1];
+    const callParams = new URLSearchParams(mockAxios.history.post[0].data);
     expect(callParams.get('grant_type')).toBe('password');
 
     expect(KeycloakClient.accessToken).toBe(newAccessToken);
@@ -91,7 +83,7 @@ describe('Keycloak Token Requests', () => {
 
   it('Resets the refreshing flag when token refresh fails', async () => {
     setupTokens(0, 1800);
-    mockAxiosInstance.post.mockRejectedValue(errorResp);
+    mockAxios.onPost(tokenUrl).reply(500);
     await KeycloakClient.getAccessToken();
     expect(KeycloakClient.refreshing).toBe(false);
   });
@@ -99,8 +91,9 @@ describe('Keycloak Token Requests', () => {
   it('Successfully refreshes tokens after a previous refresh failure', async () => {
     setupTokens(0, 1800);
 
-    // Reject once then resolve to new tokens
-    mockAxiosInstance.post.mockRejectedValueOnce(errorResp).mockResolvedValueOnce(successResp);
+    const tokenPost = mockAxios.onPost(tokenUrl);
+    tokenPost.replyOnce(500);
+    tokenPost.replyOnce(200, successResp);
 
     // On keycloak call failure tokens should not update
     await KeycloakClient.getAccessToken();
@@ -112,14 +105,11 @@ describe('Keycloak Token Requests', () => {
     expect(KeycloakClient.refreshToken).toBe(newRefreshToken);
     expect(KeycloakClient.accessToken).toBe(newAccessToken);
   });
-});
-
-describe('Token Initialization', () => {
-  const KeycloakClient = new KeycloakService();
-  KeycloakClient.setEnvironment('dev');
 
   it('Handles token initialization failure', async () => {
-    mockAxiosInstance.post.mockRejectedValueOnce(errorResp).mockResolvedValueOnce(successResp);
+    const tokenPost = mockAxios.onPost(tokenUrl);
+    tokenPost.replyOnce(500);
+    tokenPost.replyOnce(200, successResp);
 
     // Failed request left tokens in a null state
     await KeycloakClient.getAccessToken();
@@ -130,5 +120,40 @@ describe('Token Initialization', () => {
     await KeycloakClient.getAccessToken();
     expect(KeycloakClient.accessToken).toBe(newAccessToken);
     expect(KeycloakClient.refreshToken).toBe(newRefreshToken);
+  });
+
+  it('Clears the cache and retries on a 401 error to keycloak', async () => {
+    setupTokens(300, 1800);
+
+    const tokenPost = mockAxios.onPost(tokenUrl);
+    tokenPost.reply(401);
+
+    mockAxios.onGet(getClientUrl).reply(401);
+    await expect(KeycloakClient.getClient(1)).rejects.toThrow();
+
+    // Should fetch a new token and retry on 401 failure, so 3 requests total.
+    expect(mockAxios.history.length).toBe(3);
+
+    // Should retry the get roles, so 2  GET requests
+    const rolesRequests = mockAxios.history.filter((request) => request.url.endsWith(getClientUrl));
+    expect(rolesRequests.length).toBe(2);
+
+    // Should request a new token once, i.e. POST to /token
+    const tokenRequests = mockAxios.history.filter((request) => request.url.endsWith(tokenUrl));
+    expect(tokenRequests.length).toBe(1);
+  });
+
+  it('Only sends one request if there is no error', async () => {
+    setupTokens(300, 1800);
+    mockAxios.onGet(getClientUrl).reply(200, [{}]);
+    await KeycloakClient.getClient(1);
+    expect(mockAxios.history.length).toBe(1);
+  });
+
+  it('Only sends one request if a non 401 error is thrown', async () => {
+    setupTokens(300, 1800);
+    mockAxios.onGet(getClientUrl).reply(404);
+    await expect(KeycloakClient.getClient(1)).rejects.toThrow();
+    expect(mockAxios.history.length).toBe(1);
   });
 });
