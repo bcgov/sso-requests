@@ -3,6 +3,14 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import RedisStore from 'rate-limit-redis';
 import RedisClient from 'ioredis';
 
+let redisClient: RedisClient | null = null;
+
+if (process.env.REDIS_HOST) {
+  redisClient = new RedisClient({
+    host: process.env.REDIS_HOST,
+  });
+}
+
 const getClientIp = (req: any) => {
   const id = req.query?.id ?? req.query?.integrationId;
   const env = req.query?.env ?? req.query?.environment;
@@ -30,12 +38,11 @@ export const logsRateLimiter = initMiddleware(
     legacyHeaders: false,
     keyGenerator: (req: any) => getClientIp(req),
     message: 'Too many requests, please try again later.',
-    store:
-      process.env.NODE_ENV === 'production'
-        ? new RedisStore({
-            // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-            sendCommand: async (...args: string[]) => new RedisClient({ host: process.env.REDIS_HOST }).call(...args),
-          })
-        : undefined,
+    store: redisClient
+      ? new RedisStore({
+          // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
+          sendCommand: async (...args: string[]) => redisClient.call(...args),
+        })
+      : undefined,
   }),
 );
