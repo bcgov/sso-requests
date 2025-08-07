@@ -1,5 +1,6 @@
 import { queryGrafana } from '@/modules/grafana';
 import { createEvent } from '@/utils';
+import { ParsedQs } from 'qs';
 import { injectable } from 'tsyringe';
 
 @injectable()
@@ -13,17 +14,26 @@ export class LogsService {
     env: string,
     clientId: string,
     requestId: string,
-    start: string,
-    end: string,
+    start: string | ParsedQs | (string | ParsedQs)[],
+    end: string | ParsedQs | (string | ParsedQs)[],
     userId?: string,
   ) {
     const hasRequiredParams = start && end && env;
 
     if (!hasRequiredParams) {
-      return { status: 400, message: 'Not all parameters sent. Please include start, end and env.' };
+      return { status: 400, message: 'Not all parameters sent. Please include start and end.' };
     }
     if (!this.allowedEnvs.includes(env)) {
       return { status: 400, message: `The env parameter must be one of ${this.allowedEnvs.join(', ')}.` };
+    }
+
+    const unparseableDateResponse = {
+      status: 400,
+      message: 'Include parsable dates for the start and end parameters, e.g YYYY-MM-DD.',
+    };
+
+    if (!(typeof start === 'string') || !(typeof end === 'string')) {
+      return unparseableDateResponse;
     }
 
     const unixStartTime = new Date(start).getTime();
@@ -32,10 +42,7 @@ export class LogsService {
     const validTime = (time: number) => !Number.isNaN(time) && time > 0;
 
     if (!validTime(unixStartTime) || !validTime(unixEndTime)) {
-      return {
-        status: 400,
-        message: 'Include parsable dates for the start and end parameters, e.g YYYY-MM-DD.',
-      };
+      return unparseableDateResponse;
     }
 
     if (unixStartTime > unixEndTime) {
