@@ -32,7 +32,7 @@ export class LogsService {
       message: 'Include parsable dates for the start and end parameters, e.g YYYY-MM-DD.',
     };
 
-    if (!(typeof start === 'string') || !(typeof end === 'string')) {
+    if (typeof start !== 'string' || typeof end !== 'string') {
       return unparseableDateResponse;
     }
 
