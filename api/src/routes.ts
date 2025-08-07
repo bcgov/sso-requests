@@ -115,8 +115,8 @@ router.get(`/integrations/:integrationId/:environment/logs`, logsRateLimiter, as
       environment,
       int.clientId,
       int.id.toString(),
-      start.toString(),
-      end.toString(),
+      start,
+      end,
     );
     if (status === 200) res.status(status).send({ data, message });
     else res.status(status).send({ message });
