@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { cleanUpDatabaseTables } from '@/tests/helpers/utils';
 import sequelize from '@/sequelize/config';
 

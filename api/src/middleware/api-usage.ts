@@ -1,0 +1,19 @@
+import models from '@/sequelize/models/models';
+import { NextFunction, Request, Response } from 'express';
+
+export const collectApiUsageMetrics = (req: Request, res: Response, next: NextFunction) => {
+  const startTime = Date.now();
+
+  res.on('finish', async () => {
+    const duration = Date.now() - startTime;
+
+    await models.apiUsageMetrics.create({
+      method: req.method,
+      endpoint: req.originalUrl,
+      teamId: req.teamId,
+      responseTimeMs: duration,
+      statusCode: res.statusCode,
+    });
+  });
+  next();
+};

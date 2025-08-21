@@ -6,7 +6,6 @@ import {
   TEAM_MEMBER_IDIR_USERID_01,
   TEAM_MEMBER_IDIR_EMAIL_01,
 } from '@/tests/helpers/fixtures';
-import { cleanUpDatabaseTables, createMockAuth } from '@/tests/helpers/utils';
 import supertest from 'supertest';
 import app from '@/tests/helpers/server';
 import { KeycloakService } from '@/services/keycloak-service';
