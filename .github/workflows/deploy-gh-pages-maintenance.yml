@@ -62,4 +62,5 @@ jobs:
           namespace=${{ env.OPENSHIFT_NAMESPACE }}
           maintenanceEnabled=${{ github.event.inputs.maintenanceEnabled }}
           oc set env deployment/sso-requests MAINTENANCE_MODE_ACTIVE=${maintenanceEnabled} -n ${namespace}
+          oc set env deployment/sso-requests-api MAINTENANCE_MODE_ACTIVE=${maintenanceEnabled} -n ${namespace}
         working-directory: .

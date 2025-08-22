@@ -55,6 +55,15 @@ router.get(`/heartbeat`, async (req: Request, res: Response) => {
   }
 });
 
+//overide everything if maintenance mode enabled
+router.use(async (req: Request, res: Response, next: NextFunction) => {
+  if (process.env.MAINTENANCE_MODE_ACTIVE === 'true') {
+    res.status(503).send('API not available. The Keycloak application is in a Disaster Recovery state.');
+  } else {
+    next();
+  }
+});
+
 router.post(`/token`, async (req: Request, res: Response) => {
   try {
     const result = await tokenController.getToken(req.headers, req.body);
