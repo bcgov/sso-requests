@@ -7,13 +7,15 @@ export const collectApiUsageMetrics = (req: Request, res: Response, next: NextFu
   res.on('finish', async () => {
     const duration = Date.now() - startTime;
 
-    await models.apiUsageMetrics.create({
-      method: req.method,
-      endpoint: req.originalUrl,
-      teamId: req.teamId,
-      responseTimeMs: duration,
-      statusCode: res.statusCode,
-    });
+    if (req.teamId) {
+      await models.apiUsageMetrics.create({
+        method: req.method,
+        endpoint: req.originalUrl,
+        teamId: req.teamId,
+        responseTimeMs: duration,
+        statusCode: res.statusCode,
+      });
+    }
   });
   next();
 };
