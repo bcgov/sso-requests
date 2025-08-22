@@ -28,6 +28,7 @@ import { wakeUpAll } from './controllers/heartbeat-controller';
 import { logsRateLimiter } from './modules/redis';
 import { getIntegrationByIdAndTeam } from './sequelize/queries/requests';
 import { ListBceidUsersFilterQuery, ListUserRoleMappingQuery } from './types';
+import { collectApiUsageMetrics } from './middleware/api-usage';
 
 const router = Router();
 
@@ -45,6 +46,8 @@ const userRoleMappingController = container.resolve(UserRoleMappingController);
 const tokenController = container.resolve(TokenController);
 const logsController = container.resolve(LogsController);
 const userController = container.resolve(UserController);
+
+router.use(collectApiUsageMetrics);
 
 router.get(`/heartbeat`, async (req: Request, res: Response) => {
   try {
