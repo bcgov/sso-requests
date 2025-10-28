@@ -107,6 +107,11 @@ redis-ha:
         cpu: 50m
         memory: 128Mi
   replicas: 2
+  sentinel:
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
 
 backup-storage:
   persistence:
