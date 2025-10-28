@@ -33,11 +33,10 @@ api:
     API_VERSION: v1
     API_ENV: development
     API_URL: https://api-dev.loginproxy.gov.bc.ca
-    MAINTENANCE_MODE_ACTIVE: "false"
+    MAINTENANCE_MODE_ACTIVE: 'false'
   route:
     host: sso-requests-api-sandbox.apps.gold.devops.gov.bc.ca
     apiVanityHost: api-dev.loginproxy.gov.bc.ca
-
 
 resources:
   limits:
@@ -95,13 +94,32 @@ patroni:
   persistentVolume:
     size: 0.25Gi
 
-redis:
-  architecture: standalone
-  auth:
-    enabled: false
-  master:
-    persistence:
-      size: 0.25Gi
+redis-ha:
+  persistentVolume:
+    size: 0.25Gi
+    storageClass: netapp-block-standard
+  redis:
+    resources:
+      limits:
+        memory: 256Mi
+      requests:
+        cpu: 10m
+        memory: 128Mi
+  replicas: 2
+  sentinel:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  splitBrainDetection:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
 
 backup-storage:
   persistence:
