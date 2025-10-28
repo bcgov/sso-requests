@@ -101,7 +101,6 @@ redis-ha:
   redis:
     resources:
       limits:
-        cpu: 50m
         memory: 256Mi
       requests:
         cpu: 10m
@@ -113,7 +112,6 @@ redis-ha:
         cpu: 10m
         memory: 64Mi
       limits:
-        cpu: 50m
         memory: 128Mi
   splitBrainDetection:
     resources:
@@ -121,7 +119,6 @@ redis-ha:
         cpu: 10m
         memory: 64Mi
       limits:
-        cpu: 50m
         memory: 128Mi
 
 backup-storage:
