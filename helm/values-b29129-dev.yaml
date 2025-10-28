@@ -101,17 +101,28 @@ redis-ha:
   redis:
     resources:
       limits:
-        cpu: 100m
+        cpu: 50m
         memory: 256Mi
       requests:
-        cpu: 50m
+        cpu: 10m
         memory: 128Mi
   replicas: 2
   sentinel:
     resources:
       requests:
-        cpu: 20m
+        cpu: 10m
         memory: 64Mi
+      limits:
+        cpu: 50m
+        memory: 128Mi
+  splitBrainDetection:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 50m
+        memory: 128Mi
 
 backup-storage:
   persistence:
