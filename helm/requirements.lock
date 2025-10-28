@@ -2,11 +2,11 @@ dependencies:
 - name: patroni
   repository: https://bcgov.github.io/sso-helm-charts
   version: 1.6.1
-- name: redis
-  repository: https://charts.bitnami.com/bitnami
-  version: 21.1.7
+- name: redis-ha
+  repository: https://dandydeveloper.github.io/charts
+  version: 4.35.0
 - name: backup-storage
   repository: https://bcgov.github.io/helm-charts
   version: 0.1.16
-digest: sha256:c36a1e5d19c87f3dfe61c6895a230e48794762d24b520350bffbff6bdc43fdab
-generated: "2025-07-08T14:53:55.420931096-07:00"
+digest: sha256:2296b2da0d1a071e3580357eede664de055d9fcbd348f6491bccc7577e66bf49
+generated: "2025-10-28T10:50:05.037324-07:00"
