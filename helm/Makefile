@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-namespace=b29129-dev
+namespace=
 
 .PHONY: install
 install:
