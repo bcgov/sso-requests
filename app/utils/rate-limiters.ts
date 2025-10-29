@@ -8,6 +8,9 @@ let redisClient: RedisClient | null = null;
 if (process.env.REDIS_HOST) {
   redisClient = new RedisClient({
     host: process.env.REDIS_HOST,
+    port: 26379, // port for redis sentinel
+    role: 'master',
+    name: 'mymaster',
   });
 }
 
