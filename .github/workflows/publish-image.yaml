@@ -272,5 +272,5 @@ jobs:
           --set backup-storage.env.WEBHOOK_URL.value="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
           --set envVars.ghAppId="${{ secrets.GH_APP_ID }}" \
           --set envVars.ghAppPrivateKey="${{ secrets.GH_APP_PRIVATE_KEY }}" \
-          --set envVars.ghAppInstallationId="${{ secrets.GH_APP_INSTALLATION_ID }}"
+          --set envVars.ghAppInstallationId="${{ secrets.GH_APP_INSTALLATION_ID }}" --timeout 15m
         working-directory: ./helm
