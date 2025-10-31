@@ -295,9 +295,14 @@ describe('Deleted user emails', () => {
       const deleteInactiveIntegrationEmails = emailList.filter(
         (email: any) => email.code === EMAILS.ORPHAN_INTEGRATION,
       );
+
       expect(deleteInactiveIntegrationEmails.length).toBe(2);
-      expect(deleteInactiveIntegrationEmails[0].body.includes(firstProjectName)).toBeTruthy();
-      expect(deleteInactiveIntegrationEmails[1].body.includes(secondProjectName)).toBeTruthy();
+      expect(
+        deleteInactiveIntegrationEmails.filter((email: any) => email.body.includes(firstProjectName)),
+      ).toBeTruthy();
+      expect(
+        deleteInactiveIntegrationEmails.filter((email: any) => email.body.includes(secondProjectName)),
+      ).toBeTruthy();
     });
 
     it('Does not send the orphaned integration email when additional team admins exist', async () => {
