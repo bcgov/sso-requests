@@ -40,7 +40,6 @@ resource "aws_lambda_function" "app_test" {
       KEYCLOAK_V2_PROD_USERNAME  = var.keycloak_v2_prod_username
       KEYCLOAK_V2_PROD_PASSWORD  = var.keycloak_v2_prod_password
       REALM_REGISTRY_API         = var.realm_registry_api
-      GH_ACCESS_TOKEN            = var.gh_access_token
       GH_REPO                    = var.gh_repo
       GH_WORKFLOW_ID             = var.gh_workflow_id
       GH_BRANCH                  = var.gh_branch
@@ -105,7 +104,6 @@ resource "aws_lambda_function" "css_api_test" {
       KEYCLOAK_V2_PROD_USERNAME  = var.keycloak_v2_prod_username
       KEYCLOAK_V2_PROD_PASSWORD  = var.keycloak_v2_prod_password
       REALM_REGISTRY_API         = var.realm_registry_api
-      GH_ACCESS_TOKEN            = var.gh_access_token
       GH_REPO                    = var.gh_repo
       GH_WORKFLOW_ID             = var.gh_workflow_id
       GH_BRANCH                  = var.gh_branch

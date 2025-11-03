@@ -622,7 +622,7 @@ describe('BC Services Card IDP and dependencies', () => {
     const nextButton = screen.getByText('Next') as HTMLElement;
     fireEvent.click(nextButton);
     fireEvent.click(sandbox.basicInfoBox);
-    expect(screen.getByText('Privacy zone is required for BC Services Card')).toBeInTheDocument();
+    expect(screen.getByText('Privacy zone is required')).toBeInTheDocument();
     expect(screen.getByText('Please select at least one attribute')).toBeInTheDocument();
     fireEvent.click(sandbox.developmentBox);
     expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
@@ -672,7 +672,7 @@ describe('BC Services Card IDP and dependencies', () => {
     fireEvent.change(uriInput, { target: { value: 'https://valid-uri' } });
   });
 
-  it('should keep BCSC privacy zone and attributes editable if not approved yet', async () => {
+  it('should keep privacy zone and attributes editable if BCSC IDP not approved yet', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -886,5 +886,164 @@ describe('Social IDP', () => {
     const socialTermsAndConditionsCheckbox = document.querySelector('#root_confirmSocial') as HTMLInputElement;
     fireEvent.click(socialTermsAndConditionsCheckbox);
     expect(queryByText(expectedErrorText)).toBeFalsy();
+  });
+});
+
+describe('One Time Passcode IDP', () => {
+  const defaultRender = {
+    id: 0,
+    serviceType: 'gold',
+    status: 'draft',
+    environments: ['dev', 'test', 'prod'],
+  };
+  beforeEach(() => {
+    process.env.INCLUDE_OTP = 'true';
+  });
+  it('Shows OTP IDP when the env variable is set', async () => {
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(checkbox).toBeTruthy();
+  });
+
+  it('Does not show OTP IDP when the env variable is explicitly false', async () => {
+    process.env.INCLUDE_OTP = 'false';
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(checkbox).toBeFalsy();
+  });
+
+  it('Defaults to not show OTP IDP when env variable is missing', async () => {
+    process.env.INCLUDE_OTP = undefined;
+    const { queryByText } = setUpRender(defaultRender);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(checkbox).toBeFalsy();
+  });
+
+  it("Shows OTP IDP from the list of IDPs if it's a SAML integration", async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      protocol: 'saml',
+      devIdps: ['otp'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = getByText('One Time Passcode')?.parentElement?.querySelector(
+      "input[type='checkbox",
+    ) as HTMLInputElement;
+    expect(bcscCheckbox?.checked).toBeTruthy();
+  });
+
+  it('should show the OTP IDP but hide privacy zone if not selected', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['azureidir', 'bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(screen.getByText('One Time Passcode')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).toBeNull();
+  });
+
+  it('should show the OTP IDP and show error upon leaving dependencies blank', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['otp'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('One Time Passcode')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).not.toBeNull();
+
+    // Navigate away and back again
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(screen.getByText('Privacy zone is required')).toBeInTheDocument();
+  });
+
+  it('should show the OTP IDP and show privacy zone if selected', async () => {
+    setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['otp', 'bceidbasic'],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('One Time Passcode')).toBeInTheDocument();
+    expect(screen.queryByTestId('root_bcscPrivacyZone_title')).not.toBeNull();
+
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    const privacyZoneinput = bcscPrivacyZoneDropDown.lastChild;
+    fireEvent.keyDown(privacyZoneinput as HTMLElement, { keyCode: 40 });
+    const privacyZoneOption = await screen.findByText(samplePrivacyZones[0].privacy_zone_name);
+    fireEvent.click(privacyZoneOption);
+  });
+
+  it('should keep privacy zone editable if OTP IDP not approved yet', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['otp', 'bceidbasic'],
+      status: 'applied',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+      otpApproved: false,
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = getByText('One Time Passcode')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(bcscCheckbox).not.toBeDisabled();
+    expect(bcscCheckbox).toBeChecked();
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).not.toBeDisabled();
+  });
+
+  it('should freeze OTP IDP and show privacy zone if approved', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: ['otp', 'bceidbasic'],
+      status: 'applied',
+      environments: ['dev', 'test', 'prod'],
+      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+      otpApproved: true,
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcscCheckbox = getByText('One Time Passcode')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(bcscCheckbox).toBeDisabled();
+    expect(bcscCheckbox).toBeChecked();
+    const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
+    expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
   });
 });
