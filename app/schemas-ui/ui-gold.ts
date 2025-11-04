@@ -39,10 +39,12 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
     bceidApproved = false,
     bcServicesCardApproved = false,
     githubApproved = false,
+    otpApproved = false,
   } = integration || {};
   const isNew = isNil(id);
   const isApplied = status === 'applied';
   const disableBcscUpdateApproved = integration?.devIdps?.includes('bcservicescard') && bcServicesCardApproved;
+  const disableOtpUpdateApproved = integration?.devIdps?.includes('otp') && otpApproved;
   const isSaml = integration?.protocol === 'saml';
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
@@ -69,6 +71,9 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
     if (bcServicesCardApproved) {
       idpDisabled.push('bcservicescard');
     }
+    if (otpApproved) {
+      idpDisabled.push('otp');
+    }
   }
 
   idpDisabled = uniq(idpDisabled);
@@ -89,7 +94,7 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
     bcscPrivacyZone: {
       'ui:widget': BcscPrivacyZoneWidget,
       'ui:classNames': 'short-field-string',
-      'ui:disabled': disableBcscUpdateApproved,
+      'ui:disabled': disableBcscUpdateApproved || disableOtpUpdateApproved,
     },
     bcscAttributes: {
       'ui:widget': BcscAttributesWidget,
@@ -97,9 +102,12 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
     },
   };
 
-  if (!formData?.devIdps?.includes('bcservicescard')) {
+  if (!['bcservicescard', 'otp'].some((val) => formData?.devIdps?.includes(val))) {
     bcServicesCardFields['bcscPrivacyZone']['ui:widget'] = 'hidden';
     bcServicesCardFields['bcscPrivacyZone']['ui:label'] = false;
+  }
+
+  if (!formData?.devIdps?.includes('bcservicescard')) {
     bcServicesCardFields['bcscAttributes']['ui:widget'] = 'hidden';
     bcServicesCardFields['bcscAttributes']['ui:field'] = 'hidden';
   }

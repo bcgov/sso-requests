@@ -1,0 +1,118 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/bcgov/sso-requests
+  tag: dev
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: gh-registry-config
+
+nameOverride: sso-requests
+
+fullnameOverride: sso-requests
+
+existingSecret: false
+
+env: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+
+route:
+  host:
+
+jwt:
+  tokenExpiry: 1h
+
+api:
+  enabled: true
+  image:
+    repository: ghcr.io/bcgov/sso-requests-api
+    tag:
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 100m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+  extraEnvs:
+    API_VERSION: v1
+    API_ENV:
+    API_URL:
+  route:
+    host:
+    apiVanityHost:
+    apiVanityKey:
+    apiVanityCertificate:
+    apiVanityCaCertificate:
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+patroni:
+  image:
+    repository:  ghcr.io/bcgov/sso-spilo-17
+    pullPolicy: Always
+    tag: 4.0-p2
+
+  replicaCount: 2
+
+  additionalCredentials:
+    - username: ssorequests
+      password:
+
+  walG:
+    enabled: true
+    scheduleCronJob: 00 01 * * *
+    retainBackups: 2
+    pvc:
+      size: 1Gi
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1.5Gi
+    requests:
+      cpu: 50m
+      memory: 300Mi
+
+  persistentVolume:
+    size: 1Gi
+
+  podDisruptionBudget:
+    enabled: true
+
+backup-storage:
+  image:
+    repository: ghcr.io/bcgov/backup-container
+    tag: 2.10.3
+    pullPolicy: Always
+
+  backupConfig: |
+    sso-requests-patroni:5432/ssorequests
+    0 1 * * * default ./backup.sh -s
+    0 4 * * * default ./backup.sh -I -s -v all
+
+  db:
+    secretName: sso-requests-patroni-appusers
+    usernameKey: username-appuser1
+    passwordKey: password-appuser1
+
+  env:
+    ENVIRONMENT_FRIENDLY_NAME:
+      value: 'SSO Request Backup'

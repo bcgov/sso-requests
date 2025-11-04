@@ -60,47 +60,33 @@ describe('Create Integration Requests', () => {
   // The set up below allows for reporting on each test case
 
   if (util.runOk(searchIntegration)) {
+    let integration: Cypress.Chainable | undefined;
+
     it(`Can create the integration for seach tests`, () => {
       cy.setid(null).then(() => {
         cy.login();
       });
       req.showCreateContent(searchIntegration);
       req.populateCreateContent(searchIntegration);
-      req.createRequest();
+      integration = req.createRequest();
       cy.logout();
-    });
+      // Login with bceids to link user to client
+      integration.then(() => {
+        ['bceidbasic', 'bceidbusiness'].forEach((idp) => {
+          cy.visit(playground.path);
+          const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
+          playground.fillInPlayground(null, null, clientName, idp);
 
-    it(`Login with bceidbasic`, () => {
-      cy.session('bceidbasic', () => {
-        cy.visit(playground.path);
-        const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
-        playground.fillInPlayground(null, null, clientName, 'bceidbasic');
+          playground.clickLogin();
 
-        playground.clickLogin();
+          cy.setid(idp).then(() => {
+            if (idp === 'bceidbasic') playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
+            if (idp === 'bceidbusiness') playground.loginBusinesBCeID(Cypress.env('username'), Cypress.env('password'));
+          });
 
-        cy.setid('bceidbasic').then(() => {
-          playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
+          cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
+          playground.clickLogout();
         });
-
-        cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
-        playground.clickLogout();
-      });
-    });
-
-    it(`Login with bceidbusiness`, () => {
-      cy.session('bceidbusiness', () => {
-        cy.visit(playground.path);
-        const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
-        playground.fillInPlayground(null, null, clientName, 'bceidbusiness');
-
-        playground.clickLogin();
-
-        cy.setid('bceidbusiness').then(() => {
-          playground.loginBusinesBCeID(Cypress.env('username'), Cypress.env('password'));
-        });
-
-        cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
-        playground.clickLogout();
       });
     });
   }

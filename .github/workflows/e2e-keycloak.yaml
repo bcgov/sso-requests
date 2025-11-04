@@ -12,10 +12,10 @@ env:
   CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
   CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CYPRESS_host: 'https://bcgov.github.io/sso-requests-sandbox/'
+  CYPRESS_host: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
   CYPRESS_smoketest: false
   CYPRESS_localtest: false
-  CYPRESS_BASE_URL: 'https://bcgov.github.io/sso-requests-sandbox/'
+  CYPRESS_BASE_URL: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
 
 jobs:
   pre-reqs:
@@ -33,7 +33,7 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'Pre-reqs'
-          wait-on: https://bcgov.github.io/sso-requests-sandbox/
+          wait-on: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/
           wait-on-timeout: 120
           install-command: yarn
           working-directory: app
@@ -48,12 +48,12 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      # - uses: actions/upload-artifact@v4
-      #   if: failure()
-      #   with:
-      #     name: cypress-videos
-      #     path: app/cypress/videos/**/*
-      #     if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-videos
+          path: app/cypress/videos/**/*
+          if-no-files-found: ignore
 
   idp-stopper:
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
+          wait-on: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
           wait-on-timeout: 360
           install-command: yarn
           working-directory: app
@@ -83,12 +83,12 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      # - uses: actions/upload-artifact@v4
-      #   if: failure()
-      #   with:
-      #     name: cypress-videos
-      #     path: app/cypress/videos/**/*
-      #     if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-videos
+          path: app/cypress/videos/**/*
+          if-no-files-found: ignore
 
   search-users:
     runs-on: ubuntu-latest
@@ -103,7 +103,7 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
+          wait-on: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
           wait-on-timeout: 360
           install-command: yarn
           working-directory: app
@@ -118,12 +118,12 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      # - uses: actions/upload-artifact@v4
-      #   if: failure()
-      #   with:
-      #     name: cypress-videos
-      #     path: app/cypress/videos/**/*
-      #     if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-videos
+          path: app/cypress/videos/**/*
+          if-no-files-found: ignore
 
   roles-tests:
     runs-on: ubuntu-latest
@@ -138,7 +138,7 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
+          wait-on: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
           wait-on-timeout: 360
           install-command: yarn
           working-directory: app
@@ -153,12 +153,12 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      # - uses: actions/upload-artifact@v4
-      #   if: failure()
-      #   with:
-      #     name: cypress-videos
-      #     path: app/cypress/videos/**/*
-      #     if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-videos
+          path: app/cypress/videos/**/*
+          if-no-files-found: ignore
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -173,7 +173,7 @@ jobs:
         continue-on-error: false
         with:
           summary-title: 'E2E tests'
-          wait-on: 'https://bcgov.github.io/sso-requests-sandbox/'
+          wait-on: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
           wait-on-timeout: 360
           install-command: yarn
           working-directory: app
@@ -188,9 +188,9 @@ jobs:
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
-      # - uses: actions/upload-artifact@v4
-      #   if: failure()
-      #   with:
-      #     name: cypress-videos
-      #     path: app/cypress/videos/**/*
-      #     if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-videos
+          path: app/cypress/videos/**/*
+          if-no-files-found: ignore

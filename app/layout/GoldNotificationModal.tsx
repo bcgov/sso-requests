@@ -4,7 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';
 import { updateProfile } from 'services/user';
-import { SessionContext, SessionContextInterface } from 'pages/_app';
+import { SessionContext } from '@app/utils/context';
+import { SessionContextInterface } from '@app/types/users';
 
 const Content = styled.div`
   font-size: 1.2rem;

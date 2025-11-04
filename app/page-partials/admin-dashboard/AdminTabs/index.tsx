@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
-import { usesBceid, usesGithub, usesBcServicesCard, usesSocial } from '@app/helpers/integration';
+import { usesBceid, usesGithub, usesBcServicesCard, usesSocial, usesOTP } from '@app/helpers/integration';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
 import AdminEventPanel from 'page-partials/admin-dashboard/AdminEventPanel';
 import { LoggedInUser } from 'interfaces/team';
@@ -9,10 +9,17 @@ import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
 import BcServicesCardTabContent from './BcServicesCardTabContent';
 import SocialTabContent from './SocialTabContent';
+import OTPTabContent from './OTPTabContent';
 import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 import { useState } from 'react';
 import startCase from 'lodash.startcase';
-import { isBceidApprover, isBcServicesCardApprover, isGithubApprover, isSocialApprover } from '@app/utils/helpers';
+import {
+  isBceidApprover,
+  isBcServicesCardApprover,
+  isGithubApprover,
+  isOTPApprover,
+  isSocialApprover,
+} from '@app/utils/helpers';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -60,10 +67,14 @@ function AdminTabs({
   const hasSocial = usesSocial(integration);
   const hasSocialProd = hasSocial && hasProd && (currentUser?.isAdmin || isSocialApprover(currentUser));
 
+  const hasOTP = usesOTP(integration);
+  const hasOTPProd = hasOTP && hasProd && (currentUser?.isAdmin || isOTPApprover(currentUser));
+
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
   const handleBcServicesCardApproved = () => setRows();
   const handleSocialApproved = () => setRows();
+  const handleOTPApproved = () => setRows();
 
   return (
     <>
@@ -91,6 +102,11 @@ function AdminTabs({
         {hasSocialProd && (
           <Tab key="social-prod" tab="Social Prod">
             <SocialTabContent integration={integration} onApproved={handleSocialApproved} />
+          </Tab>
+        )}
+        {hasOTPProd && (
+          <Tab key="otp-prod" tab="OTP Prod">
+            <OTPTabContent integration={integration} onApproved={handleOTPApproved} />
           </Tab>
         )}
 

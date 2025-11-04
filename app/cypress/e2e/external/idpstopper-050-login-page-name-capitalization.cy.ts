@@ -22,32 +22,31 @@ describe('Create Integration Requests For login page capitalization', () => {
   if (util.runOk(data[0])) {
     // Create an integration with 2 or more IDPs and an ssoheaderdev with capitalization
     it(`Create ${request.projectname} (Test ID: ${request.test_id}) - ${request.description}`, () => {
+      let integration: Cypress.Chainable | undefined;
+
       cy.setid(null).then(() => {
         cy.login();
       });
       req.showCreateContent(data[0]);
       req.populateCreateContent(data[0]);
-      req.createRequest();
+      integration = req.createRequest();
       cy.logout();
-    });
 
-    // Using the OIDC Playground to test the IDP Stopper
-    it('Go to Playground', () => {
-      console.log('Went to playground');
+      integration.then(() => {
+        cy.visit(playground.path);
+        cy.contains(playground.header);
 
-      cy.visit(playground.path);
-      cy.contains(playground.header);
+        playground.fillInPlayground(
+          null,
+          null,
+          kebabCase(request.projectname) + '-' + req.uid + '-' + Number(req.id),
+          null,
+        );
+        playground.clickLogin();
 
-      playground.fillInPlayground(
-        null,
-        null,
-        kebabCase(request.projectname) + '-' + req.uid + '-' + Number(req.id),
-        null,
-      );
-      playground.clickLogin();
-
-      // On the IDP Select Page, confirm the title is correctly capitalized.
-      cy.get('#kc-header-wrapper').contains(request.ssoheaderdev);
+        // On the IDP Select Page, confirm the title is correctly capitalized.
+        cy.get('#kc-header-wrapper').contains(request.ssoheaderdev);
+      });
     });
 
     it('Delete the request', () => {

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
-import { SessionContext } from '@app/pages/_app';
+import { SessionContext } from '@app/utils/context';
 import { formatWikiURL } from '@app/utils/constants';
 
 function TeamListComponent() {

@@ -1,0 +1,15 @@
+apiVersion: v1
+name: sso-requests
+version: 0.0.3
+appVersion: 5.0.2
+description: CSS Application for requesting integrations
+dependencies:
+  - name: patroni
+    version: 1.6.1
+    repository: https://bcgov.github.io/sso-helm-charts
+  - name: redis-ha
+    version: 4.35.0
+    repository: https://dandydeveloper.github.io/charts
+  - name: backup-storage
+    version: 0.1.16
+    repository: https://bcgov.github.io/helm-charts

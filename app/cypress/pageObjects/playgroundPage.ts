@@ -65,6 +65,8 @@ class PlaygroundPage {
   }
 
   clickLogin() {
+    Cypress.session.clearAllSavedSessions();
+    cy.clearAllCookies();
     cy.contains(this.commonButton, 'Login', { timeout: 10000 }).click({ force: true });
   }
 

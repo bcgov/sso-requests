@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import getConfig from 'next/config';
-import type { AppProps } from 'next/app';
-import { wakeItUp } from 'services/auth';
+import type { AppContext, AppProps } from 'next/app';
 import { getProfile, updateProfile } from 'services/user';
 import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
@@ -14,8 +13,10 @@ import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import '@bcgov/bc-sans/css/BCSans.css';
 import SurveyBox from '@app/components/SurveyBox';
-import Keycloak, { KeycloakTokenParsed } from 'keycloak-js';
+import { KeycloakTokenParsed } from 'keycloak-js';
 import keycloak from '@app/utils/keycloak';
+import App from 'next/app';
+import { SessionContext, SurveyContext } from '@app/utils/context';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { base_path, maintenance_mode, sso_redirect_uri, app_url } = publicRuntimeConfig;
@@ -30,12 +31,6 @@ const proccessSession = (session?: KeycloakTokenParsed | null) => {
   return session;
 };
 
-export interface SessionContextInterface {
-  session: KeycloakTokenParsed | null;
-  user: User | null;
-  keycloak: Keycloak;
-}
-
 const defaultUserSurveys: UserSurveyInformation = {
   addUserToRole: false,
   createIntegration: false,
@@ -44,11 +39,6 @@ const defaultUserSurveys: UserSurveyInformation = {
   viewMetrics: false,
   downloadLogs: false,
 };
-
-export const SessionContext = React.createContext<SessionContextInterface | null>(null);
-export const SurveyContext = React.createContext<{
-  setShowSurvey: (show: boolean, eventType: keyof UserSurveyInformation) => void;
-} | null>(null);
 
 const refreshTokenPromptTime = 300; // 5 minutes
 
@@ -114,8 +104,6 @@ function MyApp({ Component, pageProps }: AppProps) {
       });
     }
 
-    wakeItUp();
-
     if (!keycloak.didInitialize) {
       keycloak
         .init({
@@ -126,7 +114,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           const processedSession = proccessSession(keycloak.idTokenParsed);
           setSession(processedSession);
         })
-        .catch((err) => console.error(err))
+        .catch((err: Error) => console.error(err))
         .finally(() => {
           setLoading(false);
         });
@@ -209,4 +197,16 @@ function MyApp({ Component, pageProps }: AppProps) {
     </SessionContext.Provider>
   );
 }
+
+MyApp.getInitialProps = async (appContext: AppContext) => {
+  const appProps = await App.getInitialProps(appContext);
+  const { publicRuntimeConfig = {} } = getConfig() || {};
+  return {
+    ...appProps,
+    pageProps: {
+      ...appProps.pageProps,
+    },
+  };
+};
+
 export default MyApp;

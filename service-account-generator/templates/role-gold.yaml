@@ -1,0 +1,222 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: sso-action-deployer-role-template
+objects:
+  - kind: Role
+    apiVersion: authorization.openshift.io/v1
+    metadata:
+      name: sso-action-deployer-${NAMESPACE}
+      namespace: ${NAMESPACE}
+      labels:
+        created-by: local
+        role: deployer
+      annotations:
+        openshift.io/description: deployer
+        openshift.io/reconcile-protect: 'false'
+    rules:
+      - verbs:
+          - create
+          - delete
+          - deletecollection
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        attributeRestrictions: null
+        apiGroups:
+          - ''
+        resources:
+          - configmaps
+          - endpoints
+          - persistentvolumeclaims
+          - pods
+          - pods/exec
+          - replicationcontrollers
+          - secrets
+          - services
+      - verbs:
+          - get
+          - list
+          - watch
+        attributeRestrictions: null
+        apiGroups:
+          - ''
+        resources:
+          - pods/log
+          - pods/status
+      - verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - ''
+        resources:
+          - serviceaccounts
+      - verbs:
+          - list
+        attributeRestrictions: null
+        apiGroups:
+          - ''
+        resources:
+          - events
+      - verbs:
+          - get
+          - list
+          - update
+          - watch
+        attributeRestrictions: null
+        apiGroups:
+          - image.openshift.io
+        resources:
+          - imagestreamimages
+          - imagestreammappings
+          - imagestreams
+          - imagestreamtags
+      - verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - apps
+        resources:
+          - statefulsets
+      - verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        attributeRestrictions: null
+        apiGroups:
+          - batch
+        resources:
+          - cronjobs
+          - jobs
+      - verbs:
+          - create
+          - delete
+          - get
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - policy
+        resources:
+          - poddisruptionbudgets
+      - verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - rbac.authorization.k8s.io
+          - authorization.openshift.io
+        resources:
+          - rolebindings
+          - roles
+      - verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - apps
+          - extensions
+        resources:
+          - deployments
+          - replicasets
+      - verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - networking.k8s.io
+        resources:
+          - networkpolicies
+      - verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - autoscaling
+        resources:
+          - horizontalpodautoscalers
+      - verbs:
+          - delete
+        attributeRestrictions: null
+        apiGroups:
+          - image.openshift.io
+        resources:
+          - imagestreamtags
+      - verbs:
+          - get
+        attributeRestrictions: null
+        apiGroups:
+          - project.openshift.io
+        resources:
+          - projects
+      - verbs:
+          - create
+          - get
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - apps.openshift.io
+        resources:
+          - deploymentconfigs
+      - verbs:
+          - create
+          - delete
+          - get
+          - patch
+          - update
+        attributeRestrictions: null
+        apiGroups:
+          - route.openshift.io
+        resources:
+          - routes
+      - verbs:
+          - create
+        attributeRestrictions: null
+        apiGroups:
+          - route.openshift.io
+        resources:
+          - routes/custom-host
+      - verbs:
+          - create
+        attributeRestrictions: null
+        apiGroups:
+          - template.openshift.io
+        resources:
+          - processedtemplates
+parameters:
+  - name: NAMESPACE
+    required: true
+    description: the namespace the role is built in

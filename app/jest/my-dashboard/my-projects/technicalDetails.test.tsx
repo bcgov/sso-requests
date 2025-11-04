@@ -40,6 +40,9 @@ const DEV_IDIR_BCEID_ENV_HEADER =
   /Development \(IDIR - MFA, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
 const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR - MFA, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
 
+const DEV_OTP_ENV_HEADER = /Development \(One Time Passcode\)/;
+const PROD_OTP_ENV_HEADER = /Production \(One Time Passcode\)/;
+
 jest.mock('services/keycloak', () => ({
   getInstallation: jest.fn(() => Promise.resolve([['installation_data'], null])),
 }));
@@ -202,6 +205,41 @@ describe('Applied Status', () => {
       GITHUB_PROD_APPROVED,
       GITHUB_PROD_AVAILABLE,
     ]);
+  });
+
+  it('Should only display OTP development environment when prod is not approved', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'prod'],
+          devIdps: ['otp'],
+          lastChanges: null,
+          otpApproved: false,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+    expectText(DEV_OTP_ENV_HEADER);
+    notExpectText(PROD_OTP_ENV_HEADER);
+  });
+
+  it('Should display OTP development and prod environments when prod is approved', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'prod'],
+          devIdps: ['otp'],
+          lastChanges: null,
+          otpApproved: true,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+    expectAllTexts([DEV_OTP_ENV_HEADER, PROD_OTP_ENV_HEADER]);
   });
 
   it('should display BCeID-prod-Github-prod-integration screen', async () => {

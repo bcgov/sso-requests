@@ -67,6 +67,16 @@ To setup a local development environment, a detailed guide may be found [here](.
 
 ## Getting Started
 
+### Github app installation
+
+- Navigate to SSO Team's Github account profile settings and create a Github App. Choose `Any account` for this app to be installed.
+- Assign `Actions: read, write` permissions
+- Install the app on the `bcgov` org and `sso-keycloak` repository
+- Generate a private key and create an environment variable `GH_APP_PRIVATE_KEY` with the base 64 encoded version of the private key content
+- Create the environment variables `GH_APP_ID` and `GH_APP_INSTALLATION_ID`
+  - Set `GH_APP_ID` to your GitHub App's application ID.
+  - Set `GH_APP_INSTALLATION_ID` to the installation ID, which can be found in the URL of your browser when you navigate to the app's installation settings at https://github.com/bcgov/sso-keycloak/settings/installations
+
 ### Required GitHub Repository Secrets
 
 This repository requires the following secrets:
@@ -84,17 +94,16 @@ This repository requires the following secrets:
 - `KEYCLOAK_V2_DEV_PASSWORD`: The client secret for the keycloaks dev environment.
 - `KEYCLOAK_V2_TEST_PASSWORD`: The client secret for the keycloaks test environment.
 - `KEYCLOAK_V2_PROD_PASSWORD`: The client secret for the keycloaks prod environment.
-- `GH_ACCESS_TOKEN`: Access token for the github service account (used to trigger workflows in `sso-terraform`).
-- `GH_SECRET`: The secret used to authorize requests between github actions (from `sso-terraform`) to the API.
 - `TFC_TEAM_TOKEN`: The token used to run terraform cloud.
 - `GRAFANA_API_TOKEN`: The API token to authenticate with Grafana and pull metrics and logs data.
 - `TERRAFORM_DEPLOY_ROLE_ARN`: The AWS role arn required by AWS SDK in terraform github workflow to authenticate with AWS and update resources.
   In Addition, the following secrets are required for `sso-terraform` and `sso-terraform-dev` to work with this app:
 
-- `GH_ACCESS_TOKEN`: Access token for the github service account (used to run github API calls).
-- `GH_SECRET`: The secret used to authorize requests between github actions (from `sso-terraform`) to the API.
 - `REALM_REGISTRY_API`: The API URL of [Realm Registry](https://realm-registry.apps.gold.devops.gov.bc.ca/)
 - `VERIFY_USER_SECRET`: A secret or a private key used for signing team invitation tokens
+- `GH_APP_ID`: Github application id
+- `GH_APP_INSTALLATION_ID`: Github application installation id on sso keycloak repository
+- `GH_APP_PRIVATE_KEY`: Github application private key
 
 ### AWS
 

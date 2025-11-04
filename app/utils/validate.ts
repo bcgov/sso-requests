@@ -163,8 +163,8 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
       }
     },
     bcscPrivacyZone: () => {
-      if (devIdps.includes('bcservicescard') && !bcscPrivacyZone) {
-        errors['bcscPrivacyZone']?.addError('Privacy zone is required for BC Services Card');
+      if (['bcservicescard', 'otp'].some((idp) => devIdps.includes(idp)) && !bcscPrivacyZone) {
+        errors['bcscPrivacyZone']?.addError('Privacy zone is required');
       }
     },
     bcscAttributes: () => {

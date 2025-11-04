@@ -30,6 +30,13 @@ const bcServicesCardIntegration: Integration = {
   publicAccess: false,
 };
 
+const otpIntegration: Integration = {
+  ...sampleRequest,
+  devIdps: ['otp'],
+  status: 'applied',
+  publicAccess: false,
+};
+
 const bcAndDcIntegration: Integration = {
   ...sampleRequest,
   devIdps: ['bcservicescard', 'digitalcredential'],
@@ -56,6 +63,17 @@ describe('SSO Dashboard', () => {
 
   it('Hides role management tab for a bc services card only integration', () => {
     render(<IntegrationTabs integration={bcServicesCardIntegration} />);
+    browerLoginTabs.forEach((name) => {
+      if (['Role Management', 'Assign Users to Roles'].includes(name)) {
+        expect(screen.queryByText(name)).toBeNull();
+      } else {
+        screen.getByText(name);
+      }
+    });
+  });
+
+  it('Hides role management tab for an otp only integration', () => {
+    render(<IntegrationTabs integration={otpIntegration} />);
     browerLoginTabs.forEach((name) => {
       if (['Role Management', 'Assign Users to Roles'].includes(name)) {
         expect(screen.queryByText(name)).toBeNull();

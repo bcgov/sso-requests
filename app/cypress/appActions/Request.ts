@@ -186,6 +186,10 @@ class Request {
       this.reqPage.selectBCSCAttributes(this.bcscattributes);
     }
 
+    if (this.identityProvider.includes(this.reqPage.idpLabels.otpLabel)) {
+      this.reqPage.selectPrivacyZone(this.privacyZone);
+    }
+
     this.reqPage.setEnvironment(this.environments);
     if (this.protocol === 'oidc') {
       this.reqPage.setadditionalRoleAttribute(this.additionalRoleAttribute);
