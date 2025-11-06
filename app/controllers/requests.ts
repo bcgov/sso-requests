@@ -389,6 +389,10 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     userAttributes += ',address';
   }
 
+  if (userAttributes.includes('email')) {
+    userAttributes += ',email_verified';
+  }
+
   const mapperExists = await getClientScopeMapper({
     environment: env,
     scopeId: clientScope?.id as string,
