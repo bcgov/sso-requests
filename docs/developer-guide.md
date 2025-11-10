@@ -9,7 +9,7 @@ The guidelines assume the usage of a Ubuntu workstation.
 
 ### Installation
 
-1. If running ubuntu, make sure that you have all the following packages installed.
+1. If running Ubuntu, make sure that you have all the following packages installed.
 
    - `sudo apt-get install libsqlite3-dev bzip2`
    - `sudo apt-get install icu-devtools`
@@ -22,6 +22,7 @@ The guidelines assume the usage of a Ubuntu workstation.
 1. Navigate to the root directory of the repository.
 1. Install `asdf` according to the `asdf` installation guide.
    - https://asdf-vm.com/#/core-manage-asdf?id=install
+1. Install `asdf` by picking the `Build from Source` option and install the plugin.
 1. Install `asdf` packages defined in `.tool-versions`.
 
    ```sh
@@ -32,13 +33,16 @@ The guidelines assume the usage of a Ubuntu workstation.
    ```
 
 1. Confirm the libraries have been properly installed by running `asdf current`. The output will tell you if any packages failed to download.
-1. Postgres in particular has issues installing on Ubuntu systems. There are some instalation instructions here [asdf-postgres](https://github.com/smashedtoatoms/asdf-postgres). Postgres needs to be manually started with `pg_ctl start` and stopped with `pg_ctl stop` before and after running the app.
-1. Run `pip install -r requirements.txt` to install python packages
+1. Run `pip install -r requirements.txt` to install Python packages
    - _**Note:** If running into as asdf error, try running `asdf reshim`_
 1. Run `pre-commit install`
 1. Run `gitlint install-hook`
 
-## Evironment Setup
+## Optional
+
+1. Postgres in particular has issues installing on Ubuntu systems. There are some instalation instructions here [asdf-postgres](https://github.com/smashedtoatoms/asdf-postgres). Postgres needs to be manually started with `pg_ctl start` and stopped with `pg_ctl stop` before and after running the app.
+
+## Environment Setup
 
 - Copy environment variables
 
@@ -78,6 +82,8 @@ You could run the apps locally on your host machine using npm commands or in you
   ```
 
 _**Note:** If the script has logged `migration done` but won't close, you can exit with `ctrl + c`._
+
+- Create .env files in the app and db folders. Use the .env.example files for reference.
 
 - Start the app
 
