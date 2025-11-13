@@ -85,3 +85,6 @@ role-migration/migrate-roles.sql
 
 # Helm Dependencies
 **/charts/*.tgz
+
+# Python
+.venv
