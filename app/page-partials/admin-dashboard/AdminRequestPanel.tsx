@@ -4,6 +4,8 @@ import RequestPreview from 'components/RequestPreview';
 import { Integration } from 'interfaces/Request';
 import MetadataEditModal from 'page-partials/admin-dashboard/MetadataEditModal';
 import { LoggedInUser } from 'interfaces/team';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 const EventContent = styled.div`
   max-height: calc(100vh - 250px);
@@ -17,7 +19,16 @@ interface Props {
 }
 
 export default function AdminRequestPanel({ currentUser, request, onUpdate }: Props) {
-  if (!request) return null;
+  const router = useRouter();
+
+  // Redirect if user session has ended
+  useEffect(() => {
+    if (!currentUser) {
+      router.push('/');
+    }
+  }, [currentUser, router]);
+
+  if (!request || !currentUser) return null;
 
   return (
     <EventContent>
