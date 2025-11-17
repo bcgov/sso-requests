@@ -21,7 +21,7 @@ const getClientIp = (req) => {
 
 export const logsRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  limit: 10,
+  limit: parseInt(process.env.REDIS_RATE_LIMITER_LIMIT || '20', 10),
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   keyGenerator: (req) => getClientIp(req),

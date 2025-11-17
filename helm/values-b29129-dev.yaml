@@ -71,6 +71,7 @@ env:
   CHES_TOKEN_ENDPOINT: https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
   BCSC_SIGNING_ALGORITHM: PS256
   UPTIME_STATUS_DOMAIN_NAME: status.sandbox.loginproxy.gov.bc.ca
+  REDIS_RATE_LIMITER_LIMIT: 20
 
 envVars: {}
 
