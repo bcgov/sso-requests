@@ -4,12 +4,17 @@ import { idpMap } from '@app/helpers/meta';
 import getConfig from 'next/config';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
-import { usesBcServicesCard, usesSocial } from '@app/helpers/integration';
+import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
 import { getDiscontinuedIdps } from '@app/utils/helpers';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
-const { include_digital_credential, include_bc_services_card, allow_bc_services_card_prod, include_social } =
-  publicRuntimeConfig;
+const {
+  include_digital_credential,
+  include_bc_services_card,
+  allow_bc_services_card_prod,
+  include_social,
+  include_otp,
+} = publicRuntimeConfig;
 
 export default function getSchema(
   integration: Integration,
@@ -23,12 +28,14 @@ export default function getSchema(
   const allow_bcsc_prod = allow_bc_services_card_prod === 'true' || process.env.ALLOW_BC_SERVICES_CARD_PROD === 'true';
   let include_bcsc = include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true';
   const includeSocial = include_social === 'true' || process.env.INCLUDE_SOCIAL === 'true';
+  const includeOTP = include_otp === 'true' || process.env.INCLUDE_OTP === 'true';
 
   if (integration.environments?.includes('prod') && !allow_bcsc_prod) {
     include_bcsc = false;
   }
 
   const bcscSelected = usesBcServicesCard(integration);
+  const otpSelected = usesOTP(integration);
   const socialSelected = usesSocial(integration);
 
   const protocolSchema = {
@@ -116,6 +123,10 @@ export default function getSchema(
       idpEnum.push('social');
     }
 
+    if (includeOTP) {
+      idpEnum.push('otp');
+    }
+
     // grandfather existing integrations and allow them to remove discontinued IDPs
     getDiscontinuedIdps().forEach((idp) => {
       if (devIdps?.includes(idp) && !idpEnum.includes(idp)) {
@@ -133,8 +144,9 @@ export default function getSchema(
         type: 'string',
         enum: idpEnum,
       },
-      warningMessage:
-        'Role assignment is not available for the BC Services Card and Digital Credential Identity Providers.',
+      warningMessage: includeOTP
+        ? 'Role assignment is not available for the BC Services Cards, Digital Credential, or One Time Passcode Identity Providers.'
+        : 'Role assignment is not available for the BC Services Card and Digital Credential Identity Providers.',
       tooltips: idpEnum.map((idp) => {
         if (idp === 'azureidir') {
           return {
@@ -165,6 +177,12 @@ export default function getSchema(
             hide: 3000,
           };
         }
+        if (idp === 'otp') {
+          return {
+            content: `This is a <strong>low assurance</strong> identity solution. This level of assurance may be appropriate for public transactions or for transactions where no specific link to a real-world person is necessary (i.e., a pseudonym is sufficient) but the ability to contact the individual or the ability for the individual to resume a transaction is a requirement (e.g., participating in an on-line learning course, signing up for an e-mail newsletter, or paying a bill or parking ticket where no specific identity is required, only an authorized payment). For more information please refer to this <a href="https://www2.gov.bc.ca/assets/gov/government/services-for-government-and-broader-public-sector/information-technology-services/standards-files/identity_assurance_standard.pdf" target="_blank">document</a>.`,
+            hide: 3000,
+          };
+        }
         return null;
       }),
       uniqueItems: true,
@@ -184,9 +202,14 @@ export default function getSchema(
     };
   }
 
-  if (bcscSelected && include_bcsc) {
-    properties.bcscPrivacyZone = privacyZonesSchema;
+  const bcscAvailableAndSelected = bcscSelected && include_bcsc;
+  const otpAvailableAndSelected = otpSelected && includeOTP;
 
+  if (bcscAvailableAndSelected || otpAvailableAndSelected) {
+    properties.bcscPrivacyZone = privacyZonesSchema;
+  }
+
+  if (bcscSelected && include_bcsc) {
     properties.bcscAttributes = {
       type: 'array',
       title: 'Please select attribute(s)',

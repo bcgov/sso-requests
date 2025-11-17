@@ -1,0 +1,29 @@
+{{- if .Values.api.route.apiVanityHost }}
+{{- $routeName := printf "%s-api-vanity" (include "..fullname" .) }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $routeName }}
+  labels:
+    app.kubernetes.io/name: {{ include "..name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "..chart" . }}
+  annotations:
+    haproxy.router.openshift.io/balance: roundrobin
+    haproxy.router.openshift.io/disable_cookies: 'true'
+spec:
+  host: {{ .Values.api.route.apiVanityHost }}
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+    certificate: |-
+{{ .Values.api.route.apiVanityCertificate | indent 6 }}
+    key: |-
+{{ .Values.api.route.apiVanityKey | indent 6 }}
+    caCertificate: |-
+{{ .Values.api.route.apiVanityCaCertificate | indent 6 }}
+  to:
+    kind: Service
+    name: {{ printf "%s-api" (include "..fullname" .) }}
+{{- end }}

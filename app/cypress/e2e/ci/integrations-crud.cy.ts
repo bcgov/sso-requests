@@ -80,8 +80,8 @@ describe('Create Integration Requests', () => {
             req.approveRequest('BC Services Card', dashboardPage.confirmBCSCButton);
           }
 
-          if (data.approvals.social) {
-            req.approveRequest('Social', dashboardPage.confirmSocialButton);
+          if (data.approvals.otp) {
+            req.approveRequest('OTP', dashboardPage.confirmOTPButton);
           }
         });
       }

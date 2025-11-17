@@ -7,7 +7,8 @@ import { User, LoggedInUser } from 'interfaces/team';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import ErrorText from 'components/ErrorText';
 import TeamMembersForm, { Errors, validateTeam } from 'form-components/team-form/TeamMembersForm';
-import { SessionContext, SessionContextInterface } from 'pages/_app';
+import { SessionContext } from '@app/utils/context';
+import { SessionContextInterface } from '@app/types/users';
 
 const ButtonsContainer = styled.div`
   display: flex;
