@@ -29,7 +29,7 @@ jobs:
     permissions:
       contents: write
     outputs:
-      tag: ${{ steps.release.outputs.release_tag }}
+      tag: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Create Release
         id: release
@@ -55,9 +55,9 @@ jobs:
         id: set
         run: |
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            echo "::set-output name=tag::${{ needs.create_release.outputs.tag_name }}"
+            echo "tag=${{ needs.create_release.outputs.tag }}" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=tag::dev"
+            echo "tag=dev" >> $GITHUB_OUTPUT
           fi
 
   build-and-push-images:
