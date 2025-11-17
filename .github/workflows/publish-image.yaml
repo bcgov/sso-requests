@@ -23,6 +23,8 @@ jobs:
   create_release:
     # Only release on push to main
     if: (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
