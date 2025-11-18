@@ -16,6 +16,11 @@ const {
   include_otp,
 } = publicRuntimeConfig;
 
+const NON_ROLE_ASSIGNABLE_IDPS = ['digitalcredential', 'bcservicescard', 'otp'];
+
+const hasRoleAssignableIdp = (selectedIdps: string[]) =>
+  selectedIdps.some((idp) => !NON_ROLE_ASSIGNABLE_IDPS.includes(idp));
+
 export default function getSchema(
   integration: Integration,
   context: { isAdmin?: boolean } = { isAdmin: true },
@@ -246,10 +251,10 @@ export default function getSchema(
     };
   }
 
-  if (protocol !== 'saml') {
+  if (protocol !== 'saml' && hasRoleAssignableIdp(devIdps || [])) {
     properties.additionalRoleAttribute = {
       type: 'string',
-      title: 'Additional Role Attribute(optional)',
+      title: 'Additional Role Attribute (optional)',
       tooltip: {
         content: `By default "client_roles" is the default attribute key name to include roles info, if you wish to include same info in another attribute, then use this.`,
       },
