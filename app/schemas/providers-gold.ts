@@ -16,9 +16,9 @@ const {
   include_otp,
 } = publicRuntimeConfig;
 
-const NON_ROLE_ASSIGNABLE_IDPS = ['digitalcredential', 'bcservicescard', 'otp'];
+export const NON_ROLE_ASSIGNABLE_IDPS = ['digitalcredential', 'bcservicescard', 'otp'];
 
-const hasRoleAssignableIdp = (selectedIdps: string[]) =>
+export const hasRoleAssignableIdp = (selectedIdps: string[]) =>
   selectedIdps.some((idp) => !NON_ROLE_ASSIGNABLE_IDPS.includes(idp));
 
 export default function getSchema(
