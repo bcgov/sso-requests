@@ -45,6 +45,7 @@ import {
 } from '@app/utils/constants';
 import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
+import { NON_ROLE_ASSIGNABLE_IDPS, hasRoleAssignableIdp } from '@app/schemas/providers-gold';
 
 const Description = styled.p`
   margin: 0;
@@ -225,6 +226,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     if (togglingTeamToTrue) {
       if (processed.projectLead === true && !isNew) processed.projectLead = false;
     }
+    if (!hasRoleAssignableIdp(newData.devIdps || [])) {
+      processed.additionalRoleAttribute = '';
+    }
+    // Reset additionalRoleAttribute when no role-assignable IDPs are selected
 
     setFormData(processed);
 
