@@ -45,7 +45,7 @@ import {
 } from '@app/utils/constants';
 import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
-import { NON_ROLE_ASSIGNABLE_IDPS, hasRoleAssignableIdp } from '@app/schemas/providers-gold.ts';
+import { NON_ROLE_ASSIGNABLE_IDPS, hasRoleAssignableIdp } from '@app/schemas/providers-gold';
 
 const Description = styled.p`
   margin: 0;
