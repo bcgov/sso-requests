@@ -11,7 +11,7 @@ const EventContent = styled.div`
 `;
 
 interface Props {
-  currentUser: LoggedInUser;
+  currentUser: LoggedInUser | null;
   request: Integration | undefined;
   onUpdate: Function;
 }
@@ -23,7 +23,7 @@ export default function AdminRequestPanel({ currentUser, request, onUpdate }: Pr
     <EventContent>
       <br />
       <RequestPreview request={request} />
-      {currentUser.isAdmin && <MetadataEditModal request={request} onUpdate={onUpdate} />}
+      {currentUser?.isAdmin && <MetadataEditModal request={request} onUpdate={onUpdate} />}
     </EventContent>
   );
 }

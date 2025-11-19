@@ -5,7 +5,7 @@ import { LoggedInUser } from 'interfaces/team';
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 interface Props {
-  session: LoggedInUser;
+  session: LoggedInUser | null;
 }
 
 function Request({ session }: Props) {
