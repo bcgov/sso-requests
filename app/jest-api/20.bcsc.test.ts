@@ -212,6 +212,20 @@ afterAll(() => {
       const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
       expect(mapperArgs.protocolMapperConfig.userAttributes.includes('address')).toBe(false);
     });
+
+    it('Only adds in the email_verified claim to the userinfo mapper when requesting the email attribute', async () => {
+      spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
+      await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['email'] }, 1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+      let mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
+      expect(mapperArgs.protocolMapperConfig.userAttributes.includes('email_verified')).toBe(true);
+
+      // Reset mocks and check with a different attribute
+      jest.clearAllMocks();
+      await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['age'] }, 1);
+      mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
+      expect(mapperArgs.protocolMapperConfig.userAttributes.includes('email_verified')).toBe(false);
+    });
   });
 });
 
