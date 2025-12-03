@@ -430,7 +430,7 @@ export const validateIDPs = ({
   if (invalidBceidCombo || invalidGithubCombo) return false;
 
   // Exclude admin-only options
-  if (!isAdmin && updatedIdps.includes('githubpublic')) {
+  if (!isAdmin && (updatedIdps.includes('githubpublic') || updatedIdps.includes('otp'))) {
     return false;
   }
   const addingGithub =
