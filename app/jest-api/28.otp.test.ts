@@ -49,7 +49,7 @@ const otpProdIntegration: IntegrationData = {
 
 describe('Feature flag', () => {
   beforeAll(async () => {
-    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
   });
 
   it('Does not allow otp as an IDP if feature flag is not included in env vars', async () => {
@@ -73,7 +73,7 @@ describe('Feature flag', () => {
 
 describe('Validations', () => {
   beforeAll(async () => {
-    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
   });
   it('Does not allow to submit if privacy zone is not selected', async () => {
     process.env.INCLUDE_OTP = 'true';
@@ -83,6 +83,9 @@ describe('Validations', () => {
 });
 
 describe('Build Github Dispatch', () => {
+  beforeAll(async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+  });
   it('Removes otp IDP from production IDP list if not approved yet, but keeps it in dev and test', () => {
     const processedIntegration = buildGitHubRequestData(otpProdIntegration);
     expect(processedIntegration?.prodIdps?.includes('otp')).toBe(false);
