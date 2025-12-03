@@ -33,7 +33,7 @@ export default function getSchema(
   const allow_bcsc_prod = allow_bc_services_card_prod === 'true' || process.env.ALLOW_BC_SERVICES_CARD_PROD === 'true';
   let include_bcsc = include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true';
   const includeSocial = include_social === 'true' || process.env.INCLUDE_SOCIAL === 'true';
-  const includeOTP = include_otp === 'true' || process.env.INCLUDE_OTP === 'true';
+  const includeOTP = context.isAdmin && (include_otp === 'true' || process.env.INCLUDE_OTP === 'true');
 
   if (integration.environments?.includes('prod') && !allow_bcsc_prod) {
     include_bcsc = false;
