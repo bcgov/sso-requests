@@ -106,6 +106,9 @@ describe('IDP Approver', () => {
       social: true,
       prodEnv: true,
     });
+
+    // only sso-admins can create otp integrations; Remove this upon lifting this restriction
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
     await buildIntegration({
       projectName: 'otp',
       submitted: true,
@@ -294,34 +297,35 @@ describe('IDP Approver', () => {
     expect(restoreRes.status).toEqual(403);
   });
 
-  it('OTP approver can edit/approve/delete owned integrations', async () => {
-    createMockAuth(OTP_ADMIN_IDIR_USERID_01, OTP_ADMIN_IDIR_EMAIL_01, ['otp-approver']);
-    const otpApproverIntegration = await buildIntegration({
-      projectName: 'otp-approver',
-      submitted: true,
-      otp: true,
-      prodEnv: true,
-    });
+  // only sso-admins can create otp integrations; Remove this upon lifting this restriction
+  // it('OTP approver can edit/approve/delete owned integrations', async () => {
+  //   createMockAuth(OTP_ADMIN_IDIR_USERID_01, OTP_ADMIN_IDIR_EMAIL_01, ['otp-approver']);
+  //   const otpApproverIntegration = await buildIntegration({
+  //     projectName: 'otp-approver',
+  //     submitted: true,
+  //     otp: true,
+  //     prodEnv: true,
+  //   });
 
-    expect(otpApproverIntegration.status).toEqual(200);
+  //   expect(otpApproverIntegration.status).toEqual(200);
 
-    const requests = await getRequestsForAdmins();
-    const createdReq = requests.body.rows.find((row: any) => row.projectName === 'otp-approver');
-    expect(requests.status).toEqual(200);
-    expect(createdReq).toBeTruthy();
+  //   const requests = await getRequestsForAdmins();
+  //   const createdReq = requests.body.rows.find((row: any) => row.projectName === 'otp-approver');
+  //   expect(requests.status).toEqual(200);
+  //   expect(createdReq).toBeTruthy();
 
-    const approveRes = await updateIntegration(
-      { ...createdReq, otpApproved: true, devValidRedirectUris: ['https://other-application-route'] },
-      true,
-    );
+  //   const approveRes = await updateIntegration(
+  //     { ...createdReq, otpApproved: true, devValidRedirectUris: ['https://other-application-route'] },
+  //     true,
+  //   );
 
-    expect(approveRes.status).toEqual(200);
-    expect(approveRes.body.otpApproved).toEqual(true);
-    expect(approveRes.body.devValidRedirectUris).toEqual(['https://other-application-route']);
+  //   expect(approveRes.status).toEqual(200);
+  //   expect(approveRes.body.otpApproved).toEqual(true);
+  //   expect(approveRes.body.devValidRedirectUris).toEqual(['https://other-application-route']);
 
-    const deleteRes = await deleteIntegration(createdReq.id);
-    expect(deleteRes.status).toEqual(200);
-  });
+  //   const deleteRes = await deleteIntegration(createdReq.id);
+  //   expect(deleteRes.status).toEqual(200);
+  // });
 
   it('GitHub approver can view and approve any github integration but cannot edit/delete/restore', async () => {
     createMockAuth(GITHUB_ADMIN_IDIR_USERID_01, GITHUB_ADMIN_IDIR_EMAIL_01, ['github-approver']);
