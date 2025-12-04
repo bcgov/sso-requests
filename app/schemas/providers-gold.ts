@@ -208,7 +208,8 @@ export default function getSchema(
   }
 
   const bcscAvailableAndSelected = bcscSelected && include_bcsc;
-  const otpAvailableAndSelected = otpSelected && includeOTP;
+  // only show privacy zone if otp is selected and enabled and user is sso admin
+  const otpAvailableAndSelected = otpSelected && includeOTP && context.isAdmin;
 
   if (bcscAvailableAndSelected || otpAvailableAndSelected) {
     properties.bcscPrivacyZone = privacyZonesSchema;
