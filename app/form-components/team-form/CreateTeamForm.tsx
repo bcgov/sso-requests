@@ -53,7 +53,11 @@ function CreateTeamForm({ onSubmit, alert, setOpenCreateTeamModal }: Props) {
   };
 
   const handleCreate = async () => {
-    const adminUser = session as LoggedInUser;
+    const adminUser = session as LoggedInUser | null;
+    if (!adminUser) {
+      // handle missing session: redirect, show error, or block action
+      return;
+    }
     const team = { name: teamName, members };
     const [hasError, errors] = validateTeam(team, adminUser.email as string);
     if (hasError) return setErrors(errors);
@@ -93,7 +97,7 @@ function CreateTeamForm({ onSubmit, alert, setOpenCreateTeamModal }: Props) {
         errors={errors}
         members={members}
         setMembers={setMembers}
-        currentUser={session as LoggedInUser}
+        currentUser={session as LoggedInUser | null}
       />
       <ButtonsContainer>
         <button className="secondary" onClick={handleCancel}>

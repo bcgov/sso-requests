@@ -327,27 +327,27 @@ export const subtractDaysFromDate = (days: number) => {
   return d;
 };
 
-export const isBceidApprover = (session: LoggedInUser) => {
-  return session.client_roles?.includes('bceid-approver');
+export const isBceidApprover = (session: LoggedInUser | null) => {
+  return session?.client_roles?.includes('bceid-approver') ?? false;
 };
 
-export const isGithubApprover = (session: LoggedInUser) => {
-  return session.client_roles?.includes('github-approver');
+export const isGithubApprover = (session: LoggedInUser | null) => {
+  return session?.client_roles?.includes('github-approver') ?? false;
 };
 
-export const isOTPApprover = (session: LoggedInUser) => {
-  return session.client_roles?.includes('otp-approver');
+export const isOTPApprover = (session: LoggedInUser | null) => {
+  return session?.client_roles?.includes('otp-approver') ?? false;
 };
 
-export const isSocialApprover = (session: LoggedInUser) => {
-  return session.client_roles?.includes('social-approver');
+export const isSocialApprover = (session: LoggedInUser | null) => {
+  return session?.client_roles?.includes('social-approver') ?? false;
 };
 
-export const isBcServicesCardApprover = (session: LoggedInUser) => {
-  return session.client_roles?.includes('bc-services-card-approver');
+export const isBcServicesCardApprover = (session: LoggedInUser | null) => {
+  return session?.client_roles?.includes('bc-services-card-approver') ?? false;
 };
 
-export const isIdpApprover = (session: LoggedInUser) => {
+export const isIdpApprover = (session: LoggedInUser | null) => {
   if (
     isBceidApprover(session) ||
     isGithubApprover(session) ||
@@ -430,7 +430,7 @@ export const validateIDPs = ({
   if (invalidBceidCombo || invalidGithubCombo) return false;
 
   // Exclude admin-only options
-  if (!isAdmin && updatedIdps.includes('githubpublic')) {
+  if (!isAdmin && (updatedIdps.includes('githubpublic') || updatedIdps.includes('otp'))) {
     return false;
   }
   const addingGithub =

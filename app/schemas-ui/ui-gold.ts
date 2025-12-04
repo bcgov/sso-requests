@@ -81,6 +81,9 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
   // Only admins or integrations already using public github can use the IDP.
   if (!isAdmin && (!isApplied || !devIdps.includes('githubpublic'))) idpHidden.push('githubpublic');
 
+  // Only admins can use OTP.
+  if (!isAdmin) idpHidden.push('otp');
+
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
     idpDisabled.push('digitalcredential');

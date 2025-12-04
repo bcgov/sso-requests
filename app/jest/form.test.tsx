@@ -896,11 +896,12 @@ describe('One Time Passcode IDP', () => {
     status: 'draft',
     environments: ['dev', 'test', 'prod'],
   };
+  const userSession = { email: 'user-session@gov.bc.ca', isAdmin: true };
   beforeEach(() => {
     process.env.INCLUDE_OTP = 'true';
   });
   it('Shows OTP IDP when the env variable is set', async () => {
-    const { queryByText } = setUpRender(defaultRender);
+    const { queryByText } = setUpRender(defaultRender, userSession);
 
     fireEvent.click(sandbox.basicInfoBox);
     const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
@@ -911,7 +912,7 @@ describe('One Time Passcode IDP', () => {
 
   it('Does not show OTP IDP when the env variable is explicitly false', async () => {
     process.env.INCLUDE_OTP = 'false';
-    const { queryByText } = setUpRender(defaultRender);
+    const { queryByText } = setUpRender(defaultRender, userSession);
 
     fireEvent.click(sandbox.basicInfoBox);
     const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
@@ -922,7 +923,7 @@ describe('One Time Passcode IDP', () => {
 
   it('Defaults to not show OTP IDP when env variable is missing', async () => {
     process.env.INCLUDE_OTP = undefined;
-    const { queryByText } = setUpRender(defaultRender);
+    const { queryByText } = setUpRender(defaultRender, userSession);
 
     fireEvent.click(sandbox.basicInfoBox);
     const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
@@ -932,14 +933,17 @@ describe('One Time Passcode IDP', () => {
   });
 
   it("Shows OTP IDP from the list of IDPs if it's a SAML integration", async () => {
-    const { getByText } = setUpRender({
-      id: 0,
-      serviceType: 'gold',
-      protocol: 'saml',
-      devIdps: ['otp'],
-      status: 'draft',
-      environments: ['dev', 'test', 'prod'],
-    });
+    const { getByText } = setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        protocol: 'saml',
+        devIdps: ['otp'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+      },
+      userSession,
+    );
 
     fireEvent.click(sandbox.basicInfoBox);
     const bcscCheckbox = getByText('One Time Passcode')?.parentElement?.querySelector(
@@ -949,29 +953,35 @@ describe('One Time Passcode IDP', () => {
   });
 
   it('should show the OTP IDP but hide privacy zone if not selected', async () => {
-    setUpRender({
-      id: 0,
-      serviceType: 'gold',
-      devIdps: ['azureidir', 'bceidbasic'],
-      status: 'draft',
-      environments: ['dev', 'test', 'prod'],
-    });
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['azureidir', 'bceidbasic'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+      },
+      userSession,
+    );
     fireEvent.click(sandbox.basicInfoBox);
     expect(screen.getByText('One Time Passcode')).toBeInTheDocument();
     expect(screen.queryByTestId('root_bcscPrivacyZone_title')).toBeNull();
   });
 
   it('should show the OTP IDP and show error upon leaving dependencies blank', async () => {
-    setUpRender({
-      id: 0,
-      serviceType: 'gold',
-      devIdps: ['otp'],
-      status: 'draft',
-      environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
-      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
-      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
-    });
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+        devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+        testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+        prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+      },
+      userSession,
+    );
     fireEvent.click(sandbox.basicInfoBox);
 
     expect(screen.getByText('One Time Passcode')).toBeInTheDocument();
@@ -985,16 +995,19 @@ describe('One Time Passcode IDP', () => {
   });
 
   it('should show the OTP IDP and show privacy zone if selected', async () => {
-    setUpRender({
-      id: 0,
-      serviceType: 'gold',
-      devIdps: ['otp', 'bceidbasic'],
-      status: 'draft',
-      environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
-      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
-      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
-    });
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp', 'bceidbasic'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+        devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+        testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+        prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+      },
+      userSession,
+    );
     fireEvent.click(sandbox.basicInfoBox);
 
     expect(screen.getByText('One Time Passcode')).toBeInTheDocument();
@@ -1008,17 +1021,20 @@ describe('One Time Passcode IDP', () => {
   });
 
   it('should keep privacy zone editable if OTP IDP not approved yet', async () => {
-    const { getByText } = setUpRender({
-      id: 0,
-      serviceType: 'gold',
-      devIdps: ['otp', 'bceidbasic'],
-      status: 'applied',
-      environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
-      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
-      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
-      otpApproved: false,
-    });
+    const { getByText } = setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp', 'bceidbasic'],
+        status: 'applied',
+        environments: ['dev', 'test', 'prod'],
+        devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+        testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+        prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+        otpApproved: false,
+      },
+      userSession,
+    );
     fireEvent.click(sandbox.basicInfoBox);
     const bcscCheckbox = getByText('One Time Passcode')?.parentElement?.querySelector("input[type='checkbox']");
     expect(bcscCheckbox).not.toBeDisabled();
@@ -1028,17 +1044,20 @@ describe('One Time Passcode IDP', () => {
   });
 
   it('should freeze OTP IDP and show privacy zone if approved', async () => {
-    const { getByText } = setUpRender({
-      id: 0,
-      serviceType: 'gold',
-      devIdps: ['otp', 'bceidbasic'],
-      status: 'applied',
-      environments: ['dev', 'test', 'prod'],
-      devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
-      testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
-      prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
-      otpApproved: true,
-    });
+    const { getByText } = setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp', 'bceidbasic'],
+        status: 'applied',
+        environments: ['dev', 'test', 'prod'],
+        devValidRedirectUris: ['https://dev1.com', 'https://dev2.com'],
+        testValidRedirectUris: ['https://test1.com', 'https://test2.com'],
+        prodValidRedirectUris: ['https://prod1.com', 'https://prod2.com'],
+        otpApproved: true,
+      },
+      userSession,
+    );
     fireEvent.click(sandbox.basicInfoBox);
     const bcscCheckbox = getByText('One Time Passcode')?.parentElement?.querySelector("input[type='checkbox']");
     expect(bcscCheckbox).toBeDisabled();

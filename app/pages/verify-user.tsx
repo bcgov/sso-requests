@@ -7,7 +7,7 @@ import Link from 'next/link';
 import keycloak from '@app/utils/keycloak';
 
 interface Props {
-  currentUser: LoggedInUser;
+  currentUser: LoggedInUser | null;
 }
 
 const content = (lines: string[]) => (
