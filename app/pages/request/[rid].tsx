@@ -13,7 +13,7 @@ import { messages } from '@app/utils/constants';
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
 interface Props {
-  session: LoggedInUser;
+  session: LoggedInUser | null;
   alert: TopAlert;
 }
 

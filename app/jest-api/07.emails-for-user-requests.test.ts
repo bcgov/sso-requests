@@ -594,7 +594,7 @@ describe('integration email updates for individual users', () => {
 
     it('should render the expected template after submission of a one time passcode integration', async () => {
       process.env.INCLUDE_OTP = 'true';
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
       emailList = createMockSendEmail();
       const projectName: string = 'OTP Submit';
       const integrationRes = await buildIntegration({ projectName, submitted: true, otp: true, prodEnv: true });
@@ -607,7 +607,7 @@ describe('integration email updates for individual users', () => {
 
     it('should cc the expected people on production approval of OTP', async () => {
       process.env.INCLUDE_OTP = 'true';
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
       const projectName: string = 'OTP Submit';
       const integrationRes = await buildIntegration({ projectName, submitted: true, otp: true, prodEnv: true });
 

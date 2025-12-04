@@ -45,6 +45,7 @@ import {
 } from '@app/utils/constants';
 import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
+import { NON_ROLE_ASSIGNABLE_IDPS, hasRoleAssignableIdp } from '@app/schemas/providers-gold';
 
 const Description = styled.p`
   margin: 0;
@@ -136,7 +137,7 @@ const trimFormData = (formData: any, { dropEmptyRedirectUris = false } = {}) => 
 };
 
 interface Props {
-  currentUser: LoggedInUser;
+  currentUser: LoggedInUser | null;
   request?: Integration | undefined;
   alert: TopAlert;
 }
@@ -147,7 +148,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const stage = step ? Number(step) : 0;
   const [formData, setFormData] = useState({
     ...(request || {}),
-    isAdmin: currentUser.isAdmin || false,
+    isAdmin: currentUser?.isAdmin || false,
   } as Integration);
   const [formStage, setFormStage] = useState(stage);
   const [loading, setLoading] = useState(false);
@@ -165,7 +166,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
-  const isAdmin = currentUser.isAdmin || false;
+  const isAdmin = currentUser?.isAdmin || false;
 
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
   const isLastStage = formStage === schemas.length - 1;
@@ -225,6 +226,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     if (togglingTeamToTrue) {
       if (processed.projectLead === true && !isNew) processed.projectLead = false;
     }
+    if (!hasRoleAssignableIdp(newData.devIdps || [])) {
+      processed.additionalRoleAttribute = '';
+    }
+    // Reset additionalRoleAttribute when no role-assignable IDPs are selected
 
     setFormData(processed);
 

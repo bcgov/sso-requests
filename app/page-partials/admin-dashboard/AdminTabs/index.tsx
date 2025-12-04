@@ -30,7 +30,7 @@ const TabWrapper = styled.div`
 export type TabKey = 'details' | 'configuration-url' | 'events';
 
 interface Props {
-  currentUser: LoggedInUser;
+  currentUser: LoggedInUser | null;
   integration?: Integration;
   defaultTabKey: TabKey;
   setActiveKey: Function;
@@ -55,20 +55,22 @@ function AdminTabs({
   const hasProd = environments.includes('prod');
 
   const hasBceid = usesBceid(integration);
-  const hasBceidProd = hasBceid && hasProd && (currentUser?.isAdmin || isBceidApprover(currentUser));
+  const hasBceidProd = hasBceid && hasProd && (currentUser?.isAdmin || (currentUser && isBceidApprover(currentUser)));
 
   const hasGithub = usesGithub(integration);
-  const hasGithubProd = hasGithub && hasProd && (currentUser?.isAdmin || isGithubApprover(currentUser));
+  const hasGithubProd =
+    hasGithub && hasProd && (currentUser?.isAdmin || (currentUser && isGithubApprover(currentUser)));
 
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasBcServicesCardProd =
-    hasBcServicesCard && hasProd && (currentUser?.isAdmin || isBcServicesCardApprover(currentUser));
+    hasBcServicesCard && hasProd && (currentUser?.isAdmin || (currentUser && isBcServicesCardApprover(currentUser)));
 
   const hasSocial = usesSocial(integration);
-  const hasSocialProd = hasSocial && hasProd && (currentUser?.isAdmin || isSocialApprover(currentUser));
+  const hasSocialProd =
+    hasSocial && hasProd && (currentUser?.isAdmin || (currentUser && isSocialApprover(currentUser)));
 
   const hasOTP = usesOTP(integration);
-  const hasOTPProd = hasOTP && hasProd && (currentUser?.isAdmin || isOTPApprover(currentUser));
+  const hasOTPProd = hasOTP && hasProd && (currentUser?.isAdmin || (currentUser && isOTPApprover(currentUser)));
 
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
