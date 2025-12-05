@@ -51,7 +51,9 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const handleSecretChange = async () => {
     const [result, err] = await changeClientSecret(selectedRequest.id, activeEnv?.name || null);
     const variant = err ? 'danger' : 'success';
-    const content = err ? 'Failed to regenerate secret' : 'Client Secret Successfully Updated';
+    const content = err
+      ? 'Failed to regenerate secret'
+      : 'Client secret successfully updated. Download your updated installation JSON from the Technical Details tab.';
     alert.show({
       variant,
       fadeOut: 10000,
