@@ -156,12 +156,14 @@ export class KeycloakService {
 
   async getUser(username: string) {
     const accessToken = await this.getAccessToken();
-    const response = await this.httpClient.get(`/auth/admin/realms/${this.realm}/users?username=${username}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+    const url = `/auth/admin/realms/${this.realm}/users?username=${encodeURIComponent(username)}&exact=true`;
+    const response = await this.httpClient.get(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
-    if (response.data.length === 0) throw new createHttpError.NotFound(`user ${username} not found`);
+
+    if (!response.data.length) {
+      throw new createHttpError.NotFound(`User "${username}" not found`);
+    }
     return response.data[0];
   }
 
