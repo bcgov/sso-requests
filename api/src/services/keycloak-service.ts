@@ -156,7 +156,7 @@ export class KeycloakService {
 
   async getUser(username: string) {
     const accessToken = await this.getAccessToken();
-    const url = `/auth/admin/realms/${this.realm}/users?username=${username}&exact=true`;
+    const url = `/auth/admin/realms/${this.realm}/users?username=${encodeURIComponent(username)}&exact=true`;
     const response = await this.httpClient.get(url, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
