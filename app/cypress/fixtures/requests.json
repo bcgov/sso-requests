@@ -11,7 +11,7 @@
       "protocol": "oidc",
       "authtype": "browser-login",
       "publicaccess": true,
-      "identityprovider": ["GitHub BC Gov", "Basic or Business BCeID", "Digital Credential", "One Time Passcode"],
+      "identityprovider": ["GitHub BC Gov", "Basic or Business BCeID", "Digital Credential"],
       "additionalroleattribute": "tbd",
       "environments": ["dev", "test", "prod"],
       "displayheader": false,
@@ -54,8 +54,7 @@
     },
     "approvals": {
       "bceid": true,
-      "github": true,
-      "otp": true
+      "github": true
     },
     "devroles": {},
     "testroles": {},

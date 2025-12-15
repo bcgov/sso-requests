@@ -218,6 +218,17 @@ describe('Github', () => {
         result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: [], applied, isAdmin, githubApproved });
         expect(result).toEqual(true);
       });
+
+      it('Allows regular users to update other IDPs when github public already exists', () => {
+        const isAdmin = false;
+        let result = validateIDPs({
+          currentIdps: ['githubpublic', 'azureidir'],
+          updatedIdps: ['githubpublic', 'digitalcredential'],
+          applied,
+          isAdmin,
+        });
+        expect(result).toEqual(true);
+      });
     });
 
     describe('BCGov', () => {
@@ -624,6 +635,40 @@ describe('BCSC', () => {
         bcServicesCardApproved,
       });
       expect(result).toEqual(false);
+    });
+  });
+});
+
+describe('OTP', () => {
+  describe('Post Approval', () => {
+    const applied = true;
+    it('Allows admins to add and remove', () => {
+      const isAdmin = true;
+      let result = validateIDPs({ currentIdps: [], updatedIdps: ['otp'], applied, isAdmin });
+      expect(result).toEqual(true);
+
+      result = validateIDPs({ currentIdps: ['otp'], updatedIdps: [], applied, isAdmin });
+      expect(result).toEqual(true);
+    });
+
+    it('Allows regular users to remove only', () => {
+      const isAdmin = false;
+      let result = validateIDPs({ currentIdps: [], updatedIdps: ['otp'], applied, isAdmin });
+      expect(result).toEqual(false);
+
+      result = validateIDPs({ currentIdps: ['otp'], updatedIdps: [], applied, isAdmin });
+      expect(result).toEqual(true);
+    });
+
+    it('Allows regular users to update other IDPs when OTP already exists', () => {
+      const isAdmin = false;
+      let result = validateIDPs({
+        currentIdps: ['otp', 'azureidir'],
+        updatedIdps: ['otp', 'digitalcredential'],
+        applied,
+        isAdmin,
+      });
+      expect(result).toEqual(true);
     });
   });
 });
