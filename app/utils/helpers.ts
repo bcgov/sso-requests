@@ -430,9 +430,13 @@ export const validateIDPs = ({
   if (invalidBceidCombo || invalidGithubCombo) return false;
 
   // Exclude admin-only options
-  if (!isAdmin && (updatedIdps.includes('githubpublic') || updatedIdps.includes('otp'))) {
+  const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
+  const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
+
+  if (!isAdmin && (addingGithubPublic || addingOTP)) {
     return false;
   }
+
   const addingGithub =
     (updatedIdps.includes('githubbcgov') && !currentIdps.includes('githubbcgov')) ||
     (updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic'));
