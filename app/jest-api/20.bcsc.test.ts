@@ -22,6 +22,10 @@ jest.mock('@app/controllers/bc-services-card', () => {
           name: 'postal_code',
           scope: 'address',
         },
+        {
+          name: 'email',
+          scope: 'email',
+        },
       ]),
     ),
   };
@@ -211,6 +215,28 @@ afterAll(() => {
       // Get the arguments supplied to createClientScopeMapper
       const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
       expect(mapperArgs.protocolMapperConfig.userAttributes.includes('address')).toBe(false);
+    });
+
+    it('Adds in the email_verified claim to the userinfo mapper when requesting email attribute', async () => {
+      spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
+
+      await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['email'], protocol }, 1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+
+      // Get the arguments supplied to createClientScopeMapper
+      const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
+      expect(mapperArgs.protocolMapperConfig.userAttributes.includes('email_verified')).toBe(true);
+    });
+
+    it('Does not add in the email_verified claim to the userinfo mapper when not requesting email attribute', async () => {
+      spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
+
+      await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['age'], protocol }, 1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+
+      // Get the arguments supplied to createClientScopeMapper
+      const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
+      expect(mapperArgs.protocolMapperConfig.userAttributes.includes('email_verified')).toBe(false);
     });
   });
 });
