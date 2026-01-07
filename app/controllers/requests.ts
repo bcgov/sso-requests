@@ -389,6 +389,11 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     userAttributes += ',address';
   }
 
+  // email_verified is added automatically when email attribute is requested
+  if ((integration?.bcscAttributes as string[]).includes('email') && requiredScopes.includes('email')) {
+    userAttributes += ',email_verified';
+  }
+
   const mapperExists = await getClientScopeMapper({
     environment: env,
     scopeId: clientScope?.id as string,
