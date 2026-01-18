@@ -57,7 +57,9 @@ jobs:
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
             echo "tag=${{ needs.create_release.outputs.tag }}" >> $GITHUB_OUTPUT
           else
-            echo "tag=dev" >> $GITHUB_OUTPUT
+            SHORT_SHA="${{ github.sha }}"
+            SHORT_SHA="${SHORT_SHA:0:7}"
+            echo "tag=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
           fi
 
   build-and-push-images:
