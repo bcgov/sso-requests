@@ -57,9 +57,7 @@ jobs:
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
             echo "tag=${{ needs.create_release.outputs.tag }}" >> $GITHUB_OUTPUT
           else
-            SHORT_SHA="${{ github.sha }}"
-            SHORT_SHA="${SHORT_SHA:0:7}"
-            echo "tag=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "tag=dev" >> $GITHUB_OUTPUT
           fi
 
   build-and-push-images:
@@ -278,3 +276,11 @@ jobs:
           --set envVars.ghAppPrivateKey="${{ secrets.GH_APP_PRIVATE_KEY }}" \
           --set envVars.ghAppInstallationId="${{ secrets.GH_APP_INSTALLATION_ID }}" --timeout 15m
         working-directory: ./helm
+
+      # force restart deployments only in dev
+      - name: Rollout restart deployments
+        if: (github.ref == 'refs/heads/dev' && github.event_name == 'push')
+        run: |
+          oc rollout restart deployment/sso-requests-api -n ${{ env.OPENSHIFT_NAMESPACE }}
+          oc rollout restart deployment/sso-requests -n ${{ env.OPENSHIFT_NAMESPACE }}
+          oc rollout restart deployment/sso-requests-cron -n ${{ env.OPENSHIFT_NAMESPACE }}
