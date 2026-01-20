@@ -64,8 +64,22 @@ import {
 } from '@app/schemas';
 import pick from 'lodash.pick';
 import { validateIdirEmail } from '@app/utils/ms-graph-idir';
-import { BCSCClientParameters, createBCSCClient, deleteBCSCClient, updateBCSCClient } from '@app/utils/bcsc-client';
-import { createIdp, createIdpMapper, deleteIdp, getIdp, getIdpMappers, updateIdp } from '@app/keycloak/idp';
+import {
+  BCSCClientParameters,
+  createBCSCClient,
+  deleteBCSCClient,
+  getBCSCClientScopeMapper,
+  updateBCSCClient,
+} from '@app/utils/bcsc-client';
+import {
+  createIdp,
+  createIdpMapper,
+  deleteIdp,
+  getIdp,
+  getIdpMappers,
+  IdpMapperConfig,
+  updateIdp,
+} from '@app/keycloak/idp';
 import {
   createClientScope,
   createClientScopeMapper,
@@ -74,12 +88,11 @@ import {
   getClientScopeMapper,
   updateClientScopeMapper,
 } from '@app/keycloak/clientScopes';
-import { bcscIdpMappers } from '@app/utils/constants';
+import { bcscClientScopeMappers, bcscIdpMappers } from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus } from '@app/helpers/permissions';
 import getConfig from 'next/config';
-import { Integration } from '@app/interfaces/Request';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 
@@ -354,18 +367,22 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
   const createIdpMapperPromises = bcscIdpMappers.map((mapper) => {
     const alreadyExists = idpMappers.some((existingMapper: any) => existingMapper.name === mapper.name);
     if (!alreadyExists) {
-      return createIdpMapper({
+      const payload = {
         environment: env,
         name: mapper.name,
         idpAlias: integration?.clientId as string,
         idpMapper: mapper.type,
         idpMapperConfig: {
-          claim: mapper.name,
+          claim: mapper.claim ?? mapper.name,
           attribute: mapper.name,
-          syncMode: 'FORCE',
+          syncMode: 'FORCE' as 'FORCE',
           template: mapper.template,
-        },
-      });
+        } as IdpMapperConfig,
+      };
+      if (mapper.name === 'bcsc_did') {
+        payload.idpMapperConfig['user.attribute'] = mapper.name;
+      }
+      return createIdpMapper(payload);
     }
   });
 
@@ -394,37 +411,24 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     userAttributes += ',email_verified';
   }
 
-  const mapperExists = await getClientScopeMapper({
-    environment: env,
-    scopeId: clientScope?.id as string,
-    mapperName: 'attributes',
-  });
-
-  const clientScopeMapperPayload = {
-    environment: env,
-    realmName: 'standard',
-    scopeName: clientScope?.name,
-    protocol: integration.protocol === 'oidc' ? 'openid-connect' : 'saml',
-    protocolMapper: integration.protocol === 'oidc' ? 'oidc-idp-userinfo-mapper' : 'saml-idp-userinfo-mapper',
-    protocolMapperName: 'attributes',
-    protocolMapperConfig: {
-      signatureExpected: true,
-      userAttributes,
-      'claim.name': 'attributes',
-    },
-  };
-
-  if (integration.protocol === 'oidc') {
-    Object.assign(clientScopeMapperPayload['protocolMapperConfig'], {
-      'jsonType.label': 'String' as const,
-      'id.token.claim': true,
-      'access.token.claim': true,
-      'userinfo.token.claim': true,
+  for (const mapper of bcscClientScopeMappers) {
+    const mapperExists = await getClientScopeMapper({
+      environment: env,
+      scopeId: clientScope?.id as string,
+      mapperName: mapper.name,
     });
-  }
 
-  if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload } as any);
-  else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
+    const customConfig = getBCSCClientScopeMapper(mapper.name, integration.protocol!, mapper.type, userAttributes);
+    const clientScopeMapperPayload = {
+      environment: env,
+      realmName: 'standard',
+      scopeName: clientScope?.name,
+      ...customConfig,
+    };
+
+    if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload } as any);
+    else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
+  }
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {

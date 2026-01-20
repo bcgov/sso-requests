@@ -170,7 +170,7 @@ afterAll(() => {
       // Return all requiredMappers
       spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
       await createBCSCIntegration('dev', { ...bcscProdIntegration, protocol }, 1);
-      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(2);
 
       jest.clearAllMocks();
 
@@ -183,7 +183,7 @@ afterAll(() => {
       // Return all requiredMappers
       spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
       await createBCSCIntegration('dev', { ...bcscProdIntegration, protocol }, 1);
-      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(2);
 
       jest.clearAllMocks();
 
@@ -198,7 +198,7 @@ afterAll(() => {
 
       // Only including postal code. See mock above which includes address scope on this claim.
       await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['postal_code'] }, 1);
-      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(2);
 
       // Get the arguments supplied to createClientScopeMapper
       const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
@@ -210,7 +210,7 @@ afterAll(() => {
 
       // Only including postal code. See mock above which includes address scope on this claim.
       await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['age'], protocol }, 1);
-      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(2);
 
       // Get the arguments supplied to createClientScopeMapper
       const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
@@ -221,7 +221,7 @@ afterAll(() => {
       spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
 
       await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['email'], protocol }, 1);
-      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(2);
 
       // Get the arguments supplied to createClientScopeMapper
       const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
@@ -232,11 +232,31 @@ afterAll(() => {
       spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
 
       await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['age'], protocol }, 1);
-      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(2);
 
       // Get the arguments supplied to createClientScopeMapper
       const mapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
       expect(mapperArgs.protocolMapperConfig.userAttributes.includes('email_verified')).toBe(false);
+    });
+
+    it('Creates a userinfo mapper and a bcsc_did mapper', async () => {
+      spies.getClientScopeMapper.mockImplementation(() => Promise.resolve(null));
+
+      await createBCSCIntegration('dev', { ...bcscProdIntegration, bcscAttributes: ['age'], protocol }, 1);
+      expect(spies.createClientScopeMapper).toHaveBeenCalledTimes(2);
+
+      const userInfoMapperArgs = spies.createClientScopeMapper.mock.calls[0][0];
+      const bcscDIDMapperArgs = spies.createClientScopeMapper.mock.calls[1][0];
+
+      expect(userInfoMapperArgs.protocolMapper).toBe(`${protocol}-idp-userinfo-mapper`);
+      expect(userInfoMapperArgs.protocolMapperConfig['claim.name']).toBe('attributes');
+
+      expect(bcscDIDMapperArgs.protocolMapperName).toBe(`bcsc_did`);
+      expect(bcscDIDMapperArgs.protocolMapper.endsWith('attribute-mapper')).toBeTruthy();
+
+      expect(bcscDIDMapperArgs.protocolMapperConfig[protocol === 'oidc' ? 'claim.name' : 'attribute.name']).toBe(
+        'bcsc_did',
+      );
     });
   });
 });
