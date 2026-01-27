@@ -5,44 +5,18 @@ image:
 cronJobs:
   enabled: true
   image:
-    repository: ghcr.io/bcgov/sso-requests-cron
     tag: dev
-    pullPolicy: Always
-  resources:
-    limits:
-      cpu: 100m
-      memory: 256Mi
-    requests:
-      cpu: 50m
-      memory: 128Mi
 
 api:
   enabled: true
   image:
-    repository: ghcr.io/bcgov/sso-requests-api
     tag: dev
-    pullPolicy: Always
-  resources:
-    limits:
-      cpu: 250m
-      memory: 512Mi
-    requests:
-      cpu: 150m
-      memory: 256Mi
   extraEnvs:
     API_VERSION: v1
     API_ENV: development
     API_URL: https://sso-requests-api-sandbox.apps.gold.devops.gov.bc.ca
   route:
     host: sso-requests-api-sandbox.apps.gold.devops.gov.bc.ca
-
-resources:
-  limits:
-    cpu: 500m
-    memory: 2048Mi
-  requests:
-    cpu: 250m
-    memory: 1024Mi
 
 env:
   APP_ENV: development
@@ -76,11 +50,6 @@ envVars: {}
 route:
   host: sso-requests-sandbox.apps.gold.devops.gov.bc.ca
 
-patroni:
-  postgresMajorVersion: 15
-
-  walG:
-    enabled: false
 
 patroni:
   replicaCount: 1
@@ -91,7 +60,7 @@ patroni:
   transportServerClaim:
     enabled: false
 
-
+# This was different from the other redis instances, should we match b29 redis config
 redis:
   architecture: standalone
   auth:

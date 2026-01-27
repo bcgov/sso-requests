@@ -5,6 +5,20 @@ image:
   tag: dev
   pullPolicy: Always
 
+cronJobs:
+  enabled: true
+  image:
+    repository: ghcr.io/bcgov/sso-requests-cron
+    tag: prod
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 100m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
 imagePullSecrets:
   - name: gh-registry-config
 
@@ -52,11 +66,11 @@ api:
 
 resources:
   limits:
-    cpu: 1
-    memory: 1Gi
+    cpu: 200m
+    memory: 1024Mi
   requests:
-    cpu: 250m
-    memory: 128Mi
+    cpu: 50m
+    memory: 256Mi
 
 nodeSelector: {}
 
@@ -70,6 +84,8 @@ patroni:
     pullPolicy: Always
     tag: 4.0-p2
 
+  postgresMajorVersion: 15
+
   replicaCount: 2
 
   additionalCredentials:
@@ -77,7 +93,7 @@ patroni:
       password:
 
   walG:
-    enabled: true
+    enabled: false
     scheduleCronJob: 00 01 * * *
     retainBackups: 2
     pvc:
@@ -97,11 +113,47 @@ patroni:
   podDisruptionBudget:
     enabled: true
 
+redis-ha:
+  persistentVolume:
+    size: 0.25Gi
+    storageClass: netapp-block-standard
+  redis:
+    resources:
+      limits:
+        memory: 256Mi
+      requests:
+        cpu: 10m
+        memory: 128Mi
+  replicas: 2
+  sentinel:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  splitBrainDetection:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+
+
+
 backup-storage:
   image:
     repository: ghcr.io/bcgov/backup-container
     tag: 2.10.3
     pullPolicy: Always
+
+  persistence:
+    backup:
+      size: 700Mi
+    verification:
+      size: 300Mi
 
   backupConfig: |
     sso-requests-patroni:5432/ssorequests
