@@ -123,3 +123,57 @@ export const deleteBCSCClient = async (data: { clientId: string; registrationTok
   });
   return result;
 };
+
+export const getBCSCClientScopeMapper = (
+  name: string,
+  protocol: string,
+  mapperType: 'userinfo' | 'attribute',
+  userInfoAttributes?: string,
+) => {
+  const config: any = { protocolMapperName: name };
+
+  if (protocol === 'saml') {
+    config.protocol = protocol;
+
+    if (mapperType === 'attribute') {
+      config.protocolMapper = 'saml-user-attribute-mapper';
+      config.protocolMapperConfig = {
+        'attribute.name': 'bcsc_did',
+        'attribute.nameformat': 'Basic',
+        'user.attribute': 'bcsc_did',
+      };
+    } else if (mapperType === 'userinfo') {
+      config.protocolMapper = 'saml-idp-userinfo-mapper';
+      config.protocolMapperConfig = {
+        signatureExpected: true,
+        'claim.name': 'attributes',
+        userAttributes: userInfoAttributes,
+      };
+    }
+  } else if (protocol === 'oidc') {
+    config.protocol = 'openid-connect';
+    if (mapperType === 'attribute') {
+      config.protocolMapper = 'oidc-usermodel-attribute-mapper';
+      config.protocolMapperConfig = {
+        'access.token.claim': true,
+        'id.token.claim': true,
+        'userinfo.token.claim': true,
+        'claim.name': 'bcsc_did',
+        'jsonType.label': 'String',
+        'user.attribute': 'bcsc_did',
+      };
+    } else if (mapperType === 'userinfo') {
+      config.protocolMapper = 'oidc-idp-userinfo-mapper';
+      config.protocolMapperConfig = {
+        signatureExpected: true,
+        'jsonType.label': 'String',
+        'id.token.claim': true,
+        'access.token.claim': true,
+        'userinfo.token.claim': true,
+        'claim.name': 'attributes',
+        userAttributes: userInfoAttributes,
+      };
+    }
+  }
+  return config;
+};

@@ -443,4 +443,16 @@ export const CYPRESS_MOCKED_IDIR_LOOKUP = [{ mail: 'Pathfinder.SSOTraining2@gov.
 
 export const bcscIdpMappers = [
   { name: 'username', type: 'oidc-username-idp-mapper', template: '${CLAIM.sub}@${ALIAS}' },
+  { name: 'bcsc_did', type: 'oidc-user-attribute-idp-mapper', claim: 'sub' },
+];
+
+export const bcscClientScopeMappers: any[] = [
+  {
+    name: 'attributes',
+    type: 'userinfo',
+  },
+  {
+    name: 'bcsc_did',
+    type: 'attribute',
+  },
 ];

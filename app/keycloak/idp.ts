@@ -18,7 +18,7 @@ interface IdpConfig {
   validateSignature?: boolean;
 }
 
-interface IdpMapperConfig {
+export interface IdpMapperConfig {
   claim: string;
   'user.attribute'?: string;
   attribute?: string;
