@@ -59,9 +59,3 @@ patroni:
 
   transportServerClaim:
     enabled: false
-
-# This was different from the other redis instances, should we match b29 redis config
-redis:
-  architecture: standalone
-  auth:
-    enabled: false
