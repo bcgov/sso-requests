@@ -44,14 +44,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-screenshots
+          name: cypress-screenshots-prereqs
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-videos
+          name: cypress-videos-prereqs
           path: app/cypress/videos/**/*
           if-no-files-found: ignore
 
@@ -79,14 +79,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-screenshots
+          name: cypress-screenshots-idpstopper
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-videos
+          name: cypress-videos-idpstopper
           path: app/cypress/videos/**/*
           if-no-files-found: ignore
 
@@ -114,14 +114,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-screenshots
+          name: cypress-screenshots-search-users
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-videos
+          name: cypress-videos-search-users
           path: app/cypress/videos/**/*
           if-no-files-found: ignore
 
@@ -149,14 +149,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-screenshots
+          name: cypress-screenshots-roles
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-videos
+          name: cypress-videos-roles
           path: app/cypress/videos/**/*
           if-no-files-found: ignore
 
@@ -184,13 +184,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-screenshots
+          name: cypress-screenshots-integration
           path: app/cypress/screenshots/**/*
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-videos
+          name: cypress-videos-integration
           path: app/cypress/videos/**/*
           if-no-files-found: ignore
