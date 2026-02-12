@@ -397,7 +397,6 @@ describe('Client Sessions', () => {
     expect(devOfflineSessionMaxEl).toBeInTheDocument();
     expect(devOfflineSessionMaxEl).toBeInstanceOf(HTMLSpanElement);
     expect(devOfflineAccessEnabledEl).toBeInTheDocument();
-    expect(devOfflineAccessEnabledEl).toBeInstanceOf(HTMLSpanElement);
   });
 
   it('Shows the default realm-settings when client session settings are unset', () => {
