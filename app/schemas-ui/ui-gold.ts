@@ -19,6 +19,13 @@ import BcscAttributesWidget from '@app/form-components/widgets/BcscAttributesWid
 import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneWidget';
 import { envMap, idpMap } from '@app/helpers/meta';
 import { Team } from '@app/interfaces/team';
+import {
+  ACCESS_TOKEN_LIFESPAN_DEFAULT,
+  OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT,
+  OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT,
+  SESSION_IDLE_TIMEOUT_DEFAULT,
+  SESSION_MAX_LIFESPAN_DEFAULT,
+} from '@app/utils/constants';
 
 interface Props {
   integration: Integration;
@@ -121,11 +128,32 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
   for (let x = 0; x < envs.length; x++) {
     const OfflineAccessEnabled = get(formData, `${envs[x]}OfflineAccessEnabled`, false);
     for (let y = 0; y < durationAdditionalFields.length; y++) {
+      let inheritedRealmSetting: string;
+      switch (durationAdditionalFields[y]) {
+        case 'SessionIdleTimeout':
+          inheritedRealmSetting = SESSION_IDLE_TIMEOUT_DEFAULT;
+          break;
+        case 'SessionMaxLifespan':
+          inheritedRealmSetting = SESSION_MAX_LIFESPAN_DEFAULT;
+          break;
+        case 'AccessTokenLifespan':
+          inheritedRealmSetting = ACCESS_TOKEN_LIFESPAN_DEFAULT;
+          break;
+        case 'OfflineSessionIdleTimeout':
+          inheritedRealmSetting = OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT;
+          break;
+        case 'OfflineSessionMaxLifespan':
+          inheritedRealmSetting = OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT;
+          break;
+        default:
+          inheritedRealmSetting = 'Inherited from realm settings';
+      }
       const minuteOnlyFields = ['SessionIdleTimeout', 'SessionMaxLifespan'];
       let def: any = {
         'ui:widget': minuteOnlyFields.includes(durationAdditionalFields[y]) ? MinutesToSeconds : ClientTokenWidget,
         'ui:readonly': !isAdmin,
         'ui:FieldTemplate': FieldInlineGrid,
+        'ui:inheritedRealmSetting': inheritedRealmSetting,
       };
 
       tokenFields[`${envs[x]}${durationAdditionalFields[y]}`] = def;

@@ -35,7 +35,7 @@ export const getSchemas = ({
   const isApplied = integration.status === 'applied';
   const isNew = isNil(integration.id);
 
-  const environmentSchemas = getEnvironmentGoldSchemas(formData);
+  const environmentSchemas = getEnvironmentGoldSchemas(formData, isAdmin);
   const schemas = [];
   if (isNew) {
     schemas.push(

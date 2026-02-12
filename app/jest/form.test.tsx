@@ -4,10 +4,15 @@ import FormTemplate from 'form-components/FormTemplate';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import { setUpRouter } from './utils/setup';
-import { errorMessages } from '../utils/constants';
+import {
+  errorMessages,
+  OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT,
+  OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT,
+  SESSION_IDLE_TIMEOUT_DEFAULT,
+  SESSION_MAX_LIFESPAN_DEFAULT,
+} from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
-import { debug } from 'jest-preview';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -258,8 +263,10 @@ describe('Form Template Loading Data', () => {
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
     // Pre-load should convert from seconds to minutes
-    screen.getByDisplayValue(String((sampleRequest.devSessionIdleTimeout as number) / 60));
-    screen.getByDisplayValue(String((sampleRequest.devSessionMaxLifespan as number) / 60));
+    const devSessionIdleEl = document.querySelector('#root_devSessionIdleTimeout');
+    const devSessionMaxLifespanEl = document.querySelector('#root_devSessionMaxLifespan');
+    expect(devSessionIdleEl).toHaveTextContent(String((sampleRequest.devSessionIdleTimeout as number) / 60));
+    expect(devSessionMaxLifespanEl).toHaveTextContent(String((sampleRequest.devSessionMaxLifespan as number) / 60));
 
     fireEvent.click(termsAndConditionsBox);
     const fourthStageElementSelector = '#root_agreeWithTerms';
@@ -357,20 +364,98 @@ describe('Client Sessions', () => {
     const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
     const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
 
-    expect(clientIdleInput).toBeDisabled();
-    expect(clientMaxInput).toBeDisabled();
+    // Should not render input since read only for non-admins.
+    expect(clientIdleInput).not.toBeInstanceOf(HTMLInputElement);
+    expect(clientMaxInput).not.toBeInstanceOf(HTMLInputElement);
+  });
+
+  it('Hides offline access settings from non-admins when disabled', () => {
+    setUpRender({ ...sampleRequest, devOfflineAccessEnabled: false }, { client_roles: [], isAdmin: false });
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+    const devOfflineAccessEnabledEl = document.querySelector('#root_devOfflineAccessEnabled') as HTMLElement;
+
+    expect(devOfflineSessionIdleEl).not.toBeInTheDocument();
+    expect(devOfflineSessionMaxEl).not.toBeInTheDocument();
+    expect(devOfflineAccessEnabledEl).not.toBeInTheDocument();
+  });
+
+  it('Displays offline access settings as read-only elements to non-admins when enabled', () => {
+    setUpRender({ ...sampleRequest, devOfflineAccessEnabled: true }, { client_roles: [], isAdmin: false });
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+    const devOfflineAccessEnabledEl = document.querySelector('#root_devOfflineAccessEnabled') as HTMLElement;
+
+    expect(devOfflineSessionIdleEl).toBeInTheDocument();
+    expect(devOfflineSessionIdleEl).toBeInstanceOf(HTMLSpanElement);
+    expect(devOfflineSessionMaxEl).toBeInTheDocument();
+    expect(devOfflineSessionMaxEl).toBeInstanceOf(HTMLSpanElement);
+    expect(devOfflineAccessEnabledEl).toBeInTheDocument();
+    expect(devOfflineAccessEnabledEl).toBeInstanceOf(HTMLSpanElement);
+  });
+
+  it('Shows the default realm-settings when client session settings are unset', () => {
+    setUpRender(
+      {
+        ...sampleRequest,
+        devOfflineAccessEnabled: true,
+        devSessionIdleTimeout: 0,
+        devSessionMaxLifespan: 0,
+        devOfflineSessionIdleTimeout: 0,
+        devOfflineSessionMaxLifespan: 0,
+      },
+      { client_roles: [], isAdmin: false },
+    );
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+
+    expect(clientIdleInput).toHaveTextContent(SESSION_IDLE_TIMEOUT_DEFAULT);
+    expect(clientMaxInput).toHaveTextContent(SESSION_MAX_LIFESPAN_DEFAULT);
+    expect(devOfflineSessionIdleEl).toHaveTextContent(OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT);
+    expect(devOfflineSessionMaxEl).toHaveTextContent(OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT);
+  });
+
+  it('Shows the configured realm-settings when client session settings are configured', () => {
+    setUpRender(
+      {
+        ...sampleRequest,
+        devOfflineAccessEnabled: true,
+        devSessionIdleTimeout: 60,
+        devSessionMaxLifespan: 60,
+        devOfflineSessionIdleTimeout: 60,
+        devOfflineSessionMaxLifespan: 60,
+      },
+      { client_roles: [], isAdmin: false },
+    );
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+
+    expect(clientIdleInput).toHaveTextContent('1 Minute');
+    expect(clientMaxInput).toHaveTextContent('1 Minute');
+    expect(devOfflineSessionIdleEl).toHaveTextContent('1 Minute');
+    expect(devOfflineSessionMaxEl).toHaveTextContent('1 Minute');
   });
 
   it('Handles non-numeric and negative input appropriately', () => {
     setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
-
-    const clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
-    const clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
-
-    expect(clientOfflineIdleInput).toBeDisabled();
-    expect(clientOfflineMaxInput).toBeDisabled();
 
     const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLInputElement;
     const baseValue = clientIdleInput.value;
@@ -393,7 +478,7 @@ describe('Client Sessions', () => {
     expect(clientIdleInput.value).toBe('0');
   });
 
-  it('Handles offline access switch and dependent fields (offline session idle and max)', () => {
+  it('Handles offline access switch and dependent fields (offline session idle and max)', async () => {
     setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
@@ -401,15 +486,18 @@ describe('Client Sessions', () => {
     let clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
     let clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
 
-    expect(clientOfflineIdleInput).toBeDisabled();
-    expect(clientOfflineMaxInput).toBeDisabled();
+    // Static text element when readonly
+    expect(clientOfflineIdleInput).toBeInstanceOf(HTMLSpanElement);
+    expect(clientOfflineMaxInput).toBeInstanceOf(HTMLSpanElement);
 
     // enable the offline access scope and it enables the offline idle and max fields
     const offlineAccessSwitch = document.querySelector('#root_devOfflineAccessEnabled') as HTMLElement;
     fireEvent.click(offlineAccessSwitch);
 
-    expect(clientOfflineIdleInput).not.toBeDisabled();
-    expect(clientOfflineMaxInput).not.toBeDisabled();
+    clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
+    clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+    expect(clientOfflineIdleInput).toBeInstanceOf(HTMLInputElement);
+    expect(clientOfflineMaxInput).toBeInstanceOf(HTMLInputElement);
   });
 });
 
