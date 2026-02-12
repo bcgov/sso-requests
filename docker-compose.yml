@@ -191,6 +191,7 @@ services:
     depends_on:
       - dev-keycloak
     image: tf-modules-migrator:latest
+    pull-policy: never
     environment:
       HEALTH_CHECK_URL: http://dev-keycloak.localtest.me:9080
       TF_VAR_keycloak_url: http://dev-keycloak:9080
@@ -210,6 +211,7 @@ services:
     depends_on:
       - test-keycloak
     image: tf-modules-migrator:latest
+    pull-policy: never
     environment:
       HEALTH_CHECK_URL: http://test-keycloak.localtest.me:9081
       TF_VAR_keycloak_url: http://test-keycloak:9081
@@ -229,6 +231,7 @@ services:
     depends_on:
       - prod-keycloak
     image: tf-modules-migrator:latest
+    pull-policy: never
     environment:
       HEALTH_CHECK_URL: http://prod-keycloak.localtest.me:9082
       TF_VAR_keycloak_url: http://prod-keycloak:9082

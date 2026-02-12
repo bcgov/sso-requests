@@ -361,8 +361,8 @@ describe('Client Sessions', () => {
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
 
-    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
-    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
 
     // Should not render input since read only for non-admins.
     expect(clientIdleInput).not.toBeInstanceOf(HTMLInputElement);
@@ -374,9 +374,9 @@ describe('Client Sessions', () => {
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
 
-    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
-    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
-    const devOfflineAccessEnabledEl = document.querySelector('#root_devOfflineAccessEnabled') as HTMLElement;
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
+    const devOfflineAccessEnabledEl = document.querySelector('#root_devOfflineAccessEnabled');
 
     expect(devOfflineSessionIdleEl).not.toBeInTheDocument();
     expect(devOfflineSessionMaxEl).not.toBeInTheDocument();
@@ -388,9 +388,9 @@ describe('Client Sessions', () => {
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
 
-    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
-    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
-    const devOfflineAccessEnabledEl = document.querySelector('#root_devOfflineAccessEnabled') as HTMLElement;
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
+    const devOfflineAccessEnabledEl = document.querySelector('#root_devOfflineAccessEnabled');
 
     expect(devOfflineSessionIdleEl).toBeInTheDocument();
     expect(devOfflineSessionIdleEl).toBeInstanceOf(HTMLSpanElement);
@@ -414,10 +414,10 @@ describe('Client Sessions', () => {
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
 
-    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
-    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
-    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
-    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
 
     expect(clientIdleInput).toHaveTextContent(SESSION_IDLE_TIMEOUT_DEFAULT);
     expect(clientMaxInput).toHaveTextContent(SESSION_MAX_LIFESPAN_DEFAULT);
@@ -440,10 +440,10 @@ describe('Client Sessions', () => {
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
 
-    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
-    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
-    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
-    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
 
     expect(clientIdleInput).toHaveTextContent('1 Minute');
     expect(clientMaxInput).toHaveTextContent('1 Minute');
