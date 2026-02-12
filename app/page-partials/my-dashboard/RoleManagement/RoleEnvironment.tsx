@@ -30,6 +30,8 @@ import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
 import noop from 'lodash.noop';
+import { generateXlsx } from '@app/utils/helpers';
+import _ from 'lodash';
 
 const COMPOSITE_ROLE_STRING_LENGTH = 17;
 
@@ -311,6 +313,37 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setUserLoading(false);
   };
 
+  const exportRoleUsers = async () => {
+    if (userLoading) return;
+    setUserLoading(true);
+    const data = [];
+    while (true) {
+      const [users, err] = await listRoleUsers({
+        environment,
+        integrationId: integration.id as number,
+        roleName: selectedRole as string,
+        first: data.length,
+        max: maxUser,
+      });
+      if (err) {
+        alert.show({
+          variant: 'danger',
+          content: 'Failed to export users.',
+        });
+        setUserLoading(false);
+        return;
+      }
+      if (!users || users.length === 0) break;
+      data.push(
+        ...(users.map((user) => {
+          return _.pick(user, ['firstName', 'lastName', 'email']);
+        }) as KeycloakUser[]),
+      );
+    }
+    generateXlsx(data, `${integration.projectName}-users`, `${selectedRole} users`);
+    setUserLoading(false);
+  };
+
   const fetchComposite = async (roleName: string) => {
     if (compositeLoading) return;
 
@@ -374,90 +407,97 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     const filterServiceAccounts = filterServiceAccountUsers(users);
     if (rightPanelTab === 'Users') {
       rightPanel = (
-        <Table
-          variant="mini"
-          headers={[
-            {
-              accessor: 'idp',
-              Header: 'IDP',
-            },
-            {
-              accessor: 'guid',
-              Header: 'GUID',
-            },
-            {
-              accessor: 'email',
-              Header: 'Email',
-            },
-            {
-              accessor: 'actions',
-              Header: <UsersListActionsHeader />,
-              disableSortBy: true,
-            },
-          ]}
-          data={
-            filterUsers.length > 0
-              ? filterUsers.map((user) => {
-                  const usernameSplit = user.username.split('@');
-                  if (usernameSplit.length < 2) return [];
+        <>
+          <div>
+            <button type="button" className="primary short" onClick={exportRoleUsers} style={{ marginBottom: '1em' }}>
+              Export
+            </button>
+            <Table
+              variant="mini"
+              headers={[
+                {
+                  accessor: 'idp',
+                  Header: 'IDP',
+                },
+                {
+                  accessor: 'guid',
+                  Header: 'GUID',
+                },
+                {
+                  accessor: 'email',
+                  Header: 'Email',
+                },
+                {
+                  accessor: 'actions',
+                  Header: <UsersListActionsHeader />,
+                  disableSortBy: true,
+                },
+              ]}
+              data={
+                filterUsers.length > 0
+                  ? filterUsers.map((user) => {
+                      const usernameSplit = user.username.split('@');
+                      if (usernameSplit.length < 2) return [];
 
-                  const [guid, idp] = usernameSplit;
-                  const idpMeta = propertyOptionMap[idp];
+                      const [guid, idp] = usernameSplit;
+                      const idpMeta = propertyOptionMap[idp];
 
-                  return {
-                    idp: idpMap[idp],
-                    guid: guid,
-                    email: user.email,
-                    actions: (
-                      <RightFloatUsersActionsButtons>
-                        <span
-                          onClick={(event) => {
-                            event.stopPropagation();
+                      return {
+                        idp: idpMap[idp],
+                        guid: guid,
+                        email: user.email,
+                        actions: (
+                          <RightFloatUsersActionsButtons>
+                            <span
+                              onClick={(event) => {
+                                event.stopPropagation();
 
-                            infoModalRef.current.open({
-                              guid: user.username.split('@')[0],
-                              attributes: {
-                                ...reduce(
-                                  idpMeta,
-                                  (ret: { [key: string]: string }, keyVal: PropertyOption) => {
-                                    ret[keyVal.label] = get(user, keyVal.value);
-                                    return ret;
+                                infoModalRef.current.open({
+                                  guid: user.username.split('@')[0],
+                                  attributes: {
+                                    ...reduce(
+                                      idpMeta,
+                                      (ret: { [key: string]: string }, keyVal: PropertyOption) => {
+                                        ret[keyVal.label] = get(user, keyVal.value);
+                                        return ret;
+                                      },
+                                      {},
+                                    ),
+                                    ...user.attributes,
                                   },
-                                  {},
-                                ),
-                                ...user.attributes,
-                              },
-                            });
-                          }}
-                        >
-                          <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
-                        </span>
+                                });
+                              }}
+                            >
+                              <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
+                            </span>
 
-                        {viewOnly ? null : (
-                          <span onClick={() => removeUserModalRef.current.open(user)}>
-                            &nbsp;&nbsp;
-                            <FontAwesomeIcon
-                              style={{ color: '#FF0303' }}
-                              icon={faMinusCircle}
-                              size="lg"
-                              title="Remove User"
-                            />
-                          </span>
-                        )}
-                      </RightFloatUsersActionsButtons>
-                    ),
-                  };
-                })
-              : []
-          }
-          loadMoreItem={() => fetchUsers(false, selectedRole)}
-          hasMoreItem={hasMoreUser}
-          loader={<LoaderContainer key="loader-component" />}
-          colfilters={[]}
-          activateRow={noop}
-          rowSelectorKey={'guid'}
-          noDataFoundElement={<span>No users found.</span>}
-        ></Table>
+                            {viewOnly ? null : (
+                              <span onClick={() => removeUserModalRef.current.open(user)}>
+                                &nbsp;&nbsp;
+                                <FontAwesomeIcon
+                                  style={{ color: '#FF0303' }}
+                                  icon={faMinusCircle}
+                                  size="lg"
+                                  title="Remove User"
+                                />
+                              </span>
+                            )}
+                          </RightFloatUsersActionsButtons>
+                        ),
+                      };
+                    })
+                  : []
+              }
+              loadMoreItem={() => fetchUsers(false, selectedRole)}
+              hasMoreItem={hasMoreUser}
+              loader={<LoaderContainer key="loader-component" />}
+              colfilters={[]}
+              activateRow={noop}
+              rowSelectorKey={'guid'}
+              noDataFoundElement={<span>No users found.</span>}
+            ></Table>
+          </div>
+        </>
       );
     } else if (rightPanelTab === 'Service Accounts') {
       rightPanel = (
