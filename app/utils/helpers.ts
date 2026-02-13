@@ -25,6 +25,7 @@ import { diff } from 'deep-diff';
 import { validateForm } from './validate';
 import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
 import { NextApiResponse } from 'next';
+import * as XLSX from 'xlsx';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const gold_realms: GoldIDPOption = {
@@ -675,4 +676,11 @@ export const handleError = (res: NextApiResponse, err: any) => {
   console.error('Error:', err);
   console.log({ success: false, message });
   return res.status(err?.status || 422).json({ success: false, message });
+};
+
+export const generateXlsx = (data: any[], workBookName: string, workSheetName: string) => {
+  const workSheet = XLSX.utils.json_to_sheet(data);
+  const workBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workBook, workSheet, workSheetName);
+  XLSX.writeFile(workBook, `${workBookName}.xlsx`);
 };
