@@ -209,6 +209,7 @@ services:
     container_name: test-kc-migration
     depends_on:
       - test-keycloak
+      - dev-kc-migration
     image: tf-modules-migrator:latest
     environment:
       HEALTH_CHECK_URL: http://test-keycloak.localtest.me:9081
@@ -228,6 +229,7 @@ services:
     container_name: prod-kc-migration
     depends_on:
       - prod-keycloak
+      - test-kc-migration
     image: tf-modules-migrator:latest
     environment:
       HEALTH_CHECK_URL: http://prod-keycloak.localtest.me:9082
