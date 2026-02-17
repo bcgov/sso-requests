@@ -409,7 +409,13 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       rightPanel = (
         <>
           <div>
-            <button type="button" className="primary short" onClick={exportRoleUsers} style={{ marginBottom: '1em' }}>
+            <button
+              type="button"
+              className="primary short"
+              onClick={exportRoleUsers}
+              style={{ marginBottom: '1em' }}
+              disabled={users.length === 0 || userLoading}
+            >
               Export
             </button>
             <Table
