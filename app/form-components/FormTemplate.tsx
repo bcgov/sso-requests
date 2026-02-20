@@ -46,7 +46,6 @@ import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
 import { hasRoleAssignableIdp } from '@app/schemas/providers-gold';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
-import { session } from '@app/jest/utils/helpers';
 
 const Description = styled.p`
   margin: 0;
@@ -505,7 +504,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
                 them at <Link href="mailto:ditp.support@gov.bc.ca">ditp.support@gov.bc.ca</Link>.
               </p>
             )}
-            {!session?.client_roles.includes('sso-admin') && (
+            {!currentUser?.client_roles!.includes('sso-admin') && (
               <p>
                 If you need to change anything after submitting your request, please contact our{' '}
                 <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
