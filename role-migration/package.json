@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@keycloak/keycloak-admin-client": "18.0.1",
+    "@keycloak/keycloak-admin-client": "26.5.3",
     "dotenv": "^16.3.1"
   }
 }
