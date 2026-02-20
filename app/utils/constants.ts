@@ -456,3 +456,9 @@ export const bcscClientScopeMappers: any[] = [
     type: 'attribute',
   },
 ];
+
+export const SESSION_IDLE_TIMEOUT_DEFAULT = '30 Minutes';
+export const SESSION_MAX_LIFESPAN_DEFAULT = '10 Hours';
+export const ACCESS_TOKEN_LIFESPAN_DEFAULT = '5 Minutes';
+export const OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT = '30 Days';
+export const OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT = '60 Days';

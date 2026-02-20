@@ -9,7 +9,6 @@ import FieldTermsAndConditions from '@app/form-components/FieldTermsAndCondition
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
 import FieldInlineGrid from '@app/form-components/FieldInlineGrid';
-import { checkBceidGroup, checkGithubGroup } from '@app/helpers/integration';
 import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
@@ -20,6 +19,13 @@ import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneW
 import { envMap, idpMap } from '@app/helpers/meta';
 import { Team, LoggedInUser } from '@app/interfaces/team';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import {
+  ACCESS_TOKEN_LIFESPAN_DEFAULT,
+  OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT,
+  OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT,
+  SESSION_IDLE_TIMEOUT_DEFAULT,
+  SESSION_MAX_LIFESPAN_DEFAULT,
+} from '@app/utils/constants';
 
 interface Props {
   integration: Integration;
@@ -126,6 +132,26 @@ const getUISchema = ({ integration, formData, session, teams, schemas }: Props) 
   for (let x = 0; x < envs.length; x++) {
     const OfflineAccessEnabled = get(formData, `${envs[x]}OfflineAccessEnabled`, false);
     for (let y = 0; y < durationAdditionalFields.length; y++) {
+      let inheritedRealmSetting: string;
+      switch (durationAdditionalFields[y]) {
+        case 'SessionIdleTimeout':
+          inheritedRealmSetting = SESSION_IDLE_TIMEOUT_DEFAULT;
+          break;
+        case 'SessionMaxLifespan':
+          inheritedRealmSetting = SESSION_MAX_LIFESPAN_DEFAULT;
+          break;
+        case 'AccessTokenLifespan':
+          inheritedRealmSetting = ACCESS_TOKEN_LIFESPAN_DEFAULT;
+          break;
+        case 'OfflineSessionIdleTimeout':
+          inheritedRealmSetting = OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT;
+          break;
+        case 'OfflineSessionMaxLifespan':
+          inheritedRealmSetting = OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT;
+          break;
+        default:
+          inheritedRealmSetting = 'Inherited from realm settings';
+      }
       const minuteOnlyFields = ['SessionIdleTimeout', 'SessionMaxLifespan'];
       let def: any = {
         'ui:widget': minuteOnlyFields.includes(durationAdditionalFields[y]) ? MinutesToSeconds : ClientTokenWidget,
@@ -134,6 +160,7 @@ const getUISchema = ({ integration, formData, session, teams, schemas }: Props) 
           appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS,
         ),
         'ui:FieldTemplate': FieldInlineGrid,
+        'ui:inheritedRealmSetting': inheritedRealmSetting,
       };
 
       tokenFields[`${envs[x]}${durationAdditionalFields[y]}`] = def;

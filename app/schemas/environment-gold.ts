@@ -22,7 +22,7 @@ export const roles = {
   },
 };
 
-export default function getSchemas(formData: Integration) {
+export default function getSchemas(formData: Integration, isAdmin = false) {
   return (formData.environments || []).map((env) => {
     const loginTitleField = `${env}LoginTitle`;
     const displayHeaderTitleField = `${env}DisplayHeaderTitle`;
@@ -66,49 +66,53 @@ export default function getSchemas(formData: Integration) {
           top: FieldAccessTokenTop,
         },
         [sessionIdleTimeoutField]: {
-          title: 'Client Session Idle',
+          title: 'Refresh Token Lifespan',
           type: 'number',
           tooltip: {
-            content:
-              'Time a client session is allowed to be idle before it expires. Tokens are invalidated when a client session is expired. If not set it uses the standard SSO Session Idle value.',
+            content: 'Max time before a refresh token is expired',
           },
           additionalClassNames: 'mt-1',
         },
         [sessionMaxLifespanField]: {
-          title: 'Client Session Max',
+          title: 'Session Max lifespan',
           type: 'number',
           tooltip: {
             content:
-              'Max time before a client session is expired. Tokens are invalidated when a client session is expired. If not set, it uses the standard SSO Session Max value.',
-          },
-          additionalClassNames: 'mt-1',
-        },
-        [offlineAccessEnabledField]: {
-          type: 'boolean',
-          title: 'Allow offline access',
-          tooltip: { content: 'Allow offline access for this client.' },
-          default: false,
-          additionalClassNames: 'mt-1',
-        },
-        [offlineSessionIdleTimeoutField]: {
-          title: 'Client Offline Session Idle',
-          type: 'number',
-          tooltip: {
-            content:
-              'Time a client offline session is allowed to be idle before it expires. Offline tokens are invalidated when a client offline session is expired. If not set it uses the Offline Session Idle value.',
-          },
-          additionalClassNames: 'mt-1',
-        },
-        [offlineSessionMaxLifespanField]: {
-          title: 'Client Offline Session Max',
-          type: 'number',
-          tooltip: {
-            content:
-              'Max time before a client offline session is expired. Offline tokens are invalidated when a client offline session is expired. If not set, it uses the Offline Session Max value.',
+              'Max time before a session is expired. Tokens and browser sessions are invalidated when a session is expired.',
           },
           additionalClassNames: 'mt-1',
         },
       };
+      // Only display offline settings for admins or if already turned on
+      if (isAdmin || formData[offlineAccessEnabledField as keyof Integration] === true) {
+        tokenSchemas = Object.assign(tokenSchemas, {
+          [offlineAccessEnabledField]: {
+            type: 'boolean',
+            title: 'Allow offline access',
+            tooltip: { content: 'Allow offline access for this client.' },
+            default: false,
+            additionalClassNames: 'mt-1',
+          },
+          [offlineSessionIdleTimeoutField]: {
+            title: 'Client Offline Session Idle',
+            type: 'number',
+            tooltip: {
+              content:
+                'Time a client offline session is allowed to be idle before it expires. Offline tokens are invalidated when a client offline session is expired. If not set it uses the Offline Session Idle value.',
+            },
+            additionalClassNames: 'mt-1',
+          },
+          [offlineSessionMaxLifespanField]: {
+            title: 'Client Offline Session Max',
+            type: 'number',
+            tooltip: {
+              content:
+                'Max time before a client offline session is expired. Offline tokens are invalidated when a client offline session is expired. If not set, it uses the Offline Session Max value.',
+            },
+            additionalClassNames: 'mt-1',
+          },
+        });
+      }
     }
 
     let headerText = '';
