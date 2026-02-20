@@ -26,6 +26,7 @@ import { validateForm } from './validate';
 import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
 import { NextApiResponse } from 'next';
 import * as XLSX from 'xlsx';
+import { hasAppPermission, appPermissions, getAllAppPermissions } from './authorize';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const gold_realms: GoldIDPOption = {
@@ -329,23 +330,23 @@ export const subtractDaysFromDate = (days: number) => {
 };
 
 export const isBceidApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('bceid-approver') ?? false;
+  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_BCEID);
 };
 
 export const isGithubApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('github-approver') ?? false;
+  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_GITHUB);
 };
 
 export const isOTPApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('otp-approver') ?? false;
+  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_OTP);
 };
 
 export const isSocialApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('social-approver') ?? false;
+  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_SOCIAL);
 };
 
 export const isBcServicesCardApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('bc-services-card-approver') ?? false;
+  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_BC_SERVICES_CARD);
 };
 
 export const isIdpApprover = (session: LoggedInUser | null) => {
@@ -403,19 +404,17 @@ const idpsEqual = (idpsA: string[], idpsB: string[]) => {
 export const validateIDPs = ({
   currentIdps,
   updatedIdps,
-  applied = true,
+  session,
   bceidApproved = false,
   protocol = 'oidc',
-  isAdmin = false,
   githubApproved = false,
   bcServicesCardApproved = false,
 }: {
   currentIdps: string[];
   updatedIdps: string[];
-  applied?: boolean;
+  session: LoggedInUser | null;
   bceidApproved?: boolean;
   protocol?: string;
-  isAdmin?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
 }) => {
@@ -434,7 +433,10 @@ export const validateIDPs = ({
   const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
   const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
 
-  if (!isAdmin && (addingGithubPublic || addingOTP)) {
+  if (
+    !hasAppPermission(session?.client_roles || [], appPermissions.ADD_RESTRICTED_IDPS) &&
+    (addingGithubPublic || addingOTP)
+  ) {
     return false;
   }
 
@@ -452,7 +454,7 @@ export const validateIDPs = ({
   }
 
   const discontinuedIdps = getDiscontinuedIdps();
-  if (!isAdmin) {
+  if (!hasAppPermission(session?.client_roles || [], appPermissions.ADD_RESTRICTED_IDPS)) {
     for (let idp of discontinuedIdps) {
       if (!currentIdps.includes(idp) && updatedIdps.includes(idp)) return false;
     }
@@ -511,15 +513,13 @@ const durationAdditionalFields: any[] = [];
 });
 
 export const sanitizeRequest = (session: Session, data: Integration, isMerged: boolean) => {
-  const isAdminUser = isAdmin(session);
-
   let immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
 
   if (isMerged) {
     immutableFields.push('realm');
   }
 
-  if (!isAdminUser) {
+  if (!hasAppPermission(session?.client_roles || [], appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
     immutableFields.push(...durationAdditionalFields, 'clientId');
 
     if (!isBceidApprover(session)) {
@@ -530,12 +530,12 @@ export const sanitizeRequest = (session: Session, data: Integration, isMerged: b
       immutableFields.push('githubApproved');
     }
 
-    if (!isBCServicesCardApprover(session)) {
+    if (!isBcServicesCardApprover(session)) {
       immutableFields.push('bcServicesCardApproved');
     }
   }
 
-  if (isAdminUser) {
+  if (hasAppPermission(session?.client_roles || [], appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
     if (data?.protocol === 'oidc') {
       ['dev', 'test', 'prod'].forEach((env: string) => {
         if (!data[`${env}OfflineAccessEnabled` as keyof Integration])
@@ -582,21 +582,27 @@ export const validateRequest = async (formData: any, original: Integration, team
   return validateForm(formData, schemas);
 };
 
-export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
-
-export const isBCServicesCardApprover = (session: Session) =>
-  session.client_roles?.includes('bc-services-card-approver');
+export const isAdmin = (session: Session) => session?.client_roles?.includes('sso-admin');
 
 export const getAllowedIdpsForApprover = (session: Session) => {
   const idps: string[] = [];
-  if (session.client_roles.length === 0) return idps;
-  session.client_roles.forEach((role) => {
-    if (role === 'bceid-approver') idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
-    if (role === 'bc-services-card-approver') idps.push('bcservicescard');
-    if (role === 'github-approver') idps.push('githubbcgov', 'githubpublic');
-    if (role === 'social-approver') idps.push('social');
-    if (role === 'otp-approver') idps.push('otp');
-  });
+
+  const permissions = getAllAppPermissions(session?.client_roles || []);
+  if (permissions.includes(appPermissions.APPROVE_BCEID)) {
+    idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+  }
+  if (permissions.includes(appPermissions.APPROVE_GITHUB)) {
+    idps.push('githubbcgov', 'githubpublic');
+  }
+  if (permissions.includes(appPermissions.APPROVE_BC_SERVICES_CARD)) {
+    idps.push('bcservicescard');
+  }
+  if (permissions.includes(appPermissions.APPROVE_SOCIAL)) {
+    idps.push('social');
+  }
+  if (permissions.includes(appPermissions.APPROVE_OTP)) {
+    idps.push('otp');
+  }
   return idps;
 };
 

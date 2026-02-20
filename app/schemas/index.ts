@@ -4,7 +4,7 @@ import termsAndConditionsSchema from '@app/schemas/terms-and-conditions';
 import getProvidersGoldSchema from '@app/schemas/providers-gold';
 import getEnvironmentGoldSchemas from '@app/schemas/environment-gold';
 import getReviewSubmitSchema from '@app/schemas/review-submit';
-import { Team } from '@app/interfaces/team';
+import { LoggedInUser, Team } from '@app/interfaces/team';
 import { Integration } from '@app/interfaces/Request';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { RJSFSchema } from '@rjsf/utils';
@@ -18,15 +18,15 @@ export interface Schema extends RJSFSchema {
 export const getSchemas = ({
   integration,
   formData,
+  session,
   teams = [],
-  isAdmin = false,
   bcscPrivacyZones = [],
   bcscAttributes = [],
 }: {
   integration?: Integration | undefined;
   formData: Integration;
+  session: LoggedInUser | null;
   teams: Team[];
-  isAdmin?: boolean;
   bcscPrivacyZones?: BcscPrivacyZone[];
   bcscAttributes?: BcscAttribute[];
 }) => {
@@ -40,14 +40,14 @@ export const getSchemas = ({
   if (isNew) {
     schemas.push(
       getRequesterInfoSchema(teams, formData),
-      getProvidersGoldSchema(formData, { isAdmin }, bcscPrivacyZones, bcscAttributes),
+      getProvidersGoldSchema(formData, session, bcscPrivacyZones, bcscAttributes),
       ...environmentSchemas,
       termsAndConditionsSchema,
     );
   } else {
     schemas.push(
       getRequesterInfoSchema(teams, formData),
-      getProvidersGoldSchema(formData, { isAdmin }, bcscPrivacyZones, bcscAttributes),
+      getProvidersGoldSchema(formData, session, bcscPrivacyZones, bcscAttributes),
       ...environmentSchemas,
     );
     if (!isApplied) schemas.push(termsAndConditionsSchema);

@@ -26,7 +26,7 @@ const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, 
 const proccessSession = (session?: KeycloakTokenParsed | null) => {
   if (!session) return null;
 
-  session.roles = session.client_roles;
+  session.roles = session?.client_roles;
   session.isAdmin = session?.client_roles?.includes('sso-admin');
   return session;
 };

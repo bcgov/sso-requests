@@ -17,6 +17,7 @@ import { AxiosError } from 'axios';
 import { FailureMessage } from '@app/page-partials/my-dashboard/Messages';
 import { isIdpApprover } from '@app/utils/helpers';
 import { useRouter } from 'next/router';
+import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 
 const BorderLine = styled.div`
   border-bottom: 1px solid #707070;
@@ -85,7 +86,7 @@ export default function AdminReports({ session }: PageProps) {
   const [downloadError, setDownloadError] = useState(false);
 
   useEffect(() => {
-    if (!session?.isAdmin && !isIdpApprover(session)) {
+    if (!hasAppPermission(session?.client_roles || [], appPermissions.DOWNLOAD_ADMIN_REPORTS)) {
       router.push('/my-dashboard');
     }
   }, []);

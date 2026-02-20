@@ -14,6 +14,7 @@ const MOCK_PRIVACY_ZONE_NAME = 'uniqueZoneName';
 const sampleSession = {
   email: '',
   isAdmin: true,
+  client_roles: ['sso-admin'],
 };
 
 const MOCK_EMAIL = 'some@email.com';

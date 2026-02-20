@@ -36,7 +36,6 @@ function GoldNotificationModal(): any {
     if (!session || !user) return;
 
     if (
-      !session.isAdmin &&
       !user.hasReadGoldNotification &&
       user.integrations?.find((integration: any) => integration.serviceType !== 'gold')
     ) {
