@@ -1052,7 +1052,7 @@ describe('One Time Passcode IDP', () => {
     status: 'draft',
     environments: ['dev', 'test', 'prod'],
   };
-  const userSession = { email: 'user-session@gov.bc.ca', isAdmin: true };
+  const userSession = { email: 'user-session@gov.bc.ca', client_roles: ['sso-admin'] };
   beforeEach(() => {
     process.env.INCLUDE_OTP = 'true';
   });

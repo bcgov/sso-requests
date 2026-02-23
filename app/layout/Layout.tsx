@@ -4,13 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCommentDots, faEnvelope, faFileAlt, faUserAlt } from '@fortawesome/free-solid-svg-icons';
 import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
-import startCase from 'lodash.startcase';
-import isFunction from 'lodash.isfunction';
 import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';
 import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
 import { formatWikiURL } from '@app/utils/constants';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 const headerPlusFooterHeight = '152px';
 
@@ -87,101 +86,63 @@ const HeaderTitle = styled.span`
 interface Route {
   path: string;
   label: string | ((query: any) => string);
-  hide?: boolean;
-  roles: string[];
+  private: boolean;
+  permission?: string;
 }
 
 const routes: Route[] = [
   {
     path: '/',
     label: 'Home',
-    roles: [
-      'guest',
-      'user',
-      'sso-admin',
-      'bceid-approver',
-      'github-approver',
-      'bc-services-card-approver',
-      'social-approver',
-      'otp-approver',
-    ],
+    private: false,
   },
-  { path: '/terms-conditions', label: 'Terms and Conditions', roles: ['guest'] },
+  {
+    path: '/terms-conditions',
+    label: 'Terms and Conditions',
+    private: true,
+    permission: appPermissions.VIEW_TERMS_AND_CONDITIONS,
+  },
   {
     path: '/my-dashboard',
     label: 'My Dashboard',
-    roles: [
-      'user',
-      'sso-admin',
-      'bceid-approver',
-      'github-approver',
-      'bc-services-card-approver',
-      'social-approver',
-      'otp-approver',
-    ],
+    private: true,
+    permission: appPermissions.VIEW_MY_DASHBOARD,
   },
   {
     path: '/admin-dashboard',
     label: 'SSO Dashboard',
-    roles: [
-      'sso-admin',
-      'bceid-approver',
-      'github-approver',
-      'bc-services-card-approver',
-      'social-approver',
-      'otp-approver',
-    ],
+    private: true,
+    permission: appPermissions.VIEW_ADMIN_DASHBOARD,
   },
-  { path: '/admin-reports', label: 'SSO Reports', roles: ['sso-admin'] },
-  {
-    path: '/request',
-    label: 'Request Details',
-    roles: [
-      'user',
-      'sso-admin',
-      'bceid-approver',
-      'github-approver',
-      'bc-services-card-approver',
-      'social-approver',
-      'otp-approver',
-    ],
-    hide: true,
-  },
+  { path: '/admin-reports', label: 'SSO Reports', private: true, permission: appPermissions.DOWNLOAD_ADMIN_REPORTS },
   {
     path: '/faq',
     label: 'FAQ',
-    roles: [
-      'guest',
-      'user',
-      'sso-admin',
-      'bceid-approver',
-      'github-approver',
-      'bc-services-card-approver',
-      'social-approver',
-      'otp-approver',
-    ],
+    private: false,
   },
 ];
 
 const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentPath: string; query: any }) => {
   let roles = ['guest'];
   if (session) {
-    roles = session?.client_roles?.length > 0 ? session.client_roles : ['user'];
+    roles = session?.client_roles?.length > 0 ? session?.client_roles : ['user'];
   }
 
   const isCurrent = (path: string) => currentPath === path || currentPath.startsWith(`${path}/`);
 
   return (
     <>
-      {routes
-        .filter((route) => route.roles.some((role) => roles.includes(role)) && (!route.hide || isCurrent(route.path)))
-        .map((route) => {
+      {routes.map((route) => {
+        if (!route.private || hasAppPermission(roles, route.permission || '')) {
           return (
             <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
-              <Link href={route.path}>{isFunction(route.label) ? route.label(query) : route.label}</Link>
+              <Link href={route.path}>{typeof route.label === 'function' ? route.label(query) : route.label}</Link>
             </li>
           );
-        })}
+        } else {
+          return null;
+        }
+      })}
     </>
   );
 };

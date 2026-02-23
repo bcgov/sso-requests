@@ -3,6 +3,8 @@ import { Integration } from '../interfaces/Request';
 import { devValidRedirectUris } from './providers';
 import FieldAccessTokenTop from '@app/form-components/FieldAccessTokenTop';
 import getConfig from 'next/config';
+import { LoggedInUser } from '@app/interfaces/team';
+import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { include_bc_services_card } = publicRuntimeConfig;
@@ -22,7 +24,7 @@ export const roles = {
   },
 };
 
-export default function getSchemas(formData: Integration, isAdmin = false) {
+export default function getSchemas(formData: Integration, session: LoggedInUser | null) {
   return (formData.environments || []).map((env) => {
     const loginTitleField = `${env}LoginTitle`;
     const displayHeaderTitleField = `${env}DisplayHeaderTitle`;
@@ -84,7 +86,10 @@ export default function getSchemas(formData: Integration, isAdmin = false) {
         },
       };
       // Only display offline settings for admins or if already turned on
-      if (isAdmin || formData[offlineAccessEnabledField as keyof Integration] === true) {
+      if (
+        hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS) ||
+        formData[offlineAccessEnabledField as keyof Integration] === true
+      ) {
         tokenSchemas = Object.assign(tokenSchemas, {
           [offlineAccessEnabledField]: {
             type: 'boolean',

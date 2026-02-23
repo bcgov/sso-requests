@@ -45,6 +45,7 @@ import { ErrorMessage, InfoMessage } from '@app/components/MessageBox';
 import { Link } from '@button-inc/bcgov-theme';
 import { SurveyContext } from '@app/utils/context';
 import { docusaurusURL, messages } from '@app/utils/constants';
+import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -262,7 +263,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   const fetchTeamServiceAccounts = async (teamId: number) => {
     setLoading(true);
-    if (team.role === 'admin') {
+    if (hasTeamPermission(team.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS)) {
       const [serviceAccounts, err3] = await getServiceAccounts(teamId);
       if (err3) {
         setTeamServiceAccounts([]);
@@ -423,7 +424,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   };
 
   if (!team || !myself) return null;
-  const isAdmin = myself.role === 'admin';
 
   return (
     <>
@@ -431,7 +431,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       <Tabs defaultActiveKey={'members'} tabBarGutter={30}>
         <Tab key="members" tab="Members">
           <TabWrapper>
-            {isAdmin ? (
+            {hasTeamPermission(myself?.role, teamPermissions.ADD_MEMBER) ? (
               <button
                 className="primary"
                 style={{ margin: '1rem 0' }}
@@ -469,7 +469,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   },
                 ]}
                 data={members.map((member) => {
-                  const adminActionsAllowed = isAdmin && myself.id !== member.id;
+                  const adminActionsAllowed =
+                    hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) && myself.id !== member.id;
                   return {
                     status: <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />,
                     idirEmail: member.idirEmail,
@@ -617,7 +618,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
-        {isAdmin && (
+        {hasTeamPermission(myself?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS) && (
           <Tab key="service-accounts" tab="CSS API Account">
             <TabWrapper marginTop="10px">
               {loading ? (
@@ -715,7 +716,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
           <TeamMembersForm
             members={tempMembers}
             setMembers={setTempMembers}
-            allowDelete={isAdmin}
+            allowDelete={hasTeamPermission(myself?.role, teamPermissions.REMOVE_MEMBER)}
             errors={errors}
             currentUser={currentUser}
           />

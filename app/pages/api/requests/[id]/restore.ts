@@ -5,7 +5,7 @@ import { handleError } from '@app/utils/helpers';
 import { processUserSession } from '@app/controllers/user';
 import { restoreRequest } from '@app/controllers/requests';
 import createHttpError from 'http-errors';
-import { assertSessionRole } from '@app/helpers/permissions';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -14,7 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
       const { session } = await processUserSession(userSession as Session);
 
-      assertSessionRole(session, 'sso-admin');
+      if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_RESTORE_REQUEST))
+        return res.status(403).json({ success: false, message: 'forbidden' });
       const { id } = req.query || {};
       let { email } = req.body || {};
       if (typeof email === 'string') {

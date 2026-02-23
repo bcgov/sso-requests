@@ -22,6 +22,7 @@ import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import { throttledIdirSearch } from '@app/utils/users';
 import DeleteModal from '@app/components/DeleteModal';
 import noop from 'lodash.noop';
+import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -270,10 +271,13 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   };
 
   useEffect(() => {
-    if (!session?.isAdmin && !isIdpApprover(session)) {
+    if (!hasAppPermission(session?.client_roles, appPermissions.VIEW_ADMIN_DASHBOARD)) {
       router.push('/my-dashboard');
     } else {
-      if (session?.isAdmin && !columnFilters.find((v: any) => v.label === 'IDPs')) {
+      if (
+        hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_IDPS_FILTER) &&
+        !columnFilters.find((v: any) => v.label === 'IDPs')
+      ) {
         setColumnFilters([
           ...columnFilters,
           {
@@ -389,51 +393,67 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                 archived: row.archived ? 'Deleted' : 'Active',
                 environments: row.environments,
                 clientId: row.clientId,
-                actions: session?.isAdmin ? (
+                actions: (
                   <ActionButtonContainer>
-                    <ActionButton
-                      icon={faEye}
-                      role="button"
-                      aria-label="events"
-                      onClick={(event: any) => {
-                        event.stopPropagation();
-                        setSelectedId(row.id);
-                        setActivePanel('events');
-                      }}
-                      title="Events"
-                    />
-                    <VerticalLine />
-                    <ActionButton
-                      disabled={!canEdit(row)}
-                      icon={faEdit}
-                      role="button"
-                      aria-label="edit"
-                      onClick={() => handleEdit(row)}
-                      title="Edit"
-                    />
-                    <VerticalLine />
-                    <ActionButton
-                      icon={faTrash}
-                      role="button"
-                      aria-label="delete"
-                      onClick={() => handleDelete(row)}
-                      disabled={!canDelete(row)}
-                      activeColor={PRIMARY_RED}
-                      title="Delete from Keycloak"
-                    />
-                    <VerticalLine />
-                    <ActionButton
-                      icon={faTrashRestoreAlt}
-                      role="button"
-                      aria-label="restore"
-                      onClick={() => handleRestore(row)}
-                      disabled={!canRestore(row)}
-                      activeColor={PRIMARY_RED}
-                      title="Restore at Keycloak"
-                    />
+                    {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS) && (
+                      <>
+                        <ActionButton
+                          icon={faEye}
+                          role="button"
+                          aria-label="events"
+                          onClick={(event: any) => {
+                            event.stopPropagation();
+                            setSelectedId(row.id);
+                            setActivePanel('events');
+                          }}
+                          title="Events"
+                        />
+                      </>
+                    )}
+                    {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && (
+                      <>
+                        <VerticalLine />
+                        <ActionButton
+                          disabled={!canEdit(row)}
+                          icon={faEdit}
+                          role="button"
+                          aria-label="edit"
+                          onClick={() => handleEdit(row)}
+                          title="Edit"
+                        />
+                      </>
+                    )}
+
+                    {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST) && (
+                      <>
+                        <VerticalLine />
+                        <ActionButton
+                          icon={faTrash}
+                          role="button"
+                          aria-label="delete"
+                          onClick={() => handleDelete(row)}
+                          disabled={!canDelete(row)}
+                          activeColor={PRIMARY_RED}
+                          title="Delete from Keycloak"
+                        />
+                      </>
+                    )}
+
+                    {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_RESTORE_REQUEST) && (
+                      <>
+                        <VerticalLine />
+                        <ActionButton
+                          icon={faTrashRestoreAlt}
+                          role="button"
+                          aria-label="restore"
+                          onClick={() => handleRestore(row)}
+                          disabled={!canRestore(row)}
+                          activeColor={PRIMARY_RED}
+                          title="Restore at Keycloak"
+                        />
+                      </>
+                    )}
                   </ActionButtonContainer>
-                ) : (
-                  noop
                 ),
               };
             })}
