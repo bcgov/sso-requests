@@ -554,9 +554,9 @@ describe('Client Sessions', () => {
     let clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
     let clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
 
-    // Static text element when readonly
-    expect(clientOfflineIdleInput).toBeInstanceOf(HTMLSpanElement);
-    expect(clientOfflineMaxInput).toBeInstanceOf(HTMLSpanElement);
+    // Hidden until offline access turned on
+    expect(clientOfflineIdleInput).not.toBeInTheDocument();
+    expect(clientOfflineMaxInput).not.toBeInTheDocument();
 
     // enable the offline access scope and it enables the offline idle and max fields
     const offlineAccessSwitch = document.querySelector('#root_devOfflineAccessEnabled') as HTMLElement;
