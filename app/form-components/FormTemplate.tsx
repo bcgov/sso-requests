@@ -35,7 +35,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/utils/context';
-import { docusaurusURL } from '@app/utils/constants';
+import { defaultStandardRealmSettings, docusaurusURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
 import {
@@ -45,6 +45,8 @@ import {
 import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
 import { hasRoleAssignableIdp } from '@app/schemas/providers-gold';
+import { fetchDefaultSessionSettings } from '@app/services/keycloak';
+import { GetStandardSettingsResponse } from '@app/interfaces/api';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 const Description = styled.p`
@@ -160,6 +162,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
   const [openSubmissionModal, setOpenSubmissionModal] = useState(false);
+  const [defaultSessionSettings, setDefaultSessionSettings] = useState<GetStandardSettingsResponse>({
+    dev: defaultStandardRealmSettings,
+    test: defaultStandardRealmSettings,
+    prod: defaultStandardRealmSettings,
+  });
 
   const surveyContext = useContext(SurveyContext);
 
@@ -260,6 +267,13 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     setBcscAttributes(data || []);
   };
 
+  const loadDefaultSessionSettings = async () => {
+    const [data] = await fetchDefaultSessionSettings();
+    if (data) {
+      setDefaultSessionSettings(data);
+    }
+  };
+
   const updateInfo = () => {
     const schemas = getSchemas({
       integration: request,
@@ -277,6 +291,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     loadTeams();
     loadBcscPrivacyZones();
     loadBcscAttributes();
+    loadDefaultSessionSettings();
   }, []);
 
   // Clear other details when other is unselected
@@ -314,7 +329,14 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUISchema({ integration: request as Integration, formData, session: currentUser, teams, schemas });
+  const uiSchema = getUISchema({
+    integration: request as Integration,
+    formData,
+    session: currentUser,
+    teams,
+    schemas,
+    defaultSessionSettings,
+  });
 
   const handleFormSubmit = async () => {
     if (loading) return;

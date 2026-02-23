@@ -3,14 +3,9 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import FormTemplate from 'form-components/FormTemplate';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
+import { fetchDefaultSessionSettings } from 'services/keycloak';
 import { setUpRouter } from './utils/setup';
-import {
-  errorMessages,
-  OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT,
-  OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT,
-  SESSION_IDLE_TIMEOUT_DEFAULT,
-  SESSION_MAX_LIFESPAN_DEFAULT,
-} from '../utils/constants';
+import { defaultStandardRealmSettings, errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
 
@@ -30,6 +25,36 @@ jest.mock('services/team', () => {
   return {
     getMyTeams: jest.fn(() => Promise.resolve([[], null])),
     getAllowedTeams: jest.fn(() => Promise.resolve([[], null])),
+  };
+});
+
+const mockDefaultSessionSettingsResponse = {
+  dev: {
+    accessTokenLifespan: '1 Minute',
+    ssoSessionIdleTimeout: '2 Minute',
+    ssoSessionMaxLifespan: '3 Minute',
+    offlineSessionIdleTimeout: '4 Minute',
+    offlineSessionMaxLifespan: '5 Minute',
+  },
+  test: {
+    accessTokenLifespan: '1 Minute',
+    ssoSessionIdleTimeout: '2 Minute',
+    ssoSessionMaxLifespan: '3 Minute',
+    offlineSessionIdleTimeout: '4 Minute',
+    offlineSessionMaxLifespan: '5 Minute',
+  },
+  prod: {
+    accessTokenLifespan: '1 Minute',
+    ssoSessionIdleTimeout: '2 Minute',
+    ssoSessionMaxLifespan: '3 Minute',
+    offlineSessionIdleTimeout: '4 Minute',
+    offlineSessionMaxLifespan: '5 Minute',
+  },
+};
+
+jest.mock('services/keycloak', () => {
+  return {
+    fetchDefaultSessionSettings: jest.fn(() => Promise.resolve([mockDefaultSessionSettingsResponse, null])),
   };
 });
 
@@ -399,7 +424,7 @@ describe('Client Sessions', () => {
     expect(devOfflineAccessEnabledEl).toBeInTheDocument();
   });
 
-  it('Shows the default realm-settings when client session settings are unset', () => {
+  it('Shows the fetched default realm-settings when client session settings are unset', async () => {
     setUpRender(
       {
         ...sampleRequest,
@@ -414,15 +439,59 @@ describe('Client Sessions', () => {
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
 
+    const accessTokenInput = document.querySelector('#root_devAccessTokenLifespan');
     const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
     const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
     const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
     const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
 
-    expect(clientIdleInput).toHaveTextContent(SESSION_IDLE_TIMEOUT_DEFAULT);
-    expect(clientMaxInput).toHaveTextContent(SESSION_MAX_LIFESPAN_DEFAULT);
-    expect(devOfflineSessionIdleEl).toHaveTextContent(OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT);
-    expect(devOfflineSessionMaxEl).toHaveTextContent(OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT);
+    await waitFor(() => {
+      expect(accessTokenInput).toHaveTextContent(mockDefaultSessionSettingsResponse.dev.accessTokenLifespan);
+      expect(clientIdleInput).toHaveTextContent(mockDefaultSessionSettingsResponse.dev.ssoSessionIdleTimeout);
+      expect(clientMaxInput).toHaveTextContent(mockDefaultSessionSettingsResponse.dev.ssoSessionMaxLifespan);
+      expect(devOfflineSessionIdleEl).toHaveTextContent(
+        mockDefaultSessionSettingsResponse.dev.offlineSessionIdleTimeout,
+      );
+      expect(devOfflineSessionMaxEl).toHaveTextContent(
+        mockDefaultSessionSettingsResponse.dev.offlineSessionMaxLifespan,
+      );
+    });
+  });
+
+  it('Shows fallback text if the fetch fails', async () => {
+    // Mock failed API call
+    const mockedFetchDefaultSessionSettings = fetchDefaultSessionSettings as jest.MockedFunction<
+      typeof fetchDefaultSessionSettings
+    >;
+    mockedFetchDefaultSessionSettings.mockResolvedValue([null, new Error('err')]);
+
+    setUpRender(
+      {
+        ...sampleRequest,
+        devOfflineAccessEnabled: true,
+        devSessionIdleTimeout: 0,
+        devSessionMaxLifespan: 0,
+        devOfflineSessionIdleTimeout: 0,
+        devOfflineSessionMaxLifespan: 0,
+      },
+      { client_roles: [], isAdmin: false },
+    );
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const accessTokenInput = document.querySelector('#root_devAccessTokenLifespan');
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
+
+    await waitFor(() => {
+      expect(accessTokenInput).toHaveTextContent(defaultStandardRealmSettings.accessTokenLifespan);
+      expect(clientIdleInput).toHaveTextContent(defaultStandardRealmSettings.ssoSessionIdleTimeout);
+      expect(clientMaxInput).toHaveTextContent(defaultStandardRealmSettings.ssoSessionMaxLifespan);
+      expect(devOfflineSessionIdleEl).toHaveTextContent(defaultStandardRealmSettings.offlineSessionIdleTimeout);
+      expect(devOfflineSessionMaxEl).toHaveTextContent(defaultStandardRealmSettings.offlineSessionMaxLifespan);
+    });
   });
 
   it('Shows the configured realm-settings when client session settings are configured', () => {
