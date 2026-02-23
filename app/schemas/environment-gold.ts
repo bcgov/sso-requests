@@ -85,7 +85,7 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
           additionalClassNames: 'mt-1',
         },
       };
-      // Only display offline settings for admins or if already turned on
+      // Only display offline access toggle to admins or if already turned on
       if (
         hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS) ||
         formData[offlineAccessEnabledField as keyof Integration] === true
@@ -98,6 +98,11 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
             default: false,
             additionalClassNames: 'mt-1',
           },
+        });
+      }
+      // Only display offline settings if turned on
+      if (formData[offlineAccessEnabledField as keyof Integration] === true) {
+        tokenSchemas = Object.assign(tokenSchemas, {
           [offlineSessionIdleTimeoutField]: {
             title: 'Client Offline Session Idle',
             type: 'number',
