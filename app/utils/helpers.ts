@@ -684,3 +684,36 @@ export const generateXlsx = (data: any[], workBookName: string, workSheetName: s
   XLSX.utils.book_append_sheet(workBook, workSheet, workSheetName);
   XLSX.writeFile(workBook, `${workBookName}.xlsx`);
 };
+
+/*
+Convert numeric seconds to readable time, with the largest whole number unit possible (up to days). e.g.
+300 => 5 minutes,
+301 => 301 Seconds
+3600 => 1 hour
+3660 => 61 Minutes
+*/
+export const convertSeconds = (seconds: number) => {
+  if (seconds === 0) {
+    return '0 Seconds';
+  }
+
+  let time = seconds;
+  let unit = 'Seconds';
+
+  if (time % 60 === 0) {
+    unit = time === 60 ? 'Minute' : 'Minutes';
+    time = time / 60;
+  }
+
+  if (time % 60 === 0) {
+    unit = time === 60 ? 'Hour' : 'Hours';
+    time = time / 60;
+  }
+
+  if (time % 24 === 0) {
+    unit = time === 24 ? 'Day' : 'Days';
+    time = time / 24;
+  }
+
+  return `${time} ${unit}`;
+};

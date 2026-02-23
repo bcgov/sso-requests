@@ -19,13 +19,9 @@ import BcscAttributesWidget from '@app/form-components/widgets/BcscAttributesWid
 import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneWidget';
 import { envMap, idpMap } from '@app/helpers/meta';
 import { Team } from '@app/interfaces/team';
-import {
-  ACCESS_TOKEN_LIFESPAN_DEFAULT,
-  OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT,
-  OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT,
-  SESSION_IDLE_TIMEOUT_DEFAULT,
-  SESSION_MAX_LIFESPAN_DEFAULT,
-} from '@app/utils/constants';
+import { GetStandardSettingsResponse } from '@app/interfaces/api';
+import { environments } from '@app/utils/constants';
+import { Environment } from '@app/interfaces/types';
 
 interface Props {
   integration: Integration;
@@ -33,11 +29,12 @@ interface Props {
   isAdmin: boolean;
   teams: Team[];
   schemas: any;
+  defaultSessionSettings: GetStandardSettingsResponse;
 }
 
-const envs = ['dev', 'test', 'prod'];
+const envs = environments as Environment[];
 
-const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) => {
+const getUISchema = ({ integration, formData, isAdmin, teams, schemas, defaultSessionSettings }: Props) => {
   const {
     id,
     status,
@@ -125,25 +122,25 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
   const durationAdditionalFields =
     formData?.protocol === 'saml' ? samlDurationAdditionalFields : oidcDurationAdditionalFields;
 
-  for (let x = 0; x < envs.length; x++) {
-    const OfflineAccessEnabled = get(formData, `${envs[x]}OfflineAccessEnabled`, false);
+  for (const env of envs) {
+    const OfflineAccessEnabled = get(formData, `${env}OfflineAccessEnabled`, false);
     for (let y = 0; y < durationAdditionalFields.length; y++) {
       let inheritedRealmSetting: string;
       switch (durationAdditionalFields[y]) {
         case 'SessionIdleTimeout':
-          inheritedRealmSetting = SESSION_IDLE_TIMEOUT_DEFAULT;
+          inheritedRealmSetting = defaultSessionSettings[env].ssoSessionIdleTimeout;
           break;
         case 'SessionMaxLifespan':
-          inheritedRealmSetting = SESSION_MAX_LIFESPAN_DEFAULT;
+          inheritedRealmSetting = defaultSessionSettings[env].ssoSessionMaxLifespan;
           break;
         case 'AccessTokenLifespan':
-          inheritedRealmSetting = ACCESS_TOKEN_LIFESPAN_DEFAULT;
+          inheritedRealmSetting = defaultSessionSettings[env].accessTokenLifespan;
           break;
         case 'OfflineSessionIdleTimeout':
-          inheritedRealmSetting = OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT;
+          inheritedRealmSetting = defaultSessionSettings[env].offlineSessionIdleTimeout;
           break;
         case 'OfflineSessionMaxLifespan':
-          inheritedRealmSetting = OFFLINE_SESSION_MAX_LIFESPAN_DEFAULT;
+          inheritedRealmSetting = defaultSessionSettings[env].offlineSessionMaxLifespan;
           break;
         default:
           inheritedRealmSetting = 'Inherited from realm settings';
@@ -156,10 +153,10 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
         'ui:inheritedRealmSetting': inheritedRealmSetting,
       };
 
-      tokenFields[`${envs[x]}${durationAdditionalFields[y]}`] = def;
+      tokenFields[`${env}${durationAdditionalFields[y]}`] = def;
     }
 
-    tokenFields[`${envs[x]}OfflineAccessEnabled`] = {
+    tokenFields[`${env}OfflineAccessEnabled`] = {
       'ui:widget': SwitchWidget,
       'ui:FieldTemplate': FieldInlineGrid,
       'ui:readonly': !isAdmin,
@@ -167,8 +164,8 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
 
     if (formData?.protocol === 'oidc') {
       if (!OfflineAccessEnabled) {
-        tokenFields[`${envs[x]}OfflineSessionIdleTimeout`]['ui:readonly'] = true;
-        tokenFields[`${envs[x]}OfflineSessionMaxLifespan`]['ui:readonly'] = true;
+        tokenFields[`${env}OfflineSessionIdleTimeout`]['ui:readonly'] = true;
+        tokenFields[`${env}OfflineSessionMaxLifespan`]['ui:readonly'] = true;
       }
     }
   }
