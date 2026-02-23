@@ -330,23 +330,23 @@ export const subtractDaysFromDate = (days: number) => {
 };
 
 export const isBceidApprover = (session: LoggedInUser | null) => {
-  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_BCEID);
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID);
 };
 
 export const isGithubApprover = (session: LoggedInUser | null) => {
-  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_GITHUB);
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_GITHUB);
 };
 
 export const isOTPApprover = (session: LoggedInUser | null) => {
-  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_OTP);
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_OTP);
 };
 
 export const isSocialApprover = (session: LoggedInUser | null) => {
-  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_SOCIAL);
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_SOCIAL);
 };
 
 export const isBcServicesCardApprover = (session: LoggedInUser | null) => {
-  return hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_BC_SERVICES_CARD);
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_BC_SERVICES_CARD);
 };
 
 export const isIdpApprover = (session: LoggedInUser | null) => {
@@ -434,7 +434,7 @@ export const validateIDPs = ({
   const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
 
   if (
-    !hasAppPermission(session?.client_roles || [], appPermissions.ADD_RESTRICTED_IDPS) &&
+    !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
     (addingGithubPublic || addingOTP)
   ) {
     return false;
@@ -454,7 +454,7 @@ export const validateIDPs = ({
   }
 
   const discontinuedIdps = getDiscontinuedIdps();
-  if (!hasAppPermission(session?.client_roles || [], appPermissions.ADD_RESTRICTED_IDPS)) {
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS)) {
     for (let idp of discontinuedIdps) {
       if (!currentIdps.includes(idp) && updatedIdps.includes(idp)) return false;
     }
@@ -519,7 +519,7 @@ export const sanitizeRequest = (session: Session, data: Integration, isMerged: b
     immutableFields.push('realm');
   }
 
-  if (!hasAppPermission(session?.client_roles || [], appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
+  if (!hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
     immutableFields.push(...durationAdditionalFields, 'clientId');
 
     if (!isBceidApprover(session)) {
@@ -535,7 +535,7 @@ export const sanitizeRequest = (session: Session, data: Integration, isMerged: b
     }
   }
 
-  if (hasAppPermission(session?.client_roles || [], appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
+  if (hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
     if (data?.protocol === 'oidc') {
       ['dev', 'test', 'prod'].forEach((env: string) => {
         if (!data[`${env}OfflineAccessEnabled` as keyof Integration])

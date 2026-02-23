@@ -567,7 +567,7 @@ export const updateRequest = async (
 
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
     if (
-      !hasAppPermission(session?.client_roles || [], appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) &&
+      !hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) &&
       (bceidApprover || githubApprover || bcscApprover || socialApprover || otpApprover) &&
       !(await canUpdateRequestByUserId(session?.user?.id as number, data?.id!))
     ) {
@@ -750,7 +750,7 @@ export const updateRequest = async (
 
       if (isMerged) {
         const details: any = { changes };
-        if (hasAppPermission(session?.client_roles || [], appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && comment) {
+        if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && comment) {
           details.comment = comment;
         }
 
@@ -947,7 +947,7 @@ export const getRequestAll = async (
     devIdps: string[];
   },
 ) => {
-  if (!hasAppPermission(session?.client_roles || [], appPermissions.VIEW_ADMIN_DASHBOARD)) {
+  if (!hasAppPermission(session?.client_roles, appPermissions.VIEW_ADMIN_DASHBOARD)) {
     throw new createHttpError.Forbidden('not allowed');
   }
 
@@ -955,7 +955,7 @@ export const getRequestAll = async (
   const { order, limit, page, ...rest } = data;
   const allowedIdpsForApprover = getAllowedIdpsForApprover(session);
 
-  if (hasAppPermission(session?.client_roles || [], appPermissions.ADMIN_DASHBOARD_VIEW_ALL_REQUESTS)) {
+  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_ALL_REQUESTS)) {
     where = getWhereClauseForAllRequests({
       ...rest,
     });
@@ -1059,7 +1059,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 };
 
 export const updateRequestMetadata = async (session: Session, user: User, data: { id: number; status: string }) => {
-  if (!hasAppPermission(session?.client_roles || [], appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)) {
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)) {
     throw new createHttpError.Forbidden('not allowed');
   }
   const { id, status } = data;

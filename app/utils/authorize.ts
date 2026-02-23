@@ -123,8 +123,8 @@ export const hasTeamPermission = (role: string | undefined, permission: string) 
   return permissions.includes(permission);
 };
 
-export const hasAppPermission = (roles: string[], permission: string) => {
-  if (!roles || roles.length === 0) return false;
+export const hasAppPermission = (roles: string[] = [], permission: string) => {
+  if (roles.length === 0) return false;
   for (const role of roles) {
     const permissions = appRolePermissionMap[role];
     if (permissions && permissions.includes(permission)) {

@@ -86,7 +86,7 @@ export default function AdminReports({ session }: PageProps) {
   const [downloadError, setDownloadError] = useState(false);
 
   useEffect(() => {
-    if (!hasAppPermission(session?.client_roles || [], appPermissions.DOWNLOAD_ADMIN_REPORTS)) {
+    if (!hasAppPermission(session?.client_roles, appPermissions.DOWNLOAD_ADMIN_REPORTS)) {
       router.push('/my-dashboard');
     }
   }, []);

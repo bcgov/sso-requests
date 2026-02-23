@@ -504,15 +504,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
                 them at <Link href="mailto:ditp.support@gov.bc.ca">ditp.support@gov.bc.ca</Link>.
               </p>
             )}
-            {!currentUser?.client_roles?.includes('sso-admin') && (
-              <p>
-                If you need to change anything after submitting your request, please contact our{' '}
-                <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-                  #SSO channel
-                </Link>{' '}
-                or email <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>
-              </p>
-            )}
           </>
         }
         title="Submitting Request"

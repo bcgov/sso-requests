@@ -141,7 +141,7 @@ export default function getSchema(
       }
     });
 
-    if (hasAppPermission(session?.client_roles || [], appPermissions.ADD_RESTRICTED_IDPS) && !idpEnum?.includes('idir'))
+    if (hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) && !idpEnum?.includes('idir'))
       idpEnum?.unshift('idir');
 
     properties.devIdps = {
@@ -213,7 +213,7 @@ export default function getSchema(
   const bcscAvailableAndSelected = bcscSelected && include_bcsc;
   // only show privacy zone if otp is selected and enabled and user is sso admin
   const otpAvailableAndSelected =
-    otpSelected && includeOTP && hasAppPermission(session?.client_roles || [], appPermissions.ADD_RESTRICTED_IDPS);
+    otpSelected && includeOTP && hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS);
 
   if (bcscAvailableAndSelected || otpAvailableAndSelected) {
     properties.bcscPrivacyZone = privacyZonesSchema;
@@ -267,10 +267,7 @@ export default function getSchema(
     };
   }
 
-  if (
-    protocol === 'saml' &&
-    hasAppPermission(session?.client_roles || [], appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)
-  ) {
+  if (protocol === 'saml' && hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)) {
     properties.clientId = {
       type: 'string',
       title: 'As SSO Admin. you can override the client id',

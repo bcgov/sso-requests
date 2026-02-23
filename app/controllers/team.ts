@@ -146,11 +146,6 @@ export const verifyTeamMember = async (userId: number, teamId: number) => {
   return result[0] === 1;
 };
 
-// export const canManageTeam = async (session: Session, userId: number, teamId: number) => {
-//   if (isAdmin(session) || (await isTeamAdmin(userId, teamId))) return true;
-//   return false;
-// };
-
 export const userCanReadTeam = async (user: User, teamId: number) => {
   const { id } = user;
   return models.usersTeam.findOne({

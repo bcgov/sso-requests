@@ -80,23 +80,23 @@ export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any
   const changedAttrs: any = {};
 
   const isApprovingBceid = !originalData.bceidApproved && updatedData.bceidApproved;
-  if (isApprovingBceid && !hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_BCEID))
+  if (isApprovingBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
     throw new createHttpError.Forbidden('not allowed to approve bceid');
 
   const isApprovingGithub = !originalData.githubApproved && updatedData.githubApproved;
-  if (isApprovingGithub && !hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_GITHUB))
+  if (isApprovingGithub && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_GITHUB))
     throw new createHttpError.Forbidden('not allowed to approve github');
 
   const isApprovingBCSC = !originalData.bcServicesCardApproved && updatedData.bcServicesCardApproved;
-  if (isApprovingBCSC && !hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_BC_SERVICES_CARD))
+  if (isApprovingBCSC && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BC_SERVICES_CARD))
     throw new createHttpError.Forbidden('not allowed to approve bc services card');
 
   const isApprovingSocial = !originalData.socialApproved && updatedData.socialApproved;
-  if (isApprovingSocial && !hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_SOCIAL))
+  if (isApprovingSocial && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_SOCIAL))
     throw new createHttpError.Forbidden('not allowed to approve social');
 
   const isApprovingOTP = !originalData.otpApproved && updatedData.otpApproved;
-  if (isApprovingOTP && !hasAppPermission(session?.client_roles || [], appPermissions.APPROVE_OTP))
+  if (isApprovingOTP && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_OTP))
     throw new createHttpError.Forbidden('not allowed to approve otp');
 
   if (originalData.otpApproved && !updatedData.devIdps.some(checkOTP)) {

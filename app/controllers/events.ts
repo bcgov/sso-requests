@@ -23,8 +23,8 @@ export const getEvents = async (
   },
 ) => {
   if (
-    !hasAppPermission(session?.client_roles || [], appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS) &&
-    !hasAppPermission(session?.client_roles || [], appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_IDP_EVENTS)
+    !hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS) &&
+    !hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_IDP_EVENTS)
   ) {
     throw new Error('User is not authorized to view request events');
   }
@@ -37,7 +37,7 @@ export const getEvents = async (
     where.eventCode = eventCode;
   }
 
-  if (!hasAppPermission(session?.client_roles || [], appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS)) {
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS)) {
     const approvedKeys = [];
 
     if (isBceidApprover(session)) approvedKeys.push('bceidApproved');

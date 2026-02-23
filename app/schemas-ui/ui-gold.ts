@@ -87,20 +87,20 @@ const getUISchema = ({ integration, formData, session, teams, schemas }: Props) 
 
   // Only admins or integrations already using public github can use the IDP.
   if (
-    !hasAppPermission(session?.client_roles || [], appPermissions.ADD_RESTRICTED_IDPS) &&
+    !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
     (!isApplied || !devIdps.includes('githubpublic'))
   )
     idpHidden.push('githubpublic');
 
   // Only admins can use OTP.
-  if (!hasAppPermission(session?.client_roles || [], appPermissions.ADD_RESTRICTED_IDPS)) idpHidden.push('otp');
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS)) idpHidden.push('otp');
 
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
     idpDisabled.push('digitalcredential');
   }
 
-  const includeComment = isApplied && hasAppPermission(session?.client_roles || [], appPermissions.ADD_REQUEST_COMMENT);
+  const includeComment = isApplied && hasAppPermission(session?.client_roles, appPermissions.ADD_REQUEST_COMMENT);
 
   const tokenFields: any = {};
 
@@ -169,7 +169,7 @@ const getUISchema = ({ integration, formData, session, teams, schemas }: Props) 
     tokenFields[`${envs[x]}OfflineAccessEnabled`] = {
       'ui:widget': SwitchWidget,
       'ui:FieldTemplate': FieldInlineGrid,
-      'ui:readonly': !hasAppPermission(session?.client_roles || [], appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS),
+      'ui:readonly': !hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS),
     };
 
     if (formData?.protocol === 'oidc') {
@@ -193,7 +193,7 @@ const getUISchema = ({ integration, formData, session, teams, schemas }: Props) 
       'ui:classNames': 'short-field-string',
     },
     clientId: {
-      'ui:readonly': !hasAppPermission(session?.client_roles || [], appPermissions.UPDATE_SAML_REQUEST_CLIENT_ID),
+      'ui:readonly': !hasAppPermission(session?.client_roles, appPermissions.UPDATE_SAML_REQUEST_CLIENT_ID),
       'ui:classNames': 'short-field-string',
     },
     devLoginTitle: {

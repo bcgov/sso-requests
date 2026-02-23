@@ -87,7 +87,7 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
       };
       // Only display offline settings for admins or if already turned on
       if (
-        hasAppPermission(session?.client_roles || [], appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS) ||
+        hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS) ||
         formData[offlineAccessEnabledField as keyof Integration] === true
       ) {
         tokenSchemas = Object.assign(tokenSchemas, {
