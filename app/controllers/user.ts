@@ -14,6 +14,7 @@ import { createEvent } from './requests';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
 import compact from 'lodash.compact';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -97,7 +98,7 @@ export const listUsersByRole = async (
     max: number;
   },
 ) => {
-  const integration = isAdmin(session)
+  const integration = hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES)
     ? await getIntegrationById(integrationId)
     : await findAllowedIntegrationInfo(session?.user?.id as number, integrationId);
   if (integration.authType === 'service-account') throw new createHttpError.BadRequest('invalid auth type');

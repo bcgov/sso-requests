@@ -4,7 +4,7 @@ import { processUserSession } from '@app/controllers/user';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { restoreTeamServiceAccount } from '@app/controllers/team';
-import { assertSessionRole } from '@app/helpers/permissions';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -14,7 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'GET') {
       const { teamId, saId } = req.query;
-      assertSessionRole(session, 'sso-admin');
+      if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_RESTORE_REQUEST))
+        return res.status(403).json({ success: false, message: 'forbidden' });
       const result = await restoreTeamServiceAccount(
         session as Session,
         session?.user?.id!,

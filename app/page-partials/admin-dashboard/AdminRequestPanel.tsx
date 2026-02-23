@@ -4,6 +4,7 @@ import RequestPreview from 'components/RequestPreview';
 import { Integration } from 'interfaces/Request';
 import MetadataEditModal from 'page-partials/admin-dashboard/MetadataEditModal';
 import { LoggedInUser } from 'interfaces/team';
+import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 
 const EventContent = styled.div`
   max-height: calc(100vh - 250px);
@@ -23,7 +24,9 @@ export default function AdminRequestPanel({ currentUser, request, onUpdate }: Pr
     <EventContent>
       <br />
       <RequestPreview request={request} />
-      {currentUser?.isAdmin && <MetadataEditModal request={request} onUpdate={onUpdate} />}
+      {hasAppPermission(currentUser?.client_roles || [], appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST) && (
+        <MetadataEditModal request={request} onUpdate={onUpdate} />
+      )}
     </EventContent>
   );
 }

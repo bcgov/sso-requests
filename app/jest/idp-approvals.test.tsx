@@ -5,6 +5,7 @@ import * as requestModule from 'services/request';
 import * as eventModule from 'services/event';
 import { Integration } from '@app/interfaces/Request';
 import { updateRequest } from 'services/request';
+
 const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
 const MOCK_PRIVACY_ZONE_NAME = 'uniqueZoneName';
 
@@ -176,11 +177,10 @@ const sampleRequests: { [key: string]: Integration } = {
     otpApproved: false,
   },
 };
-const sampleRequestsArray = Object.values(sampleRequests);
 
 const sampleSession = {
   email: '',
-  isAdmin: false,
+  client_roles: [],
 };
 
 const MOCK_EMAIL = 'some@email.com';

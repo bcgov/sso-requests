@@ -9,7 +9,6 @@ import FieldTermsAndConditions from '@app/form-components/FieldTermsAndCondition
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
 import FieldInlineGrid from '@app/form-components/FieldInlineGrid';
-import { checkBceidGroup, checkGithubGroup } from '@app/helpers/integration';
 import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
@@ -18,7 +17,8 @@ import get from 'lodash.get';
 import BcscAttributesWidget from '@app/form-components/widgets/BcscAttributesWidget';
 import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneWidget';
 import { envMap, idpMap } from '@app/helpers/meta';
-import { Team } from '@app/interfaces/team';
+import { Team, LoggedInUser } from '@app/interfaces/team';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import {
   ACCESS_TOKEN_LIFESPAN_DEFAULT,
   OFFLINE_SESSION_IDLE_TIMEOUT_DEFAULT,
@@ -30,14 +30,14 @@ import {
 interface Props {
   integration: Integration;
   formData?: Integration;
-  isAdmin: boolean;
+  session: LoggedInUser | null;
   teams: Team[];
   schemas: any;
 }
 
 const envs = ['dev', 'test', 'prod'];
 
-const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) => {
+const getUISchema = ({ integration, formData, session, teams, schemas }: Props) => {
   const {
     id,
     status,
@@ -86,17 +86,21 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
   idpDisabled = uniq(idpDisabled);
 
   // Only admins or integrations already using public github can use the IDP.
-  if (!isAdmin && (!isApplied || !devIdps.includes('githubpublic'))) idpHidden.push('githubpublic');
+  if (
+    !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
+    (!isApplied || !devIdps.includes('githubpublic'))
+  )
+    idpHidden.push('githubpublic');
 
   // Only admins can use OTP.
-  if (!isAdmin) idpHidden.push('otp');
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS)) idpHidden.push('otp');
 
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
     idpDisabled.push('digitalcredential');
   }
 
-  const includeComment = isApplied && isAdmin;
+  const includeComment = isApplied && hasAppPermission(session?.client_roles, appPermissions.ADD_REQUEST_COMMENT);
 
   const tokenFields: any = {};
 
@@ -151,7 +155,10 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
       const minuteOnlyFields = ['SessionIdleTimeout', 'SessionMaxLifespan'];
       let def: any = {
         'ui:widget': minuteOnlyFields.includes(durationAdditionalFields[y]) ? MinutesToSeconds : ClientTokenWidget,
-        'ui:readonly': !isAdmin,
+        'ui:readonly': !hasAppPermission(
+          session?.client_roles || [],
+          appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS,
+        ),
         'ui:FieldTemplate': FieldInlineGrid,
         'ui:inheritedRealmSetting': inheritedRealmSetting,
       };
@@ -162,7 +169,7 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
     tokenFields[`${envs[x]}OfflineAccessEnabled`] = {
       'ui:widget': SwitchWidget,
       'ui:FieldTemplate': FieldInlineGrid,
-      'ui:readonly': !isAdmin,
+      'ui:readonly': !hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS),
     };
 
     if (formData?.protocol === 'oidc') {
@@ -186,7 +193,7 @@ const getUISchema = ({ integration, formData, isAdmin, teams, schemas }: Props) 
       'ui:classNames': 'short-field-string',
     },
     clientId: {
-      'ui:readonly': !isAdmin,
+      'ui:readonly': !hasAppPermission(session?.client_roles, appPermissions.UPDATE_SAML_REQUEST_CLIENT_ID),
       'ui:classNames': 'short-field-string',
     },
     devLoginTitle: {

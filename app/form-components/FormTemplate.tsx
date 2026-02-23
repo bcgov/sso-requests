@@ -23,7 +23,6 @@ import {
   checkGithubGroup,
   checkNotGithubGroup,
   usesDigitalCredential,
-  usesBcServicesCard,
   checkSocial,
 } from '@app/helpers/integration';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
@@ -45,7 +44,8 @@ import {
 } from '@app/utils/constants';
 import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
-import { NON_ROLE_ASSIGNABLE_IDPS, hasRoleAssignableIdp } from '@app/schemas/providers-gold';
+import { hasRoleAssignableIdp } from '@app/schemas/providers-gold';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 const Description = styled.p`
   margin: 0;
@@ -64,29 +64,28 @@ const HeaderContainer = styled.div`
 const adjustIdps = ({
   currentIdps,
   updatedIdps,
+  user,
   applied = true,
   bceidApproved = false,
   protocol = 'oidc',
-  isAdmin = false,
   githubApproved = false,
   bcServicesCardApproved = false,
 }: {
   currentIdps: string[];
   updatedIdps: string[];
+  user: LoggedInUser | null;
   applied?: boolean;
   bceidApproved?: boolean;
   protocol?: string;
-  isAdmin?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
 }) => {
   const valid = validateIDPs({
     currentIdps,
     updatedIdps,
-    applied,
+    session: user,
     bceidApproved,
     protocol,
-    isAdmin,
     githubApproved,
     bcServicesCardApproved,
   });
@@ -166,7 +165,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
-  const isAdmin = currentUser?.isAdmin || false;
+  //const isAdmin = currentUser?.isAdmin || false;
 
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
   const isLastStage = formStage === schemas.length - 1;
@@ -201,7 +200,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       applied: formData.status === 'applied',
       bceidApproved: formData.bceidApproved,
       protocol: formData.protocol,
-      isAdmin: formData.isAdmin,
+      user: currentUser,
       githubApproved: formData.githubApproved,
     });
     const processed = { ...newData, devIdps };
@@ -265,8 +264,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const schemas = getSchemas({
       integration: request,
       formData,
+      session: currentUser,
       teams,
-      isAdmin,
       bcscPrivacyZones,
       bcscAttributes,
     });
@@ -309,11 +308,13 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const handleBackClick = () => {
-    const redirectUrl = isAdmin ? '/admin-dashboard' : '/my-dashboard';
+    const redirectUrl = hasAppPermission(currentUser?.client_roles || [], appPermissions.VIEW_ADMIN_DASHBOARD)
+      ? '/admin-dashboard'
+      : '/my-dashboard';
     router.push({ pathname: redirectUrl });
   };
 
-  const uiSchema = getUISchema({ integration: request as Integration, formData, isAdmin, teams, schemas });
+  const uiSchema = getUISchema({ integration: request as Integration, formData, session: currentUser, teams, schemas });
 
   const handleFormSubmit = async () => {
     if (loading) return;
@@ -344,7 +345,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         let redirectUrl = '';
         let query: any = {};
 
-        if (isAdmin && isApplied) {
+        if (hasAppPermission(currentUser?.client_roles || [], appPermissions.VIEW_ADMIN_DASHBOARD) && isApplied) {
           redirectUrl = '/admin-dashboard';
         } else {
           redirectUrl = `/request/${id}`;
@@ -383,7 +384,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         });
 
         router.push({
-          pathname: isAdmin ? '/admin-dashboard' : '/my-dashboard',
+          pathname: hasAppPermission(currentUser?.client_roles || [], appPermissions.VIEW_ADMIN_DASHBOARD)
+            ? '/admin-dashboard'
+            : '/my-dashboard',
           query: {
             id: data.id,
             integrationFailedMessageModal: ['planFailed', 'applyFailed'].includes(data.status!),
@@ -468,7 +471,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         onChange={handleChange}
         onSubmit={handleFormSubmit}
         formData={formData}
-        formContext={{ isAdmin, teams, formData, setFormData, loadTeams, bcscPrivacyZones }}
+        formContext={{ teams, formData, setFormData, loadTeams, bcscPrivacyZones }}
         templates={{ FieldTemplate, ArrayFieldTemplate }}
         liveValidate={visited[formStage] || isApplied}
         customValidate={customValidate}
@@ -499,15 +502,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
               <p>
                 You will need to engage with DIT to learn about the Digital Credential Configuration ID. You can contact
                 them at <Link href="mailto:ditp.support@gov.bc.ca">ditp.support@gov.bc.ca</Link>.
-              </p>
-            )}
-            {!isAdmin && (
-              <p>
-                If you need to change anything after submitting your request, please contact our{' '}
-                <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-                  #SSO channel
-                </Link>{' '}
-                or email <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>
               </p>
             )}
           </>

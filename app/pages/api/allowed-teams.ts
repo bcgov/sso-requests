@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { session } = await processUserSession(userSession as Session);
 
     if (req.method === 'GET') {
-      const result = await getAllowedTeams(session?.user!, { raw: true });
+      const result = await getAllowedTeams(session, { raw: true });
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET']);

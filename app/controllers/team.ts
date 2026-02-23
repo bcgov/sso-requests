@@ -4,9 +4,9 @@ import {
   getAllTeamAPIAccounts,
   getAllowedTeamAPIAccount,
   getMemberOnTeam,
-  isTeamAdmin,
+  getTeamRoleByUserId,
 } from '@app/queries/team';
-import { getDisplayName, isAdmin } from '@app/utils/helpers';
+import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { sendTemplate } from '@app/shared/templates';
@@ -21,6 +21,7 @@ import { getIntegrationsByTeam } from '@app/queries/request';
 import { checkIfRequestMerged, createEvent } from '@app/controllers/requests';
 import createHttpError from 'http-errors';
 import { generateInvitationToken } from '@app/helpers/token';
+import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -36,8 +37,9 @@ export const createTeam = async (user: User, data: Team) => {
 };
 
 export const addUsersToTeam = async (teamId: number, userId: number, members: Member[]) => {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new createHttpError.Forbidden('not allowed to add users to team');
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.ADD_MEMBER);
+  if (userRole?.pending || !authorized) throw new createHttpError.Forbidden('not allowed to add users to team');
   members = members.map((member) => ({ ...member, idirEmail: lowcase(member?.idirEmail!) }));
 
   const usersEmailsAlreadyOnTeam = await findAllowedTeamUsers(teamId, userId).then((result) =>
@@ -68,8 +70,9 @@ export const addUsersToTeam = async (teamId: number, userId: number, members: Me
 };
 
 export const updateTeam = async (user: User, teamId: string, data: { name: string }) => {
-  const authorized = await isTeamAdmin(user.id, Number(teamId));
-  if (!authorized) throw new createHttpError.Forbidden('not allowed to update team');
+  const userRole = await getTeamRoleByUserId(user.id, Number(teamId));
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.UPDATE_TEAM);
+  if (userRole?.pending || !authorized) throw new createHttpError.Forbidden('not allowed to update team');
   const updated = await models.team.update(
     { name: data.name },
     {
@@ -89,8 +92,9 @@ export const updateTeam = async (user: User, teamId: string, data: { name: strin
 };
 
 export const deleteTeam = async (session: Session, teamId: number) => {
-  const authorized = await isTeamAdmin(session?.user?.id!, teamId);
-  if (!authorized) {
+  const userRole = await getTeamRoleByUserId(session?.user?.id!, Number(teamId));
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.DELETE_TEAM);
+  if (userRole?.pending || !authorized) {
     throw new createHttpError.Forbidden('not allowed to delete team');
   }
 
@@ -142,11 +146,6 @@ export const verifyTeamMember = async (userId: number, teamId: number) => {
   return result[0] === 1;
 };
 
-export const canManageTeam = async (session: Session, userId: number, teamId: number) => {
-  if (isAdmin(session) || (await isTeamAdmin(userId, teamId))) return true;
-  return false;
-};
-
 export const userCanReadTeam = async (user: User, teamId: number) => {
   const { id } = user;
   return models.usersTeam.findOne({
@@ -167,8 +166,9 @@ const canRemoveUser = async (userId: number, teamId: number) => {
 };
 
 export const removeUserFromTeam = async (userId: number, memberUserId: number, teamId: number) => {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new createHttpError.Forbidden('not allowed to remove member from team');
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.REMOVE_MEMBER);
+  if (userRole?.pending || !authorized) throw new createHttpError.Forbidden('not allowed to remove member from team');
   const canRemove = await canRemoveUser(memberUserId, teamId);
   if (!canRemove) throw new createHttpError.Forbidden('not allowed to remove user');
 
@@ -189,8 +189,9 @@ export const updateMemberInTeam = async (
   memberUserId: number,
   data: { role: string },
 ) => {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new createHttpError.Forbidden('not allowed to update member in team');
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.UPDATE_MEMBER_ROLE);
+  if (userRole?.pending || !authorized) throw new createHttpError.Forbidden('not allowed to update member in team');
   await models.usersTeam.update(
     { role: data.role },
     {
@@ -207,8 +208,9 @@ export const updateMemberInTeam = async (
 };
 
 export const requestServiceAccount = async (session: Session, userId: number, teamId: number, requester: string) => {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) {
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS);
+  if (userRole?.pending || !authorized) {
     throw new createHttpError.Forbidden('not allowed to request service account');
   }
   const existingServiceAccounts = await getServiceAccounts(userId, teamId);
@@ -255,8 +257,9 @@ export const requestServiceAccount = async (session: Session, userId: number, te
 };
 
 export const getServiceAccounts = async (userId: number, teamId: number) => {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) {
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS);
+  if (userRole?.pending || !authorized) {
     throw new createHttpError.Forbidden(`not allowed to fetch api accounts for the team #${teamId}`);
   }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
@@ -264,8 +267,9 @@ export const getServiceAccounts = async (userId: number, teamId: number) => {
 };
 
 export const getServiceAccount = async (userId: number, teamId: number, saId: number) => {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) {
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS);
+  if (userRole?.pending || !authorized) {
     throw new createHttpError.Forbidden(`not allowed to fetch api account for the team #${teamId}`);
   }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
@@ -295,8 +299,9 @@ export const getServiceAccount = async (userId: number, teamId: number, saId: nu
 };
 
 export const getServiceAccountCredentials = async (userId: number, teamId: number, saId: number) => {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) {
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS);
+  if (userRole?.pending || !authorized) {
     throw new createHttpError.Forbidden('not allowed to fetch api account credentials');
   }
   const integration = await getServiceAccount(userId, teamId, saId);
@@ -313,8 +318,9 @@ export const getServiceAccountCredentials = async (userId: number, teamId: numbe
 
 export const deleteServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
   try {
-    const authorized = await canManageTeam(session, userId, teamId);
-    if (!authorized) {
+    const userRole = await getTeamRoleByUserId(userId, teamId);
+    const authorized = hasTeamPermission(userRole?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS);
+    if (userRole?.pending || !authorized) {
       throw new createHttpError.Forbidden('not allowed to delete api account');
     }
     const serviceAccount = await getAllowedTeamAPIAccount(session, saId, userId, teamId);
@@ -359,8 +365,9 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 };
 
 export const updateServiceAccountSecret = async (userId: number, teamId: number, saId: number) => {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) {
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS);
+  if (userRole?.pending || !authorized) {
     throw new createHttpError.Forbidden('not allowed to update api account credentials');
   }
   const integration = await getServiceAccount(userId, teamId, saId);
@@ -373,8 +380,9 @@ export const updateServiceAccountSecret = async (userId: number, teamId: number,
 };
 
 export const restoreTeamServiceAccount = async (session: Session, userId: number, teamId: number, saId: number) => {
-  const authorized = await canManageTeam(session, userId, teamId);
-  if (!authorized) {
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS);
+  if (userRole?.pending || !authorized) {
     throw new createHttpError.Forbidden('not allowed to restore api account');
   }
   const serviceAccount = await getAllowedTeamAPIAccount(session, saId, userId, teamId);
@@ -418,8 +426,10 @@ export const restoreTeamServiceAccount = async (session: Session, userId: number
 };
 
 export async function inviteTeamMembers(userId: number, users: (User & { role: string })[], teamId: number) {
-  const authorized = await isTeamAdmin(userId, teamId);
-  if (!authorized) throw new createHttpError.Forbidden(`not allowed to invite members for the team #${teamId}`);
+  const userRole = await getTeamRoleByUserId(userId, teamId);
+  const authorized = hasTeamPermission(userRole?.role, teamPermissions.ADD_MEMBER);
+  if (userRole?.pending || !authorized)
+    throw new createHttpError.Forbidden(`not allowed to invite members for the team #${teamId}`);
   const team = await getTeamById(teamId);
   return Promise.all(
     users.map(async (user) => {

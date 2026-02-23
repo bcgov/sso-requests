@@ -2,7 +2,8 @@ import { Op } from 'sequelize';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, User } from '@app/shared/interfaces';
 import { getMyTeamsLiteral, getTeamIdLiteralOutOfRange } from './literals';
-import { isAdmin } from '@app/utils/helpers';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import { LoggedInUser } from '@app/interfaces/team';
 
 export type ApiAccountQueryOptions = {
   attributes?: string[];
@@ -60,10 +61,10 @@ export const findTeamsForUser = async (userId: number, options = { raw: true }) 
   });
 };
 
-export const getAllowedTeams = async (user: User, options = { raw: true }) => {
+export const getAllowedTeams = async (session: Session, options = { raw: true }) => {
   const where: any = {};
-  if (!user.isAdmin) {
-    const teamIdsLiteral = getMyTeamsLiteral(user.id);
+  if (!hasAppPermission(session?.client_roles, appPermissions.VIEW_TEAMS)) {
+    const teamIdsLiteral = getMyTeamsLiteral(session?.user?.id as number);
     where.id = { [Op.in]: sequelize.literal(`(${teamIdsLiteral})`) };
   }
 
@@ -74,9 +75,9 @@ export const getAllowedTeams = async (user: User, options = { raw: true }) => {
   });
 };
 
-export const getAllowedTeam = async (teamId: number, user: User, options = { raw: true }) => {
-  const teamIdsLiteral = getMyTeamsLiteral(user.id);
-  const where = user.isAdmin
+export const getAllowedTeam = async (teamId: number, session: Session, options = { raw: true }) => {
+  const teamIdsLiteral = getMyTeamsLiteral(session?.user?.id as number);
+  const where = hasAppPermission(session?.client_roles, appPermissions.VIEW_TEAMS)
     ? { id: teamId }
     : {
         [Op.and]: [
@@ -205,7 +206,7 @@ export const getAllowedTeamAPIAccount = async (
     apiServiceAccount: true,
   };
 
-  if (isAdmin(session)) {
+  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST)) {
     return await models.request.findOne({
       where,
       ...options,
@@ -219,19 +220,6 @@ export const getAllowedTeamAPIAccount = async (
   });
 };
 
-export const isTeamAdmin = async (userId: number, teamId: number) => {
-  const userIsTeamAdmin = await models.usersTeam.findOne({
-    where: {
-      userId,
-      teamId,
-      role: 'admin',
-      pending: false,
-    },
-  });
-  if (userIsTeamAdmin) return true;
-  return false;
-};
-
 export async function getUsersTeams(user: User) {
   return models?.team
     ?.findAll({
@@ -240,4 +228,16 @@ export async function getUsersTeams(user: User) {
       },
     })
     .then((res: any) => res.map((res: any) => res.dataValues));
+}
+
+export async function getTeamRoleByUserId(userId: number, teamId: number) {
+  const teamRole = await models.usersTeam.findOne({
+    where: {
+      userId,
+      teamId,
+    },
+    attributes: ['role', 'pending'],
+    raw: true,
+  });
+  return teamRole;
 }
