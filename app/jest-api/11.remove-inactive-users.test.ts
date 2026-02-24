@@ -541,7 +541,7 @@ describe('Event Logging', () => {
     expect(events.length).toBe(2);
 
     events.forEach((event, i) => {
-      expect(event.details.removerId).toBe('user-deletion-cron');
+      expect(event.details.removerId).toBe('delete-user-cron');
       expect(event.details.removedMemberId).toBe(authenticatedUser.id);
       expect(event.details.teamId).toBe(i === 0 ? team1.id : team2.id);
     });

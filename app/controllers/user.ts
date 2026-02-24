@@ -254,7 +254,7 @@ export const deleteStaleUsers = async (
       });
 
       // Log an event if the removed user is an admin
-      if (teamAdmins.find((admin: UserTeam) => admin.userId === existingUser.id)) {
+      if (teamAdmins.some((admin: UserTeam) => admin.userId === existingUser.id)) {
         await createEvent({
           eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
           details: {
