@@ -259,7 +259,7 @@ export const deleteStaleUsers = async (
           eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
           details: {
             removerId: 'delete-user-cron',
-            teamId: team.id,
+            teamId: team.teamId,
             removedMemberId: existingUser.id,
             action: 'removed',
           },
