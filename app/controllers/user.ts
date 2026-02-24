@@ -1,7 +1,7 @@
 import { literal, Op } from 'sequelize';
 import isNil from 'lodash/isNil';
 import { models } from '@app/shared/sequelize/models/models';
-import { Session, User } from '@app/shared/interfaces';
+import { Session, User, UserTeam } from '@app/shared/interfaces';
 import { lowcase } from '@app/helpers/string';
 import { isAdmin } from '../utils/helpers';
 import { findAllowedIntegrationInfo, getIntegrationById } from '@app/queries/request';
@@ -252,6 +252,19 @@ export const deleteStaleUsers = async (
         },
         raw: true,
       });
+
+      // Log an event if the removed user is an admin
+      if (teamAdmins.find((admin: UserTeam) => admin.userId === existingUser.id)) {
+        await createEvent({
+          eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
+          details: {
+            removerId: 'delete-user-cron',
+            teamId: team.id,
+            removedMemberId: existingUser.id,
+            action: 'removed',
+          },
+        });
+      }
 
       // Assign us to the team if this user was the only existing admin
       if (teamAdmins.length === 1 && teamAdmins[0].userId === existingUser.id) {

@@ -278,7 +278,8 @@ export function canDeleteMember(members: User[], memberId?: number) {
   if (members.length === 1) return false;
   const memberToDelete = members.find((member) => member.id === memberId);
   const memberIsLastAdmin =
-    members.filter((member) => member.role === 'admin').length === 1 && memberToDelete?.role === 'admin';
+    members.filter((member) => member.role === 'admin' && member.pending === false).length === 1 &&
+    memberToDelete?.role === 'admin';
   if (memberIsLastAdmin) return false;
   return true;
 }

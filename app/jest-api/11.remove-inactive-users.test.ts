@@ -17,7 +17,7 @@ import { deleteInactiveUsers, getAuthenticatedUser } from './helpers/modules/use
 import { Integration } from '@app/interfaces/Request';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@app/shared/sequelize/models/models';
-import { EMAILS } from '@app/shared/enums';
+import { EMAILS, EVENTS } from '@app/shared/enums';
 import { renderTemplate } from '@app/shared/templates';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { deleteIntegration } from './helpers/modules/integrations';
@@ -517,5 +517,33 @@ describe('Environment Check', () => {
       expect(deleteInactiveIntegrationEmails[0].body.includes('role2')).toBeTruthy();
       expect(deleteInactiveIntegrationEmails[0].body.includes(env)).toBeTruthy();
     }
+  });
+});
+
+describe('Event Logging', () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    await cleanUpDatabaseTables();
+    // Log in as sso team user to ensure exists for ownership transfer
+    createMockAuth(SSO_TEAM_IDIR_USER, SSO_TEAM_IDIR_EMAIL);
+    await getAuthenticatedUser();
+  });
+
+  it('Logs an event for each team an admin is removed from', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const authenticatedUser = await getAuthenticatedUser().then((res) => res.body);
+
+    const team1 = await createTeam({ name: 'team1', members: [] }).then((res) => res.body);
+    const team2 = await createTeam({ name: 'team2', members: [] }).then((res) => res.body);
+
+    await deleteInactiveUsers(testUser);
+    const events = (await models.event.findAll({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } })) as any[];
+    expect(events.length).toBe(2);
+
+    events.forEach((event, i) => {
+      expect(event.details.removerId).toBe('user-deletion-cron');
+      expect(event.details.removedMemberId).toBe(authenticatedUser.id);
+      expect(event.details.teamId).toBe(i === 0 ? team1.id : team2.id);
+    });
   });
 });
