@@ -335,9 +335,21 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       }
       if (!users || users.length === 0) break;
       data.push(
-        ...(users.map((user) => {
-          return _.pick(user, ['firstName', 'lastName', 'email']);
-        }) as KeycloakUser[]),
+        ...users.map((user) => {
+          const identityProvider = user.username.split('@')[1];
+          const username =
+            user.attributes?.idir_username?.[0] ||
+            user.attributes?.bceid_username?.[0] ||
+            user.attributes?.github_username?.[0] ||
+            '';
+          return _.pick({ ...user, username, identityProvider }, [
+            'firstName',
+            'lastName',
+            'email',
+            'username',
+            'identityProvider',
+          ]);
+        }),
       );
     }
     generateXlsx(data, `${integration.projectName}-users`, `${selectedRole} users`);
