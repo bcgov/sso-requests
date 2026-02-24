@@ -30,6 +30,7 @@ import { models } from '@app/shared/sequelize/models/models';
 import { findOrCreateUser } from '@app/controllers/user';
 import { createMockAuth } from './mocks/authenticate';
 import { cleanUpDatabaseTables } from './helpers/utils';
+import { EVENTS } from '@app/shared/enums';
 
 jest.mock('@app/controllers/requests', () => {
   const original = jest.requireActual('@app/controllers/requests');
@@ -329,5 +330,82 @@ describe('User creation and Updating', () => {
 
     expect(users.map((user: any) => user.idirUserid)).toContain('TEST');
     expect(users.map((user: any) => user.idirEmail)).toContain('second@email.com');
+  });
+});
+
+describe('Admin Removal and Events', () => {
+  let authenticatedUser: any;
+  let additionalAdmin: any;
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    await cleanUpDatabaseTables();
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    authenticatedUser = await getAuthenticatedUser().then((res) => res.body);
+    additionalAdmin = await models.user.create({
+      idirUserid: TEAM_ADMIN_IDIR_USERID_02,
+      idirEmail: TEAM_ADMIN_IDIR_EMAIL_02,
+    });
+  });
+
+  it('Should ignore pending users when checking if the last admin is leaving the team', async () => {
+    const team = await createTeam({
+      name: 'team',
+      members: [
+        {
+          idirEmail: TEAM_ADMIN_IDIR_EMAIL_02,
+          role: 'admin',
+        },
+      ],
+    }).then((res) => res.body);
+    const result = await deleteMembersOfTeam(team.id, authenticatedUser.id);
+    expect(result.status).toEqual(403);
+  });
+
+  it('Cannot change last team admin role to a member', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const team = await createTeam({ name: 'team', members: [] }).then((res) => res.body);
+    let result = await updateTeamMember(team.id, authenticatedUser.id, { role: 'member' });
+    expect(result.status).toBe(403);
+  });
+
+  it('Logs an event when an admin role is changed', async () => {
+    const team = await createTeam({
+      name: 'team',
+      members: [
+        {
+          idirEmail: TEAM_ADMIN_IDIR_EMAIL_02,
+          role: 'admin',
+        },
+      ],
+    }).then((res) => res.body);
+
+    await models.usersTeam.update({ pending: false }, { where: { teamId: team.id, userId: additionalAdmin.id } });
+    await updateTeamMember(team.id, additionalAdmin.id, { role: 'member' });
+    const event = await models.event.findOne({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } });
+
+    // Event trigerred by the authenticated user
+    expect(event.details.removerId).toBe(authenticatedUser.id);
+    expect(event.details.removedMemberId).toBe(additionalAdmin.id);
+    expect(event.details.teamId).toBe(team.id);
+  });
+
+  it('Logs an event when an admin is removed from a team', async () => {
+    const team = await createTeam({
+      name: 'team',
+      members: [
+        {
+          idirEmail: TEAM_ADMIN_IDIR_EMAIL_02,
+          role: 'admin',
+        },
+      ],
+    }).then((res) => res.body);
+    await models.usersTeam.update({ pending: false }, { where: { teamId: team.id, userId: additionalAdmin.id } });
+
+    await deleteMembersOfTeam(team.id, additionalAdmin.id);
+    const event = await models.event.findOne({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } });
+    // Event trigerred by the authenticated user
+    expect(event.details.removerId).toBe(authenticatedUser.id);
+    expect(event.details.removedMemberId).toBe(additionalAdmin.id);
+    expect(event.details.teamId).toBe(team.id);
   });
 });

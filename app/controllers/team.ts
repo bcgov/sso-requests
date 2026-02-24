@@ -159,7 +159,7 @@ export const userCanReadTeam = async (user: User, teamId: number) => {
 
 const canRemoveUser = async (userId: number, teamId: number) => {
   const teamMembers = await findAllowedTeamUsers(teamId, userId);
-  const teamAdmins = teamMembers.filter((member: any) => member.role === 'admin');
+  const teamAdmins = teamMembers.filter((member: any) => member.role === 'admin' && member.pending === false);
   const userIsLastAdmin = teamAdmins.length === 1 && Number(teamAdmins[0].id) === Number(userId);
   if (userIsLastAdmin) return false;
   return true;
@@ -172,7 +172,20 @@ export const removeUserFromTeam = async (userId: number, memberUserId: number, t
   const canRemove = await canRemoveUser(memberUserId, teamId);
   if (!canRemove) throw new createHttpError.Forbidden('not allowed to remove user');
 
-  await models.usersTeam.destroy({ where: { userId: memberUserId, teamId } });
+  const userTeamRecord = await models.usersTeam.findOne({ where: { userId: memberUserId, teamId } });
+  if (userTeamRecord.role === 'admin' && userTeamRecord.pending === false) {
+    await createEvent({
+      eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
+      details: {
+        removerId: userId,
+        teamId,
+        removedMemberId: memberUserId,
+        action: 'removed',
+      },
+    });
+  }
+
+  await userTeamRecord.destroy();
 
   const [user, team] = await Promise.all([getUserById(memberUserId), getTeamById(teamId)]);
   await Promise.all([
@@ -192,6 +205,27 @@ export const updateMemberInTeam = async (
   const userRole = await getTeamRoleByUserId(userId, teamId);
   const authorized = hasTeamPermission(userRole?.role, teamPermissions.UPDATE_MEMBER_ROLE);
   if (userRole?.pending || !authorized) throw new createHttpError.Forbidden('not allowed to update member in team');
+
+  // Cannot demote the last admin until another is added
+  if (data.role != 'admin') {
+    const memberCurrentRole = await getTeamRoleByUserId(memberUserId, teamId);
+    if (memberCurrentRole.role === 'admin') {
+      const canDemote = await canRemoveUser(memberUserId, teamId);
+      if (!canDemote) throw new createHttpError.Forbidden('not allowed to update member in team');
+      else {
+        await createEvent({
+          eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
+          details: {
+            teamId,
+            removerId: userId,
+            removedMemberId: memberUserId,
+            action: 'roleChanged',
+          },
+        });
+      }
+    }
+  }
+
   await models.usersTeam.update(
     { role: data.role },
     {

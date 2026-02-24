@@ -147,7 +147,25 @@ const allowedFieldsForGithub = [
   ...envFieldsAll,
 ];
 
-export const createEvent = async (data: any) => {
+interface EventData {
+  eventCode: string;
+  requestId?: string | number;
+  idirUserid?: string;
+  idirUserDisplayName?: string;
+  details?: {
+    environment?: string;
+    clientId?: string;
+    idirUserDisplayName?: string;
+    removerId?: string | number;
+    teamId?: string | number;
+    removedMemberId?: string | number;
+    action?: string;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+export const createEvent = async (data: EventData) => {
   try {
     await models.event.create(data);
   } catch (err) {

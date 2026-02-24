@@ -20,6 +20,7 @@ export const EVENTS = {
   LOGS_DOWNLOADED_SUCCESS: 'logs-download-success',
   LOGS_DOWNLOADED_FAILURE: 'logs-download-failure',
   TRANSFER_OF_OWNERSHIP_FAILURE: 'transfer-of-ownership-failure',
+  TEAM_ADMIN_REMOVAL: 'team-admin-removal',
 };
 
 export const EMAILS = {
