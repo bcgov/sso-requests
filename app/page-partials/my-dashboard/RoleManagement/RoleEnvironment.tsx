@@ -337,7 +337,8 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       data.push(
         ...users.map((user) => {
           const identityProvider = user.username.split('@')[1];
-          const githubOrBceidUser = identityProvider.startsWith('bceid') || identityProvider.startsWith('github');
+          const githubOrBceidUser =
+            identityProvider && (identityProvider.startsWith('bceid') || identityProvider.startsWith('github'));
           const username =
             user.attributes?.idir_username?.[0] ||
             user.attributes?.bceid_username?.[0] ||
