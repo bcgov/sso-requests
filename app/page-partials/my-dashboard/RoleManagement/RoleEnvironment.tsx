@@ -337,17 +337,22 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       data.push(
         ...users.map((user) => {
           const identityProvider = user.username.split('@')[1];
+          const githubOrBceidUser = identityProvider.startsWith('bceid') || identityProvider.startsWith('github');
           const username =
             user.attributes?.idir_username?.[0] ||
             user.attributes?.bceid_username?.[0] ||
             user.attributes?.github_username?.[0] ||
             '';
-          return _.pick({ ...user, username, identityProvider }, [
+          const firstName = githubOrBceidUser ? '' : user.firstName;
+          const lastName = githubOrBceidUser ? '' : user.lastName;
+          const displayName = githubOrBceidUser ? user.firstName : user.attributes?.display_name?.[0] || '';
+          return _.pick({ ...user, username, identityProvider, firstName, lastName, displayName }, [
             'firstName',
             'lastName',
             'email',
             'username',
             'identityProvider',
+            'displayName',
           ]);
         }),
       );
