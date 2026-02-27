@@ -30,7 +30,7 @@ import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
 import noop from 'lodash.noop';
-import { generateXlsx } from '@app/utils/helpers';
+import { dateTimeStringForFileName, generateXlsx } from '@app/utils/helpers';
 import _ from 'lodash';
 
 const COMPOSITE_ROLE_STRING_LENGTH = 17;
@@ -358,7 +358,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         }),
       );
     }
-    generateXlsx(data, `${integration.projectName}-users`, `${selectedRole} users`);
+    generateXlsx(
+      data,
+      `${integration.projectName}-${environment}-${dateTimeStringForFileName()}-users`,
+      `${selectedRole} users`,
+    );
     setUserLoading(false);
   };
 

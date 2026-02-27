@@ -724,3 +724,10 @@ export const convertSeconds = (seconds: number) => {
 
   return `${time} ${unit}`;
 };
+
+export const dateTimeStringForFileName = () => {
+  const newDate = new Date();
+  return `${newDate.getFullYear()}${
+    newDate.getMonth() + 1
+  }${newDate.getDate()}${newDate.getHours()}${newDate.getMinutes()}`;
+};
