@@ -2,12 +2,9 @@ import { instance } from './axios';
 import { AxiosError } from 'axios';
 import { handleAxiosError } from 'services/axios';
 import { downloadText, prettyJSON } from '@app/utils/text';
-import { generateXlsx } from '@app/utils/helpers';
+import { dateTimeStringForFileName, generateXlsx } from '@app/utils/helpers';
 
-var newDate = new Date();
-var currentDate = `${newDate.getFullYear()}${
-  newDate.getMonth() + 1
-}${newDate.getDate()}${newDate.getHours()}${newDate.getMinutes()}`;
+const currentDate = dateTimeStringForFileName();
 
 export const downloadAllStandardIntegrationsReport = async (): Promise<[true, null] | [null, AxiosError]> => {
   try {
