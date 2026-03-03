@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@types/cors": "^2.8.18",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "ajv-errors": "^3.0.0",
     "axios": "^1.9.0",
     "body-parser": "^2.2.0",
