@@ -1,10 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import get from 'lodash.get';
-import startCase from 'lodash.startcase';
-import throttle from 'lodash.throttle';
-import reduce from 'lodash.reduce';
+import { get, startCase, throttle, reduce } from 'lodash';
 import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';

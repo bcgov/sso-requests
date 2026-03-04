@@ -1,4 +1,4 @@
-import { Table as StyledTable, SearchBar } from '@bcgov-sso/common-react-components';
+import { SearchBar } from '@bcgov-sso/common-react-components';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { useTable, usePagination, useFilters, useGlobalFilter, Column, useSortBy, Row, Cell } from 'react-table';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -9,7 +9,7 @@ import SectionHeader from './SectionHeader';
 import { faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Option } from 'interfaces/Request';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import InfoOverlay from './InfoOverlay';
 import ReactPlaceholder from 'react-placeholder/lib';
 import { TextBlock } from 'react-placeholder/lib/placeholders';
@@ -396,7 +396,7 @@ function Table({
         </SectionHeader>
       )}
       <InfScroll loadMore={loadMoreItem} hasMore={hasMoreItem} loader={loader}>
-        <StyledTable variant={variant} {...getTableProps()} readOnly={readOnly}>
+        <table>
           <thead>
             {
               // Loop over the header rows
@@ -454,7 +454,7 @@ function Table({
               )}
             </ReactPlaceholder>
           </tbody>
-        </StyledTable>
+        </table>
       </InfScroll>
       {pagination && rowCount > 0 && (
         <Grid cols={12}>

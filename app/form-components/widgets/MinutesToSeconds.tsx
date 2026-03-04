@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent } from 'react';
 import styled from 'styled-components';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import Input from '@button-inc/bcgov-theme/Input';
 import { WidgetProps } from '@rjsf/utils/lib/types';
 

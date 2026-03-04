@@ -13,7 +13,7 @@ import { UserSurveyInformation } from '@app/shared/interfaces';
 import { createEvent } from './requests';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
-import compact from 'lodash.compact';
+import { compact } from 'lodash';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 export const findOrCreateUser = async (session: Session) => {

@@ -2,7 +2,7 @@ import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Select, { MultiValue, ActionMeta, CSSObjectWithLabel, MultiValueProps } from 'react-select';
 import Input from '@button-inc/bcgov-theme/Input';
 import styled from 'styled-components';
-import forEach from 'lodash.foreach';
+import { forEach } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle, faExclamationTriangle, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { bulkCreateRole } from 'services/keycloak';

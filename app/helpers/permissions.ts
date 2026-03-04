@@ -3,7 +3,7 @@ import { Team } from '@app/interfaces/team';
 import { Session } from '@app/shared/interfaces';
 import createHttpError from 'http-errors';
 import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkOTP, checkSocial } from './integration';
-import isequal from 'lodash.isequal';
+import { isequal } from 'lodash';
 import { hasAppPermission, hasTeamPermission, teamPermissions, appPermissions } from '@app/utils/authorize';
 
 /**

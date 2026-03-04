@@ -1,8 +1,8 @@
 import { Op, Model } from 'sequelize';
-import kebabCase from 'lodash.kebabcase';
-import assign from 'lodash.assign';
-import isEmpty from 'lodash.isempty';
-import isString from 'lodash.isstring';
+import kebabCase from 'lodash';
+import { assign } from 'lodash';
+import { isEmpty } from 'lodash';
+import { isString } from 'lodash';
 import {
   validateRequest,
   getDifferences,
@@ -62,7 +62,7 @@ import {
   samlSignedAssertions,
   test,
 } from '@app/schemas';
-import pick from 'lodash.pick';
+import { pick } from 'lodash';
 import { validateIdirEmail } from '@app/utils/ms-graph-idir';
 import {
   BCSCClientParameters,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/router';
-import startCase from 'lodash.startcase';
+import { startCase } from 'lodash';
 import { faTrash, faEdit, faEye, faTrashRestoreAlt } from '@fortawesome/free-solid-svg-icons';
 import Table from 'components/Table';
 import { getRequestAll, deleteRequest, restoreRequest } from 'services/request';
@@ -21,7 +21,7 @@ import { SystemUnavailableMessage } from '@app/page-partials/my-dashboard/Messag
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import { throttledIdirSearch } from '@app/utils/users';
 import DeleteModal from '@app/components/DeleteModal';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 
 const idpOptions = [

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import styled from 'styled-components';
-import startCase from 'lodash.startcase';
+import { startCase } from 'lodash';
 import { Integration } from 'interfaces/Request';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';

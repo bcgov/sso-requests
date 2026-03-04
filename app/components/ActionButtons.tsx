@@ -6,7 +6,7 @@ import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Integration } from 'interfaces/Request';
 import { deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import { canDeleteIntegration, canEditIntegration } from '@app/helpers/permissions';
 import DeleteModal from './DeleteModal';
 

@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import startCase from 'lodash.startcase';
-import throttle from 'lodash.throttle';
+import { startCase, throttle } from 'lodash';
 import { Tabs, Tab, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import Table from 'components/Table';
 import Grid from '@button-inc/bcgov-theme/Grid';
@@ -13,7 +12,7 @@ import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keyclo
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@button-inc/bcgov-theme/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import { formatWikiURL } from '@app/utils/constants';
 
 const Label = styled.label`

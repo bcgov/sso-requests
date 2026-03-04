@@ -1,9 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import map from 'lodash.map';
-import omitBy from 'lodash.omitby';
-import startCase from 'lodash.startcase';
-import isEmpty from 'lodash.isempty';
+import { map, omitBy, startCase, isEmpty } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';

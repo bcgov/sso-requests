@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import { models } from '@app/shared/sequelize/models/models';
 import { EVENTS, EMAILS } from '@app/shared/enums';
 import prodApproved from './prod-approved';

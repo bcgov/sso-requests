@@ -1,10 +1,10 @@
 import React, { useState, useEffect, MouseEventHandler } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Integration } from 'interfaces/Request';
-import padStart from 'lodash.padstart';
+import { padStart } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
+import { Table } from '@bcgov-sso/common-react-components';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
@@ -186,33 +186,71 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
       <>
         <h2>Integrations</h2>
         <Table
-          headers={[
-            {
-              accessor: 'id',
-              Header: 'Request ID',
-            },
-            {
-              accessor: 'projectName',
-              Header: 'Project Name',
-            },
-            {
-              accessor: 'status',
-              Header: 'Status',
-            },
-            {
-              accessor: 'authType',
-              Header: 'Usecase',
-            },
-            {
-              accessor: 'serviceType',
-              Header: 'Service Type',
-            },
-            {
-              accessor: 'actions',
-              Header: <IntegrationListActionsHeader />,
-              disableSortBy: true,
-            },
-          ]}
+          columns={
+            [
+              {
+                accessorKey: 'id',
+                header: 'Request ID',
+                enableColumnFilter: false,
+                enableSorting: false,
+              },
+              {
+                accessorKey: 'projectName',
+                header: 'Project Name',
+                enableColumnFilter: false,
+                enableSorting: false,
+              },
+              {
+                accessorKey: 'status',
+                header: 'Status',
+                enableColumnFilter: false,
+                enableSorting: false,
+              },
+              {
+                accessorKey: 'authType',
+                header: 'Usecase',
+                enableColumnFilter: false,
+                enableSorting: false,
+              },
+              {
+                accessorKey: 'serviceType',
+                header: 'Service Type',
+                enableColumnFilter: false,
+                enableSorting: false,
+              },
+              {
+                accessorKey: 'actions',
+                header: () => <div style={{ display: 'flex', justifyContent: 'right', marginRight: 20 }}>Actions</div>,
+                enableColumnFilter: false,
+                enableSorting: false,
+                cell: (props: any) => {
+                  return (
+                    <div style={{ display: 'flex', justifyContent: 'right', columnGap: '0.5rem' }}>
+                      <ActionButtons
+                        request={{
+                          id: props.row.getValue('id'),
+                          status: props.row.getValue('status'),
+                          projectName: props.row.getValue('projectName'),
+                        }}
+                        onDelete={(_: any, error: AxiosError | null) => {
+                          if (error) {
+                            alert.show({
+                              variant: 'danger',
+                              content: `Failed to delete integration ${props.row.getValue('projectName')}.`,
+                            });
+                          } else {
+                            loadIntegrations();
+                          }
+                        }}
+                        defaultActiveColor="#fff"
+                        delIconStyle={{ marginLeft: '7px' }}
+                      />
+                    </div>
+                  );
+                },
+              },
+            ] as any
+          }
           data={integrations?.map((integration: Integration) => {
             return {
               id: formatIntegrationID(integration.id as number),
@@ -220,29 +258,9 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
               status: getStatusDisplayName(integration.status || 'draft'),
               authType: authTypeDisplay[integration.authType || 'browser-login'],
               serviceType: 'Gold',
-              actions: (
-                <ActionButtons
-                  request={integration}
-                  onDelete={(_: any, error: AxiosError | null) => {
-                    if (error) {
-                      alert.show({
-                        variant: 'danger',
-                        content: `Failed to delete integration ${integration.projectName}.`,
-                      });
-                    } else {
-                      loadIntegrations();
-                    }
-                  }}
-                  defaultActiveColor="#fff"
-                  delIconStyle={{ marginLeft: '7px' }}
-                />
-              ),
             };
           })}
-          activateRow={activateRow}
-          activeSelector={activeIntegrationId && formatIntegrationID(activeIntegrationId)}
-          rowSelectorKey={'id'}
-          colfilters={[]}
+          enableGlobalSearch={false}
         ></Table>
       </>
     );

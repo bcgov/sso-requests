@@ -1,8 +1,6 @@
 import axios from 'axios';
 import url from 'url';
-import compact from 'lodash.compact';
-import startCase from 'lodash.startcase';
-import uniq from 'lodash.uniq';
+import { compact, startCase, uniq } from 'lodash';
 import { EmailOptions } from '@app/shared/interfaces';
 import https from 'https';
 import { envMap, idpMap } from '@app/helpers/meta';

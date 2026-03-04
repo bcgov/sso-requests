@@ -16,7 +16,7 @@ import { idpMap } from 'helpers/meta';
 import Link from '@button-inc/bcgov-theme/Link';
 import { docusaurusURL } from '@app/utils/constants';
 
-const AlignCenter = styled.div`
+const AlignCenter: React.FC = styled.div`
   text-align: center;
 `;
 

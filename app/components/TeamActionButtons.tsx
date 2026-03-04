@@ -1,7 +1,7 @@
 import { canDeleteTeam, canEditTeam } from '@app/helpers/permissions';
 import { Team } from '@app/interfaces/team';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import { ActionButtonContainer, ActionButton } from './ActionButtons';
 
 interface Props {

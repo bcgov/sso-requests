@@ -1,9 +1,6 @@
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import RoleRepresentation from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
-import forEach from 'lodash.foreach';
-import map from 'lodash.map';
-import get from 'lodash.get';
-import difference from 'lodash.difference';
+import { forEach, map, get, difference } from 'lodash';
 import { getAdminClient } from './adminClient';
 import { Integration } from '@app/interfaces/Request';
 import { UserQuery } from '@keycloak/keycloak-admin-client/lib/resources/users';

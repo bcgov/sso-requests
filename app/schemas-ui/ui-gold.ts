@@ -1,5 +1,4 @@
-import isNil from 'lodash.isnil';
-import uniq from 'lodash.uniq';
+import { isNil, uniq, get } from 'lodash';
 import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';
@@ -13,7 +12,6 @@ import { Integration } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
 import SwitchWidget from '@app/form-components/widgets/SwitchWidget';
-import get from 'lodash.get';
 import BcscAttributesWidget from '@app/form-components/widgets/BcscAttributesWidget';
 import BcscPrivacyZoneWidget from '@app/form-components/widgets/BcscPrivacyZoneWidget';
 import { envMap, idpMap } from '@app/helpers/meta';

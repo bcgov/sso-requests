@@ -1,11 +1,10 @@
 import React, { CSSProperties, Children, cloneElement, useState, useImperativeHandle, useRef, forwardRef } from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import noop from 'lodash.noop';
+import { noop, kebabCase } from 'lodash';
 import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
-import kebabCase from 'lodash.kebabcase';
 
 const StyledModal = styled(Modal)`
   display: flex;
