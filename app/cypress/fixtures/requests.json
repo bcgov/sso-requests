@@ -135,7 +135,6 @@
       "authtype": "service-account",
       "publicaccess": false,
       "identityprovider": ["", "", "", ""],
-      "additionalroleattribute": "tbd",
       "environments": ["dev", "test", ""],
       "displayheader": true,
       "displayheadertest": true,

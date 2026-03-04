@@ -3,11 +3,11 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import FormTemplate from 'form-components/FormTemplate';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
+import { fetchDefaultSessionSettings } from 'services/keycloak';
 import { setUpRouter } from './utils/setup';
-import { errorMessages } from '../utils/constants';
+import { defaultStandardRealmSettings, errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
-import { debug } from 'jest-preview';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -25,6 +25,36 @@ jest.mock('services/team', () => {
   return {
     getMyTeams: jest.fn(() => Promise.resolve([[], null])),
     getAllowedTeams: jest.fn(() => Promise.resolve([[], null])),
+  };
+});
+
+const mockDefaultSessionSettingsResponse = {
+  dev: {
+    accessTokenLifespan: '1 Minute',
+    ssoSessionIdleTimeout: '2 Minute',
+    ssoSessionMaxLifespan: '3 Minute',
+    offlineSessionIdleTimeout: '4 Minute',
+    offlineSessionMaxLifespan: '5 Minute',
+  },
+  test: {
+    accessTokenLifespan: '1 Minute',
+    ssoSessionIdleTimeout: '2 Minute',
+    ssoSessionMaxLifespan: '3 Minute',
+    offlineSessionIdleTimeout: '4 Minute',
+    offlineSessionMaxLifespan: '5 Minute',
+  },
+  prod: {
+    accessTokenLifespan: '1 Minute',
+    ssoSessionIdleTimeout: '2 Minute',
+    ssoSessionMaxLifespan: '3 Minute',
+    offlineSessionIdleTimeout: '4 Minute',
+    offlineSessionMaxLifespan: '5 Minute',
+  },
+};
+
+jest.mock('services/keycloak', () => {
+  return {
+    fetchDefaultSessionSettings: jest.fn(() => Promise.resolve([mockDefaultSessionSettingsResponse, null])),
   };
 });
 
@@ -258,8 +288,10 @@ describe('Form Template Loading Data', () => {
       screen.getByDisplayValue((sampleRequest.devValidRedirectUris && sampleRequest.devValidRedirectUris[1]) || ''),
     );
     // Pre-load should convert from seconds to minutes
-    screen.getByDisplayValue(String((sampleRequest.devSessionIdleTimeout as number) / 60));
-    screen.getByDisplayValue(String((sampleRequest.devSessionMaxLifespan as number) / 60));
+    const devSessionIdleEl = document.querySelector('#root_devSessionIdleTimeout');
+    const devSessionMaxLifespanEl = document.querySelector('#root_devSessionMaxLifespan');
+    expect(devSessionIdleEl).toHaveTextContent(String((sampleRequest.devSessionIdleTimeout as number) / 60));
+    expect(devSessionMaxLifespanEl).toHaveTextContent(String((sampleRequest.devSessionMaxLifespan as number) / 60));
 
     fireEvent.click(termsAndConditionsBox);
     const fourthStageElementSelector = '#root_agreeWithTerms';
@@ -354,23 +386,144 @@ describe('Client Sessions', () => {
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
 
-    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLElement;
-    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan') as HTMLElement;
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
 
-    expect(clientIdleInput).toBeDisabled();
-    expect(clientMaxInput).toBeDisabled();
+    // Should not render input since read only for non-admins.
+    expect(clientIdleInput).not.toBeInstanceOf(HTMLInputElement);
+    expect(clientMaxInput).not.toBeInstanceOf(HTMLInputElement);
+  });
+
+  it('Hides offline access settings from non-admins when disabled', () => {
+    setUpRender({ ...sampleRequest, devOfflineAccessEnabled: false }, { client_roles: [], isAdmin: false });
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
+    const devOfflineAccessEnabledEl = document.querySelector('#root_devOfflineAccessEnabled');
+
+    expect(devOfflineSessionIdleEl).not.toBeInTheDocument();
+    expect(devOfflineSessionMaxEl).not.toBeInTheDocument();
+    expect(devOfflineAccessEnabledEl).not.toBeInTheDocument();
+  });
+
+  it('Displays offline access settings as read-only elements to non-admins when enabled', () => {
+    setUpRender({ ...sampleRequest, devOfflineAccessEnabled: true }, { client_roles: [], isAdmin: false });
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
+    const devOfflineAccessEnabledEl = document.querySelector('#root_devOfflineAccessEnabled');
+
+    expect(devOfflineSessionIdleEl).toBeInTheDocument();
+    expect(devOfflineSessionIdleEl).toBeInstanceOf(HTMLSpanElement);
+    expect(devOfflineSessionMaxEl).toBeInTheDocument();
+    expect(devOfflineSessionMaxEl).toBeInstanceOf(HTMLSpanElement);
+    expect(devOfflineAccessEnabledEl).toBeInTheDocument();
+  });
+
+  it('Shows the fetched default realm-settings when client session settings are unset', async () => {
+    setUpRender(
+      {
+        ...sampleRequest,
+        devOfflineAccessEnabled: true,
+        devSessionIdleTimeout: 0,
+        devSessionMaxLifespan: 0,
+        devOfflineSessionIdleTimeout: 0,
+        devOfflineSessionMaxLifespan: 0,
+      },
+      { client_roles: [], isAdmin: false },
+    );
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const accessTokenInput = document.querySelector('#root_devAccessTokenLifespan');
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
+
+    await waitFor(() => {
+      expect(accessTokenInput).toHaveTextContent(mockDefaultSessionSettingsResponse.dev.accessTokenLifespan);
+      expect(clientIdleInput).toHaveTextContent(mockDefaultSessionSettingsResponse.dev.ssoSessionIdleTimeout);
+      expect(clientMaxInput).toHaveTextContent(mockDefaultSessionSettingsResponse.dev.ssoSessionMaxLifespan);
+      expect(devOfflineSessionIdleEl).toHaveTextContent(
+        mockDefaultSessionSettingsResponse.dev.offlineSessionIdleTimeout,
+      );
+      expect(devOfflineSessionMaxEl).toHaveTextContent(
+        mockDefaultSessionSettingsResponse.dev.offlineSessionMaxLifespan,
+      );
+    });
+  });
+
+  it('Shows fallback text if the fetch fails', async () => {
+    // Mock failed API call
+    const mockedFetchDefaultSessionSettings = fetchDefaultSessionSettings as jest.MockedFunction<
+      typeof fetchDefaultSessionSettings
+    >;
+    mockedFetchDefaultSessionSettings.mockResolvedValue([null, new Error('err')]);
+
+    setUpRender(
+      {
+        ...sampleRequest,
+        devOfflineAccessEnabled: true,
+        devSessionIdleTimeout: 0,
+        devSessionMaxLifespan: 0,
+        devOfflineSessionIdleTimeout: 0,
+        devOfflineSessionMaxLifespan: 0,
+      },
+      { client_roles: [], isAdmin: false },
+    );
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const accessTokenInput = document.querySelector('#root_devAccessTokenLifespan');
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
+
+    await waitFor(() => {
+      expect(accessTokenInput).toHaveTextContent(defaultStandardRealmSettings.accessTokenLifespan);
+      expect(clientIdleInput).toHaveTextContent(defaultStandardRealmSettings.ssoSessionIdleTimeout);
+      expect(clientMaxInput).toHaveTextContent(defaultStandardRealmSettings.ssoSessionMaxLifespan);
+      expect(devOfflineSessionIdleEl).toHaveTextContent(defaultStandardRealmSettings.offlineSessionIdleTimeout);
+      expect(devOfflineSessionMaxEl).toHaveTextContent(defaultStandardRealmSettings.offlineSessionMaxLifespan);
+    });
+  });
+
+  it('Shows the configured realm-settings when client session settings are configured', () => {
+    setUpRender(
+      {
+        ...sampleRequest,
+        devOfflineAccessEnabled: true,
+        devSessionIdleTimeout: 60,
+        devSessionMaxLifespan: 60,
+        devOfflineSessionIdleTimeout: 60,
+        devOfflineSessionMaxLifespan: 60,
+      },
+      { client_roles: [], isAdmin: false },
+    );
+    const { developmentBox } = sandbox;
+    fireEvent.click(developmentBox);
+
+    const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout');
+    const clientMaxInput = document.querySelector('#root_devSessionMaxLifespan');
+    const devOfflineSessionIdleEl = document.querySelector('#root_devOfflineSessionIdleTimeout');
+    const devOfflineSessionMaxEl = document.querySelector('#root_devOfflineSessionMaxLifespan');
+
+    expect(clientIdleInput).toHaveTextContent('1 Minute');
+    expect(clientMaxInput).toHaveTextContent('1 Minute');
+    expect(devOfflineSessionIdleEl).toHaveTextContent('1 Minute');
+    expect(devOfflineSessionMaxEl).toHaveTextContent('1 Minute');
   });
 
   it('Handles non-numeric and negative input appropriately', () => {
     setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
-
-    const clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
-    const clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
-
-    expect(clientOfflineIdleInput).toBeDisabled();
-    expect(clientOfflineMaxInput).toBeDisabled();
 
     const clientIdleInput = document.querySelector('#root_devSessionIdleTimeout') as HTMLInputElement;
     const baseValue = clientIdleInput.value;
@@ -393,7 +546,7 @@ describe('Client Sessions', () => {
     expect(clientIdleInput.value).toBe('0');
   });
 
-  it('Handles offline access switch and dependent fields (offline session idle and max)', () => {
+  it('Handles offline access switch and dependent fields (offline session idle and max)', async () => {
     setUpRender(sampleRequest, { client_roles: ['sso-admin'], isAdmin: true });
     const { developmentBox } = sandbox;
     fireEvent.click(developmentBox);
@@ -401,15 +554,18 @@ describe('Client Sessions', () => {
     let clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
     let clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
 
-    expect(clientOfflineIdleInput).toBeDisabled();
-    expect(clientOfflineMaxInput).toBeDisabled();
+    // Hidden until offline access turned on
+    expect(clientOfflineIdleInput).not.toBeInTheDocument();
+    expect(clientOfflineMaxInput).not.toBeInTheDocument();
 
     // enable the offline access scope and it enables the offline idle and max fields
     const offlineAccessSwitch = document.querySelector('#root_devOfflineAccessEnabled') as HTMLElement;
     fireEvent.click(offlineAccessSwitch);
 
-    expect(clientOfflineIdleInput).not.toBeDisabled();
-    expect(clientOfflineMaxInput).not.toBeDisabled();
+    clientOfflineIdleInput = document.querySelector('#root_devOfflineSessionIdleTimeout') as HTMLElement;
+    clientOfflineMaxInput = document.querySelector('#root_devOfflineSessionMaxLifespan') as HTMLElement;
+    expect(clientOfflineIdleInput).toBeInstanceOf(HTMLInputElement);
+    expect(clientOfflineMaxInput).toBeInstanceOf(HTMLInputElement);
   });
 });
 
@@ -896,7 +1052,7 @@ describe('One Time Passcode IDP', () => {
     status: 'draft',
     environments: ['dev', 'test', 'prod'],
   };
-  const userSession = { email: 'user-session@gov.bc.ca', isAdmin: true };
+  const userSession = { email: 'user-session@gov.bc.ca', client_roles: ['sso-admin'] };
   beforeEach(() => {
     process.env.INCLUDE_OTP = 'true';
   });

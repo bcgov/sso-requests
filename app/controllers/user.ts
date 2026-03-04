@@ -1,7 +1,7 @@
 import { literal, Op } from 'sequelize';
 import isNil from 'lodash/isNil';
 import { models } from '@app/shared/sequelize/models/models';
-import { Session, User } from '@app/shared/interfaces';
+import { Session, User, UserTeam } from '@app/shared/interfaces';
 import { lowcase } from '@app/helpers/string';
 import { isAdmin } from '../utils/helpers';
 import { findAllowedIntegrationInfo, getIntegrationById } from '@app/queries/request';
@@ -14,6 +14,7 @@ import { createEvent } from './requests';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
 import compact from 'lodash.compact';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -97,7 +98,7 @@ export const listUsersByRole = async (
     max: number;
   },
 ) => {
-  const integration = isAdmin(session)
+  const integration = hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES)
     ? await getIntegrationById(integrationId)
     : await findAllowedIntegrationInfo(session?.user?.id as number, integrationId);
   if (integration.authType === 'service-account') throw new createHttpError.BadRequest('invalid auth type');
@@ -251,6 +252,19 @@ export const deleteStaleUsers = async (
         },
         raw: true,
       });
+
+      // Log an event if the removed user is an admin
+      if (teamAdmins.some((admin: UserTeam) => admin.userId === existingUser.id)) {
+        await createEvent({
+          eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
+          details: {
+            removerId: 'delete-user-cron',
+            teamId: team.teamId,
+            removedMemberId: existingUser.id,
+            action: 'removed',
+          },
+        });
+      }
 
       // Assign us to the team if this user was the only existing admin
       if (teamAdmins.length === 1 && teamAdmins[0].userId === existingUser.id) {

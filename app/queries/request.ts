@@ -1,8 +1,9 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, User } from '@app/shared/interfaces';
-import { getAllowedIdpsForApprover, isAdmin } from '@app/utils/helpers';
+import { getAllowedIdpsForApprover } from '@app/utils/helpers';
 import { getMyTeamsLiteral, getUserTeamRole } from '@app/queries/literals';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 const commonPopulation = [
   {
@@ -94,7 +95,7 @@ export const findAllowedIntegrationInfo = async (
 };
 
 export const getAllowedRequest = async (session: Session, requestId: number, roles?: string[]) => {
-  if (isAdmin(session)) {
+  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST)) {
     return models.request.findOne({
       where: { id: requestId, apiServiceAccount: false },
       include: commonPopulation,

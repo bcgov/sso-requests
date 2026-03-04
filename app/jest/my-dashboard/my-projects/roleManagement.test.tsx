@@ -19,6 +19,37 @@ function RoleEnvironmentComponent() {
   return <RoleEnvironment environment={'dev'} integration={mockResult} />;
 }
 
+const testUsers = [
+  {
+    id: '01',
+    username: 'user01@idir',
+    enabled: true,
+    totp: false,
+    emailVerified: false,
+    firstName: 'fn',
+    lastName: 'ln',
+    email: 'role1@gov.bc.ca',
+    attributes: { idir_userid: ['01'] },
+    disableableCredentialTypes: [],
+    requiredActions: [],
+    notBefore: 0,
+  },
+  {
+    id: '02',
+    username: 'service-account-user02',
+    enabled: true,
+    totp: false,
+    emailVerified: false,
+    firstName: '',
+    lastName: '',
+    email: '',
+    attributes: {},
+    disableableCredentialTypes: [],
+    requiredActions: [],
+    notBefore: 0,
+  },
+];
+
 jest.mock('services/request', () => {
   return {
     getRequest: jest.fn(() => Promise.resolve([mockResult(), null])),
@@ -28,41 +59,7 @@ jest.mock('services/request', () => {
 jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: 'role-1' }, { name: 'role-2' }], null])),
   listComposites: jest.fn(() => Promise.resolve([[false, false], null])),
-  listRoleUsers: jest.fn(() =>
-    Promise.resolve([
-      [
-        {
-          id: '01',
-          username: 'user01@idir',
-          enabled: true,
-          totp: false,
-          emailVerified: false,
-          firstName: 'fn',
-          lastName: 'ln',
-          email: 'role1@gov.bc.ca',
-          attributes: { idir_userid: ['01'] },
-          disableableCredentialTypes: [],
-          requiredActions: [],
-          notBefore: 0,
-        },
-        {
-          id: '02',
-          username: 'service-account-user02',
-          enabled: true,
-          totp: false,
-          emailVerified: false,
-          firstName: '',
-          lastName: '',
-          email: '',
-          attributes: {},
-          disableableCredentialTypes: [],
-          requiredActions: [],
-          notBefore: 0,
-        },
-      ],
-      null,
-    ]),
-  ),
+  listRoleUsers: jest.fn(() => Promise.resolve([testUsers, null])),
   getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
   manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
@@ -158,6 +155,30 @@ describe('role management tab', () => {
     fireEvent.click(roleDeleteButton[0]);
     await waitFor(async () => {
       expect(await screen.findByTitle('Delete Role')).toBeInTheDocument();
+    });
+  });
+
+  it('Should be able to show export button, and check the endpoint function been called after clicking on it', async () => {
+    render(<RoleEnvironmentComponent />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' }));
+    });
+
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledTimes(1);
+    });
+
+    (listRoleUsers as jest.Mock).mockResolvedValueOnce([testUsers, null]);
+
+    (listRoleUsers as jest.Mock).mockResolvedValueOnce([[], null]);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Export' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledTimes(2);
     });
   });
 

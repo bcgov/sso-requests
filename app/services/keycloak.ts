@@ -1,6 +1,7 @@
 import { instance } from './axios';
 import { ClientRole } from 'interfaces/Request';
 import { KeycloakUser } from 'interfaces/team';
+import { GetStandardSettingsResponse } from '@app/interfaces/api';
 
 export const getInstallation = async (requestId: number, environment: string) => {
   try {
@@ -297,6 +298,15 @@ export const deleteRole = async ({
     return [result, null];
   } catch (err: any) {
     console.error(err);
+    return [null, err];
+  }
+};
+
+export const fetchDefaultSessionSettings = async (): Promise<[null | GetStandardSettingsResponse, null | Error]> => {
+  try {
+    const result = await instance.get(`keycloak/standard-settings`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
     return [null, err];
   }
 };

@@ -1,7 +1,8 @@
 import { ITestimonial } from '@app/interfaces/Testimonial';
 import { EnvironmentOption, ErrorMessages } from '@app/interfaces/form';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from './validate';
-import { BcscPrivacyZone } from '@app/interfaces/types';
+import { Environment } from '@app/interfaces/types';
+import { StandardRealmSettings } from '@app/interfaces/keycloak';
 
 export const createTeamModalId = `create-team-modal`;
 
@@ -456,3 +457,13 @@ export const bcscClientScopeMappers: any[] = [
     type: 'attribute',
   },
 ];
+
+export const environments = ['dev', 'test', 'prod'] as Environment[];
+
+export const defaultStandardRealmSettings: StandardRealmSettings = {
+  accessTokenLifespan: 'Inherited from realm settings',
+  ssoSessionIdleTimeout: 'Inherited from realm settings',
+  ssoSessionMaxLifespan: 'Inherited from realm settings',
+  offlineSessionIdleTimeout: 'Inherited from realm settings',
+  offlineSessionMaxLifespan: 'Inherited from realm settings',
+};

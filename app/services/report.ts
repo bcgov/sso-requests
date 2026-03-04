@@ -1,23 +1,17 @@
 import { instance } from './axios';
 import { AxiosError } from 'axios';
 import { handleAxiosError } from 'services/axios';
-import * as XLSX from 'xlsx';
 import { downloadText, prettyJSON } from '@app/utils/text';
+import { dateTimeStringForFileName, generateXlsx } from '@app/utils/helpers';
 
-var newDate = new Date();
-var currentDate = `${newDate.getFullYear()}${
-  newDate.getMonth() + 1
-}${newDate.getDate()}${newDate.getHours()}${newDate.getMinutes()}`;
+const currentDate = dateTimeStringForFileName();
 
 export const downloadAllStandardIntegrationsReport = async (): Promise<[true, null] | [null, AxiosError]> => {
   try {
     const result = await instance.get('reports/all-standard-integrations').then((res) => res.data);
 
-    const workSheet = XLSX.utils.json_to_sheet(result);
-    const workBook = XLSX.utils.book_new();
+    generateXlsx(result, `all-standard-integrations-${currentDate}`, 'All standard integrations');
 
-    XLSX.utils.book_append_sheet(workBook, workSheet, 'All standard integrations');
-    XLSX.writeFile(workBook, `all-standard-integrations-${currentDate}.xlsx`);
     return [true, null];
   } catch (err: any) {
     console.log(err);
@@ -32,11 +26,8 @@ export const downloadDatabaseReport = async (
   try {
     const result = await instance.get('reports/database-tables', { params: { type, orderBy } }).then((res) => res.data);
 
-    const workSheet = XLSX.utils.json_to_sheet(result);
-    const workBook = XLSX.utils.book_new();
+    generateXlsx(result, `all-${type.toLowerCase()}-${currentDate}`, `All ${type}`);
 
-    XLSX.utils.book_append_sheet(workBook, workSheet, `All ${type}`);
-    XLSX.writeFile(workBook, `all-${type.toLowerCase()}-${currentDate}.xlsx`);
     return [true, null];
   } catch (err: any) {
     console.log(err);
@@ -48,11 +39,8 @@ export const downloadAllBceidApprovedRequestsAndEventsReport = async (): Promise
   try {
     const result = await instance.get('reports/all-bceid-approved-requests-and-events').then((res) => res.data);
 
-    const workSheet = XLSX.utils.json_to_sheet(result);
-    const workBook = XLSX.utils.book_new();
+    generateXlsx(result, `all-bceid-approved-requests-and-events-${currentDate}`, 'All BCeID Approved Reqs&Events');
 
-    XLSX.utils.book_append_sheet(workBook, workSheet, 'All BCeID Approved Reqs&Events');
-    XLSX.writeFile(workBook, `all-bceid-approved-requests-and-events-${currentDate}.xlsx`);
     return [true, null];
   } catch (err: any) {
     console.log(err);

@@ -20,6 +20,7 @@ import {
   isOTPApprover,
   isSocialApprover,
 } from '@app/utils/helpers';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 const TabWrapper = styled.div`
   padding-left: 1rem;
@@ -47,30 +48,33 @@ function AdminTabs({
   activeKey = defaultTabKey,
 }: Props) {
   const [environment, setEnvironment] = useState('dev');
-  const showRolesTabIf = !integration?.archived && !integration?.apiServiceAccount && currentUser?.isAdmin;
-  const showEventsTabIf = currentUser?.isAdmin;
+  const showRolesTabIf =
+    !integration?.archived &&
+    !integration?.apiServiceAccount &&
+    hasAppPermission(currentUser?.client_roles || [], appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES);
+  const showEventsTabIf = hasAppPermission(
+    currentUser?.client_roles || [],
+    appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS,
+  );
   if (!integration) return null;
   const { environments = [] } = integration;
 
   const hasProd = environments.includes('prod');
 
   const hasBceid = usesBceid(integration);
-  const hasBceidProd = hasBceid && hasProd && (currentUser?.isAdmin || (currentUser && isBceidApprover(currentUser)));
+  const hasBceidProd = hasBceid && hasProd && currentUser && isBceidApprover(currentUser);
 
   const hasGithub = usesGithub(integration);
-  const hasGithubProd =
-    hasGithub && hasProd && (currentUser?.isAdmin || (currentUser && isGithubApprover(currentUser)));
+  const hasGithubProd = hasGithub && hasProd && currentUser && isGithubApprover(currentUser);
 
   const hasBcServicesCard = usesBcServicesCard(integration);
-  const hasBcServicesCardProd =
-    hasBcServicesCard && hasProd && (currentUser?.isAdmin || (currentUser && isBcServicesCardApprover(currentUser)));
+  const hasBcServicesCardProd = hasBcServicesCard && hasProd && currentUser && isBcServicesCardApprover(currentUser);
 
   const hasSocial = usesSocial(integration);
-  const hasSocialProd =
-    hasSocial && hasProd && (currentUser?.isAdmin || (currentUser && isSocialApprover(currentUser)));
+  const hasSocialProd = hasSocial && hasProd && currentUser && isSocialApprover(currentUser);
 
   const hasOTP = usesOTP(integration);
-  const hasOTPProd = hasOTP && hasProd && (currentUser?.isAdmin || (currentUser && isOTPApprover(currentUser)));
+  const hasOTPProd = hasOTP && hasProd && currentUser && isOTPApprover(currentUser);
 
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();

@@ -34,7 +34,7 @@ const MIN_1 = 60;
 const HOUR_1 = MIN_1 * 60;
 const DAY_1 = HOUR_1 * 24;
 
-const ClientTokenWidget = ({ id, value = 0, label, readonly, onChange }: WidgetProps) => {
+const ClientTokenWidget = ({ id, value = 0, label, readonly, uiSchema, onChange }: WidgetProps) => {
   if (readonly) onChange = noop;
 
   const [time, setTime] = useState(0);
@@ -107,6 +107,23 @@ const ClientTokenWidget = ({ id, value = 0, label, readonly, onChange }: WidgetP
     onChange(seconds);
     setUnit(value);
   };
+
+  if (readonly) {
+    let displayedValue = value;
+
+    // 0 value indicates unset, so inherits the realm setting.
+    if (displayedValue === 0) {
+      displayedValue = uiSchema?.['ui:inheritedRealmSetting'] || 'Inherited from realm setting';
+    } else {
+      displayedValue = `${time} ${unit}`;
+    }
+
+    return (
+      <Container>
+        <span id={id}>{displayedValue}</span>
+      </Container>
+    );
+  }
 
   return (
     <Container>

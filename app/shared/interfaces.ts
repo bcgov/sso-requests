@@ -8,6 +8,16 @@ export interface User {
   additionalEmail: string;
   isAdmin?: boolean;
 }
+
+export interface UserTeam {
+  userId: number;
+  teamId: number;
+  role: string;
+  pending: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Session {
   idir_userid: string;
   email?: string;
