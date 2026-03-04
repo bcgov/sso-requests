@@ -130,11 +130,13 @@ describe('Can Delete Member', () => {
             role: 'admin',
             id: 1,
             idirEmail: '',
+            pending: false,
           },
           {
             role: 'member',
             id: 2,
             idirEmail: '',
+            pending: false,
           },
         ],
         1,
@@ -159,5 +161,27 @@ describe('Can Delete Member', () => {
         2,
       ),
     ).toBe(true);
+  });
+
+  it('Should return false when the only other admin is pending', () => {
+    expect(
+      canDeleteMember(
+        [
+          {
+            role: 'admin',
+            id: 1,
+            idirEmail: '',
+            pending: false,
+          },
+          {
+            role: 'admin',
+            id: 2,
+            idirEmail: '',
+            pending: true,
+          },
+        ],
+        1,
+      ),
+    ).toBe(false);
   });
 });

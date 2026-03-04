@@ -25,6 +25,8 @@ import { diff } from 'deep-diff';
 import { validateForm } from './validate';
 import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
 import { NextApiResponse } from 'next';
+import * as XLSX from 'xlsx';
+import { hasAppPermission, appPermissions, getAllAppPermissions } from './authorize';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const gold_realms: GoldIDPOption = {
@@ -276,7 +278,8 @@ export function canDeleteMember(members: User[], memberId?: number) {
   if (members.length === 1) return false;
   const memberToDelete = members.find((member) => member.id === memberId);
   const memberIsLastAdmin =
-    members.filter((member) => member.role === 'admin').length === 1 && memberToDelete?.role === 'admin';
+    members.filter((member) => member.role === 'admin' && member.pending === false).length === 1 &&
+    memberToDelete?.role === 'admin';
   if (memberIsLastAdmin) return false;
   return true;
 }
@@ -328,23 +331,23 @@ export const subtractDaysFromDate = (days: number) => {
 };
 
 export const isBceidApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('bceid-approver') ?? false;
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID);
 };
 
 export const isGithubApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('github-approver') ?? false;
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_GITHUB);
 };
 
 export const isOTPApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('otp-approver') ?? false;
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_OTP);
 };
 
 export const isSocialApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('social-approver') ?? false;
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_SOCIAL);
 };
 
 export const isBcServicesCardApprover = (session: LoggedInUser | null) => {
-  return session?.client_roles?.includes('bc-services-card-approver') ?? false;
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_BC_SERVICES_CARD);
 };
 
 export const isIdpApprover = (session: LoggedInUser | null) => {
@@ -402,19 +405,17 @@ const idpsEqual = (idpsA: string[], idpsB: string[]) => {
 export const validateIDPs = ({
   currentIdps,
   updatedIdps,
-  applied = true,
+  session,
   bceidApproved = false,
   protocol = 'oidc',
-  isAdmin = false,
   githubApproved = false,
   bcServicesCardApproved = false,
 }: {
   currentIdps: string[];
   updatedIdps: string[];
-  applied?: boolean;
+  session: LoggedInUser | null;
   bceidApproved?: boolean;
   protocol?: string;
-  isAdmin?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
 }) => {
@@ -433,7 +434,10 @@ export const validateIDPs = ({
   const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
   const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
 
-  if (!isAdmin && (addingGithubPublic || addingOTP)) {
+  if (
+    !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
+    (addingGithubPublic || addingOTP)
+  ) {
     return false;
   }
 
@@ -451,7 +455,7 @@ export const validateIDPs = ({
   }
 
   const discontinuedIdps = getDiscontinuedIdps();
-  if (!isAdmin) {
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS)) {
     for (let idp of discontinuedIdps) {
       if (!currentIdps.includes(idp) && updatedIdps.includes(idp)) return false;
     }
@@ -510,15 +514,13 @@ const durationAdditionalFields: any[] = [];
 });
 
 export const sanitizeRequest = (session: Session, data: Integration, isMerged: boolean) => {
-  const isAdminUser = isAdmin(session);
-
   let immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
 
   if (isMerged) {
     immutableFields.push('realm');
   }
 
-  if (!isAdminUser) {
+  if (!hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
     immutableFields.push(...durationAdditionalFields, 'clientId');
 
     if (!isBceidApprover(session)) {
@@ -529,12 +531,12 @@ export const sanitizeRequest = (session: Session, data: Integration, isMerged: b
       immutableFields.push('githubApproved');
     }
 
-    if (!isBCServicesCardApprover(session)) {
+    if (!isBcServicesCardApprover(session)) {
       immutableFields.push('bcServicesCardApproved');
     }
   }
 
-  if (isAdminUser) {
+  if (hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
     if (data?.protocol === 'oidc') {
       ['dev', 'test', 'prod'].forEach((env: string) => {
         if (!data[`${env}OfflineAccessEnabled` as keyof Integration])
@@ -581,21 +583,27 @@ export const validateRequest = async (formData: any, original: Integration, team
   return validateForm(formData, schemas);
 };
 
-export const isAdmin = (session: Session) => session.client_roles?.includes('sso-admin');
-
-export const isBCServicesCardApprover = (session: Session) =>
-  session.client_roles?.includes('bc-services-card-approver');
+export const isAdmin = (session: Session) => session?.client_roles?.includes('sso-admin');
 
 export const getAllowedIdpsForApprover = (session: Session) => {
   const idps: string[] = [];
-  if (session.client_roles.length === 0) return idps;
-  session.client_roles.forEach((role) => {
-    if (role === 'bceid-approver') idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
-    if (role === 'bc-services-card-approver') idps.push('bcservicescard');
-    if (role === 'github-approver') idps.push('githubbcgov', 'githubpublic');
-    if (role === 'social-approver') idps.push('social');
-    if (role === 'otp-approver') idps.push('otp');
-  });
+
+  const permissions = getAllAppPermissions(session?.client_roles || []);
+  if (permissions.includes(appPermissions.APPROVE_BCEID)) {
+    idps.push('bceidbasic', 'bceidbusiness', 'bceidboth');
+  }
+  if (permissions.includes(appPermissions.APPROVE_GITHUB)) {
+    idps.push('githubbcgov', 'githubpublic');
+  }
+  if (permissions.includes(appPermissions.APPROVE_BC_SERVICES_CARD)) {
+    idps.push('bcservicescard');
+  }
+  if (permissions.includes(appPermissions.APPROVE_SOCIAL)) {
+    idps.push('social');
+  }
+  if (permissions.includes(appPermissions.APPROVE_OTP)) {
+    idps.push('otp');
+  }
   return idps;
 };
 
@@ -675,4 +683,51 @@ export const handleError = (res: NextApiResponse, err: any) => {
   console.error('Error:', err);
   console.log({ success: false, message });
   return res.status(err?.status || 422).json({ success: false, message });
+};
+
+export const generateXlsx = (data: any[], workBookName: string, workSheetName: string) => {
+  const workSheet = XLSX.utils.json_to_sheet(data);
+  const workBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workBook, workSheet, workSheetName);
+  XLSX.writeFile(workBook, `${workBookName}.xlsx`);
+};
+
+/*
+Convert numeric seconds to readable time, with the largest whole number unit possible (up to days). e.g.
+300 => 5 minutes,
+301 => 301 Seconds
+3600 => 1 hour
+3660 => 61 Minutes
+*/
+export const convertSeconds = (seconds: number) => {
+  if (seconds === 0) {
+    return '0 Seconds';
+  }
+
+  let time = seconds;
+  let unit = 'Seconds';
+
+  if (time % 60 === 0) {
+    unit = time === 60 ? 'Minute' : 'Minutes';
+    time = time / 60;
+  }
+
+  if (time % 60 === 0) {
+    unit = time === 60 ? 'Hour' : 'Hours';
+    time = time / 60;
+  }
+
+  if (time % 24 === 0) {
+    unit = time === 24 ? 'Day' : 'Days';
+    time = time / 24;
+  }
+
+  return `${time} ${unit}`;
+};
+
+export const dateTimeStringForFileName = () => {
+  const newDate = new Date();
+  return `${newDate.getFullYear()}${
+    newDate.getMonth() + 1
+  }${newDate.getDate()}${newDate.getHours()}${newDate.getMinutes()}`;
 };

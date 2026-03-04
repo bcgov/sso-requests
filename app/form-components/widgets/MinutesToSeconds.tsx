@@ -22,7 +22,7 @@ const MIN_1 = 60;
 /**
  * Custom input to take in a number in minutes and save as a value in seconds.
  */
-const MinutesToSeconds = ({ id, value = 0, label, readonly, onChange }: WidgetProps) => {
+const MinutesToSeconds = ({ id, value = 0, label, readonly, uiSchema, onChange }: WidgetProps) => {
   if (readonly) onChange = noop;
   const [time, setTime] = useState<string | number>(value / MIN_1);
 
@@ -50,6 +50,23 @@ const MinutesToSeconds = ({ id, value = 0, label, readonly, onChange }: WidgetPr
       onChange(0);
     }
   };
+
+  if (readonly) {
+    let displayedValue = value;
+
+    // 0 value indicates unset, so inherits the realm setting.
+    if (displayedValue === 0) {
+      displayedValue = uiSchema?.['ui:inheritedRealmSetting'] || 'Inherited from realm setting';
+    } else {
+      displayedValue = `${time} Minutes`;
+    }
+
+    return (
+      <Container>
+        <span id={id}>{displayedValue}</span>
+      </Container>
+    );
+  }
 
   return (
     <Container>

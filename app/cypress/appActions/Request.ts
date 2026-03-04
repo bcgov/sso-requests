@@ -191,7 +191,7 @@ class Request {
     }
 
     this.reqPage.setEnvironment(this.environments);
-    if (this.protocol === 'oidc') {
+    if (this.protocol === 'oidc' && this.authType != 'service-account') {
       this.reqPage.setadditionalRoleAttribute(this.additionalRoleAttribute);
     }
     this.reqPage.pageNext();
@@ -314,7 +314,7 @@ class Request {
 
     // Check the Additional Role Attribute
     if (this.additionalRoleAttribute) {
-      if (this.protocol === 'oidc') {
+      if (this.protocol === 'oidc' && this.authType != 'service-account') {
         cy.get(this.reqPage.prev_AddRoleAttribute).contains(this.additionalRoleAttribute);
       }
     }
@@ -436,7 +436,7 @@ class Request {
     }
 
     if (this.additionalRoleAttribute) {
-      if (this.protocol === 'oidc') {
+      if (this.protocol === 'oidc' && this.authType != 'service-account') {
         this.reqPage.setadditionalRoleAttribute(this.additionalRoleAttribute);
       }
     }

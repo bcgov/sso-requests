@@ -13,7 +13,7 @@ locals {
 }
 
 module "standard" {
-  source       = "github.com/bcgov/sso-terraform?ref=dev/terraform-modules/modules/base-realms/realm-standard"
+  source       = "github.com/bcgov/sso-terraform/terraform-modules//modules/base-realms/realm-standard?ref=dev"
   keycloak_url = var.keycloak_url
 
   standard_realm_name      = local.standard_realm_name
@@ -44,4 +44,10 @@ module "standard" {
 
   otp_client_id     = ""
   otp_client_secret = ""
+
+  ppid_client_id     = ""
+  ppid_token_url     = ""
+  ppid_api_url       = ""
+  ppid_client_secret = ""
+  ppid_issuer        = ""
 }

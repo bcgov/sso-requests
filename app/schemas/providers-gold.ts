@@ -6,6 +6,8 @@ import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
 import { getDiscontinuedIdps } from '@app/utils/helpers';
+import { appPermissions, hasAppPermission } from '@app/utils/authorize';
+import { LoggedInUser } from '@app/interfaces/team';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const {
@@ -23,7 +25,7 @@ export const hasRoleAssignableIdp = (selectedIdps: string[]) =>
 
 export default function getSchema(
   integration: Integration,
-  context: { isAdmin?: boolean } = { isAdmin: true },
+  session: LoggedInUser | null,
   bcscPrivacyZones?: BcscPrivacyZone[],
   bcscAttributes?: BcscAttribute[],
 ) {
@@ -139,7 +141,8 @@ export default function getSchema(
       }
     });
 
-    if (context.isAdmin && !idpEnum?.includes('idir')) idpEnum?.unshift('idir');
+    if (hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) && !idpEnum?.includes('idir'))
+      idpEnum?.unshift('idir');
 
     properties.devIdps = {
       type: 'array',
@@ -209,7 +212,8 @@ export default function getSchema(
 
   const bcscAvailableAndSelected = bcscSelected && include_bcsc;
   // only show privacy zone if otp is selected and enabled and user is sso admin
-  const otpAvailableAndSelected = otpSelected && includeOTP && context.isAdmin;
+  const otpAvailableAndSelected =
+    otpSelected && includeOTP && hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS);
 
   if (bcscAvailableAndSelected || otpAvailableAndSelected) {
     properties.bcscPrivacyZone = privacyZonesSchema;
@@ -263,7 +267,7 @@ export default function getSchema(
     };
   }
 
-  if (protocol === 'saml' && context.isAdmin) {
+  if (protocol === 'saml' && hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)) {
     properties.clientId = {
       type: 'string',
       title: 'As SSO Admin. you can override the client id',

@@ -13,9 +13,9 @@ import {
 import { models } from '@app/shared/sequelize/models/models';
 import { destroyRequestRole, createCompositeRolesDB } from '@app/queries/roles';
 import createHttpError from 'http-errors';
-import { isAdmin } from '@app/utils/helpers';
 import { Session } from '@app/shared/interfaces';
 import { Integration } from '@app/interfaces/Request';
+import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
   return await findAllowedIntegrationInfo(sessionUserId, integrationId);
@@ -85,7 +85,8 @@ export const getClientRole = async (sessionUserId: number, role: any) => {
 
 export const listRoles = async (session: Session, role: any) => {
   let integration: Integration;
-  if (isAdmin(session)) integration = await getIntegrationById(role?.integrationId);
+  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES))
+    integration = await getIntegrationById(role?.integrationId);
   else integration = await validateIntegration(session?.user?.id as number, role?.integrationId);
   return await listClientRoles(integration, role);
 };
@@ -135,7 +136,8 @@ export const setCompositeRoles = async (
 
 export const listCompositeRoles = async (session: Session, role: any) => {
   let integration: Integration;
-  if (isAdmin(session)) integration = await getIntegrationById(role?.integrationId);
+  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES))
+    integration = await getIntegrationById(role?.integrationId);
   else integration = await validateIntegration(session?.user?.id as number, role?.integrationId);
   return await getCompositeClientRoles(integration, {
     environment: role?.environment,

@@ -6,7 +6,6 @@ import isString from 'lodash.isstring';
 import {
   validateRequest,
   getDifferences,
-  isAdmin,
   getDisplayName,
   getBCSCEnvVars,
   getRequiredBCSCScopes,
@@ -14,9 +13,10 @@ import {
   getAllowedIdpsForApprover,
   isBceidApprover,
   isGithubApprover,
-  isBCServicesCardApprover,
+  isBcServicesCardApprover,
   sanitizeRequest,
   isOTPApprover,
+  isAdmin,
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
@@ -95,6 +95,7 @@ import { getIdpApprovalStatus } from '@app/helpers/permissions';
 import getConfig from 'next/config';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
+import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 const { publicRuntimeConfig = {} } = getConfig() || {};
 const { app_env } = publicRuntimeConfig;
@@ -146,7 +147,25 @@ const allowedFieldsForGithub = [
   ...envFieldsAll,
 ];
 
-export const createEvent = async (data: any) => {
+interface EventData {
+  eventCode: string;
+  requestId?: string | number;
+  idirUserid?: string;
+  idirUserDisplayName?: string;
+  details?: {
+    environment?: string;
+    clientId?: string;
+    idirUserDisplayName?: string;
+    removerId?: string | number;
+    teamId?: string | number;
+    removedMemberId?: string | number;
+    action?: string;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+export const createEvent = async (data: EventData) => {
   try {
     await models.event.create(data);
   } catch (err) {
@@ -492,13 +511,11 @@ export const updateRequest = async (
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
   let addingProd = false;
-  const userIsAdmin = isAdmin(session);
   const bceidApprover = isBceidApprover(session);
   const githubApprover = isGithubApprover(session);
-  const bcscApprover = isBCServicesCardApprover(session);
+  const bcscApprover = isBcServicesCardApprover(session);
   const socialApprover = isSocialApprover(session);
   const otpApprover = isOTPApprover(session);
-  const allowedToUpdate = canUpdateRequestByUserId(session?.user?.id as number, data?.id!);
   const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id!);
@@ -547,26 +564,20 @@ export const updateRequest = async (
     const isApprovingOTP = !originalData.otpApproved && current.otpApproved;
 
     const updatedAttributes = getIdpApprovalStatus({
-      isAdmin: userIsAdmin,
+      session,
       originalData,
       updatedData: current,
-      bceidApprover,
-      githubApprover,
-      bcscApprover,
-      socialApprover,
-      otpApprover,
     });
     assign(current, updatedAttributes);
 
     const validIDPSelection = validateIDPs({
       currentIdps: originalData.devIdps,
       updatedIdps: current.devIdps,
-      applied: originalData.applied,
       bceidApproved: originalData.bceidApproved,
       githubApproved: originalData.githubApproved,
       bcServicesCardApproved: originalData.bcServicesCardApproved,
       protocol: current.protocol,
-      isAdmin: userIsAdmin,
+      session,
     });
     if (!validIDPSelection) {
       throw new createHttpError[400]('Invalid IDP Selection');
@@ -574,7 +585,7 @@ export const updateRequest = async (
 
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
     if (
-      !userIsAdmin &&
+      !hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) &&
       (bceidApprover || githubApprover || bcscApprover || socialApprover || otpApprover) &&
       !(await canUpdateRequestByUserId(session?.user?.id as number, data?.id!))
     ) {
@@ -588,7 +599,7 @@ export const updateRequest = async (
       });
     }
 
-    const allowedTeams = await getAllowedTeams(user, { raw: true });
+    const allowedTeams = await getAllowedTeams(session, { raw: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
@@ -757,7 +768,9 @@ export const updateRequest = async (
 
       if (isMerged) {
         const details: any = { changes };
-        if (userIsAdmin && comment) details.comment = comment;
+        if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && comment) {
+          details.comment = comment;
+        }
 
         eventData.eventCode = EVENTS.REQUEST_UPDATE_SUCCESS;
         eventData.details = details;
@@ -952,16 +965,23 @@ export const getRequestAll = async (
     devIdps: string[];
   },
 ) => {
+  if (!hasAppPermission(session?.client_roles, appPermissions.VIEW_ADMIN_DASHBOARD)) {
+    throw new createHttpError.Forbidden('not allowed');
+  }
+
   let where = null;
   const { order, limit, page, ...rest } = data;
   const allowedIdpsForApprover = getAllowedIdpsForApprover(session);
 
-  if (isAdmin(session)) {
-    where = getWhereClauseForAllRequests({ ...rest });
-  } else if (allowedIdpsForApprover.length > 0) {
-    where = getWhereClauseForAllRequests({ ...rest, devIdps: allowedIdpsForApprover });
+  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_ALL_REQUESTS)) {
+    where = getWhereClauseForAllRequests({
+      ...rest,
+    });
   } else {
-    throw new createHttpError.Forbidden('not allowed');
+    where = getWhereClauseForAllRequests({
+      ...rest,
+      devIdps: allowedIdpsForApprover as string[],
+    });
   }
 
   const result: Promise<{ count: number; rows: any[] }> = await models.request.findAndCountAll({
@@ -1057,10 +1077,9 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 };
 
 export const updateRequestMetadata = async (session: Session, user: User, data: { id: number; status: string }) => {
-  if (!session.client_roles?.includes('sso-admin')) {
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)) {
     throw new createHttpError.Forbidden('not allowed');
   }
-
   const { id, status } = data;
   const result = await models.request.update(
     { status },
@@ -1079,7 +1098,7 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
 };
 
 export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
-  if (isAdmin(session)) return true;
+  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST)) return true;
   const integration = await getMyOrTeamRequest(session?.user?.id as number, integrationId);
   return canDeleteIntegration(integration);
 };

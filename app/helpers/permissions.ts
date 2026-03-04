@@ -4,6 +4,7 @@ import { Session } from '@app/shared/interfaces';
 import createHttpError from 'http-errors';
 import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkOTP, checkSocial } from './integration';
 import isequal from 'lodash.isequal';
+import { hasAppPermission, hasTeamPermission, teamPermissions, appPermissions } from '@app/utils/authorize';
 
 /**
  * For an integration the user has access to, determine delete permissions.
@@ -19,7 +20,7 @@ export const canDeleteIntegration = (integration: Integration) => {
   }
 
   if (integration.usesTeam && integration.teamId) {
-    if (integration.userTeamRole === 'admin') return true;
+    if (hasTeamPermission(integration.userTeamRole, teamPermissions.DELETE_REQUEST)) return true;
   } else return true;
 
   return false;
@@ -40,13 +41,13 @@ export const canDeleteTeam = (team: Team) => {
   if (!team || Number(team.integrationCount) > 0) {
     return false;
   }
-  if (team.role === 'admin') return true;
+  if (hasTeamPermission(team.role, teamPermissions.DELETE_TEAM)) return true;
   return false;
 };
 
 export const canEditTeam = (team: Team) => {
   if (!team) return false;
-  if (team.role === 'admin') return true;
+  if (hasTeamPermission(team.role, teamPermissions.UPDATE_TEAM)) return true;
   return false;
 };
 
@@ -60,50 +61,43 @@ export const canCreateOrDeleteRoles = (integration: Integration) => {
     return false;
   }
   if (integration.usesTeam) {
-    if (integration.userTeamRole === 'admin') return true;
+    if (hasTeamPermission(integration.userTeamRole, teamPermissions.MANAGE_ROLES)) return true;
   } else return true;
   return false;
 };
 
 export const checkRole = (roles: string[], role: string) => roles.includes(role);
-export const assertSessionRole = (session: Session, role: string) => {
-  const hasRole = checkRole(session.client_roles, role);
-  if (!hasRole) throw new createHttpError.Forbidden(`user does not have ${role} role`);
-};
+
+// export const assertSessionRole = (session: Session, role: string) => {
+//   const hasRole = checkRole(session.client_roles, role);
+//   if (!hasRole) throw new createHttpError.Forbidden(`user does not have ${role} role`);
+// };
 
 /**
  * Throws forbidden error if not an allowed approver, or updating bcsc attributes post approval. Resets approval if previously approved idp is remove.
  */
-export const getIdpApprovalStatus = ({
-  isAdmin,
-  originalData,
-  updatedData,
-  bceidApprover,
-  githubApprover,
-  bcscApprover,
-  socialApprover,
-  otpApprover,
-}: any) => {
+export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any) => {
   const changedAttrs: any = {};
 
   const isApprovingBceid = !originalData.bceidApproved && updatedData.bceidApproved;
-  if (isApprovingBceid && !isAdmin && !bceidApprover)
+  if (isApprovingBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
     throw new createHttpError.Forbidden('not allowed to approve bceid');
 
   const isApprovingGithub = !originalData.githubApproved && updatedData.githubApproved;
-  if (isApprovingGithub && !isAdmin && !githubApprover)
+  if (isApprovingGithub && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_GITHUB))
     throw new createHttpError.Forbidden('not allowed to approve github');
 
   const isApprovingBCSC = !originalData.bcServicesCardApproved && updatedData.bcServicesCardApproved;
-  if (isApprovingBCSC && !isAdmin && !bcscApprover)
+  if (isApprovingBCSC && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BC_SERVICES_CARD))
     throw new createHttpError.Forbidden('not allowed to approve bc services card');
 
   const isApprovingSocial = !originalData.socialApproved && updatedData.socialApproved;
-  if (isApprovingSocial && !isAdmin && !socialApprover)
+  if (isApprovingSocial && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_SOCIAL))
     throw new createHttpError.Forbidden('not allowed to approve social');
 
   const isApprovingOTP = !originalData.otpApproved && updatedData.otpApproved;
-  if (isApprovingOTP && !isAdmin && !otpApprover) throw new createHttpError.Forbidden('not allowed to approve otp');
+  if (isApprovingOTP && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_OTP))
+    throw new createHttpError.Forbidden('not allowed to approve otp');
 
   if (originalData.otpApproved && !updatedData.devIdps.some(checkOTP)) {
     changedAttrs.otpApproved = false;
