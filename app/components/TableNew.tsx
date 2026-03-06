@@ -154,6 +154,7 @@ export interface TableProps<T extends object> {
   noDataFoundMessage?: React.ReactNode;
   initialState?: InitialTableState;
   loading?: boolean;
+  autoSelectFirstRow?: boolean;
 }
 
 const awesomePlaceholder = (
@@ -209,6 +210,7 @@ const Table = <T extends object>({
   pageSizeOptions = [5, 10, 20, 30, 40, 50],
   noDataFoundMessage = <p>No data found</p>,
   loading = false,
+  autoSelectFirstRow = true,
 }: TableProps<T>) => {
   const [selectedRow, setSelectedRow] = useState<Row<T>>();
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -278,7 +280,7 @@ const Table = <T extends object>({
   });
 
   useEffect(() => {
-    if (table.getRowModel().rows.length === 1) {
+    if (table.getRowModel().rows.length === 1 || (autoSelectFirstRow && table.getRowModel().rows.length > 0)) {
       onRowClick(table.getRowModel().rows[0]);
     }
   }, [table.getRowModel().rows.length]);

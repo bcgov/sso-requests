@@ -92,13 +92,11 @@ import { bcscClientScopeMappers, bcscIdpMappers } from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus } from '@app/helpers/permissions';
-import getConfig from 'next/config';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { app_env } = publicRuntimeConfig;
+const app_env = process.env.APP_ENV || 'development';
 
 const APP_ENV = app_env || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;

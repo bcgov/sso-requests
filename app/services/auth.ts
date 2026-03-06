@@ -1,7 +1,8 @@
+import { getKeycloak } from '@app/utils/keycloak';
 import { handleAxiosError, instance } from './axios';
-import keycloak from '@app/utils/keycloak';
 
 export const getAuthHeader = async (): Promise<string> => {
+  const keycloak = await getKeycloak();
   await keycloak.updateToken().catch(() => {
     keycloak.logout();
   });

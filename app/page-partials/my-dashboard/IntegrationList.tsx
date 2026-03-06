@@ -1,4 +1,4 @@
-import React, { useState, useEffect, MouseEventHandler } from 'react';
+import { useState, useEffect, MouseEventHandler } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Integration } from 'interfaces/Request';
 import { padStart } from 'lodash';
@@ -19,6 +19,7 @@ import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import { formatWikiURL } from 'utils/constants';
 import { AxiosError } from 'axios';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
+import TableNew from '@app/components/TableNew';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -185,7 +186,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
     return (
       <>
         <h2>Integrations</h2>
-        <Table
+        <TableNew
           columns={
             [
               {
@@ -262,7 +263,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
           })}
           enableGlobalSearch={false}
           onRowSelect={activateRow}
-        ></Table>
+        ></TableNew>
       </>
     );
   };

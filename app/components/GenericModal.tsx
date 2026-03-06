@@ -1,4 +1,13 @@
-import React, { CSSProperties, Children, cloneElement, useState, useImperativeHandle, useRef, forwardRef } from 'react';
+import React, {
+  CSSProperties,
+  Children,
+  cloneElement,
+  useState,
+  useImperativeHandle,
+  useRef,
+  forwardRef,
+  JSX,
+} from 'react';
 import Modal from '@button-inc/bcgov-theme/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { noop, kebabCase } from 'lodash';
@@ -107,7 +116,7 @@ const GenericModal = (
     showCancelButton,
     buttonAlign,
   };
-  const contentRef = useRef<any>();
+  const contentRef = useRef<any>(null);
   const [loading, setLoading] = useState(false);
   const [context, setContext] = useState<any>(null);
   const [config, setConfig] = useState<any>(initialConfig);

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import getConfig from 'next/config';
 import type { AppContext, AppProps } from 'next/app';
 import { getProfile, updateProfile } from 'services/user';
 import Layout from 'layout/Layout';
@@ -14,14 +13,12 @@ import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import '@bcgov/bc-sans/css/BCSans.css';
 import SurveyBox from '@app/components/SurveyBox';
 import { KeycloakTokenParsed } from 'keycloak-js';
-import keycloak from '@app/utils/keycloak';
+import Keycloak from 'keycloak-js';
 import App from 'next/app';
 import { SessionContext, SurveyContext } from '@app/utils/context';
-
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { base_path, maintenance_mode, sso_redirect_uri, app_url } = publicRuntimeConfig;
-
-const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, `${base_path}/admin-dashboard`];
+import { RuntimeConfig } from '@app/shared/interfaces';
+import { fetchConfig } from '@app/utils/runtimeConfigStore';
+import { getKeycloak } from '@app/utils/keycloak';
 
 const proccessSession = (session?: KeycloakTokenParsed | null) => {
   if (!session) return null;
@@ -52,13 +49,54 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [displaySurvey, setDisplaySurvey] = useState(false);
   const [openSurvey, setOpenSurvey] = useState(false);
   const [refreshTokenStatus, setRefreshTokenStatus] = useState<'fresh' | 'expiring' | 'expired'>('fresh');
+  const [config, setConfig] = useState<RuntimeConfig | null>(null);
+  const [keycloak, setKeycloak] = useState<Keycloak | null>(null);
+
+  useEffect(() => {
+    fetchConfig()
+      .then((config) => setConfig(config))
+      .catch((error) => console.error('Failed to load runtime config:', error));
+  }, []);
+
+  useEffect(() => {
+    if (!config) return;
+    getKeycloak()
+      .then((kc) => setKeycloak(kc))
+      .catch((err: Error) => console.error('Failed to initialize Keycloak:', err));
+
+    if (config.maintenance_mode && config.maintenance_mode === 'true') {
+      router.push({
+        pathname: '/application-error',
+        query: {
+          error: 'maintenance',
+        },
+      });
+    }
+
+    if (keycloak && !keycloak.didInitialize) {
+      keycloak
+        .init({
+          redirectUri: config.sso_redirect_uri,
+          onLoad: 'check-sso',
+        })
+        .then(() => {
+          const processedSession = proccessSession(keycloak.idTokenParsed);
+          setSession(processedSession);
+        })
+        .catch((err: Error) => console.error(err))
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [config, keycloak]);
 
   // Effect to check token age, and show user the appropriate modal if their refresh token is expiring/expired
   useEffect(() => {
+    if (!config) return;
     const interval = setInterval(() => {
-      if (!session || !keycloak.refreshTokenParsed?.exp) return;
+      if (!session || !keycloak?.refreshTokenParsed?.exp) return;
       const now = new Date().getTime() / 1000;
-      const secondsToTokenExpiry = keycloak.refreshTokenParsed?.exp - now;
+      const secondsToTokenExpiry = keycloak?.refreshTokenParsed?.exp - now;
       if (secondsToTokenExpiry > 0 && secondsToTokenExpiry < refreshTokenPromptTime) {
         setRefreshTokenStatus('expiring');
         sessionExpiringModalRef.current.updateConfig({
@@ -77,7 +115,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [session]);
+  }, [session, config, keycloak]);
 
   const setShowSurvey = async (show: boolean, triggerEvent: keyof UserSurveyInformation) => {
     if (!user) return;
@@ -95,50 +133,31 @@ function MyApp({ Component, pageProps }: AppProps) {
   };
 
   useEffect(() => {
-    if (maintenance_mode && maintenance_mode === 'true') {
-      router.push({
-        pathname: '/application-error',
-        query: {
-          error: 'maintenance',
-        },
-      });
-    }
-
-    if (!keycloak.didInitialize) {
-      keycloak
-        .init({
-          redirectUri: sso_redirect_uri,
-          onLoad: 'check-sso',
-        })
-        .then(() => {
-          const processedSession = proccessSession(keycloak.idTokenParsed);
-          setSession(processedSession);
-        })
-        .catch((err: Error) => console.error(err))
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, []);
-
-  useEffect(() => {
     const getUser = async () => {
       const [data, err] = await getProfile();
       setUser(data);
     };
 
     if (session) getUser();
-  }, [session]);
+  }, [session, config, keycloak]);
 
-  const handleLogin = async () => keycloak.login({ redirectUri: `${app_url}/my-dashboard` });
-  const handleLogout = async () => keycloak.logout({ redirectUri: app_url });
+  const handleLogin = async () => keycloak?.login({ redirectUri: `${config?.app_url}/my-dashboard` });
+  const handleLogout = async () => keycloak?.logout({ redirectUri: config?.app_url });
 
-  const sessionContext = useMemo(() => ({ session, user, keycloak }), [session, user, keycloak]);
+  const sessionContext = useMemo(
+    () => ({ session, user, keycloak: keycloak || ({} as Keycloak) }),
+    [session, user, keycloak],
+  );
   const surveyContext = useMemo(() => ({ setShowSurvey }), [user]);
 
   if (loading) return <PageLoader />;
 
-  if (authenticatedUris.some((url) => window.location.pathname.startsWith(url)) && !keycloak.authenticated) {
+  if (
+    [`${config?.base_path}/my-dashboard`, `${config?.base_path}/request`, `${config?.base_path}/admin-dashboard`].some(
+      (url) => window.location.pathname.startsWith(url),
+    ) &&
+    !keycloak?.authenticated
+  ) {
     router.push('/');
     return null;
   }
@@ -146,7 +165,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <SessionContext.Provider value={sessionContext}>
       <SurveyContext.Provider value={surveyContext}>
-        {maintenance_mode && maintenance_mode === 'true' ? (
+        {config?.maintenance_mode && config.maintenance_mode === 'true' ? (
           <Component {...pageProps} />
         ) : (
           <>
@@ -165,7 +184,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               icon={faExclamationTriangle}
               onConfirm={() => {
                 if (refreshTokenStatus === 'expired') handleLogin();
-                else if (refreshTokenStatus === 'expiring') keycloak.updateToken();
+                else if (refreshTokenStatus === 'expiring') keycloak?.updateToken();
               }}
               onCancel={() => {
                 if (refreshTokenStatus === 'expired') router.push('/');
@@ -200,7 +219,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 
 MyApp.getInitialProps = async (appContext: AppContext) => {
   const appProps = await App.getInitialProps(appContext);
-  const { publicRuntimeConfig = {} } = getConfig() || {};
   return {
     ...appProps,
     pageProps: {

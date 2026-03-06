@@ -1,5 +1,27 @@
 import { Integration } from '@app/interfaces/Request';
 
+export interface RuntimeConfig {
+  api_url: string;
+  sso_configuration_endpoint: string;
+  sso_client_id: string;
+  app_url: string;
+  base_path: string;
+  maintenance_mode: string;
+  kc_idp_hint: string;
+  include_digital_credential: boolean;
+  include_otp: boolean;
+  include_bc_services_card: boolean;
+  include_social: boolean;
+  allow_bc_services_card_prod: boolean;
+  app_env: string;
+  sso_url: string;
+  sso_redirect_uri: string;
+  sso_authorization_response_mode: string;
+  sso_authorization_response_type: string;
+  sso_authorization_scope: string;
+  sso_token_grant_type: string;
+}
+
 export interface User {
   id: number;
   idirUserid: string;

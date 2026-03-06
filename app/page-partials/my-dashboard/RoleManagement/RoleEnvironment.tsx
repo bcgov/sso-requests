@@ -412,7 +412,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   };
 
   const activateRow = (row: any) => {
-    console.log('🚀 ~ activateRow ~ row:', row);
     if (row.role.endsWith(' (Composite role)')) {
       const roleLength = row.role.length;
       setSelectedRole(row.role.substr(0, roleLength - COMPOSITE_ROLE_STRING_LENGTH));
@@ -717,9 +716,10 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             isMulti={true}
             placeholder="Select..."
             noOptionsMessage={() => 'No roles'}
-            onChange={async (newValues: Option[]) => {
-              await throttleCompositeRoleUpdate(newValues as Option[])?.then(
-                (updateSucceeded) => updateSucceeded && setCompositeRoles(newValues as Option[]),
+            onChange={async (newValues) => {
+              const values = newValues as Option[];
+              await throttleCompositeRoleUpdate(values)?.then(
+                (updateSucceeded) => updateSucceeded && setCompositeRoles(values),
               );
             }}
             isDisabled={!canCreateOrDeleteRole || viewOnly}

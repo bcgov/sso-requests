@@ -1,10 +1,5 @@
 import { AxiosResponse } from 'axios';
-import { JsonWebKey } from 'crypto';
 import createHttpError from 'http-errors';
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { sso_configuration_endpoint, sso_client_id } = serverRuntimeConfig;
 
 import axios from 'axios';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -13,8 +8,8 @@ import jwkToPem from 'jwk-to-pem';
 import { Session } from '@app/shared/interfaces';
 import { IncomingHttpHeaders } from 'http';
 
-const ssoConfigurationEndpoint = sso_configuration_endpoint;
-const audience = sso_client_id;
+const ssoConfigurationEndpoint = process.env.SSO_CONFIGURATION_ENDPOINT || '';
+const audience = process.env.SSO_CLIENT_ID || '';
 
 let _ssoConfig: { jwks: any; issuer: string } = { jwks: null, issuer: '' };
 
@@ -41,7 +36,7 @@ const validateJWTSignature = async (token: string): Promise<Session | boolean> =
     // 2. Compare the local key ID (kid) to the public kid.
     const { jwks, issuer } = await getConfiguration();
 
-    const key = jwks.keys.find((jwkKey: JsonWebKey) => jwkKey.kid === header.kid);
+    const key = jwks.keys.find((jwkKey: any) => jwkKey.kid === header.kid);
     const isValidKid = !!key;
 
     if (!isValidKid) {
