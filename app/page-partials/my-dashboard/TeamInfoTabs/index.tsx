@@ -2,8 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
-import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm, { Errors, validateTeam } from 'form-components/team-form/TeamMembersForm';
 import { User, Team } from 'interfaces/team';
@@ -46,6 +44,8 @@ import { Link } from '@button-inc/bcgov-theme';
 import { SurveyContext } from '@app/utils/context';
 import { docusaurusURL, messages } from '@app/utils/constants';
 import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
+import TableNew from '@app/components/TableNew';
+import Select from 'react-select';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -443,8 +443,129 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             ) : (
               <br />
             )}
-            <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table
+            <ReactPlaceholder type="text" rows={7} ready={!loading}>
+              <TableNew
+                columns={[
+                  {
+                    accessorKey: 'id',
+                    header: '',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'invitiationSendTime',
+                    header: '',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'status',
+                    header: 'Invite Status',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => {
+                      return (
+                        <MemberStatusIcon
+                          pending={props.row.getValue('status')}
+                          invitationSendTime={props.row.getValue('invitiationSendTime')}
+                        />
+                      );
+                    },
+                  },
+                  {
+                    accessorKey: 'idirEmail',
+                    header: 'Email',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'role',
+                    header: () => <RoleHeader />,
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => {
+                      const adminActionsAllowed =
+                        hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) &&
+                        myself.id !== props.row.getValue('id');
+                      return adminActionsAllowed && !props.row.getValue('status') ? (
+                        <div>
+                          <Select
+                            variant="mini"
+                            options={[
+                              { value: 'member', label: 'Member' },
+                              { value: 'admin', label: 'Admin' },
+                            ]}
+                            onChange={(option: { value: string; label: string } | null) =>
+                              handleMemberRoleChange(props.row.getValue('id') as number, option ? option.value : '')
+                            }
+                            value={
+                              props.row.getValue('role')
+                                ? { value: props.row.getValue('role'), label: capitalize(props.row.getValue('role')) }
+                                : null
+                            }
+                            styles={{
+                              menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+                            }}
+                            menuPortalTarget={document.body}
+                            isSearchable={false}
+                            isClearable={false}
+                          />
+                        </div>
+                      ) : (
+                        capitalize(props.row.getValue('role'))
+                      );
+                    },
+                  },
+                  {
+                    accessorKey: 'actions',
+                    header: () => <MembersActionsHeader />,
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => {
+                      const member = members.find((member) => member.id === props.row.getValue('id'));
+                      const adminActionsAllowed =
+                        hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) &&
+                        myself.id !== props.row.getValue('id');
+                      return (
+                        <RightFloat>
+                          {adminActionsAllowed && props.row.getValue('status') && (
+                            <ButtonIcon
+                              icon={faShare}
+                              size="lg"
+                              onClick={() => inviteMember(member!)}
+                              title="Resend Invitation"
+                              style={{ marginRight: '6px' }}
+                              data-testid="resend-invitation"
+                            />
+                          )}
+                          {adminActionsAllowed && (
+                            <ButtonIcon
+                              icon={faTrash}
+                              onClick={() => handleDeleteClick(props.row.getValue('id'))}
+                              size="lg"
+                              title="Delete User"
+                              style={{ marginRight: '16px' }}
+                              data-testid="delete-member"
+                            />
+                          )}
+                        </RightFloat>
+                      );
+                    },
+                  },
+                ]}
+                data={members.map((member) => {
+                  return {
+                    id: member.id,
+                    status: Boolean(member.pending),
+                    idirEmail: member.idirEmail,
+                    role: member.role,
+                    invitiationSendTime: member.createdAt,
+                  };
+                })}
+                enableGlobalSearch={false}
+                hiddenColumns={['id', 'invitiationSendTime']}
+              ></TableNew>
+              {/* <Table
                 data-testid="team-members-table"
                 variant="medium"
                 headers={[
@@ -469,8 +590,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   },
                 ]}
                 data={members.map((member) => {
-                  const adminActionsAllowed =
-                    hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) && myself.id !== member.id;
+                    const adminActionsAllowed =
+                      hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) && myself.id !== member.id;
                   return {
                     status: <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />,
                     idirEmail: member.idirEmail,
@@ -517,14 +638,14 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 colfilters={[]}
                 rowSelectorKey={'status'}
                 readOnly={true}
-              />
+              /> */}
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
         <Tab key="integrations" tab="Integrations">
           <TabWrapper marginTop="20px">
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table
+              {/* <Table
                 variant="medium"
                 headers={[
                   {
@@ -579,6 +700,104 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 colfilters={[]}
                 rowSelectorKey={'status'}
                 noDataFoundElement={
+                  <CenteredTD colSpan={5}>
+                    <br />
+                    There are no integrations for this team yet.
+                    <br />
+                    <br />
+                    To add this team to an <span className="strong">existing integration</span>:
+                    <span className="line-height-200"></span>
+                    <ol>
+                      <li>
+                        Go to your{' '}
+                        <span className="text-blue">
+                          <span className="strong">Projects</span>
+                        </span>{' '}
+                        tab
+                      </li>
+                      <li>Select the &ldquo;pencil&rdquo; icon to edit the integration</li>
+                      <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
+                    </ol>
+                    <br />
+                    To add this team to a <span className="strong">new integration</span>:
+                    <span className="line-height-200"></span>
+                    <ol>
+                      <li>
+                        Go to your{' '}
+                        <span className="text-blue">
+                          <span className="strong">Projects</span>
+                        </span>{' '}
+                        tab
+                      </li>
+                      <li>Select &ldquo;+ Request SSO Integration&rdquo;</li>
+                      <li>Select &ldquo;Yes&rdquo; to allow multiple team members to manage the integration</li>
+                      <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
+                    </ol>
+                  </CenteredTD>
+                }
+              /> */}
+
+              <TableNew
+                columns={[
+                  {
+                    accessorKey: 'status',
+                    header: 'Status',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => <RequestStatusIcon status={props.row.getValue('status')} />,
+                  },
+                  {
+                    accessorKey: 'id',
+                    header: 'Request ID',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'projectName',
+                    header: 'Project Name',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'actions',
+                    header: () => <IntegrationActionsHeader />,
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => {
+                      return (
+                        <RightFloat>
+                          <ActionButtons
+                            request={props.row.original}
+                            onDelete={() => {
+                              loadTeams();
+                              getData(team?.id);
+                            }}
+                          >
+                            <ActionButton
+                              icon={faEye}
+                              aria-label="view"
+                              onClick={() => viewProject(props.row.getValue('id'))}
+                              size="lg"
+                            />
+                          </ActionButtons>
+                        </RightFloat>
+                      );
+                    },
+                  },
+                ]}
+                data={
+                  integrations?.length > 0
+                    ? integrations?.map((integration) => {
+                        return {
+                          status: integration?.status,
+                          id: integration.id,
+                          projectName: integration.projectName,
+                        };
+                      })
+                    : []
+                }
+                enableGlobalSearch={false}
+                noDataFoundMessage={
                   <CenteredTD colSpan={5}>
                     <br />
                     There are no integrations for this team yet.

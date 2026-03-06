@@ -2,14 +2,14 @@ import React, { useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import { startCase } from 'lodash';
 import { faTrash, faEdit, faEye, faTrashRestoreAlt } from '@fortawesome/free-solid-svg-icons';
-import Table from 'components/Table';
+import { Table } from '@bcgov-sso/common-react-components';
 import { getRequestAll, deleteRequest, restoreRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Integration, Option } from 'interfaces/Request';
 import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
-import { formatFilters, isIdpApprover } from 'utils/helpers';
+import { containsPrefix, formatFilters, isIdpApprover } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
@@ -21,11 +21,12 @@ import { SystemUnavailableMessage } from '@app/page-partials/my-dashboard/Messag
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import { throttledIdirSearch } from '@app/utils/users';
 import DeleteModal from '@app/components/DeleteModal';
-import { noop } from 'lodash';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
+import TableNew from '@app/components/TableNew';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
+  { value: 'azureidir', label: 'IDIR - MFA' },
   { value: 'bceid', label: 'BCeID' },
   { value: 'github', label: 'GitHub' },
   { value: 'digitalcredential', label: 'Digital Credential' },
@@ -36,7 +37,7 @@ const idpOptions = [
 
 const archiveStatusOptions = [
   { value: 'active', label: 'Active' },
-  { value: 'archived', label: 'Deleted' },
+  { value: 'deleted', label: 'Deleted' },
 ];
 
 const environmentOptions = [
@@ -190,6 +191,20 @@ const RestoreModalContent = ({
   );
 };
 
+const multilistFilter = (row: any, columnId: string, filterValue: any) => {
+  if (filterValue.length === 0) return true;
+
+  const cell = row.getValue(columnId);
+
+  if (Array.isArray(cell)) {
+    return cell.some((v) => {
+      if (filterValue.includes(String(v)) || containsPrefix(filterValue, v)) return true;
+    });
+  }
+
+  return filterValue.includes(String(cell));
+};
+
 function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
@@ -203,7 +218,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
   const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
-  const [archiveStatus, setArchiveStatus] = useState<Option[]>([{ value: 'active', label: 'Active' }]);
+  // const [archiveStatus, setArchiveStatus] = useState<Option[]>([{ value: 'active', label: 'Active' }] as Option[]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
   const [showRestoreModal, setShowRestoreModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -225,15 +240,15 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       label: 'Workflow Status',
       key: 'workflowStatus',
     },
-    {
-      value: archiveStatus,
-      multiselect: true,
-      onChange: setArchiveStatus,
-      options: archiveStatusOptions,
-      defaultValue: archiveStatus,
-      label: 'Archive Status',
-      key: 'archiveStatus',
-    },
+    // {
+    //   value: archiveStatus,
+    //   multiselect: true,
+    //   onChange: setArchiveStatus,
+    //   options: archiveStatusOptions,
+    //   defaultValue: archiveStatus,
+    //   label: 'Archive Status',
+    //   key: 'archiveStatus',
+    // },
   ]);
 
   const getData = async () => {
@@ -249,7 +264,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       limit,
       page,
       status: workflowStatus.map((v) => v.value) as string[],
-      archiveStatus: archiveStatus.map((v) => v.value) as string[],
+      archiveStatus: [],
       realms,
       environments,
       types: ['gold'],
@@ -293,7 +308,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       setSelectedId(undefined);
       loadData();
     }
-  }, [searchKey, limit, page, workflowStatus, archiveStatus, selectedIdp, selectedEnvironments]);
+  }, [searchKey, limit, page, workflowStatus, selectedIdp, selectedEnvironments]);
 
   if (hasError) {
     return <SystemUnavailableMessage />;
@@ -301,6 +316,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
 
   const canEdit = (request: Integration) =>
     !request.archived && ['applied'].includes(request?.status || '') && !request.apiServiceAccount;
+
   const canDelete = (request: Integration) => {
     if (request.archived === true) return false;
     else if (['pr', 'planned', 'submitted'].includes(request?.status || '')) return false;
@@ -347,8 +363,8 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     await loadData();
   };
 
-  const activateRow = (request: any) => {
-    setSelectedId(request['cells'][0].value);
+  const activateRow = (row: any) => {
+    setSelectedId(row.id);
     setActivePanel('details');
   };
 
@@ -356,133 +372,179 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     <>
       <VerticalLayout
         leftPanel={() => (
-          <Table
-            searchPlaceholder="Project ID, Project Name or Client ID"
-            headers={[
-              {
-                accessor: 'id',
-                Header: 'Request ID',
-              },
-              {
-                accessor: 'clientId',
-                Header: 'Client ID',
-              },
-              {
-                accessor: 'projectName',
-                Header: 'Project Name',
-              },
-              {
-                accessor: 'status',
-                Header: 'Request Status',
-              },
-              {
-                accessor: 'archived',
-                Header: 'File Status',
-              },
-              {
-                accessor: 'actions',
-                Header: <ActionsHeader />,
-                disableSortBy: true,
-              },
-            ]}
+          <TableNew
+            globalSearchPlaceholder="Project ID, Project Name or Client ID"
+            columns={
+              [
+                {
+                  accessorKey: 'id',
+                  header: 'Request ID',
+                  enableSorting: false,
+                  enableColumnFilter: false,
+                },
+
+                {
+                  accessorKey: 'clientId',
+                  header: 'Client ID',
+                  enableSorting: false,
+                  enableColumnFilter: false,
+                },
+                {
+                  accessorKey: 'projectName',
+                  header: 'Project Name',
+                  enableSorting: false,
+                  enableColumnFilter: false,
+                },
+                {
+                  accessorKey: 'idps',
+                  header: 'IDPs',
+                  enableSorting: false,
+                  enableColumnFilter: hasAppPermission(
+                    session?.client_roles,
+                    appPermissions.ADMIN_DASHBOARD_VIEW_IDPS_FILTER,
+                  ),
+                  meta: {
+                    filterLabel: 'IDPs',
+                    filterOptions: idpOptions,
+                    multiSelect: true,
+                  },
+                  filterFn: multilistFilter,
+                },
+                {
+                  accessorKey: 'status',
+                  header: 'Request Status',
+                  enableSorting: false,
+                  meta: {
+                    filterLabel: 'Workflow Status',
+                    multiSelect: true,
+                    filterOptions: workflowStatusOptions,
+                  },
+                  filterFn: multilistFilter,
+                },
+                {
+                  accessorKey: 'environments',
+                  header: 'Environments',
+                  enableSorting: false,
+                  meta: {
+                    filterLabel: 'Environments',
+                    multiSelect: true,
+                    filterOptions: environmentOptions,
+                  },
+                  filterFn: multilistFilter,
+                },
+                {
+                  accessorKey: 'archived',
+                  header: 'File Status',
+                  enableSorting: false,
+                  meta: {
+                    filterLabel: 'Archive Status',
+                    filterOptions: archiveStatusOptions,
+                    defaultValue: { value: 'active', label: 'Active' },
+                  },
+                  filterFunction: multilistFilter,
+                },
+                {
+                  accessorKey: 'apiServiceAccount',
+                  header: 'API Service Account',
+                  enableSorting: false,
+                  enableColumnFilter: false,
+                },
+                {
+                  accessorKey: 'actions',
+                  header: () => <div style={{ display: 'flex', justifyContent: 'center' }}>Actions</div>,
+                  enableSorting: false,
+                  enableColumnFilter: false,
+                  cell: (props: any) => {
+                    const request = {
+                      id: props.row.getValue('id'),
+                      archived: props.row.getValue('archived'),
+                      status: props.row.getValue('status'),
+                      apiServiceAccount: props.row.getValue('apiServiceAccount'),
+                    };
+                    return (
+                      <ActionButtonContainer>
+                        {hasAppPermission(
+                          session?.client_roles,
+                          appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS,
+                        ) && (
+                          <>
+                            <ActionButton
+                              icon={faEye}
+                              role="button"
+                              aria-label="events"
+                              onClick={(event: any) => {
+                                event.stopPropagation();
+                                setSelectedId(props.row.getValue('id'));
+                                setActivePanel('events');
+                              }}
+                              title="Events"
+                            />
+                          </>
+                        )}
+                        {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && (
+                          <>
+                            <VerticalLine />
+                            <ActionButton
+                              disabled={!canEdit(request)}
+                              icon={faEdit}
+                              role="button"
+                              aria-label="edit"
+                              onClick={() => handleEdit(request)}
+                              title="Edit"
+                            />
+                          </>
+                        )}
+
+                        {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST) && (
+                          <>
+                            <VerticalLine />
+                            <ActionButton
+                              icon={faTrash}
+                              role="button"
+                              aria-label="delete"
+                              onClick={() => handleDelete(request)}
+                              disabled={!canDelete(request)}
+                              activeColor={PRIMARY_RED}
+                              title="Delete from Keycloak"
+                            />
+                          </>
+                        )}
+
+                        {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_RESTORE_REQUEST) && (
+                          <>
+                            <VerticalLine />
+                            <ActionButton
+                              icon={faTrashRestoreAlt}
+                              role="button"
+                              aria-label="restore"
+                              onClick={() => handleRestore(request)}
+                              disabled={!canRestore(request)}
+                              activeColor={PRIMARY_RED}
+                              title="Restore at Keycloak"
+                            />
+                          </>
+                        )}
+                      </ActionButtonContainer>
+                    );
+                  },
+                },
+              ] as any
+            }
             data={rows.map((row) => {
               return {
                 id: row.id,
                 projectName: row.projectName,
-                status: startCase(row.status),
-                archived: row.archived ? 'Deleted' : 'Active',
+                status: row.status,
+                archived: row.archived ? 'deleted' : 'active',
                 environments: row.environments,
                 clientId: row.clientId,
-                actions: (
-                  <ActionButtonContainer>
-                    {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS) && (
-                      <>
-                        <ActionButton
-                          icon={faEye}
-                          role="button"
-                          aria-label="events"
-                          onClick={(event: any) => {
-                            event.stopPropagation();
-                            setSelectedId(row.id);
-                            setActivePanel('events');
-                          }}
-                          title="Events"
-                        />
-                      </>
-                    )}
-                    {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && (
-                      <>
-                        <VerticalLine />
-                        <ActionButton
-                          disabled={!canEdit(row)}
-                          icon={faEdit}
-                          role="button"
-                          aria-label="edit"
-                          onClick={() => handleEdit(row)}
-                          title="Edit"
-                        />
-                      </>
-                    )}
-
-                    {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST) && (
-                      <>
-                        <VerticalLine />
-                        <ActionButton
-                          icon={faTrash}
-                          role="button"
-                          aria-label="delete"
-                          onClick={() => handleDelete(row)}
-                          disabled={!canDelete(row)}
-                          activeColor={PRIMARY_RED}
-                          title="Delete from Keycloak"
-                        />
-                      </>
-                    )}
-
-                    {hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_RESTORE_REQUEST) && (
-                      <>
-                        <VerticalLine />
-                        <ActionButton
-                          icon={faTrashRestoreAlt}
-                          role="button"
-                          aria-label="restore"
-                          onClick={() => handleRestore(row)}
-                          disabled={!canRestore(row)}
-                          activeColor={PRIMARY_RED}
-                          title="Restore at Keycloak"
-                        />
-                      </>
-                    )}
-                  </ActionButtonContainer>
-                ),
+                apiServiceAccount: row.apiServiceAccount,
+                idps: row.devIdps,
               };
             })}
-            activateRow={activateRow}
-            colfilters={columnFilters}
-            showFilters={true}
-            loading={loading}
-            totalColSpan={15}
-            searchColSpan={5}
-            headerAlign={'bottom'}
-            headerGutter={[5, 0]}
-            onPage={setPage}
-            rowCount={count}
-            searchKey={searchKey}
-            onSearch={(val) => {
-              setSearchKey(val);
-            }}
-            onEnter={(val) => {
-              setSearchKey(val);
-            }}
-            pageLimits={pageLimits}
-            limit={limit}
-            onLimit={(val) => {
-              setPage(1);
-              setLimit(val);
-            }}
-            noDataFoundElement={<div style={{ textAlign: 'center' }}>No clients found.</div>}
-            pagination={true}
-          ></Table>
+            hiddenColumns={['environments', 'idps', 'apiServiceAccount']}
+            onRowSelect={activateRow}
+          ></TableNew>
         )}
         rightPanel={() =>
           selectedRequest && (

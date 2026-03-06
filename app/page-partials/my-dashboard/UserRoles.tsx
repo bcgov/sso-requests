@@ -7,8 +7,7 @@ import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
+import { Header, InfoText, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-components';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
@@ -19,6 +18,7 @@ import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SurveyContext } from '@app/utils/context';
+import TableNew from '@app/components/TableNew';
 
 const Label = styled.label`
   font-weight: bold;
@@ -494,8 +494,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     return propOption?.label.toString();
   };
 
-  const activateRow = (request: any) => {
-    setSelectedId(request['original']['username']);
+  const activateRow = (row: any) => {
+    setSelectedId(row?.username);
   };
 
   return (
@@ -515,67 +515,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               />
             </Header>
             <div data-testid="role-search-table">
-              <Table
-                searchPlaceholder="Enter search criteria"
-                variant="mini"
-                rowSelectorKey={'username'}
-                headers={[
-                  {
-                    accessor: 'firstName',
-                    Header: getTableHeaderLabel('firstName') || '',
-                  },
-                  {
-                    accessor: 'lastName',
-                    Header: getTableHeaderLabel('lastName') || '',
-                  },
-                  {
-                    accessor: 'email',
-                    Header: 'Email',
-                  },
-                  {
-                    accessor: 'actions',
-                    Header: '',
-                    disableSortBy: true,
-                  },
-                ]}
-                data={rows.map((row) => {
-                  return {
-                    username: get(row, 'username'),
-                    firstName: get(row, 'firstName'),
-                    lastName: get(row, 'lastName'),
-                    email: get(row, 'email'),
-                    actions: (
-                      <ActionButtonContainer>
-                        <ActionButton
-                          icon={faEye}
-                          role="button"
-                          aria-label="view"
-                          onClick={(event: any) => {
-                            event.stopPropagation();
-
-                            infoModalRef.current.open({
-                              guid: row.username.split('@')[0],
-                              attributes: {
-                                ...reduce(
-                                  headers,
-                                  (ret: { [key: string]: string }, header) => {
-                                    ret[header.label] = get(row, header.value);
-                                    return ret;
-                                  },
-                                  {},
-                                ),
-                                ...row.attributes,
-                              },
-                            });
-                          }}
-                          title="View"
-                          size="lg"
-                        />
-                      </ActionButtonContainer>
-                    ),
-                  };
-                })}
-                colfilters={[
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {[
                   {
                     key: 'user-role-filter-env',
                     value: selectedEnvironment,
@@ -600,29 +541,110 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                     onChange: setSelectedProperty,
                     options: propertyOptions.filter((option) => option.search),
                   },
+                ].map((filter) => {
+                  return (
+                    <div style={{ flex: 1 }}>
+                      <Select
+                        key={filter.key}
+                        value={filter.options.find((option) => option.value === filter.value)}
+                        options={filter.options}
+                        isMulti={filter.multiselect}
+                        placeholder="Select..."
+                        onChange={(option: any) => filter.onChange(option ? (option as any).value : '')}
+                        isSearchable={true}
+                        defaultValue={filter.options[0]}
+                      />
+                    </div>
+                  );
+                })}
+                <SearchBar
+                  placeholder="Enter search criteria"
+                  tooltip={searchTooltip}
+                  onChange={(e: any) => setSearchKey(e.target.value)}
+                />
+                <InfoOverlay content={searchTooltip || 'some text'}>
+                  <button
+                    className="primary"
+                    type="button"
+                    onClick={() => handleSearch(searchKey)}
+                    style={{ padding: '.44rem 1.5rem' }}
+                  >
+                    Search
+                  </button>
+                </InfoOverlay>
+              </div>
+
+              <TableNew
+                variant="mini"
+                columns={[
+                  {
+                    accessorKey: 'firstName',
+                    header: getTableHeaderLabel('firstName') || '',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'lastName',
+                    header: getTableHeaderLabel('lastName') || '',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'email',
+                    header: getTableHeaderLabel('email') || '',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'actions',
+                    header: '',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => (
+                      <ActionButtonContainer>
+                        <ActionButton
+                          icon={faEye}
+                          role="button"
+                          aria-label="view"
+                          onClick={(event: any) => {
+                            event.stopPropagation();
+                            const row = props.row.original;
+                            infoModalRef.current.open({
+                              guid: row.username.split('@')[0],
+                              attributes: {
+                                ...reduce(
+                                  headers,
+                                  (ret: { [key: string]: string }, header) => {
+                                    ret[header.label] = get(row, header.value);
+                                    return ret;
+                                  },
+                                  {},
+                                ),
+                                ...row.attributes,
+                              },
+                            });
+                          }}
+                          title="View"
+                          size="lg"
+                        />
+                      </ActionButtonContainer>
+                    ),
+                  },
                 ]}
-                showFilters={true}
+                data={rows.map((row) => {
+                  return {
+                    username: get(row, 'username'),
+                    firstName: get(row, 'firstName'),
+                    lastName: get(row, 'lastName'),
+                    email: get(row, 'email'),
+                    attributes: row.attributes,
+                  };
+                })}
                 loading={loading}
-                totalColSpan={20}
-                searchColSpan={10}
-                headerAlign={'bottom'}
-                headerGutter={[5, 0]}
-                searchKey={searchKey}
-                searchLocation={'right'}
-                onSearch={handleSearch}
-                onEnter={handleSearch}
-                noDataFoundElement={getTableStatusText()}
-                pagination={true}
-                pageLimits={[PAGE_LIMIT]}
-                onPage={setPage}
-                rowCount={count}
-                limit={limit}
-                onLimit={(val) => {
-                  setLimit(val);
-                }}
-                activateRow={activateRow}
-                searchTooltip={searchTooltip}
-              ></Table>
+                enableGlobalSearch={false}
+                onRowSelect={activateRow}
+                noDataFoundMessage={getTableStatusText()}
+              ></TableNew>
             </div>
             {idirLookup}
           </Grid.Col>

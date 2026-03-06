@@ -170,8 +170,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
     };
   }, [integrations, activeIntegrationId]);
 
-  const activateRow = (request: any) => {
-    const integrationId = request['cells'][0].value;
+  const activateRow = (row: any) => {
+    const integrationId = row.id;
     integrations.forEach((integration) => {
       if (integration.id == integrationId) updateActiveIntegration(integration);
     });
@@ -261,6 +261,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
             };
           })}
           enableGlobalSearch={false}
+          onRowSelect={activateRow}
         ></Table>
       </>
     );

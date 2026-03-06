@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import { startCase, throttle } from 'lodash';
 import { Tabs, Tab, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
@@ -14,6 +13,7 @@ import Link from '@button-inc/bcgov-theme/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
 import { noop } from 'lodash';
 import { formatWikiURL } from '@app/utils/constants';
+import TableNew from '@app/components/TableNew';
 
 const Label = styled.label`
   font-weight: bold;
@@ -198,18 +198,18 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
             <Grid cols={10}>
               <Grid.Row collapse="1100" gutter={[15, 2]}>
                 <Grid.Col span={5}>
-                  <Table
-                    headers={[
+                  <TableNew
+                    columns={[
                       {
-                        accessor: 'projectName',
-                        Header: 'Service Account',
+                        accessorKey: 'projectName',
+                        header: 'Service Account',
+                        enableColumnFilter: false,
+                        enableSorting: false,
                       },
                     ]}
                     data={[{ projectName: selectedRequest.projectName }]}
-                    colfilters={[]}
-                    activateRow={noop}
-                    rowSelectorKey={'projectName'}
-                  ></Table>
+                    enableGlobalSearch={false}
+                  ></TableNew>
                 </Grid.Col>
                 <Grid.Col span={5}>
                   {loadingRight ? (

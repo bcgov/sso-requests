@@ -64,7 +64,7 @@ function SelectColumnFilter({ setFilter, options, setValue, gotoPage, defaultVal
         className="basic-multi-select"
         classNamePrefix="select"
         defaultValue={defaultValue}
-        onChange={(val) => {
+        onChange={(val: any) => {
           setFilter('status', val);
           setValue(val);
           gotoPage(0);
@@ -396,7 +396,7 @@ function Table({
         </SectionHeader>
       )}
       <InfScroll loadMore={loadMoreItem} hasMore={hasMoreItem} loader={loader}>
-        <table>
+        <table variant={variant} {...getTableProps()} readOnly={readOnly}>
           <thead>
             {
               // Loop over the header rows

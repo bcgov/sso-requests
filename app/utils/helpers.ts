@@ -729,3 +729,11 @@ export const dateTimeStringForFileName = () => {
     newDate.getMonth() + 1
   }${newDate.getDate()}${newDate.getHours()}${newDate.getMinutes()}`;
 };
+
+export const containsPrefix = (csvString: string | string[], prefix: string) => {
+  if (!csvString || !prefix) return false;
+
+  const values = Array.isArray(csvString) ? csvString : csvString.split(',').map((v) => v.trim());
+
+  return values.some((value) => prefix.startsWith(value));
+};
