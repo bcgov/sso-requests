@@ -84,6 +84,48 @@ jobs:
         run: |
           echo "Using tag: ${{ needs.set-tag.outputs.tag }}"
 
+      - name: Setup Sandbox Environment Variables
+        if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          NEXT_PUBLIC_APP_ENV="development"
+          NEXT_PUBLIC_API_URL="https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/api"
+          NEXT_PUBLIC_SSO_URL="https://dev.loginproxy.gov.bc.ca/auth"
+          NEXT_PUBLIC_SSO_CLIENT_ID="css-app-in-gold-4128"
+          NEXT_PUBLIC_SSO_REDIRECT_URI="https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca"
+          NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE="code"
+          NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE="openid"
+          NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE="authorization_code"
+          NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT="https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration"
+          NEXT_PUBLIC_ENABLE_GOLD="true"
+          NEXT_PUBLIC_APP_URL="https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca"
+          NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL="true"
+          NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD="true"
+          NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD="true"
+          NEXT_PUBLIC_INCLUDE_OTP="true"
+          EOF
+
+      - name: Setup Production Environment Variables
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          cat >> $GITHUB_ENV <<EOF
+          NEXT_PUBLIC_APP_ENV="production"
+          NEXT_PUBLIC_API_URL="https://sso-requests.apps.gold.devops.gov.bc.ca/api"
+          NEXT_PUBLIC_SSO_URL="https://loginproxy.gov.bc.ca/auth"
+          NEXT_PUBLIC_SSO_CLIENT_ID="css-app-in-gold-4128"
+          NEXT_PUBLIC_SSO_REDIRECT_URI="https://sso-requests.apps.gold.devops.gov.bc.ca"
+          NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE="code"
+          NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE="openid"
+          NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE="authorization_code"
+          NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT="https://loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration"
+          NEXT_PUBLIC_ENABLE_GOLD="true"
+          NEXT_PUBLIC_APP_URL="https://sso-requests.apps.gold.devops.gov.bc.ca"
+          NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL="true"
+          NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD="true"
+          NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD="true"
+          NEXT_PUBLIC_INCLUDE_OTP="true"
+          EOF
+
       - name: Log in to the GitHub Container registry
         uses: docker/login-action@v3
         with:

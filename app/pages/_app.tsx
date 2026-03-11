@@ -95,16 +95,17 @@ function MyApp({ Component, pageProps }: AppProps) {
   };
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_MAINTENANCE_MODE && process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true') {
+    if (pageProps?.maintenanceMode) {
       router.push({
         pathname: '/application-error',
         query: {
           error: 'maintenance',
         },
       });
+      setLoading(false);
     }
 
-    if (!keycloak.didInitialize) {
+    if (!keycloak.didInitialize && !pageProps?.maintenanceMode) {
       keycloak
         .init({
           redirectUri: process.env.NEXT_PUBLIC_SSO_REDIRECT_URI,
@@ -146,7 +147,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <SessionContext.Provider value={sessionContext}>
       <SurveyContext.Provider value={surveyContext}>
-        {process.env.NEXT_PUBLIC_MAINTENANCE_MODE && process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true' ? (
+        {pageProps?.maintenanceMode ? (
           <Component {...pageProps} />
         ) : (
           <>
@@ -200,10 +201,12 @@ function MyApp({ Component, pageProps }: AppProps) {
 
 MyApp.getInitialProps = async (appContext: AppContext) => {
   const appProps = await App.getInitialProps(appContext);
+  const maintenanceMode = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/maintenance-mode`);
   return {
     ...appProps,
     pageProps: {
       ...appProps.pageProps,
+      maintenanceMode: (await maintenanceMode.json())?.maintenanceMode || false,
     },
   };
 };
