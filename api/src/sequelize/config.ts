@@ -21,7 +21,7 @@ const configs = {
     dialect: 'postgres',
     dialectModule: pg,
     logging: false,
-    databaseUrl: process.env.DATABASE_URL || 'postgresql://localhost:5432/ssorequests_test',
+    databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/ssorequests_test',
     pool: {
       max: 5,
       min: 0,
