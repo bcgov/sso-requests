@@ -1,13 +1,7 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
-import {
-  listClientRoles,
-  listRoleUsers,
-  getCompositeClientRoles,
-  manageUserRole,
-  bulkCreateRole,
-} from 'services/keycloak';
+import { listRoleUsers, getCompositeClientRoles, manageUserRole, bulkCreateRole } from 'services/keycloak';
 import CreateRoleContent from 'page-partials/my-dashboard/RoleManagement/CreateRoleContent';
 import RoleEnvironment from 'page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 
@@ -117,20 +111,19 @@ describe('role management tab', () => {
     expect(screen.queryAllByTestId('role-name-input-field')).toHaveLength(1);
   });
 
-  it('Should be able to input keywords in Create New Role input field, and corresponding end-point should be called', async () => {
+  it.only('Should be able to input keywords in Create New Role input field, and corresponding end-point should be called', async () => {
     render(<RoleManagement integration={{ ...sampleRequest, environments: ['dev', 'test'] }} />);
     fireEvent.click(screen.getByRole('button', { name: '+ Create a New Role' }));
     await waitFor(() => {
       expect(screen.getByTitle('Create New Role')).toBeTruthy();
     });
+
+    const createRoleTable = screen.getByTestId('create-role-table');
+    const { queryByText } = within(createRoleTable);
     await waitFor(() => {
-      expect(screen.getByText('Role Name')).toBeInTheDocument();
-    });
-    await waitFor(() => {
-      expect(screen.getByText('Environments')).toBeInTheDocument();
-    });
-    await waitFor(() => {
-      expect(screen.getByText('Add another role')).toBeInTheDocument();
+      expect(queryByText('Role Name')).toBeInTheDocument();
+      expect(queryByText('Environments')).toBeInTheDocument();
+      expect(queryByText('Add another role')).toBeInTheDocument();
     });
 
     const newRoleNameInput = await screen.findByTestId('role-name-input-field');

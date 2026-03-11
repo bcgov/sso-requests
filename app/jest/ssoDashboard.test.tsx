@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import AdminDashboard from 'pages/admin-dashboard';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
-import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, getRequestAll } from 'services/request';
+import { deleteRequest, updateRequestMetadata, restoreRequest, getRequestAll } from 'services/request';
 import BcServicesCardTabContent from 'page-partials/admin-dashboard/AdminTabs/BcServicesCardTabContent';
 
 import { getCompositeClientRoles } from '@app/services/keycloak';
@@ -389,8 +389,7 @@ describe('SSO Dashboard', () => {
       screen.getByText('testProject');
     });
 
-    const firstRow = screen.getByText('testProject');
-    fireEvent.click(firstRow);
+    fireEvent.click(getFirstRow());
     const privacyZoneElement = screen.queryByText('Privacy Zone:');
     expect(privacyZoneElement).toBeInTheDocument();
 
@@ -409,8 +408,7 @@ describe('SSO Dashboard', () => {
     await waitFor(() => {
       screen.getByText('testProject');
     });
-    const firstRow = screen.getByText('testProject');
-    fireEvent.click(firstRow);
+    fireEvent.click(getFirstRow());
     const privacyZoneElement = screen.queryByText('Privacy Zone:');
     expect(privacyZoneElement).not.toBeInTheDocument();
   });

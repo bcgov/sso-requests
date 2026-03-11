@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`should match the snapshot 1`] = `
 <DocumentFragment>
@@ -6,11 +6,13 @@ exports[`should match the snapshot 1`] = `
     class="PageLoader__LoaderContainer-sc-6vrxx9-0 dDXiVD"
   >
     <div
+      aria-busy="true"
+      aria-label="grid-loading"
+      class="sc-aXZVf iyILOd"
       data-testid="grid-loading"
-      style="display: flex;"
+      role="progressbar"
     >
       <svg
-        aria-label="grid-loading"
         data-testid="grid-svg"
         fill="#000"
         height="45"

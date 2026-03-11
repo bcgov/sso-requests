@@ -221,7 +221,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
 
   return (
     <div>
-      <Table>
+      <Table data-testid="create-role-table">
         <thead>
           <tr>
             <th className="role">Role Name</th>
