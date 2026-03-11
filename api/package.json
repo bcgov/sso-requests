@@ -64,7 +64,7 @@
     "pg-hstore": "^2.3.4",
     "rate-limit-redis": "^4.2.0",
     "reflect-metadata": "^0.2.2",
-    "sequelize": "^6.37.7",
+    "sequelize": "^6.37.8",
     "sequelize-auto": "^0.8.8",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
