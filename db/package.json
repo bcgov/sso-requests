@@ -19,7 +19,7 @@
     "lodash.trim": "^4.5.1",
     "pg": "^8.15.6",
     "pg-format": "^1.0.4",
-    "sequelize": "^6.37.7",
+    "sequelize": "^6.37.8",
     "umzug": "^3.1.1",
     "tsc-alias": "^1.8.15",
     "typescript": "^5.8.3"
