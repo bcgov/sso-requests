@@ -199,6 +199,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
               <Grid.Row collapse="1100" gutter={[15, 2]}>
                 <Grid.Col span={5}>
                   <TableNew
+                    dataTestId="service-account-roles-table"
                     columns={[
                       {
                         accessorKey: 'projectName',

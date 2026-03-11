@@ -1,6 +1,5 @@
 import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
-import { idpMap } from '@app/helpers/meta';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
@@ -8,11 +7,11 @@ import { getDiscontinuedIdps } from '@app/utils/helpers';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import { LoggedInUser } from '@app/interfaces/team';
 
-const include_digital_credential = process.env.INCLUDE_DIGITAL_CREDENTIAL === 'true';
-const include_bc_services_card = process.env.INCLUDE_BC_SERVICES_CARD === 'true';
-const allow_bc_services_card_prod = process.env.ALLOW_BC_SERVICES_CARD_PROD === 'true';
-const include_social = process.env.INCLUDE_SOCIAL === 'true';
-const include_otp = process.env.INCLUDE_OTP === 'true';
+const include_digital_credential = process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL;
+const include_bc_services_card = process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD;
+const allow_bc_services_card_prod = process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD;
+const include_social = process.env.NEXT_PUBLIC_INCLUDE_SOCIAL;
+const include_otp = process.env.NEXT_PUBLIC_INCLUDE_OTP;
 
 export const NON_ROLE_ASSIGNABLE_IDPS = ['digitalcredential', 'bcservicescard', 'otp'];
 
@@ -28,10 +27,11 @@ export default function getSchema(
   const { protocol, authType, status, devIdps } = integration;
   const applied = status === 'applied';
 
-  const allow_bcsc_prod = process.env.ALLOW_BC_SERVICES_CARD_PROD === 'true';
-  let include_bcsc = process.env.INCLUDE_BC_SERVICES_CARD === 'true';
-  const includeSocial = process.env.INCLUDE_SOCIAL === 'true';
-  const includeOTP = process.env.INCLUDE_OTP === 'true';
+  const allow_bcsc_prod =
+    allow_bc_services_card_prod === 'true' || process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD === 'true';
+  let include_bcsc = include_bc_services_card === 'true' || process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true';
+  const includeSocial = include_social === 'true' || process.env.NEXT_PUBLIC_INCLUDE_SOCIAL === 'true';
+  const includeOTP = include_otp === 'true' || process.env.NEXT_PUBLIC_INCLUDE_OTP === 'true';
 
   if (integration.environments?.includes('prod') && !allow_bcsc_prod) {
     include_bcsc = false;
@@ -112,7 +112,8 @@ export default function getSchema(
       They set env vars differently though, process.env is used in lambdas but publicRuntimeConfig in client app.
       Need to check both to see if dc is allowed.
     */
-    const include_dc = process.env.INCLUDE_DIGITAL_CREDENTIAL === 'true';
+    const include_dc =
+      include_digital_credential === 'true' || process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL === 'true';
 
     if (include_dc) {
       idpEnum.push('digitalcredential');

@@ -1,3 +1,5 @@
+'use client';
+
 import { MouseEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
@@ -118,7 +120,7 @@ export default function Actionbuttons({
       </ActionButtonContainer>
       <DeleteModal
         id={`delete-modal-${request?.id}`}
-        projectName={request.projectName}
+        projectName={request?.projectName}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
         content="You are about to delete this integration request. This action cannot be undone."

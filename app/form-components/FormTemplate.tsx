@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { isNil, throttle, padStart, difference, trim } from 'lodash';

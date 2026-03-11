@@ -26,7 +26,6 @@ import { idpMap } from 'helpers/meta';
 import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
-import { noop } from 'lodash';
 import { dateTimeStringForFileName, generateXlsx } from '@app/utils/helpers';
 import _ from 'lodash';
 import TableNew from '@app/components/TableNew';
@@ -291,7 +290,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
     if (_data.length > 0) {
       _data.map(async (user) => {
-        if (checkIfUserIsServiceAccount(user.username)) {
+        if (checkIfUserIsServiceAccount(user?.username)) {
           const a = user.username.split('-');
           const [data] = await getRequest(a[a.length - 1]);
           setServiceAccountIntMap([
@@ -437,6 +436,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
               Export
             </button>
             <TableNew
+              dataTestId="role-users-table"
               variant="mini"
               columns={[
                 {
@@ -492,7 +492,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                             });
                           }}
                         >
-                          <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
+                          <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" aria-label="User Detail" />
                         </span>
 
                         {viewOnly ? null : (
@@ -502,7 +502,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                               style={{ color: '#FF0303' }}
                               icon={faMinusCircle}
                               size="lg"
-                              title="Remove User"
+                              aria-label="Remove User"
                             />
                           </span>
                         )}
@@ -530,98 +530,21 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
               noDataFoundMessage={<span>No users found.</span>}
               loading={userLoading}
             ></TableNew>
-            {/* <Table
-              variant="mini"
-              headers={[
-                {
-                  accessor: 'idp',
-                  Header: 'IDP',
-                },
-                {
-                  accessor: 'guid',
-                  Header: 'GUID',
-                },
-                {
-                  accessor: 'email',
-                  Header: 'Email',
-                },
-                {
-                  accessor: 'actions',
-                  Header: <UsersListActionsHeader />,
-                  disableSortBy: true,
-                },
-              ]}
-              data={
-                filterUsers.length > 0
-                  ? filterUsers.map((user) => {
-                      const usernameSplit = user.username.split('@');
-                      if (usernameSplit.length < 2) return [];
-
-                      const [guid, idp] = usernameSplit;
-                      const idpMeta = propertyOptionMap[idp];
-
-                      return {
-                        idp: idpMap[idp],
-                        guid: guid,
-                        email: user.email,
-                        actions: (
-                          <RightFloatUsersActionsButtons>
-                            <span
-                              onClick={(event) => {
-                                event.stopPropagation();
-
-                                infoModalRef.current.open({
-                                  guid: user.username.split('@')[0],
-                                  attributes: {
-                                    ...reduce(
-                                      idpMeta,
-                                      (ret: { [key: string]: string }, keyVal: PropertyOption) => {
-                                        ret[keyVal.label] = get(user, keyVal.value);
-                                        return ret;
-                                      },
-                                      {},
-                                    ),
-                                    ...user.attributes,
-                                  },
-                                });
-                              }}
-                            >
-                              <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" title="User Detail" />
-                            </span>
-
-                            {viewOnly ? null : (
-                              <span onClick={() => removeUserModalRef.current.open(user)}>
-                                &nbsp;&nbsp;
-                                <FontAwesomeIcon
-                                  style={{ color: '#FF0303' }}
-                                  icon={faMinusCircle}
-                                  size="lg"
-                                  title="Remove User"
-                                />
-                              </span>
-                            )}
-                          </RightFloatUsersActionsButtons>
-                        ),
-                      };
-                    })
-                  : []
-              }
-              loadMoreItem={() => fetchUsers(false, selectedRole)}
-              hasMoreItem={hasMoreUser}
-              loader={<LoaderContainer key="loader-component" />}
-              colfilters={[]}
-              activateRow={noop}
-              rowSelectorKey={'guid'}
-              noDataFoundElement={<span>No users found.</span>}
-            ></Table> */}
           </div>
         </>
       );
     } else if (rightPanelTab === 'Service Accounts') {
       rightPanel = (
         <TableNew
+          dataTestId="role-service-accounts-table"
           variant="mini"
           columns={[
+            {
+              accessorKey: 'username',
+              header: '',
+              enableColumnFilter: false,
+              enableSorting: false,
+            },
             {
               accessorKey: 'projectName',
               header: 'Project Name',
@@ -635,13 +558,17 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
               enableSorting: false,
               cell: (props) => {
                 return viewOnly ? null : (
-                  <span onClick={() => removeServiceAccountModalRef.current.open(props.row.original)}>
+                  <span
+                    onClick={() =>
+                      removeServiceAccountModalRef.current.open({ username: props.row.getValue('username') })
+                    }
+                  >
                     <RightFloatServiceAccountsActionsButtons>
                       <FontAwesomeIcon
                         style={{ color: '#FF0303' }}
                         icon={faMinusCircle}
                         size="lg"
-                        title="Remove Service Account"
+                        aria-label="Remove Service Account"
                       />
                     </RightFloatServiceAccountsActionsButtons>
                   </span>
@@ -653,53 +580,15 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             filterServiceAccounts.map((user) => {
               return {
                 projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName,
+                username: user.username,
               };
             }) || []
           }
           enableGlobalSearch={false}
           noDataFoundMessage="No service accounts found."
           loading={userLoading}
-        ></TableNew>
-        // <Table
-        //   variant="mini"
-        //   headers={[
-        //     {
-        //       accessor: 'projectName',
-        //       Header: 'Project Name',
-        //     },
-        //     {
-        //       accessor: 'actions',
-        //       Header: <ServiceAccountsListActionsHeader />,
-        //       disableSortBy: true,
-        //     },
-        //   ]}
-        //   data={
-        //     filterServiceAccounts.length > 0
-        //       ? filterServiceAccounts.map((user) => {
-        //           return {
-        //             projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration
-        //               ?.projectName,
-        //             actions: viewOnly ? null : (
-        //               <span onClick={() => removeServiceAccountModalRef.current.open(user)}>
-        //                 <RightFloatServiceAccountsActionsButtons>
-        //                   <FontAwesomeIcon
-        //                     style={{ color: '#FF0303' }}
-        //                     icon={faMinusCircle}
-        //                     size="lg"
-        //                     title="Remove Service Account"
-        //                   />
-        //                 </RightFloatServiceAccountsActionsButtons>
-        //               </span>
-        //             ),
-        //           };
-        //         })
-        //       : []
-        //   }
-        //   colfilters={[]}
-        //   activateRow={noop}
-        //   rowSelectorKey={'projectName'}
-        //   noDataFoundElement={<span>No service accounts found.</span>}
-        // ></Table>
+          hiddenColumns={['username']}
+        />
       );
     } else {
       rightPanel = compositeLoading ? (
@@ -736,6 +625,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
   const leftPanel = (
     <TableNew
+      dataTestId="roles-table"
       columns={[
         {
           accessorKey: 'role',
@@ -781,68 +671,10 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       globalSearchPlaceholder="Search existing roles"
       onRowSelect={activateRow}
     ></TableNew>
-    // <Table
-    //   headers={[
-    //     {
-    //       accessor: 'role',
-    //       Header: 'Role Name',
-    //     },
-    //     {
-    //       accessor: 'actions',
-    //       Header: '',
-    //       disableSortBy: true,
-    //     },
-    //   ]}
-    //   noDataFoundElement={<span>No roles found.</span>}
-    //   activateRow={activateRow}
-    //   rowSelectorKey={'role'}
-    //   data={roles.map((role: string, index: number) => {
-    //     return {
-    //       role: updateRoleName(role, index),
-    //       actions: viewOnly ? null : (
-    //         <AlignRight>
-    //           <ActionButton
-    //             disabled={!canCreateOrDeleteRole}
-    //             icon={faTrash}
-    //             role="button"
-    //             aria-label="delete"
-    //             onClick={(event: MouseEvent) => {
-    //               if (canCreateOrDeleteRole) {
-    //                 event.stopPropagation();
-    //                 handleDelete(role);
-    //               }
-    //             }}
-    //             title="Delete"
-    //             size="lg"
-    //             style={{ marginRight: '1rem' }}
-    //           />
-    //         </AlignRight>
-    //       ),
-    //     };
-    //   })}
-    //   colfilters={[]}
-    // ></Table>
   );
 
   return (
     <>
-      {/* <Grid cols={10}>
-        <Grid.Row collapse="1100" gutter={[15, 2]}>
-          <Grid.Col span={4}></Grid.Col>
-          <Grid.Col span={6}>
-            {selectedRole && (
-              <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
-                {rightPanelTabs.map((tab) => (
-                  <Tab key={tab} tab={tab} />
-                ))}
-              </Tabs>
-            )}
-          </Grid.Col>
-        </Grid.Row>
-      </Grid> */}
-
-      {/* <TopMargin /> */}
-
       {roleLoading ? (
         <LoaderContainer />
       ) : (

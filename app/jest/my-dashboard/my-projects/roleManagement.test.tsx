@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
 import {
@@ -16,7 +16,7 @@ const mockResult = () => {
 };
 
 function RoleEnvironmentComponent() {
-  return <RoleEnvironment environment={'dev'} integration={mockResult} />;
+  return <RoleEnvironment environment={'dev'} integration={mockResult()} />;
 }
 
 const testUsers = [
@@ -88,22 +88,32 @@ describe('role management tab', () => {
 
   it('Should be able to input keywords in Search Existing Role input field', async () => {
     render(<RoleManagement integration={{ ...sampleRequest }} />);
-    const searchRoleInput = screen.findByRole('textbox');
-    fireEvent.change(await searchRoleInput, { target: { value: 'sample-role' } });
-    expect(screen.getByDisplayValue('sample-role')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
+    });
+    const searchRoleInput = screen.findByPlaceholderText('Search existing roles');
+    fireEvent.change(await searchRoleInput, { target: { value: 'role-1' } });
+
+    const rolesTable = screen.getByTestId('roles-table');
+    const { queryByText } = within(rolesTable);
+    await waitFor(() => {
+      expect(queryByText('role-1')).toBeInTheDocument();
+      expect(queryByText('role-2')).toBeNull();
     });
   });
 
   it('Testing on the headers, buttons and input field in the modal', async () => {
     render(<CreateRoleContent integrationId={sampleRequest.id as number} environments={['dev', 'test', 'prod']} />);
-    screen.getByRole('row', { name: 'Role Name Environments' });
-    fireEvent.click(screen.getByRole('img', { name: 'Add Role' }));
-    expect(screen.queryAllByTestId('role-name-input-field')).toHaveLength(2);
-    const removeRoleNameInput = screen.getAllByRole('img', { name: 'Remove Role' });
+
+    screen.getByText('Role Name');
+    screen.getByText('Environments');
+    screen.getByText('Add another role');
+
+    fireEvent.click(screen.getByText('Add another role'));
+
+    const removeRoleNameInput = screen.getAllByTestId('remove-role');
     fireEvent.click(removeRoleNameInput[1]);
+
     expect(screen.queryAllByTestId('role-name-input-field')).toHaveLength(1);
   });
 
@@ -137,21 +147,14 @@ describe('role management tab', () => {
     });
   });
 
-  it('Should be able to click the Search button, and check the endpoint function been called', async () => {
-    render(<RoleEnvironmentComponent />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
-    await waitFor(() => {
-      expect(listClientRoles).toHaveBeenCalledTimes(1);
-    });
-  });
-
   it('Should be able to click the Delete Role button, and corresponding modal showing up', async () => {
     render(<RoleEnvironmentComponent />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
+
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
-    const roleDeleteButton = screen.getAllByRole('button', { name: 'Delete' });
+
+    const roleDeleteButton = screen.getAllByRole('button', { name: 'delete' });
     fireEvent.click(roleDeleteButton[0]);
     await waitFor(async () => {
       expect(await screen.findByTitle('Delete Role')).toBeInTheDocument();
@@ -161,7 +164,6 @@ describe('role management tab', () => {
   it('Should be able to show export button, and check the endpoint function been called after clicking on it', async () => {
     render(<RoleEnvironmentComponent />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
@@ -184,7 +186,6 @@ describe('role management tab', () => {
 
   it('Should be able to click the User Details button, and corresponding modal showing up', async () => {
     render(<RoleEnvironmentComponent />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
@@ -195,12 +196,12 @@ describe('role management tab', () => {
     });
     fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     fireEvent.click(screen.getByRole('img', { name: 'User Detail' }));
+
     expect(await screen.findByTitle('Additional User Info')).toBeVisible();
   });
 
   it('Should be able to click the Remove User button, and corresponding modal showing up', async () => {
     render(<RoleEnvironmentComponent />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
@@ -224,7 +225,6 @@ describe('role management tab', () => {
 
   it('Should be able to show service accounts assigned to a role inside service accounts tab', async () => {
     render(<RoleEnvironmentComponent />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
@@ -245,10 +245,11 @@ describe('role management tab', () => {
   it('Should keep the active tab selected if still avaiable on a new integration', async () => {
     // Setup render and select a role
     const { rerender } = render(<RoleEnvironment integration={{ ...sampleRequest, authType: 'both' }} />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
+
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
+
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
 
     // Defaults to users tab
@@ -278,7 +279,6 @@ describe('role management tab', () => {
 
   it('Should be able to click the remove service account button, and corresponding modal showing up', async () => {
     render(<RoleEnvironmentComponent />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
@@ -304,7 +304,6 @@ describe('role management tab', () => {
 
   it('Should be able to show all existing composite roles, after clicking on the Composite Roles tab', async () => {
     render(<RoleEnvironmentComponent />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });

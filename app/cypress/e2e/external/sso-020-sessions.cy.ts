@@ -2,7 +2,7 @@ import data from '../../fixtures/sso-test.json'; // The data file will drive the
 import Playground from '../../pageObjects/playgroundPage';
 import Request from '../../appActions/Request';
 import Utilities from '../../appActions/Utilities';
-import kebabCase from 'lodash';
+import { kebabCase } from 'lodash';
 
 const cookiesToClear: string[] = [
   'KEYCLOAK_SESSION_LEGACY',

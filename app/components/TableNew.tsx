@@ -19,8 +19,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSortDown, faSortUp, faSort } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from './SearchBar';
 import Button from './Button';
-import { use } from 'chai';
-import { filter } from 'lodash';
 import TextBlock from 'react-placeholder/lib/placeholders/TextBlock';
 import ReactPlaceholder from 'react-placeholder';
 
@@ -155,6 +153,7 @@ export interface TableProps<T extends object> {
   initialState?: InitialTableState;
   loading?: boolean;
   autoSelectFirstRow?: boolean;
+  dataTestId?: string;
 }
 
 const awesomePlaceholder = (
@@ -211,6 +210,7 @@ const Table = <T extends object>({
   noDataFoundMessage = <p>No data found</p>,
   loading = false,
   autoSelectFirstRow = true,
+  dataTestId = '',
 }: TableProps<T>) => {
   const [selectedRow, setSelectedRow] = useState<Row<T>>();
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -311,6 +311,7 @@ const Table = <T extends object>({
               onChange={(e: any) => setGlobalFilter(String(e.target.value))}
               placeholder={globalSearchPlaceholder}
               style={globalSearchStyle}
+              data-testid="global-search-input"
             />
           </div>
         )}
@@ -335,8 +336,10 @@ const Table = <T extends object>({
           }
 
           return (
-            <div key={column.id} style={{ width: '250px' }}>
-              <label style={{ fontWeight: 'bold' }}>{String(meta.filterLabel ?? column.id)}:</label>
+            <div key={column.id} style={{ width: '250px' }} data-testid={`column-filter-${column.id}`}>
+              <div style={{ textAlign: 'right' }}>
+                <label style={{ fontWeight: 'bold' }}>{String(meta.filterLabel ?? column.id)}</label>
+              </div>
 
               <Select
                 value={selectedValue}
@@ -365,7 +368,7 @@ const Table = <T extends object>({
         })}
       </div>
 
-      <StyledTable variant={variant} readOnly={readOnly}>
+      <StyledTable variant={variant} readOnly={readOnly} data-testid={dataTestId}>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
@@ -392,11 +395,13 @@ const Table = <T extends object>({
         <tbody>
           <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
             {table.getRowModel().rows.length === 0 ? (
-              <tr key="no-data">
-                <td style={{ textAlign: 'center' }} colSpan={columns.length}>
-                  {noDataFoundMessage}
-                </td>
-              </tr>
+              <>
+                <tr key="no-data">
+                  <td style={{ textAlign: 'center' }} colSpan={columns.length}>
+                    {noDataFoundMessage}
+                  </td>
+                </tr>
+              </>
             ) : (
               table.getRowModel().rows.map((row) => (
                 <tr
@@ -426,17 +431,20 @@ const Table = <T extends object>({
           ))}
         </tfoot>
       </StyledTable>
-      {enablePagination && (
+      {enablePagination && table.getRowCount() > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: '0.5em' }}>
             <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-              Prev
+              Previous
             </Button>
             <Button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
               Next
             </Button>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            </div>
           </div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ position: 'relative', zIndex: 1 }} data-testid="page-select">
             <Select
               defaultValue={{
                 label: `${table.getState().pagination.pageSize} per page`,

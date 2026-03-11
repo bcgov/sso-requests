@@ -53,19 +53,19 @@ describe('Feature flag', () => {
   });
 
   it('Does not allow otp as an IDP if feature flag is not included in env vars', async () => {
-    process.env.INCLUDE_OTP = undefined;
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = undefined;
     const result = await submitNewIntegration(otpDevIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Does not allow otp as an IDP if feature flag is set but not true', async () => {
-    process.env.INCLUDE_OTP = 'false';
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'false';
     const result = await submitNewIntegration(otpDevIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Allows otp as an IDP if feature flag is set to true', async () => {
-    process.env.INCLUDE_OTP = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
     const result = await submitNewIntegration(otpDevIntegration);
     expect(result.status).toBe(200);
   });
@@ -76,7 +76,7 @@ describe('Validations', () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
   });
   it('Does not allow to submit if privacy zone is not selected', async () => {
-    process.env.INCLUDE_OTP = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
     const result = await submitNewIntegration({ ...otpDevIntegration, bcscPrivacyZone: '' });
     expect(result.status).toBe(422);
   });

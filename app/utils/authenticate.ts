@@ -8,8 +8,8 @@ import jwkToPem from 'jwk-to-pem';
 import { Session } from '@app/shared/interfaces';
 import { IncomingHttpHeaders } from 'http';
 
-const ssoConfigurationEndpoint = process.env.SSO_CONFIGURATION_ENDPOINT || '';
-const audience = process.env.SSO_CLIENT_ID || '';
+const ssoConfigurationEndpoint = process.env.NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT || '';
+const audience = process.env.NEXT_PUBLIC_SSO_CLIENT_ID || '';
 
 let _ssoConfig: { jwks: any; issuer: string } = { jwks: null, issuer: '' };
 

@@ -1,3 +1,5 @@
+'use client';
+
 import styled from 'styled-components';
 import { padStart, isNil } from 'lodash';
 import { Schema } from '@app/schemas/index';

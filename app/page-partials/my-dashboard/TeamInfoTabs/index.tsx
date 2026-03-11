@@ -180,7 +180,7 @@ const RequestStatusIcon = ({ status }: { status?: Status }) => {
     color = '#2e8540';
     icon = faCheckCircle;
   }
-  return <FontAwesomeIcon icon={icon} title={status} style={{ color }} />;
+  return <FontAwesomeIcon icon={icon} aria-label={status} style={{ color }} />;
 };
 
 const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; invitationSendTime?: string }) => {
@@ -203,7 +203,7 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
     icon = faCheckCircle;
     title = 'Active Member';
   }
-  return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
+  return <FontAwesomeIcon icon={icon} aria-label={title} style={{ color }} />;
 };
 
 const Requester = styled.div`
@@ -445,6 +445,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             )}
             <ReactPlaceholder type="text" rows={7} ready={!loading}>
               <TableNew
+                dataTestId="team-members-table"
                 columns={[
                   {
                     accessorKey: 'id',
@@ -490,13 +491,15 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                       return adminActionsAllowed && !props.row.getValue('status') ? (
                         <div>
                           <Select
-                            variant="mini"
                             options={[
                               { value: 'member', label: 'Member' },
                               { value: 'admin', label: 'Admin' },
                             ]}
-                            onChange={(option: { value: string; label: string } | null) =>
-                              handleMemberRoleChange(props.row.getValue('id') as number, option ? option.value : '')
+                            onChange={(option: { value: unknown; label: string } | null) =>
+                              handleMemberRoleChange(
+                                props.row.getValue('id') as number,
+                                option ? (option.value as string) : '',
+                              )
                             }
                             value={
                               props.row.getValue('role')
@@ -528,12 +531,12 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         myself.id !== props.row.getValue('id');
                       return (
                         <RightFloat>
-                          {adminActionsAllowed && props.row.getValue('status') && (
+                          {adminActionsAllowed && props.row.original.status && (
                             <ButtonIcon
                               icon={faShare}
                               size="lg"
                               onClick={() => inviteMember(member!)}
-                              title="Resend Invitation"
+                              aria-label="Resend Invitation"
                               style={{ marginRight: '6px' }}
                               data-testid="resend-invitation"
                             />
@@ -543,7 +546,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                               icon={faTrash}
                               onClick={() => handleDeleteClick(props.row.getValue('id'))}
                               size="lg"
-                              title="Delete User"
+                              aria-label="Delete User"
                               style={{ marginRight: '16px' }}
                               data-testid="delete-member"
                             />
@@ -565,186 +568,21 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 enableGlobalSearch={false}
                 hiddenColumns={['id', 'invitiationSendTime']}
               ></TableNew>
-              {/* <Table
-                data-testid="team-members-table"
-                variant="medium"
-                headers={[
-                  {
-                    accessor: 'status',
-                    Header: 'Invite Status',
-                    disableSortBy: true,
-                  },
-                  {
-                    accessor: 'idirEmail',
-                    Header: 'Email',
-                  },
-                  {
-                    accessor: 'role',
-                    Header: <RoleHeader />,
-                    disableSortBy: true,
-                  },
-                  {
-                    accessor: 'actions',
-                    Header: <MembersActionsHeader />,
-                    disableSortBy: true,
-                  },
-                ]}
-                data={members.map((member) => {
-                    const adminActionsAllowed =
-                      hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) && myself.id !== member.id;
-                  return {
-                    status: <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />,
-                    idirEmail: member.idirEmail,
-                    role:
-                      adminActionsAllowed && !member.pending ? (
-                        <Dropdown
-                          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                            handleMemberRoleChange(member.id as number, event.target.value)
-                          }
-                          value={member.role}
-                        >
-                          <option value="member">Member</option>
-                          <option value="admin">Admin</option>
-                        </Dropdown>
-                      ) : (
-                        capitalize(member.role)
-                      ),
-                    actions: (
-                      <RightFloat>
-                        {adminActionsAllowed && member.pending && (
-                          <ButtonIcon
-                            icon={faShare}
-                            size="lg"
-                            onClick={() => inviteMember(member)}
-                            title="Resend Invitation"
-                            style={{ marginRight: '6px' }}
-                            data-testid="resend-invitation"
-                          />
-                        )}
-                        {adminActionsAllowed && (
-                          <ButtonIcon
-                            icon={faTrash}
-                            onClick={() => handleDeleteClick(member.id)}
-                            size="lg"
-                            title="Delete User"
-                            style={{ marginRight: '16px' }}
-                            data-testid="delete-member"
-                          />
-                        )}
-                      </RightFloat>
-                    ),
-                  };
-                })}
-                colfilters={[]}
-                rowSelectorKey={'status'}
-                readOnly={true}
-              /> */}
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
         <Tab key="integrations" tab="Integrations">
           <TabWrapper marginTop="20px">
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              {/* <Table
-                variant="medium"
-                headers={[
-                  {
-                    accessor: 'status',
-                    Header: 'Status',
-                    disableSortBy: true,
-                  },
-                  {
-                    accessor: 'id',
-                    Header: 'Request ID',
-                  },
-                  {
-                    accessor: 'projectName',
-                    Header: 'Project Name',
-                  },
-                  {
-                    accessor: 'actions',
-                    Header: <IntegrationActionsHeader />,
-                    disableSortBy: true,
-                  },
-                ]}
-                data={
-                  integrations?.length > 0
-                    ? integrations?.map((integration) => {
-                        return {
-                          status: <RequestStatusIcon status={integration?.status} />,
-                          id: integration.id,
-                          projectName: integration.projectName,
-                          actions: (
-                            <RightFloat>
-                              <ActionButtons
-                                request={integration}
-                                onDelete={() => {
-                                  loadTeams();
-                                  getData(team?.id);
-                                }}
-                              >
-                                <ActionButton
-                                  icon={faEye}
-                                  aria-label="view"
-                                  onClick={() => viewProject(integration.id)}
-                                  size="lg"
-                                />
-                              </ActionButtons>
-                            </RightFloat>
-                          ),
-                        };
-                      })
-                    : []
-                }
-                readOnly={true}
-                colfilters={[]}
-                rowSelectorKey={'status'}
-                noDataFoundElement={
-                  <CenteredTD colSpan={5}>
-                    <br />
-                    There are no integrations for this team yet.
-                    <br />
-                    <br />
-                    To add this team to an <span className="strong">existing integration</span>:
-                    <span className="line-height-200"></span>
-                    <ol>
-                      <li>
-                        Go to your{' '}
-                        <span className="text-blue">
-                          <span className="strong">Projects</span>
-                        </span>{' '}
-                        tab
-                      </li>
-                      <li>Select the &ldquo;pencil&rdquo; icon to edit the integration</li>
-                      <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
-                    </ol>
-                    <br />
-                    To add this team to a <span className="strong">new integration</span>:
-                    <span className="line-height-200"></span>
-                    <ol>
-                      <li>
-                        Go to your{' '}
-                        <span className="text-blue">
-                          <span className="strong">Projects</span>
-                        </span>{' '}
-                        tab
-                      </li>
-                      <li>Select &ldquo;+ Request SSO Integration&rdquo;</li>
-                      <li>Select &ldquo;Yes&rdquo; to allow multiple team members to manage the integration</li>
-                      <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
-                    </ol>
-                  </CenteredTD>
-                }
-              /> */}
-
               <TableNew
+                dataTestId="team-integrations-table"
                 columns={[
                   {
                     accessorKey: 'status',
                     header: 'Status',
                     enableColumnFilter: false,
                     enableSorting: false,
-                    cell: (props) => <RequestStatusIcon status={props.row.getValue('status')} />,
+                    cell: (props) => <RequestStatusIcon status={props.row.original.status} />,
                   },
                   {
                     accessorKey: 'id',
@@ -776,7 +614,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                             <ActionButton
                               icon={faEye}
                               aria-label="view"
-                              onClick={() => viewProject(props.row.getValue('id'))}
+                              onClick={() => viewProject(props.row.original.id)}
                               size="lg"
                             />
                           </ActionButtons>

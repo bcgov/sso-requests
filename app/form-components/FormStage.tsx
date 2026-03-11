@@ -1,3 +1,5 @@
+'use client';
+
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import FormStageBox from 'form-components/FormStageBox';

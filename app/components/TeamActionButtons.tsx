@@ -1,3 +1,5 @@
+'use client';
+
 import { canDeleteTeam, canEditTeam } from '@app/helpers/permissions';
 import { Team } from '@app/interfaces/team';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';

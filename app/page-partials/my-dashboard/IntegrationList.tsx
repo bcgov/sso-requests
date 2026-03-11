@@ -187,6 +187,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
       <>
         <h2>Integrations</h2>
         <TableNew
+          dataTestId="integration-list-table"
           columns={
             [
               {
@@ -229,9 +230,11 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
                     <div style={{ display: 'flex', justifyContent: 'right', columnGap: '0.5rem' }}>
                       <ActionButtons
                         request={{
-                          id: props.row.getValue('id'),
-                          status: props.row.getValue('status'),
-                          projectName: props.row.getValue('projectName'),
+                          id: props.row.original.id,
+                          status: props.row.original.originalStatus,
+                          projectName: props.row.original.projectName,
+                          apiServiceAccount: props.row.original.apiServiceAccount,
+                          archived: props.row.original.archived,
                         }}
                         onDelete={(_: any, error: AxiosError | null) => {
                           if (error) {
@@ -259,6 +262,9 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
               status: getStatusDisplayName(integration.status || 'draft'),
               authType: authTypeDisplay[integration.authType || 'browser-login'],
               serviceType: 'Gold',
+              originalStatus: integration.status,
+              apiServiceAccount: integration.apiServiceAccount,
+              archived: integration.archived,
             };
           })}
           enableGlobalSearch={false}

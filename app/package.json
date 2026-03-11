@@ -112,6 +112,7 @@
     "jest-axe": "7.0.0",
     "jest-dom": "4.0.0",
     "jest-environment-jsdom": "29.4.3",
+    "jest-html-reporters": "^3.1.7",
     "jest-mock-axios": "^4.8.0",
     "jest-preview": "^0.3.1",
     "jest-stare": "^2.5.2",

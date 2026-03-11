@@ -1,14 +1,9 @@
-import { MouseEvent } from 'react';
-import { useRouter } from 'next/router';
+'use client';
+
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faCopy, faArrowRotateRight, faDownload } from '@fortawesome/free-solid-svg-icons';
-import { Integration } from 'interfaces/Request';
-import CenteredModal from 'components/CenteredModal';
-import { deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
-import { noop } from 'lodash';
-import { canDeleteIntegration, canEditIntegration } from '@app/helpers/permissions';
 
 export const ActionButtonContainer = styled.div`
   height: 100%;
@@ -56,38 +51,38 @@ export default function ServiceAccountActionbuttons({
         <ActionButton
           icon={faCopy}
           role="button"
-          aria-label="copy"
+          aria-label="copy-credentials"
           onClick={() => copyOrDownloadAction(false)}
-          title="Copy to clipboard"
           size="lg"
           disabled={actionsDisabled}
+          aria-hidden={false}
         />
         <ActionButton
           icon={faDownload}
           role="button"
-          aria-label="download"
+          aria-label="download-credentials"
           onClick={() => copyOrDownloadAction(true)}
-          title="Download"
           size="lg"
           disabled={actionsDisabled}
+          aria-hidden={false}
         />
         <ActionButton
           icon={faArrowRotateRight}
           role="button"
-          aria-label="download"
+          aria-label="update-secret"
           onClick={showUpdateModal}
-          title="Update secret"
           size="lg"
           disabled={actionsDisabled}
+          aria-hidden={false}
         />
         <ActionButton
           icon={faTrash}
           role="button"
-          aria-label="delete"
+          aria-label="delete-api-account"
           onClick={showDeleteModal}
-          title="Delete"
           size="lg"
           disabled={actionsDisabled}
+          aria-hidden={false}
         />
       </ActionButtonContainer>
     </>

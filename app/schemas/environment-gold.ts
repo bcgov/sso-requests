@@ -164,7 +164,7 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
 
     let additionalConfig: any = {};
 
-    if (process.env.INCLUDE_BC_SERVICES_CARD === 'true' && formData?.devIdps?.includes('bcservicescard')) {
+    if (process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true' && formData?.devIdps?.includes('bcservicescard')) {
       additionalConfig[homePageUriField] = {
         type: 'string',
         title: 'Home Page URL',

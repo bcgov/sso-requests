@@ -1,7 +1,9 @@
+'use client';
+
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import kebabCase from 'lodash';
+import { kebabCase } from 'lodash';
 
 interface BoxProps {
   color: string;
@@ -99,11 +101,9 @@ export default function FormStagebox({ stageNumber, title, active, visited, hand
     >
       <Circle>
         {hasError ? (
-          <FontAwesomeIcon
-            icon={faExclamationTriangle}
-            color="red"
-            title="Some additional fields require your attention."
-          />
+          <span title="Some additional fields require your attention.">
+            <FontAwesomeIcon icon={faExclamationTriangle} color="red" />
+          </span>
         ) : (
           stageNumber
         )}

@@ -140,38 +140,8 @@ function ServiceAccountsList({
       {loading ? (
         <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
       ) : (
-        // <Table
-        //   headers={[
-        //     {
-        //       accessor: 'id',
-        //       Header: 'API Account ID',
-        //     },
-        //     {
-        //       accessor: 'actions',
-        //       Header: <ActionsHeader />,
-        //       disableSortBy: true,
-        //     },
-        //   ]}
-        //   data={teamServiceAccounts.map((serviceAccount: Integration) => {
-        //     return {
-        //       id: serviceAccount.id,
-        //       actions: (
-        //         <RightFloatButtons>
-        //           <ServiceAccountActionbuttons
-        //             copyOrDownloadAction={copyOrDownloadServiceAccount}
-        //             showUpdateModal={handleUpdate}
-        //             showDeleteModal={handleDelete}
-        //             actionsDisabled={Boolean(checkDisabled(serviceAccount))}
-        //           />
-        //         </RightFloatButtons>
-        //       ),
-        //     };
-        //   })}
-        //   colfilters={[]}
-        //   activateRow={activateRow}
-        //   rowSelectorKey={'id'}
-        // />
         <TableNew
+          dataTestId="service-accounts-table"
           columns={[
             {
               accessorKey: 'id',

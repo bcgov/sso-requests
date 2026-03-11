@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import AdminDashboard from 'pages/admin-dashboard';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
@@ -6,7 +6,6 @@ import { deleteRequest, updateRequestMetadata, updateRequest, restoreRequest, ge
 import BcServicesCardTabContent from 'page-partials/admin-dashboard/AdminTabs/BcServicesCardTabContent';
 
 import { getCompositeClientRoles } from '@app/services/keycloak';
-import { debug } from 'jest-preview';
 
 const MOCK_PRIVACY_ZONE_URI = 'uniqueZoneUri';
 const MOCK_PRIVACY_ZONE_NAME = 'uniqueZoneName';
@@ -141,15 +140,16 @@ jest.mock('services/keycloak', () => ({
 }));
 
 const getFirstRow = () => {
-  return screen.getByRole('row', {
-    name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
-  });
+  return screen.getAllByRole('row')[1];
 };
 
 describe('SSO Dashboard', () => {
   const SEARCH_PLACEHOLDER = 'Project ID, Project Name or Client ID';
   it('should match all table headers, dropdown headings; testing on input field, search button', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
 
     expect(screen.getByText('Environments')).toBeInTheDocument();
     expect(screen.getByText('IDPs')).toBeInTheDocument();
@@ -161,18 +161,11 @@ describe('SSO Dashboard', () => {
     fireEvent.change(searchInputField, { target: { value: 'project_name' } });
     expect(searchInputField).toHaveDisplayValue('project_name');
 
-    const searchButton = screen.getByRole('button', { name: 'Search' });
-    fireEvent.click(searchButton);
-
     expect(screen.getByText('Request ID')).toBeInTheDocument();
     expect(screen.getByText('Project Name')).toBeInTheDocument();
     expect(screen.getByText('Request Status')).toBeInTheDocument();
     expect(screen.getByText('File Status')).toBeInTheDocument();
     expect(screen.getByText('Actions')).toBeInTheDocument();
-
-    await waitFor(() => {
-      screen.getByText('project_name_1');
-    });
 
     fireEvent.click(getFirstRow());
 
@@ -184,87 +177,81 @@ describe('SSO Dashboard', () => {
   it('testing on attribute dropdown', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
+
     //Environments dropdown
-    const selectEnvironments = screen.getAllByTestId('multi-select-col-filter');
-    const envInput = selectEnvironments[0].firstChild;
+    const selectEnvironments = screen.getByTestId('column-filter-environments');
+    const envInput = selectEnvironments.children[1];
     fireEvent.keyDown(envInput as HTMLElement, { keyCode: 40 });
     const envOption = await screen.findByText('Test');
     fireEvent.click(envOption);
-    expect(selectEnvironments[0]).toHaveTextContent('Test');
+    expect(selectEnvironments).toHaveTextContent('Test');
 
     //Workflow Status dropdown
-    const selectWorkflowStatus = screen.getAllByTestId('multi-select-col-filter');
-    const workflowStatusInput = selectWorkflowStatus[1].firstChild;
+    const selectWorkflowStatus = screen.getByTestId('column-filter-status');
+    const workflowStatusInput = selectWorkflowStatus.children[1];
     fireEvent.keyDown(workflowStatusInput as HTMLElement, { keyCode: 40 });
     const workflowStatusOption = await screen.findByRole('option', { name: 'Submitted' });
     fireEvent.click(workflowStatusOption);
-    expect(selectWorkflowStatus[1]).toHaveTextContent('Submitted');
+    expect(selectWorkflowStatus).toHaveTextContent('Submitted');
 
     //Archive Status dropdown
-    const selectArchiveStatus = screen.getAllByTestId('multi-select-col-filter');
-    const archiveStatusInput = selectArchiveStatus[2].firstChild;
+    const selectArchiveStatus = screen.getByTestId('column-filter-archived');
+    const archiveStatusInput = selectArchiveStatus.children[1];
     fireEvent.keyDown(archiveStatusInput as HTMLElement, { keyCode: 40 });
-    const archiveStatusOption = await screen.findByText('Active');
-    fireEvent.click(archiveStatusOption);
-    expect(selectArchiveStatus[2]).toHaveTextContent('Active');
+    fireEvent.click(selectArchiveStatus);
+    const archiveStatusActiveOption = within(selectArchiveStatus).getByRole('option', { name: 'Active' });
+    expect(archiveStatusActiveOption).toHaveTextContent('Active');
 
     //IDPs dropdown
-    const selectIDPs = screen.getAllByTestId('multi-select-col-filter');
-    const idpInput = selectIDPs[3].firstChild;
+    const selectIDPs = screen.getByTestId('column-filter-idps');
+    const idpInput = selectIDPs.children[1];
     fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findByText('BCeID');
     fireEvent.click(idpOption);
-    expect(selectIDPs[3]).toHaveTextContent('BCeID');
+    expect(selectIDPs).toHaveTextContent('BCeID');
   });
 
   it('testing Action buttons', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
-    //Archive Status filter defaults to active only
-    const selectArchiveStatus = screen.getAllByTestId('multi-select-col-filter');
-    expect(selectArchiveStatus[2]).toHaveTextContent('Active');
+    await waitFor(() => {
+      screen.getByText('project_name_1');
+    });
 
-    const archiveStatusInput = selectArchiveStatus[2].firstChild;
-    fireEvent.keyDown(archiveStatusInput as HTMLElement, { keyCode: 40 });
-    const archiveStatusOption = await screen.findByText('Deleted');
-    fireEvent.click(archiveStatusOption);
+    //Archive Status filter defaults to active only
+    const selectArchiveStatus = screen.getByTestId('column-filter-archived');
+    expect(selectArchiveStatus.children[1].children[2]).toHaveTextContent('Active');
 
     const searchInputField = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
     expect(searchInputField).toBeInTheDocument();
     fireEvent.change(searchInputField, { target: { value: 'project_name' } });
     expect(searchInputField).toHaveDisplayValue('project_name');
 
-    const searchButton = screen.getByRole('button', { name: 'Search' });
-    fireEvent.click(searchButton);
+    fireEvent.click(getFirstRow());
 
-    //click on row
     await waitFor(() => {
-      screen.getByText('project_name_1');
-    });
-    const firstRow = screen.getByRole('row', {
-      name: '1 project_name_1 Applied Active Events Edit Delete from Keycloak Restore at Keycloak',
-    });
-    fireEvent.click(firstRow);
-    await waitFor(() => {
-      expect(firstRow).toHaveClass('active');
+      expect(getFirstRow()).toHaveClass('active');
     });
 
     //click on eye icon
-    const eventsButton = screen.getAllByRole('button', { name: 'Events' });
+    const eventsButton = screen.getAllByRole('button', { name: 'events' });
     fireEvent.click(eventsButton[0]);
     await waitFor(() => {
       expect(screen.getByRole('tabpanel', { name: 'Events' })).toHaveClass('rc-tabs-tabpane-active');
     });
 
     //click on edit icon
-    const editButton = screen.getAllByRole('button', { name: 'Edit' });
+    const editButton = screen.getAllByRole('button', { name: 'edit' });
     fireEvent.click(editButton[0]);
     await waitFor(() => {
       expect(spyUseRouter).toHaveBeenCalled();
     });
 
     //click on delete icon
-    const deleteButton = screen.getAllByRole('button', { name: 'Delete from Keycloak' });
+    const deleteButton = screen.getAllByRole('button', { name: 'delete' });
     fireEvent.click(deleteButton[0]);
 
     await waitFor(() => {
@@ -278,13 +265,24 @@ describe('SSO Dashboard', () => {
     });
 
     fireEvent.click(confirmDeleteButton);
+
     await waitFor(() => {
       expect(deleteRequest).toHaveBeenCalled();
       expect(screen.queryByText('Confirm Deletion')).toBeNull();
     });
 
-    const restoreButtons = screen.getAllByRole('button', { name: 'Restore at Keycloak' });
-    fireEvent.click(restoreButtons[6]);
+    fireEvent.keyDown(selectArchiveStatus.children[1] as HTMLElement, { keyCode: 40 });
+    const archiveStatusOption = await screen.findByText('Deleted');
+    fireEvent.click(archiveStatusOption);
+
+    await waitFor(() => {
+      expect(getFirstRow()).toBeInTheDocument();
+    });
+
+    //click on restore icon
+
+    const restoreButton = screen.getByRole('button', { name: 'restore' });
+    fireEvent.click(restoreButton);
 
     let restorationModal: HTMLElement | null;
 

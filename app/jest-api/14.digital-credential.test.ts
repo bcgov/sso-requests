@@ -113,7 +113,7 @@ afterAll(() => {
 describe('Digital Credential Validations', () => {
   beforeEach(async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL = 'true';
   });
   afterAll(async () => {
     await cleanUpDatabaseTables();
@@ -138,19 +138,20 @@ describe('Digital Credential Feature flag', () => {
   });
 
   it('Does not allow digital credential as an IDP if feature flag is not included in env vars', async () => {
-    process.env.INCLUDE_DIGITAL_CREDENTIAL = undefined;
+    process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL = undefined;
     const result = await submitNewIntegration(mockIntegration);
+    console.log('🚀 ~ result:', result.body);
     expect(result.status).toBe(422);
   });
 
   it('Does not allow digital credential as an IDP if feature flag is set but not true', async () => {
-    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'false';
+    process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL = 'false';
     const result = await submitNewIntegration(mockIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Allows digital credential as an IDP if feature flag is set to true', async () => {
-    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL = 'true';
     const result = await submitNewIntegration(mockIntegration);
     expect(result.status).toBe(200);
   });
@@ -166,7 +167,7 @@ describe('IDP notifications', () => {
   });
 
   beforeEach(() => {
-    process.env.INCLUDE_DIGITAL_CREDENTIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL = 'true';
   });
 
   it('Allows and saves digital credential information correctly into database', async () => {

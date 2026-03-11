@@ -5,7 +5,7 @@ import rolesData from '../../fixtures/rolesusers.json';
 import Request from '../../appActions/Request';
 import Playground from '../../pageObjects/playgroundPage';
 import Utilities from '../../appActions/Utilities';
-import kebabCase from 'lodash';
+import { kebabCase } from 'lodash';
 
 let util = new Utilities();
 let playground = new Playground();

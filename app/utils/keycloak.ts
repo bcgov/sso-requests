@@ -1,25 +1,14 @@
 import Keycloak from 'keycloak-js';
-import { fetchConfig } from './runtimeConfigStore';
 
-let keycloakInstance: Keycloak | null = null;
+const sso_url = process.env.NEXT_PUBLIC_SSO_URL || '';
+const sso_client_id = process.env.NEXT_PUBLIC_SSO_CLIENT_ID || '';
 
-export async function getKeycloak(): Promise<Keycloak> {
-  if (keycloakInstance) return keycloakInstance; // return cached instance
+const keycloak = new Keycloak({
+  url: sso_url,
+  realm: 'standard',
+  clientId: sso_client_id,
+});
 
-  const { sso_url, sso_client_id } = await fetchConfig();
+keycloak.onAuthRefreshError = () => keycloak.logout();
 
-  keycloakInstance = new Keycloak({
-    url: sso_url,
-    realm: 'standard',
-    clientId: sso_client_id,
-  });
-
-  keycloakInstance.onAuthRefreshError = () => keycloakInstance!.logout();
-
-  return keycloakInstance;
-}
-
-// Call this if you ever need to reset (e.g. logout, testing)
-export function resetKeycloak() {
-  keycloakInstance = null;
-}
+export default keycloak;

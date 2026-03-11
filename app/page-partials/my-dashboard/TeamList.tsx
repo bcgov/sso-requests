@@ -122,6 +122,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
 
     return (
       <TableNew
+        dataTestId="team-list-table"
         columns={[
           {
             accessorKey: 'name',

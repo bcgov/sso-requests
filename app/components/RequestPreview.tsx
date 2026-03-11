@@ -1,3 +1,5 @@
+'use client';
+
 import { Integration, PrimaryEndUser } from 'interfaces/Request';
 import styled from 'styled-components';
 import { authTypeDisplay } from 'metadata/display';

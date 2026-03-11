@@ -1,7 +1,8 @@
+'use client';
+
 import React from 'react';
 import styled from 'styled-components';
 import clsx from 'clsx';
-import { noop } from 'lodash';
 import InfoOverlay from 'components/InfoOverlay';
 import { FieldTemplateProps } from '@rjsf/utils/lib/types';
 

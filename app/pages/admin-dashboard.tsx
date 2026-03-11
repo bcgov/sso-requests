@@ -1,15 +1,13 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/router';
-import { startCase } from 'lodash';
 import { faTrash, faEdit, faEye, faTrashRestoreAlt } from '@fortawesome/free-solid-svg-icons';
-import { Table } from '@bcgov-sso/common-react-components';
 import { getRequestAll, deleteRequest, restoreRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Integration, Option } from 'interfaces/Request';
 import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
-import { containsPrefix, formatFilters, isIdpApprover } from 'utils/helpers';
+import { containsPrefix, formatFilters } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
@@ -218,7 +216,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const [selectedEnvironments, setSelectedEnvironments] = useState<Option[]>([]);
   const [selectedIdp, setSelectedIdp] = useState<Option[]>([]);
   const [workflowStatus, setWorkflowStatus] = useState<Option[]>([]);
-  // const [archiveStatus, setArchiveStatus] = useState<Option[]>([{ value: 'active', label: 'Active' }] as Option[]);
+  const [archiveStatus, setArchiveStatus] = useState<Option[]>([{ value: 'active', label: 'Active' }] as Option[]);
   const [activePanel, setActivePanel] = useState<TabKey>('details');
   const [showRestoreModal, setShowRestoreModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -240,15 +238,15 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       label: 'Workflow Status',
       key: 'workflowStatus',
     },
-    // {
-    //   value: archiveStatus,
-    //   multiselect: true,
-    //   onChange: setArchiveStatus,
-    //   options: archiveStatusOptions,
-    //   defaultValue: archiveStatus,
-    //   label: 'Archive Status',
-    //   key: 'archiveStatus',
-    // },
+    {
+      value: archiveStatus,
+      multiselect: true,
+      onChange: setArchiveStatus,
+      options: archiveStatusOptions,
+      defaultValue: archiveStatus,
+      label: 'Archive Status',
+      key: 'archiveStatus',
+    },
   ]);
 
   const getData = async () => {
@@ -275,7 +273,6 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const loadData = async () => {
     setLoading(true);
     const [data, err] = await getData();
-
     if (err) {
       setHasError(true);
     } else if (data) {
@@ -373,6 +370,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       <VerticalLayout
         leftPanel={() => (
           <TableNew
+            dataTestId="admin-dashboard-table"
             globalSearchPlaceholder="Project ID, Project Name or Client ID"
             columns={
               [
@@ -456,10 +454,10 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                   enableColumnFilter: false,
                   cell: (props: any) => {
                     const request = {
-                      id: props.row.getValue('id'),
-                      archived: props.row.getValue('archived'),
-                      status: props.row.getValue('status'),
-                      apiServiceAccount: props.row.getValue('apiServiceAccount'),
+                      id: props.row.original.id,
+                      archived: props.row.original.archived === 'active' ? false : true,
+                      status: props.row.original.status,
+                      apiServiceAccount: props.row.original.apiServiceAccount,
                     };
                     return (
                       <ActionButtonContainer>

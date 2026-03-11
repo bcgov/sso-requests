@@ -1,5 +1,5 @@
 import { Op, Model } from 'sequelize';
-import kebabCase from 'lodash';
+import { kebabCase } from 'lodash';
 import { assign } from 'lodash';
 import { isEmpty } from 'lodash';
 import { isString } from 'lodash';

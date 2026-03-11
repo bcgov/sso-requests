@@ -1,3 +1,5 @@
+'use client';
+
 import styled from 'styled-components';
 import { noop } from 'lodash';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';

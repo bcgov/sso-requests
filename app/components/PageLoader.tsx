@@ -1,3 +1,5 @@
+'use client';
+
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import styled from 'styled-components';
 import { FORM_TOP_SPACING } from 'styles/theme';

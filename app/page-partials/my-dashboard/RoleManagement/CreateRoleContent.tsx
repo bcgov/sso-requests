@@ -166,7 +166,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
           <td colSpan={3}>
             <FlexBox>
               <FlexItem>
-                <FontAwesomeIcon icon={faInfoCircle} color="#17a2b8" title="duplicated roles" size="lg" />
+                <FontAwesomeIcon icon={faInfoCircle} color="#17a2b8" name="duplicated roles" size="lg" />
               </FlexItem>
               <FlexItem>There are duplicated roles and we've skipped adding them.</FlexItem>
             </FlexBox>
@@ -181,7 +181,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
           <td colSpan={3}>
             <FlexBox>
               <FlexItem>
-                <FontAwesomeIcon icon={faExclamationTriangle} color="#dc3545" title="failed roles" size="lg" />
+                <FontAwesomeIcon icon={faExclamationTriangle} color="#dc3545" name="failed roles" size="lg" />
               </FlexItem>
               <FlexItem>
                 We were unable to save some of your changes.
@@ -206,7 +206,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
         <td colSpan={3}>
           {roles.length < 20 ? (
             <AddNewButton onClick={handleAdd}>
-              <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Role" />
+              <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} name="Add Role" />
               <span>Add another role</span>
             </AddNewButton>
           ) : (
@@ -281,7 +281,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                   <td>
                     {!submitted && roles.length > 1 && (
                       <AddNewButton onClick={() => handleRemove(index)}>
-                        <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} title="Remove Role" />
+                        <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} data-testid="remove-role" />
                       </AddNewButton>
                     )}
                   </td>

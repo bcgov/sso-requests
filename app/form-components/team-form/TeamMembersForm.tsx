@@ -226,7 +226,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
               <Icon
                 icon={faMinusCircle}
                 onClick={() => handleMemberDelete(i)}
-                title="Delete"
+                aria-label="Delete"
                 data-testid="delete-user-role"
               />
             )}
@@ -236,7 +236,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
           <FontAwesomeIcon
             style={{ color: '#006fc4' }}
             icon={faPlusCircle}
-            title="Add Item"
+            aria-label="Add Item"
             data-testid="add-user-role"
           />
           <span>Add another team member</span>

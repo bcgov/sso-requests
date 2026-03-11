@@ -134,6 +134,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
         </div>
 
         <TableNew
+          dataTestId="idim-lookup-table"
           variant="mini"
           loading={loading}
           data={rows.map((row) => {

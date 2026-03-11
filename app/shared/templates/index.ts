@@ -26,9 +26,9 @@ import orphanIntegration from './orphan-integration';
 import { getEmailTemplate, isNonProdDigitalCredentialRequest } from './helpers';
 import disableBcscIdp from './disable-bcsc-idp';
 
-const APP_URL = process.env.APP_URL || 'http://localhost:3000';
-const API_URL = process.env.API_URL || 'http://localhost:8080/app';
-const APP_ENV = process.env.APP_ENV || 'development';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/app';
+const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 const footer = getEmailTemplate('footer.html');
 const hr = getEmailTemplate('hr.html');
 const createBceidBottom = getEmailTemplate('create-bceid-bottom.html');

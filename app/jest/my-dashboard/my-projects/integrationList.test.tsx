@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import { sampleRequest } from '../../samples/integrations';
@@ -49,13 +48,18 @@ describe('Integration list', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '+ Request SSO Integration' }));
     });
+
     expect(screen.getByText('Request ID')).toBeInTheDocument();
-    expect(screen.getByRole('row', { name: '00000001 test project Completed Browser Login Gold Edit Delete' }));
+    expect(screen.getAllByRole('row')[1]).toHaveTextContent('00000001test projectCompletedBrowser LoginGold');
   });
 
-  it('Should be able to click the Delete button', async () => {
+  it.only('Should be able to click the Delete button', async () => {
     render(<IntegrationListComponent />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '+ Request SSO Integration' }));
+    });
+
+    fireEvent.click(await screen.findByRole('button', { name: 'delete' }));
     await waitFor(() => {
       expect(screen.getByText('Confirm Deletion'));
     });

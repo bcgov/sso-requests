@@ -518,14 +518,14 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 {[
                   {
-                    key: 'user-role-filter-env',
+                    key: 'search-user-filter-env',
                     value: selectedEnvironment,
                     multiselect: false,
                     onChange: setSelectedEnvironment,
                     options: environments.map((env) => ({ value: env, label: startCase(env) })),
                   },
                   {
-                    key: 'user-role-filter-idp',
+                    key: 'search-user-filter-idp',
                     value: selectedIdp,
                     multiselect: false,
                     onChange: setSelectedIdp,
@@ -535,7 +535,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                       .map((idp) => ({ value: idp, label: idpMap[idp] })),
                   },
                   {
-                    key: 'user-role-filter-prop',
+                    key: 'search-user-filter-prop',
                     value: selectedProperty,
                     multiselect: false,
                     onChange: setSelectedProperty,
@@ -543,9 +543,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   },
                 ].map((filter) => {
                   return (
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1 }} data-testid={filter.key} key={filter.key}>
                       <Select
-                        key={filter.key}
                         value={filter.options.find((option) => option.value === filter.value)}
                         options={filter.options}
                         isMulti={filter.multiselect}
@@ -575,6 +574,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               </div>
 
               <TableNew
+                dataTestId="user-roles-table"
                 variant="mini"
                 columns={[
                   {

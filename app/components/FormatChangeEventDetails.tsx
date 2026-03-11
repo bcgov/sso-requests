@@ -1,3 +1,5 @@
+'use client';
+
 import { Change } from '@app/interfaces/Event';
 
 export default function FormatChangeEventDetails({ changes }: { changes: Change[] }) {

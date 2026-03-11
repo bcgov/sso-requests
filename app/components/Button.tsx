@@ -1,3 +1,5 @@
+'use client';
+
 import { applyTheme, StyleConfig } from '@button-inc/component-library/Button';
 
 export const styles = {
