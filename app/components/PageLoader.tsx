@@ -19,7 +19,7 @@ const LoaderContainer = styled.div`
 function PageLoader() {
   return (
     <LoaderContainer>
-      <SpinnerGrid color="#000" height={45} width={45} visible />
+      <SpinnerGrid color="#000" height={45} width={45} visible aria-label={'grid-loading'} />
       <p>Loading information...</p>
     </LoaderContainer>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import type { AppContext, AppProps } from 'next/app';
 import { getProfile, updateProfile } from 'services/user';
