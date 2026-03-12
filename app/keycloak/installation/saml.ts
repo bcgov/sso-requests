@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { promisify } from 'util';
 import { parseString } from 'xml2js';
-import get from 'lodash.get';
+import { get } from 'lodash';
 import RealmRepresentation from '@keycloak/keycloak-admin-client/lib/defs/realmRepresentation';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 import { KeycloakAdminClient } from '@keycloak/keycloak-admin-client/lib/client';

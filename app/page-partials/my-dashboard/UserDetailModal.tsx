@@ -1,13 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
-import map from 'lodash.map';
-import omitBy from 'lodash.omitby';
-import startCase from 'lodash.startcase';
-import isEmpty from 'lodash.isempty';
+import { map, omitBy, startCase, isEmpty } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
 import Grid from '@button-inc/bcgov-theme/Grid';
-import GenericModal from 'components/GenericModal';
+import GenericModal, { ModalRef } from 'components/GenericModal';
 import { mapKeys } from 'lodash';
 
 const Label = styled.label`
@@ -50,14 +47,14 @@ const ReadonlyItem = ({ children, width }: { children: React.ReactNode; width?: 
 };
 
 interface Props {
-  modalRef: React.Ref<any>;
+  modalRef: React.RefObject<ModalRef>;
 }
 
 const UserDetailModal = ({ modalRef }: Props) => {
   return (
     <GenericModal
       ref={modalRef}
-      id="additiona-user-info"
+      id="additional-user-info"
       title="Additional User Info"
       icon={null}
       cancelButtonText="Close"
@@ -67,7 +64,7 @@ const UserDetailModal = ({ modalRef }: Props) => {
       style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
     >
       {(context: { guid: string; attributes: any }) => {
-        if (!context) return <></>;
+        if (!context) return <div key={'additional-user-info'}></div>;
 
         let attributes = omitBy(context.attributes, isEmpty);
         attributes = mapKeys(attributes, function (val, key) {

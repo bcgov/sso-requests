@@ -5,9 +5,9 @@ import Request from '../../appActions/Request';
 import Playground from '../../pageObjects/playgroundPage';
 import { authenticator } from 'otplib';
 import Utilities from '../../appActions/Utilities';
-let util = new Utilities();
+import { kebabCase } from 'lodash';
 
-var kebabCase = require('lodash.kebabcase');
+let util = new Utilities();
 
 let testData = data;
 

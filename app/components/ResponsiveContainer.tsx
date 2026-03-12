@@ -1,4 +1,5 @@
-import React from 'react';
+'use client';
+
 import styled from 'styled-components';
 
 type HorizontalAlign = 'left' | 'right' | 'center' | 'none';

@@ -1,3 +1,5 @@
+'use client';
+
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import styled from 'styled-components';
 import { FORM_TOP_SPACING } from 'styles/theme';
@@ -17,7 +19,7 @@ const LoaderContainer = styled.div`
 function PageLoader() {
   return (
     <LoaderContainer>
-      <SpinnerGrid color="#000" height={45} width={45} visible />
+      <SpinnerGrid color="#000" height={45} width={45} visible aria-label={'grid-loading'} />
       <p>Loading information...</p>
     </LoaderContainer>
   );

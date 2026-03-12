@@ -2,11 +2,11 @@ import data from '../../fixtures/capitalization-fixtures.json'; // The data file
 import Request from '../../appActions/Request';
 import Utilities from '../../appActions/Utilities';
 import Playground from '../../pageObjects/playgroundPage';
+import { kebabCase } from 'lodash';
 
 let util = new Utilities();
 let req = new Request();
 let playground = new Playground();
-var kebabCase = require('lodash.kebabcase');
 
 describe('Create Integration Requests For login page capitalization', () => {
   before(() => {

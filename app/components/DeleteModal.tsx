@@ -1,7 +1,9 @@
+'use client';
+
 import CenteredModal from './CenteredModal';
 import { ChangeEvent, useState } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';
-import trim from 'lodash.trim';
+import { trim } from 'lodash';
 
 interface Props {
   id?: string;

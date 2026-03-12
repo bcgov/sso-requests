@@ -1,5 +1,5 @@
 import Form, { FormProps } from '@rjsf/core';
-import omit from 'lodash.omit';
+import { omit } from 'lodash';
 import Input from '@button-inc/bcgov-theme/Input';
 import Textarea from '@button-inc/bcgov-theme/Textarea';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';

@@ -1,7 +1,9 @@
+'use client';
+
 import React from 'react';
 import styled from 'styled-components';
-import isFunction from 'lodash.isfunction';
-import noop from 'lodash.noop';
+import { isFunction } from 'lodash';
+import { noop } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle } from '@fortawesome/free-solid-svg-icons';
 import { MAX_STRING_FIELD_WIDTH } from 'styles/theme';

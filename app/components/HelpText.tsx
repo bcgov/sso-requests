@@ -1,3 +1,5 @@
+'use client';
+
 import styled from 'styled-components';
 import { HELP_TEXT_FONT_SIZE, SECONDARY_FONT_COLOR } from 'styles/theme';
 

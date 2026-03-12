@@ -1,15 +1,9 @@
 import axios from 'axios';
 import url from 'url';
-import compact from 'lodash.compact';
-import startCase from 'lodash.startcase';
-import uniq from 'lodash.uniq';
+import { compact, startCase, uniq } from 'lodash';
 import { EmailOptions } from '@app/shared/interfaces';
 import https from 'https';
 import { envMap, idpMap } from '@app/helpers/meta';
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { ches_token_endpoint, ches_username, ches_password, realm_registry_api } = serverRuntimeConfig;
 
 const compactUniq = (v: any) => uniq(compact(v));
 
@@ -20,7 +14,7 @@ const httpsAgent = new https.Agent({
 const fetchChesToken = async (username: string, password: string) => {
   const params = new url.URLSearchParams({ grant_type: 'client_credentials' });
   try {
-    const payload = await axios.post(ches_token_endpoint, params.toString(), {
+    const payload = await axios.post(process.env.CHES_TOKEN_ENDPOINT!, params.toString(), {
       headers: {
         'Accept-Encoding': 'application/json',
       },
@@ -40,8 +34,8 @@ const fetchChesToken = async (username: string, password: string) => {
 };
 
 export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, body, ...rest }: EmailOptions) => {
-  const chesAPIEndpoint = realm_registry_api + '/emails';
-  const [accessToken, error] = await fetchChesToken(ches_username, ches_password);
+  const chesAPIEndpoint = process.env.REALM_REGISTRY_API + '/emails';
+  const [accessToken, error] = await fetchChesToken(process.env.CHES_USERNAME!, process.env.CHES_PASSWORD!);
   if (error) throw Error(error);
 
   const reqPayload = {

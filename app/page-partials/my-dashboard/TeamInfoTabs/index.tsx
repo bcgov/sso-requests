@@ -2,8 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { Tabs, Tab } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
-import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm, { Errors, validateTeam } from 'form-components/team-form/TeamMembersForm';
 import { User, Team } from 'interfaces/team';
@@ -46,6 +44,8 @@ import { Link } from '@button-inc/bcgov-theme';
 import { SurveyContext } from '@app/utils/context';
 import { docusaurusURL, messages } from '@app/utils/constants';
 import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
+import TableNew from '@app/components/TableNew';
+import Select from 'react-select';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -180,7 +180,7 @@ const RequestStatusIcon = ({ status }: { status?: Status }) => {
     color = '#2e8540';
     icon = faCheckCircle;
   }
-  return <FontAwesomeIcon icon={icon} title={status} style={{ color }} />;
+  return <FontAwesomeIcon icon={icon} aria-label={status} style={{ color }} />;
 };
 
 const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; invitationSendTime?: string }) => {
@@ -203,7 +203,7 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
     icon = faCheckCircle;
     title = 'Active Member';
   }
-  return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
+  return <FontAwesomeIcon icon={icon} aria-label={title} style={{ color }} />;
 };
 
 const Requester = styled.div`
@@ -443,142 +443,199 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
             ) : (
               <br />
             )}
-            <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table
-                data-testid="team-members-table"
-                variant="medium"
-                headers={[
+            <ReactPlaceholder type="text" rows={7} ready={!loading}>
+              <TableNew
+                dataTestId="team-members-table"
+                columns={[
                   {
-                    accessor: 'status',
-                    Header: 'Invite Status',
-                    disableSortBy: true,
+                    accessorKey: 'id',
+                    header: '',
+                    enableColumnFilter: false,
+                    enableSorting: false,
                   },
                   {
-                    accessor: 'idirEmail',
-                    Header: 'Email',
+                    accessorKey: 'invitiationSendTime',
+                    header: '',
+                    enableColumnFilter: false,
+                    enableSorting: false,
                   },
                   {
-                    accessor: 'role',
-                    Header: <RoleHeader />,
-                    disableSortBy: true,
+                    accessorKey: 'status',
+                    header: 'Invite Status',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => {
+                      return (
+                        <MemberStatusIcon
+                          pending={props.row.getValue('status')}
+                          invitationSendTime={props.row.getValue('invitiationSendTime')}
+                        />
+                      );
+                    },
                   },
                   {
-                    accessor: 'actions',
-                    Header: <MembersActionsHeader />,
-                    disableSortBy: true,
+                    accessorKey: 'idirEmail',
+                    header: 'Email',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                  },
+                  {
+                    accessorKey: 'role',
+                    header: () => <RoleHeader />,
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => {
+                      const adminActionsAllowed =
+                        hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) &&
+                        myself.id !== props.row.getValue('id');
+                      return adminActionsAllowed && !props.row.getValue('status') ? (
+                        <div>
+                          <Select
+                            options={[
+                              { value: 'member', label: 'Member' },
+                              { value: 'admin', label: 'Admin' },
+                            ]}
+                            onChange={(option: { value: unknown; label: string } | null) =>
+                              handleMemberRoleChange(
+                                props.row.getValue('id') as number,
+                                option ? (option.value as string) : '',
+                              )
+                            }
+                            value={
+                              props.row.getValue('role')
+                                ? { value: props.row.getValue('role'), label: capitalize(props.row.getValue('role')) }
+                                : null
+                            }
+                            styles={{
+                              menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+                            }}
+                            menuPortalTarget={document.body}
+                            isSearchable={false}
+                            isClearable={false}
+                          />
+                        </div>
+                      ) : (
+                        capitalize(props.row.getValue('role'))
+                      );
+                    },
+                  },
+                  {
+                    accessorKey: 'actions',
+                    header: () => <MembersActionsHeader />,
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => {
+                      const member = members.find((member) => member.id === props.row.getValue('id'));
+                      const adminActionsAllowed =
+                        hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) &&
+                        myself.id !== props.row.getValue('id');
+                      return (
+                        <RightFloat>
+                          {adminActionsAllowed && props.row.original.status && (
+                            <ButtonIcon
+                              icon={faShare}
+                              size="lg"
+                              onClick={() => inviteMember(member!)}
+                              aria-label="Resend Invitation"
+                              style={{ marginRight: '6px' }}
+                              data-testid="resend-invitation"
+                            />
+                          )}
+                          {adminActionsAllowed && (
+                            <ButtonIcon
+                              icon={faTrash}
+                              onClick={() => handleDeleteClick(props.row.getValue('id'))}
+                              size="lg"
+                              aria-label="Delete User"
+                              style={{ marginRight: '16px' }}
+                              data-testid="delete-member"
+                            />
+                          )}
+                        </RightFloat>
+                      );
+                    },
                   },
                 ]}
                 data={members.map((member) => {
-                  const adminActionsAllowed =
-                    hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) && myself.id !== member.id;
                   return {
-                    status: <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />,
+                    id: member.id,
+                    status: Boolean(member.pending),
                     idirEmail: member.idirEmail,
-                    role:
-                      adminActionsAllowed && !member.pending ? (
-                        <Dropdown
-                          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                            handleMemberRoleChange(member.id as number, event.target.value)
-                          }
-                          value={member.role}
-                        >
-                          <option value="member">Member</option>
-                          <option value="admin">Admin</option>
-                        </Dropdown>
-                      ) : (
-                        capitalize(member.role)
-                      ),
-                    actions: (
-                      <RightFloat>
-                        {adminActionsAllowed && member.pending && (
-                          <ButtonIcon
-                            icon={faShare}
-                            size="lg"
-                            onClick={() => inviteMember(member)}
-                            title="Resend Invitation"
-                            style={{ marginRight: '6px' }}
-                            data-testid="resend-invitation"
-                          />
-                        )}
-                        {adminActionsAllowed && (
-                          <ButtonIcon
-                            icon={faTrash}
-                            onClick={() => handleDeleteClick(member.id)}
-                            size="lg"
-                            title="Delete User"
-                            style={{ marginRight: '16px' }}
-                            data-testid="delete-member"
-                          />
-                        )}
-                      </RightFloat>
-                    ),
+                    role: member.role,
+                    invitiationSendTime: member.createdAt,
                   };
                 })}
-                colfilters={[]}
-                rowSelectorKey={'status'}
-                readOnly={true}
-              />
+                enableGlobalSearch={false}
+                hiddenColumns={['id', 'invitiationSendTime']}
+              ></TableNew>
             </ReactPlaceholder>
           </TabWrapper>
         </Tab>
         <Tab key="integrations" tab="Integrations">
           <TabWrapper marginTop="20px">
             <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table
-                variant="medium"
-                headers={[
+              <TableNew
+                dataTestId="team-integrations-table"
+                columns={[
                   {
-                    accessor: 'status',
-                    Header: 'Status',
-                    disableSortBy: true,
+                    accessorKey: 'status',
+                    header: 'Status',
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => <RequestStatusIcon status={props.row.original.status} />,
                   },
                   {
-                    accessor: 'id',
-                    Header: 'Request ID',
+                    accessorKey: 'id',
+                    header: 'Request ID',
+                    enableColumnFilter: false,
+                    enableSorting: false,
                   },
                   {
-                    accessor: 'projectName',
-                    Header: 'Project Name',
+                    accessorKey: 'projectName',
+                    header: 'Project Name',
+                    enableColumnFilter: false,
+                    enableSorting: false,
                   },
                   {
-                    accessor: 'actions',
-                    Header: <IntegrationActionsHeader />,
-                    disableSortBy: true,
+                    accessorKey: 'actions',
+                    header: () => <IntegrationActionsHeader />,
+                    enableColumnFilter: false,
+                    enableSorting: false,
+                    cell: (props) => {
+                      return (
+                        <RightFloat>
+                          <ActionButtons
+                            request={props.row.original}
+                            onDelete={() => {
+                              loadTeams();
+                              getData(team?.id);
+                            }}
+                          >
+                            <ActionButton
+                              icon={faEye}
+                              aria-label="view"
+                              onClick={() => viewProject(props.row.original.id)}
+                              size="lg"
+                            />
+                          </ActionButtons>
+                        </RightFloat>
+                      );
+                    },
                   },
                 ]}
                 data={
                   integrations?.length > 0
                     ? integrations?.map((integration) => {
                         return {
-                          status: <RequestStatusIcon status={integration?.status} />,
+                          status: integration?.status,
                           id: integration.id,
                           projectName: integration.projectName,
-                          actions: (
-                            <RightFloat>
-                              <ActionButtons
-                                request={integration}
-                                onDelete={() => {
-                                  loadTeams();
-                                  getData(team?.id);
-                                }}
-                              >
-                                <ActionButton
-                                  icon={faEye}
-                                  aria-label="view"
-                                  onClick={() => viewProject(integration.id)}
-                                  size="lg"
-                                />
-                              </ActionButtons>
-                            </RightFloat>
-                          ),
                         };
                       })
                     : []
                 }
-                readOnly={true}
-                colfilters={[]}
-                rowSelectorKey={'status'}
-                noDataFoundElement={
+                enableGlobalSearch={false}
+                noDataFoundMessage={
                   <CenteredTD colSpan={5}>
                     <br />
                     There are no integrations for this team yet.

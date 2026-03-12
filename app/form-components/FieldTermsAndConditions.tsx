@@ -1,4 +1,5 @@
-import React from 'react';
+'use client';
+
 import Content from 'page-partials/terms-conditions/Content';
 import FieldTemplate from './FieldTemplate';
 import { FieldTemplateProps } from '@rjsf/utils/lib/types';

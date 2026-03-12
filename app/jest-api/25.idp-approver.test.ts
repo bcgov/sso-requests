@@ -78,8 +78,10 @@ jest.mock('@app/utils/bcsc-client', () => {
 // TODO: IDP approver tests
 describe('IDP Approver', () => {
   beforeAll(async () => {
-    process.env.INCLUDE_SOCIAL = 'true';
-    process.env.INCLUDE_OTP = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'true';
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     await cleanUpDatabaseTables();
     await buildIntegration({
@@ -360,6 +362,7 @@ describe('IDP Approver', () => {
   it('BC Services Card approver can view and approve any bcsc integration but cannot edit/delete/restore', async () => {
     createMockAuth(BCSC_ADMIN_IDIR_USERID_01, BCSC_ADMIN_IDIR_EMAIL_01, ['bc-services-card-approver']);
     const requests = await getRequestsForAdmins();
+
     expect(requests.status).toEqual(200);
     expect(requests.body.count).toEqual(1);
     expect(requests.body.rows[0].projectName).toEqual('bc-services-card');

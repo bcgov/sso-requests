@@ -1,3 +1,5 @@
+'use client';
+
 import { MouseEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
@@ -6,7 +8,7 @@ import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Integration } from 'interfaces/Request';
 import { deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import { canDeleteIntegration, canEditIntegration } from '@app/helpers/permissions';
 import DeleteModal from './DeleteModal';
 
@@ -118,7 +120,7 @@ export default function Actionbuttons({
       </ActionButtonContainer>
       <DeleteModal
         id={`delete-modal-${request?.id}`}
-        projectName={request.projectName}
+        projectName={request?.projectName}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
         content="You are about to delete this integration request. This action cannot be undone."

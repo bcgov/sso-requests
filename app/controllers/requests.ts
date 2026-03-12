@@ -1,8 +1,8 @@
 import { Op, Model } from 'sequelize';
-import kebabCase from 'lodash.kebabcase';
-import assign from 'lodash.assign';
-import isEmpty from 'lodash.isempty';
-import isString from 'lodash.isstring';
+import { kebabCase } from 'lodash';
+import { assign } from 'lodash';
+import { isEmpty } from 'lodash';
+import { isString } from 'lodash';
 import {
   validateRequest,
   getDifferences,
@@ -62,7 +62,7 @@ import {
   samlSignedAssertions,
   test,
 } from '@app/schemas';
-import pick from 'lodash.pick';
+import { pick } from 'lodash';
 import { validateIdirEmail } from '@app/utils/ms-graph-idir';
 import {
   BCSCClientParameters,
@@ -92,13 +92,11 @@ import { bcscClientScopeMappers, bcscIdpMappers } from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus } from '@app/helpers/permissions';
-import getConfig from 'next/config';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { app_env } = publicRuntimeConfig;
+const app_env = process.env.APP_ENV || 'development';
 
 const APP_ENV = app_env || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;

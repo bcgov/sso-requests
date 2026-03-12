@@ -1,8 +1,6 @@
-import React from 'react';
 import Head from 'next/head';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
-import FaqItems from 'page-partials/faq/FaqItems';
 import GithubDiscussions from '@app/components/GithubDiscussions';
 
 export default function FAQ() {

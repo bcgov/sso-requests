@@ -1,10 +1,12 @@
+'use client';
+
 import React, { CSSProperties } from 'react';
 import OverlayTrigger, { OverlayTriggerType } from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';
 import PopoverHeader from 'react-bootstrap/PopoverHeader';
 import PopoverBody from 'react-bootstrap/PopoverBody';
 import styled from 'styled-components';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { DEFAULT_FONT_FAMILY, DEFAULT_FONT_SIZE } from 'styles/theme';

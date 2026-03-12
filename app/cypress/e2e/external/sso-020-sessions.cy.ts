@@ -2,6 +2,7 @@ import data from '../../fixtures/sso-test.json'; // The data file will drive the
 import Playground from '../../pageObjects/playgroundPage';
 import Request from '../../appActions/Request';
 import Utilities from '../../appActions/Utilities';
+import { kebabCase } from 'lodash';
 
 const cookiesToClear: string[] = [
   'KEYCLOAK_SESSION_LEGACY',
@@ -16,7 +17,6 @@ const cookiesToClear: string[] = [
 ];
 const domain: string = Cypress.env('siteminder');
 
-var kebabCase = require('lodash.kebabcase');
 let util = new Utilities();
 let req = new Request();
 let playground = new Playground();

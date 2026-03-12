@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import getConfig from 'next/config';
 import type { AppContext, AppProps } from 'next/app';
 import { getProfile, updateProfile } from 'services/user';
 import Layout from 'layout/Layout';
@@ -18,10 +17,11 @@ import keycloak from '@app/utils/keycloak';
 import App from 'next/app';
 import { SessionContext, SurveyContext } from '@app/utils/context';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { base_path, maintenance_mode, sso_redirect_uri, app_url } = publicRuntimeConfig;
-
-const authenticatedUris = [`${base_path}/my-dashboard`, `${base_path}/request`, `${base_path}/admin-dashboard`];
+const authenticatedUris = [
+  `${process.env.NEXT_PUBLIC_BASE_PATH}/my-dashboard`,
+  `${process.env.NEXT_PUBLIC_BASE_PATH}/request`,
+  `${process.env.NEXT_PUBLIC_BASE_PATH}/admin-dashboard`,
+];
 
 const proccessSession = (session?: KeycloakTokenParsed | null) => {
   if (!session) return null;
@@ -95,19 +95,20 @@ function MyApp({ Component, pageProps }: AppProps) {
   };
 
   useEffect(() => {
-    if (maintenance_mode && maintenance_mode === 'true') {
+    if (pageProps?.maintenanceMode) {
       router.push({
         pathname: '/application-error',
         query: {
           error: 'maintenance',
         },
       });
+      setLoading(false);
     }
 
-    if (!keycloak.didInitialize) {
+    if (!keycloak.didInitialize && !pageProps?.maintenanceMode) {
       keycloak
         .init({
-          redirectUri: sso_redirect_uri,
+          redirectUri: process.env.NEXT_PUBLIC_SSO_REDIRECT_URI,
           onLoad: 'check-sso',
         })
         .then(() => {
@@ -130,8 +131,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (session) getUser();
   }, [session]);
 
-  const handleLogin = async () => keycloak.login({ redirectUri: `${app_url}/my-dashboard` });
-  const handleLogout = async () => keycloak.logout({ redirectUri: app_url });
+  const handleLogin = async () => keycloak.login({ redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/my-dashboard` });
+  const handleLogout = async () => keycloak.logout({ redirectUri: process.env.NEXT_PUBLIC_APP_URL });
 
   const sessionContext = useMemo(() => ({ session, user, keycloak }), [session, user, keycloak]);
   const surveyContext = useMemo(() => ({ setShowSurvey }), [user]);
@@ -146,7 +147,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <SessionContext.Provider value={sessionContext}>
       <SurveyContext.Provider value={surveyContext}>
-        {maintenance_mode && maintenance_mode === 'true' ? (
+        {pageProps?.maintenanceMode ? (
           <Component {...pageProps} />
         ) : (
           <>
@@ -200,11 +201,12 @@ function MyApp({ Component, pageProps }: AppProps) {
 
 MyApp.getInitialProps = async (appContext: AppContext) => {
   const appProps = await App.getInitialProps(appContext);
-  const { publicRuntimeConfig = {} } = getConfig() || {};
+  const maintenanceMode = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/maintenance-mode`);
   return {
     ...appProps,
     pageProps: {
       ...appProps.pageProps,
+      maintenanceMode: (await maintenanceMode.json())?.maintenanceMode || false,
     },
   };
 };

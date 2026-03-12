@@ -1,9 +1,5 @@
 import { Octokit } from 'octokit';
 import { createAppAuth } from '@octokit/auth-app';
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { gh_app_id, gh_app_installation_id, gh_app_private_key } = serverRuntimeConfig;
 
 let cachedOctokit: Octokit | null = null;
 
@@ -12,9 +8,9 @@ export const authenticateToGithub = async () => {
     cachedOctokit = new Octokit({
       authStrategy: createAppAuth,
       auth: {
-        appId: gh_app_id,
-        privateKey: Buffer.from(gh_app_private_key, 'base64').toString('utf-8'),
-        installationId: gh_app_installation_id,
+        appId: process.env.GH_APP_ID!,
+        privateKey: Buffer.from(process.env.GH_APP_PRIVATE_KEY!, 'base64').toString('utf-8'),
+        installationId: process.env.GH_APP_INSTALLATION_ID!,
       },
     });
 

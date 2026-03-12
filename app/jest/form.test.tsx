@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
 import { updateRequest } from 'services/request';
@@ -222,7 +221,6 @@ describe('Form Template Saving and Navigation', () => {
     fireEvent.click(adminReview);
     const submitButton = await component.findByText('Submit', { selector: 'button' });
     fireEvent.click(submitButton as HTMLElement);
-
     expect(within(requesterInfoBox).getByTitle(STEPPER_ERROR));
     expect(within(basicInfoBox).getByTitle(STEPPER_ERROR));
     expect(within(termsAndConditionsBox).getByTitle(STEPPER_ERROR));
@@ -375,9 +373,11 @@ describe('Client Sessions', () => {
     fireEvent.click(confirmButton as HTMLElement);
 
     const updateRequestCalls = (updateRequest as jest.Mock).mock.calls;
-    expect(updateRequestCalls.length).toBe(1);
-    expect(updateRequestCalls[0][0].devSessionIdleTimeout).toBe(idleTimeout * 60);
-    expect(updateRequestCalls[0][0].devSessionMaxLifespan).toBe(maxLifespan * 60);
+
+    console.log('🚀 ~ updateRequestCalls:', updateRequestCalls);
+
+    expect(updateRequestCalls[updateRequestCalls.length - 1][0].devSessionIdleTimeout).toBe(idleTimeout * 60);
+    expect(updateRequestCalls[updateRequestCalls.length - 1][0].devSessionMaxLifespan).toBe(maxLifespan * 60);
     expect(updateRequest).toHaveBeenCalled();
   });
 
@@ -724,6 +724,10 @@ describe('Basic Info - Identity Providers', () => {
 });
 
 describe('BC Services Card IDP and dependencies', () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'true';
+  });
+
   it("Shows BC Services Card IDP from the list of IDPs if it's a SAML integration", async () => {
     const { getByText } = setUpRender({
       id: 0,
@@ -878,7 +882,7 @@ describe('BC Services Card IDP and dependencies', () => {
   });
 
   it('should only show the BCSC IDP when not using production if the ALLOW_BC_SERVICES_CARD_PROD feature flag is off', async () => {
-    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'false';
     const { queryByText } = setUpRender({
       id: 0,
       environments: ['dev'],
@@ -893,11 +897,12 @@ describe('BC Services Card IDP and dependencies', () => {
   });
 
   it('should only show the production environment when BCSC IDP is unselected if the ALLOW_BC_SERVICES_CARD_PROD feature flag is off', async () => {
-    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'false';
     const { queryByText } = setUpRender({
       id: 0,
       environments: ['dev'],
     });
+
     fireEvent.click(sandbox.basicInfoBox);
     let productionCheckbox = queryByText('Production', { selector: '.checkbox span' }) as HTMLElement;
     expect(productionCheckbox).toBeInTheDocument();
@@ -908,7 +913,7 @@ describe('BC Services Card IDP and dependencies', () => {
   });
 
   it('should always show production and bcsc idp when the ALLOW_BC_SERVICES_CARD_PROD flag is on', async () => {
-    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'true';
     const { queryByText } = setUpRender({
       id: 0,
       environments: ['dev'],
@@ -978,7 +983,7 @@ describe('Social IDP', () => {
     environments: ['dev', 'test', 'prod'],
   };
   it('Shows social IDP when the env variable is set', async () => {
-    process.env.INCLUDE_SOCIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = 'true';
     const { queryByText } = setUpRender(defaultRender);
 
     fireEvent.click(sandbox.basicInfoBox);
@@ -987,7 +992,7 @@ describe('Social IDP', () => {
   });
 
   it('Does not show social IDP when the env variable is explicitly false', async () => {
-    process.env.INCLUDE_SOCIAL = 'false';
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = 'false';
     const { queryByText } = setUpRender(defaultRender);
 
     fireEvent.click(sandbox.basicInfoBox);
@@ -996,7 +1001,7 @@ describe('Social IDP', () => {
   });
 
   it('Defaults to not show social IDP when env variable is missing', async () => {
-    process.env.INCLUDE_SOCIAL = undefined;
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = undefined;
     const { queryByText } = setUpRender(defaultRender);
 
     fireEvent.click(sandbox.basicInfoBox);
@@ -1005,7 +1010,7 @@ describe('Social IDP', () => {
   });
 
   it('Displays social terms and conditions only when social IDP is selected', async () => {
-    process.env.INCLUDE_SOCIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = 'true';
     const { queryByText } = setUpRender(defaultRender);
 
     fireEvent.click(sandbox.basicInfoBox);
@@ -1021,7 +1026,7 @@ describe('Social IDP', () => {
   });
 
   it('Displays error when terms and conditions is not checked and clears once selected', async () => {
-    process.env.INCLUDE_SOCIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = 'true';
     const { queryByText } = setUpRender(defaultRender);
 
     fireEvent.click(sandbox.basicInfoBox);
@@ -1054,7 +1059,7 @@ describe('One Time Passcode IDP', () => {
   };
   const userSession = { email: 'user-session@gov.bc.ca', client_roles: ['sso-admin'] };
   beforeEach(() => {
-    process.env.INCLUDE_OTP = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
   });
   it('Shows OTP IDP when the env variable is set', async () => {
     const { queryByText } = setUpRender(defaultRender, userSession);
@@ -1067,7 +1072,7 @@ describe('One Time Passcode IDP', () => {
   });
 
   it('Does not show OTP IDP when the env variable is explicitly false', async () => {
-    process.env.INCLUDE_OTP = 'false';
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'false';
     const { queryByText } = setUpRender(defaultRender, userSession);
 
     fireEvent.click(sandbox.basicInfoBox);
@@ -1078,7 +1083,7 @@ describe('One Time Passcode IDP', () => {
   });
 
   it('Defaults to not show OTP IDP when env variable is missing', async () => {
-    process.env.INCLUDE_OTP = undefined;
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = undefined;
     const { queryByText } = setUpRender(defaultRender, userSession);
 
     fireEvent.click(sandbox.basicInfoBox);

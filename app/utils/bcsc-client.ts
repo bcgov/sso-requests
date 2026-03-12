@@ -4,10 +4,6 @@ import { IntegrationData } from '@app/shared/interfaces';
 import { getBCSCEnvVars, getRequiredBCSCScopes } from '@app/utils/helpers';
 import { getAllEmailsOfTeam } from '@app/queries/team';
 import { getPrivacyZones } from '@app/controllers/bc-services-card';
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { bcsc_signing_algorithm } = serverRuntimeConfig;
 
 export interface BCSCClientParameters {
   id?: number;
@@ -63,8 +59,8 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
       scope: requiredScopes.join(' '),
       contacts: contacts,
       token_endpoint_auth_method: 'client_secret_post',
-      id_token_signed_response_alg: bcsc_signing_algorithm || 'RS256',
-      userinfo_signed_response_alg: bcsc_signing_algorithm || 'RS256',
+      id_token_signed_response_alg: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',
+      userinfo_signed_response_alg: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',
       // Sub must be requested. Otherwise id token will have a randomized identifier.
       claims: [...integration.bcscAttributes!, 'sub'],
       privacy_zone_uri: bcscPrivacyZoneURI,
@@ -96,8 +92,8 @@ export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integra
       scope: requiredScopes.join(' '),
       contacts,
       token_endpoint_auth_method: 'client_secret_post',
-      id_token_signed_response_alg: bcsc_signing_algorithm || 'RS256',
-      userinfo_signed_response_alg: bcsc_signing_algorithm || 'RS256',
+      id_token_signed_response_alg: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',
+      userinfo_signed_response_alg: process.env.BCSC_SIGNING_ALGORITHM || 'RS256',
       claims: [...integration.bcscAttributes!, 'sub'],
       // TODO: Keep it commented until encryption is allowed
       //jwks_uri: jwksUri,

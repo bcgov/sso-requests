@@ -2,7 +2,7 @@
  * Handy utilities for the app
  */
 import crypto from 'crypto';
-import padStart from 'lodash.padstart';
+import { padStart } from 'lodash';
 
 class Utilities {
   runOk(data: any): boolean {

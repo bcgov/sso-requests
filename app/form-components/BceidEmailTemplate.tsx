@@ -1,4 +1,5 @@
-import React from 'react';
+'use client';
+
 import { BceidEmailDetails } from 'interfaces/form';
 
 interface Props {
