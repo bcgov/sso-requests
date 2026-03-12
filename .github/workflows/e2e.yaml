@@ -21,7 +21,6 @@ env:
   CYPRESS_smoketest: true
   CYPRESS_localtest: true
   CYPRESS_BASE_URL: 'http://localhost:3000'
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   smoke-test:
@@ -30,6 +29,11 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'yarn'
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
