@@ -1017,13 +1017,13 @@ class Request {
           .type(this.teamName + '-' + myuuid);
         this.teamFullNames.push(this.teamName + '-' + myuuid);
 
-        cy.get('#react-select-2-input').focus().clear();
-        cy.get('#react-select-2-input').type('pathfinder.ssotraining2', {
+        cy.get('[data-testid="team-member-email-input-0"]').focus().clear();
+        cy.get('[data-testid="team-member-email-input-0"]').type('pathfinder.ssotraining2', {
           force: true,
           delay: 20,
         });
 
-        cy.contains('Pathfinder.SSOTraining2').click({ force: true });
+        cy.contains('[role="option"]', 'Pathfinder.SSOTraining2@gov.bc.ca').click();
 
         cy.realPress('Tab');
         cy.realPress('Tab');

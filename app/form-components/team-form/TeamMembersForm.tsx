@@ -10,7 +10,7 @@ import ErrorText from 'components/ErrorText';
 import Link from '@button-inc/bcgov-theme/Link';
 import { formatWikiURL } from '@app/utils/constants';
 import AsyncSelect from 'react-select/async';
-import { SingleValue } from 'react-select';
+import { SingleValue, components } from 'react-select';
 import { throttledIdirSearch } from '@app/utils/users';
 
 const Container = styled.div`
@@ -210,6 +210,12 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                 maxMenuHeight={120}
                 classNamePrefix={'select-inner'}
                 placeholder={'Enter email address'}
+                components={{
+                  Input: (props) => <components.Input {...props} data-testid={`team-member-email-input-${i}`} />,
+                  MenuList: (props) => (
+                    <components.MenuList {...props} data-testid={`team-member-email-select-menu-${i}`} />
+                  ),
+                }}
               />
               {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
             </div>
