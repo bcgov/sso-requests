@@ -21,14 +21,13 @@ env:
   CYPRESS_smoketest: true
   CYPRESS_localtest: true
   CYPRESS_BASE_URL: 'http://localhost:3000'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   smoke-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
       - uses: isbang/compose-action@v1.5.1
