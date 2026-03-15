@@ -243,7 +243,7 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('BCeID Approver')).toBeInTheDocument();
+      screen.getAllByText('BCeID Approver');
     });
 
     actionButtonsValidations();
@@ -298,7 +298,7 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('GitHub Approver')).toBeInTheDocument();
+      screen.getAllByText('GitHub Approver');
     });
 
     actionButtonsValidations();
@@ -352,7 +352,7 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Social Approver')).toBeInTheDocument();
+      screen.getAllByText('Social Approver');
     });
 
     actionButtonsValidations();
@@ -406,7 +406,7 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('OTP Approver')).toBeInTheDocument();
+      screen.getAllByText('OTP Approver');
     });
 
     debug(undefined, 300000);
@@ -461,7 +461,7 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('BC Services Card Approver')).toBeInTheDocument();
+      screen.getAllByText('BC Services Card Approver');
     });
 
     actionButtonsValidations();

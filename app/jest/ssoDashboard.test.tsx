@@ -148,7 +148,7 @@ describe('SSO Dashboard', () => {
   it('should match all table headers, dropdown headings; testing on input field, search button', async () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
     await waitFor(() => {
-      screen.getByText('project_name_1');
+      screen.getAllByText('project_name_1');
     });
 
     expect(screen.getByText('Environments')).toBeInTheDocument();
@@ -178,36 +178,38 @@ describe('SSO Dashboard', () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
-      screen.getByText('project_name_1');
+      screen.getAllByText('project_name_1');
     });
 
     //Environments dropdown
     const selectEnvironments = screen.getByTestId('column-filter-environments');
-    const envInput = selectEnvironments.children[1];
+    const envInput = within(selectEnvironments).getByRole('combobox');
     fireEvent.keyDown(envInput as HTMLElement, { keyCode: 40 });
     const envOption = await screen.findByText('Test');
     fireEvent.click(envOption);
     expect(selectEnvironments).toHaveTextContent('Test');
 
     //Workflow Status dropdown
-    const selectWorkflowStatus = screen.getByTestId('column-filter-status');
-    const workflowStatusInput = selectWorkflowStatus.children[1];
+    const selectWorkflowStatus = screen.getByTestId('column-filter-workflowStatus');
+    const workflowStatusInput = within(selectWorkflowStatus).getByRole('combobox');
     fireEvent.keyDown(workflowStatusInput as HTMLElement, { keyCode: 40 });
     const workflowStatusOption = await screen.findByRole('option', { name: 'Submitted' });
     fireEvent.click(workflowStatusOption);
     expect(selectWorkflowStatus).toHaveTextContent('Submitted');
 
     //Archive Status dropdown
-    const selectArchiveStatus = screen.getByTestId('column-filter-archived');
-    const archiveStatusInput = selectArchiveStatus.children[1];
+    const selectArchiveStatus = screen.getByTestId('column-filter-archiveStatus');
+    const archiveStatusInput = within(selectArchiveStatus).getByRole('combobox');
     fireEvent.keyDown(archiveStatusInput as HTMLElement, { keyCode: 40 });
     fireEvent.click(selectArchiveStatus);
-    const archiveStatusActiveOption = within(selectArchiveStatus).getByRole('option', { name: 'Active' });
-    expect(archiveStatusActiveOption).toHaveTextContent('Active');
+
+    const archiveStatusActiveOption = within(selectArchiveStatus).getByRole('option', { name: 'Deleted' });
+    expect(selectArchiveStatus).toHaveTextContent('Active');
+    expect(archiveStatusActiveOption).toHaveTextContent('Deleted');
 
     //IDPs dropdown
     const selectIDPs = screen.getByTestId('column-filter-idps');
-    const idpInput = selectIDPs.children[1];
+    const idpInput = within(selectIDPs).getByRole('combobox');
     fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findByText('BCeID');
     fireEvent.click(idpOption);
@@ -218,12 +220,12 @@ describe('SSO Dashboard', () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
-      screen.getByText('project_name_1');
+      screen.getAllByText('project_name_1');
     });
 
     //Archive Status filter defaults to active only
-    const selectArchiveStatus = screen.getByTestId('column-filter-archived');
-    expect(selectArchiveStatus.children[1].children[2]).toHaveTextContent('Active');
+    const selectArchiveStatus = screen.getByTestId('column-filter-archiveStatus');
+    expect(selectArchiveStatus).toHaveTextContent('Active');
 
     const searchInputField = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
     expect(searchInputField).toBeInTheDocument();
@@ -271,18 +273,20 @@ describe('SSO Dashboard', () => {
       expect(screen.queryByText('Confirm Deletion')).toBeNull();
     });
 
-    fireEvent.keyDown(selectArchiveStatus.children[1] as HTMLElement, { keyCode: 40 });
+    const archiveStatusInput = within(selectArchiveStatus).getByRole('combobox');
+
+    fireEvent.keyDown(archiveStatusInput as HTMLElement, { keyCode: 40 });
     const archiveStatusOption = await screen.findByText('Deleted');
     fireEvent.click(archiveStatusOption);
 
     await waitFor(() => {
-      expect(getFirstRow()).toBeInTheDocument();
+      screen.getAllByText('project_name_1');
     });
 
     //click on restore icon
 
-    const restoreButton = screen.getByRole('button', { name: 'restore' });
-    fireEvent.click(restoreButton);
+    const restoreButton = screen.getAllByRole('button', { name: 'restore' });
+    fireEvent.click(restoreButton[6]);
 
     let restorationModal: HTMLElement | null;
 
@@ -309,7 +313,7 @@ describe('SSO Dashboard', () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
-      screen.getByText('project_name_1');
+      screen.getAllByText('project_name_1');
     });
     const pageSelection = screen.getByTestId('page-select');
     expect(screen.getByText('5 per page')).toBeInTheDocument();
@@ -338,7 +342,7 @@ describe('SSO Dashboard', () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
-      screen.getByText('project_name_1');
+      screen.getAllByText('project_name_1');
     });
 
     fireEvent.click(getFirstRow());
@@ -386,7 +390,7 @@ describe('SSO Dashboard', () => {
     });
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
     await waitFor(() => {
-      screen.getByText('testProject');
+      screen.getAllByText('testProject');
     });
 
     fireEvent.click(getFirstRow());
@@ -406,7 +410,7 @@ describe('SSO Dashboard', () => {
     });
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
     await waitFor(() => {
-      screen.getByText('testProject');
+      screen.getAllByText('testProject');
     });
     fireEvent.click(getFirstRow());
     const privacyZoneElement = screen.queryByText('Privacy Zone:');
@@ -417,7 +421,7 @@ describe('SSO Dashboard', () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
-      screen.getByText('project_name_1');
+      screen.getAllByText('project_name_1');
     });
     fireEvent.click(getFirstRow());
 
@@ -439,8 +443,9 @@ describe('SSO Dashboard', () => {
     render(<AdminDashboard session={sampleSession} onLoginClick={jest.fn} onLogoutClick={jest.fn} />);
 
     await waitFor(() => {
-      screen.getByText('project_name_1');
+      screen.getAllByText('project_name_1');
     });
+
     fireEvent.click(getFirstRow());
 
     fireEvent.click(screen.getByRole('tab', { name: 'Roles' }));

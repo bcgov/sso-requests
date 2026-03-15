@@ -580,26 +580,19 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   {
                     accessorKey: 'firstName',
                     header: getTableHeaderLabel('firstName') || '',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                   },
                   {
                     accessorKey: 'lastName',
                     header: getTableHeaderLabel('lastName') || '',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                   },
                   {
                     accessorKey: 'email',
                     header: getTableHeaderLabel('email') || '',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                   },
                   {
                     accessorKey: 'actions',
                     header: '',
-                    enableColumnFilter: false,
-                    enableSorting: false,
+
                     cell: (props) => (
                       <ActionButtonContainer>
                         <ActionButton

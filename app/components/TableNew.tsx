@@ -6,15 +6,13 @@ import {
   useReactTable,
   Row,
   PaginationState,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   ColumnFiltersState,
   ColumnDef,
   VisibilityState,
   InitialTableState,
+  getPaginationRowModel,
 } from '@tanstack/react-table';
-import Select from 'react-select';
+import Select, { components } from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSortDown, faSortUp, faSort } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from './SearchBar';
@@ -29,6 +27,15 @@ export const TABLE_ROW_HEIGHT = 40;
 export const TABLE_ROW_HEIGHT_MINI = 40;
 export const TABLE_ROW_SPACING = 5;
 export const TABLE_ROW_BORDER_RADIUS = 6;
+
+const Label = styled.label`
+  cursor: pointer;
+  font-weight: bold;
+  & * {
+    font-weight: normal;
+  }
+  text-align: right;
+`;
 
 const StyledTable = styled.table<{ variant?: string; readOnly?: boolean }>`
   width: 100%;
@@ -147,13 +154,20 @@ export interface TableProps<T extends object> {
   enableGlobalSearch?: boolean;
   globalSearchPlaceholder?: string;
   globalSearchStyle?: React.CSSProperties;
+  globalSearchValue?: string;
+  globalSearchOnChange?: (value: string) => void;
   enablePagination?: boolean;
+  serverPageIndex?: number;
   pageSizeOptions?: number[];
   noDataFoundMessage?: React.ReactNode;
   initialState?: InitialTableState;
   loading?: boolean;
   autoSelectFirstRow?: boolean;
   dataTestId?: string;
+  onPageSizeChange?: (pageSize: number) => void;
+  totalRowCount?: number;
+  onPageChange?: (pageIndex: number) => void;
+  colFilters?: TableFilter[];
 }
 
 const awesomePlaceholder = (
@@ -170,6 +184,14 @@ const awesomePlaceholder = (
     </td>
   </tr>
 );
+
+const FiltersContainer = styled.div<{ itemsLength: number }>`
+  display: flex;
+  gap: 0.5em;
+  flex: 1;
+  justify-content: flex-end;
+  padding-right: 0.5em;
+`;
 
 const buildDefaultFilters = (columns: any[]) => {
   const filterState: any = {};
@@ -194,6 +216,25 @@ const buildDefaultFilters = (columns: any[]) => {
   return { filterState, columnFilters };
 };
 
+function SelectColumnFilter({ setFilter, options, setValue, gotoPage, defaultValue }: any) {
+  return (
+    <div data-testid="multi-select-col-filter">
+      <Select
+        className="basic-multi-select"
+        classNamePrefix="select"
+        defaultValue={defaultValue}
+        onChange={(val) => {
+          setFilter('status', val);
+          setValue(val);
+          gotoPage(0);
+        }}
+        options={options}
+        isMulti
+      ></Select>
+    </div>
+  );
+}
+
 const Table = <T extends object>({
   variant = 'default',
   columns = [],
@@ -205,42 +246,30 @@ const Table = <T extends object>({
   enableGlobalSearch = true,
   globalSearchPlaceholder = 'Search all columns...',
   globalSearchStyle = {},
+  globalSearchValue = '',
+  globalSearchOnChange = (value: string) => {},
   enablePagination = true,
+  serverPageIndex = 0,
   pageSizeOptions = [5, 10, 20, 30, 40, 50],
   noDataFoundMessage = <p>No data found</p>,
   loading = false,
   autoSelectFirstRow = true,
   dataTestId = '',
+  onPageSizeChange = (pageSize: number) => {},
+  onPageChange = (pageIndex: number) => {},
+  totalRowCount = 0,
+  colFilters = [],
 }: TableProps<T>) => {
   const [selectedRow, setSelectedRow] = useState<Row<T>>();
+
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: defaultPageSize,
   });
+
   const [globalFilter, setGlobalFilter] = React.useState('');
 
-  const initialColumnFilterState: ColumnFiltersState = useMemo(() => {
-    return columns
-      .map((col: any) => {
-        if (col.meta?.defaultValue) {
-          const defaultValue = col.meta.defaultValue;
-          const filterValue = col.meta.multiSelect
-            ? Array.isArray(defaultValue)
-              ? defaultValue.map((option: any) => option.value)
-              : [defaultValue]
-            : defaultValue.value || defaultValue;
-
-          return {
-            id: col.accessorKey,
-            value: filterValue,
-          };
-        }
-        return null;
-      })
-      .filter((item) => item !== null);
-  }, [columns]);
-
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(initialColumnFilterState || []);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const initialVisibility: VisibilityState = useMemo(() => {
     const visibility: VisibilityState = {};
@@ -260,16 +289,14 @@ const Table = <T extends object>({
   const table = useReactTable({
     data,
     columns,
-    enableColumnFilters: true,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    manualExpanding: true,
     onColumnFiltersChange: setColumnFilters,
-    getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
-    onGlobalFilterChange: setGlobalFilter,
-    manualPagination: !enablePagination,
-    filterFns: {},
+    manualPagination: true,
+    getPaginationRowModel: getPaginationRowModel(),
+    rowCount: totalRowCount || undefined,
+    enableSorting: false,
     state: {
       pagination,
       globalFilter,
@@ -301,71 +328,76 @@ const Table = <T extends object>({
           alignItems: 'flex-end',
           gap: '0.5em',
           padding: '0.5em 0',
-          flexWrap: 'wrap',
+          width: '100%',
         }}
       >
         {enableGlobalSearch && (
-          <div style={{ width: '250px' }}>
+          <div style={{ width: '350px' }}>
             <SearchBar
-              value={globalFilter ?? ''}
-              onChange={(e: any) => setGlobalFilter(String(e.target.value))}
+              value={globalSearchValue ?? ''}
+              onChange={(e: any) => globalSearchOnChange(String(e.target.value))}
               placeholder={globalSearchPlaceholder}
               style={globalSearchStyle}
               data-testid="global-search-input"
             />
           </div>
         )}
-
-        {table.getAllLeafColumns().map((column) => {
-          if (!column.getCanFilter()) return null;
-
-          const meta: any = column.columnDef.meta || {};
-
-          // Raw filter value stored in table state
-          const filterValue = column.getFilterValue();
-
-          // Convert primitive filter value → React Select option object
-          const options = meta.filterOptions || [];
-
-          let selectedValue = null;
-
-          if (meta.multiSelect && Array.isArray(filterValue)) {
-            selectedValue = options.filter((opt: any) => filterValue.includes(opt.value));
-          } else if (!meta.multiSelect && filterValue) {
-            selectedValue = options.find((opt: any) => opt.value === filterValue);
-          }
-
-          return (
-            <div key={column.id} style={{ width: '250px' }} data-testid={`column-filter-${column.id}`}>
-              <div style={{ textAlign: 'right' }}>
-                <label style={{ fontWeight: 'bold' }}>{String(meta.filterLabel ?? column.id)}</label>
-              </div>
-
-              <Select
-                value={selectedValue}
-                onChange={(selected: any) => {
-                  const isMulti = meta.multiSelect;
-
-                  let newFilterValue;
-
-                  if (!selected) {
-                    newFilterValue = undefined;
-                  } else if (isMulti) {
-                    newFilterValue = selected.map((s: any) => s.value);
-                  } else {
-                    newFilterValue = selected.value;
-                  }
-
-                  column.setFilterValue(newFilterValue);
-                }}
-                options={options}
-                isMulti={meta.multiSelect || false}
-                placeholder={meta.filterPlaceholder || 'Select...'}
-                isClearable
-              />
+        <FiltersContainer itemsLength={colFilters.length}>
+          {colFilters.map((filter: TableFilter) => (
+            <div key={filter.key} data-testid={`column-filter-${filter.key}`}>
+              <Label key={filter.key}>
+                {filter.multiselect ? (
+                  <>
+                    {filter.label}
+                    <Select
+                      onChange={(selected: any) => {
+                        filter.onChange && filter.onChange(selected);
+                        table.resetPageIndex(true);
+                        onPageChange(1);
+                      }}
+                      options={filter.options}
+                      isMulti={filter.multiselect || false}
+                      isClearable
+                      styles={{
+                        control: (baseStyles) => ({
+                          ...baseStyles,
+                          width: '250px',
+                        }),
+                      }}
+                      defaultValue={(filter as any)?.defaultValue}
+                      components={{
+                        Input: (props) => (
+                          <components.Input {...props} data-testid={`column-filter-${filter.key}-input`} />
+                        ),
+                      }}
+                    />
+                  </>
+                ) : (
+                  <div data-testid="select-col-filter">
+                    {filter.label}
+                    <Select
+                      options={filter.options}
+                      onChange={(val: any) => filter.onChange && filter.onChange(val)}
+                      defaultValue={(filter as any)?.defaultValue}
+                      isClearable
+                      styles={{
+                        control: (baseStyles) => ({
+                          ...baseStyles,
+                          width: '250px',
+                        }),
+                      }}
+                      components={{
+                        Input: (props) => (
+                          <components.Input {...props} data-testid={`column-filter-${filter.key}-input`} />
+                        ),
+                      }}
+                    />
+                  </div>
+                )}
+              </Label>
             </div>
-          );
-        })}
+          ))}
+        </FiltersContainer>
       </div>
 
       <StyledTable variant={variant} readOnly={readOnly} data-testid={dataTestId}>
@@ -392,8 +424,8 @@ const Table = <T extends object>({
             </tr>
           ))}
         </thead>
-        <tbody>
-          <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
+        <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
+          <tbody>
             {table.getRowModel().rows.length === 0 ? (
               <>
                 <tr key="no-data">
@@ -417,27 +449,39 @@ const Table = <T extends object>({
                 </tr>
               ))
             )}
-          </ReactPlaceholder>
-        </tbody>
-        <tfoot>
-          {table.getFooterGroups().map((footerGroup) => (
-            <tr key={footerGroup.id}>
-              {footerGroup.headers.map((header) => (
-                <th key={header.id}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.footer, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </tfoot>
+          </tbody>
+          <tfoot>
+            {table.getFooterGroups().map((footerGroup) => (
+              <tr key={footerGroup.id}>
+                {footerGroup.headers.map((header) => (
+                  <th key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.footer, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </tfoot>
+        </ReactPlaceholder>
       </StyledTable>
       {enablePagination && table.getRowCount() > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: '0.5em' }}>
-            <Button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+            <Button
+              onClick={() => {
+                table.previousPage();
+                onPageChange(serverPageIndex - 1);
+              }}
+              disabled={!table.getCanPreviousPage()}
+            >
               Previous
             </Button>
-            <Button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+            <Button
+              onClick={() => {
+                table.nextPage();
+                onPageChange(serverPageIndex + 1);
+              }}
+              disabled={!table.getCanNextPage()}
+            >
               Next
             </Button>
             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -453,6 +497,7 @@ const Table = <T extends object>({
               options={pageSizeOptions.map((value) => ({ value, label: `${value} per page` }))}
               onChange={(e: any) => {
                 table.setPageSize(Number(e.value));
+                onPageSizeChange(Number(e.value));
               }}
               menuPosition="fixed"
             />

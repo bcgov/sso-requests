@@ -442,26 +442,19 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                 {
                   accessorKey: 'idp',
                   header: 'IDP',
-                  enableColumnFilter: false,
-                  enableSorting: false,
                 },
                 {
                   accessorKey: 'guid',
                   header: 'GUID',
-                  enableColumnFilter: false,
-                  enableSorting: false,
                 },
                 {
                   accessorKey: 'email',
                   header: 'Email',
-                  enableColumnFilter: false,
-                  enableSorting: false,
                 },
                 {
                   accessorKey: 'actions',
                   header: 'Actions',
-                  enableColumnFilter: false,
-                  enableSorting: false,
+
                   cell: (props) => {
                     const user = filterUsers.find((u) => {
                       const username = u.username.split('@')[0];
@@ -529,6 +522,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
               enableGlobalSearch={false}
               noDataFoundMessage={<span>No users found.</span>}
               loading={userLoading}
+              enablePagination={false}
             ></TableNew>
           </div>
         </>
@@ -542,20 +536,14 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             {
               accessorKey: 'username',
               header: '',
-              enableColumnFilter: false,
-              enableSorting: false,
             },
             {
               accessorKey: 'projectName',
               header: 'Project Name',
-              enableColumnFilter: false,
-              enableSorting: false,
             },
             {
               accessorKey: 'actions',
               header: () => <ServiceAccountsListActionsHeader />,
-              enableColumnFilter: false,
-              enableSorting: false,
               cell: (props) => {
                 return viewOnly ? null : (
                   <span
@@ -588,6 +576,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           noDataFoundMessage="No service accounts found."
           loading={userLoading}
           hiddenColumns={['username']}
+          enablePagination={false}
         />
       );
     } else {
@@ -630,14 +619,10 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         {
           accessorKey: 'role',
           header: 'Role Name',
-          enableColumnFilter: false,
-          enableSorting: false,
         },
         {
           accessorKey: 'actions',
           header: '',
-          enableColumnFilter: false,
-          enableSorting: false,
           cell: (props) => {
             return viewOnly ? null : (
               <AlignRight>
@@ -670,6 +655,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       loading={roleLoading}
       globalSearchPlaceholder="Search existing roles"
       onRowSelect={activateRow}
+      enablePagination={false}
     ></TableNew>
   );
 

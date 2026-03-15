@@ -450,20 +450,15 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   {
                     accessorKey: 'id',
                     header: '',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                   },
                   {
                     accessorKey: 'invitiationSendTime',
                     header: '',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                   },
                   {
                     accessorKey: 'status',
                     header: 'Invite Status',
-                    enableColumnFilter: false,
-                    enableSorting: false,
+
                     cell: (props) => {
                       return (
                         <MemberStatusIcon
@@ -476,14 +471,10 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   {
                     accessorKey: 'idirEmail',
                     header: 'Email',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                   },
                   {
                     accessorKey: 'role',
                     header: () => <RoleHeader />,
-                    enableColumnFilter: false,
-                    enableSorting: false,
                     cell: (props) => {
                       const adminActionsAllowed =
                         hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) &&
@@ -522,8 +513,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   {
                     accessorKey: 'actions',
                     header: () => <MembersActionsHeader />,
-                    enableColumnFilter: false,
-                    enableSorting: false,
                     cell: (props) => {
                       const member = members.find((member) => member.id === props.row.getValue('id'));
                       const adminActionsAllowed =
@@ -567,6 +556,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 })}
                 enableGlobalSearch={false}
                 hiddenColumns={['id', 'invitiationSendTime']}
+                enablePagination={false}
               ></TableNew>
             </ReactPlaceholder>
           </TabWrapper>
@@ -580,27 +570,20 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   {
                     accessorKey: 'status',
                     header: 'Status',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                     cell: (props) => <RequestStatusIcon status={props.row.original.status} />,
                   },
                   {
                     accessorKey: 'id',
                     header: 'Request ID',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                   },
                   {
                     accessorKey: 'projectName',
                     header: 'Project Name',
-                    enableColumnFilter: false,
-                    enableSorting: false,
                   },
                   {
                     accessorKey: 'actions',
                     header: () => <IntegrationActionsHeader />,
-                    enableColumnFilter: false,
-                    enableSorting: false,
+
                     cell: (props) => {
                       return (
                         <RightFloat>
@@ -635,6 +618,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     : []
                 }
                 enableGlobalSearch={false}
+                enablePagination={false}
                 noDataFoundMessage={
                   <CenteredTD colSpan={5}>
                     <br />

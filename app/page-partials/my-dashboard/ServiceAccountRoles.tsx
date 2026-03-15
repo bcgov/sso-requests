@@ -204,8 +204,6 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
                       {
                         accessorKey: 'projectName',
                         header: 'Service Account',
-                        enableColumnFilter: false,
-                        enableSorting: false,
                       },
                     ]}
                     data={[{ projectName: selectedRequest.projectName }]}

@@ -127,14 +127,11 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
           {
             accessorKey: 'name',
             header: 'Team Name',
-            enableColumnFilter: false,
-            enableSorting: false,
           },
           {
             accessorKey: 'actions',
             header: () => <TeamListActionsHeader />,
-            enableColumnFilter: false,
-            enableSorting: false,
+
             cell: (props) => {
               const team = teams.find((team) => team.id === props.row.original.teamId);
               return (
@@ -160,6 +157,7 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
         }
         enableGlobalSearch={false}
         onRowSelect={activateRow}
+        enablePagination={false}
       />
     );
   };

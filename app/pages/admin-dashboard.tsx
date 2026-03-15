@@ -35,7 +35,7 @@ const idpOptions = [
 
 const archiveStatusOptions = [
   { value: 'active', label: 'Active' },
-  { value: 'deleted', label: 'Deleted' },
+  { value: 'archived', label: 'Deleted' },
 ];
 
 const environmentOptions = [
@@ -223,7 +223,6 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const selectedRequest = rows.find((v) => v.id === selectedId);
   const [columnFilters, setColumnFilters] = useState<any>([
     {
-      value: selectedEnvironments,
       multiselect: true,
       onChange: setSelectedEnvironments,
       options: environmentOptions,
@@ -231,7 +230,6 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       key: 'environments',
     },
     {
-      value: workflowStatus,
       multiselect: true,
       onChange: setWorkflowStatus,
       options: workflowStatusOptions,
@@ -262,7 +260,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       limit,
       page,
       status: workflowStatus.map((v) => v.value) as string[],
-      archiveStatus: [],
+      archiveStatus: archiveStatus.map((v) => v.value) as string[],
       realms,
       environments,
       types: ['gold'],
@@ -293,7 +291,6 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         setColumnFilters([
           ...columnFilters,
           {
-            value: selectedIdp,
             multiselect: true,
             onChange: setSelectedIdp,
             options: idpOptions,
@@ -305,7 +302,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       setSelectedId(undefined);
       loadData();
     }
-  }, [searchKey, limit, page, workflowStatus, selectedIdp, selectedEnvironments]);
+  }, [searchKey, limit, page, workflowStatus, selectedIdp, selectedEnvironments, archiveStatus]);
 
   if (hasError) {
     return <SystemUnavailableMessage />;
@@ -372,86 +369,47 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
           <TableNew
             dataTestId="admin-dashboard-table"
             globalSearchPlaceholder="Project ID, Project Name or Client ID"
+            globalSearchOnChange={(value) => setSearchKey(value)}
+            globalSearchValue={searchKey}
             columns={
               [
                 {
                   accessorKey: 'id',
                   header: 'Request ID',
-                  enableSorting: false,
-                  enableColumnFilter: false,
                 },
 
                 {
                   accessorKey: 'clientId',
                   header: 'Client ID',
-                  enableSorting: false,
-                  enableColumnFilter: false,
                 },
                 {
                   accessorKey: 'projectName',
                   header: 'Project Name',
-                  enableSorting: false,
-                  enableColumnFilter: false,
                 },
                 {
                   accessorKey: 'idps',
                   header: 'IDPs',
-                  enableSorting: false,
-                  enableColumnFilter: hasAppPermission(
-                    session?.client_roles,
-                    appPermissions.ADMIN_DASHBOARD_VIEW_IDPS_FILTER,
-                  ),
-                  meta: {
-                    filterLabel: 'IDPs',
-                    filterOptions: idpOptions,
-                    multiSelect: true,
-                  },
-                  filterFn: multilistFilter,
                 },
                 {
                   accessorKey: 'status',
                   header: 'Request Status',
-                  enableSorting: false,
-                  meta: {
-                    filterLabel: 'Workflow Status',
-                    multiSelect: true,
-                    filterOptions: workflowStatusOptions,
-                  },
-                  filterFn: multilistFilter,
                 },
                 {
                   accessorKey: 'environments',
                   header: 'Environments',
-                  enableSorting: false,
-                  meta: {
-                    filterLabel: 'Environments',
-                    multiSelect: true,
-                    filterOptions: environmentOptions,
-                  },
-                  filterFn: multilistFilter,
                 },
                 {
                   accessorKey: 'archived',
                   header: 'File Status',
-                  enableSorting: false,
-                  meta: {
-                    filterLabel: 'Archive Status',
-                    filterOptions: archiveStatusOptions,
-                    defaultValue: { value: 'active', label: 'Active' },
-                  },
-                  filterFunction: multilistFilter,
                 },
                 {
                   accessorKey: 'apiServiceAccount',
                   header: 'API Service Account',
-                  enableSorting: false,
-                  enableColumnFilter: false,
                 },
                 {
                   accessorKey: 'actions',
                   header: () => <div style={{ display: 'flex', justifyContent: 'center' }}>Actions</div>,
-                  enableSorting: false,
-                  enableColumnFilter: false,
+
                   cell: (props: any) => {
                     const request = {
                       id: props.row.original.id,
@@ -540,8 +498,14 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
                 idps: row.devIdps,
               };
             })}
+            loading={loading}
             hiddenColumns={['environments', 'idps', 'apiServiceAccount']}
             onRowSelect={activateRow}
+            onPageSizeChange={setLimit}
+            totalRowCount={count}
+            onPageChange={setPage}
+            colFilters={columnFilters}
+            serverPageIndex={page}
           ></TableNew>
         )}
         rightPanel={() =>

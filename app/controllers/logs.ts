@@ -4,7 +4,7 @@ import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
 import { createEvent } from './requests';
 import { EVENTS } from '@app/shared/enums';
 
-const app_env = process.env.APP_ENV || 'development';
+const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
 // Loki limit lower in sandbox.
 const LOG_SIZE_LIMIT = app_env === 'production' ? 25000 : 5000;

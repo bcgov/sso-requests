@@ -36,6 +36,11 @@ function IntegrationListActionsHeader() {
 
 const formatIntegrationID = (id: number) => padStart(String(id), 8, '0');
 
+const unformatIntegrationID = (formattedId: string | number): number => {
+  const normalized = String(formattedId).replace(/^0+/, '');
+  return Number(normalized || '0');
+};
+
 const NewEntityButton = ({
   handleNewIntegrationClick,
   integrations,
@@ -193,44 +198,33 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
               {
                 accessorKey: 'id',
                 header: 'Request ID',
-                enableColumnFilter: false,
-                enableSorting: false,
               },
               {
                 accessorKey: 'projectName',
                 header: 'Project Name',
-                enableColumnFilter: false,
-                enableSorting: false,
               },
               {
                 accessorKey: 'status',
                 header: 'Status',
-                enableColumnFilter: false,
-                enableSorting: false,
               },
               {
                 accessorKey: 'authType',
                 header: 'Usecase',
-                enableColumnFilter: false,
-                enableSorting: false,
               },
               {
                 accessorKey: 'serviceType',
                 header: 'Service Type',
-                enableColumnFilter: false,
-                enableSorting: false,
               },
               {
                 accessorKey: 'actions',
                 header: () => <div style={{ display: 'flex', justifyContent: 'right', marginRight: 20 }}>Actions</div>,
-                enableColumnFilter: false,
-                enableSorting: false,
+
                 cell: (props: any) => {
                   return (
                     <div style={{ display: 'flex', justifyContent: 'right', columnGap: '0.5rem' }}>
                       <ActionButtons
                         request={{
-                          id: props.row.original.id,
+                          id: unformatIntegrationID(props.row.original.id),
                           status: props.row.original.originalStatus,
                           projectName: props.row.original.projectName,
                           apiServiceAccount: props.row.original.apiServiceAccount,
@@ -240,7 +234,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
                           if (error) {
                             alert.show({
                               variant: 'danger',
-                              content: `Failed to delete integration ${props.row.getValue('projectName')}.`,
+                              content: `Failed to delete integration ${props.row.original.projectName}.`,
                             });
                           } else {
                             loadIntegrations();
@@ -269,6 +263,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
           })}
           enableGlobalSearch={false}
           onRowSelect={activateRow}
+          enablePagination={false}
         ></TableNew>
       </>
     );

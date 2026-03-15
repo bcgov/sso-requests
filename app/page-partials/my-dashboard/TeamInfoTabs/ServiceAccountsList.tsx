@@ -146,14 +146,10 @@ function ServiceAccountsList({
             {
               accessorKey: 'id',
               header: 'API Account ID',
-              enableColumnFilter: false,
-              enableSorting: false,
             },
             {
               accessorKey: 'actions',
               header: () => <ActionsHeader />,
-              enableColumnFilter: false,
-              enableSorting: false,
               cell: (props) => {
                 const serviceAccount = teamServiceAccounts.find(
                   (serviceAccount) => serviceAccount.id === props.row.getValue('id'),
@@ -181,6 +177,7 @@ function ServiceAccountsList({
           }
           enableGlobalSearch={false}
           onRowSelect={activateRow}
+          enablePagination={false}
         />
       )}
 

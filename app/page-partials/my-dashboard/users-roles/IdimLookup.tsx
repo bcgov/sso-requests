@@ -150,32 +150,23 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
             {
               accessorKey: 'firstName',
               header: 'First name',
-              enableColumnFilter: false,
-              enableSorting: false,
             },
             {
               accessorKey: 'lastName',
               header: 'Last Name',
-              enableColumnFilter: false,
-              enableSorting: false,
             },
             {
               accessorKey: 'email',
               header: 'Email',
-              enableColumnFilter: false,
-              enableSorting: false,
             },
             {
               accessorKey: 'idirUsername',
               header: 'IDIR username',
-              enableColumnFilter: false,
-              enableSorting: false,
             },
             {
               accessorKey: 'actions',
               header: '',
-              enableColumnFilter: false,
-              enableSorting: false,
+
               cell: (props) => {
                 const row = props.row.original;
                 return (

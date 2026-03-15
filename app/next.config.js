@@ -1,5 +1,5 @@
 const path = require('path');
-const APP_URL = process.env.APP_URL || '';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 const BASE_PATH = process.env.APP_BASE_PATH || '';
 
 module.exports = {

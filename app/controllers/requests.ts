@@ -96,7 +96,7 @@ import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
-const app_env = process.env.APP_ENV || 'development';
+const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
 const APP_ENV = app_env || 'development';
 const NEW_REQUEST_DAY_LIMIT = APP_ENV === 'production' ? 10 : 1000;
@@ -1337,7 +1337,7 @@ export const retryFailedRequests = async () => {
 
 export const getListOfDescrepencies = async () => {
   const header = `**${
-    process.env.APP_ENV === 'production' ? '' : '[SANDBOX] '
+    process.env.NEXT_PUBLIC_APP_ENV === 'production' ? '' : '[SANDBOX] '
   }List of discrepancies by environment:** \n\n`;
   try {
     let data = '';
@@ -1369,7 +1369,7 @@ export const getListOfDescrepencies = async () => {
       listOfDiscrepencies.prod.length > 0
     ) {
       const header = `**${
-        process.env.APP_ENV === 'production' ? '' : '[SANDBOX] '
+        process.env.NEXT_PUBLIC_APP_ENV === 'production' ? '' : '[SANDBOX] '
       }List of discrepancies by environment:** \n\n`;
 
       if (listOfDiscrepencies.dev.length > 0) data = data + `**dev:** \n${listOfDiscrepencies.dev.join(', ')}\n\n`;
