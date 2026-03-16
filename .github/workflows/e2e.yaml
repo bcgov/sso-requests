@@ -38,7 +38,7 @@ jobs:
         with:
           compose-file: './docker-compose.yml'
       - name: E2E Tests
-        uses: cypress-io/github-action@v7
+        uses: cypress-io/github-action@v7.1.6
         id: smoke
         continue-on-error: false
         with:
