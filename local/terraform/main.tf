@@ -46,8 +46,8 @@ module "standard" {
   otp_client_secret = ""
 
   ppid_client_id     = ""
-  ppid_client_secret = ""
-  ppid_api_url       = ""
   ppid_token_url     = ""
+  ppid_api_url       = ""
+  ppid_client_secret = ""
   ppid_issuer        = ""
 }
