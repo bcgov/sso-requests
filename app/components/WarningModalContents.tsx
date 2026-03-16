@@ -1,5 +1,3 @@
-'use client';
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
 import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';

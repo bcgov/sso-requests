@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { getEvents } from 'services/event';
 import { Event } from 'interfaces/Event';

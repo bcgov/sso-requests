@@ -1,5 +1,3 @@
-'use client';
-
 import { ReactNode, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

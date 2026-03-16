@@ -1,5 +1,3 @@
-'use client';
-
 import CenteredModal from './CenteredModal';
 import { ChangeEvent, useState } from 'react';
 import Input from '@button-inc/bcgov-theme/Input';

@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import styled from 'styled-components';
 import { FORM_TOP_SPACING } from 'styles/theme';

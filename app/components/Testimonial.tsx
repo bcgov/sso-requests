@@ -1,5 +1,3 @@
-'use client';
-
 import { ITestimonial } from '@app/interfaces/Testimonial';
 import styled from 'styled-components';
 import { faStar, faStarHalf } from '@fortawesome/free-solid-svg-icons';

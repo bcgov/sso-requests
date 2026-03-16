@@ -1,5 +1,3 @@
-'use client';
-
 import styled from 'styled-components';
 import { Event } from 'interfaces/Event';
 import FormatChangeEventDetails from './FormatChangeEventDetails';

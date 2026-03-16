@@ -1,5 +1,3 @@
-'use client';
-
 import React, { CSSProperties } from 'react';
 import OverlayTrigger, { OverlayTriggerType } from 'react-bootstrap/OverlayTrigger';
 import Popover from 'react-bootstrap/Popover';

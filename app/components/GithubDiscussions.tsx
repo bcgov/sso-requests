@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useEffect, useState } from 'react';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import Giscus from '@giscus/react';
