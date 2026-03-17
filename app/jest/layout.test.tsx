@@ -67,7 +67,7 @@ jest.mock('services/user', () => ({
 }));
 
 describe('Layout page', () => {
-  it.only('should match all external links in the layout page', async () => {
+  it('should match all external links in the layout page', async () => {
     render(<LayoutComponent />);
 
     expect(screen.getByText('Common Hosted Single Sign-on (CSS)')).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe('Layout page', () => {
     expect(screen.getByRole('link', { name: 'Copyright' })).toHaveAttribute('href', COPYRIGHT_HYPERLINK);
   });
 
-  it.only('testing on the My Profile module', async () => {
+  it('testing on the My Profile module', async () => {
     render(<LayoutComponent />);
     fireEvent.click(screen.getByTitle('My Profile').lastChild as HTMLElement);
     await waitFor(() => {

@@ -72,7 +72,7 @@ describe('role management tab', () => {
     expect(screen.getByRole('tab', { selected: false, name: 'Test' }));
     expect(screen.getByRole('tab', { selected: false, name: 'Prod' }));
     await waitFor(() => {
-      expect(screen.getByText('Role Name')).toBeInTheDocument();
+      screen.getAllByText('Role Name');
     });
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
@@ -85,9 +85,9 @@ describe('role management tab', () => {
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
+
     const searchRoleInput = screen.findByPlaceholderText('Search existing roles');
     fireEvent.change(await searchRoleInput, { target: { value: 'role-1' } });
-
     const rolesTable = screen.getByTestId('roles-table');
     const { queryByText } = within(rolesTable);
     await waitFor(() => {
@@ -111,7 +111,7 @@ describe('role management tab', () => {
     expect(screen.queryAllByTestId('role-name-input-field')).toHaveLength(1);
   });
 
-  it.only('Should be able to input keywords in Create New Role input field, and corresponding end-point should be called', async () => {
+  it('Should be able to input keywords in Create New Role input field, and corresponding end-point should be called', async () => {
     render(<RoleManagement integration={{ ...sampleRequest, environments: ['dev', 'test'] }} />);
     fireEvent.click(screen.getByRole('button', { name: '+ Create a New Role' }));
     await waitFor(() => {

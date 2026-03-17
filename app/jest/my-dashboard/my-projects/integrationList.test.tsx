@@ -53,7 +53,7 @@ describe('Integration list', () => {
     expect(screen.getAllByRole('row')[1]).toHaveTextContent('00000001test projectCompletedBrowser LoginGold');
   });
 
-  it.only('Should be able to click the Delete button', async () => {
+  it('Should be able to click the Delete button', async () => {
     render(<IntegrationListComponent />);
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '+ Request SSO Integration' }));
@@ -119,7 +119,7 @@ describe('Delete Permissions', () => {
   const setupDeleteRender = (integration: Integration) => {
     jest.spyOn(requestService, 'getRequests').mockResolvedValueOnce([[{ ...sampleRequest, ...integration }], null]);
     render(<IntegrationListComponent />);
-    return screen.findByRole('button', { name: 'Delete' });
+    return screen.findByRole('button', { name: 'delete' });
   };
   it('allows deletion for direct ownership', async () => {
     const deleteButton = await setupDeleteRender({ ...sampleRequest, usesTeam: false, projectLead: true });

@@ -189,20 +189,6 @@ const RestoreModalContent = ({
   );
 };
 
-const multilistFilter = (row: any, columnId: string, filterValue: any) => {
-  if (filterValue.length === 0) return true;
-
-  const cell = row.getValue(columnId);
-
-  if (Array.isArray(cell)) {
-    return cell.some((v) => {
-      if (filterValue.includes(String(v)) || containsPrefix(filterValue, v)) return true;
-    });
-  }
-
-  return filterValue.includes(String(cell));
-};
-
 function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);

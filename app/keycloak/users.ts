@@ -89,7 +89,8 @@ export const listClientRoles = async (
     realm: 'standard',
     id: client?.id!,
   });
-  return roles;
+
+  return roles.filter((role) => role.name.toLowerCase().includes(search.toLowerCase())).slice(first, first + max);
 };
 
 export const getCompositeClientRoles = async (

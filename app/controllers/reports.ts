@@ -1,8 +1,6 @@
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { sequelize } from '@app/shared/sequelize/models/models';
-import { difference } from 'lodash';
-import { map } from 'lodash';
-import { partition } from 'lodash';
+import { difference, map, partition } from 'lodash';
 
 export const getAllStandardIntegrations = async () => {
   const [results] = await sequelize.query(`

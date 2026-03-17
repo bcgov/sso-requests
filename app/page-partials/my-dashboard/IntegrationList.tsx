@@ -216,20 +216,21 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
                 header: 'Service Type',
               },
               {
+                accessorKey: 'userTeamRole',
+                header: 'userTeamRole',
+              },
+              {
                 accessorKey: 'actions',
                 header: () => <div style={{ display: 'flex', justifyContent: 'right', marginRight: 20 }}>Actions</div>,
 
                 cell: (props: any) => {
+                  const request = integrations.find(
+                    (integration) => integration.id === unformatIntegrationID(props.row.original.id),
+                  );
                   return (
                     <div style={{ display: 'flex', justifyContent: 'right', columnGap: '0.5rem' }}>
                       <ActionButtons
-                        request={{
-                          id: unformatIntegrationID(props.row.original.id),
-                          status: props.row.original.originalStatus,
-                          projectName: props.row.original.projectName,
-                          apiServiceAccount: props.row.original.apiServiceAccount,
-                          archived: props.row.original.archived,
-                        }}
+                        request={request as Integration}
                         onDelete={(_: any, error: AxiosError | null) => {
                           if (error) {
                             alert.show({

@@ -193,48 +193,6 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   padding-right: 0.5em;
 `;
 
-const buildDefaultFilters = (columns: any[]) => {
-  const filterState: any = {};
-  const columnFilters: any[] = [];
-
-  columns.forEach((col) => {
-    const meta = col.columnDef?.meta;
-    const id = col.id;
-
-    if (meta?.defaultValue) {
-      filterState[id] = meta.defaultValue;
-
-      const value = meta.multiSelect ? meta.defaultValue.map((v: any) => v.value) : meta.defaultValue.value;
-
-      columnFilters.push({
-        id,
-        value,
-      });
-    }
-  });
-
-  return { filterState, columnFilters };
-};
-
-function SelectColumnFilter({ setFilter, options, setValue, gotoPage, defaultValue }: any) {
-  return (
-    <div data-testid="multi-select-col-filter">
-      <Select
-        className="basic-multi-select"
-        classNamePrefix="select"
-        defaultValue={defaultValue}
-        onChange={(val) => {
-          setFilter('status', val);
-          setValue(val);
-          gotoPage(0);
-        }}
-        options={options}
-        isMulti
-      ></Select>
-    </div>
-  );
-}
-
 const Table = <T extends object>({
   variant = 'default',
   columns = [],
@@ -247,7 +205,7 @@ const Table = <T extends object>({
   globalSearchPlaceholder = 'Search all columns...',
   globalSearchStyle = {},
   globalSearchValue = '',
-  globalSearchOnChange = (value: string) => {},
+  globalSearchOnChange = () => {},
   enablePagination = true,
   serverPageIndex = 0,
   pageSizeOptions = [5, 10, 20, 30, 40, 50],

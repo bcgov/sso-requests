@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
-import { throttle, get, reduce } from 'lodash';
+import { throttle, get, reduce, debounce } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
@@ -227,10 +227,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     return optionizeAll(roles);
   }, [roles]);
 
-  const fetchRoles = async () => {
+  const fetchRoles = debounce(async () => {
     if (roleLoading) return;
 
-    setRoleLoading(true);
     const [data, err] = await listClientRoles({
       environment,
       integrationId: integration.id as number,
@@ -246,14 +245,17 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       });
     }
 
-    setRoles(_roles);
+    setRoles(_roles.filter((role: string) => role.toLowerCase().includes(searchKey.toLowerCase())));
     setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
-    setRoleLoading(false);
 
     if (_roles.length === 1) {
       setSelectedRole(_roles[0]);
     }
-  };
+  }, 300);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [searchKey]);
 
   const fetchUsers = async (loadFirst: boolean, roleName: string) => {
     if (userLoading) return;
@@ -392,14 +394,8 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     else return role;
   };
 
-  const handleSearchKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchKey(event.target.value);
-  };
-
-  const handleSearchKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      fetchRoles();
-    }
+  const handleSearchKeyChange = (value: string) => {
+    setSearchKey(value);
   };
 
   const handleDelete = async (roleName: string) => {
@@ -656,6 +652,8 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       globalSearchPlaceholder="Search existing roles"
       onRowSelect={activateRow}
       enablePagination={false}
+      globalSearchOnChange={(value) => handleSearchKeyChange(value)}
+      globalSearchValue={searchKey}
     ></TableNew>
   );
 
