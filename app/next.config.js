@@ -13,6 +13,5 @@ module.exports = {
       'pg-native': path.resolve(__dirname, './empty.ts'),
       'cloudflare:sockets': path.resolve(__dirname, './empty.ts'),
     },
-    root: path.resolve(__dirname, '../app'),
   },
 };
