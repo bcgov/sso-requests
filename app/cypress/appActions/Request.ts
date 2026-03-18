@@ -517,7 +517,8 @@ class Request {
       const projectName = $elm.next().text();
       // matching criteria
       if (t.includes(id)) {
-        cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
+        cy.contains('td', id, { timeout: 10000 }).parent().click();
+        cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true, timeout: 3000 });
         this.reqPage.confirmDeleteIntegration(id, projectName);
         cy.get('[data-testid="grid-loading"]').should('exist');
         cy.get('[data-testid="grid-loading"]').should('not.exist');
@@ -1017,13 +1018,13 @@ class Request {
           .type(this.teamName + '-' + myuuid);
         this.teamFullNames.push(this.teamName + '-' + myuuid);
 
-        cy.get('#react-select-2-input').focus().clear();
-        cy.get('#react-select-2-input').type('pathfinder.ssotraining2', {
+        cy.get('[data-testid="team-member-email-input-0"]').focus().clear();
+        cy.get('[data-testid="team-member-email-input-0"]').type('pathfinder.ssotraining2', {
           force: true,
           delay: 20,
         });
 
-        cy.contains('Pathfinder.SSOTraining2').click({ force: true });
+        cy.contains('[role="option"]', 'Pathfinder.SSOTraining2@gov.bc.ca').click();
 
         cy.realPress('Tab');
         cy.realPress('Tab');

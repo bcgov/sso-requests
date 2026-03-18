@@ -1,4 +1,4 @@
-import isString from 'lodash.isstring';
+import { isString } from 'lodash';
 import { errorMessages, environmentOptions } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
 import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
@@ -17,15 +17,13 @@ import {
   checkNotOTP,
 } from '@app/helpers/integration';
 import { Session } from '@app/shared/interfaces';
-import omit from 'lodash.omit';
-import sortBy from 'lodash.sortby';
+import { sortBy, compact, omit } from 'lodash';
 import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
-import compact from 'lodash.compact';
 import { diff } from 'deep-diff';
 import { validateForm } from './validate';
 import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
 import { NextApiResponse } from 'next';
-import * as XLSX from 'xlsx';
+import * as XLSX from '@e965/xlsx';
 import { hasAppPermission, appPermissions, getAllAppPermissions } from './authorize';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
@@ -730,4 +728,12 @@ export const dateTimeStringForFileName = () => {
   return `${newDate.getFullYear()}${
     newDate.getMonth() + 1
   }${newDate.getDate()}${newDate.getHours()}${newDate.getMinutes()}`;
+};
+
+export const containsPrefix = (csvString: string | string[], prefix: string) => {
+  if (!csvString || !prefix) return false;
+
+  const values = Array.isArray(csvString) ? csvString : csvString.split(',').map((v) => v.trim());
+
+  return values.some((value) => prefix.startsWith(value));
 };

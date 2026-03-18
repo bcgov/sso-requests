@@ -1,4 +1,3 @@
-import React from 'react';
 import { BceidEmailDetails } from 'interfaces/form';
 
 interface Props {

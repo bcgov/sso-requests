@@ -6,9 +6,3 @@ jest.mock('@app/utils/ches', () => {
     sendEmail: jest.fn(),
   };
 });
-
-jest.mock('next/config', () => () => ({
-  serverRuntimeConfig: {
-    contextPath: '',
-  },
-}));

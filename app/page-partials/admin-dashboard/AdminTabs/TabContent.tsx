@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import startCase from 'lodash.startcase';
+import { startCase } from 'lodash';
 import CenteredModal from 'components/CenteredModal';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';

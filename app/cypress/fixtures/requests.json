@@ -54,7 +54,8 @@
     },
     "approvals": {
       "bceid": true,
-      "github": true
+      "github": true,
+      "otp": false
     },
     "devroles": {},
     "testroles": {},

@@ -108,6 +108,7 @@ export const testClient = (handler: NextApiHandler, bodyParser = true) => {
             previewModeEncryptionKey: '',
             previewModeId: '',
             previewModeSigningKey: '',
+            dev: false,
           },
           true,
         );

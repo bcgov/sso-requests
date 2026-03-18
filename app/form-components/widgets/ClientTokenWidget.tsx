@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import Input from '@button-inc/bcgov-theme/Input';
 import Dropdown from '@button-inc/bcgov-theme/Dropdown';
 import { WidgetProps } from '@rjsf/utils/lib/types';

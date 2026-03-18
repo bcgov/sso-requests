@@ -77,7 +77,11 @@ describe('Team List', () => {
   it('Should match the expected button name, and testing on all text-input-box, drop-down-box, hyperlink, and button functionality in the modal', async () => {
     render(
       <SessionContext.Provider
-        value={{ session: { email: 'test@email.com' }, user: { idirEmail: 'test@email.com', role: '' } }}
+        value={{
+          session: { email: 'test@email.com' },
+          user: { idirEmail: 'test@email.com', role: '' },
+          keycloak: {} as any,
+        }}
       >
         <TeamListComponent />
       </SessionContext.Provider>,
@@ -131,13 +135,13 @@ describe('Team List', () => {
     render(<TeamListComponent />);
     expect(screen.getByText('Team Name')).toBeInTheDocument();
     getByRole('columnheader', 'Actions');
-    fireEvent.click(getByRole('row', 'SAMPLE_TEAM Edit Delete'));
-    expect(getByRole('row', 'SAMPLE_TEAM Edit Delete')).toHaveClass('active');
+    fireEvent.click(screen.getByTestId('edit-team-button'));
+    expect(getByRole('row', 'SAMPLE_TEAM')).toHaveClass('active');
   });
 
   it('Should be able to click the Delete button, and confirm deletion', async () => {
     render(<TeamListComponent />);
-    fireEvent.click(getByRole('button', 'Delete'));
+    fireEvent.click(screen.getByTestId('delete-team-button'));
     await waitFor(() => {
       expect(screen.getByText('Delete team'));
     });
@@ -150,7 +154,7 @@ describe('Team List', () => {
 
   it('Should be able to click the Edit button, and save the new team name', async () => {
     render(<TeamListComponent />);
-    fireEvent.click(getByRole('button', 'Edit'));
+    fireEvent.click(screen.getByTestId('edit-team-button'));
     await waitFor(() => {
       expect(screen.getByText('Edit Team Name'));
     });

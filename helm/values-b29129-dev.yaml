@@ -21,21 +21,8 @@ api:
     apiVanityHost: api-dev.loginproxy.gov.bc.ca
 
 env:
-  APP_ENV: development
-  API_URL: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/api
-  SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
-  SSO_CLIENT_ID: css-app-in-gold-4128
-  SSO_REDIRECT_URI: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
-  SSO_AUTHORIZATION_RESPONSE_TYPE: code
-  SSO_AUTHORIZATION_SCOPE: openid
-  SSO_TOKEN_GRANT_TYPE: authorization_code
-  MAINTENANCE_MODE_ACTIVE: 'false'
-  INCLUDE_DIGITAL_CREDENTIAL: 'true'
-  INCLUDE_BC_SERVICES_CARD: 'true'
-  INCLUDE_OTP: 'true'
-  ALLOW_BC_SERVICES_CARD_PROD: 'true'
   NODE_ENV: development
-  SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+  MAINTENANCE_MODE_ACTIVE: 'false'
   REALM_REGISTRY_API: https://realm-registry-sandbox.apps.gold.devops.gov.bc.ca/api
   GOLD_IP_ADDRESS: '142.34.229.4'
   BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
@@ -53,7 +40,6 @@ route:
   host: sso-requests-sandbox.apps.gold.devops.gov.bc.ca
 
 patroni:
-
   replicaCount: 2
 
   podDisruptionBudget:
@@ -66,7 +52,6 @@ patroni:
     size: 0.25Gi
 
 backup-storage:
-
   env:
     ENVIRONMENT_FRIENDLY_NAME:
       value: 'SSO Request Dev Backup'

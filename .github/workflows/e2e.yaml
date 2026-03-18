@@ -29,11 +29,16 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: 'yarn'
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
       - name: E2E Tests
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@v7.1.6
         id: smoke
         continue-on-error: false
         with:

@@ -59,6 +59,8 @@ describe('integration email updates for teams', () => {
     let teamId: number;
 
     beforeAll(async () => {
+      process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+      process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'true';
       jest.clearAllMocks();
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       emailList = createMockSendEmail();

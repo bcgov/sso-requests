@@ -1,5 +1,4 @@
 import React, { useState, useEffect, MouseEventHandler } from 'react';
-import Table from 'components/Table';
 import styled from 'styled-components';
 import { Team } from 'interfaces/team';
 import { deleteTeam, getServiceAccounts } from 'services/team';
@@ -15,6 +14,7 @@ import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import ErrorText from '@app/components/ErrorText';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import { createTeamModalId, deleteTeamModalId, editTeamNameModalId } from '@app/utils/constants';
+import TableNew from '@app/components/TableNew';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -108,8 +108,8 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     setOpenEditTeamModal(true);
   };
 
-  const activateRow = (request: any) => {
-    const teamId = request['cells'][0].row.original.teamId;
+  const activateRow = (row: { teamId: number }) => {
+    const teamId = row.teamId;
     teams.forEach((team) => {
       if (team.id == teamId) updateActiveTeam(team);
     });
@@ -121,16 +121,29 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
     if (!teams || teams?.length === 0) return <NoEntitiesMessage message="You have not been added to any teams yet." />;
 
     return (
-      <Table
-        headers={[
+      <TableNew
+        dataTestId="team-list-table"
+        columns={[
           {
-            accessor: 'name',
-            Header: 'Team Name',
+            accessorKey: 'name',
+            header: 'Team Name',
           },
           {
-            accessor: 'actions',
-            Header: <TeamListActionsHeader />,
-            disableSortBy: true,
+            accessorKey: 'actions',
+            header: () => <TeamListActionsHeader />,
+
+            cell: (props) => {
+              const team = teams.find((team) => team.id === props.row.original.teamId);
+              return (
+                <RightFloatButtons>
+                  <TeamActionButtons
+                    team={team!}
+                    showEditTeamNameModal={showEditTeamNameModal}
+                    showDeleteModal={showDeleteModal}
+                  />
+                </RightFloatButtons>
+              );
+            },
           },
         ]}
         data={
@@ -139,22 +152,12 @@ function TeamList({ currentUser, setTeam, loading, teams, loadTeams, hasError, a
             return {
               teamId: team.id,
               name: team.name,
-              actions: (
-                <RightFloatButtons>
-                  <TeamActionButtons
-                    team={team}
-                    showEditTeamNameModal={showEditTeamNameModal}
-                    showDeleteModal={showDeleteModal}
-                  />
-                </RightFloatButtons>
-              ),
             };
           })
         }
-        activateRow={activateRow}
-        rowSelectorKey={'teamId'}
-        activeSelector={activeTeamId}
-        colfilters={[]}
+        enableGlobalSearch={false}
+        onRowSelect={activateRow}
+        enablePagination={false}
       />
     );
   };

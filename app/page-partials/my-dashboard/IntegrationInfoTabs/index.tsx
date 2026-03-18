@@ -20,7 +20,7 @@ import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';
-import padStart from 'lodash.padstart';
+import { padStart } from 'lodash';
 import { ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';

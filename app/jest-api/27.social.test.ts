@@ -46,19 +46,19 @@ describe('Feature flag', () => {
   });
 
   it('Does not allow social as an IDP if feature flag is not included in env vars', async () => {
-    process.env.INCLUDE_SOCIAL = undefined;
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = undefined;
     const result = await submitNewIntegration(socialDevIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Does not allow social as an IDP if feature flag is set but not true', async () => {
-    process.env.INCLUDE_SOCIAL = 'false';
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = 'false';
     const result = await submitNewIntegration(socialDevIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Allows social as an IDP if feature flag is set to true', async () => {
-    process.env.INCLUDE_SOCIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = 'true';
     const result = await submitNewIntegration(socialDevIntegration);
     expect(result.status).toBe(200);
   });
@@ -67,7 +67,7 @@ describe('Feature flag', () => {
 describe('Agrees to terms', () => {
   beforeEach(async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    process.env.INCLUDE_SOCIAL = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_SOCIAL = 'true';
   });
 
   it('Does not allow social as an IDP if user has not agreed to terms', async () => {

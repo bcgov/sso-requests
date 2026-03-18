@@ -1,4 +1,4 @@
-import isNil from 'lodash.isnil';
+import { isNil } from 'lodash';
 import getGoldUISchema from '@app/schemas-ui/ui-gold';
 import { Integration } from '@app/interfaces/Request';
 import { LoggedInUser, Team } from '@app/interfaces/team';

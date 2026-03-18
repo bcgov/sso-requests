@@ -25,7 +25,7 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
     throw new createHttpError.BadRequest('invalid environment');
   }
 
-  if (['development', 'production'].includes(process.env.APP_ENV || 'development')) {
+  if (['development', 'production'].includes(process.env.NEXT_PUBLIC_APP_ENV || 'development')) {
     const keycloakHostname = keycloakUrl.replace('https://', '');
     const ip = await dns.promises.lookup(keycloakHostname);
     if (ip?.address !== process.env.GOLD_IP_ADDRESS) {
@@ -36,6 +36,7 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
   }
 
   const authServerUrl = `${keycloakUrl}/auth`;
+
   const kcAdminClient = new KcAdminClient({
     baseUrl: authServerUrl,
     realmName: 'master',

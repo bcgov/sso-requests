@@ -1,10 +1,10 @@
-import React, { useState, useEffect, MouseEventHandler } from 'react';
+import { useState, useEffect, MouseEventHandler } from 'react';
 import Link from '@button-inc/bcgov-theme/Link';
 import { Integration } from 'interfaces/Request';
-import padStart from 'lodash.padstart';
+import { padStart } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
+import { Table } from '@bcgov-sso/common-react-components';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
@@ -19,6 +19,7 @@ import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import { formatWikiURL } from 'utils/constants';
 import { AxiosError } from 'axios';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
+import TableNew from '@app/components/TableNew';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -34,6 +35,11 @@ function IntegrationListActionsHeader() {
 }
 
 const formatIntegrationID = (id: number) => padStart(String(id), 8, '0');
+
+const unformatIntegrationID = (formattedId: string | number): number => {
+  const normalized = String(formattedId).replace(/^0+/, '');
+  return Number(normalized || '0');
+};
 
 const NewEntityButton = ({
   handleNewIntegrationClick,
@@ -170,8 +176,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
     };
   }, [integrations, activeIntegrationId]);
 
-  const activateRow = (request: any) => {
-    const integrationId = request['cells'][0].value;
+  const activateRow = (row: any) => {
+    const integrationId = row.id;
     integrations.forEach((integration) => {
       if (integration.id == integrationId) updateActiveIntegration(integration);
     });
@@ -185,34 +191,65 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
     return (
       <>
         <h2>Integrations</h2>
-        <Table
-          headers={[
-            {
-              accessor: 'id',
-              Header: 'Request ID',
-            },
-            {
-              accessor: 'projectName',
-              Header: 'Project Name',
-            },
-            {
-              accessor: 'status',
-              Header: 'Status',
-            },
-            {
-              accessor: 'authType',
-              Header: 'Usecase',
-            },
-            {
-              accessor: 'serviceType',
-              Header: 'Service Type',
-            },
-            {
-              accessor: 'actions',
-              Header: <IntegrationListActionsHeader />,
-              disableSortBy: true,
-            },
-          ]}
+        <TableNew
+          dataTestId="integration-list-table"
+          columns={
+            [
+              {
+                accessorKey: 'id',
+                header: 'Request ID',
+              },
+              {
+                accessorKey: 'projectName',
+                header: 'Project Name',
+              },
+              {
+                accessorKey: 'status',
+                header: 'Status',
+              },
+              {
+                accessorKey: 'authType',
+                header: 'Usecase',
+              },
+              {
+                accessorKey: 'serviceType',
+                header: 'Service Type',
+              },
+              {
+                accessorKey: 'userTeamRole',
+                header: 'userTeamRole',
+              },
+              {
+                accessorKey: 'actions',
+                header: () => <div style={{ display: 'flex', justifyContent: 'right', marginRight: 20 }}>Actions</div>,
+
+                cell: (props: any) => {
+                  const request = integrations.find(
+                    (integration) => integration.id === unformatIntegrationID(props.row.original.id),
+                  );
+                  return (
+                    <div style={{ display: 'flex', justifyContent: 'right', columnGap: '0.5rem' }}>
+                      <ActionButtons
+                        request={request as Integration}
+                        onDelete={(_: any, error: AxiosError | null) => {
+                          if (error) {
+                            alert.show({
+                              variant: 'danger',
+                              content: `Failed to delete integration ${props.row.original.projectName}.`,
+                            });
+                          } else {
+                            loadIntegrations();
+                          }
+                        }}
+                        defaultActiveColor="#fff"
+                        delIconStyle={{ marginLeft: '7px' }}
+                      />
+                    </div>
+                  );
+                },
+              },
+            ] as any
+          }
           data={integrations?.map((integration: Integration) => {
             return {
               id: formatIntegrationID(integration.id as number),
@@ -220,30 +257,15 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
               status: getStatusDisplayName(integration.status || 'draft'),
               authType: authTypeDisplay[integration.authType || 'browser-login'],
               serviceType: 'Gold',
-              actions: (
-                <ActionButtons
-                  request={integration}
-                  onDelete={(_: any, error: AxiosError | null) => {
-                    if (error) {
-                      alert.show({
-                        variant: 'danger',
-                        content: `Failed to delete integration ${integration.projectName}.`,
-                      });
-                    } else {
-                      loadIntegrations();
-                    }
-                  }}
-                  defaultActiveColor="#fff"
-                  delIconStyle={{ marginLeft: '7px' }}
-                />
-              ),
+              originalStatus: integration.status,
+              apiServiceAccount: integration.apiServiceAccount,
+              archived: integration.archived,
             };
           })}
-          activateRow={activateRow}
-          activeSelector={activeIntegrationId && formatIntegrationID(activeIntegrationId)}
-          rowSelectorKey={'id'}
-          colfilters={[]}
-        ></Table>
+          enableGlobalSearch={false}
+          onRowSelect={activateRow}
+          enablePagination={false}
+        ></TableNew>
       </>
     );
   };

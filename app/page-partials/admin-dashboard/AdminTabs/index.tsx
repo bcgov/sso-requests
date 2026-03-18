@@ -12,7 +12,7 @@ import SocialTabContent from './SocialTabContent';
 import OTPTabContent from './OTPTabContent';
 import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 import { useState } from 'react';
-import startCase from 'lodash.startcase';
+import { startCase } from 'lodash';
 import {
   isBceidApprover,
   isBcServicesCardApprover,

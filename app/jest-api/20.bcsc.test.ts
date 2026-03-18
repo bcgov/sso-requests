@@ -287,41 +287,46 @@ describe('Feature flag', () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
   });
 
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'true';
+  });
+
   it('Does not allow bc services card as an IDP if feature flag is not included in env vars', async () => {
-    process.env.INCLUDE_BC_SERVICES_CARD = undefined;
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = undefined;
     const result = await submitNewIntegration(bcscDevIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Does not allow bc services card as an IDP if feature flag is set but not true', async () => {
-    process.env.INCLUDE_BC_SERVICES_CARD = 'false';
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'false';
     const result = await submitNewIntegration(bcscDevIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Allows bc services card as an IDP if feature flag is set to true', async () => {
-    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
     const result = await submitNewIntegration(bcscDevIntegration);
     expect(result.status).toBe(200);
   });
 
   it('Does not allow BCSC to be added to production if feature flag is false', async () => {
-    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
-    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'false';
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'false';
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Does not allow BCSC to be added to production if the feature flag is missing', async () => {
-    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
-    process.env.ALLOW_BC_SERVICES_CARD_PROD = undefined;
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = undefined;
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(422);
   });
 
   it('Does allow BCSC to be added to production if the feature flag is true', async () => {
-    process.env.INCLUDE_BC_SERVICES_CARD = 'true';
-    process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'true';
     const result = await submitNewIntegration(bcscProdIntegration);
     expect(result.status).toBe(200);
   });

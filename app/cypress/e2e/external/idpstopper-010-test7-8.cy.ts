@@ -2,9 +2,10 @@
 
 import data from '../../fixtures/idpstopper.json';
 import Request from '../../appActions/Request';
-var kebabCase = require('lodash.kebabcase');
+import { kebabCase } from 'lodash';
 import Utilities from '../../appActions/Utilities';
 import Playground from '../../pageObjects/playgroundPage';
+
 let util = new Utilities();
 let playground = new Playground();
 

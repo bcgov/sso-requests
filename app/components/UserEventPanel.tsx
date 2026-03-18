@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getEvents } from 'services/event';
 import { Event } from 'interfaces/Event';
 import Loader from 'components/PageLoader';

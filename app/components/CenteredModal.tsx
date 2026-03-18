@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
-import kebabCase from 'lodash.kebabcase';
+import { kebabCase } from 'lodash';
 import Modal from 'react-bootstrap/Modal';
 
 const StyledModal = styled(Modal)`
