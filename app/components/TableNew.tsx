@@ -11,6 +11,7 @@ import {
   VisibilityState,
   InitialTableState,
   getPaginationRowModel,
+  getFilteredRowModel,
 } from '@tanstack/react-table';
 import Select, { components } from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -205,7 +206,7 @@ const Table = <T extends object>({
   globalSearchPlaceholder = 'Search all columns...',
   globalSearchStyle = {},
   globalSearchValue = '',
-  globalSearchOnChange = () => {},
+  globalSearchOnChange = undefined,
   enablePagination = true,
   serverPageIndex = 0,
   pageSizeOptions = [5, 10, 20, 30, 40, 50],
@@ -248,8 +249,10 @@ const Table = <T extends object>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: globalSearchOnChange ? undefined : getFilteredRowModel(),
     manualExpanding: true,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: globalSearchOnChange ? undefined : setGlobalFilter,
     onPaginationChange: setPagination,
     manualPagination: true,
     getPaginationRowModel: getPaginationRowModel(),
@@ -292,8 +295,14 @@ const Table = <T extends object>({
         {enableGlobalSearch && (
           <div style={{ width: '350px' }}>
             <SearchBar
-              value={globalSearchValue ?? ''}
-              onChange={(e: any) => globalSearchOnChange(String(e.target.value))}
+              value={globalSearchOnChange ? globalSearchValue : globalFilter}
+              onChange={(e: any) => {
+                if (globalSearchOnChange) {
+                  globalSearchOnChange(String(e.target.value));
+                } else {
+                  setGlobalFilter(String(e.target.value));
+                }
+              }}
               placeholder={globalSearchPlaceholder}
               style={globalSearchStyle}
               data-testid="global-search-input"

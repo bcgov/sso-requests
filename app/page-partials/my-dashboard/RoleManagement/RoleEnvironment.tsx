@@ -1,9 +1,9 @@
-import React, { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
-import { throttle, get, reduce, debounce } from 'lodash';
+import { throttle, get, reduce } from 'lodash';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
@@ -227,9 +227,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     return optionizeAll(roles);
   }, [roles]);
 
-  const fetchRoles = debounce(async () => {
+  const fetchRoles = async () => {
     if (roleLoading) return;
-
+    setRoleLoading(true);
     const [data, err] = await listClientRoles({
       environment,
       integrationId: integration.id as number,
@@ -251,11 +251,8 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     if (_roles.length === 1) {
       setSelectedRole(_roles[0]);
     }
-  }, 300);
-
-  useEffect(() => {
-    fetchRoles();
-  }, [searchKey]);
+    setRoleLoading(false);
+  };
 
   const fetchUsers = async (loadFirst: boolean, roleName: string) => {
     if (userLoading) return;
@@ -652,8 +649,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       globalSearchPlaceholder="Search existing roles"
       onRowSelect={activateRow}
       enablePagination={false}
-      globalSearchOnChange={(value) => handleSearchKeyChange(value)}
-      globalSearchValue={searchKey}
     ></TableNew>
   );
 
