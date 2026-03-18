@@ -4,7 +4,6 @@ const BASE_PATH = process.env.APP_BASE_PATH || '';
 
 module.exports = {
   reactStrictMode: true,
-  env: {},
   assetPrefix: APP_URL,
   // basePath has to start with a /
   // basePath has to be either an empty string or a path prefix
