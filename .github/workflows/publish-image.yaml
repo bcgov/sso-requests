@@ -274,7 +274,7 @@ jobs:
           --set image.tag="${{ needs.set-tag.outputs.tag }}" \
           --set cronJobs.image.tag="${{ needs.set-tag.outputs.tag }}" \
           --set api.image.tag="${{ needs.set-tag.outputs.tag }}" \
-          --set envVars.appUrl="${{ env.APP_URL }}" \
+          --set envVars.appUrl="${{ env.NEXT_PUBLIC_APP_URL }}" \
           --set envVars.apiAuthSecret="${{ env.API_AUTH_SECRET }}" \
           --set envVars.keycloakV2DevUsername="${{ env.KEYCLOAK_V2_DEV_USERNAME }}" \
           --set envVars.keycloakV2DevPassword="${{ env.KEYCLOAK_V2_DEV_PASSWORD }}" \
