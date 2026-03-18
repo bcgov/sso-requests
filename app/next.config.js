@@ -8,5 +8,5 @@ export const turbopack = {
     'pg-native': resolve(__dirname, './empty.ts'),
     'cloudflare:sockets': resolve(__dirname, './empty.ts'),
   },
-  root: resolve(__dirname, '../yarn.lock'),
+  root: resolve(__dirname, '..'),
 };
