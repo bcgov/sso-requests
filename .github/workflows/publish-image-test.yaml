@@ -21,26 +21,26 @@ jobs:
       - name: Setup Common Environment Variables
         run: |
           cat >> $GITHUB_ENV <<EOF
-          NEXT_PUBLIC_SSO_CLIENT_ID="css-app-in-gold-4128"
-          NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE="code"
-          NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE="openid"
-          NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE="authorization_code"
-          NEXT_PUBLIC_ENABLE_GOLD="true"
-          NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL="true"
-          NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD="true"
-          NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD="true"
-          NEXT_PUBLIC_INCLUDE_OTP="true"
+          NEXT_PUBLIC_SSO_CLIENT_ID=css-app-in-gold-4128
+          NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE=code
+          NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE=openid
+          NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE=authorization_code
+          NEXT_PUBLIC_ENABLE_GOLD=true
+          NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL=true
+          NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD=true
+          NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD=true
+          NEXT_PUBLIC_INCLUDE_OTP=true
           EOF
 
       - name: Setup Sandbox Environment Variables
         run: |
           cat >> $GITHUB_ENV <<EOF
-          NEXT_PUBLIC_APP_ENV="development"
-          NEXT_PUBLIC_API_URL="https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/api"
-          NEXT_PUBLIC_SSO_URL="https://dev.loginproxy.gov.bc.ca/auth"
-          NEXT_PUBLIC_SSO_REDIRECT_URI="https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca"
-          NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT="https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration"
-          NEXT_PUBLIC_APP_URL="https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca"
+          NEXT_PUBLIC_APP_ENV=development
+          NEXT_PUBLIC_API_URL=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/api
+          NEXT_PUBLIC_SSO_URL=https://dev.loginproxy.gov.bc.ca/auth
+          NEXT_PUBLIC_SSO_REDIRECT_URI=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
+          NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+          NEXT_PUBLIC_APP_URL=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
 
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
@@ -99,6 +99,21 @@ jobs:
       - name: Build and Push SSO Requests Docker image
         uses: docker/build-push-action@v7
         with:
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SSO_URL=${{ env.NEXT_PUBLIC_SSO_URL }}
+            NEXT_PUBLIC_SSO_CLIENT_ID=${{ env.NEXT_PUBLIC_SSO_CLIENT_ID }}
+            NEXT_PUBLIC_SSO_REDIRECT_URI=${{ env.NEXT_PUBLIC_SSO_REDIRECT_URI }}
+            NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE=${{ env.NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE }}
+            NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE=${{ env.NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE }}
+            NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE=${{ env.NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE }}
+            NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=${{ env.NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT }}
+            NEXT_PUBLIC_ENABLE_GOLD=${{ env.NEXT_PUBLIC_ENABLE_GOLD }}
+            NEXT_PUBLIC_APP_URL=${{ env.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL=${{ env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL }}
+            NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD=${{ env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD }}
+            NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD=${{ env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD }}
+            NEXT_PUBLIC_INCLUDE_OTP=${{ env.NEXT_PUBLIC_INCLUDE_OTP }}
           context: .
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests:dev
