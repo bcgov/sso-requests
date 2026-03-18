@@ -1,4 +1,4 @@
-name: Build Images and Deploy CSS
+name: Build Images and Deploy CSS - Test
 
 on:
   workflow_dispatch:
