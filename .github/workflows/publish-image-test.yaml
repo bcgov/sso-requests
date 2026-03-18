@@ -1,19 +1,9 @@
 name: Build Images and Deploy CSS - Test
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - SSOTEAM-2670-02
-    paths:
-      - 'app/**'
-      - 'Dockerfile'
-      - 'db/**'
-      - 'helm/templates/**'
-      - 'helm/values**'
-      - 'api/**'
-      - 'cron/**'
-      - '.github/workflows/publish-image.yaml'
 
 env:
   GITHUB_REGISTRY: ghcr.io
