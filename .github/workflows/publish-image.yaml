@@ -68,15 +68,6 @@ jobs:
     if: always()
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    strategy:
-      matrix:
-        image:
-          - name: sso-requests-cron
-            context: ./cron
-          - name: sso-requests
-            context: .
-          - name: sso-requests-api
-            context: ./api
     steps:
       - uses: actions/checkout@v4
 
@@ -209,18 +200,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
+      - name: Cache Docker layers for SSO Requests Cron
+        uses: actions/cache@v5
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-buildx-
+          path: /tmp/.buildx-cache-sso-requests-cron
+          key: ${{ runner.os }}-buildx-sso-requests-cron-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-buildx-sso-requests-cron-
+
+      - name: Cache Docker layers for SSO Requests API
+        uses: actions/cache@v5
+        with:
+          path: /tmp/.buildx-cache-sso-requests-api
+          key: ${{ runner.os }}-buildx-sso-requests-api-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-buildx-sso-requests-api-
+
+      - name: Cache Docker layers for SSO Requests
+        uses: actions/cache@v5
+        with:
+          path: /tmp/.buildx-cache-sso-requests
+          key: ${{ runner.os }}-buildx-sso-requests-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-buildx-sso-requests-
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Build and Push SSO Requests Docker image
+        uses: docker/build-push-action@v7
         with:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
@@ -237,18 +242,44 @@ jobs:
             NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD=${{ env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD }}
             NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD=${{ env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD }}
             NEXT_PUBLIC_INCLUDE_OTP=${{ env.NEXT_PUBLIC_INCLUDE_OTP }}
-          context: ${{ matrix.image.context }}
+          context: .
           push: true
-          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/${{matrix.image.name}}:${{ needs.set-tag.outputs.tag }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests:${{ needs.set-tag.outputs.tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache-sso-requests
+          cache-to: type=local,dest=/tmp/.buildx-cache-sso-requests-new,mode=max
 
         # Temp fix
         # https://github.com/docker/build-push-action/issues/252
         # https://github.com/moby/buildkit/issues/1896
       - name: Move cache
-        run: rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+        run: rm -rf /tmp/.buildx-cache-sso-requests
+          mv /tmp/.buildx-cache-sso-requests-new /tmp/.buildx-cache-sso-requests
+
+      - name: Build and Push SSO Requests Cron Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./cron
+          push: true
+          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests-cron:${{ needs.set-tag.outputs.tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache-sso-requests-cron
+          cache-to: type=local,dest=/tmp/.buildx-cache-sso-requests-cron-new,mode=max
+
+      - name: Move cache
+        run: rm -rf /tmp/.buildx-cache-sso-requests-cron
+          mv /tmp/.buildx-cache-sso-requests-cron-new /tmp/.buildx-cache-sso-requests-cron
+
+      - name: Build and Push SSO Requests API Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./api
+          push: true
+          tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests-api:${{ needs.set-tag.outputs.tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache-sso-requests-api
+          cache-to: type=local,dest=/tmp/.buildx-cache-sso-requests-api-new,mode=max
+
+      - name: Move cache
+        run: rm -rf /tmp/.buildx-cache-sso-requests-api
+          mv /tmp/.buildx-cache-sso-requests-api-new /tmp/.buildx-cache-sso-requests-api
 
       - name: Install CLI tools from OpenShift Mirror
         uses: redhat-actions/openshift-tools-installer@v1
