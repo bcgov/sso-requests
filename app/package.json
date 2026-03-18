@@ -7,7 +7,7 @@
   "author": "SSO Team",
   "scripts": {
     "dev": "next dev",
-    "build": "next build --debug",
+    "build": "next build",
     "export": "next export",
     "start": "next start",
     "lint": "next lint",
