@@ -98,6 +98,7 @@ jobs:
           NEXT_PUBLIC_SSO_URL=https://dev.loginproxy.gov.bc.ca/auth
           NEXT_PUBLIC_SSO_REDIRECT_URI=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
           NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+          NEXT_PUBLIC_SSO_IDP_HINT=azureidir
           NEXT_PUBLIC_APP_URL=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
 
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
@@ -242,6 +243,7 @@ jobs:
             NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD=${{ env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD }}
             NEXT_PUBLIC_INCLUDE_OTP=${{ env.NEXT_PUBLIC_INCLUDE_OTP }}
             NEXT_PUBLIC_APP_ENV=${{ env.NEXT_PUBLIC_APP_ENV }}
+            NEXT_PUBLIC_SSO_IDP_HINT=${{ env.NEXT_PUBLIC_SSO_IDP_HINT }}
           context: .
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests:${{ needs.set-tag.outputs.tag }}

@@ -131,7 +131,11 @@ function MyApp({ Component, pageProps }: AppProps) {
     if (session) getUser();
   }, [session]);
 
-  const handleLogin = async () => keycloak.login({ redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/my-dashboard` });
+  const handleLogin = async () =>
+    keycloak.login({
+      redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/my-dashboard`,
+      idpHint: `${process.env.NEXT_PUBLIC_SSO_IDP_HINT || ''}`,
+    });
   const handleLogout = async () => keycloak.logout({ redirectUri: process.env.NEXT_PUBLIC_APP_URL });
 
   const sessionContext = useMemo(() => ({ session, user, keycloak }), [session, user, keycloak]);
