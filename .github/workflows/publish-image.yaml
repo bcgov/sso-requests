@@ -76,7 +76,6 @@ jobs:
           echo "Using tag: ${{ needs.set-tag.outputs.tag }}"
 
       - name: Setup Common Environment Variables
-        if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
         run: |
           cat >> $GITHUB_ENV <<EOF
           NEXT_PUBLIC_SSO_CLIENT_ID=css-app-in-gold-4128
@@ -242,6 +241,7 @@ jobs:
             NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD=${{ env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD }}
             NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD=${{ env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD }}
             NEXT_PUBLIC_INCLUDE_OTP=${{ env.NEXT_PUBLIC_INCLUDE_OTP }}
+            NEXT_PUBLIC_APP_ENV=${{ env.NEXT_PUBLIC_APP_ENV }}
           context: .
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests:${{ needs.set-tag.outputs.tag }}
