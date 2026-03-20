@@ -5,7 +5,7 @@ import LoginProxy from '../pageObjects/loginProxy';
 import Utilities from '../appActions/Utilities';
 const utils = new Utilities();
 
-Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | 'azureidir' = 'azureidir') => {
+Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | 'azureidir' = 'idir') => {
   const home = new HomePage();
   const loginPage = new LoginProxy();
 
@@ -13,45 +13,53 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
   let foundItem = data.find((item: User) => item.username === username && item.type === idp);
 
   if (idp === 'idir') {
-    cy.session(`${username}-${idp}`, () => {
-      cy.visit(Cypress.env('host'));
-      cy.contains(home.title);
-      home.clickLoginButton();
-      cy.get(loginPage.headerWrapper).contains(loginPage.headerText).should('be.visible');
-      loginPage.chooseLogin(idp);
+    cy.session(
+      `${username}-${idp}`,
+      () => {
+        cy.visit(Cypress.env('host'));
+        cy.contains(home.title);
+        home.clickLoginButton();
+        cy.get(loginPage.headerWrapper).contains(loginPage.headerText).should('be.visible');
+        loginPage.chooseLogin(idp);
 
-      cy.get('#user').type(foundItem.username);
-      cy.get('#password').type(foundItem.password, { log: false });
-      cy.get('input[name=btnSubmit]').click();
-      cy.contains(home.title);
-    });
+        cy.get('#user').type(foundItem.username);
+        cy.get('#password').type(foundItem.password, { log: false });
+        cy.get('input[name=btnSubmit]').click();
+        cy.contains(home.title);
+      },
+      { cacheAcrossSpecs: true },
+    );
   } else {
-    cy.session(`${username}-${idp}`, async () => {
-      cy.visit(Cypress.env('host'));
-      cy.contains(home.title);
-      home.clickLoginButton();
+    cy.session(
+      `${username}-${idp}`,
+      async () => {
+        cy.visit(Cypress.env('host'));
+        cy.contains(home.title);
+        home.clickLoginButton();
 
-      const userToken = await utils.getOTPToken(foundItem.otpsecret);
+        const userToken = await utils.getOTPToken(foundItem.otpsecret);
 
-      cy.origin('login.microsoftonline.com', { args: { foundItem, userToken } }, ({ foundItem, userToken }) => {
-        cy.get('input[type="email"]').type(foundItem.email, { delay: 15 });
-        cy.contains('Next').click();
-        cy.get('input[type="password"]').type(foundItem.password, { delay: 15 });
-        cy.contains('Sign in').click();
+        cy.origin('login.microsoftonline.com', { args: { foundItem, userToken } }, ({ foundItem, userToken }) => {
+          cy.get('input[type="email"]').type(foundItem.email, { delay: 15 });
+          cy.contains('Next').click();
+          cy.get('input[type="password"]').type(foundItem.password, { delay: 15 });
+          cy.contains('Sign in').click();
 
-        cy.get('input[type="tel"]').type(userToken, { delay: 15 });
-        cy.contains('Verify').click();
+          cy.get('input[type="tel"]').type(userToken, { delay: 15 });
+          cy.contains('Verify').click();
 
-        cy.get('input[type="submit"][value="Yes"]', { timeout: 2000 }).then(($btn) => {
-          if ($btn.length) {
-            cy.wrap($btn).click();
-          } else {
-            cy.log('No "Yes" submit button found, skipping');
-          }
+          cy.get('input[type="submit"][value="Yes"]', { timeout: 2000 }).then(($btn) => {
+            if ($btn.length) {
+              cy.wrap($btn).click();
+            } else {
+              cy.log('No "Yes" submit button found, skipping');
+            }
+          });
         });
-      });
-      cy.contains(home.title);
-    });
+        cy.contains(home.title);
+      },
+      { cacheAcrossSpecs: true },
+    );
   }
   cy.visit(Cypress.env('host'));
 });
