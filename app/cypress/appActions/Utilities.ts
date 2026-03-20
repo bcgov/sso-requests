@@ -11,7 +11,7 @@ const guardrails = createGuardrails({
 });
 
 class Utilities {
-  cssAdmin = 'PFDRSSOT2';
+  cssAdmin = 'PFSSOT2';
   cssUser = 'PFDRSSOT';
 
   runOk(data: any): boolean {

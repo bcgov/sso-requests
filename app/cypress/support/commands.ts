@@ -19,9 +19,6 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         cy.visit(Cypress.env('host'));
         cy.contains(home.title);
         home.clickLoginButton();
-        cy.get(loginPage.headerWrapper).contains(loginPage.headerText).should('be.visible');
-        loginPage.chooseLogin(idp);
-
         cy.get('#user').type(foundItem.username);
         cy.get('#password').type(foundItem.password, { log: false });
         cy.get('input[name=btnSubmit]').click();
