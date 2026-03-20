@@ -14,10 +14,7 @@ describe('KC Single Sign on session', () => {
   before(() => {
     cy.clearAllSessionStorage();
     cy.cleanGC();
-    //Establish the session with CSS Sandbox: IDIR
-    cy.setid(null).then(() => {
-      cy.login();
-    });
+    cy.login();
   });
 
   after(() => {

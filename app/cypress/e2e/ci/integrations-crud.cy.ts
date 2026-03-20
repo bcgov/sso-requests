@@ -17,18 +17,12 @@ describe('Create Integration Requests', () => {
 
   const cleanup = () => {
     cy.clearAllCookies();
-    cy.setid(null).then(() => {
-      cy.login();
-    });
+    cy.login();
     requests.forEach((request) => {
       request.deleteRequest(request.id);
       request.deleteTeam();
     });
   };
-
-  afterEach(() => {
-    cy.logout();
-  });
 
   after(() => {
     cleanup();
@@ -43,9 +37,7 @@ describe('Create Integration Requests', () => {
       let creation: Cypress.Chainable | undefined;
 
       it(`Create ${data.create.projectname} (Test ID: ${data.create.test_id}) - ${data.create.description}`, () => {
-        cy.setid(null).then(() => {
-          cy.login();
-        });
+        cy.login();
         req.showCreateContent(data);
         req.populateCreateContent(data);
         creation = req.createRequest();
@@ -55,18 +47,14 @@ describe('Create Integration Requests', () => {
         // Ensure async cypress operations (e.g setting the id) are complete
         // Before attempting validation.
         creation?.then(() => {
-          cy.setid(null).then(() => {
-            cy.login();
-          });
+          cy.login();
           req.validateRequest(req.id);
         });
       });
 
       if (data.approvals) {
         it('Approves the required idps', () => {
-          cy.setid('admin').then(() => {
-            cy.login();
-          });
+          cy.login(util.cssAdmin);
 
           if (data.approvals.bceid) {
             req.approveRequest('BCeID', dashboardPage.confirmBceidButton);
@@ -87,17 +75,13 @@ describe('Create Integration Requests', () => {
       }
 
       it(`Update ${data.create.projectname}`, () => {
-        cy.setid(null).then(() => {
-          cy.login();
-        });
+        cy.login();
         req.populateUpdateContent(data);
         req.updateRequest(req.id);
       });
 
       it(`Validate update of ${data.create.projectname}`, () => {
-        cy.setid(null).then(() => {
-          cy.login();
-        });
+        cy.login();
         req.populateUpdateValidationContent(data);
         req.validateRequest(req.id);
       });

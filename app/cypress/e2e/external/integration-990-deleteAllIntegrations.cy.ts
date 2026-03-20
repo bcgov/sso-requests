@@ -13,10 +13,7 @@ describe('Delete All Integrations', () => {
 
   let req = new Request();
   it('Delete All Requests as default user', function () {
-    cy.setid(null).then(() => {
-      cy.login();
-    });
+    cy.login();
     req.deleteAllRequests();
-    cy.logout();
   });
 });

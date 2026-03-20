@@ -11,9 +11,7 @@ describe('Create Integration Requests for Roles Testing', () => {
 
   const cleanup = () => {
     cy.clearAllCookies();
-    cy.setid(null).then(() => {
-      cy.login();
-    });
+    cy.login();
     requests.forEach((request) => {
       request.deleteRequest(request.id);
     });
@@ -21,13 +19,10 @@ describe('Create Integration Requests for Roles Testing', () => {
 
   beforeEach(() => {
     cy.clearAllCookies();
-    cy.setid(null).then(() => {
-      cy.login();
-    });
+    cy.login();
   });
 
   afterEach(() => {
-    cy.logout();
     cy.clearAllCookies();
   });
 

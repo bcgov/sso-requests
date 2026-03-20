@@ -28,9 +28,7 @@ describe('Run IDP Stopper Test', () => {
       let integration: Cypress.Chainable | undefined;
       let req = new Request();
       it(`Create ${data.create.projectname} (Test ID: ${data.create.test_id}) - ${data.create.description}`, () => {
-        cy.setid(null).then(() => {
-          cy.login();
-        });
+        cy.login();
         req.showCreateContent(data);
         req.populateCreateContent(data);
         integration = req.createRequest();
@@ -68,9 +66,7 @@ describe('Run IDP Stopper Test', () => {
       });
 
       it('Delete the request', () => {
-        cy.setid(null).then(() => {
-          cy.login();
-        });
+        cy.login();
         req.deleteRequest(req.id);
       });
     }
