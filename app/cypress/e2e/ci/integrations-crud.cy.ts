@@ -11,12 +11,7 @@ const dashboardPage = new DashboardPage();
 describe('Create Integration Requests', () => {
   const requests: Request[] = [];
 
-  beforeEach(() => {
-    cy.clearAllCookies();
-  });
-
   const cleanup = () => {
-    cy.clearAllCookies();
     cy.login();
     requests.forEach((request) => {
       request.deleteRequest(request.id);
