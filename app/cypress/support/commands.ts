@@ -5,7 +5,7 @@ import LoginProxy from '../pageObjects/loginProxy';
 import Utilities from '../appActions/Utilities';
 const utils = new Utilities();
 
-Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | 'azureidir' = 'idir') => {
+Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | 'azureidir' = 'azureidir') => {
   const home = new HomePage();
   const loginPage = new LoginProxy();
 
@@ -31,8 +31,6 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
       cy.contains(home.title);
       home.clickLoginButton();
 
-      cy.get(loginPage.headerWrapper).contains(loginPage.headerText).should('be.visible');
-      loginPage.chooseLogin(idp);
       const userToken = await utils.getOTPToken(foundItem.otpsecret);
 
       cy.origin('login.microsoftonline.com', { args: { foundItem, userToken } }, ({ foundItem, userToken }) => {
@@ -57,30 +55,6 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
   }
   cy.visit(Cypress.env('host'));
 });
-
-// Cypress.Commands.add('login', (username, password, host, siteminder) => {
-//   const home = new HomePage();
-
-//   // Go to the host
-//   cy.visit(host || Cypress.env('host'));
-
-//   cy.contains('Common Hosted Single Sign-on (CSS)');
-//   // Click the login button
-//   home.clickLoginButton();
-
-//   cy.get('#kc-header-wrapper', { timeout: 10000 }).contains('COMMON HOSTED SINGLE SIGN-ON').should('be.visible');
-//   cy.get('#social-idir', { timeout: 10000 }).click();
-
-//   cy.get('#login-to', { timeout: 10000 }).contains('Log in to ').should('be.visible');
-//   cy.get('#user', { timeout: 10000 }).type(Cypress.env('username'));
-//   cy.get('#password', { timeout: 10000 }).type(Cypress.env('password'), { log: false });
-//   cy.get('input[name=btnSubmit]', { timeout: 10000 }).click();
-
-//   cy.contains('Common Hosted Single Sign-on (CSS)');
-//   cy.get('button', { timeout: 20000 }).contains('Log out').should('be.visible');
-
-//   cy.log('Logged in as ' + (username || Cypress.env('username')));
-// });
 
 Cypress.Commands.add('logout', (host) => {
   // Make sure you are on page with log out and logout
