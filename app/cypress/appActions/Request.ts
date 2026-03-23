@@ -244,6 +244,7 @@ class Request {
     this.reqPage.confirmDelete(this.conFirm);
 
     // Navigate to the page if not there already (e.g for admins)
+    cy.wait(2000);
     this.navigation.goToMyDashboard();
 
     // Make sure the commit has been done.
@@ -621,7 +622,10 @@ class Request {
       if (this.authType === 'service-account') {
         cy.contains(this.reqPage.tabServiceAccountRoleManagement).click();
         cy.contains(util.capitalizeFirst(env)).click();
-        cy.get('input[id^="react-select-"]').type(role + '{enter}');
+        cy.contains('label', 'Assign Service Account to a Role')
+          .parent()
+          .find('input[id^="react-select-"]')
+          .type(role + '{enter}');
       } else {
         cy.contains(this.reqPage.tabUserRoleManagement).click();
         cy.contains(this.reqPage.tabUserRoleManagement).then(() => {

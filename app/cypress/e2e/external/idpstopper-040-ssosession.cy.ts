@@ -12,13 +12,7 @@ let util = new Utilities();
 
 describe('KC Single Sign on session', () => {
   before(() => {
-    cy.clearAllSessionStorage();
-    cy.cleanGC();
     cy.login();
-  });
-
-  after(() => {
-    cy.cleanGC();
   });
 
   it('Go to CSS App', function () {
@@ -52,7 +46,7 @@ describe('KC Single Sign on session', () => {
     cy.get('button', { timeout: 10000 }).contains('Login').should('exist');
     cy.get('button', { timeout: 10000 }).contains('Login').click({ force: true });
 
-    // If the screen shows the IDP options, then the session is not attached to the user
-    cy.contains('span', 'IDIR', { timeout: 10000 });
+    // should push to login page
+    cy.url().should('include', 'login.microsoftonline.com');
   });
 });

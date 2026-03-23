@@ -21,7 +21,6 @@ describe('Create Teams', () => {
   });
 
   beforeEach(() => {
-    cy.clearAllCookies();
     cy.login();
   });
 

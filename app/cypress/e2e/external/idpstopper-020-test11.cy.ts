@@ -11,14 +11,6 @@ let util = new Utilities();
 let testData = data;
 
 describe('Run IDP Stopper Test', () => {
-  before(() => {
-    cy.cleanGC();
-  });
-
-  after(() => {
-    cy.cleanGC();
-  });
-
   testData.forEach((data, index) => {
     let req = new Request();
     // Only run the test if the smoketest flag is set and the test is a smoketest
@@ -63,7 +55,7 @@ describe('Run IDP Stopper Test', () => {
               playground.loginGithubbcGov(Cypress.env('username'), Cypress.env('password'), token);
             });
           }
-          cy.contains('a', 'Token Parsed', { timeout: 1000 }).click();
+          cy.contains('button', 'Token Parsed', { timeout: 1000 }).click();
           cy.contains('td', 'family_name').siblings().should('be.empty');
           playground.clickLogout();
         });

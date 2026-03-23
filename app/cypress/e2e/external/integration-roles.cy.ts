@@ -10,7 +10,6 @@ describe('Create Integration Requests for Roles Testing', () => {
   const requests: Request[] = [];
 
   const cleanup = () => {
-    cy.clearAllCookies();
     cy.login();
     requests.forEach((request) => {
       request.deleteRequest(request.id);
@@ -18,12 +17,7 @@ describe('Create Integration Requests for Roles Testing', () => {
   };
 
   beforeEach(() => {
-    cy.clearAllCookies();
     cy.login();
-  });
-
-  afterEach(() => {
-    cy.clearAllCookies();
   });
 
   after(() => {

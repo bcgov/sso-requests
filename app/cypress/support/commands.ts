@@ -55,7 +55,18 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         });
         cy.contains(home.title);
       },
-      { cacheAcrossSpecs: true },
+      {
+        cacheAcrossSpecs: true,
+        validate: () => {
+          cy.visit(Cypress.env('host'));
+          cy.get('header button').then(($a) => {
+            if ($a.text().includes('Log in')) {
+              cy.contains('Log in').click({ force: true });
+            }
+            cy.contains('button', 'Log out');
+          });
+        },
+      },
     );
   }
   cy.visit(Cypress.env('host'));
@@ -96,19 +107,4 @@ Cypress.Commands.add('setid', (type?) => {
   if (foundItem.otpsecret) {
     Cypress.env('otpsecret', foundItem.otpsecret);
   }
-});
-
-Cypress.Commands.add('cleanGC', () => {
-  // Clean up memory by triggering Garbage Collection
-  cy.window().then((win) => {
-    // window.gc is enabled with --js-flags=--expose-gc chrome flag
-    if (typeof win.gc === 'function') {
-      // run gc multiple times in an attempt to force a major GC between tests
-      win.gc();
-      win.gc();
-      win.gc();
-      win.gc();
-      win.gc();
-    }
-  });
 });

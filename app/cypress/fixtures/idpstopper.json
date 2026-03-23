@@ -46,7 +46,7 @@
       "protocol": "oidc",
       "authtype": "browser-login",
       "publicaccess": true,
-      "identityprovider": ["IDIR - MFA"],
+      "identityprovider": ["Basic BCeID"],
       "additionalroleattribute": "tbd",
       "environments": ["dev", "", ""],
       "displayheader": false,
@@ -63,7 +63,7 @@
       "confirm": true,
       "description": "Test idp-stopper-form custom extension that when only one IDP the login form shows up directly"
     },
-    "idpUrl": "https://login.microsoftonline.com",
+    "idpUrl": "https://logontest7.gov.bc.ca/clp-cgi/capBceid",
     "update": {},
     "devroles": {},
     "testroles": {},

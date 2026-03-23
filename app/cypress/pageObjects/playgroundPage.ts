@@ -12,7 +12,6 @@ class PlaygroundPage {
   commonButton: string = 'button';
 
   fillInPlayground = (url: string | null, realm: string | null, client: string, idpHint: string | null) => {
-    this.selectConfig();
     this.setAuthServerUrl(url);
     this.setRealm(realm);
     this.setClientId(client);
@@ -61,12 +60,10 @@ class PlaygroundPage {
   }
 
   clickUpdate() {
-    cy.get('.content.active').contains(this.commonButton, 'Update').click({ force: true });
+    cy.get('.accordion-collapse.show').contains(this.commonButton, 'Update').click({ force: true });
   }
 
   clickLogin() {
-    Cypress.session.clearAllSavedSessions();
-    cy.clearAllCookies();
     cy.contains(this.commonButton, 'Login', { timeout: 10000 }).click({ force: true });
   }
 
