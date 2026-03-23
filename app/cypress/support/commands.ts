@@ -5,7 +5,7 @@ import LoginProxy from '../pageObjects/loginProxy';
 import Utilities from '../appActions/Utilities';
 const utils = new Utilities();
 
-Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | 'azureidir' = 'idir') => {
+Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | 'azureidir' = 'azureidir') => {
   const home = new HomePage();
   const loginPage = new LoginProxy();
 
