@@ -1,10 +1,10 @@
-FROM node:22.18.0-slim AS deps
+FROM node:22.18.0-alpine AS base
 
-RUN apt-get update && apt-get install libsqlite3-dev bzip2 icu-devtools uuid-dev -y
+FROM base AS deps
+
+RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
-
-COPY *.json ./
 
 COPY app/package.json ./app/
 
@@ -14,9 +14,9 @@ RUN yarn --cwd ./app install
 
 RUN yarn --cwd ./db install
 
-FROM node:22.18.0-slim AS build
+FROM base AS build
 
-RUN apt-get update && apt-get install curl make -y
+RUN apk add --no-cache curl make
 
 WORKDIR /app
 
@@ -55,16 +55,28 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
     NEXT_PUBLIC_SSO_IDP_HINT=${NEXT_PUBLIC_SSO_IDP_HINT} \
     NODE_ENV=production
 
-COPY --from=deps /app ./
+COPY ./tsconfig.json ./
 
-COPY ./app/ ./app/
+COPY app/ ./app/
 
-COPY ./db/ ./db/
+COPY db/ ./db/
 
-COPY Makefile ./
+COPY --from=deps /app/app/node_modules ./app/node_modules
 
-RUN make db_compile
+COPY --from=deps /app/db/node_modules ./db/node_modules
 
-RUN make app_build
+RUN yarn --cwd ./db compile
 
-ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_start"]
+RUN yarn --cwd ./app build
+
+FROM base AS runner
+
+ENV HOSTNAME=0.0.0.0
+
+WORKDIR /app
+
+COPY --from=build /app/app/.next/standalone ./
+COPY --from=build /app/app/.next/static ./.next/static
+COPY --from=build /app/db ./db
+
+ENTRYPOINT ["/bin/sh", "-c" , "yarn --cwd ./db migrate  && node server.js"]

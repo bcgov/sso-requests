@@ -205,7 +205,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
 MyApp.getInitialProps = async (appContext: AppContext) => {
   const appProps = await App.getInitialProps(appContext);
-  const maintenanceMode = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/maintenance-mode`);
+  const maintenanceMode = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/maintenance-mode`);
   return {
     ...appProps,
     pageProps: {

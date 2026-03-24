@@ -14,4 +14,5 @@ module.exports = {
       'cloudflare:sockets': path.resolve(__dirname, './empty.ts'),
     },
   },
+  output: 'standalone',
 };
