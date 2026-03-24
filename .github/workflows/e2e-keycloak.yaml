@@ -96,7 +96,7 @@ jobs:
           if-no-files-found: ignore
 
       - uses: actions/upload-artifact@v4
-        # if: failure()
+        if: always()
         with:
           name: cypress-videos-idpstopper
           path: app/cypress/videos/**/*
