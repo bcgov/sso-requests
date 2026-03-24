@@ -10,8 +10,6 @@ declare namespace Cypress {
 
     generateUUID(): Chainable<any>;
 
-    cleanGC(): Chainable<any>;
-
     realPress(el: string): void;
 
     findByRole(el: string, options: any): Chainable<any>;
