@@ -32,7 +32,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: 'yarn'
       - uses: actions/checkout@v4
       - uses: isbang/compose-action@v1.5.1
         with:
