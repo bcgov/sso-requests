@@ -84,7 +84,7 @@ patroni:
     pullPolicy: Always
     tag: 4.0-p2
 
-  postgresMajorVersion: 15
+  postgresMajorVersion: 17
 
   replicaCount: 2
 
@@ -146,7 +146,7 @@ redis-ha:
 backup-storage:
   image:
     repository: ghcr.io/bcgov/backup-container
-    tag: 2.10.3
+    tag: 2.12.0
     pullPolicy: Always
 
   persistence:
