@@ -216,10 +216,6 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
                 header: 'Service Type',
               },
               {
-                accessorKey: 'userTeamRole',
-                header: 'userTeamRole',
-              },
-              {
                 accessorKey: 'actions',
                 header: () => <div style={{ display: 'flex', justifyContent: 'right', marginRight: 20 }}>Actions</div>,
 
