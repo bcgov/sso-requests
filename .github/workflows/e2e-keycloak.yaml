@@ -35,6 +35,8 @@ jobs:
           summary-title: 'Pre-reqs'
           wait-on: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/
           wait-on-timeout: 120
+          install-command: yarn
+          working-directory: app
           spec: |
             cypress/e2e/**/integration-990-deleteAllIntegrations.cy.ts
           browser: electron
