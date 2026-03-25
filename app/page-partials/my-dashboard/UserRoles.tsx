@@ -560,6 +560,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   placeholder="Enter search criteria"
                   tooltip={searchTooltip}
                   onChange={(e: any) => setSearchKey(e.target.value)}
+                  onKeyDown={(e: any) => {
+                    if (e.key === 'Enter') {
+                      handleSearch(searchKey);
+                    }
+                  }}
                 />
                 <InfoOverlay content={searchTooltip || 'some text'}>
                   <button

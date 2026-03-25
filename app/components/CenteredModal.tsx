@@ -24,16 +24,6 @@ const StyledModal = styled(Modal)`
   }
 `;
 
-const Header = styled(Modal.Header)`
-  font-size: 1.5em;
-  padding: 0.75em;
-  background: #38598a;
-  color: #fff;
-  & a {
-    float: right;
-  }
-`;
-
 const PaddedIcon = styled(FontAwesomeIcon)`
   margin-right: 5px;
   height: 30px;
@@ -120,13 +110,19 @@ const CenteredModal = ({
       id={id}
       backdrop={closeOnBackgroundClick ? true : 'static'}
     >
-      <Header>
-        <Modal.Title>
-          {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
-          {title}
-        </Modal.Title>
-        {closable && <FontAwesomeIcon icon={faTimes} size="lg" onClick={handleClose}></FontAwesomeIcon>}
-      </Header>
+      <Modal.Header style={{ backgroundColor: '#38598a' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <Modal.Title style={{ color: '#fff' }}>
+            {icon && <PaddedIcon icon={icon} aria-label="Information" size="2x" />}
+            {title}
+          </Modal.Title>
+          {closable && (
+            <div>
+              <FontAwesomeIcon icon={faTimes} onClick={handleClose} size="lg" style={{ color: '#fff' }} />
+            </div>
+          )}
+        </div>
+      </Modal.Header>
       <Modal.Body>
         <ContentContainer>{content}</ContentContainer>
         {showButtons && (
