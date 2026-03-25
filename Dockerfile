@@ -1,7 +1,24 @@
-FROM node:22.18.0-slim
+FROM node:22.18.0-alpine AS base
 
-RUN apt-get update && apt-get install curl make -y \
-    && apt-get install libsqlite3-dev bzip2 icu-devtools uuid-dev -y
+FROM base AS deps
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+COPY app/package.json ./app/
+
+COPY db/package.json ./db/
+
+RUN yarn --cwd ./app install
+
+RUN yarn --cwd ./db install
+
+FROM base AS build
+
+RUN apk add --no-cache curl make
+
+WORKDIR /app
 
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_SSO_URL
@@ -35,29 +52,31 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
     NEXT_PUBLIC_INCLUDE_OTP=${NEXT_PUBLIC_INCLUDE_OTP} \
     NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=${NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT} \
     NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV} \
-    NEXT_PUBLIC_SSO_IDP_HINT=${NEXT_PUBLIC_SSO_IDP_HINT}
+    NEXT_PUBLIC_SSO_IDP_HINT=${NEXT_PUBLIC_SSO_IDP_HINT} \
+    NODE_ENV=production
+
+COPY ./tsconfig.json ./
+
+COPY app/ ./app/
+
+COPY db/ ./db/
+
+COPY --from=deps /app/app/node_modules ./app/node_modules
+
+COPY --from=deps /app/db/node_modules ./db/node_modules
+
+RUN yarn --cwd ./db compile
+
+RUN yarn --cwd ./app build
+
+FROM base AS runner
+
+ENV HOSTNAME=0.0.0.0
 
 WORKDIR /app
 
-# Set the environment to production
-ENV NODE_ENV=production
+COPY --from=build /app/app/.next/standalone ./
+COPY --from=build /app/app/.next/static ./.next/static
+COPY --from=build /app/db ./db
 
-COPY *.json ./
-
-COPY app ./app
-
-COPY db ./db
-
-COPY Makefile ./
-
-RUN make app_install
-
-RUN make disable_telemetry
-
-RUN make db_install
-
-RUN make db_compile
-
-RUN make app_build
-
-ENTRYPOINT ["/bin/sh", "-c" , "make migrations && make app_start"]
+ENTRYPOINT ["/bin/sh", "-c" , "yarn --cwd ./db migrate  && node server.js"]

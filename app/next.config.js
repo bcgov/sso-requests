@@ -14,4 +14,8 @@ module.exports = {
       'cloudflare:sockets': path.resolve(__dirname, './empty.ts'),
     },
   },
+  output: 'standalone',
+  outputFileTracingIncludes: {
+    '/*': ['node_modules/pg-format/**/*'],
+  },
 };
