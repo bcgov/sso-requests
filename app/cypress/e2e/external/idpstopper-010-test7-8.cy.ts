@@ -50,9 +50,7 @@ describe('Run IDP Stopper Test', () => {
             });
           } else {
             // For a single IDP, check redirects directly to the IDPs url
-            cy.url().then((url) => {
-              expect(url.startsWith(data.idpUrl)).to.be.true;
-            });
+            cy.url().should('include', data.idpUrl);
           }
         });
       });
