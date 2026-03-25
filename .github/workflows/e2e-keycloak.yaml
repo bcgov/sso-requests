@@ -82,7 +82,7 @@ jobs:
           install-command: yarn
           working-directory: app
           spec: |
-            idpstopper-020-test11.cy.ts
+            cypress/e2e/external/idpstopper-020-test11.cy.ts
           # cypress/e2e/external/idpstopper-*.cy.ts
           # cypress/e2e/external/search-users.cy.ts
           # cypress/e2e/external/integration-roles.cy.ts
