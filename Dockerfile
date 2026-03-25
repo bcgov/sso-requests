@@ -73,7 +73,7 @@ FROM base AS runner
 
 ENV HOSTNAME=0.0.0.0
 
-COPY --from=deps /app ./
+WORKDIR /app
 
 COPY --from=build /app/app/.next/standalone ./
 COPY --from=build /app/app/.next/static ./.next/static
