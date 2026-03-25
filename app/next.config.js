@@ -15,4 +15,7 @@ module.exports = {
     },
   },
   output: 'standalone',
+  outputFileTracingIncludes: {
+    '/*': ['node_modules/pg-format/**/*'],
+  },
 };
