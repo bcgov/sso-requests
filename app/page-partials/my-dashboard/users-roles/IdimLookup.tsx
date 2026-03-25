@@ -122,6 +122,11 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
             placeholder="Enter search criteria"
             onChange={(e: any) => setSearchKey(e.target.value)}
             value={searchKey}
+            onKeyDown={(e: any) => {
+              if (e.key === 'Enter') {
+                handleSearch(searchKey);
+              }
+            }}
           />
           <button
             className="primary"
