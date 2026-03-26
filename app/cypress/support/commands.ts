@@ -7,7 +7,6 @@ const utils = new Utilities();
 
 Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | 'azureidir' = 'azureidir') => {
   const home = new HomePage();
-  const loginPage = new LoginProxy();
 
   const data = Cypress.env('users');
   let foundItem = data.find((item: User) => item.username === username && item.type === idp);

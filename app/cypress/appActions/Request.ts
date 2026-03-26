@@ -244,7 +244,6 @@ class Request {
     this.reqPage.confirmDelete(this.conFirm);
 
     // Navigate to the page if not there already (e.g for admins)
-    cy.wait(2000);
     this.navigation.goToMyDashboard();
 
     // Make sure the commit has been done.

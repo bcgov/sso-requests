@@ -7,7 +7,6 @@ class Navigation {
 
   goToMyDashboard() {
     cy.url().then((url) => {
-      cy.log(url);
       if (!url.includes('/my-dashboard') || url.includes('/teams')) {
         cy.get(`header a[href="/my-dashboard"]`).click();
         this.waitForPageLoad();
