@@ -60,7 +60,7 @@ class PlaygroundPage {
   }
 
   clickUpdate() {
-    cy.contains(this.commonButton, 'Update').click({ force: true });
+    cy.contains('button:visible', 'Update').click({ force: true });
   }
 
   clickLogin() {
