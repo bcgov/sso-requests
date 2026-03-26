@@ -1,7 +1,6 @@
 import 'cypress-plugin-api';
 import 'cypress-real-events';
 import HomePage from '../pageObjects/homePage';
-import LoginProxy from '../pageObjects/loginProxy';
 import Utilities from '../appActions/Utilities';
 const utils = new Utilities();
 

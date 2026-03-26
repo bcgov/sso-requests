@@ -60,7 +60,7 @@ class PlaygroundPage {
   }
 
   clickUpdate() {
-    cy.get('.accordion-collapse.show').contains(this.commonButton, 'Update').click({ force: true });
+    cy.contains(this.commonButton, 'Update').click({ force: true });
   }
 
   clickLogin() {
