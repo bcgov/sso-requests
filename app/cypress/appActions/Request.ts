@@ -244,8 +244,14 @@ class Request {
     this.reqPage.confirmDelete(this.conFirm);
 
     // Navigate to the page if not there already (e.g for admins)
-    this.navigation.waitForPageLoad();
-    this.navigation.goToMyDashboard();
+    cy.url().then((url) => {
+      if (url.includes('admin-dashboard')) {
+        this.navigation.goToMyDashboard();
+      } else {
+        this.navigation.waitForPageLoad();
+        this.navigation.goToMyDashboard();
+      }
+    });
 
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 20000 });
