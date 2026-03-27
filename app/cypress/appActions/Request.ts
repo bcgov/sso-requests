@@ -242,10 +242,18 @@ class Request {
 
     cy.get(this.reqPage.formSavingSpinnerSelector).should('not.exist');
 
-    cy.intercept('PUT', '/api/requests*').as('submit');
+    // Request submit redirects to one of two pages depending on role (admin or not), with no clear shared visual indicator.
+    // Need to intercept the request sent from each view, and then wait for one of the two to resolve to ensure a full page load
+    const firstRequest = new Cypress.Promise((resolve) => {
+      cy.intercept('GET', '/api/requests?include=active', (req) => resolve(req)).as('memberSubmit');
+      cy.intercept('POST', '/api/requests-all', (req) => resolve(req)).as('adminSubmit');
+    });
+
     this.reqPage.confirmDelete(this.conFirm);
-    cy.wait('@submit');
-    this.navigation.goToMyDashboard();
+
+    cy.wrap(firstRequest).then(() => {
+      this.navigation.goToMyDashboard();
+    });
 
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 20000 });

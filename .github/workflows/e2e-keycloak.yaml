@@ -80,6 +80,7 @@ jobs:
           wait-on: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
           wait-on-timeout: 360
           install-command: yarn
+          auto-cancel-after-failures: 1
           working-directory: app
           spec: |
             cypress/e2e/external/idpstopper-*.cy.ts
