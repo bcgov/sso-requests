@@ -241,17 +241,11 @@ class Request {
     this.reqPage.submitRequest(this.subMit);
 
     cy.get(this.reqPage.formSavingSpinnerSelector).should('not.exist');
-    this.reqPage.confirmDelete(this.conFirm);
 
-    // Navigate to the page if not there already (e.g for admins)
-    cy.url().then((url) => {
-      if (url.includes('admin-dashboard')) {
-        this.navigation.goToMyDashboard();
-      } else {
-        this.navigation.waitForPageLoad();
-        this.navigation.goToMyDashboard();
-      }
-    });
+    cy.intercept('PUT', '/api/requests').as('submit');
+    this.reqPage.confirmDelete(this.conFirm);
+    cy.wait('@submit');
+    this.navigation.goToMyDashboard();
 
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 20000 });
