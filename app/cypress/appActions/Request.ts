@@ -242,7 +242,7 @@ class Request {
 
     cy.get(this.reqPage.formSavingSpinnerSelector).should('not.exist');
 
-    cy.intercept('PUT', '/api/requests').as('submit');
+    cy.intercept('PUT', '/api/requests*').as('submit');
     this.reqPage.confirmDelete(this.conFirm);
     cy.wait('@submit');
     this.navigation.goToMyDashboard();
