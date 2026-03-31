@@ -50,7 +50,7 @@ export const fetchLogs = async (
   }
 
   const eventMeta = {
-    requestId,
+    requestId: requestId ? parseInt(requestId, 10) : undefined,
     idirUserid: userId,
     details: {
       environment: env,

@@ -93,6 +93,7 @@ import { getIdpApprovalStatus } from '@app/helpers/permissions';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import { Event } from '@app/interfaces/Event';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -143,25 +144,7 @@ const allowedFieldsForGithub = [
   ...envFieldsAll,
 ];
 
-interface EventData {
-  eventCode: string;
-  requestId?: string | number;
-  idirUserid?: string;
-  idirUserDisplayName?: string;
-  details?: {
-    environment?: string;
-    clientId?: string;
-    idirUserDisplayName?: string;
-    removerId?: string | number;
-    teamId?: string | number;
-    removedMemberId?: string | number;
-    action?: string;
-    [key: string]: any;
-  };
-  [key: string]: any;
-}
-
-export const createEvent = async (data: EventData) => {
+export const createEvent = async (data: Event) => {
   try {
     await models.event.create(data);
   } catch (err) {
@@ -212,12 +195,12 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
   if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
     const eventData = {
       eventCode: EVENTS.REQUEST_LIMIT_REACHED,
-      userId: session?.user?.id as number,
-      idirUserDisplayName,
+      idirUserid: session?.idir_userid,
+      idirUserDisplayName: session?.user?.displayName || '',
     };
 
     createEvent(eventData);
-    await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session?.user?.displayName });
+    await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session?.user?.displayName || '' });
     throw new createHttpError.TooManyRequests('reached the day limit');
   }
 
@@ -755,11 +738,11 @@ export const updateRequest = async (
     }
 
     if (submit) {
-      const eventData: any = {
+      const eventData: Event = {
         eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
         requestId: id,
-        userId: session?.user?.id as number,
-        idirUserDisplayName,
+        idirUserid: session?.idir_userid,
+        idirUserDisplayName: session?.user?.displayName || '',
       };
 
       if (isMerged) {
@@ -785,8 +768,8 @@ export const updateRequest = async (
       const eventData = {
         eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
         requestId: id,
-        userId: session?.user?.id as number,
-        idirUserDisplayName,
+        idirUserid: session?.idir_userid,
+        idirUserDisplayName: session?.user?.displayName || '',
       };
 
       await createEvent(eventData);
@@ -1055,8 +1038,8 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
       requestId: id,
-      userId: session?.user?.id as number,
-      idirUserDisplayName: user?.displayName,
+      idirUserid: session?.idir_userid,
+      idirUserDisplayName: session?.user?.displayName || '',
     });
 
     return integration;
@@ -1066,7 +1049,8 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
       requestId: id,
-      userId: session?.user?.id as number,
+      idirUserid: session?.idir_userid,
+      idirUserDisplayName: session?.user?.displayName || '',
     });
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }

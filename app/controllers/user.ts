@@ -350,7 +350,8 @@ export const deleteStaleUsers = async (
           createEvent({
             eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_FAILURE,
             requestId: rqst?.id,
-            userId: ssoUser.id,
+            idirUserid: ssoUser?.idirUserid,
+            idirUserDisplayName: ssoUser?.displayName,
           });
         }
       }

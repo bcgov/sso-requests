@@ -174,8 +174,11 @@ export const removeUserFromTeam = async (userId: number, memberUserId: number, t
 
   const userTeamRecord = await models.usersTeam.findOne({ where: { userId: memberUserId, teamId } });
   if (userTeamRecord.role === 'admin' && userTeamRecord.pending === false) {
+    const user = await getUserById(userId);
     await createEvent({
       eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
+      idirUserid: user?.idirUserid,
+      idirUserDisplayName: user?.displayName,
       details: {
         removerId: userId,
         teamId,
@@ -213,8 +216,11 @@ export const updateMemberInTeam = async (
       const canDemote = await canRemoveUser(memberUserId, teamId);
       if (!canDemote) throw new createHttpError.Forbidden('not allowed to update member in team');
       else {
+        const user = await getUserById(userId);
         await createEvent({
           eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
+          idirUserid: user?.idirUserid,
+          idirUserDisplayName: user?.displayName,
           details: {
             teamId,
             removerId: userId,
@@ -280,7 +286,7 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   const eventData = {
     eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
     requestId: saved?.id,
-    userId: session?.user?.id!,
+    idirUserid: session?.idir_userid,
     idirUserDisplayName: requester,
   };
   createEvent(eventData);
@@ -380,7 +386,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
     createEvent({
       eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,
       requestId: saId,
-      userId: session?.user?.id!,
+      idirUserid: session?.idir_userid,
       idirUserDisplayName: session.user?.displayName,
     });
 
@@ -391,7 +397,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
     createEvent({
       eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,
       requestId: saId,
-      userId: session?.user?.id!,
+      idirUserid: session?.idir_userid,
       idirUserDisplayName: session.user?.displayName,
     });
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
@@ -453,7 +459,8 @@ export const restoreTeamServiceAccount = async (session: Session, userId: number
   createEvent({
     eventCode: EVENTS.REQUEST_RESTORE_SUCCESS,
     requestId: saId,
-    userId: session?.user?.id!,
+    idirUserid: session?.idir_userid,
+    idirUserDisplayName: session?.user?.displayName,
   });
 
   return serviceAccount;
