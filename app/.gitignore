@@ -18,6 +18,8 @@
 # misc
 .DS_Store
 *.pem
+/mochawesome-report
+/cypress/videos
 
 # debug
 npm-debug.log*

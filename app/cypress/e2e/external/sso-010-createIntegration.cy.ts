@@ -8,24 +8,8 @@ let tempData = data;
 let util = new Utilities();
 
 describe('Create SSO Integration Requests', () => {
-  before(() => {
-    cy.cleanGC();
-  });
-  after(() => {
-    cy.cleanGC();
-  });
   beforeEach(() => {
-    cy.setid(null).then(() => {
-      cy.login();
-    });
-  });
-
-  afterEach(() => {
-    cy.logout();
-  });
-
-  after(() => {
-    cy.writeFile('cypress/fixtures/ssorequestsafter.json', tempData);
+    cy.login();
   });
 
   // Iterate through the JSON file and create a team for each entry
