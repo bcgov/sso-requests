@@ -422,3 +422,19 @@ ul.error-detail {
 .modal-open {
   padding-right: 0 !important;
 }
+
+.navbar-toggler:focus,
+.navbar-toggler:active,
+.navbar-toggler:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+.nav-link.active {
+  background: linear-gradient(orange, orange) bottom /* left or right or else */ no-repeat;
+  background-size: calc(100% - 2rem) 4px;
+}

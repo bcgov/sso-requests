@@ -10,13 +10,17 @@ import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
 import { formatWikiURL } from '@app/utils/constants';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import Nav from 'react-bootstrap/esm/Nav';
+import { NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR, NAV_APP_BAR_TEXT_COLOR } from '@app/styles/theme';
 
 const headerPlusFooterHeight = '152px';
 
 const LoggedUser = styled.span`
   display: flex;
-  align-items: end;
+  align-items: center;
   font-weight: 700;
+  color: ${NAV_APP_BAR_TEXT_COLOR};
+  justify-content: end;
 `;
 
 const MainContent = styled.div`
@@ -27,12 +31,8 @@ const MainContent = styled.div`
 const MobileSubMenu = styled.ul`
   padding-left: 2rem;
   padding-right: 2rem;
-
-  li a {
-    display: inline-block !important;
-    font-size: unset !important;
-    padding: 0 !important;
-    border-right: none !important;
+  a {
+    color: ${NAV_APP_BAR_TEXT_COLOR};
   }
 `;
 
@@ -44,25 +44,17 @@ const SubMenu = styled.div`
   padding-right: 2rem;
 `;
 
-const SubLeftMenu = styled.ul`
+const SubRightMenu = styled.div`
+  display: flex;
+  gap: 1rem;
+
   & a {
-    font-size: 1rem !important;
+    color: ${NAV_APP_BAR_TEXT_COLOR};
+    border-right: 1px solid ${NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR};
+    font-size: 0.9rem;
+    padding-right: 15px;
+    padding-top: 8px;
   }
-
-  & a.current {
-    font-weight: bold;
-  }
-
-  & li.current {
-    padding-bottom: 6px;
-    border-bottom: none;
-    background: linear-gradient(orange, orange) bottom /* left or right or else */ no-repeat;
-    background-size: calc(100% - 2rem) 4px;
-  }
-`;
-
-const SubRightMenu = styled.ul`
-  padding-right: 2rem;
 `;
 
 const FooterMenu = styled.div`
@@ -122,7 +114,17 @@ const routes: Route[] = [
   },
 ];
 
-const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentPath: string; query: any }) => {
+const LeftMenuItems = ({
+  session,
+  currentPath,
+  query,
+  mobileMenu = false,
+}: {
+  session: any;
+  currentPath: string;
+  query: any;
+  mobileMenu?: boolean;
+}) => {
   let roles = ['guest'];
   if (session) {
     roles = session?.client_roles?.length > 0 ? session?.client_roles : ['user'];
@@ -135,9 +137,21 @@ const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentP
       {routes.map((route) => {
         if (!route.private || hasAppPermission(roles, route.permission || '')) {
           return (
-            <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
-              <Link href={route.path}>{typeof route.label === 'function' ? route.label(query) : route.label}</Link>
-            </li>
+            <Nav.Link
+              as={Link}
+              href={route.path}
+              style={{
+                color: NAV_APP_BAR_TEXT_COLOR,
+                borderRight: `${!mobileMenu ? `1px solid ${NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR}` : 'none'}`,
+                fontWeight: 'normal',
+                padding: '1px 15px',
+                height: '32px',
+                background: `${mobileMenu && 'none'}`,
+              }}
+              active={isCurrent(route.path) ? true : false}
+            >
+              {typeof route.label === 'function' ? route.label(query) : route.label}
+            </Nav.Link>
           );
         } else {
           return null;
@@ -153,7 +167,7 @@ const RightMenuItems = () => (
       {(setOpenProfileModal: (flag: boolean) => void) => {
         return (
           <HoverItem>
-            <a title="My Profile" data-testid="my-profile-link">
+            <a title="My Profile" data-testid="my-profile-link" style={{ color: NAV_APP_BAR_TEXT_COLOR }}>
               <FontAwesomeIcon size="2x" icon={faUserAlt} onClick={() => setOpenProfileModal(true)} />
             </a>
           </HoverItem>
@@ -203,35 +217,44 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
   );
 
   const MobileMenu = () => (
-    <MobileSubMenu>
-      <LeftMenuItems session={session} currentPath={pathname} query={router.query} />
+    <>
+      <MobileSubMenu>
+        <LeftMenuItems session={session} currentPath={pathname} query={router.query} mobileMenu={true} />
+        <div
+          style={{
+            color: NAV_APP_BAR_TEXT_COLOR,
+            display: 'flex',
+            alignItems: 'center',
+            paddingLeft: '1rem',
+          }}
+        >
+          <div>Need Help?</div>
+          <div style={{ display: 'flex', gap: '1rem', padding: '0 1rem' }}>
+            <Nav.Link href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
+              <FontAwesomeIcon size="2x" icon={faCommentDots} />
+            </Nav.Link>
 
-      <li>
-        Need help?&nbsp;&nbsp;
-        <a href="https://chat.developer.gov.bc.ca/" target="_blank" title="Rocket Chat">
-          <FontAwesomeIcon size="2x" icon={faCommentDots} />
-        </a>
-        &nbsp;&nbsp;
-        <a href="mailto:bcgov.sso@gov.bc.ca" title="SSO Team">
-          <FontAwesomeIcon size="2x" icon={faEnvelope} />
-        </a>
-        &nbsp;&nbsp;
-        <a href={formatWikiURL()} target="_blank" title="Wiki">
-          <FontAwesomeIcon size="2x" icon={faFileAlt} />
-        </a>
-      </li>
-      <li>
-        {session ? (
-          <button className="secondary-inverse" onClick={onLogoutClick}>
-            Logout
-          </button>
-        ) : (
-          <button className="secondary-inverse" onClick={onLoginClick}>
-            Login with IDIR
-          </button>
-        )}
-      </li>
-    </MobileSubMenu>
+            <Nav.Link href="mailto:bcgov.sso@gov.bc.ca" target="_blank" title="Email SSO Team">
+              <FontAwesomeIcon size="2x" icon={faEnvelope} />
+            </Nav.Link>
+            <Nav.Link href={formatWikiURL()} target="_blank" title="Documentation">
+              <FontAwesomeIcon size="2x" icon={faFileAlt} />
+            </Nav.Link>
+          </div>
+        </div>
+        <div style={{ paddingLeft: '1rem' }}>
+          {session ? (
+            <button className="secondary-inverse" onClick={onLogoutClick}>
+              Logout
+            </button>
+          ) : (
+            <button className="secondary-inverse" onClick={onLoginClick}>
+              Login
+            </button>
+          )}
+        </div>
+      </MobileSubMenu>
+    </>
   );
 
   return (
@@ -243,9 +266,13 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
         onBannerClick={console.log}
       >
         <SubMenu>
-          <SubLeftMenu>
+          <div
+            style={{
+              display: 'flex',
+            }}
+          >
             <LeftMenuItems session={session} currentPath={pathname} query={router.query} />
-          </SubLeftMenu>
+          </div>
           <SubRightMenu>
             <RightMenuItems />
           </SubRightMenu>

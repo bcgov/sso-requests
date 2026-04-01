@@ -1,4 +1,3 @@
-import React from 'react';
 import Head from 'next/head';
 import styled from 'styled-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
