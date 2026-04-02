@@ -51,7 +51,7 @@ api:
       cpu: 100m
       memory: 512Mi
     requests:
-      cpu: 50m
+      cpu: 25m
       memory: 256Mi
   extraEnvs:
     API_VERSION: v1
@@ -69,7 +69,7 @@ resources:
     cpu: 200m
     memory: 1024Mi
   requests:
-    cpu: 50m
+    cpu: 25m
     memory: 256Mi
 
 nodeSelector: {}
