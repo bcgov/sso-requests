@@ -1,6 +1,6 @@
 import CenteredModal from './CenteredModal';
 import { ChangeEvent, useState } from 'react';
-import Input from '@button-inc/bcgov-theme/Input';
+import Input from './Input';
 import { trim } from 'lodash';
 
 interface Props {

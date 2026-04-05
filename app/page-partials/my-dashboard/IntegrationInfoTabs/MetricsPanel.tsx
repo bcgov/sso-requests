@@ -9,7 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { getMetrics } from '@app/services/grafana';
 import DateTimePicker from '@app/components/DateTimePicker';
 import { InfoMessage } from '@app/components/MessageBox';
-import { Link } from '@button-inc/bcgov-theme';
+import Link from '@app/components/Link';
 import { subtractDaysFromDate } from '@app/utils/helpers';
 import { SurveyContext } from '@app/utils/context';
 

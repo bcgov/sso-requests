@@ -12,7 +12,7 @@ import {
   checkIfOTPProdApplying,
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
-import { Link } from '@button-inc/bcgov-theme';
+import Link from '@app/components/Link';
 import { useEffect, useState } from 'react';
 import { getEvents } from '@app/services/event';
 import { Event } from 'interfaces/Event';

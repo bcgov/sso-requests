@@ -1,6 +1,6 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Select, { MultiValue, ActionMeta, CSSObjectWithLabel, MultiValueProps } from 'react-select';
-import Input from '@button-inc/bcgov-theme/Input';
+import Input from '@app/components/Input';
 import styled from 'styled-components';
 import { forEach } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -250,11 +250,12 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                     <Input
                       size="small"
                       data-testid="role-name-input-field"
-                      minLength="2"
-                      maxLength="100"
+                      minLength={2}
+                      maxLength={100}
                       value={role.name}
                       disabled={submitted}
                       onChange={(event: any) => handleNameChange(index, event.target.value)}
+                      fullWidth
                     />
                   </td>
                   <td className="env">

@@ -1,6 +1,5 @@
-import React from 'react';
 import styled from 'styled-components';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 
@@ -49,7 +48,7 @@ export default function FaqItems() {
         </li>
         <li>
           Please follow the{' '}
-          <Link external href="https://digital.gov.bc.ca/resources/digital-principles" target="_blank" rel="noreferrer">
+          <Link external href="https://digital.gov.bc.ca/resources/digital-principles">
             BC Government digital standards
           </Link>
         </li>

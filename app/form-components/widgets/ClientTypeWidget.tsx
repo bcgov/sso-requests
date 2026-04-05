@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import SolutionNavigator from 'page-partials/new-request/SolutionNavigator';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from 'next/link';
 import { WidgetProps } from '@rjsf/utils/lib/types';
 
 const InputGroup = styled.div`
@@ -47,7 +47,7 @@ const ClientTypeWidget = ({ id, value, onChange, onBlur, schema, options }: Widg
         </InputGroup>
       ))}
       <div>
-        <Link onClick={() => setOpenModal(true)} style={{ cursor: 'pointer' }}>
+        <Link href="#" onClick={() => setOpenModal(true)} style={{ cursor: 'pointer' }}>
           Click here
         </Link>
         {` `}to get help deciding which client type to use.

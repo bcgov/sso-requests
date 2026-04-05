@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import styled from 'styled-components';
-import Grid from '@button-inc/bcgov-theme/Grid';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
 import StandardRealmsSVG from 'svg/StandardRealms';
@@ -13,6 +12,7 @@ import Carousel from 'components/Carousel';
 import useWindowDimensions from '@app/hooks/useWindowDimensions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
+import { Col, Row } from 'react-bootstrap';
 
 interface PanelProps {
   marginLeft?: boolean;
@@ -117,94 +117,92 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
         <meta name="description" content="The request process workflow tool for the RedHat SSO Dev Exchange service" />
       </Head>
       <ResponsiveContainer rules={defaultRules}>
-        <Grid cols={2} gutter={[5, 2]}>
-          <Grid.Row collapse="800">
-            <Grid.Col>
-              <Panel marginRight>
-                <h1>Common Hosted Single Sign-On (CSS) Vision</h1>
-                <p className="text-large">
-                  Use our self-service app to integrate
-                  <br />
-                  with BC government approved login
-                  <br />
-                  services. Start by requesting an integration.
-                </p>
-                <ButtonContainer>
-                  <button className="primary" data-testid="request-integration" onClick={onLoginClick}>
-                    Request SSO Integration
-                  </button>
-                </ButtonContainer>
-              </Panel>
-            </Grid.Col>
-            <Grid.Col>
-              <Panel marginLeft>
-                <StandardRealmsSplashContainer>
-                  <div className="splash-image">
-                    <StandardRealmsSVG />
-                  </div>
-                  <div className="splash-text">
-                    <p className="text-large">Included:</p>
-                    <ul>
-                      <li>Pre-configured realms</li>
-                      <li>Access to dev and test</li>
-                      <li>Client IDs and secrets</li>
-                      <li>24/7 service availability</li>
-                      <li>Service Accounts</li>
-                      <li>Roles</li>
-                    </ul>
-                    <p className="text-large">Not Included:</p>
-                    <ul>
-                      <li>Authentication flows</li>
-                      <li>Offline sessions</li>
-                      <li>Custom scopes</li>
-                    </ul>
-                  </div>
-                </StandardRealmsSplashContainer>
-                <p style={{ paddingLeft: '0px' }}>
-                  To learn more about Pathfinder SSO visit the{' '}
-                  <Link href={formatWikiURL()} external>
-                    SSO Pathfinder Knowledge Base
-                  </Link>
-                </p>
-              </Panel>
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
+        <Row>
+          <Col sm={12} md={6}>
+            <Panel marginRight>
+              <h1>Common Hosted Single Sign-On (CSS) Vision</h1>
+              <p className="text-large">
+                Use our self-service app to integrate
+                <br />
+                with BC government approved login
+                <br />
+                services. Start by requesting an integration.
+              </p>
+              <ButtonContainer>
+                <button className="primary" data-testid="request-integration" onClick={onLoginClick}>
+                  Request SSO Integration
+                </button>
+              </ButtonContainer>
+            </Panel>
+          </Col>
+          <Col>
+            <Panel marginLeft>
+              <StandardRealmsSplashContainer>
+                <div className="splash-image">
+                  <StandardRealmsSVG />
+                </div>
+                <div className="splash-text">
+                  <p className="text-large">Included:</p>
+                  <ul>
+                    <li>Pre-configured realms</li>
+                    <li>Access to dev and test</li>
+                    <li>Client IDs and secrets</li>
+                    <li>24/7 service availability</li>
+                    <li>Service Accounts</li>
+                    <li>Roles</li>
+                  </ul>
+                  <p className="text-large">Not Included:</p>
+                  <ul>
+                    <li>Authentication flows</li>
+                    <li>Offline sessions</li>
+                    <li>Custom scopes</li>
+                  </ul>
+                </div>
+              </StandardRealmsSplashContainer>
+              <p style={{ paddingLeft: '0px' }}>
+                To learn more about Pathfinder SSO visit the{' '}
+                <Link href={formatWikiURL()} external>
+                  SSO Pathfinder Knowledge Base
+                </Link>
+              </p>
+            </Panel>
+          </Col>
+        </Row>
       </ResponsiveContainer>
 
       <br />
 
       <WhatsNew>
         <ResponsiveContainer rules={defaultRules} style={{ marginTop: '0px' }}>
-          <Grid cols={6} gutter={[5, 2]}>
-            <Grid.Row collapse="800">
-              <Grid.Col span={1}>
+          <Row>
+            <Row collapse="800">
+              <Col span={1}>
                 <WhatsNewSVG />
-              </Grid.Col>
-              <Grid.Col span={5}>
+              </Col>
+              <Col span={5}>
                 <h2>What&apos;s new at SSO?</h2>
                 <ul>
                   <li>
                     We&apos;ve updated our wiki into two areas of focus: one for{' '}
-                    <Link href={formatWikiURL()} target="_blank" rel="noreferrer" title="Business" external>
+                    <Link href={formatWikiURL()} title="Business" external>
                       business
                     </Link>{' '}
                     areas and one for{' '}
-                    <Link href={docusaurusURL} target="_blank" rel="noreferrer" title="Business" external>
+                    <Link href={docusaurusURL} title="Technical" external>
                       technical
                     </Link>
                     , take a look.
                   </li>
                 </ul>
-              </Grid.Col>
-            </Grid.Row>
-          </Grid>
+              </Col>
+            </Row>
+          </Row>
         </ResponsiveContainer>
       </WhatsNew>
 
       <ResponsiveContainer rules={defaultRules}>
-        <Grid cols={2} gutter={[5, 2]}>
-          <Grid.Row collapse="800">
+        <Row>
+          <Row collapse="800">
             <TopQuoteContainer>
               <div className="icon-circle">
                 <FontAwesomeIcon icon={faQuoteLeft} size="4x" />
@@ -213,21 +211,21 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                 The service and support has been consistently solid and extremely good.
               </div>
             </TopQuoteContainer>
-          </Grid.Row>
-          <Grid.Row collapse="800">
+          </Row>
+          <Row collapse="800">
             <Carousel viewableItems={width > 1200 ? 3 : 2}>
               {testimonials.map((testimonial) => (
                 <Testimonial testimonial={testimonial} key={testimonial.id} />
               ))}
             </Carousel>
-          </Grid.Row>
-        </Grid>
+          </Row>
+        </Row>
       </ResponsiveContainer>
 
       <ResponsiveContainer rules={defaultRules}>
-        <Grid cols={2} gutter={[5, 2]}>
-          <Grid.Row>
-            <Grid.Col span="2">
+        <Row>
+          <Row>
+            <Col span="2">
               <HorizontalRule />
               <h2>About</h2>
               <Accordion>
@@ -315,9 +313,9 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
               </Link>
               <br />
               <br />
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
+            </Col>
+          </Row>
+        </Row>
       </ResponsiveContainer>
     </>
   );

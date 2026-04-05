@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCommentDots, faEnvelope, faFileAlt, faUserAlt } from '@fortawesome/free-solid-svg-icons';
-import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
 import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';
@@ -11,7 +10,12 @@ import GoldNotificationModal from './GoldNotificationModal';
 import { formatWikiURL } from '@app/utils/constants';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Nav from 'react-bootstrap/esm/Nav';
-import { NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR, NAV_APP_BAR_TEXT_COLOR } from '@app/styles/theme';
+import {
+  MAIN_NAV_APP_BAR_BOTTOM_BORDER_COLOR,
+  MAIN_NAV_APP_BAR_COLOR,
+  NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR,
+  NAV_APP_BAR_TEXT_COLOR,
+} from '@app/styles/theme';
 
 const headerPlusFooterHeight = '152px';
 
@@ -58,10 +62,19 @@ const SubRightMenu = styled.div`
 `;
 
 const FooterMenu = styled.div`
-  padding-left: 2rem;
-  padding-right: 2rem;
-  ul.text-small a {
-    font-size: 0.875rem;
+  padding: 1px;
+  border-top: 2px solid ${MAIN_NAV_APP_BAR_BOTTOM_BORDER_COLOR};
+  & ul {
+    display: flex;
+    gap: 1.5rem;
+    list-style-type: none;
+    padding-left: 3rem;
+  }
+  & a {
+    color: ${NAV_APP_BAR_TEXT_COLOR};
+    border-right: 1px solid ${NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR};
+    font-size: 0.9rem;
+    padding-right: 15px;
   }
 `;
 
@@ -281,7 +294,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
       <MainContent>
         <TopAlert>{children}</TopAlert>
       </MainContent>
-      <Footer>
+      <div style={{ background: MAIN_NAV_APP_BAR_COLOR }}>
         <FooterMenu>
           <ul className="text-small">
             <li>
@@ -309,7 +322,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
             </li>
           </ul>
         </FooterMenu>
-      </Footer>
+      </div>
       <GoldNotificationModal />
     </TopAlertProvider>
   );

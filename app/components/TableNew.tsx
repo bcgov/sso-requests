@@ -17,7 +17,6 @@ import Select, { components } from 'react-select';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSortDown, faSortUp, faSort } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from './SearchBar';
-import Button from './Button';
 import TextBlock from 'react-placeholder/lib/placeholders/TextBlock';
 import ReactPlaceholder from 'react-placeholder';
 
@@ -433,7 +432,8 @@ const Table = <T extends object>({
       {enablePagination && table.getRowCount() > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: '0.5em' }}>
-            <Button
+            <button
+              className="primary"
               onClick={() => {
                 table.previousPage();
                 onPageChange(serverPageIndex - 1);
@@ -441,8 +441,9 @@ const Table = <T extends object>({
               disabled={!table.getCanPreviousPage()}
             >
               Previous
-            </Button>
-            <Button
+            </button>
+            <button
+              className="primary"
               onClick={() => {
                 table.nextPage();
                 onPageChange(serverPageIndex + 1);
@@ -450,7 +451,7 @@ const Table = <T extends object>({
               disabled={!table.getCanNextPage()}
             >
               Next
-            </Button>
+            </button>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
             </div>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import Alert from 'html-components/Alert';
+import Alert from 'react-bootstrap/Alert';
 import InstallationPanel from 'components/InstallationPanel';
 import SecretsPanel from 'page-partials/my-dashboard/SecretsPanel';
 import ClientRoles from 'page-partials/my-dashboard/RoleManagement';
@@ -18,8 +18,7 @@ import {
 } from '@app/helpers/integration';
 import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
-import Grid from '@button-inc/bcgov-theme/Grid';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
 import { padStart } from 'lodash';
 import { ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
@@ -33,6 +32,9 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import LogsPanel from './LogsPanel';
 import { formatWikiURL } from 'utils/constants';
 import OTPStatusPanel from './OTPStatusPanel';
+import { Col, Row } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -99,21 +101,18 @@ const getInstallationTab = ({
   return (
     <Tab key={TAB_DETAILS} tab="Technical Details">
       <TabWrapper short={false}>
-        <Grid cols={15}>
-          <Grid.Row gutter={[]}>
-            <Grid.Col span={7}>
-              <InstallationPanel integration={integration} />
-            </Grid.Col>
-            <Grid.Col span={1}></Grid.Col>
-            <Grid.Col span={7}>
-              <BceidStatusPanel approvalContext={approvalContext} />
-              <GithubStatusPanel approvalContext={approvalContext} />
-              <BcServicesCardPanel approvalContext={approvalContext} />
-              <SocialStatusPanel approvalContext={approvalContext} />
-              <OTPStatusPanel approvalContext={approvalContext} />
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
+        <Row>
+          <Col style={{ padding: '4px' }} sm={12} md={6}>
+            <InstallationPanel integration={integration} />
+          </Col>
+          <Col>
+            <BceidStatusPanel approvalContext={approvalContext} />
+            <GithubStatusPanel approvalContext={approvalContext} />
+            <BcServicesCardPanel approvalContext={approvalContext} />
+            <SocialStatusPanel approvalContext={approvalContext} />
+            <OTPStatusPanel approvalContext={approvalContext} />
+          </Col>
+        </Row>
       </TabWrapper>
     </Tab>
   );
@@ -123,14 +122,14 @@ const getLoadingSpinner = () => {
   return (
     <Tab key={TAB_DETAILS} tab="Technical Details">
       <TabWrapper short={false}>
-        <Grid cols={15}>
+        <Row>
           <br />
           <AlignCenter>
             <TopMargin />
             <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
             <BottomMargin />
           </AlignCenter>
-        </Grid>
+        </Row>
       </TabWrapper>
     </Tab>
   );
@@ -284,10 +283,15 @@ function IntegrationInfoTabs({ integration }: Props) {
     return (
       <IntegrationWrapper integration={integration}>
         <Alert variant="info">
-          <div>
-            <strong>Your request has not been submitted.</strong>
+          <div style={{ display: 'flex', gap: '5px' }}>
+            <div>
+              <FontAwesomeIcon icon={faCircleInfo} size="lg" />
+            </div>
+            <div>
+              <strong>Your request has not been submitted.</strong>
+              <p>To complete your request, click &quot;Edit&quot; button.</p>
+            </div>
           </div>
-          <div>To complete your request, click &quot;Edit&quot; button.</div>
         </Alert>
       </IntegrationWrapper>
     );

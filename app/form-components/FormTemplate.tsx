@@ -27,7 +27,6 @@ import { getUISchema } from 'schemas-ui';
 import { getSchemas } from 'schemas';
 import { Integration } from 'interfaces/Request';
 import { Team, LoggedInUser } from 'interfaces/team';
-import Link from '@button-inc/bcgov-theme/Link';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/utils/context';
@@ -44,6 +43,7 @@ import { hasRoleAssignableIdp } from '@app/schemas/providers-gold';
 import { fetchDefaultSessionSettings } from '@app/services/keycloak';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import Link from '@app/components/Link';
 
 const Description = styled.p`
   margin: 0;

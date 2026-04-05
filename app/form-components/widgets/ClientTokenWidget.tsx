@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { noop } from 'lodash';
-import Input from '@button-inc/bcgov-theme/Input';
-import Dropdown from '@button-inc/bcgov-theme/Dropdown';
+import Input from '@app/components/Input';
 import { WidgetProps } from '@rjsf/utils/lib/types';
+import Dropdown from '@app/components/Dropdown';
 
 const LeftInput = styled.span`
   & input {
@@ -19,20 +19,18 @@ const Container = styled.div`
 `;
 
 const RightDropdown = styled.span`
-  display: inline-block;
-
-  & select {
-    width: 100px;
-  }
-
-  & select:disabled {
-    margin: 0;
-  }
+  width: 150px;
 `;
 
 const MIN_1 = 60;
 const HOUR_1 = MIN_1 * 60;
 const DAY_1 = HOUR_1 * 24;
+
+const timeUnitOptions = [
+  { label: 'Minutes', value: 'Minutes' },
+  { label: 'Hours', value: 'Hours' },
+  { label: 'Days', value: 'Days' },
+];
 
 const ClientTokenWidget = ({ id, value = 0, label, readonly, uiSchema, onChange }: WidgetProps) => {
   if (readonly) onChange = noop;
@@ -92,8 +90,8 @@ const ClientTokenWidget = ({ id, value = 0, label, readonly, uiSchema, onChange 
     setTime(number);
   };
 
-  const handleTypeChange = (event: any) => {
-    const value = event.target.value;
+  const handleTypeChange = (selectedOption: { label: string; value: string }) => {
+    const value = selectedOption.value;
     let seconds = 0;
     if (value === 'Minutes') {
       seconds = time * MIN_1;
@@ -129,21 +127,22 @@ const ClientTokenWidget = ({ id, value = 0, label, readonly, uiSchema, onChange 
     <Container>
       <LeftInput>
         <Input
-          type="text"
-          size="small"
           id={id}
           name={label}
           value={time.toString()}
           onChange={handleNumberChange}
           disabled={readonly}
+          size="small"
         />
       </LeftInput>
       <RightDropdown>
-        <Dropdown size="small" onChange={handleTypeChange} value={unit} disabled={readonly}>
-          <option>Minutes</option>
-          <option>Hours</option>
-          <option>Days</option>
-        </Dropdown>
+        <Dropdown
+          size="small"
+          onChange={(option: any) => handleTypeChange(option)}
+          value={timeUnitOptions.find((option) => option.value === unit)}
+          isDisabled={readonly}
+          options={timeUnitOptions}
+        />
       </RightDropdown>
     </Container>
   );

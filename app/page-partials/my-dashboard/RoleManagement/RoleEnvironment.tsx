@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
 import { throttle, get, reduce } from 'lodash';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
@@ -29,6 +28,7 @@ import { KeycloakUser } from 'interfaces/team';
 import { dateTimeStringForFileName, generateXlsx } from '@app/utils/helpers';
 import _ from 'lodash';
 import TableNew from '@app/components/TableNew';
+import { Col, Row } from 'react-bootstrap';
 
 const COMPOSITE_ROLE_STRING_LENGTH = 17;
 
@@ -657,25 +657,24 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       {roleLoading ? (
         <LoaderContainer />
       ) : (
-        <Grid cols={10}>
-          <Grid.Row collapse="1100" gutter={[15, 2]}>
-            <Grid.Col span={4}>{leftPanel}</Grid.Col>
-            <Grid.Col span={6}>
-              {selectedRole && (
-                <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
-                  {rightPanelTabs.map((tab) => (
-                    <Tab key={tab} tab={tab} />
-                  ))}
-                </Tabs>
-              )}
-              {rightPanel}
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
+        <Row>
+          <Col>{leftPanel}</Col>
+          <Col>
+            {selectedRole && (
+              <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
+                {rightPanelTabs.map((tab) => (
+                  <Tab key={tab} tab={tab} />
+                ))}
+              </Tabs>
+            )}
+            {rightPanel}
+          </Col>
+        </Row>
       )}
       <GenericModal
         ref={confirmModalRef}
         title="Delete Role"
+        closable={true}
         icon={faExclamationTriangle}
         onConfirm={async (contentRef: any, roleName: string) => {
           const [_, error] = await deleteRole({

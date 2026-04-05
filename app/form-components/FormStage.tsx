@@ -1,7 +1,8 @@
 import styled from 'styled-components';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import FormStageBox from 'form-components/FormStageBox';
 import { Schema } from '@app/schemas/index';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 interface Props {
   currentStage: number;
@@ -26,23 +27,21 @@ export default function Formstage({ currentStage, setFormStage, errors, isNew, v
 
   return (
     <Container>
-      <Grid cols={4}>
-        <Grid.Row collapse="992" gutter={[]}>
-          {schemas?.map((schema, index) => (
-            <Grid.Col key={schema.stepText}>
-              <FormStageBox
-                title={schema.stepText}
-                stageNumber={index + 1}
-                active={index === currentStage}
-                key={index}
-                hasError={!!errors[index]}
-                visited={visited[index]}
-                handleClick={() => handleClick(index)}
-              />
-            </Grid.Col>
-          ))}
-        </Grid.Row>
-      </Grid>
+      <Row md={4} xs={1} className="g-0">
+        {schemas?.map((schema, index) => (
+          <Col key={schema.stepText}>
+            <FormStageBox
+              title={schema.stepText}
+              stageNumber={index + 1}
+              active={index === currentStage}
+              key={index}
+              hasError={!!errors[index]}
+              visited={visited[index]}
+              handleClick={() => handleClick(index)}
+            />
+          </Col>
+        ))}
+      </Row>
     </Container>
   );
 }
