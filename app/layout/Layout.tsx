@@ -9,7 +9,7 @@ import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
 import { formatWikiURL } from '@app/utils/constants';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
-import Nav from 'react-bootstrap/esm/Nav';
+import Nav from 'react-bootstrap/Nav';
 import {
   MAIN_NAV_APP_BAR_BOTTOM_BORDER_COLOR,
   MAIN_NAV_APP_BAR_COLOR,

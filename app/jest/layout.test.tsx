@@ -24,7 +24,7 @@ const user: User = {
 
 function LayoutComponent() {
   return (
-    <SessionContext.Provider value={{ session, user }}>
+    <SessionContext.Provider value={{ session, user } as any}>
       <Layout session={session} user={user} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
     </SessionContext.Provider>
   );
@@ -74,18 +74,21 @@ describe('Layout page', () => {
     const homeLink = screen.getAllByRole('link', { name: 'Home' });
     expect(homeLink[0]).toHaveAttribute('href', '/');
     expect(homeLink[1]).toHaveAttribute('href', '/');
-    expect(screen.getByRole('link', { name: 'My Dashboard' })).toHaveAttribute('href', '/my-dashboard');
-    expect(screen.getByRole('link', { name: 'SSO Dashboard' })).toHaveAttribute('href', '/admin-dashboard');
-    expect(screen.getByRole('link', { name: 'SSO Reports' })).toHaveAttribute('href', '/admin-reports');
-    expect(screen.getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/faq');
+    expect(screen.getAllByRole('link', { name: 'My Dashboard' })[0]).toHaveAttribute('href', '/my-dashboard');
+    expect(screen.getAllByRole('link', { name: 'SSO Dashboard' })[0]).toHaveAttribute('href', '/admin-dashboard');
+    expect(screen.getAllByRole('link', { name: 'SSO Reports' })[0]).toHaveAttribute('href', '/admin-reports');
+    expect(screen.getAllByRole('link', { name: 'FAQ' })[0]).toHaveAttribute('href', '/faq');
 
     await waitFor(() => {
       expect(screen.getByTestId('my-profile-link')).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('link', { name: 'Rocket Chat' })).toHaveAttribute('href', ROCKET_CHAT_HYPERLINK);
-    expect(screen.getByRole('link', { name: 'Pathfinder SSO' })).toHaveAttribute('href', PATHFINDER_SSO_HYPERLINK);
-    expect(screen.getByRole('link', { name: 'Documentation' })).toHaveAttribute('href', DOCUMENTATION_HYPERLINK);
+    expect(screen.getAllByRole('link', { name: 'Rocket Chat' })[0]).toHaveAttribute('href', ROCKET_CHAT_HYPERLINK);
+    expect(screen.getAllByRole('link', { name: 'Pathfinder SSO' })[0]).toHaveAttribute(
+      'href',
+      PATHFINDER_SSO_HYPERLINK,
+    );
+    expect(screen.getAllByRole('link', { name: 'Documentation' })[0]).toHaveAttribute('href', DOCUMENTATION_HYPERLINK);
     expect(screen.getByRole('link', { name: 'Disclaimer' })).toHaveAttribute('href', DISCLAIMER_HYPERLINK);
     expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', PRIVACY_HYPERLINK);
     expect(screen.getByRole('link', { name: 'Accessibility' })).toHaveAttribute('href', ACCESSIBILITY_HYPERLINK);
