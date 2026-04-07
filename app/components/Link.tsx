@@ -1,4 +1,3 @@
-import * as NextLink from 'next/link';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -19,5 +18,9 @@ export default function Link({ external, href, children, title, onClick, style }
       </a>
     );
   }
-  return <NextLink.default href={href}>{children}</NextLink.default>;
+  return (
+    <a href={href} onClick={onClick} style={style} aria-label={title}>
+      {children}
+    </a>
+  );
 }

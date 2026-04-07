@@ -197,7 +197,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
             <Input value={currentUser?.email || ''} readOnly fullWidth />
             <Dropdown
               aria-label="Role"
-              value={'admin'}
+              value={{ label: 'Admin', value: 'admin' }}
               options={[
                 {
                   label: 'Admin',
@@ -205,6 +205,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                 },
               ]}
               isDisabled
+              inputId="team-primary-admin-role"
             />
           </MemberContainer>
         )}
@@ -235,6 +236,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
               value={memberRoles.find((role) => role.value === member.role)}
               data-testid="user-role"
               options={memberRoles}
+              inputId={`team-member-role-${i}`}
             />
             {i >= 0 && allowDelete && (
               <Icon

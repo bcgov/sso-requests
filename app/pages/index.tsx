@@ -303,7 +303,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
               </Link>
               <br />
               Send us an{' '}
-              <Link href="mailto:bcgov.sso@gov.bc.ca" aria-label="Pathfinder SSO">
+              <Link href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO">
                 email
               </Link>
               <br />
