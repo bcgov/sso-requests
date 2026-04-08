@@ -16,7 +16,7 @@ import {
   usesSocial,
   usesOTP,
 } from '@app/helpers/integration';
-import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Border, Tabs } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import Link from '@button-inc/bcgov-theme/Link';

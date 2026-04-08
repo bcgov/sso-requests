@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import { startCase, throttle } from 'lodash';
-import { Tabs, Tab, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
+import { Tabs, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';

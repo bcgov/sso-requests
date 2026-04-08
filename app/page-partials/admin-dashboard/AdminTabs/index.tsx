@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Tabs } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import { usesBceid, usesGithub, usesBcServicesCard, usesSocial, usesOTP } from '@app/helpers/integration';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
@@ -8,11 +8,18 @@ import { LoggedInUser } from 'interfaces/team';
 import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
 import BcServicesCardTabContent from './BcServicesCardTabContent';
+import SocialTabContent from './SocialTabContent';
 import OTPTabContent from './OTPTabContent';
 import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 import { useState } from 'react';
 import { startCase } from 'lodash';
-import { isBceidApprover, isBcServicesCardApprover, isGithubApprover, isOTPApprover } from '@app/utils/helpers';
+import {
+  isBceidApprover,
+  isBcServicesCardApprover,
+  isGithubApprover,
+  isOTPApprover,
+  isSocialApprover,
+} from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 const TabWrapper = styled.div`
@@ -63,12 +70,16 @@ function AdminTabs({
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasBcServicesCardProd = hasBcServicesCard && hasProd && currentUser && isBcServicesCardApprover(currentUser);
 
+  const hasSocial = usesSocial(integration);
+  const hasSocialProd = hasSocial && hasProd && currentUser && isSocialApprover(currentUser);
+
   const hasOTP = usesOTP(integration);
   const hasOTPProd = hasOTP && hasProd && currentUser && isOTPApprover(currentUser);
 
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
   const handleBcServicesCardApproved = () => setRows();
+  const handleSocialApproved = () => setRows();
   const handleOTPApproved = () => setRows();
 
   const tabs = [
@@ -102,6 +113,13 @@ function AdminTabs({
       key: 'bcsc-prod',
       label: 'BC Services Card Prod',
       children: <BcServicesCardTabContent integration={integration} onApproved={handleBcServicesCardApproved} />,
+    });
+  }
+  if (hasSocialProd) {
+    tabs.push({
+      key: 'social-prod',
+      label: 'Social Prod',
+      children: <SocialTabContent integration={integration} onApproved={handleSocialApproved} />,
     });
   }
   if (hasOTPProd) {
