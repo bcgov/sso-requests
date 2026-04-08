@@ -8,18 +8,11 @@ import { LoggedInUser } from 'interfaces/team';
 import BceidTabContent from './BceidTabContent';
 import GithubTabContent from './GithubTabContent';
 import BcServicesCardTabContent from './BcServicesCardTabContent';
-import SocialTabContent from './SocialTabContent';
 import OTPTabContent from './OTPTabContent';
 import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 import { useState } from 'react';
 import { startCase } from 'lodash';
-import {
-  isBceidApprover,
-  isBcServicesCardApprover,
-  isGithubApprover,
-  isOTPApprover,
-  isSocialApprover,
-} from '@app/utils/helpers';
+import { isBceidApprover, isBcServicesCardApprover, isGithubApprover, isOTPApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 const TabWrapper = styled.div`
@@ -70,76 +63,99 @@ function AdminTabs({
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasBcServicesCardProd = hasBcServicesCard && hasProd && currentUser && isBcServicesCardApprover(currentUser);
 
-  const hasSocial = usesSocial(integration);
-  const hasSocialProd = hasSocial && hasProd && currentUser && isSocialApprover(currentUser);
-
   const hasOTP = usesOTP(integration);
   const hasOTPProd = hasOTP && hasProd && currentUser && isOTPApprover(currentUser);
 
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
   const handleBcServicesCardApproved = () => setRows();
-  const handleSocialApproved = () => setRows();
   const handleOTPApproved = () => setRows();
 
+  const tabs = [
+    {
+      key: 'details',
+      label: 'Details',
+      children: (
+        <TabWrapper>
+          <AdminRequestPanel currentUser={currentUser} request={integration} onUpdate={setRows} />
+        </TabWrapper>
+      ),
+    },
+  ];
+
+  if (hasBceidProd) {
+    tabs.push({
+      key: 'bceid-prod',
+      label: 'BCeID Prod',
+      children: <BceidTabContent integration={integration} onApproved={handleBceidApproved} />,
+    });
+  }
+  if (hasGithubProd) {
+    tabs.push({
+      key: 'github-prod',
+      label: 'GitHub Prod',
+      children: <GithubTabContent integration={integration} onApproved={handleGithubApproved} />,
+    });
+  }
+  if (hasBcServicesCardProd) {
+    tabs.push({
+      key: 'bcsc-prod',
+      label: 'BC Services Card Prod',
+      children: <BcServicesCardTabContent integration={integration} onApproved={handleBcServicesCardApproved} />,
+    });
+  }
+  if (hasOTPProd) {
+    tabs.push({
+      key: 'otp-prod',
+      label: 'OTP Prod',
+      children: <OTPTabContent integration={integration} onApproved={handleOTPApproved} />,
+    });
+  }
+  if (showEventsTabIf) {
+    tabs.push({
+      key: 'events',
+      label: 'Events',
+      children: (
+        <TabWrapper>
+          <AdminEventPanel requestId={integration.id} />
+        </TabWrapper>
+      ),
+    });
+  }
+  if (showRolesTabIf) {
+    const subTabs = environments.map((env) => {
+      return {
+        key: env,
+        label: startCase(env),
+        children: (
+          <>
+            <br />
+            <RoleEnvironment environment={env} integration={integration} viewOnly={true} />
+          </>
+        ),
+      };
+    });
+    tabs.push({
+      key: 'roles',
+      label: 'Roles',
+      children: (
+        <TabWrapper>
+          <Tabs items={subTabs} activeKey={environment} onChange={setEnvironment} tabBarGutter={30} />
+        </TabWrapper>
+      ),
+    });
+  }
+
   return (
-    <>
-      <Tabs activeKey={activeKey} onChange={(k: any) => setActiveKey(k)} tabBarGutter={30}>
-        <Tab key="details" tab="Details">
-          <TabWrapper>
-            <AdminRequestPanel currentUser={currentUser} request={integration} onUpdate={setRows} />
-          </TabWrapper>
-        </Tab>
-        {hasBceidProd && (
-          <Tab key="bceid-prod" tab="BCeID Prod">
-            <BceidTabContent integration={integration} onApproved={handleBceidApproved} />
-          </Tab>
-        )}
-        {hasGithubProd && (
-          <Tab key="github-prod" tab="GitHub Prod">
-            <GithubTabContent integration={integration} onApproved={handleGithubApproved} />
-          </Tab>
-        )}
-        {hasBcServicesCardProd && (
-          <Tab key="bcsc-prod" tab="BC Services Card Prod">
-            <BcServicesCardTabContent integration={integration} onApproved={handleBcServicesCardApproved} />
-          </Tab>
-        )}
-        {hasSocialProd && (
-          <Tab key="social-prod" tab="Social Prod">
-            <SocialTabContent integration={integration} onApproved={handleSocialApproved} />
-          </Tab>
-        )}
-        {hasOTPProd && (
-          <Tab key="otp-prod" tab="OTP Prod">
-            <OTPTabContent integration={integration} onApproved={handleOTPApproved} />
-          </Tab>
-        )}
-
-        {showEventsTabIf && (
-          <Tab key="events" tab="Events">
-            <TabWrapper>
-              <AdminEventPanel requestId={integration.id} />
-            </TabWrapper>
-          </Tab>
-        )}
-
-        {showRolesTabIf && (
-          <Tab key="roles" tab="Roles">
-            <TabWrapper>
-              <Tabs onChange={setEnvironment} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-                {environments.map((env) => (
-                  <Tab key={env} tab={startCase(env)}>
-                    <br />
-                    <RoleEnvironment environment={env} integration={integration} viewOnly={true} />
-                  </Tab>
-                ))}
-              </Tabs>
-            </TabWrapper>
-          </Tab>
-        )}
-      </Tabs>
-    </>
+    <div>
+      <Tabs
+        tabPosition="top"
+        activeKey={activeKey}
+        onChange={(k: any) => setActiveKey(k)}
+        tabBarGutter={30}
+        items={tabs}
+      />
+    </div>
   );
 }
 
