@@ -107,50 +107,6 @@ const MetricsPanel = ({ integration, alert }: Props) => {
     fetchMetrics(getFormattedDateString(fromDate), getFormattedDateString(toDate), environment);
   }, [integration?.clientId, environment, fromDate, toDate]);
 
-  const tabItems = environments.map((env) => ({
-    key: env,
-    label: startCase(env),
-    children: (
-      <div style={{ width: '100%', height: 300 }}>
-        {metrics?.length > 0 ? (
-          <ResponsiveContainer>
-            <BarChart
-              data={metrics}
-              margin={{
-                top: 20,
-                right: 20,
-                bottom: 30,
-                left: 20,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="event"
-                tick={{ fontSize: 10 }}
-                label={{ value: 'Events', position: 'insideBottomRight' }}
-              />
-              <YAxis dataKey="count" label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
-              <Tooltip />
-              <Legend />
-              <Bar
-                dataKey="count"
-                fill="#0d6efd"
-                barSize={30}
-                label={{ fill: '#0d6efd', fontSize: 20, position: 'top' }}
-                background={{ fill: '#eee' }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <div style={{ textAlign: 'center' }}>
-            <br />
-            <p>No data available yet!</p>
-          </div>
-        )}
-      </div>
-    ),
-  }));
-
   return (
     <>
       <TopMargin />
@@ -175,13 +131,49 @@ const MetricsPanel = ({ integration, alert }: Props) => {
         </DatePickerContainer>
       </div>
 
-      <Tabs
-        onChange={handleTabSelect}
-        activeKey={environment}
-        tabBarGutter={30}
-        destroyInactiveTabPane={true}
-        items={tabItems}
-      />
+      <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
+        {environments.map((env) => (
+          <Tab key={env} tab={startCase(env)}>
+            <div style={{ width: '100%', height: 300 }}>
+              {metrics?.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart
+                    data={metrics}
+                    margin={{
+                      top: 20,
+                      right: 20,
+                      bottom: 30,
+                      left: 20,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="event"
+                      tick={{ fontSize: 10 }}
+                      label={{ value: 'Events', position: 'insideBottomRight' }}
+                    />
+                    <YAxis dataKey="count" label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar
+                      dataKey="count"
+                      fill="#0d6efd"
+                      barSize={30}
+                      label={{ fill: '#0d6efd', fontSize: 20, position: 'top' }}
+                      background={{ fill: '#eee' }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ textAlign: 'center' }}>
+                  <br />
+                  <p>No data available yet!</p>
+                </div>
+              )}
+            </div>
+          </Tab>
+        ))}
+      </Tabs>
       <InfoMessage>
         This tab was released {metricsStartDate}. Please refer to{' '}
         <Link

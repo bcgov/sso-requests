@@ -2,9 +2,9 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import { Resizable } from 're-resizable';
 import styled from 'styled-components';
-import { Tabs } from '@bcgov-sso/common-react-components';
+import { Tabs, Tab } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer from 'components/ResponsiveContainer';
-import { mediaRules } from 'page-partials/admin-dashboard/VerticalLayout';
+import { mediaRules } from './Layout';
 
 const InnerResizable = styled.div`
   height: 100%;
@@ -26,18 +26,12 @@ function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, chil
     router.replace(`/my-dashboard/${key}`);
   };
 
-  const tabItems = [
-    {
-      key: 'integrations',
-      label: 'My Projects',
-    },
-    {
-      key: 'teams',
-      label: 'My Teams',
-    },
-  ];
-
-  const tabs = <Tabs onChange={navigateTab} activeKey={tab} tabBarGutter={30} items={tabItems} />;
+  const tabs = (
+    <Tabs onChange={navigateTab} activeKey={tab} tabBarGutter={30}>
+      <Tab key="integrations" tab="My Projects" />
+      <Tab key="teams" tab="My Teams" />
+    </Tabs>
+  );
 
   return (
     <ResponsiveContainer rules={mediaRules}>

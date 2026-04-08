@@ -652,11 +652,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     ></TableNew>
   );
 
-  const tabItems = rightPanelTabs.map((tab) => ({
-    key: tab,
-    label: tab,
-  }));
-
   return (
     <>
       {roleLoading ? (
@@ -667,12 +662,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             <Grid.Col span={4}>{leftPanel}</Grid.Col>
             <Grid.Col span={6}>
               {selectedRole && (
-                <Tabs
-                  onChange={handleRightPanelTabSelect}
-                  activeKey={rightPanelTab}
-                  tabBarGutter={30}
-                  items={tabItems}
-                />
+                <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
+                  {rightPanelTabs.map((tab) => (
+                    <Tab key={tab} tab={tab} />
+                  ))}
+                </Tabs>
               )}
               {rightPanel}
             </Grid.Col>

@@ -20,7 +20,7 @@
     "@azure/msal-node": "^5.0.6",
     "@babel/plugin-transform-private-methods": "^7.25.9",
     "@babel/preset-env": "^7.27.2",
-    "@bcgov-sso/common-react-components": "^2.1.3",
+    "@bcgov-sso/common-react-components": "^1.30.3",
     "@bcgov/bc-sans": "2.1.0",
     "@button-inc/bcgov-theme": "1.0.1",
     "@e965/xlsx": "^0.20.3",

@@ -335,6 +335,60 @@ describe('IDP Approvals', () => {
     expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
   });
 
+  it('Restricts Social Approver to social integrations and allows approval', async () => {
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests.social] }, null]));
+    jest.spyOn(requestModule, 'updateRequest').mockImplementation(() => Promise.resolve([{}, null]));
+    jest
+      .spyOn(eventModule, 'getEvents')
+      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEventsArray as any }, null]));
+    const { debug } = render(
+      <AdminDashboard
+        session={{ ...sampleSession, client_roles: ['social-approver'] }}
+        onLoginClick={jest.fn}
+        onLogoutClick={jest.fn}
+      />,
+    );
+
+    await waitFor(() => {
+      screen.getAllByText('Social Approver');
+    });
+
+    actionButtonsValidations();
+
+    const adminDashboardTable = screen.getByTestId('admin-dashboard-table');
+
+    fireEvent.click(within(adminDashboardTable).getByText('Social Approver'));
+
+    // should not see other IDPs
+    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('Github Prod')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Social Prod'));
+    const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
+    fireEvent.click(approveProdButton);
+    expect(screen.getByText('Social Approve'));
+
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() =>
+        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests.social, socialApproved: true }] }, null]),
+      );
+
+    //test on confirm button
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateRequest).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByText('Social Approve')).not.toBeInTheDocument();
+    });
+    const approvedString = `Approved by ${sampleEvents.socialApproved.idirUserDisplayName} on ${new Date(
+      sampleEvents.socialApproved.createdAt,
+    ).toLocaleString()}`;
+    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
+  });
+
   it('Restricts OTP Approver to otp integrations and allows approval', async () => {
     jest
       .spyOn(requestModule, 'getRequestAll')
