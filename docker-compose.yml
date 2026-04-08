@@ -215,9 +215,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: dev
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-dev:/terraform
     networks:
@@ -235,9 +232,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: test
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-test:/terraform
     networks:
@@ -255,9 +249,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: prod
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-prod:/terraform
     networks:
