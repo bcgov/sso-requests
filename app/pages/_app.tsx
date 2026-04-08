@@ -6,16 +6,16 @@ import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
 import { User, UserSurveyInformation } from 'interfaces/team';
 import Head from 'next/head';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'styles/globals.css';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import '@bcgov/bc-sans/css/BCSans.css';
 import SurveyBox from '@app/components/SurveyBox';
 import { KeycloakTokenParsed } from 'keycloak-js';
 import keycloak from '@app/utils/keycloak';
 import App from 'next/app';
 import { SessionContext, SurveyContext } from '@app/utils/context';
+import '@bcgov/bc-sans/css/BCSans.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'styles/globals.css';
 
 const authenticatedUris = [
   `${process.env.NEXT_PUBLIC_BASE_PATH}/my-dashboard`,
@@ -208,7 +208,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   if (loading) return <PageLoader />;
 
-  if (authenticatedUris.some((url) => window.location.pathname.startsWith(url)) && !isAuthenticated) {
+  if (authenticatedUris.some((url) => location.pathname.startsWith(url)) && !isAuthenticated) {
     router.push('/');
     return null;
   }

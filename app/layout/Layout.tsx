@@ -27,6 +27,10 @@ const LoggedUser = styled.span`
   justify-content: end;
 `;
 
+const LoginLogoutButton = styled.button`
+  white-space: nowrap;
+`;
+
 const MainContent = styled.div`
   padding: 1rem 0;
   min-height: calc(100vh - ${headerPlusFooterHeight});
@@ -148,27 +152,27 @@ const LeftMenuItems = ({
   return (
     <>
       {routes.map((route) => {
-        if (!route.private || hasAppPermission(roles, route.permission || '')) {
-          return (
-            <Nav.Link
-              as={Link}
-              href={route.path}
-              style={{
-                color: NAV_APP_BAR_TEXT_COLOR,
-                borderRight: `${!mobileMenu ? `1px solid ${NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR}` : 'none'}`,
-                fontWeight: 'normal',
-                padding: '1px 15px',
-                height: '32px',
-                background: `${mobileMenu && 'none'}`,
-              }}
-              active={isCurrent(route.path) ? true : false}
-            >
-              {typeof route.label === 'function' ? route.label(query) : route.label}
-            </Nav.Link>
-          );
-        } else {
-          return null;
-        }
+        const isAllowed = !route.private || hasAppPermission(roles, route.permission || '');
+
+        if (!isAllowed) return null;
+
+        const showDivider = !mobileMenu;
+        const label = typeof route.label === 'function' ? route.label(query) : route.label;
+
+        const style = {
+          color: NAV_APP_BAR_TEXT_COLOR,
+          borderRight: showDivider ? `1px solid ${NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR}` : '',
+          fontWeight: 'normal',
+          padding: '1px 15px',
+          height: '32px',
+          background: mobileMenu ? 'none' : undefined,
+        };
+
+        return (
+          <Nav.Link key={route.path} as={Link} href={route.path} style={style} active={isCurrent(route.path)}>
+            {label}
+          </Nav.Link>
+        );
       })}
     </>
   );
@@ -180,7 +184,7 @@ const RightMenuItems = () => (
       {(setOpenProfileModal: (flag: boolean) => void) => {
         return (
           <HoverItem>
-            <a title="My Profile" data-testid="my-profile-link" style={{ color: NAV_APP_BAR_TEXT_COLOR }}>
+            <a title="My Profile" data-testid="my-profile-link" style={{ color: NAV_APP_BAR_TEXT_COLOR }} href="#">
               <FontAwesomeIcon size="2x" icon={faUserAlt} onClick={() => setOpenProfileModal(true)} />
             </a>
           </HoverItem>
@@ -212,61 +216,90 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
 
   const rightSide = session ? (
     <LoggedUser>
-      <div>
+      <div style={{ whiteSpace: 'nowrap' }}>
         Welcome {`${session.given_name} ${session.family_name}`}&nbsp;
         {session?.client_roles && session?.client_roles.includes('sso-admin') && (
           <span className="small">(SSO Admin)</span>
         )}
       </div>
       &nbsp;&nbsp;
-      <button className="secondary-inverse" onClick={onLogoutClick} data-testid="desktop-logout-button">
+      <LoginLogoutButton className="secondary-inverse" onClick={onLogoutClick} data-testid="desktop-logout-button">
         Log out
-      </button>
+      </LoginLogoutButton>
     </LoggedUser>
   ) : (
-    <button className="secondary-inverse" onClick={onLoginClick} data-testid="desktop-login-button">
+    <LoginLogoutButton className="secondary-inverse" onClick={onLoginClick} data-testid="desktop-login-button">
       Log in
-    </button>
+    </LoginLogoutButton>
   );
 
-  const MobileMenu = () => (
-    <>
-      <MobileSubMenu>
-        <LeftMenuItems session={session} currentPath={pathname} query={router.query} mobileMenu={true} />
-        <div
-          style={{
-            color: NAV_APP_BAR_TEXT_COLOR,
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: '1rem',
-          }}
-        >
-          <div>Need Help?</div>
-          <div style={{ display: 'flex', gap: '1rem', padding: '0 1rem' }}>
-            <Nav.Link href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
-              <FontAwesomeIcon size="2x" icon={faCommentDots} />
-            </Nav.Link>
+  const MobileMenu = () => {
+    const containerStyle = {
+      color: NAV_APP_BAR_TEXT_COLOR,
+      display: 'flex',
+      alignItems: 'center',
+      paddingLeft: '1rem',
+    };
 
-            <Nav.Link href="mailto:bcgov.sso@gov.bc.ca" target="_blank" title="Email SSO Team">
-              <FontAwesomeIcon size="2x" icon={faEnvelope} />
-            </Nav.Link>
-            <Nav.Link href={formatWikiURL()} target="_blank" title="Documentation">
-              <FontAwesomeIcon size="2x" icon={faFileAlt} />
-            </Nav.Link>
+    const linksContainerStyle = {
+      display: 'flex',
+      gap: '1rem',
+      padding: '0 1rem',
+    };
+
+    const sectionPaddingStyle = {
+      paddingLeft: '1rem',
+    };
+
+    const helpLinks = [
+      {
+        href: 'https://chat.developer.gov.bc.ca/channel/sso',
+        title: 'Rocket Chat',
+        icon: faCommentDots,
+      },
+      {
+        href: 'mailto:bcgov.sso@gov.bc.ca',
+        title: 'Email SSO Team',
+        icon: faEnvelope,
+      },
+      {
+        href: formatWikiURL(),
+        title: 'Documentation',
+        icon: faFileAlt,
+      },
+    ];
+
+    const isLoggedIn = Boolean(session);
+    const authHandler = isLoggedIn ? onLogoutClick : onLoginClick;
+    const authLabel = isLoggedIn ? 'Logout' : 'Login';
+    return (
+      <MobileSubMenu>
+        <LeftMenuItems session={session} currentPath={pathname} query={router.query} mobileMenu />
+
+        <div style={containerStyle}>
+          <div>Need Help?</div>
+
+          <div style={linksContainerStyle}>
+            {helpLinks.map(({ href, title, icon }) => (
+              <Nav.Link key={title} href={href} target="_blank" title={title}>
+                <FontAwesomeIcon size="2x" icon={icon} />
+              </Nav.Link>
+            ))}
           </div>
         </div>
-        <div style={{ paddingLeft: '1rem' }}>
-          <button
+
+        <div style={sectionPaddingStyle}>
+          <LoginLogoutButton
             className="secondary-inverse"
-            onClick={session ? onLogoutClick : onLoginClick}
+            onClick={authHandler}
             data-testid="mobile-login-logout-button"
           >
-            {session ? 'Logout' : 'Login'}
-          </button>
+            {authLabel}
+          </LoginLogoutButton>
         </div>
       </MobileSubMenu>
-    </>
-  );
+    );
+  };
 
   return (
     <TopAlertProvider>

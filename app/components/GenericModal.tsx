@@ -81,7 +81,7 @@ interface Props {
   showCancelButton?: boolean;
   buttonAlign?: 'center' | 'right' | 'none';
   style?: CSSProperties;
-  size?: 'sm' | 'lg' | 'xl' | undefined;
+  size?: 'sm' | 'lg' | 'xl';
 }
 
 const GenericModal = (

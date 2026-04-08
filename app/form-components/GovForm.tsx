@@ -5,7 +5,6 @@ import wrapper from 'utils/widgetWrapper';
 import React from 'react';
 import { transformErrors } from 'utils/helpers';
 import Textarea from '@app/components/Textarea';
-import Dropdown from 'react-bootstrap/Dropdown';
 import { DropdownWidget } from './widgets/DropdownWidget';
 
 const PureInput = (props: any) => <Input {...omit(props, 'label')} />;

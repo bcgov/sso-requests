@@ -10,7 +10,8 @@ type Props = {
   style?: React.CSSProperties;
 };
 
-export default function Link({ external, href, children, title, onClick, style }: Props) {
+// mark the props as readonly to prevent accidental mutation
+export default function Link({ external, href, children, title, onClick, style }: Readonly<Props>) {
   if (external) {
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" title={title} onClick={onClick} style={style}>
