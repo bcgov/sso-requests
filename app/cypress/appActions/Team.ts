@@ -45,13 +45,13 @@ class Team {
             if (n > 0) {
               cy.get(this.teamPage.addUser, { timeout: 10000 }).first().scrollIntoView().click({ force: true });
             }
-            cy.get(this.teamPage.userEmail, { timeout: 10000 })
-              .eq(n)
+            cy.get(`[data-testid="team-member-email-input-${n}"]`, { timeout: 10000 })
               .type(this.userEmail[n], { delay: 50 })
               .trigger('select');
-            cy.get('#react-select-2-option-0').should('be.visible').click();
+            cy.get('[role="option"]').contains(new RegExp(this.userEmail[n], 'i')).click();
             cy.realPress('Tab');
-            cy.get(this.teamPage.userRole, { timeout: 10000 }).eq(n).select(this.userRole[n]);
+            cy.get(`#team-member-role-${n}`).click();
+            cy.get('[role="option"]').contains(new RegExp(this.userRole[n], 'i')).click();
             n++;
           }
         }
@@ -76,7 +76,9 @@ class Team {
         this.teamName = t;
         cy.get('table > tbody > tr', { timeout: 10000 }).eq(index).scrollIntoView().trigger('click'); // first click to focus and set the row to Active
         if (this.teamNameNew !== '') {
-          cy.get(this.teamPage.editTeamButton, { timeout: 10000 }).eq(index).scrollIntoView().trigger('click'); // Second on to Edit
+          cy.get(this.teamPage.editTeamButton, { timeout: 10000 }).eq(index).scrollIntoView();
+
+          cy.get(this.teamPage.editTeamButton, { timeout: 10000 }).eq(index).click(); // Second on to Edit
 
           cy.get(this.teamPage.modalEditTeam, { timeout: 10000 })
             .should('be.visible')
@@ -136,13 +138,12 @@ class Team {
                 if (n > 0) {
                   cy.get(this.teamPage.addUser, { timeout: 10000 }).first().scrollIntoView().trigger('click');
                 }
-                cy.get(this.teamPage.userEmail, { timeout: 10000 })
-                  .eq(n)
-                  .type(this.addUser[n]['useremail'].toString(), { delay: 50 });
+                cy.get(`[data-testid="team-member-email-input-${n}"]`, { timeout: 10000 }).type(
+                  this.addUser[n]['useremail'].toString(),
+                  { delay: 50 },
+                );
                 cy.realPress('Tab');
-                cy.get(this.teamPage.userRole, { timeout: 10000 })
-                  .eq(n)
-                  .select(this.addUser[n]?.['userrole']?.toString() || '');
+                cy.get(`#team-member-role-${n}`).select(this.addUser[n]?.['userrole']?.toString() || '');
                 n++;
               }
               cy.get(this.teamPage.confirmDeleteAddTeamMember, { timeout: 10000 }).first().click({

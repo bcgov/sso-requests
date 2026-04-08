@@ -219,12 +219,12 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
         )}
       </div>
       &nbsp;&nbsp;
-      <button className="secondary-inverse" onClick={onLogoutClick}>
+      <button className="secondary-inverse" onClick={onLogoutClick} data-testid="desktop-logout-button">
         Log out
       </button>
     </LoggedUser>
   ) : (
-    <button className="secondary-inverse" onClick={onLoginClick}>
+    <button className="secondary-inverse" onClick={onLoginClick} data-testid="desktop-login-button">
       Log in
     </button>
   );
@@ -256,15 +256,13 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
           </div>
         </div>
         <div style={{ paddingLeft: '1rem' }}>
-          {session ? (
-            <button className="secondary-inverse" onClick={onLogoutClick}>
-              Logout
-            </button>
-          ) : (
-            <button className="secondary-inverse" onClick={onLoginClick}>
-              Login
-            </button>
-          )}
+          <button
+            className="secondary-inverse"
+            onClick={session ? onLogoutClick : onLoginClick}
+            data-testid="mobile-login-logout-button"
+          >
+            {session ? 'Logout' : 'Login'}
+          </button>
         </div>
       </MobileSubMenu>
     </>

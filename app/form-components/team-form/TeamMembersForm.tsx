@@ -234,7 +234,6 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
               aria-label="Role"
               onChange={(val: any) => handleRoleChange(val, i)}
               value={memberRoles.find((role) => role.value === member.role)}
-              data-testid="user-role"
               options={memberRoles}
               inputId={`team-member-role-${i}`}
             />

@@ -71,7 +71,9 @@ function Navigation(props: any) {
               className="w-100 d-lg-flex justify-content-center"
               style={{ background: SUB_NAV_APP_BAR_COLOR }}
             >
-              <Nav className="w-100 px-2 py-2 pt-2 d-none d-lg-flex">{children}</Nav>
+              <Nav className="w-100 px-2 py-2 pt-2 d-none d-lg-flex" data-testid="desktop-nav">
+                {children}
+              </Nav>
 
               <Nav className="d-lg-none flex-column mt-2" style={{ background: SUB_NAV_APP_BAR_COLOR }}>
                 {mobileMenu()}

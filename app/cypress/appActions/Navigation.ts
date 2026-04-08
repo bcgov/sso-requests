@@ -8,7 +8,7 @@ class Navigation {
   goToMyDashboard() {
     cy.url().then((url) => {
       if (!url.includes('/my-dashboard') || url.includes('/teams')) {
-        cy.get(`header a[href="/my-dashboard"]`).click();
+        cy.get(`[data-testid="desktop-nav"] a[href="/my-dashboard"]`).click();
         this.waitForPageLoad();
       }
     });
@@ -18,10 +18,12 @@ class Navigation {
     cy.url().then((url) => {
       if (url.includes('/my-dashboard/teams')) return;
       if (url.includes('/my-dashboard') && !url.includes('/teams')) {
+        this.waitForPageLoad();
         cy.contains('My Teams').click();
         this.waitForPageLoad();
       } else {
-        cy.get(`header a[href="/my-dashboard"]`).click();
+        cy.get(`[data-testid="desktop-nav"] a[href="/my-dashboard"]`).click();
+        this.waitForPageLoad();
         cy.contains('My Teams').click();
         this.waitForPageLoad();
       }
@@ -30,7 +32,7 @@ class Navigation {
 
   goToAdminDashboard() {
     cy.url().then((url) => {
-      if (!url.endsWith('/admin-dashboard')) cy.get(`header a[href="/admin-dashboard"]`).click();
+      if (!url.endsWith('/admin-dashboard')) cy.get(`[data-testid="desktop-nav"] a[href="/admin-dashboard"]`).click();
     });
   }
 }

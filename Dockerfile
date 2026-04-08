@@ -75,6 +75,7 @@ ENV HOSTNAME=0.0.0.0
 
 WORKDIR /app
 
+COPY app/public ./public
 COPY --from=build /app/app/.next/standalone ./
 COPY --from=build /app/app/.next/static ./.next/static
 COPY --from=build /app/db ./db

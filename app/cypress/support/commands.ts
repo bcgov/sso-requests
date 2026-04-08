@@ -57,12 +57,12 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         cacheAcrossSpecs: true,
         validate: () => {
           cy.visit(Cypress.env('host'));
-          cy.get('header button').then(($a) => {
-            if ($a.text().includes('Log in')) {
-              cy.contains('Log in').click({ force: true });
+          cy.get('body').then(($body) => {
+            if ($body.find('[data-testid="desktop-login-button"]').length > 0) {
+              cy.get('[data-testid="desktop-login-button"]').click();
             }
-            cy.contains('button', 'Log out');
           });
+          cy.get('[data-testid="desktop-logout-button"]', { timeout: 3000 }).should('be.visible');
         },
       },
     );
@@ -74,12 +74,12 @@ Cypress.Commands.add('logout', (host) => {
   // Make sure you are on page with log out and logout
   cy.visit(host || Cypress.env('host'));
   cy.contains('Common Hosted Single Sign-on (CSS)', { timeout: 10000 });
-  cy.get('button', { timeout: 20000 }).contains('Log out').should('be.visible');
-  cy.get('button').contains('Log out').click({ force: true });
+  cy.get('[data-testid="desktop-logout-button"]', { timeout: 20000 }).should('be.visible');
+  cy.get('[data-testid="desktop-logout-button"]').click({ force: true });
   // Return to home page
   cy.visit(host || Cypress.env('host'));
   cy.contains('Common Hosted Single Sign-on (CSS)');
-  cy.get('button', { timeout: 10000 }).contains('Log in').should('be.visible');
+  cy.get('[data-testid="desktop-login-button"]', { timeout: 10000 }).should('be.visible');
 
   cy.log('Logged out');
 });
