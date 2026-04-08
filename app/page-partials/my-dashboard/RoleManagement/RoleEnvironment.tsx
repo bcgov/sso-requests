@@ -10,7 +10,7 @@ import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { ActionButton } from 'components/ActionButtons';
-import { LastSavedMessage, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { LastSavedMessage, Tabs } from '@bcgov-sso/common-react-components';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
@@ -652,6 +652,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     ></TableNew>
   );
 
+  const tabItems = rightPanelTabs.map((tab) => ({
+    key: tab,
+    label: tab,
+  }));
+
   return (
     <>
       {roleLoading ? (
@@ -662,11 +667,12 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             <Grid.Col span={4}>{leftPanel}</Grid.Col>
             <Grid.Col span={6}>
               {selectedRole && (
-                <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
-                  {rightPanelTabs.map((tab) => (
-                    <Tab key={tab} tab={tab} />
-                  ))}
-                </Tabs>
+                <Tabs
+                  onChange={handleRightPanelTabSelect}
+                  activeKey={rightPanelTab}
+                  tabBarGutter={30}
+                  items={tabItems}
+                />
               )}
               {rightPanel}
             </Grid.Col>

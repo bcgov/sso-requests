@@ -7,8 +7,10 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY app/package.json ./app/
+COPY app/yarn.lock ./app/
 
 COPY db/package.json ./db/
+COPY db/yarn.lock ./db/
 
 RUN yarn --cwd ./app install
 
