@@ -210,6 +210,80 @@ const RightMenuItems = () => (
   </>
 );
 
+const MobileMenu = ({
+  session,
+  onLoginClick,
+  onLogoutClick,
+}: {
+  session: any;
+  onLoginClick: () => void;
+  onLogoutClick: () => void;
+}) => {
+  const router = useRouter();
+  const pathname = router.pathname;
+  const containerStyle = {
+    color: NAV_APP_BAR_TEXT_COLOR,
+    display: 'flex',
+    alignItems: 'center',
+    paddingLeft: '1rem',
+  };
+
+  const linksContainerStyle = {
+    display: 'flex',
+    gap: '1rem',
+    padding: '0 1rem',
+  };
+
+  const sectionPaddingStyle = {
+    paddingLeft: '1rem',
+  };
+
+  const helpLinks = [
+    {
+      href: 'https://chat.developer.gov.bc.ca/channel/sso',
+      title: 'Rocket Chat',
+      icon: faCommentDots,
+    },
+    {
+      href: 'mailto:bcgov.sso@gov.bc.ca',
+      title: 'Email SSO Team',
+      icon: faEnvelope,
+    },
+    {
+      href: formatWikiURL(),
+      title: 'Documentation',
+      icon: faFileAlt,
+    },
+  ];
+
+  const isLoggedIn = Boolean(session);
+  const authHandler = isLoggedIn ? onLogoutClick : onLoginClick;
+  const authLabel = isLoggedIn ? 'Logout' : 'Login';
+  return (
+    <MobileSubMenu>
+      <LeftMenuItems session={session} currentPath={pathname} query={router.query} mobileMenu />
+
+      <div style={containerStyle}>
+        <div>Need Help?</div>
+
+        <div style={linksContainerStyle}>
+          {helpLinks.map(({ href, title, icon }) => (
+            <Nav.Link key={title} href={href} target="_blank" title={title}>
+              <FontAwesomeIcon size="2x" icon={icon} />
+            </Nav.Link>
+          ))}
+        </div>
+      </div>
+
+      <div style={sectionPaddingStyle}>
+        <LoginLogoutButton className="secondary-inverse" onClick={authHandler} data-testid="mobile-login-logout-button">
+          {authLabel}
+        </LoginLogoutButton>
+      </div>
+    </MobileSubMenu>
+  );
+};
+
 function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
   const router = useRouter();
   const pathname = router.pathname;
@@ -233,80 +307,12 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
     </LoginLogoutButton>
   );
 
-  const MobileMenu = () => {
-    const containerStyle = {
-      color: NAV_APP_BAR_TEXT_COLOR,
-      display: 'flex',
-      alignItems: 'center',
-      paddingLeft: '1rem',
-    };
-
-    const linksContainerStyle = {
-      display: 'flex',
-      gap: '1rem',
-      padding: '0 1rem',
-    };
-
-    const sectionPaddingStyle = {
-      paddingLeft: '1rem',
-    };
-
-    const helpLinks = [
-      {
-        href: 'https://chat.developer.gov.bc.ca/channel/sso',
-        title: 'Rocket Chat',
-        icon: faCommentDots,
-      },
-      {
-        href: 'mailto:bcgov.sso@gov.bc.ca',
-        title: 'Email SSO Team',
-        icon: faEnvelope,
-      },
-      {
-        href: formatWikiURL(),
-        title: 'Documentation',
-        icon: faFileAlt,
-      },
-    ];
-
-    const isLoggedIn = Boolean(session);
-    const authHandler = isLoggedIn ? onLogoutClick : onLoginClick;
-    const authLabel = isLoggedIn ? 'Logout' : 'Login';
-    return (
-      <MobileSubMenu>
-        <LeftMenuItems session={session} currentPath={pathname} query={router.query} mobileMenu />
-
-        <div style={containerStyle}>
-          <div>Need Help?</div>
-
-          <div style={linksContainerStyle}>
-            {helpLinks.map(({ href, title, icon }) => (
-              <Nav.Link key={title} href={href} target="_blank" title={title}>
-                <FontAwesomeIcon size="2x" icon={icon} />
-              </Nav.Link>
-            ))}
-          </div>
-        </div>
-
-        <div style={sectionPaddingStyle}>
-          <LoginLogoutButton
-            className="secondary-inverse"
-            onClick={authHandler}
-            data-testid="mobile-login-logout-button"
-          >
-            {authLabel}
-          </LoginLogoutButton>
-        </div>
-      </MobileSubMenu>
-    );
-  };
-
   return (
     <TopAlertProvider>
       <Navigation
         title={() => <HeaderTitle>Common Hosted Single Sign-on (CSS)</HeaderTitle>}
         rightSide={rightSide}
-        mobileMenu={MobileMenu}
+        mobileMenu={<MobileMenu session={session} onLoginClick={onLoginClick} onLogoutClick={onLogoutClick} />}
         onBannerClick={console.log}
       >
         <SubMenu>

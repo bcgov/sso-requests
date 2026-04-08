@@ -75,7 +75,7 @@ function Navigation(props: any) {
             </Nav>
 
             <Nav className="d-lg-none flex-column mt-2" style={{ background: SUB_NAV_APP_BAR_COLOR }}>
-              {mobileMenu()}
+              {mobileMenu}
             </Nav>
           </Navbar.Collapse>
         </Row>
