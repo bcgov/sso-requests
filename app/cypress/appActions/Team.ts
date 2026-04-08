@@ -138,12 +138,16 @@ class Team {
                 if (n > 0) {
                   cy.get(this.teamPage.addUser, { timeout: 10000 }).first().scrollIntoView().trigger('click');
                 }
+                cy.get(`[data-testid="team-member-email-input-${n}"]`, { timeout: 10000 }).should('be.visible');
                 cy.get(`[data-testid="team-member-email-input-${n}"]`, { timeout: 10000 }).type(
                   this.addUser[n]['useremail'].toString(),
                   { delay: 50 },
                 );
                 cy.realPress('Tab');
-                cy.get(`#team-member-role-${n}`).select(this.addUser[n]?.['userrole']?.toString() || '');
+                cy.get(`#team-member-role-${n}`).click();
+                cy.get('[role="option"]')
+                  .contains(new RegExp(this.addUser[n]?.['userrole']?.toString() || '', 'i'))
+                  .click();
                 n++;
               }
               cy.get(this.teamPage.confirmDeleteAddTeamMember, { timeout: 10000 }).first().click({
