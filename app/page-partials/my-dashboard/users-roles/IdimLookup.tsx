@@ -1,4 +1,4 @@
-import React, { useState, forwardRef, useEffect } from 'react';
+import { useState, forwardRef, useEffect } from 'react';
 import { faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
 import { ModalRef } from 'components/GenericModal';
@@ -215,6 +215,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
               <p>The user you searched for does not exist. Please try again, by entering the full search criteria.</p>
             )
           }
+          enablePagination={false}
         ></TableNew>
       </div>
 

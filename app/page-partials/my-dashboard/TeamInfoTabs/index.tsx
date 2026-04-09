@@ -36,16 +36,16 @@ import type { Status } from 'interfaces/types';
 import ActionButtons, { ActionButton } from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import ServiceAccountsList from './ServiceAccountsList';
 import { ErrorMessage, InfoMessage } from '@app/components/MessageBox';
-import { Link } from '@button-inc/bcgov-theme';
+import Link from '@app/components/Link';
 import { SurveyContext } from '@app/utils/context';
 import { docusaurusURL, messages } from '@app/utils/constants';
 import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
 import TableNew from '@app/components/TableNew';
 import Select from 'react-select';
+import { Col, Row } from 'react-bootstrap';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -678,9 +678,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
               <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
             </AlignCenter>
           ) : (
-            <Grid cols={10}>
-              <Grid.Row collapse="1100" gutter={[15, 2]}>
-                <Grid.Col span={4}>
+            <Row>
+              <Row>
+                <Col>
                   {teamServiceAccounts.length > 0 ? (
                     <ServiceAccountsList
                       team={team}
@@ -713,8 +713,8 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                       + Request CSS API Account
                     </button>
                   )}
-                </Grid.Col>
-                <Grid.Col span={6}>
+                </Col>
+                <Col>
                   {serviceAccountInProgress && (
                     <div
                       style={{
@@ -734,10 +734,10 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                       </div>
                     </div>
                   )}
-                </Grid.Col>
-              </Grid.Row>
+                </Col>
+              </Row>
               {teamServiceAccounts.length > 0 && (
-                <Grid.Row>
+                <Row>
                   <InfoMessage>
                     For more information on how to use the CSS API Account with your integrations,{' '}
                     <Link href={`${docusaurusURL}/integrating-your-application/css-app-api`} external>
@@ -745,9 +745,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     </Link>
                     .
                   </InfoMessage>
-                </Grid.Row>
+                </Row>
               )}
-            </Grid>
+            </Row>
           )}
         </TabWrapper>
       ),

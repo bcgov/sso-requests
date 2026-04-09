@@ -1041,7 +1041,8 @@ class Request {
         cy.realPress('Tab');
         cy.realPress('Tab');
 
-        cy.get(this.teamPage.userRole).eq(0).select('Admin');
+        cy.get('#team-member-role-0').click();
+        cy.get('[role="option"]').contains('Admin').click();
         cy.get('[data-testid="send-invitation"]').scrollIntoView().click({ force: true });
       });
   }

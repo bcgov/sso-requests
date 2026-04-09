@@ -117,7 +117,7 @@ _**Note:** If the script has logged `migration done` but won't close, you can ex
 - Build sso-requests:latest and sso-requests-api:latest images using below commands
 
   ```
-  docker-buildx build -t sso-requests .
+  docker buildx build --build-arg NEXT_PUBLIC_API_URL=http://localhost:3000/api --build-arg NEXT_PUBLIC_SSO_URL=https://dev.loginproxy.gov.bc.ca/auth --build-arg NEXT_PUBLIC_SSO_CLIENT_ID=css-app-in-gold-4128 --build-arg NEXT_PUBLIC_SSO_REDIRECT_URI=http://localhost:3000 --build-arg NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE=code --build-arg NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE=openid --build-arg NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE=authorization_code --build-arg NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration --build-arg NEXT_PUBLIC_ENABLE_GOLD=true --build-arg NEXT_PUBLIC_APP_URL=http://localhost:3000 --build-arg NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL=true --build-arg NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD=true --build-arg NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD=true --build-arg NEXT_PUBLIC_INCLUDE_OTP=true --build-arg NEXT_PUBLIC_APP_ENV=local --build-arg NEXT_PUBLIC_SSO_IDP_HINT: azureidir -t sso-requests:latest .
 
   cd ./api
 

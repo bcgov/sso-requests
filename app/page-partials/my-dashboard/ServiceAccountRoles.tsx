@@ -3,17 +3,16 @@ import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import { startCase, throttle } from 'lodash';
 import { Tabs, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
-import { noop } from 'lodash';
 import { formatWikiURL } from '@app/utils/constants';
 import TableNew from '@app/components/TableNew';
+import { Col, Row } from 'react-bootstrap';
 
 const Label = styled.label`
   font-weight: bold;
@@ -185,9 +184,9 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
     children: (
       <>
         <br />
-        <Grid cols={10}>
-          <Grid.Row collapse="1100" gutter={[15, 2]}>
-            <Grid.Col span={5}>
+        <Row>
+          <Row>
+            <Col span={5}>
               <TableNew
                 dataTestId="service-account-roles-table"
                 columns={[
@@ -199,8 +198,8 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
                 data={[{ projectName: selectedRequest.projectName }]}
                 enableGlobalSearch={false}
               ></TableNew>
-            </Grid.Col>
-            <Grid.Col span={5}>
+            </Col>
+            <Col span={5}>
               {loadingRight ? (
                 <Loading />
               ) : (
@@ -224,9 +223,9 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
                   />
                 </div>
               )}
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
+            </Col>
+          </Row>
+        </Row>
       </>
     ),
   }));

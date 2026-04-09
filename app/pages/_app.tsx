@@ -6,16 +6,16 @@ import Layout from 'layout/Layout';
 import PageLoader from 'components/PageLoader';
 import { User, UserSurveyInformation } from 'interfaces/team';
 import Head from 'next/head';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'styles/globals.css';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import '@bcgov/bc-sans/css/BCSans.css';
 import SurveyBox from '@app/components/SurveyBox';
 import { KeycloakTokenParsed } from 'keycloak-js';
 import keycloak from '@app/utils/keycloak';
 import App from 'next/app';
 import { SessionContext, SurveyContext } from '@app/utils/context';
+import '@bcgov/bc-sans/css/BCSans.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'styles/globals.css';
 
 const authenticatedUris = [
   `${process.env.NEXT_PUBLIC_BASE_PATH}/my-dashboard`,
@@ -40,8 +40,6 @@ const defaultUserSurveys: UserSurveyInformation = {
   downloadLogs: false,
 };
 
-const refreshTokenPromptTime = 300; // 5 minutes
-
 function MyApp({ Component, pageProps }: AppProps) {
   const sessionExpiringModalRef = useRef<ModalRef>(emptyRef);
   const router = useRouter();
@@ -52,32 +50,62 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [displaySurvey, setDisplaySurvey] = useState(false);
   const [openSurvey, setOpenSurvey] = useState(false);
   const [refreshTokenStatus, setRefreshTokenStatus] = useState<'fresh' | 'expiring' | 'expired'>('fresh');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Effect to check token age, and show user the appropriate modal if their refresh token is expiring/expired
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!session || !keycloak.refreshTokenParsed?.exp) return;
-      const now = new Date().getTime() / 1000;
-      const secondsToTokenExpiry = keycloak.refreshTokenParsed?.exp - now;
-      if (secondsToTokenExpiry > 0 && secondsToTokenExpiry < refreshTokenPromptTime) {
-        setRefreshTokenStatus('expiring');
-        sessionExpiringModalRef.current.updateConfig({
-          confirmButtonText: 'Continue',
-          cancelButtonText: 'Logout',
-        });
-        sessionExpiringModalRef.current.open();
-      } else if (secondsToTokenExpiry <= 0) {
-        sessionExpiringModalRef.current.updateConfig({
-          confirmButtonText: 'Login',
-          cancelButtonText: 'Cancel',
-        });
-        sessionExpiringModalRef.current.open();
-        setRefreshTokenStatus('expired');
-        setSession(null);
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [session]);
+  const expiryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const hasShownExpiringRef = useRef(false);
+  const hasShownExpiredRef = useRef(false);
+
+  const REFRESH_WARNING_TIME = 300; // Time in seconds before token expiry to show warning
+
+  const showExpiringModal = () => {
+    if (hasShownExpiringRef.current) return;
+
+    hasShownExpiringRef.current = true;
+
+    sessionExpiringModalRef.current?.updateConfig({
+      confirmButtonText: 'Continue',
+      cancelButtonText: 'Logout',
+    });
+
+    sessionExpiringModalRef.current?.open();
+  };
+
+  const showExpiredModal = () => {
+    if (hasShownExpiredRef.current) return;
+
+    hasShownExpiredRef.current = true;
+
+    sessionExpiringModalRef.current?.updateConfig({
+      confirmButtonText: 'Login',
+      cancelButtonText: 'Cancel',
+    });
+
+    sessionExpiringModalRef.current?.open();
+  };
+
+  // ⏱ Schedule pre-expiry warning
+  const scheduleExpiryWarning = () => {
+    if (expiryTimeoutRef.current) {
+      clearTimeout(expiryTimeoutRef.current);
+    }
+
+    hasShownExpiringRef.current = false;
+
+    const exp = keycloak.refreshTokenParsed?.exp;
+    if (!exp) return;
+
+    const now = Math.floor(Date.now() / 1000);
+    const delay = (exp - now - REFRESH_WARNING_TIME) * 1000;
+
+    if (delay <= 0) return;
+
+    expiryTimeoutRef.current = setTimeout(() => {
+      setRefreshTokenStatus('expiring');
+      showExpiringModal();
+    }, delay);
+  };
 
   const setShowSurvey = async (show: boolean, triggerEvent: keyof UserSurveyInformation) => {
     if (!user) return;
@@ -105,15 +133,52 @@ function MyApp({ Component, pageProps }: AppProps) {
       setLoading(false);
     }
 
+    if (keycloak) {
+      keycloak.onAuthSuccess = () => {
+        setIsAuthenticated(true);
+
+        hasShownExpiredRef.current = false;
+        scheduleExpiryWarning();
+      };
+
+      keycloak.onAuthRefreshSuccess = () => {
+        hasShownExpiredRef.current = false;
+        scheduleExpiryWarning();
+      };
+
+      keycloak.onAuthRefreshError = () => {
+        setRefreshTokenStatus('expired');
+        showExpiredModal();
+      };
+
+      keycloak.onTokenExpired = async () => {
+        try {
+          await keycloak.updateToken();
+        } catch {
+          setRefreshTokenStatus('expired');
+          showExpiredModal();
+        }
+      };
+
+      keycloak.onAuthLogout = () => {
+        setIsAuthenticated(false);
+      };
+    }
+
     if (!keycloak.didInitialize && !pageProps?.maintenanceMode) {
       keycloak
         .init({
           redirectUri: process.env.NEXT_PUBLIC_SSO_REDIRECT_URI,
           onLoad: 'check-sso',
         })
-        .then(() => {
+        .then((authenticated) => {
           const processedSession = proccessSession(keycloak.idTokenParsed);
           setSession(processedSession);
+          setIsAuthenticated(authenticated);
+
+          if (authenticated) {
+            scheduleExpiryWarning();
+          }
         })
         .catch((err: Error) => console.error(err))
         .finally(() => {
@@ -143,7 +208,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   if (loading) return <PageLoader />;
 
-  if (authenticatedUris.some((url) => window.location.pathname.startsWith(url)) && !keycloak.authenticated) {
+  if (authenticatedUris.some((url) => location.pathname.startsWith(url)) && !isAuthenticated) {
     router.push('/');
     return null;
   }
